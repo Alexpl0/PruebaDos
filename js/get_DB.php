@@ -11,7 +11,7 @@ try {
     $con = new LocalConector();
     $conex = $con->conectar();
 
-    $stmt = $conex->prepare("SELECT * FROM `Productos` WHERE `Nombre` = ? AND `Marca` = ? AND `Descripcion` = ?");
+    $stmt = $conex->prepare("SELECT * FROM `Productos` WHERE 1");
     $stmt->bind_param("sss", $nombre, $marca, $descripcion);
     $stmt->execute();
 
