@@ -12,7 +12,7 @@ try {
     $con = new LocalConector();
     $conex=$con ->conectar();
 
-    $stmt = $conex->prepare("INSERT INTO `Productos`(`Nombre`, `Marca`, `Descripcion`) VALUES ('?','?','?')");
+    $stmt = $conex->prepare("INSERT INTO `Productos`(`Nombre`, `Marca`, `Descripcion`) VALUES (?,?,?)");
     $stmt->bind_param("sss", $nombre, $marca, $descripcion);
 
     $stmt->execute();
