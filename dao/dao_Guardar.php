@@ -29,4 +29,3 @@ try {
     echo json_encode(["success" => false, "mensaje" => $e->getMessage()]);
 }
 ?>
-
