@@ -30,10 +30,9 @@
 
     function mostrarProducto(){
         console.log("Mostrar producto");
-        fetch('https://grammermx.com/Jesus/PruebaDos/js/get_DB.php'),
-        {
+        fetch('https://grammermx.com/Jesus/PruebaDos/js/get_DB.php', { // Added options object
             method: 'GET'
-        }
+        }) // Corrected fetch call
         .then(response => response.json())
         .then(data => {
             console.log(data);
@@ -46,6 +45,7 @@
                 table.appendChild(row);
             });
         })
+        .catch(error => console.error("Error fetching data:", error)); // Added error handling
     }
 
     function guardarProducto() {
