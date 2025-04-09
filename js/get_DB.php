@@ -6,7 +6,7 @@ try {
     $con = new LocalConector();
     $conex = $con->conectar();
 
-    $sql = "SELECT * FROM `Productos`"; //Aqui va la consulta que se necesite
+    $sql = "SELECT * FROM `Productos`"; //Aqui va la consulta que se necesites
 
     $stmt = $conex->prepare($sql); // Prepara la consulta SQL para su ejecución.
 

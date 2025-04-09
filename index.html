@@ -32,18 +32,10 @@
         console.log("Mostrar producto");
         fetch('https://grammermx.com/Jesus/PruebaDos/js/get_DB.php', { // Added options object
             method: 'GET'
-        }) // Corrected fetch call
+        })
         .then(response => response.json())
         .then(data => {
             console.log(data);
-            var table = document.getElementById("userTable");
-            table.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos datos
-
-            data.forEach(function(item) {
-                var row = document.createElement("tr");
-                row.innerHTML = "<td>" + item.nombre + "</td><td>" + item.marca + "</td><td>" + item.descripcion + "</td>";
-                table.appendChild(row);
-            });
         })
         .catch(error => console.error("Error fetching data:", error)); // Added error handling
     }
