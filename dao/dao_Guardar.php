@@ -6,12 +6,14 @@ $nombre = $_POST['nombre'];
 $marca = $_POST['marca'];
 $descripcion = $_POST['descripcion'];
 
+
+
 try {
     $con = new LocalConector();
     $conex=$con ->conectar();
 
     $stmt = $conex->prepare("INSERT INTO `Productos`(`Nombre`, `Marca`, `Descripcion`) VALUES ('?','?','?')");
-    $stmt->bind_param("ss", $nombre, $marca, $descripcion);
+    $stmt->bind_param("sss", $nombre, $marca, $descripcion);
 
     $stmt->execute();
 
