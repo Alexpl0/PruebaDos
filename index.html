@@ -6,12 +6,39 @@
     <title>Document</title>
 </head>
 <body>
-    <input type="text" id="txtUsuario" placeholder="Ususario">
-    <input type="password" id="txtPassword" placeholder="Contraseña">
-    <button id="btnGuardar" onclick="guardarUsuario()">Guardar</button>
+    <input type="text" id="txtNombre" placeholder="Nombre del Producto">
+    <input type="text" id="txtMarca" placeholder="Marca del Producto">
+    <input type="text" id="txtDescripcion" placeholder="Descripcion del Producto">
+    <button id="btnGuardar" onclick="guardarProducto()">Guardar</button>
 
 
 <script>
+
+    function guardarProducto() {
+        var nombre = document.getElementById("txtUsuario").value;
+        var marca = document.getElementById("txtPassword").value;
+        var descripcion = document.getElementById("txtDescripcion").value;
+
+        var formData = new FormData();
+
+        formData.append('nombre', nombre)
+        formData.append('marca', marca)
+        formData.append('descripcion', descripcion)
+
+        fetch('https://grammermx.com/Jesus/PruebaDos/dao/dao_Guardar.php', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+
+                if (data.success) {
+                    alert("Se guardo el producto");
+                } else {
+                    alert("No se guardo el producto");
+                }
+            });
+    }
 
     function guardarUsuario() {
         var usuario = document.getElementById("txtUsuario").value;

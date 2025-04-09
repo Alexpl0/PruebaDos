@@ -2,15 +2,16 @@
 
 include_once('db/db.php');
 
-$usuario = $_POST['usuario'];
-$password = $_POST['password'];
+$nombre = $_POST['nombre'];
+$marca = $_POST['marca'];
+$descripcion = $_POST['descripcion'];
 
 try {
     $con = new LocalConector();
     $conex=$con ->conectar();
 
-    $stmt = $conex->prepare("INSERT INTO `Usuarios`(`Nombre`, `Password`, `Estatus`) VALUES (?,?,'1')");
-    $stmt->bind_param("ss", $usuario, $password);
+    $stmt = $conex->prepare("INSERT INTO `Productos`(`Nombre`, `Marca`, `Descripcion`) VALUES (?,?,?)");
+    $stmt->bind_param("ss", $nombre, $marca, $descripcion);
 
     $stmt->execute();
 
