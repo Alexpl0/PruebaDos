@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Document</title>
+</head>
+<body>
+    <input type="text" id="txtUsuario" placeholder="Ususario">
+    <input type="password" id="txtPassword" placeholder="Contraseña">
+    <button id="btnGuardar" onclick="guardarUsuario()">Guardar</button>
+</body>
+
+<script>
+
+    function guardarUsuario() {
+        var usuario = document.getElementById("txtUsuario").value;
+        var password = document.getElementById("txtPassword").value;
+
+        var formData = formData();
+
+        formData.append('usuario', usuario)
+        formData.append('password', password)
+
+        fetch('https://grammermx.com/Jesus/PruebaDos/dao/dao_Guardar.php', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+
+                if (data.success) {
+                    alert("Se guardo el usuario");
+                } else {
+                    alert("No se guardo el usuario");
+                }
+            });
+    }
+
+</script>
+</html>
