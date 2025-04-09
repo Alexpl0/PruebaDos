@@ -3,11 +3,10 @@
 include_once('dao/db/db.php');
 
 try {
-    // Obtener los parámetros de la solicitud
     $con = new LocalConector();
     $conex = $con->conectar();
 
-    $sql = "SELECT * FROM `Productos` WHERE 1"; //Aqui va la consulta que se necesite
+    $sql = "SELECT * FROM `Productos`"; //Aqui va la consulta que se necesite
 
     $stmt = $conex->prepare($sql); // Prepara la consulta SQL para su ejecución.
 
