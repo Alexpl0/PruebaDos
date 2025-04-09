@@ -11,16 +11,21 @@ try {
     $con = new LocalConector();
     $conex = $con->conectar();
 
-    $stmt = $conex->prepare("SELECT * FROM `Productos`");
+    $stmt = $conex->prepare("SELECT * FROM `Productos` WHERE `Nombre` = ? AND `Marca` = ? AND `Descripcion` = ?");
     $stmt->bind_param("sss", $nombre, $marca, $descripcion);
     $stmt->execute();
 
-    // Se obtienen los resultados de la consulta, get_result() devuelve un objeto de resultado
+
+    // Obtener los resultados
     $result = $stmt->get_result();
+    $productos = $result->fetch_all(MYSQLI_ASSOC);
 
-    // Se verifica si se obtuvieron resultados, $productos es un array que almacenara los resultados
-    $productos = [];
-
+    // Verificar si se encontraron productos
+    if (empty($productos)) {
+        echo json_encode(["success" => false, "message" => "No se encontraron productos"]);
+    } else {
+        echo json_encode(["success" => true, "data" => $productos]);
+    }
     $stmt->close();
     $conex->close();
 
