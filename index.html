@@ -30,8 +30,13 @@
 
     function mostrarProducto(){
         console.log("Mostrar producto");
-        fetch('https://grammermx.com/Jesus/PruebaDos/js/get_DB.php')
-            console.log("Fetch realizado");
+        fetch('https://grammermx.com/Jesus/PruebaDos/js/get_DB.php'),
+        {
+            method: 'GET'
+        }
+        if (response.ok){
+            console.log("Respuesta correcta");
+        }
     }
 
     function guardarProducto() {
