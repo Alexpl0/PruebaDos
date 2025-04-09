@@ -2,12 +2,12 @@
 
 include_once('dao/db/db.php');
 
-// Leer los parámetros de la URL
-$nombre = $_GET['nombre'];
-$marca = $_GET['marca'];
-$descripcion = $_GET['descripcion'];
-
 try {
+    // Leer los parámetros de la URL
+    $nombre = $_GET['nombre'];
+    $marca = $_GET['marca'];
+    $descripcion = $_GET['descripcion'];
+
     $con = new LocalConector();
     $conex = $con->conectar();
 
