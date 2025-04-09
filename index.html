@@ -9,7 +9,7 @@
     <input type="text" id="txtUsuario" placeholder="Ususario">
     <input type="password" id="txtPassword" placeholder="Contraseña">
     <button id="btnGuardar" onclick="guardarUsuario()">Guardar</button>
-</body>
+
 
 <script>
 
@@ -17,7 +17,7 @@
         var usuario = document.getElementById("txtUsuario").value;
         var password = document.getElementById("txtPassword").value;
 
-        var formData = FormData();
+        var formData = new FormData();
 
         formData.append('usuario', usuario)
         formData.append('password', password)
@@ -38,4 +38,5 @@
     }
 
 </script>
+</body>
 </html>
