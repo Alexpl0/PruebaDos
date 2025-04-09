@@ -11,8 +11,36 @@
     <input type="text" id="txtDescripcion" placeholder="Descripcion del Producto">
     <button id="btnGuardar" onclick="guardarProducto()">Guardar</button>
 
+    <h1>Mostrar Usuarios</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Marca</th>
+                <th>Descripcion</th>
+            </tr>
+        </thead>
+        <tbody id="userTable">
+
+        </tbody>
+    </table>
 
 <script>
+
+    function mostrarProducto(){
+        fetch('https://grammermx.com/Jesus/PruebaDos/dao/get_DB.php')
+            .then(response => response.json())
+            .then(data => {
+                var userTable = document.getElementById("userTable");
+                userTable.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos datos
+
+                data.forEach(function(item) {
+                    var row = document.createElement("tr");
+                    row.innerHTML = "<td>" + item.nombre + "</td><td>" + item.marca + "</td><td>" + item.descripcion + "</td>";
+                    userTable.appendChild(row);
+                });
+            });
+    }
 
     function guardarProducto() {
         var nombre = document.getElementById("txtNombre").value;
