@@ -1,6 +1,6 @@
 <?php
 
-include_once ('db/db.php');
+include_once('db/db.php');
 
 $usuario = $_POST['usuario'];
 $password = $_POST['password'];
@@ -10,7 +10,7 @@ try {
     $conex=$con ->conectar();
 
     $stmt = $conex->prepare("INSERT INTO `Usuarios`(`Nombre`, `Password`, `Estatus`) VALUES (?,?,'1')");
-    $stmt->bind_param("ssi", $user, $password);
+    $stmt->bind_param("ss", $usuario, $password);
 
     $stmt->execute();
 
@@ -27,3 +27,4 @@ try {
     http_response_code(500);
     echo json_encode(["success" => false, "mensaje" => $e->getMessage()]);
 }
+?>
