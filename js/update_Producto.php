@@ -14,7 +14,7 @@ try {
     $conex=$con ->conectar();
 
     //Query para conectar a la tabla de la base datos. Se identifica la tabla y los campos, ademas los VALUES se dejan con ? para evitar inyecciones SQL
-    $stmt = $conex->prepare("UPDATE `Productos` SET `IdProducto`=?,`Nombre`=?,`Marca`=?',`Descripcion`=? WHERE IdProducto = ?");
+    $stmt = $conex->prepare("UPDATE `Productos` SET `IdProducto`=?,`Nombre`=?,`Marca`=?,`Descripcion`=? WHERE IdProducto = ?");
     // Se preparan los valores a insertar en la tabla, se especifica el tipo de dato de cada uno de los valores a insertar, en este caso son todos strings sss
     $stmt->bind_param("isss", $idDel, $nombre, $marca, $descripcion);
 
