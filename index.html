@@ -76,7 +76,7 @@
             formData.append('descripcion', descripcion);
 
             fetch('https://grammermx.com/Jesus/PruebaDos/js/update_Producto.php', {
-                method: 'UPDATE',
+                method: 'POST',
                 body: formData
             })
                 .then(response => response.json())
