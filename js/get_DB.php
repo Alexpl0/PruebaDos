@@ -15,10 +15,6 @@ try{
     // Se ejecuta la consulta
     $stmt->execute();
 
-    if (!$stmt) { // Verifica si la preparación de la consulta fue exitosa.
-        throw new Exception("Error en la preparación de la consulta: " . $conex->error); // Lanza una excepción si hay un error en la preparación.
-    }
-
     $result = $stmt->get_result(); // Obtiene el resultado de la consulta.
 
     $productos = []; // Inicializa un array para almacenar las solicitudes.
@@ -26,14 +22,10 @@ try{
         $productos[] = $row; // Agrega la fila actual al array de solicitudes.
     }
 
+    console_log($productos);
+
     $stmt->close(); // Cierra la declaración preparada.
     $conex->close(); // Cierra la conexión a la base de datos.
-
-    // Devolver respuesta JSON
-    echo json_encode([ // Convierte el array en formato JSON.
-        'status' => 'success', // Indica que la operación fue exitosa.
-        'data' => $productos // Los datos de las solicitudes obtenidas.
-    ]);
 
 
 } catch (Exception $e){
