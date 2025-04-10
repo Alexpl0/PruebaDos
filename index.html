@@ -1,136 +1,106 @@
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="CSS/style.css" rel="stylesheet">
+    <title>Productos Registrados</title>
 </head>
+
 <body>
-    <input type="text" id="txtNombre" placeholder="Nombre del Producto">
-    <input type="text" id="txtMarca" placeholder="Marca del Producto">
-    <input type="text" id="txtDescripcion" placeholder="Descripcion del Producto">
-    <button id="btnGuardar" onclick="guardarProducto()">Guardar</button>
+    <header>
+        <h1>Productos Registrados</h1>
+    </header>
 
-    <h1>Mostrar Usuarios</h1>
-    <button id="btnMostrar" onclick="mostrarProducto()">Mostrar</button>
-    <table>
-        <thead>
-            <tr>
-                <th>Nombre</th>
-                <th>Marca</th>
-                <th>Descripcion</th>
-            </tr>
-        </thead>
-        <tbody id="userTable">
+    <main>
+        <section>
+            <h2>Registrar Producto</h2>
+            <input type="text" id="txtNombre" placeholder="Nombre del Producto">
+            <input type="text" id="txtMarca" placeholder="Marca del Producto">
+            <input type="text" id="txtDescripcion" placeholder="Descripción del Producto">
+            <button id="btnGuardar" onclick="guardarProducto()">Guardar</button>
+        </section>
 
-        </tbody>
-    </table>
+        <section class="users-table">
+            <h2>Lista de Productos</h2>
+            <button id="btnMostrar" onclick="mostrarProductos()">Mostrar Productos</button>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Marca</th>
+                        <th>Descripción</th>
+                        <th>Editar</th>
+                        <th>Eliminar</th>
+                    </tr>
+                </thead>
+                <tbody id="userTable">
+                    <!-- Los datos se cargarán dinámicamente aquí -->
+                </tbody>
+            </table>
+        </section>
+    </main>
 
-<script>
+    <footer>
+        <p>&copy; 2025 Productos CRUD</p>
+    </footer>
 
-    function mostrarProducto(){
-        console.log("Mostrar producto");
-        fetch('https://grammermx.com/Jesus/PruebaDos/js/get_DB.php')
-            .then(response => response.json())
-            .then(data => {
-                var table = document.getElementById("userTable");
-                table.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos datos
+    <script>
+        function guardarProducto() {
+            const nombre = document.getElementById("txtNombre").value;
+            const marca = document.getElementById("txtMarca").value;
+            const descripcion = document.getElementById("txtDescripcion").value;
 
-                data.forEach(function(item) {
-                    var row = document.createElement("tr");
-                    row.innerHTML = "<td>" + item.nombre + "</td><td>" + item.marca + "</td><td>" + item.descripcion + "</td>";
-                    table.appendChild(row);
-                });
-            });
-    }
+            const formData = new FormData();
+            formData.append('nombre', nombre);
+            formData.append('marca', marca);
+            formData.append('descripcion', descripcion);
 
-    function guardarProducto() {
-        var nombre = document.getElementById("txtNombre").value;
-        var marca = document.getElementById("txtMarca").value;
-        var descripcion = document.getElementById("txtDescripcion").value;
-
-        var formData = new FormData();
-
-        formData.append('nombre', nombre)
-        formData.append('marca', marca)
-        formData.append('descripcion', descripcion)
-
-        fetch('https://grammermx.com/Jesus/PruebaDos/dao/dao_Guardar.php', {
-            method: 'POST',
-            body: formData
-        })
-            .then(response => response.json())
-            .then(data => {
-
-                if (data.success) {
-                    alert("Se guardo el producto");
-                } else {
-                    alert("No se guardo el producto");
-                }
-            });
-    }
-
-    /*
-    function guardarUsuario() {
-        var usuario = document.getElementById("txtUsuario").value;
-        var password = document.getElementById("txtPassword").value;
-
-        var formData = new FormData();
-
-        formData.append('usuario', usuario)
-        formData.append('password', password)
-
-        fetch('https://grammermx.com/Jesus/PruebaDos/dao/dao_Guardar.php', {
-            method: 'POST',
-            body: formData
-        })
-            .then(response => response.json())
-            .then(data => {
-
-                if (data.success) {
-                    alert("Se guardo el usuario");
-                } else {
-                    alert("No se guardo el usuario");
-                }
-            });
-    }
-*/
-
-    function inicializarTablaSolicitudes() {
-        $(document).ready(function () {
-            var tabla = $('#solicitudesTable').DataTable({
-                "responsive": true,
-                "ajax": {
-                    "url": 'https://grammermx.com/AleTest/ATS/dao/daoSAprobadas.php',
-                    "dataSrc": "data"
-                },
-                "columns": [
-                    { "data": "IdSolicitud" },
-                    { "data": "NombreSolicitante" },
-                    { "data": "NombreArea" },
-                    { "data": "NombreAprobador" },
-                    { "data": "FolioSolicitud" },
-                    { "data": "NombreEstatus" },
-                    {
-                        "data": null,
-                        "render": function (data, type, row) {
-                            if (row.NombreEstatus === "Aprobado") { // Ajusta "Aprobado" según tu base de datos
-                                return `
-                                    <button class="btn btn-primary btn-sm go-to-page-btn">
-                                        <i class="fas fa-external-link-alt"></i> Ir a Seguimiento
-                                    </button>
-                                `;
-                            } else {
-                                return ''; // No mostrar nada si no está aprobado
-                            }
-                        }
+            fetch('https://grammermx.com/Jesus/PruebaDos/dao/dao_Guardar.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("Se guardó el producto");
+                        mostrarProductos(); // Actualizar la lista de productos
+                    } else {
+                        alert("No se guardó el producto");
                     }
-                ],
-            });
-        });
-    }
+                });
+        }
 
+        function mostrarProductos() {
+            fetch('https://grammermx.com/Jesus/PruebaDos/js/get_DB.php')
+                .then(response => response.json())
+                .then(data => {
+                    const userTable = document.getElementById("userTable");
+                    userTable.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos datos
 
-</script>
+                    if (data.length > 0) {
+                        data.forEach(producto => {
+                            const row = document.createElement("tr");
+                            row.innerHTML = `
+                                <td>${producto.id}</td>
+                                <td>${producto.nombre}</td>
+                                <td>${producto.marca}</td>
+                                <td>${producto.descripcion}</td>
+                                <td><a href="editar.php?id=${encodeURIComponent(producto.id)}">Editar</a></td>
+                                <td><a href="eliminar.php?id=${encodeURIComponent(producto.id)}" onclick="return confirm('¿Estás seguro de eliminar este producto?');">Eliminar</a></td>
+                            `;
+                            userTable.appendChild(row);
+                        });
+                    } else {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `<td colspan="6">No hay productos registrados.</td>`;
+                        userTable.appendChild(row);
+                    }
+                });
+        }
+    </script>
 </body>
+
 </html>
