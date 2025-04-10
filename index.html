@@ -138,13 +138,22 @@
 
         function mostrarProductos() {
             fetch('https://grammermx.com/Jesus/PruebaDos/js/get_Productos.php')
-            if(fetch){
-                console.log("Entrando a la función");
-            }else{
-                console.log("No se pudo entrar a la función");
-            }
-            console.log("Fetching products...");
+                .then(response => response.json())
+                .then(data => {
+                    const userTable = document.getElementById("userTable");
+                    userTable.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos datos
 
+                    data.forEach(producto => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td>${producto.id}</td>
+                            <td>${producto.nombre}</td>
+                            <td>${producto.marca}</td>
+                            <td>${producto.descripcion}</td>
+                            `;
+                        userTable.appendChild(row);
+                    });
+                });
         }
     </script>
 </body>

@@ -1,48 +1,42 @@
 <?php
-include("db.php");
-$con = connection();
 
-$sql = "SELECT * FROM users";
-$query = mysqli_query($con, $sql);
-?>
+include_once('../dao/db/db.php');
 
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Users CRUD</title>
-</head>
+try{
+    // Se crea una instancia de la clase LocalConector para manejar la conexión a la base de datos
+    $con = new LocalConector();
+    // Se llama al método conectar() para establecer la conexión a la base de datos
+    $conex=$con ->conectar();
 
-<body>
-    <div class="users-table">
-        <h2>Productos registrados</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Marca</th>
-                    <th>Descripcion</th>
-                    <th></th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php while ($row = mysqli_fetch_array($query)): ?>
-                    <tr>
-                        <th><?= $row['id'] ?></th>
-                        <th><?= $row['nombre'] ?></th>
-                        <th><?= $row['marca'] ?></th>
-                        <th><?= $row['descripcion'] ?></th>
-                       </tr>
-                <?php endwhile; ?>
-            </tbody>
-        </table>
-    </div>
+    //Query para conectar a la tabla de la base datos. Se identifica la tabla y los campos, ademas los VALUES se dejan con ? para evitar inyecciones SQL
+    $stmt = $conex->prepare("SELECT * FROM `Productos");
 
-</body>
+    // Se ejecuta la consulta
+    $stmt->execute();
 
-</html>
+    if (!$stmt) { // Verifica si la preparación de la consulta fue exitosa.
+        throw new Exception("Error en la preparación de la consulta: " . $conex->error); // Lanza una excepción si hay un error en la preparación.
+    }
+
+    $result = $stmt->get_result(); // Obtiene el resultado de la consulta.
+
+    $productos = []; // Inicializa un array para almacenar las solicitudes.
+    while ($row = $result->fetch_assoc()) { // Itera sobre cada fila del resultado.
+        $productos[] = $row; // Agrega la fila actual al array de solicitudes.
+    }
+
+    $stmt->close(); // Cierra la declaración preparada.
+    $conex->close(); // Cierra la conexión a la base de datos.
+
+    // Devolver respuesta JSON
+    echo json_encode([ // Convierte el array en formato JSON.
+        'status' => 'success', // Indica que la operación fue exitosa.
+        'data' => $productos // Los datos de las solicitudes obtenidas.
+    ]);
+
+
+} catch (Exception $e){
+    http_response_code(500);
+    echo json_encode(["success" => false, "mensaje" => $e->getMessage()]);
+}
