@@ -40,6 +40,11 @@
                 </tbody>
             </table>
         </section>
+
+        <section>
+            <h2>Eliminar Producto</h2>
+            <input type="text" id="txtEliminar" placeholder="ID del Producto a Eliminar">
+            <button id="btnEliminar" onclick="eliminarProducto()">Eliminar</button>
     </main>
 
     <footer>
@@ -47,6 +52,29 @@
     </footer>
 
     <script>
+
+        function eliminarProducto(){
+            const id = document.getElementById("txtEliminar").value;
+
+            const formData = new FormData();
+            formData.append('id', id);
+
+            fetch('https://grammermx.com/Jesus/PruebaDos/js/del_Producto.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("Se eliminó el producto");
+                        mostrarProductos(); // Actualizar la lista de productos
+                    } else {
+                        alert("No se eliminó el producto");
+                    }
+                });
+        }
+
+
         function guardarProducto() {
             const nombre = document.getElementById("txtNombre").value;
             const marca = document.getElementById("txtMarca").value;
