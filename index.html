@@ -140,7 +140,19 @@
             fetch('https://grammermx.com/Jesus/PruebaDos/js/get_DB.php')
                 .then(response => response.json())
                 .then(data => {
-                    console.log(data); // Muestra los datos en la consola
+                    const userTable = document.getElementById("userTable");
+                    userTable.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos datos
+
+                    data.forEach(producto => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td>${producto.id}</td>
+                            <td>${producto.nombre}</td>
+                            <td>${producto.marca}</td>
+                            <td>${producto.descripcion}</td>
+                        `;
+                        userTable.appendChild(row);
+                    });
                 });
         }
     </script>
