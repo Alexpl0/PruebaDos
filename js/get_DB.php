@@ -10,7 +10,7 @@ try{
     $conex=$con ->conectar();
 
     //Query para conectar a la tabla de la base datos. Se identifica la tabla y los campos, ademas los VALUES se dejan con ? para evitar inyecciones SQL
-    $stmt = $conex->prepare("SELECT * FROM `Productos");
+    $stmt = $conex->prepare("SELECT * FROM `Productos` WHERE 1");
 
     // Se ejecuta la consulta
     $stmt->execute();
