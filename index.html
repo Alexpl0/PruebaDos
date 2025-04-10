@@ -43,7 +43,7 @@
     </main>
 
     <footer>
-        <p>&copy; 2025 Productos CRUD</p>
+        <p>Help</p>
     </footer>
 
     <script>
@@ -57,7 +57,7 @@
             formData.append('marca', marca);
             formData.append('descripcion', descripcion);
 
-            fetch('https://grammermx.com/Jesus/PruebaDos/dao/js/dao_Guardar.php', {
+            fetch('https://grammermx.com/Jesus/PruebaDos/dao_Guardar.php', {
                 method: 'POST',
                 body: formData
             })
@@ -74,30 +74,13 @@
 
         function mostrarProductos() {
             fetch('https://grammermx.com/Jesus/PruebaDos/js/get_Productos.php')
-                .then(response => response.json())
-                .then(data => {
-                    const userTable = document.getElementById("userTable");
-                    userTable.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos datos
+            if(fetch){
+                console.log("Entrando a la función");
+            }else{
+                console.log("No se pudo entrar a la función");
+            }
+            console.log("Fetching products...");
 
-                    if (data.length > 0) {
-                        data.forEach(producto => {
-                            const row = document.createElement("tr");
-                            row.innerHTML = `
-                                <td>${producto.id}</td>
-                                <td>${producto.nombre}</td>
-                                <td>${producto.marca}</td>
-                                <td>${producto.descripcion}</td>
-                                <td><a href="editar.php?id=${encodeURIComponent(producto.id)}">Editar</a></td>
-                                <td><a href="eliminar.php?id=${encodeURIComponent(producto.id)}" onclick="return confirm('¿Estás seguro de eliminar este producto?');">Eliminar</a></td>
-                            `;
-                            userTable.appendChild(row);
-                        });
-                    } else {
-                        const row = document.createElement("tr");
-                        row.innerHTML = `<td colspan="6">No hay productos registrados.</td>`;
-                        userTable.appendChild(row);
-                    }
-                });
         }
     </script>
 </body>
