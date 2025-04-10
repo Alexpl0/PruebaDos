@@ -1,6 +1,6 @@
 <?php
 
-include_once('db/db.php');
+include_once('../dao/db/db.php');
 
 $idDel=$_POST['id'];
 
