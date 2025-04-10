@@ -1,6 +1,6 @@
 <?php
 
-include_once('dao/db/db.php');
+include_once('db/db.php');
 
 $nombre = $_POST['nombre'];
 $marca = $_POST['marca'];
