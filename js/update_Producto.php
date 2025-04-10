@@ -3,6 +3,9 @@
 include_once('../dao/db/db.php');
 
 $idDel=$_POST['id'];
+$nombre = $_POST['nombre'];
+$marca = $_POST['marca'];
+$descripcion = $_POST['descripcion'];
 
 try {
     // Se crea una instancia de la clase LocalConector para manejar la conexión a la base de datos
