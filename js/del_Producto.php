@@ -2,6 +2,8 @@
 
 include_once('db/db.php');
 
+$idDel=$_POST['id'];
+
 try{
     // Se crea una instancia de la clase LocalConector para manejar la conexión a la base de datos
     $con = new LocalConector();
@@ -11,7 +13,7 @@ try{
     //Query para conectar a la tabla de la base datos. Se identifica la tabla y los campos, ademas los VALUES se dejan con ? para evitar inyecciones SQL
     $stmt = $conex->prepare("DELETE FROM `Productos` WHERE IdProducto = ?");
     // Se preparan los valores a insertar en la tabla, se especifica el tipo de dato de cada uno de los valores a insertar, en este caso son todos strings sss
-    $stmt->bind_param("i", $_POST['id']);
+    $stmt->bind_param("i", $idDel);
 
     // Se ejecuta la consulta
     $stmt->execute();
