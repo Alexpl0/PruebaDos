@@ -45,6 +45,16 @@
             <h2>Eliminar Producto</h2>
             <input type="text" id="txtEliminar" placeholder="ID del Producto a Eliminar">
             <button id="btnEliminar" onclick="eliminarProducto()">Eliminar</button>
+        </section>
+
+        <section>
+            <h2>Actualizar Producto</h2>
+            <input type="text" id="txtActualizar" placeholder="ID del Producto a Actualizar">
+            <input type="text" id="txtNombreActualizar" placeholder="Nuevo Nombre">
+            <input type="text" id="txtMarcaActualizar" placeholder="Nueva Marca">
+            <input type="text" id="txtDescripcionActualizar" placeholder="Nueva Descripción">
+            <button id="btnActualizar" onclick="actualizarProducto()">Actualizar</button>
+        </section>
     </main>
 
     <footer>
@@ -52,6 +62,33 @@
     </footer>
 
     <script>
+
+        function actualizarProducto(){
+            const id = document.getElementById("txtActualizar").value;
+            const nombre = document.getElementById("txtNombreActualizar").value;
+            const marca = document.getElementById("txtMarcaActualizar").value;
+            const descripcion = document.getElementById("txtDescripcionActualizar").value;
+
+            const formData = new FormData();
+            formData.append('id', id);
+            formData.append('nombre', nombre);
+            formData.append('marca', marca);
+            formData.append('descripcion', descripcion);
+
+            fetch('https://grammermx.com/Jesus/PruebaDos/js/update_Producto.php', {
+                method: 'UPDATE',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("Se actualizó el producto");
+                        mostrarProductos(); // Actualizar la lista de productos
+                    } else {
+                        alert("No se actualizó el producto");
+                    }
+                });
+        }
 
         function eliminarProducto(){
             const id = document.getElementById("txtEliminar").value;
