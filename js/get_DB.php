@@ -9,29 +9,18 @@ try{
     // Se llama al método conectar() para establecer la conexión a la base de datos
     $conex=$con ->conectar();
 
-    //Query para conectar a la tabla de la base datos. Se identifica la tabla y los campos, ademas los VALUES se dejan con ? para evitar inyecciones SQL
-    $stmt = $conex->prepare("SELECT * FROM `Productos` WHERE 1");
-
-    // Se ejecuta la consulta
+    // Recuperar datos de la base de datos
+    $stmt = $conex->prepare("SELECT * FROM `Productos`");
     $stmt->execute();
+    $result = $stmt->get_result();
 
-
-    $result = $stmt->get_result(); // Obtiene el resultado de la consulta.
-
-    $solicitudes = []; // Inicializa un array para almacenar las solicitudes.
-    while ($row = $result->fetch_assoc()) { // Itera sobre cada fila del resultado.
-        $solicitudes[] = $row; // Agrega la fila actual al array de solicitudes.
+    $datos = [];
+    while ($row = $result->fetch_assoc()) {
+        $datos[] = $row;
     }
 
-    $stmt->close(); // Cierra la declaración preparada.
-    $conex->close(); // Cierra la conexión a la base de datos.
-
-    // Devolver respuesta JSON
-    echo json_encode([ // Convierte el array en formato JSON.
-        'status' => 'success', // Indica que la operación fue exitosa.
-        'data' => $solicitudes // Los datos de las solicitudes obtenidas.
-    ]);
-
+// Enviar datos como JSON
+    echo json_encode(['status' => 'success', 'data' => $datos]);
 
     $stmt->close(); // Cierra la declaración preparada.
     $conex->close(); // Cierra la conexión a la base de datos.
