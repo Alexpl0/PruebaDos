@@ -95,6 +95,42 @@
             });
     }
 */
+
+    function inicializarTablaSolicitudes() {
+        $(document).ready(function () {
+            var tabla = $('#solicitudesTable').DataTable({
+                "responsive": true,
+                "ajax": {
+                    "url": 'https://grammermx.com/AleTest/ATS/dao/daoSAprobadas.php',
+                    "dataSrc": "data"
+                },
+                "columns": [
+                    { "data": "IdSolicitud" },
+                    { "data": "NombreSolicitante" },
+                    { "data": "NombreArea" },
+                    { "data": "NombreAprobador" },
+                    { "data": "FolioSolicitud" },
+                    { "data": "NombreEstatus" },
+                    {
+                        "data": null,
+                        "render": function (data, type, row) {
+                            if (row.NombreEstatus === "Aprobado") { // Ajusta "Aprobado" según tu base de datos
+                                return `
+                                    <button class="btn btn-primary btn-sm go-to-page-btn">
+                                        <i class="fas fa-external-link-alt"></i> Ir a Seguimiento
+                                    </button>
+                                `;
+                            } else {
+                                return ''; // No mostrar nada si no está aprobado
+                            }
+                        }
+                    }
+                ],
+            });
+        });
+    }
+
+
 </script>
 </body>
 </html>
