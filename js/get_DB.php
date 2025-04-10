@@ -15,14 +15,23 @@ try{
     // Se ejecuta la consulta
     $stmt->execute();
 
+
     $result = $stmt->get_result(); // Obtiene el resultado de la consulta.
 
-    $productos = []; // Inicializa un array para almacenar las solicitudes.
+    $solicitudes = []; // Inicializa un array para almacenar las solicitudes.
     while ($row = $result->fetch_assoc()) { // Itera sobre cada fila del resultado.
-        $productos[] = $row; // Agrega la fila actual al array de solicitudes.
+        $solicitudes[] = $row; // Agrega la fila actual al array de solicitudes.
     }
 
-    console_log($productos);
+    $stmt->close(); // Cierra la declaración preparada.
+    $conex->close(); // Cierra la conexión a la base de datos.
+
+    // Devolver respuesta JSON
+    echo json_encode([ // Convierte el array en formato JSON.
+        'status' => 'success', // Indica que la operación fue exitosa.
+        'data' => $solicitudes // Los datos de las solicitudes obtenidas.
+    ]);
+
 
     $stmt->close(); // Cierra la declaración preparada.
     $conex->close(); // Cierra la conexión a la base de datos.
