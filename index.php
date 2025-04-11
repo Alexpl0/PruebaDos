@@ -55,9 +55,9 @@
                     <h1 id="title1">Bienvenido a SPECIAL FREIGHT2</h1>
                 </div>
             </div>
-            <div id="login">
+            <div id="loginform-container">
+                <div id="login">
                 <div>
-                <div id="loginform-container">
                     <h2 class="text-center">Ingresar a mi Cuenta</h2>
                     <div class="row text-center">
                         <p class="text-center">Por favor ingresa tu usuario y contraseña</p>
