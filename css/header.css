@@ -12,7 +12,7 @@
   --white-color: #E6E7E9;
 
   /*===== Fuente y tipografia =====*/
-  --body-font: 'Poppins', sans-serif;
+  --body-font: 'Cambria', sans-serif;
   --normal-font-size: .938rem;
   --small-font-size: .813rem;
 
@@ -73,7 +73,7 @@ img {
   top: 0;
   left: 0;
   padding: 0 1.5rem;
-  background-color: white;
+  background-color: var(--first-color);
   z-index: var(--z-fixed);
   display: -webkit-box;
   display: -ms-flexbox;
