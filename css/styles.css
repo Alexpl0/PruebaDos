@@ -103,26 +103,12 @@ button{
     width: 100%;
 }
 
-button:hover {
-    color: #611332;
-}
 
-
-#qr {
-    justify-self: center;
-    max-width: 600px;
-    border-color: #611332;
-    border-width: 2px;
-    border-style: solid;
-    border-radius: 15px;
-    padding-top: 25px;
-    padding-bottom: 25px;
-}
 
 #home {
     justify-self: center;
     max-width: 600px;
-    border-color: #611332;
+    border-color: #085591;
     border-width: 2px;
     border-radius: 15px;
     padding-top: 25px;
@@ -138,23 +124,6 @@ button:hover {
     background-color: #f9f9f9;
 }
 
-#downloadExcel{
-    justify-self: center;
-    max-width: 400px;
-    display: block;
-    margin-top: 20px;
-    margin-bottom: 20px;
-    padding: 10px;
-    background-color: #A57F2D;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 1em;
-    cursor: pointer;
-    font-family: 'Open Sans', sans-serif;
-    width: 100%;
-    text-align: center;
-}
 
 
 #TablaEjemplo{
