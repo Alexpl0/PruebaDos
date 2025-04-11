@@ -73,7 +73,7 @@ img {
   top: 0;
   left: 0;
   padding: 0 1.5rem;
-  background-color: var(--dark-color);
+  background-color: white;
   z-index: var(--z-fixed);
   display: -webkit-box;
   display: -ms-flexbox;
