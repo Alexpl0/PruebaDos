@@ -54,11 +54,12 @@
                 <h5 class="card-title">Card title</h5>
                 <h6 class="card-subtitle mb-2">Card subtitle</h6>
                 <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                <a href="#" class="button">Card link</a>
-                <a href="#" class="button">Another link</a>
+                <button id="cardLink1" class="btn btn-primary">Card link</button>
+                <button id="cardLink2" class="btn btn-secondary">Another link</button>
             </div>
         </div>
 
     </div>
 
 </body>
+</html>
