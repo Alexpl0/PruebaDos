@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Transport Order</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
@@ -41,62 +41,90 @@
                         <li class="nav__item"><a href="salas.php" class="nav__link">Ordenes Generadas</a></li>
                         <li class="nav__item"><a href="newQR.php" class="nav__link">Agregar Usuario</a></li>
                         <li class="nav__item"><a href="ExcelToJson.php" class="nav__link">Graficas</a></li>
-                        <li class="nav__item"><a href="  " class="nav__link">Manual</a></li>
+                        <li class="nav__item"><a href="#" class="nav__link">Manual</a></li>
                     </ul>
                 </div>
             </div>
         </nav>
     </header>
     
-    <div>
-        <h1> SPECIAL FREIGHT AUTHORIZATION </h1>
-        <h2> Transport Order </h2>
-        <form action="/submit-order" method="post" id="order-form">
-            <div class="mb-3">
-                <label for="Requesting-PLant" class="form-label">Requesting Plant</label>
-                <select class="form-select" id="requesting-plant" name="requesting-plant" required>
-                    <option value="" disabled selected>Seleccione una opción</option>
-                    <option value="Haselmud-GAG">Haselmud GAG</option>
-                    <option value="Immenstetten-GAG">Immenstetten-GAG</option>
-                    <option value="GAG-in-DE">GAG-in-DE</option>
-                    <option value="Worth">Worth</option>
-                    <option value="Bursa-Truck">Bursa-Truck</option>
-                    <option value="Bursa-Passenger">Bursa-Passenger</option>
-                    <option value="GAG-in-Osterreich">GAG-in-Osterreich</option>
-                    <option value="Haselmuhl-GRI">Haselmuhl-GRI</option>
-                    <option value="Trudovetz-Seating">Trudovetz-Seating</option>
-                    <option value="Tokio">Tokio</option>
-                    <option value="Geel">Geel</option>
-                    <option value="Tupelo Automotive">Tupelo Automotive</option>
-                    <option value="Tupelo Seating">Tupelo Seating</option>
-                    <option value="Atibaia">Atibaia</option>
-                    <option value="Tianjin">Tianjin</option>
-                    
-                </select>
-            </div>
+    <section class="text-center">
+        <!-- Background image -->
+        <div class="p-5 bg-image" style="height: 100px;"></div>
+        <!-- Background image -->
 
-            <div class="mb-3">
-                <label for="priority" class="form-label">Prioridad</label>
-                <select class="form-select" id="priority" name="priority" required>
-                    <option value="" disabled selected>Seleccione una opción</option>
-                    <option value="alta">Alta</option>
-                    <option value="media">Media</option>
-                    <option value="baja">Baja</option>
-                </select>
+        <div class="card mx-4 mx-md-5 shadow-5-strong" style="margin-top: -100px; background: hsla(0, 0%, 100%, 0.8); backdrop-filter: blur(30px);">
+            <div class="card-body py-5 px-md-5">
+                <form action="/submit-order" method="post" id="order-form">
+                    <div class="row d-flex justify-content-center">
+                        <div class="col-lg-8">
+                            <h3 class="fw-bold mb-2">SPECIAL FREIGHT AUTHORISATION</h3>
+                            <h4>Transport Order</h4>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap justify-content-center mt-5">
+                        <div class="form-group mb-4">
+                            <label for="plant">Requesting Plant</label>
+                            <select name="PLANT" id="plant" class="form-control">
+                                <option value="Plant1">Plant 1</option>
+                                <option value="Plant2">Plant 2</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-4 ms-0 ms-sm-5">
+                            <label for="code">Plant Code</label>
+                            <select name="PLANT_CODE" id="code" class="form-control">
+                                <option value="Code1">Code 1</option>
+                                <option value="Code2">Code 2</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap justify-content-center mt-4">
+                        <div class="form-group mb-4">
+                            <label for="MODE">Transport Mode</label>
+                            <select name="MODE" id="MODE" class="form-control">
+                                <option value="Air">Air</option>
+                                <option value="Sea">Sea</option>
+                                <option value="Land">Land</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-4 ms-0 ms-sm-5">
+                            <label for="InOut">In-/Outbound</label>
+                            <select name="IN_OUT" id="InOut" class="form-control">
+                                <option value="Inbound">Inbound</option>
+                                <option value="Outbound">Outbound</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-3 ms-0 ms-sm-5">
+                            <label for="cost">Costs in €</label>
+                            <input type="text" name="COST" id="cost" class="form-control" placeholder="Costs in €" disabled>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap justify-content-center mt-4">
+                        <div class="form-group mb-4">
+                            <label for="RESPONSIBILITY">Area of Responsibility</label>
+                            <select name="RESPONSIBILITY" id="RESPONSIBILITY" class="form-control">
+                                <option value="Area1">Area 1</option>
+                                <option value="Area2">Area 2</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-4 ms-0 ms-sm-5">
+                            <label for="IN_EXT">Internal/External</label>
+                            <select name="IN_EXT" id="IN_EXT" class="form-control">
+                                <option value="Internal">Internal</option>
+                                <option value="External">External</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-3 ms-0 ms-sm-5">
+                            <label for="costsPaid">Costs paid by</label>
+                            <input type="text" name="COSTS_PAID" id="costsPaid" class="form-control" placeholder="Costs paid by" disabled>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap justify-content-center mt-4">
+                        <button type="submit" class="btn btn-success">Submit</button>
+                    </div>
+                </form>
             </div>
-
-            <div class="mb-3">
-                <label for="destination" class="form-label">Destino</label>
-                <select class="form-select" id="destination" name="destination" required>
-                    <option value="" disabled selected>Seleccione una opción</option>
-                    <option value="mexico">México</option>
-                    <option value="usa">Estados Unidos</option>
-                    <option value="canada">Canadá</option>
-                </select>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Enviar Orden</button>
-        </form>
-    </div>
+        </div>
+    </section>
 </body>
 </html>
