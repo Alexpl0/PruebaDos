@@ -49,11 +49,11 @@
         <h1 id="title1">Historial de Ordenes Generadas</h1>
         <h1 id="title2"></h1>
         
-        <div class="card text-white bg-success mb-3" style="width: 18rem;">
+        <div class="card" style="width: 18rem; background-color: #ff5733;">
             <div class="card-body">
                 <h5 class="card-title">Card title</h5>
                 <h6 class="card-subtitle mb-2">Card subtitle</h6>
-                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                <p class="card-text" style="background-color:rgb(253, 253, 253);">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
                 <button id="cardLink1" class="btn btn-primary">Card link</button>
                 <button id="cardLink2" class="btn btn-secondary">Another link</button>
             </div>
