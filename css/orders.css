@@ -29,6 +29,7 @@
     color: white;
     border: none;
     margin: 1%;
+    max-height: fit-content ;
     padding: 8%;
     border-radius: 15px;
     cursor: pointer;
