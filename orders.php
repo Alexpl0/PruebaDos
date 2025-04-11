@@ -49,7 +49,7 @@
         <h1 id="title1">Historial de Ordenes Generadas</h1>
         <h1 id="title2"></h1>
         
-        <div class="card" style="width: 18rem;">
+        <div class="card text-white bg-success mb-3" style="width: 18rem;">
             <div class="card-body">
                 <h5 class="card-title">Card title</h5>
                 <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
