@@ -26,13 +26,14 @@
 
 .card button {
     background-color: #007bff;
-    align-items: center;
-    align-content: center;
+    display: flex; /* Habilitar Flexbox */
+    justify-content: center; /* Centrar horizontalmente */
+    align-items: center; /* Centrar verticalmente */
     color: white;
     border: none;
     margin: 1%;
-    max-height: 0.98rem;
-    padding: 8%;
+    height: 2.5rem; /* Ajustar altura del botón */
+    padding: 0 1rem; /* Espaciado interno */
     border-radius: 15px;
     cursor: pointer;
     transition: background-color 0.3s ease;
