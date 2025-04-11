@@ -50,7 +50,7 @@ form {
     justify-content: center;
     align-items: center;
     margin: 20px auto;
-    padding: auto 7%;
+    padding: 20px;
     border: 2px solid --first-color; /* Margen azul */
     border-radius: 10px;
     background-color: #f9f9f9; /* Fondo opcional */
@@ -61,6 +61,7 @@ form {
     display: grid;
     grid-template-columns: 1fr;
     gap: 20px;
+    padding: 8%;
     max-width: 600px;
 }
 
