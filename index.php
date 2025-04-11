@@ -57,10 +57,11 @@
             </div>
             <div id="login">
                 <div>
+                <div id="loginform-container">
                     <h2 class="text-center">Ingresar a mi Cuenta</h2>
                     <div class="row text-center">
                         <p class="text-center">Por favor ingresa tu usuario y contraseña</p>
-                        <div id="loginform-container">
+                        
                             <div id="loginform">
                                 <input type="text" id="usuario" class="form-control" placeholder="Usuario">
                                 <input type="password" id="password" class="form-control" placeholder="Contraseña">

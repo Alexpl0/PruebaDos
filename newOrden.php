@@ -51,12 +51,52 @@
     <div>
         <h1> SPECIAL FREIGHT AUTHORIZATION </h1>
         <h2> Transport Order </h2>
-        <form>
+        <form action="/submit-order" method="post" id="order-form">
+            <div class="mb-3">
+                <label for="Requesting-PLant" class="form-label">Requesting Plant</label>
+                <select class="form-select" id="requesting-plant" name="requesting-plant" required>
+                    <option value="" disabled selected>Seleccione una opción</option>
+                    <option value="Haselmud-GAG">Haselmud GAG</option>
+                    <option value="Immenstetten-GAG">Immenstetten-GAG</option>
+                    <option value="GAG-in-DE">GAG-in-DE</option>
+                    <option value="Worth">Worth</option>
+                    <option value="Bursa-Truck">Bursa-Truck</option>
+                    <option value="Bursa-Passenger">Bursa-Passenger</option>
+                    <option value="GAG-in-Osterreich">GAG-in-Osterreich</option>
+                    <option value="Haselmuhl-GRI">Haselmuhl-GRI</option>
+                    <option value="Trudovetz-Seating">Trudovetz-Seating</option>
+                    <option value="Tokio">Tokio</option>
+                    <option value="Geel">Geel</option>
+                    <option value="Tupelo Automotive">Tupelo Automotive</option>
+                    <option value="Tupelo Seating">Tupelo Seating</option>
+                    <option value="Atibaia">Atibaia</option>
+                    <option value="Tianjin">Tianjin</option>
+                    
+                </select>
+            </div>
 
-        
+            <div class="mb-3">
+                <label for="priority" class="form-label">Prioridad</label>
+                <select class="form-select" id="priority" name="priority" required>
+                    <option value="" disabled selected>Seleccione una opción</option>
+                    <option value="alta">Alta</option>
+                    <option value="media">Media</option>
+                    <option value="baja">Baja</option>
+                </select>
+            </div>
 
+            <div class="mb-3">
+                <label for="destination" class="form-label">Destino</label>
+                <select class="form-select" id="destination" name="destination" required>
+                    <option value="" disabled selected>Seleccione una opción</option>
+                    <option value="mexico">México</option>
+                    <option value="usa">Estados Unidos</option>
+                    <option value="canada">Canadá</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Enviar Orden</button>
         </form>
-
-
-
     </div>
+</body>
+</html>
