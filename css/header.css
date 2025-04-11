@@ -194,7 +194,7 @@ img {
 
 /*Active menu*/
 .active {
-  color: var(--first-color);
+  color: white;
 }
 
 /*===== MEDIA QUERIES =====*/

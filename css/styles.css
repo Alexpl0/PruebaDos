@@ -45,6 +45,17 @@ form {
     background-color: #f9f9f9;
 }
 
+#loginform-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto;
+    padding: 20px;
+    border: 2px solid blue; /* Margen azul */
+    border-radius: 10px;
+    background-color: #f9f9f9; /* Fondo opcional */
+    max-width: 800px; /* Ajusta el ancho máximo */
+}
 
 #loginform {
     display: grid;
