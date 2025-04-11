@@ -1,0 +1,229 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 5% 10%;
+    background-color: #f4f4f4;
+}
+
+.title1{
+    font-size: 2em;
+    text-align: center;
+}
+
+h1 {
+    font-size: 2em;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+form {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+textarea {
+    resize: vertical;
+    height: 100px;
+}
+
+button{
+    justify-self: center;
+    max-width: 400px;
+    display: block;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #A57F2D;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    cursor: pointer;
+    font-family: 'Open Sans', sans-serif;
+    width: 100%;
+}
+
+button:hover {
+    color: #611332;
+}
+
+
+#qr {
+    justify-self: center;
+    max-width: 600px;
+    border-color: #611332;
+    border-width: 2px;
+    border-style: solid;
+    border-radius: 15px;
+    padding-top: 25px;
+    padding-bottom: 25px;
+}
+
+#home {
+    justify-self: center;
+    max-width: 600px;
+    border-color: #611332;
+    border-width: 2px;
+    border-radius: 15px;
+    padding-top: 25px;
+    padding-bottom: 25px;
+}
+
+#container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+}
+
+#downloadExcel{
+    justify-self: center;
+    max-width: 400px;
+    display: block;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #A57F2D;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    cursor: pointer;
+    font-family: 'Open Sans', sans-serif;
+    width: 100%;
+    text-align: center;
+}
+
+#textExcel{
+    color: white;
+}
+#textExcel:hover{
+    color: #611332;
+}
+
+#TablaEjemplo{
+    width: 100%;
+    height: auto;
+}
+
+/* Estilo para hacer que las imágenes sean responsivas */
+.responsive-image {
+    width: 100%;
+    height: auto;
+}
+
+#containerExcel{
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+}
+
+#options{
+    justify-self: center;
+    display: flex;
+    justify-content: space-around;
+}
+
+#menu1, #menu2, #menu3, #generate-button, #download-button {
+    max-width: 600px;
+    justify-self: center;
+    background-color: #A57F2D;
+    color: white;
+    border-radius: 15px;
+    padding: 2%;
+    margin: 2%;
+    width: 96%;
+}
+
+#contenedorQR{
+    justify-content: center;
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+    height: auto;
+    padding: 20px;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+}
+
+
+/* Custom styles for QR Code Generator */
+
+#qrcode-container {
+    margin: 20px auto;
+    display: inline-block;
+}
+
+#download-button {
+    display: none;
+    margin: 20px auto;
+}
+
+.centered {
+    text-align: center !important;
+    vertical-align: middle !important;
+}
+
+.popup {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+}
+
+.popup-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px;
+    text-align: center;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
