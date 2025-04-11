@@ -52,7 +52,7 @@
         <div class="container">
             <div class="row">
                 <div>
-                    <h1 id="title1">Bienvenido a SPECIAL FREIGHT</h1>
+                    <h1 id="title1">Bienvenido a SPECIAL FREIGHT2</h1>
                 </div>
             </div>
             <div id="login">
