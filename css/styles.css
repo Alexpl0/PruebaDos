@@ -10,7 +10,7 @@
     --hover-color: #F7F7F7;
   
     /*===== Fuente y tipografia =====*/
-    --body-font: 'Poppins', sans-serif;
+    --body-font: 'Cambria', sans-serif;
     --normal-font-size: .938rem;
     --small-font-size: .813rem;
   
@@ -61,6 +61,7 @@ form {
     display: grid;
     grid-template-columns: 1fr;
     gap: 20px;
+    max-width: 600px;
 }
 
 label {
