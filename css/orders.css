@@ -27,6 +27,7 @@
 .card button {
     background-color: #007bff;
     align-items: center;
+    align-content: center;
     color: white;
     border: none;
     margin: 1%;
