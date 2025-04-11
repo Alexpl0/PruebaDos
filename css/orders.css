@@ -28,7 +28,9 @@
     background-color: #007bff;
     color: white;
     border: none;
-    padding: 0px 5%;
+    margin: 0%;
+    padding: 5%;
+    min-height: fit-content;
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
