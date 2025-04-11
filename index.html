@@ -40,13 +40,77 @@
                 </tbody>
             </table>
         </section>
+
+        <section>
+            <h2>Eliminar Producto</h2>
+            <input type="text" id="txtEliminar" placeholder="ID del Producto a Eliminar">
+            <button id="btnEliminar" onclick="eliminarProducto()">Eliminar</button>
+        </section>
+
+        <section>
+            <h2>Actualizar Producto</h2>
+            <input type="number" id="txtActualizar" placeholder="ID del Producto a Actualizar">
+            <input type="text" id="txtNombreActualizar" placeholder="Nuevo Nombre">
+            <input type="text" id="txtMarcaActualizar" placeholder="Nueva Marca">
+            <input type="text" id="txtDescripcionActualizar" placeholder="Nueva Descripción">
+            <button id="btnActualizar" onclick="actualizarProducto()">Actualizar</button>
+        </section>
     </main>
 
     <footer>
-        <p>&copy; 2025 Productos CRUD</p>
+        <p>Help</p>
     </footer>
 
     <script>
+
+        function actualizarProducto(){
+            const id = document.getElementById("txtActualizar").value;
+            const nombre = document.getElementById("txtNombreActualizar").value;
+            const marca = document.getElementById("txtMarcaActualizar").value;
+            const descripcion = document.getElementById("txtDescripcionActualizar").value;
+
+            const formData = new FormData();
+            formData.append('id', id);
+            formData.append('nombre', nombre);
+            formData.append('marca', marca);
+            formData.append('descripcion', descripcion);
+
+            fetch('https://grammermx.com/Jesus/PruebaDos/js/update_Producto.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("Se actualizó el producto");
+                    } else {
+                        alert("No se actualizó el producto");
+                    }
+                });
+        }
+
+        function eliminarProducto(){
+            const id = document.getElementById("txtEliminar").value;
+
+            const formData = new FormData();
+            formData.append('id', id);
+
+            fetch('https://grammermx.com/Jesus/PruebaDos/js/del_Producto.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("Se eliminó el producto");
+                        mostrarProductos(); // Actualizar la lista de productos
+                    } else {
+                        alert("No se eliminó el producto");
+                    }
+                });
+        }
+
+
         function guardarProducto() {
             const nombre = document.getElementById("txtNombre").value;
             const marca = document.getElementById("txtMarca").value;
@@ -79,24 +143,19 @@
                     const userTable = document.getElementById("userTable");
                     userTable.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos datos
 
-                    if (data.length > 0) {
-                        data.forEach(producto => {
-                            const row = document.createElement("tr");
-                            row.innerHTML = `
-                                <td>${producto.id}</td>
-                                <td>${producto.nombre}</td>
-                                <td>${producto.marca}</td>
-                                <td>${producto.descripcion}</td>
-                                <td><a href="editar.php?id=${encodeURIComponent(producto.id)}">Editar</a></td>
-                                <td><a href="eliminar.php?id=${encodeURIComponent(producto.id)}" onclick="return confirm('¿Estás seguro de eliminar este producto?');">Eliminar</a></td>
-                            `;
-                            userTable.appendChild(row);
-                        });
-                    } else {
+                    data.data.forEach(producto => {
                         const row = document.createElement("tr");
-                        row.innerHTML = `<td colspan="6">No hay productos registrados.</td>`;
+                        row.innerHTML = `
+                        <td>${producto.IdProducto}</td>
+                        <td>${producto.Nombre}</td>
+                        <td>${producto.Marca}</td>
+                        <td>${producto.Descripcion}</td>
+                    `;
                         userTable.appendChild(row);
-                    }
+                    });
+                    })
+                .catch(error => {
+                    console.error('Error al cargar los productos:', error);
                 });
         }
     </script>

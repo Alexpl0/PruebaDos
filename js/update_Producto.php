@@ -1,7 +1,8 @@
 <?php
 
-include_once('db/db.php');
+include_once('../dao/db/db.php');
 
+$idDel=$_POST['id'];
 $nombre = $_POST['nombre'];
 $marca = $_POST['marca'];
 $descripcion = $_POST['descripcion'];
@@ -13,9 +14,9 @@ try {
     $conex=$con ->conectar();
 
     //Query para conectar a la tabla de la base datos. Se identifica la tabla y los campos, ademas los VALUES se dejan con ? para evitar inyecciones SQL
-    $stmt = $conex->prepare("INSERT INTO `Productos`(`Nombre`, `Marca`, `Descripcion`) VALUES (?,?,?)");
+    $stmt = $conex->prepare("UPDATE `Productos` SET `Nombre`=?,`Marca`=?,`Descripcion`=? WHERE IdProducto = ?");
     // Se preparan los valores a insertar en la tabla, se especifica el tipo de dato de cada uno de los valores a insertar, en este caso son todos strings sss
-    $stmt->bind_param("sss", $nombre, $marca, $descripcion);
+    $stmt->bind_param("sssi", $nombre, $marca, $descripcion, $idDel);
 
     // Se ejecuta la consulta
     $stmt->execute();
@@ -36,7 +37,3 @@ try {
     http_response_code(500);
     echo json_encode(["success" => false, "mensaje" => $e->getMessage()]);
 }
-?>
-
-
-
