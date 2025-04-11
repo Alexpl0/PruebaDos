@@ -28,10 +28,10 @@
     background-color: #007bff;
     color: white;
     border: none;
-    margin: 2%;
-    padding: 5%;
-    min-height: 1.5rem;
-    border-radius: 5px;
+    margin: 5%;
+    padding: 7%;
+    min-height: 1rem;
+    border-radius: 15px;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
