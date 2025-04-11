@@ -42,24 +42,20 @@ try {
             <thead class="table-dark">
                 <tr>
                     <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Ubicación</th>
-                    <th>Descripción</th>
+                    <th>Planta</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (!empty($json)): ?>
                     <?php foreach ($json as $planta): ?>
                         <tr>
-                            <td><?php echo htmlspecialchars($planta['id']); ?></td>
-                            <td><?php echo htmlspecialchars($planta['name']); ?></td>
-                            <td><?php echo htmlspecialchars($planta['location']); ?></td>
-                            <td><?php echo htmlspecialchars($planta['description']); ?></td>
+                            <td><?php echo htmlspecialchars($planta['ID']); ?></td>
+                            <td><?php echo htmlspecialchars($planta['PLANT']); ?></td>
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="4" class="text-center">No se encontraron datos</td>
+                        <td colspan="2" class="text-center">No se encontraron datos</td>
                     </tr>
                 <?php endif; ?>
             </tbody>
