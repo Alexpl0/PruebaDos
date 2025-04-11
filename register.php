@@ -37,7 +37,7 @@
                 </div> 
                 <div class="nav__menu">
                     <ul class="nav__list">
-                        <li class="nav__item"><a href="index.php" class="nav__link active">Home</a></li>
+                        <li class="nav__item"><a href="index.php" class="nav__link">Home</a></li>
                         <li class="nav__item"><a href="scanQr.php" class="nav__link">Nueva Orden</a></li>
                         <li class="nav__item"><a href="salas.php" class="nav__link">Ordenes Generadas</a></li>
                         <li class="nav__item"><a href="newQR.php" class="nav__link">Agregar Usuario</a></li>

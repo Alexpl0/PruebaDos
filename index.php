@@ -68,8 +68,8 @@
                                 <button id="btnLogin" class="btn btn-primary">Iniciar Sesión</button>
                             </div>
                         </div>
-                        <p class="text-center">¿No tienes cuenta? <a href="newQR.php">Registrate</a></p>
-                        <p class="text-center">¿Olvidaste tu contraseña? <a href="#">Recuperar</a></p>
+                        <p class="text-center">¿No tienes cuenta? <a href="register.php">Registrate</a></p>
+                        <p class="text-center">¿Olvidaste tu contraseña? <a href="recovery.php">Recuperar</a></p>
                     </div>
                 </div>
             </div>

@@ -90,6 +90,7 @@ textarea {
 
 button{
     justify-self: center;
+    align-items: center;
     max-width: 400px;
     display: block;
     margin-top: 20px;
@@ -101,7 +102,6 @@ button{
     border-radius: 5px;
     font-size: 1em;
     cursor: pointer;
-    font-family: 'Open Sans', sans-serif;
     width: 100%;
 }
 
