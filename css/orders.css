@@ -30,7 +30,6 @@
     border: none;
     margin: 1%;
     padding: 8%;
-    min-height: 1rem;
     border-radius: 15px;
     cursor: pointer;
     transition: background-color 0.3s ease;
