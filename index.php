@@ -17,7 +17,7 @@
     
     <!-- Archivos CSS locales -->
     <link rel="stylesheet" href="css/styles.css">
-    <!--<link rel="stylesheet" href="css/header.css"> -->
+    <link rel="stylesheet" href="css/header.css">
 </head>
 <body>
     <header class="header">
