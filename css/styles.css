@@ -1,3 +1,23 @@
+/*===== VARIABLES CSS =====*/
+:root {
+    --header-height: 3rem;
+    
+    /*===== Colores =====*/
+    --first-color: #034C8C;
+    --dark-color: #034C8C;
+    --dark-color-alt: #282B3A;
+    --white-color: #FFFFFF;
+    --hover-color: #F7F7F7;
+  
+    /*===== Fuente y tipografia =====*/
+    --body-font: 'Poppins', sans-serif;
+    --normal-font-size: .938rem;
+    --small-font-size: .813rem;
+  
+    /*===== z index =====*/
+    --z-fixed: 100;
+  }
+
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -23,6 +43,13 @@ form {
     border: 1px solid #ccc;
     border-radius: 10px;
     background-color: #f9f9f9;
+}
+
+
+#loginform {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
 }
 
 label {
@@ -55,7 +82,7 @@ button{
     margin-top: 20px;
     margin-bottom: 20px;
     padding: 10px;
-    background-color: #A57F2D;
+    background-color: var(--first-color);
     color: white;
     border: none;
     border-radius: 5px;
@@ -118,12 +145,6 @@ button:hover {
     text-align: center;
 }
 
-#textExcel{
-    color: white;
-}
-#textExcel:hover{
-    color: #611332;
-}
 
 #TablaEjemplo{
     width: 100%;

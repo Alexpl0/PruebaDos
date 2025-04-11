@@ -262,7 +262,7 @@ img {
     color: var(--first-color);
   }
   .active {
-    background-color: #891c49;
+    background-color: #a2a2a2;
     color: var(--white-color);
   }
 }
