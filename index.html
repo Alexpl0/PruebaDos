@@ -11,18 +11,11 @@
     <header>
         <h1>Productos Registrados</h1>
     </header>
-
+    
     <main>
-        <section>
-            <h2>Registrar Producto</h2>
-            <input type="text" id="txtNombre" placeholder="Nombre del Producto">
-            <input type="text" id="txtMarca" placeholder="Marca del Producto">
-            <input type="text" id="txtDescripcion" placeholder="Descripción del Producto">
-            <button id="btnGuardar" onclick="guardarProducto()">Guardar</button>
-        </section>
-
+        
         <section class="users-table">
-            <h2>Lista de Productos</h2>
+            <h2>Lista de Cuentas</h2>
             <button id="btnMostrar" onclick="mostrarProductos()">Mostrar Productos</button>
             <table>
                 <thead>
@@ -41,20 +34,6 @@
             </table>
         </section>
 
-        <section>
-            <h2>Eliminar Producto</h2>
-            <input type="text" id="txtEliminar" placeholder="ID del Producto a Eliminar">
-            <button id="btnEliminar" onclick="eliminarProducto()">Eliminar</button>
-        </section>
-
-        <section>
-            <h2>Actualizar Producto</h2>
-            <input type="number" id="txtActualizar" placeholder="ID del Producto a Actualizar">
-            <input type="text" id="txtNombreActualizar" placeholder="Nuevo Nombre">
-            <input type="text" id="txtMarcaActualizar" placeholder="Nueva Marca">
-            <input type="text" id="txtDescripcionActualizar" placeholder="Nueva Descripción">
-            <button id="btnActualizar" onclick="actualizarProducto()">Actualizar</button>
-        </section>
     </main>
 
     <footer>
@@ -62,79 +41,6 @@
     </footer>
 
     <script>
-
-        function actualizarProducto(){
-            const id = document.getElementById("txtActualizar").value;
-            const nombre = document.getElementById("txtNombreActualizar").value;
-            const marca = document.getElementById("txtMarcaActualizar").value;
-            const descripcion = document.getElementById("txtDescripcionActualizar").value;
-
-            const formData = new FormData();
-            formData.append('id', id);
-            formData.append('nombre', nombre);
-            formData.append('marca', marca);
-            formData.append('descripcion', descripcion);
-
-            fetch('https://grammermx.com/Jesus/PruebaDos/js/update_Producto.php', {
-                method: 'POST',
-                body: formData
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert("Se actualizó el producto");
-                    } else {
-                        alert("No se actualizó el producto");
-                    }
-                });
-        }
-
-        function eliminarProducto(){
-            const id = document.getElementById("txtEliminar").value;
-
-            const formData = new FormData();
-            formData.append('id', id);
-
-            fetch('https://grammermx.com/Jesus/PruebaDos/js/del_Producto.php', {
-                method: 'POST',
-                body: formData
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert("Se eliminó el producto");
-                        mostrarProductos(); // Actualizar la lista de productos
-                    } else {
-                        alert("No se eliminó el producto");
-                    }
-                });
-        }
-
-
-        function guardarProducto() {
-            const nombre = document.getElementById("txtNombre").value;
-            const marca = document.getElementById("txtMarca").value;
-            const descripcion = document.getElementById("txtDescripcion").value;
-
-            const formData = new FormData();
-            formData.append('nombre', nombre);
-            formData.append('marca', marca);
-            formData.append('descripcion', descripcion);
-
-            fetch('https://grammermx.com/Jesus/PruebaDos/dao/dao_Guardar.php', {
-                method: 'POST',
-                body: formData
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert("Se guardó el producto");
-                        mostrarProductos(); // Actualizar la lista de productos
-                    } else {
-                        alert("No se guardó el producto");
-                    }
-                });
-        }
 
         function mostrarProductos() {
             fetch('https://grammermx.com/Jesus/PruebaDos/get_DB.php')
@@ -172,18 +78,6 @@
                 });
         }
 
-        // Añadir estas funciones auxiliares para manejar las acciones de editar y eliminar
-        function cargarDatosParaActualizar(id, usuario, rol, correo) {
-            document.getElementById("txtActualizar").value = id;
-            document.getElementById("txtNombreActualizar").value = usuario;
-            document.getElementById("txtMarcaActualizar").value = rol;
-            document.getElementById("txtDescripcionActualizar").value = correo;
-        }
-
-        function eliminarDesdeLista(id) {
-            document.getElementById("txtEliminar").value = id;
-            eliminarProducto();
-        }
     </script>
 </body>
 
