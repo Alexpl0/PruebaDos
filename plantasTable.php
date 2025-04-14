@@ -4,6 +4,7 @@
 // La variable $json se espera que sea definida en daoPlantas.php y contenga los datos de las plantas.
 require_once __DIR__ . '/dao/elements/daoPlantas.php';
 require_once __DIR__ . '/dao/elements/daoCodePlants.php';
+require_once __DIR__ . '/dao/elements/daoTransport.php';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -22,7 +23,7 @@ require_once __DIR__ . '/dao/elements/daoCodePlants.php';
         <h1 class="text-center">Selecciona una Planta</h1> 
         <form id="plant-form"> 
             <div class="mb-3"> 
-                <label for="planta" class="form-label">Plantas disponibles:</label> 
+                <label for="planta" class="form-label">Rquesting Plant:</label> 
                 <select name="planta" id="planta" class="form-select"> <!-- Elemento desplegable (select) con nombre 'planta', ID 'planta' y clase de Bootstrap 'form-select' -->
                     <?php if (!empty($jsonPlantas)): ?> <!-- Comienza un bloque PHP: verifica si la variable jsonPlantas (que contiene los datos de las plantas) no está vacía -->
                         <?php foreach ($jsonPlantas as $planta): ?> <!-- Itera sobre cada elemento (planta) dentro del array jsonPlantas -->
@@ -42,7 +43,7 @@ require_once __DIR__ . '/dao/elements/daoCodePlants.php';
             </div> 
 
             <div class="mb-3">
-                <label for="codeplanta" class="form-label">Codigos de Plantas:</label> <!-- Cambiado 'for' a 'codeplanta' para que coincida con el ID del select -->
+                <label for="codeplanta" class="form-label">Plant Code:</label> <!-- Cambiado 'for' a 'codeplanta' para que coincida con el ID del select -->
                 <select name="codeplanta" id="codeplanta" class="form-select">
                     <?php if (!empty($jsonCodePlants)): ?>
                         <?php foreach ($jsonCodePlants as $codeplanta): ?>
@@ -51,6 +52,24 @@ require_once __DIR__ . '/dao/elements/daoCodePlants.php';
                                 <!-- El texto visible de la opción será el CÓDIGO de la planta ('CODE') -->
                                 <!-- Asegúrate de que 'CODE' sea la clave correcta en tu array $jsonCodePlants -->
                                 <?php echo htmlspecialchars($codeplanta['PLANT_CODE']); ?> <!-- Cambiado de 'PLANT' a 'CODE' -->
+                            </option>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <option value="" disabled>No se encontraron datos, jsonCodePlants vacio</option>
+                    <?php endif; ?>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="transport" class="form-label">Plant Code:</label> <!-- Cambiado 'for' a 'codeplanta' para que coincida con el ID del select -->
+                <select name="transport" id="transport" class="form-select">
+                    <?php if (!empty($jsonCodePlants)): ?>
+                        <?php foreach ($jsonCodePlants as $transport): ?>
+                            <!-- Crea una opción dentro del select. El atributo 'value' contendrá el ID -->
+                            <option value="<?php echo htmlspecialchars($transport['ID']); ?>">
+                                <!-- El texto visible de la opción será el CÓDIGO de la planta ('CODE') -->
+                                <!-- Asegúrate de que 'CODE' sea la clave correcta en tu array $jsonCodePlants -->
+                                <?php echo htmlspecialchars($transport['MODE']); ?> <!-- Cambiado de 'PLANT' a 'CODE' -->
                             </option>
                         <?php endforeach; ?>
                     <?php else: ?>
@@ -81,6 +100,12 @@ require_once __DIR__ . '/dao/elements/daoCodePlants.php';
             // Selecciona el elemento con ID 'codeplanta' usando jQuery y le aplica la funcionalidad de Select2
             $('#codeplanta').select2({
                 placeholder: "Codigos de Plantas", // Define un texto de marcador de posición para el select
+                allowClear: true // Permite que el usuario borre la selección actual
+            });
+
+             
+             $('#transport').select2({
+                placeholder: "Tipo de Transporte", // Define un texto de marcador de posición para el select
                 allowClear: true // Permite que el usuario borre la selección actual
             });
         });
