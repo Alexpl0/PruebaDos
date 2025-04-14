@@ -14,7 +14,7 @@ require_once __DIR__ . '/dao/elements/daoPlantas.php';
 <body>
     <div class="container mt-5">
         <h1 class="text-center">Selecciona una Planta</h1>
-        <form action="procesarSeleccion.php" method="POST" class="mt-4">
+        <form id="plant-form">
             <div class="mb-3">
                 <label for="planta" class="form-label">Plantas disponibles:</label>
                 <select name="planta" id="planta" class="form-select">
@@ -29,7 +29,7 @@ require_once __DIR__ . '/dao/elements/daoPlantas.php';
                     <?php endif; ?>
                 </select>
             </div>
-            <button class="btn btn-primary" onclick="enviar()">Enviar</button>
+            <button onclick="enviar()">Enviar</button>
         </form>
     </div>
 
