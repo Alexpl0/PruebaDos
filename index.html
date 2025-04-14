@@ -59,7 +59,7 @@
                     });
                 })
                 .catch(error => {
-                    console.error('Error al cargar los productos:', error);
+                    console.error('Error al cargar las cuentas:', error);
                     const userTable = document.getElementById("userTable");
                     userTable.innerHTML = `<tr><td colspan="4">Error al cargar los datos: ${error.message}</td></tr>`;
                 });
