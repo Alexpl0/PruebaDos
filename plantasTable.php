@@ -41,25 +41,23 @@ require_once __DIR__ . '/dao/elements/daoCodePlants.php';
                 </select>
             </div> 
 
-            <div class="mb-3"> 
-                <label for="planta" class="form-label">Codigos de Plantas:</label> 
-                <select name="codeplanta" id="codeplanta" class="form-select"> <!-- Elemento desplegable (select) con nombre 'planta', ID 'planta' y clase de Bootstrap 'form-select' -->
-                    <?php if (!empty($jsonCodePlants)): ?> <!-- Comienza un bloque PHP: verifica si la variable jsonPlantas (que contiene los datos de las plantas) no está vacía -->
-                        <?php foreach ($jsonCodePlants as $codeplanta): ?> <!-- Itera sobre cada elemento (planta) dentro del array jsonPlantas -->
-                            <!-- Crea una opción dentro del select. El atributo 'value' contendrá el ID de la planta -->
-                            <!-- Se usa htmlspecialchars para prevenir ataques XSS al mostrar datos -->
+            <div class="mb-3">
+                <label for="codeplanta" class="form-label">Codigos de Plantas:</label> <!-- Cambiado 'for' a 'codeplanta' para que coincida con el ID del select -->
+                <select name="codeplanta" id="codeplanta" class="form-select">
+                    <?php if (!empty($jsonCodePlants)): ?>
+                        <?php foreach ($jsonCodePlants as $codeplanta): ?>
+                            <!-- Crea una opción dentro del select. El atributo 'value' contendrá el ID -->
                             <option value="<?php echo htmlspecialchars($codeplanta['ID']); ?>">
-                                <!-- El texto visible de la opción será el nombre de la planta ('PLANT') -->
-                                <!-- Se usa htmlspecialchars para prevenir ataques XSS al mostrar datos -->
-                                <?php echo htmlspecialchars($codeplanta['PLANT']); ?>
-                            </option> <!-- Fin de la opción -->
-                        <?php endforeach; ?> <!-- Fin del bucle foreach -->
-                    <?php else: ?> <!-- Si la variable $json está vacía -->
-                        <!-- Muestra una opción deshabilitada indicando que no se encontraron datos -->
+                                <!-- El texto visible de la opción será el CÓDIGO de la planta ('CODE') -->
+                                <!-- Asegúrate de que 'CODE' sea la clave correcta en tu array $jsonCodePlants -->
+                                <?php echo htmlspecialchars($codeplanta['PLANT_CODE']); ?> <!-- Cambiado de 'PLANT' a 'CODE' -->
+                            </option>
+                        <?php endforeach; ?>
+                    <?php else: ?>
                         <option value="" disabled>No se encontraron datos, jsonCodePlants vacio</option>
                     <?php endif; ?>
                 </select>
-            </div> 
+            </div>
 
             <!-- El atributo 'onclick' llama a la función JavaScript 'enviar' cuando se hace clic, pasando el objeto evento -->
             <button type="button" class="btn btn-primary" onclick="enviar(event)">Enviar</button>
@@ -85,10 +83,6 @@ require_once __DIR__ . '/dao/elements/daoCodePlants.php';
                 placeholder: "Codigos de Plantas", // Define un texto de marcador de posición para el select
                 allowClear: true // Permite que el usuario borre la selección actual
             });
-
-            // Muestra el contenido de $jsonCodePlants en la consola del navegador
-            // PHP convierte el array $jsonCodePlants a una cadena JSON válida para JavaScript
-            console.log('Contenido de $jsonCodePlants:', <?php echo json_encode($jsonCodePlants ?? null); ?>);
         });
 
         // Define una función JavaScript llamada 'enviar' que recibe un parámetro 'event'
