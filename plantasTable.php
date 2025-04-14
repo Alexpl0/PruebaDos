@@ -135,7 +135,7 @@ require_once __DIR__ . '/dao/elements/daoTransport.php';
             // Muestra el código de planta seleccionado en la consola de desarrollador del navegador
             console.log('Código de planta seleccionado:', selectedCodePlant);
 
-            console.log('Modo de Transporte: ', )
+            console.log('Modo de Transporte: ', selectedTransport )
         }
     </script>
 </body> 
