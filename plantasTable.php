@@ -3,6 +3,7 @@
 // Este archivo contiene la lógica para conectarse a la base de datos y obtener la lista de plantas.
 // La variable $json se espera que sea definida en daoPlantas.php y contenga los datos de las plantas.
 require_once __DIR__ . '/dao/elements/daoPlantas.php';
+require_once __DIR__ . '/dao/elements/daoCodePlants.php';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -39,6 +40,27 @@ require_once __DIR__ . '/dao/elements/daoPlantas.php';
                     <?php endif; ?>
                 </select>
             </div> 
+
+            <div class="mb-3"> 
+                <label for="planta" class="form-label">Codigos de Plantas:</label> 
+                <select name="codeplanta" id="codeplanta" class="form-select"> <!-- Elemento desplegable (select) con nombre 'planta', ID 'planta' y clase de Bootstrap 'form-select' -->
+                    <?php if (!empty($jsonCodePlants)): ?> <!-- Comienza un bloque PHP: verifica si la variable jsonPlantas (que contiene los datos de las plantas) no está vacía -->
+                        <?php foreach ($jsonCodePlants as $codeplanta): ?> <!-- Itera sobre cada elemento (planta) dentro del array jsonPlantas -->
+                            <!-- Crea una opción dentro del select. El atributo 'value' contendrá el ID de la planta -->
+                            <!-- Se usa htmlspecialchars para prevenir ataques XSS al mostrar datos -->
+                            <option value="<?php echo htmlspecialchars($codeplanta['ID']); ?>">
+                                <!-- El texto visible de la opción será el nombre de la planta ('PLANT') -->
+                                <!-- Se usa htmlspecialchars para prevenir ataques XSS al mostrar datos -->
+                                <?php echo htmlspecialchars($codeplanta['PLANT']); ?>
+                            </option> <!-- Fin de la opción -->
+                        <?php endforeach; ?> <!-- Fin del bucle foreach -->
+                    <?php else: ?> <!-- Si la variable $json está vacía -->
+                        <!-- Muestra una opción deshabilitada indicando que no se encontraron datos -->
+                        <option value="" disabled>No se encontraron datos, jsonCodePlants vacio</option>
+                    <?php endif; ?>
+                </select>
+            </div> 
+
             <!-- El atributo 'onclick' llama a la función JavaScript 'enviar' cuando se hace clic, pasando el objeto evento -->
             <button type="button" class="btn btn-primary" onclick="enviar(event)">Enviar</button>
         </form> 
@@ -46,6 +68,7 @@ require_once __DIR__ . '/dao/elements/daoPlantas.php';
 
     <!-- Incluye la biblioteca jQuery desde una CDN. jQuery es necesario para Select2 y facilita la manipulación del DOM y eventos -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <!-- Incluye el archivo JavaScript de Select2 desde una CDN -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script> // Inicio de un bloque de código JavaScript
@@ -53,7 +76,7 @@ require_once __DIR__ . '/dao/elements/daoPlantas.php';
         $(document).ready(function() {
             // Selecciona el elemento con ID 'planta' usando jQuery y le aplica la funcionalidad de Select2
             $('#planta').select2({
-                placeholder: "Busca una planta", // Define un texto de marcador de posición para el select
+                placeholder: "Plantas", // Define un texto de marcador de posición para el select
                 allowClear: true // Permite que el usuario borre la selección actual
             });
         });
@@ -62,13 +85,20 @@ require_once __DIR__ . '/dao/elements/daoPlantas.php';
         function enviar(event) {
             // Previene el comportamiento predeterminado del evento (en este caso, el envío del formulario que recargaría la página)
             event.preventDefault();
+
             // Obtiene la referencia al elemento <select> usando su ID
-            const selectElement = document.getElementById('planta');
+            const selectPlant = document.getElementById('planta');
             // Obtiene el texto visible de la opción que está actualmente seleccionada en el <select>
-            const selectedPlantName = selectElement.options[selectElement.selectedIndex].text;
+            const selectedPlantName = selectPlant.options[selectPlant.selectedIndex].text;
+
+            // Obtiene la referencia al elemento <select> usando su ID
+            const selectCodePlant = document.getElementById('codeplanta');
+            // Obtiene el texto visible de la opción que está actualmente seleccionada en el <select>
+            const selectedCodePlant = selectCodePlant.options[selectCodePlant.selectedIndex].text;
+
             // Muestra el nombre de la planta seleccionada en la consola de desarrollador del navegador
             console.log(selectedPlantName);
         }
-    </script> <!-- Fin del bloque de código JavaScript -->
-</body> <!-- Fin del cuerpo del documento -->
-</html> <!-- Fin del elemento raíz HTML -->
+    </script>
+</body> 
+</html>
