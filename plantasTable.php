@@ -29,7 +29,7 @@ require_once __DIR__ . '/dao/elements/daoPlantas.php';
                     <?php endif; ?>
                 </select>
             </div>
-            <button class="btn btn-primary">Enviar</button>
+            <button class="btn btn-primary" onclick="enviar()">Enviar</button>
         </form>
     </div>
 
