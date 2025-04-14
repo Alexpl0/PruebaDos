@@ -29,7 +29,7 @@ require_once __DIR__ . '/dao/elements/daoPlantas.php';
                     <?php endif; ?>
                 </select>
             </div>
-            <button onclick="enviar()">Enviar</button>
+            <button onclick="enviar(event)">Enviar</button>
         </form>
     </div>
 
@@ -46,9 +46,11 @@ require_once __DIR__ . '/dao/elements/daoPlantas.php';
             });
         });
 
-        function enviar() {
-            const selectedPlant = document.getElementById('planta').value; // Obtiene el valor seleccionado
-            console.log(selectedPlant); // Muestra el valor en la consola
+        function enviar(event) {
+            event.preventDefault(); // Evita que la página se recargue
+            const selectElement = document.getElementById('planta');
+            const selectedPlantName = selectElement.options[selectElement.selectedIndex].text; // Obtiene el texto de la opción seleccionada
+            console.log(selectedPlantName); // Muestra el nombre de la planta en la consola
         }
     </script>
 </body>
