@@ -61,10 +61,10 @@ require_once __DIR__ . '/dao/elements/daoTransport.php';
             </div>
 
             <div class="mb-3">
-                <label for="transport" class="form-label">Plant Code:</label> <!-- Cambiado 'for' a 'codeplanta' para que coincida con el ID del select -->
+                <label for="transport" class="form-label">Transport Mode:</label> <!-- Cambiado 'for' a 'codeplanta' para que coincida con el ID del select -->
                 <select name="transport" id="transport" class="form-select">
-                    <?php if (!empty($jsonCodePlants)): ?>
-                        <?php foreach ($jsonCodePlants as $transport): ?>
+                    <?php if (!empty($jsonTransport)): ?>
+                        <?php foreach ($jsonTransport as $transport): ?>
                             <!-- Crea una opción dentro del select. El atributo 'value' contendrá el ID -->
                             <option value="<?php echo htmlspecialchars($transport['ID']); ?>">
                                 <!-- El texto visible de la opción será el CÓDIGO de la planta ('CODE') -->
