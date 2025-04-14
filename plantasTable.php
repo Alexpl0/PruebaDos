@@ -11,29 +11,24 @@ require_once __DIR__ . '/dao/elements/daoPlantas.php';
 </head>
 <body>
     <div class="container mt-5">
-        <h1 class="text-center">Información de Plantas</h1>
-        <table class="table table-bordered table-striped mt-4">
-            <thead class="table-dark">
-                <tr>
-                    <th>ID</th>
-                    <th>Planta</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (!empty($json)): ?>
-                    <?php foreach ($json as $planta): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($planta['ID']); ?></td>
-                            <td><?php echo htmlspecialchars($planta['PLANT']); ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="2" class="text-center">No se encontraron datos</td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+        <h1 class="text-center">Selecciona una Planta</h1>
+        <form action="procesarSeleccion.php" method="POST" class="mt-4">
+            <div class="mb-3">
+                <label for="planta" class="form-label">Plantas disponibles:</label>
+                <select name="planta" id="planta" class="form-select">
+                    <?php if (!empty($json)): ?>
+                        <?php foreach ($json as $planta): ?>
+                            <option value="<?php echo htmlspecialchars($planta['ID']); ?>">
+                                <?php echo htmlspecialchars($planta['PLANT']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <option value="" disabled>No se encontraron datos</option>
+                    <?php endif; ?>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Enviar</button>
+        </form>
     </div>
 </body>
 </html>
