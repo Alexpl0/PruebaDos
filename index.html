@@ -11,7 +11,7 @@
     <header>
         <h1>Productos Registrados</h1>
     </header>
-    
+
     <main>
         
         <section class="users-table">
@@ -21,11 +21,9 @@
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Marca</th>
-                        <th>Descripción</th>
-                        <th>Editar</th>
-                        <th>Eliminar</th>
+                        <th>Usuario</th>
+                        <th>Rol</th>
+                        <th>Correo</th>
                     </tr>
                 </thead>
                 <tbody id="userTable">
@@ -49,32 +47,19 @@
                     const userTable = document.getElementById("userTable");
                     userTable.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos datos
 
-                    data.data.forEach(cuenta => {
+                    data.data.forEach(producto => {
                         const row = document.createElement("tr");
                         row.innerHTML = `
-                            <td>${cuenta.ID}</td>
-                            <td>${cuenta.USUARIO}</td>
-                            <td>${cuenta.ROL}</td>
-                            <td>${cuenta.CORREO}</td>
-                            <td>
-                                <button onclick="cargarDatosParaActualizar(
-                                    '${cuenta.ID}', 
-                                    '${cuenta.USUARIO}', 
-                                    '${cuenta.ROL}', 
-                                    '${cuenta.CORREO}'
-                                )">Editar</button>
-                            </td>
-                            <td>
-                                <button onclick="eliminarDesdeLista('${cuenta.ID}')">Eliminar</button>
-                            </td>
-                        `;
+                        <td>${cuenta.ID}</td>
+                        <td>${cuenta.USUARIO}</td>
+                        <td>${cuenta.ROL}</td>
+                        <td>${cuenta.CORREO}</td>
+                    `;
                         userTable.appendChild(row);
                     });
-                })
+                    })
                 .catch(error => {
-                    console.error('Error al cargar las cuentas:', error);
-                    const userTable = document.getElementById("userTable");
-                    userTable.innerHTML = `<tr><td colspan="6">Error al cargar los datos: ${error.message}</td></tr>`;
+                    console.error('Error al cargar los productos:', error);
                 });
         }
 
