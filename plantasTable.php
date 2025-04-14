@@ -79,6 +79,16 @@ require_once __DIR__ . '/dao/elements/daoCodePlants.php';
                 placeholder: "Plantas", // Define un texto de marcador de posición para el select
                 allowClear: true // Permite que el usuario borre la selección actual
             });
+
+            // Selecciona el elemento con ID 'codeplanta' usando jQuery y le aplica la funcionalidad de Select2
+            $('#codeplanta').select2({
+                placeholder: "Codigos de Plantas", // Define un texto de marcador de posición para el select
+                allowClear: true // Permite que el usuario borre la selección actual
+            });
+
+            // Muestra el contenido de $jsonCodePlants en la consola del navegador
+            // PHP convierte el array $jsonCodePlants a una cadena JSON válida para JavaScript
+            console.log('Contenido de $jsonCodePlants:', <?php echo json_encode($jsonCodePlants ?? null); ?>);
         });
 
         // Define una función JavaScript llamada 'enviar' que recibe un parámetro 'event'
@@ -97,7 +107,9 @@ require_once __DIR__ . '/dao/elements/daoCodePlants.php';
             const selectedCodePlant = selectCodePlant.options[selectCodePlant.selectedIndex].text;
 
             // Muestra el nombre de la planta seleccionada en la consola de desarrollador del navegador
-            console.log(selectedPlantName);
+            console.log('Planta seleccionada:', selectedPlantName);
+            // Muestra el código de planta seleccionado en la consola de desarrollador del navegador
+            console.log('Código de planta seleccionado:', selectedCodePlant);
         }
     </script>
 </body> 
