@@ -125,10 +125,17 @@ require_once __DIR__ . '/dao/elements/daoTransport.php';
             // Obtiene el texto visible de la opción que está actualmente seleccionada en el <select>
             const selectedCodePlant = selectCodePlant.options[selectCodePlant.selectedIndex].text;
 
+            // Obtiene la referencia al elemento <select> usando su ID
+            const selectTransport = document.getElementById('transport');
+            // Obtiene el texto visible de la opción que está actualmente seleccionada en el <select>
+            const selectedTransport = selectTransport.options[selectTransport.selectedIndex].text;
+
             // Muestra el nombre de la planta seleccionada en la consola de desarrollador del navegador
             console.log('Planta seleccionada:', selectedPlantName);
             // Muestra el código de planta seleccionado en la consola de desarrollador del navegador
             console.log('Código de planta seleccionado:', selectedCodePlant);
+
+            console.log('Modo de Transporte: ', )
         }
     </script>
 </body> 
