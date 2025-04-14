@@ -17,7 +17,7 @@ try {
     curl_close($ch);
 
     // Decodifica el resultado JSON en un array asociativo de PHP
-    $json = json_decode($result, true);
+    $jsonPlantas = json_decode($result, true);
 
 } catch (Exception $e) {
     // Si ocurre un error, devuelve un código de respuesta HTTP 500 y un mensaje de error en formato JSON
