@@ -47,19 +47,21 @@
                     const userTable = document.getElementById("userTable");
                     userTable.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos datos
 
-                    data.data.forEach(producto => {
+                    data.data.forEach(cuenta => { // Renamed variable to cuenta for clarity
                         const row = document.createElement("tr");
                         row.innerHTML = `
-                        <td>${cuenta.ID}</td>
-                        <td>${cuenta.USUARIO}</td>
-                        <td>${cuenta.ROL}</td>
-                        <td>${cuenta.CORREO}</td>
-                    `;
+                            <td>${cuenta.ID}</td>
+                            <td>${cuenta.USUARIO}</td>
+                            <td>${cuenta.ROL}</td>
+                            <td>${cuenta.CORREO}</td>
+                        `;
                         userTable.appendChild(row);
                     });
-                    })
+                })
                 .catch(error => {
                     console.error('Error al cargar los productos:', error);
+                    const userTable = document.getElementById("userTable");
+                    userTable.innerHTML = `<tr><td colspan="4">Error al cargar los datos: ${error.message}</td></tr>`;
                 });
         }
 
