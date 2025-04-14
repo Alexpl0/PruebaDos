@@ -19,6 +19,8 @@ try {
     // Decodifica el resultado JSON en un array asociativo de PHP
     $jsonCodePlants = json_decode($result, true);
 
+    
+
 } catch (Exception $e) {
     // Si ocurre un error, devuelve un código de respuesta HTTP 500 y un mensaje de error en formato JSON
     http_response_code(500);
