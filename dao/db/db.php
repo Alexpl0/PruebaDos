@@ -5,9 +5,9 @@ class LocalConector {
 
     // Propiedades de conexión
     private $host = "127.0.0.1:3306"; // Dirección del servidor
-    private $usuario = "u909553968_jesus"; // Usuario de la BD
+    private $usuario = "u909553968_UserCalidad"; // Usuario de la BD
     private $password = "Grammer2024"; // Contraseña del Usuario
-    private $database = "u909553968_pruebasJesus";
+    private $database = "u909553968_FREIGHTCALIDAD"; // Nombre de la BD
     private $conexion;
 
     // Método para establecer la conexión
