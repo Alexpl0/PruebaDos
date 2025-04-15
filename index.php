@@ -85,6 +85,8 @@ require_once __DIR__ . "/dao/db/db.php";
     function getUser(){
             const user = document.getElementById("user").value;
 
+            console.log(user)
+
             const formData = new FormData();
             formData.append('user', user);
             console.log(formData)
