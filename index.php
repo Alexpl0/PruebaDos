@@ -99,10 +99,12 @@ require_once __DIR__ . "/dao/db/db.php";
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
                 body: `user=${user}`
-                console.log('user:', user);
+                
             });
-
+            
+            console.log('user:', user);
             console.log(response); // Para depuración
+
 
             // Si login.php redirige, fetch no sigue la redirección en el navegador,
             // así que comprobamos si la respuesta es ok o si fue redirigido
