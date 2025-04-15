@@ -8,7 +8,7 @@ try {
     $con = new LocalConector();
     $conex=$con ->conectar();
 
-    $stmt = $conex->prepare("SELECT `IdUser`, `Username`, `Mail`, `Password`, `ROL` FROM `Usuarios` WHERE `Username` = ?;");
+    $stmt = $conex->prepare("SELECT * FROM `Usuarios` WHERE `Username` = ?;");
     $stmt->bind_param("s", $user);
 
     $stmt->execute();

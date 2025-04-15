@@ -84,9 +84,8 @@ require_once __DIR__ . "/dao/db/db.php";
 
     function getUser() {
         const user = document.getElementById("user").value;
-        const password = document.getElementById("password").value;
-
-        const body = JSON.stringify({ user, password });
+        
+        const body = JSON.stringify({ user });
 
         fetch('https://grammermx.com/Jesus/PruebaDos/test_db.php', {
             method: 'POST',
@@ -97,7 +96,7 @@ require_once __DIR__ . "/dao/db/db.php";
         })
 
         .then(response => response.json())
-        
+
         .then(data => {
             console.log("Respuesta: ", data);
             if (data.success) {
