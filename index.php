@@ -65,7 +65,7 @@ require_once __DIR__ . "/dao/db/db.php";
                             <div id="loginform">
                                 <input type="text" id="user" class="form-control" placeholder="Usuario">
                                 <input type="text" id="password" class="form-control" placeholder="Contraseña">
-                                <button id="btnLogin" class="btn btn-primary" onclick="getUser()">Iniciar Sesión</button>
+                                <button id="btnLogin" class="btn btn-primary">Iniciar Sesión</button>
                             </div>
                         </div>
                         <p class="text-center">¿No tienes cuenta? <a href="register.php">Registrate</a></p>
