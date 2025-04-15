@@ -1,6 +1,5 @@
 <?php
-// filepath: c:\Users\Ex-Perez-J\OneDrive - GRAMMER AG\Desktop\SPECIAL FREIGHT\index.php
-require_once __DIR__ . "dao/db/db.php"
+require_once __DIR__ . "/dao/db/db.php";
 ?>
 
 <!DOCTYPE html>
