@@ -82,29 +82,34 @@ require_once __DIR__ . "/dao/db/db.php";
     <script>
     // Lógica para enviar los datos del login por fetch a test_db.php
 
-    function getUser(){
-            const user = document.getElementById("user").value;
+    function getUser() {
+        const user = document.getElementById("user").value;
+        const password = document.getElementById("password").value;
 
-            console.log(user.value);
+        const body = JSON.stringify({ user, password });
 
-            fetch('https://grammermx.com/Jesus/PruebaDos/test_db.php', {
-                method: 'POST',
-                body: user,
-            })
-                
-                console.log("Body: ", body)
-                console.log("Respuesta: ", response)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert("Se encontro el usuario");
-                    } else {
-                        alert("No se encontro el usuario");
-                    }
-                });
-        }
+        fetch('https://grammermx.com/Jesus/PruebaDos/test_db.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: body,
+        })
 
-   
+        .then(response => response.json())
+        
+        .then(data => {
+            console.log("Respuesta: ", data);
+            if (data.success) {
+                alert("Se encontro el usuario");
+            } else {
+                alert("No se encontro el usuario");
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+        });
+    }
     </script>
 
 
