@@ -1,11 +1,3 @@
-<?php
-// Simulate the response from test_db.php
-$response = '{"status":"success","data":[{"IdUser":1,"Username":"Alex","Mail":"Jesus.Perez@grammer.com","Password":"12345","ROL":0}]}';
-
-// Decode the JSON response
-$data = json_decode($response, true);
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -30,7 +22,7 @@ $data = json_decode($response, true);
 </head>
 <body>
     <h1 style="text-align: center;">User Data</h1>
-    <table>
+    <table id="userTable">
         <thead>
             <tr>
                 <th>IdUser</th>
@@ -40,23 +32,38 @@ $data = json_decode($response, true);
                 <th>ROL</th>
             </tr>
         </thead>
-        <tbody>
-            <?php if ($data['status'] === 'success' && !empty($data['data'])): ?>
-                <?php foreach ($data['data'] as $user): ?>
-                    <tr>
-                        <td><?= htmlspecialchars($user['IdUser']) ?></td>
-                        <td><?= htmlspecialchars($user['Username']) ?></td>
-                        <td><?= htmlspecialchars($user['Mail']) ?></td>
-                        <td><?= htmlspecialchars($user['Password']) ?></td>
-                        <td><?= htmlspecialchars($user['ROL']) ?></td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <tr>
-                    <td colspan="5">No data available</td>
-                </tr>
-            <?php endif; ?>
+        <tbody id="tableBody">
+            <tr>
+                <td colspan="5">Cargando...</td>
+            </tr>
         </tbody>
     </table>
+    <script>
+        fetch('https://grammermx.com/Jesus/PruebaDos/test_db.php')
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('tableBody');
+                tbody.innerHTML = '';
+                if (data.status === 'success' && Array.isArray(data.data) && data.data.length > 0) {
+                    data.data.forEach(user => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${user.IdUser ?? ''}</td>
+                            <td>${user.Username ?? ''}</td>
+                            <td>${user.Mail ?? ''}</td>
+                            <td>${user.Password ?? ''}</td>
+                            <td>${user.ROL ?? ''}</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5">No data available</td></tr>';
+                }
+            })
+            .catch(error => {
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="5">Error loading data</td></tr>';
+                console.error(error);
+            });
+    </script>
 </body>
-</html></tbody>
+</html>
