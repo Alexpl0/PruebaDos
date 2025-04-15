@@ -88,7 +88,7 @@ require_once __DIR__ . "/dao/db/db.php";
             const formData = new FormData();
             formData.append('Username', user);
 
-            fetch('https://grammermx.com/Jesus/PruebaDos/js/test_db.php', {
+            fetch('https://grammermx.com/Jesus/PruebaDos/test_db.php', {
                 method: 'POST',
                 body: formData
             })
