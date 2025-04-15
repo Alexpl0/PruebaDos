@@ -53,7 +53,8 @@ require_once __DIR__ . '/dao/elements/daoTransport.php';
 
 
 
-    <div id="newForm" class="container mt-5"> 
+    <section id="newForm">
+    <div class="container mt-5"> 
         <h1 class="text-center">Selecciona una Planta</h1> 
         <form id="plant-form"> 
             
@@ -111,7 +112,7 @@ require_once __DIR__ . '/dao/elements/daoTransport.php';
             <button type="button" class="btn btn-primary" onclick="enviar(event)">Enviar</button>
         </form> 
     </div>
-
+    </section>
     <!-- Archivos JS locales -->
     <script src="js/header.js"></script>
 
