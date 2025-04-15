@@ -16,8 +16,8 @@ require_once __DIR__ . "/dao/db/db.php";
     <script nomodule src="https://unpkg.com/ionicons@7.2.2/dist/ionicons/ionicons.js"></script>
     
     <!-- Archivos CSS locales -->
-    <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/newOrder.css">
+    <link rel="stylesheet" href="css/header.css">
 </head>
 <body>
     <header class="header">
