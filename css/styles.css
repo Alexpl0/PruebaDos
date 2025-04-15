@@ -212,28 +212,6 @@ form button, form input[type="submit"] {
     cursor: pointer;
 }
 
-form:button{
-    background-color: var(--first-color);
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 1em;
-    cursor: pointer;
-    width: 100%;
-}
-
 .select2-selection__clear {
-    background-color: #034C8C;
-    color: #fff !important;
-    border-radius: 50%;
-    padding: 2px 6px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background 0.2s;
-    max-width: 3px;
-    max-height: 3px;
-}
-.select2-selection__clear:hover {
-    background-color: #0056b3;
-    color: #fff !important;
+    display: none !important;
 }
