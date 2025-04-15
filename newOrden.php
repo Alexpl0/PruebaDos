@@ -22,7 +22,37 @@ require_once __DIR__ . '/dao/elements/daoTransport.php';
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/newOrden.css">
 </head> 
-<body> 
+<body>
+    <header class="header">
+        <a href="#" class="header__logo">GRAMMER</a>
+        <ion-icon name="menu-outline" class="header__toggle" id="nav-toggle"></ion-icon>
+        <nav class="nav" id="nav-menu">
+            <div class="nav__content bd-grid">
+                <ion-icon name="close-outline" class="nav__close" id="nav-close"></ion-icon>
+                <div class="nav__perfil">
+                    <div class="nav__img">
+                        <img src="assets/logo/logo.png" alt="logoGRAMMER">
+                    </div>
+                    <div>
+                        <a href="#" class="nav__name">SPECIAL FREIGHT</a>
+                    </div>
+                </div> 
+                <div class="nav__menu">
+                    <ul class="nav__list">
+                        <li class="nav__item"><a href="index.php" class="nav__link active">Home</a></li>
+                        <li class="nav__item"><a href="newOrden.php" class="nav__link">Nueva Orden</a></li>
+                        <li class="nav__item"><a href="orders.php" class="nav__link">Ordenes Generadas</a></li>
+                        <li class="nav__item"><a href="register.php" class="nav__link">Agregar Usuario</a></li>
+                        <li class="nav__item"><a href="google.com" class="nav__link">Graficas</a></li>
+                        <li class="nav__item"><a href="  " class="nav__link">Manual</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header> 
+
+
+
     <div class="container mt-5"> 
         <h1 class="text-center">Selecciona una Planta</h1> 
         <form id="plant-form"> 
