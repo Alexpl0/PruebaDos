@@ -90,7 +90,7 @@ require_once __DIR__ . '/dao/elements/daoTransport.php';
                 </select>
             </div>
 
-            <div class="mb-3">
+            <div>
                 <label for="transport" class="form-label">Transport Mode:</label> 
                 <select name="transport" id="transport" class="form-select">
                     <?php if (!empty($jsonTransport)): ?>
