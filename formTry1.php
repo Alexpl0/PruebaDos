@@ -17,6 +17,9 @@ require_once __DIR__ . '/dao/elements/daoTransport.php';
     <!-- Enlaza la hoja de estilos CSS de Select2 desde una CDN para mejorar la apariencia y funcionalidad del elemento <select> -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
+    
+    <!-- Archivos CSS locales -->
+    <link rel="stylesheet" href="css/header.css">
 </head> 
 <body> 
     <div class="container mt-5"> 
