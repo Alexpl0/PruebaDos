@@ -46,7 +46,7 @@
             event.preventDefault();
             const username = document.getElementById('username').value;
 
-            fetch('test_db.php?username=' + encodeURIComponent(username))
+            fetch('test_db.php?usuario=' + encodeURIComponent(username))
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
