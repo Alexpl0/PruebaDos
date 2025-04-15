@@ -65,7 +65,7 @@ require_once __DIR__ . "/dao/db/db.php";
                             <div id="loginform">
                                 <input type="text" id="user" class="form-control" placeholder="Usuario">
                                 <input type="password" id="password" class="form-control" placeholder="Contraseña">
-                                <button id="btnLogin" class="btn btn-primary">Iniciar Sesión</button>
+                                <button id="btnLogin" class="btn btn-primary" onclick="getUser()">Iniciar Sesión</button>
                             </div>
                         </div>
                         <p class="text-center">¿No tienes cuenta? <a href="register.php">Registrate</a></p>
@@ -90,8 +90,10 @@ require_once __DIR__ . "/dao/db/db.php";
             return;
         }
 
+        console.log(user, password); // Para depuración
+
         try {
-            const response = await fetch('login.php', {
+            const response = await fetch('test_db.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
@@ -102,14 +104,24 @@ require_once __DIR__ . "/dao/db/db.php";
             // Si login.php redirige, fetch no sigue la redirección en el navegador,
             // así que comprobamos si la respuesta es ok o si fue redirigido
             if (response.redirected) {
-                window.location.href = response.url;
+                Swal.fire({
+                    title: 'Redirigiendo',
+                    text: 'Por favor espera...',
+                    icon: 'info',
+                    showConfirmButton: true,
+                });
                 return;
             }
 
             // Si login.php responde con JSON, puedes manejarlo así:
             const data = await response.json();
             if (data.success) {
-                window.location.href = 'dashboard.php';
+               Swal.fire({
+                    title: 'Éxito',
+                    text: 'Inicio de sesión exitoso.',
+                    icon: 'success',
+                    confirmButtonText: 'Aceptar'
+                });
             } else {
                 Swal.fire('Error', data.message || 'Usuario o contraseña incorrectos.', 'error');
             }
@@ -118,16 +130,6 @@ require_once __DIR__ . "/dao/db/db.php";
         }
     });
 
-    // Lógica para probar la conexión a la base de datos
-    const response = await fetch('test_db.php', {
-        method: 'GET'
-    });
-    const data = await response.json();
-    if (data.success) {
-        Swal.fire('Éxito', 'Conexión a la base de datos exitosa.', 'success');
-    } else {
-        Swal.fire('Error', data.message || 'No se pudo conectar a la base de datos.', 'error');
-    }
     </script>
 
     <!-- Librería QR Code -->

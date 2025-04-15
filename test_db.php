@@ -1,21 +1,32 @@
 <?php
-require_once __DIR__ . "/dao/db/db.php";
 
-header('Content-Type: application/json');
+include_once('dao/db/db.php');
 
-try {
-    // Suponiendo que tu conexión está en $conn o $pdo
-    // Si usas mysqli:
-    if (isset($conn) && $conn->connect_errno === 0) {
-        echo json_encode(['success' => true]);
-    } 
-    // Si usas PDO:
-    else if (isset($pdo)) {
-        $pdo->query('SELECT 1');
-        echo json_encode(['success' => true]);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'No DB handler']);
+
+try{
+    // Se crea una instancia de la clase LocalConector para manejar la conexión a la base de datos
+    $con = new LocalConector();
+    // Se llama al método conectar() para establecer la conexión a la base de datos
+    $conex=$con ->conectar();
+
+    // Recuperar datos de la base de datos
+    $stmt = $conex->prepare("SELECT `IdUser`, `Username`, `Mail`, `Password`, `ROL` FROM `Usuarios` WHERE `Username` = ?");
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $datos = [];
+    while ($row = $result->fetch_assoc()) {
+        $datos[] = $row;
     }
-} catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+
+// Enviar datos como JSON
+    echo json_encode(['status' => 'success', 'data' => $datos]);
+
+    $stmt->close(); // Cierra la declaración preparada.
+    $conex->close(); // Cierra la conexión a la base de datos.
+
+
+} catch (Exception $e){
+    http_response_code(500);
+    echo json_encode(["success" => false, "mensaje" => $e->getMessage()]);
 }
