@@ -1,5 +1,6 @@
 <?php
 // filepath: c:\Users\Ex-Perez-J\OneDrive - GRAMMER AG\Desktop\SPECIAL FREIGHT\index.php
+require_once __DIR__ . "dao/db/db.php"
 ?>
 
 <!DOCTYPE html>
@@ -63,7 +64,7 @@
                         <p class="text-center">Por favor ingresa tu usuario y contraseña</p>
                         
                             <div id="loginform">
-                                <input type="text" id="usuario" class="form-control" placeholder="Usuario">
+                                <input type="text" id="user" class="form-control" placeholder="Usuario">
                                 <input type="password" id="password" class="form-control" placeholder="Contraseña">
                                 <button id="btnLogin" class="btn btn-primary">Iniciar Sesión</button>
                             </div>
@@ -78,6 +79,46 @@
 
     <!-- Archivos JS locales -->
     <script src="js/header.js"></script>
+
+    <script>
+    // Lógica para enviar los datos del login por fetch a login.php
+    document.getElementById('btnLogin').addEventListener('click', async function () {
+        const user = document.getElementById('user').value.trim();
+        const password = document.getElementById('password').value.trim();
+
+        if (!user || !password) {
+            Swal.fire('Error', 'Por favor ingresa usuario y contraseña.', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch('login.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `user=${encodeURIComponent(user)}&password=${encodeURIComponent(password)}`
+            });
+
+            // Si login.php redirige, fetch no sigue la redirección en el navegador,
+            // así que comprobamos si la respuesta es ok o si fue redirigido
+            if (response.redirected) {
+                window.location.href = response.url;
+                return;
+            }
+
+            // Si login.php responde con JSON, puedes manejarlo así:
+            const data = await response.json();
+            if (data.success) {
+                window.location.href = 'dashboard.php';
+            } else {
+                Swal.fire('Error', data.message || 'Usuario o contraseña incorrectos.', 'error');
+            }
+        } catch (error) {
+            Swal.fire('Error', 'Error de conexión con el servidor.', 'error');
+        }
+    });
+    </script>
 
     <!-- Librería QR Code -->
     <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
