@@ -21,7 +21,7 @@
 body {
     margin: 10%;
     padding: 5% 10%;
-    background-color: black !important;
+    background-color: var(--hover-color) !important;
 }
 
 .title1{
