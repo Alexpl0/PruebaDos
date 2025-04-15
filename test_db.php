@@ -9,8 +9,12 @@ try{
     // Se llama al método conectar() para establecer la conexión a la base de datos
     $conex=$con ->conectar();
 
-    // Recuperar datos de la base de datos
+    // Obtener el usuario desde POST
+    $user = $_POST['user'] ?? '';
+
+    // Preparar y ejecutar la consulta
     $stmt = $conex->prepare("SELECT `IdUser`, `Username`, `Mail`, `Password`, `ROL` FROM `Usuarios` WHERE `Username` = ?");
+    $stmt->bind_param("s", $user);
     $stmt->execute();
     $result = $stmt->get_result();
 

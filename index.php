@@ -116,6 +116,7 @@ require_once __DIR__ . "/dao/db/db.php";
             // Si login.php responde con JSON, puedes manejarlo así:
             const data = await response.json();
             if (data.success) {
+                console.log('Login exitoso:', data);
                Swal.fire({
                     title: 'Éxito',
                     text: 'Inicio de sesión exitoso.',
