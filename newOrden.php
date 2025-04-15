@@ -20,7 +20,7 @@ require_once __DIR__ . '/dao/elements/daoTransport.php';
     
     <!-- Archivos CSS locales -->
     <link rel="stylesheet" href="css/header.css">
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/newOrder.css">
 </head> 
 <body>
     <header class="header">
