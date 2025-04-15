@@ -1,86 +1,62 @@
+<?php
+// Simulate the response from test_db.php
+$response = '{"status":"success","data":[{"IdUser":1,"Username":"Alex","Mail":"Jesus.Perez@grammer.com","Password":"12345","ROL":0}]}';
+
+// Decode the JSON response
+$data = json_decode($response, true);
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buscar Usuario</title>
+    <title>Test DB Response</title>
     <style>
         table {
-            width: 100%;
+            width: 50%;
             border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid black;
+            margin: 20px auto;
         }
         th, td {
+            border: 1px solid #ddd;
             padding: 8px;
-            text-align: left;
+            text-align: center;
+        }
+        th {
+            background-color: #f4f4f4;
         }
     </style>
 </head>
 <body>
-    <h1>Buscar Usuario</h1>
-    <form id="searchForm">
-        <label for="username">Nombre de Usuario:</label>
-        <input type="text" id="username" name="username" required>
-        <button type="submit">Buscar</button>
-    </form>
-    <br>
-    <div id="results">
-        <table id="resultsTable" style="display: none;">
-            <thead>
+    <h1 style="text-align: center;">User Data</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>IdUser</th>
+                <th>Username</th>
+                <th>Mail</th>
+                <th>Password</th>
+                <th>ROL</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if ($data['status'] === 'success' && !empty($data['data'])): ?>
+                <?php foreach ($data['data'] as $user): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($user['IdUser']) ?></td>
+                        <td><?= htmlspecialchars($user['Username']) ?></td>
+                        <td><?= htmlspecialchars($user['Mail']) ?></td>
+                        <td><?= htmlspecialchars($user['Password']) ?></td>
+                        <td><?= htmlspecialchars($user['ROL']) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php else: ?>
                 <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Email</th>
+                    <td colspan="5">No data available</td>
                 </tr>
-            </thead>
-            <tbody>
-                <!-- Los resultados se insertarán aquí -->
-            </tbody>
-        </table>
-    </div>
-
-    <script>
-        document.getElementById('searchForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const username = document.getElementById('username').value;
-
-            fetch('test_db.php?usuario=' + encodeURIComponent(username))
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        const filteredData = data.data.filter(user => 
-                            user.nombre && user.nombre.toLowerCase().includes(username.toLowerCase())
-                        );
-                        const table = document.getElementById('resultsTable');
-                        const tbody = table.querySelector('tbody');
-                        tbody.innerHTML = '';
-
-                        if (filteredData.length > 0) {
-                            filteredData.forEach(user => {
-                                const row = document.createElement('tr');
-                                row.innerHTML = `
-                                    <td>${user.id}</td>
-                                    <td>${user.nombre}</td>
-                                    <td>${user.email}</td>
-                                `;
-                                tbody.appendChild(row);
-                            });
-                            table.style.display = 'table';
-                        } else {
-                            table.style.display = 'none';
-                            alert('No se encontraron resultados.');
-                        }
-                    } else {
-                        alert('Error al recuperar los datos.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Hubo un error al procesar la solicitud.');
-                });
-        });
-    </script>
+            <?php endif; ?>
+        </tbody>
+    </table>
 </body>
-</html>
+</html></tbody>
