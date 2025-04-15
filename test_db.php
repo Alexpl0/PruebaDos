@@ -1,32 +1,41 @@
 <?php
 
-include_once('/dao/db/db.php');
-
-$user=$_POST['user'];
+include_once('dao/db/db.php');
 
 try {
+    // Se crea una instancia de la clase LocalConector para manejar la conexión a la base de datos
     $con = new LocalConector();
-    $conex=$con ->conectar();
+    // Se llama al método conectar() para establecer la conexión a la base de datos
+    $conex = $con->conectar();
 
-    $stmt = $conex->prepare("SELECT * FROM `Usuarios` WHERE `Username` = ?;");
-    $stmt->bind_param("s", $user);
+    // Verificar si se proporciona un usuario como parámetro
+    if (isset($_GET['usuario']) && !empty($_GET['usuario'])) {
+        $usuario = $_GET['usuario'];
 
-    $stmt->execute();
-    $result = $stmt->get_result();
+        // Recuperar datos de la base de datos filtrando por usuario
+        $stmt = $conex->prepare("SELECT * FROM `CUENTAS` WHERE `USUARIO` = ?");
+        $stmt->bind_param("s", $usuario);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-    $datos = [];
-    while ($row = $result->fetch_assoc()) {
-        $datos[] = $row;
+        $datos = [];
+        while ($row = $result->fetch_assoc()) {
+            $datos[] = $row;
+        }
+
+        // Enviar datos como JSON
+        echo json_encode(['status' => 'success', 'data' => $datos]);
+
+        $stmt->close(); // Cierra la declaración preparada.
+    } else {
+        // Si no se proporciona un usuario, devolver un error
+        http_response_code(400);
+        echo json_encode(["success" => false, "mensaje" => "El parámetro 'usuario' es requerido."]);
     }
 
-    // Enviar datos como JSON
-    echo json_encode(['status' => 'success', 'data' => $datos]);
-    
+    $conex->close(); // Cierra la conexión a la base de datos.
 
-    $stmt->close(); // Cierra la declaración preparada
-    $conex->close(); // Cierra la conexión a la base de datos para evitar intrusos
-
-} catch (Exception $e){
+} catch (Exception $e) {
     http_response_code(500);
     echo json_encode(["success" => false, "mensaje" => $e->getMessage()]);
 }
