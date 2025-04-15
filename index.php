@@ -65,7 +65,7 @@ require_once __DIR__ . "/dao/db/db.php";
                             <div id="loginform">
                                 <input type="text" id="user" class="form-control" placeholder="Usuario">
                                 <input type="text" id="password" class="form-control" placeholder="Contraseña">
-                                <button id="btnLogin" class="btn btn-primary" onclick="getUser()">Iniciar Sesión</button>
+                                <button id="btnLogin" class="btn btn-primary" onclick="buscarUsuario()">Iniciar Sesión</button>
                             </div>
                         </div>
                         <p class="text-center">¿No tienes cuenta? <a href="register.php">Registrate</a></p>
@@ -82,33 +82,48 @@ require_once __DIR__ . "/dao/db/db.php";
     <script>
     // Lógica para enviar los datos del login por fetch a test_db.php
 
-    function getUser() {
-        const user = document.getElementById("user").value;
-        
-        const body = JSON.stringify({ user });
+    function buscarUsuario() {
+            const username = document.getElementById('user').value.trim();
 
-        fetch('https://grammermx.com/Jesus/PruebaDos/test_db.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: body,
-        })
 
-        .then(response => response.json())
-
-        .then(data => {
-            console.log("Respuesta: ", data);
-            if (data.success) {
-                alert("Se encontro el usuario");
-            } else {
-                alert("No se encontro el usuario");
+            if (!username) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Por favor ingresa un nombre de usuario.'
+                });
+                return;
             }
-        })
-        .catch(error => {
-            console.error("Error:", error);
-        });
-    }
+
+            fetch('https://grammermx.com/Jesus/PruebaDos/test_db.php?username=' + encodeURIComponent(username))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success' && Array.isArray(data.data) && data.data.length > 0) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Usuario encontrado',
+                            text: 'El usuario ha sido encontrado exitosamente.'
+                            confirmButtonText: 'Aceptar'
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Usuario no encontrado',
+                            text: 'No se encontró el usuario.'
+                            confirmButtonText: 'Aceptar'
+                        });
+                    }
+                })
+                .catch(error => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Ocurrió un error al buscar el usuario.'
+                    });
+                    console.error(error);
+                });
+        }
+    
     </script>
 
 
