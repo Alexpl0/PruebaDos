@@ -59,14 +59,15 @@ textarea {
 
 
 #newForm {
-    margin: 40px auto;
-    max-width: 700px;
+    margin:15%;
+    max-width: 600px;
     background-color: #f9f9f9;
-    border: 2px solid var(--first-color);
-    border-radius: 18px;
+    border: 8px solid var(--first-color);
+    border-radius: 15px;
     box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-    padding: 32px 24px;
+    padding: 10%;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
 }
