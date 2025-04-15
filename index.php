@@ -37,10 +37,10 @@ require_once __DIR__ . "/dao/db/db.php";
                 <div class="nav__menu">
                     <ul class="nav__list">
                         <li class="nav__item"><a href="index.php" class="nav__link active">Home</a></li>
-                        <li class="nav__item"><a href="scanQr.php" class="nav__link">Nueva Orden</a></li>
-                        <li class="nav__item"><a href="salas.php" class="nav__link">Ordenes Generadas</a></li>
-                        <li class="nav__item"><a href="newQR.php" class="nav__link">Agregar Usuario</a></li>
-                        <li class="nav__item"><a href="ExcelToJson.php" class="nav__link">Graficas</a></li>
+                        <li class="nav__item"><a href="newOrden.php" class="nav__link">Nueva Orden</a></li>
+                        <li class="nav__item"><a href="orders.php" class="nav__link">Ordenes Generadas</a></li>
+                        <li class="nav__item"><a href="register.php" class="nav__link">Agregar Usuario</a></li>
+                        <li class="nav__item"><a href="google.com" class="nav__link">Graficas</a></li>
                         <li class="nav__item"><a href="  " class="nav__link">Manual</a></li>
                     </ul>
                 </div>
@@ -95,7 +95,7 @@ require_once __DIR__ . "/dao/db/db.php";
                 return;
             }
 
-            fetch('https://grammermx.com/Jesus/PruebaDos/test_db.php?username=' + encodeURIComponent(username))
+            fetch('https://grammermx.com/Jesus/PruebaDos/dao/test_db.php?username=' + encodeURIComponent(username))
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success' && Array.isArray(data.data) && data.data.length > 0) {
