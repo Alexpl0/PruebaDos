@@ -99,6 +99,7 @@ require_once __DIR__ . "/dao/db/db.php";
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
                 body: `user=${user}`
+                console.log('user:', user);
             });
 
             console.log(response); // Para depuración
