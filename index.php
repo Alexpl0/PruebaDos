@@ -85,21 +85,15 @@ require_once __DIR__ . "/dao/db/db.php";
     function getUser(){
             const user = document.getElementById("user").value;
 
-            console.log(user)
-
+            console.log(user.value);
 
             fetch('https://grammermx.com/Jesus/PruebaDos/test_db.php', {
                 method: 'POST',
                 body: user,
             })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-
-                console.log(response)
+                
+                console.log("Body: ", body)
+                console.log("Respuesta: ", response)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
