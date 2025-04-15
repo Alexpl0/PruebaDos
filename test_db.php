@@ -13,7 +13,7 @@ try{
     $user = $_POST['user'] ?? '';
 
     // Preparar y ejecutar la consulta
-    $stmt = $conex->prepare("SELECT `IdUser`, `Username`, `Mail`, `Password`, `ROL` FROM `Usuarios` WHERE `Username` = ?");
+    $stmt = $conex->prepare("SELECT `IdUser`, `Username`, `Mail`, `Password`, `ROL` FROM `Usuarios` WHERE `Username` = ?;");
     $stmt->bind_param("s", $user);
     $stmt->execute();
     $result = $stmt->get_result();
