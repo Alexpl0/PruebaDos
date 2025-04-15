@@ -13,8 +13,9 @@ try {
         $usuario = $_GET['usuario'];
 
         // Recuperar datos de la base de datos filtrando por usuario
-        $stmt = $conex->prepare("SELECT * FROM `CUENTAS` WHERE `USUARIO` = ?");
-        $stmt->bind_param("s", $usuario);
+        $stmt = $conex->prepare("SELECT * FROM `CUENTAS` WHERE `USUARIO` LIKE ?");
+        $likeUsuario = "%$usuario%";
+        $stmt->bind_param("s", $likeUsuario);
         $stmt->execute();
         $result = $stmt->get_result();
 

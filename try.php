@@ -50,7 +50,9 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
-                        const filteredData = data.data.filter(user => user.nombre.toLowerCase().includes(username.toLowerCase()));
+                        const filteredData = data.data.filter(user => 
+                            user.nombre && user.nombre.toLowerCase().includes(username.toLowerCase())
+                        );
                         const table = document.getElementById('resultsTable');
                         const tbody = table.querySelector('tbody');
                         tbody.innerHTML = '';
