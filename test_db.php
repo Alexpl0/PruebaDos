@@ -17,15 +17,16 @@ try {
 
     // Se ejecuta la consulta
     $stmt->execute();
-
-    // Se verifica si se obbtuvieron resultados
     $result = $stmt->get_result();
-    if ($result && $result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        echo json_encode(["success" => true, "data" => $row]);
-    } else {
-        echo json_encode(["success" => false, "mensaje" => "No se encontraron resultados."]);
+
+    $datos = [];
+    while ($row = $result->fetch_assoc()) {
+        $datos[] = $row;
     }
+
+    // Enviar datos como JSON
+    echo json_encode(['status' => 'success', 'data' => $datos]);
+    
 
     $stmt->close(); // Cierra la declaración preparada
     $conex->close(); // Cierra la conexión a la base de datos para evitar intrusos
