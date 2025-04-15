@@ -57,7 +57,7 @@ textarea {
     box-sizing: border-box;
 }
 
-#newForm{
+.newForm{
     display: flex;
     flex-direction: column;
     align-items: center;
