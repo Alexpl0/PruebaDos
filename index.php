@@ -65,7 +65,7 @@ require_once __DIR__ . "/dao/db/db.php";
                             <div id="loginform">
                                 <input type="text" id="user" class="form-control" placeholder="Usuario">
                                 <input type="text" id="password" class="form-control" placeholder="Contraseña">
-                                <button id="btnLogin" class="btn btn-primary">Iniciar Sesión</button>
+                                <button id="btnLogin" class="btn btn-primary" onclick="getUser()">Iniciar Sesión</button>
                             </div>
                         </div>
                         <p class="text-center">¿No tienes cuenta? <a href="register.php">Registrate</a></p>
@@ -80,67 +80,31 @@ require_once __DIR__ . "/dao/db/db.php";
     <script src="js/header.js"></script>
 
     <script>
-    // Lógica para enviar los datos del login por fetch a login.php
-    document.getElementById('btnLogin').addEventListener('click', async function () {
-        const user = document.getElementById('user').value.trim();
-        const password = document.getElementById('password').value.trim();
+    // Lógica para enviar los datos del login por fetch a test_db.php
 
-        if (!user || !password) {
-            Swal.fire('Error', 'Por favor ingresa usuario y contraseña.', 'error');
-            return;
-        }
+    function getUser(){
+            const user = document.getElementById("user").value;
 
-        console.log(user, password); // Para depuración
+            const formData = new FormData();
+            formData.append('Username', user);
 
-        try {
-            const response = await fetch('https://grammermx.com/Jesus/PruebaDos/test_db.php', {
+            fetch('https://grammermx.com/Jesus/PruebaDos/js/test_db.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: `user=${user}`
-                
-            });
-            
-            console.log('user:', user);
-            console.log('body:', body)
-            console.log(response); // Para depuración
-
-
-            // Si login.php redirige, fetch no sigue la redirección en el navegador,
-            // así que comprobamos si la respuesta es ok o si fue redirigido
-            if (response.redirected) {
-                Swal.fire({
-                    title: 'Redirigiendo',
-                    text: 'Por favor espera...',
-                    icon: 'info',
-                    showConfirmButton: true,
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("Se encontro el usuario");
+                    } else {
+                        alert("No se encontro el usuario");
+                    }
                 });
-                return;
-            }
-
-            // Si login.php responde con JSON, puedes manejarlo así:
-            const data = await response.json();
-            console.log('Resultado de la consulta:', data);
-            if (data.success) {
-                console.log('Login exitoso:', data);
-               Swal.fire({
-                    title: 'Éxito',
-                    text: 'Inicio de sesión exitoso.',
-                    icon: 'success',
-                    confirmButtonText: 'Aceptar'
-                });
-            } else {
-                Swal.fire('Error', data.message || 'Usuario o contraseña incorrectos.', 'error');
-            }
-        } catch (error) {
-            Swal.fire('Error', 'Error de conexión con el servidor.', 'error');
         }
-    });
 
+   
     </script>
 
-    <!-- Librería QR Code -->
-    <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
 </body>
 </html>
