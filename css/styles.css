@@ -19,7 +19,6 @@
   }
 
 body {
-    font-family: Arial, sans-serif;
     margin: 0;
     padding: 5% 10%;
     background-color: #f4f4f4;
@@ -83,10 +82,6 @@ textarea {
     box-sizing: border-box;
 }
 
-textarea {
-    resize: vertical;
-    height: 100px;
-}
 
 button{
     justify-self: center;
@@ -134,45 +129,11 @@ form button, form input[type="submit"] {
     background-color: #f9f9f9;
 }
 
-
-
-#TablaEjemplo{
-    width: 100%;
-    height: auto;
-}
-
 /* Estilo para hacer que las imágenes sean responsivas */
 .responsive-image {
     width: 100%;
     height: auto;
 }
-
-#containerExcel{
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    background-color: #f9f9f9;
-}
-
-#options{
-    justify-self: center;
-    display: flex;
-    justify-content: space-around;
-}
-
-#menu1, #menu2, #menu3, #generate-button, #download-button {
-    max-width: 600px;
-    justify-self: center;
-    background-color: #A57F2D;
-    color: white;
-    border-radius: 15px;
-    padding: 2%;
-    margin: 2%;
-    width: 96%;
-}
-
 
 
 .popup {
