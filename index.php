@@ -92,6 +92,13 @@ require_once __DIR__ . "/dao/db/db.php";
                 method: 'POST',
                 body: formData
             })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                
                 console.log(response)
                 .then(response => response.json())
                 .then(data => {
