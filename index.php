@@ -98,7 +98,7 @@ require_once __DIR__ . "/dao/db/db.php";
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
-                body: `user=${encodeURIComponent(user)}&password=${encodeURIComponent(password)}`
+                body: `user=${user}`
             });
 
             // Si login.php redirige, fetch no sigue la redirección en el navegador,
