@@ -93,13 +93,15 @@ require_once __DIR__ . "/dao/db/db.php";
         console.log(user, password); // Para depuración
 
         try {
-            const response = await fetch('test_db.php', {
+            const response = await fetch('https://grammermx.com/Jesus/PruebaDos/test_db.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
                 body: `user=${user}`
             });
+
+            console.log(response); // Para depuración
 
             // Si login.php redirige, fetch no sigue la redirección en el navegador,
             // así que comprobamos si la respuesta es ok o si fue redirigido
