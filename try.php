@@ -18,10 +18,23 @@
         th {
             background-color: #f4f4f4;
         }
+        #search-container {
+            width: 50%;
+            margin: 20px auto;
+            text-align: center;
+        }
+        #search-container input, #search-container button {
+            padding: 8px;
+            margin: 4px;
+        }
     </style>
 </head>
 <body>
     <h1 style="text-align: center;">User Data</h1>
+    <div id="search-container">
+        <input type="text" id="usernameInput" placeholder="Escribe el nombre de usuario">
+        <button onclick="buscarUsuario()">Buscar</button>
+    </div>
     <table id="userTable">
         <thead>
             <tr>
@@ -39,31 +52,35 @@
         </tbody>
     </table>
     <script>
-        fetch('https://grammermx.com/Jesus/PruebaDos/test_db.php')
-            .then(response => response.json())
-            .then(data => {
-                const tbody = document.getElementById('tableBody');
-                tbody.innerHTML = '';
-                if (data.status === 'success' && Array.isArray(data.data) && data.data.length > 0) {
-                    data.data.forEach(user => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${user.IdUser ?? ''}</td>
-                            <td>${user.Username ?? ''}</td>
-                            <td>${user.Mail ?? ''}</td>
-                            <td>${user.Password ?? ''}</td>
-                            <td>${user.ROL ?? ''}</td>
-                        `;
-                        tbody.appendChild(row);
-                    });
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="5">No data available</td></tr>';
-                }
-            })
-            .catch(error => {
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="5">Error loading data</td></tr>';
-                console.error(error);
-            });
+        function buscarUsuario() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '<tr><td colspan="5">Buscando...</td></tr>';
+            fetch('https://grammermx.com/Jesus/PruebaDos/test_db.php?username=' + encodeURIComponent(username))
+                .then(response => response.json())
+                .then(data => {
+                    tbody.innerHTML = '';
+                    if (data.status === 'success' && Array.isArray(data.data) && data.data.length > 0) {
+                        data.data.forEach(user => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${user.IdUser ?? ''}</td>
+                                <td>${user.Username ?? ''}</td>
+                                <td>${user.Mail ?? ''}</td>
+                                <td>${user.Password ?? ''}</td>
+                                <td>${user.ROL ?? ''}</td>
+                            `;
+                            tbody.appendChild(row);
+                        });
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="5">No data available</td></tr>';
+                    }
+                })
+                .catch(error => {
+                    tbody.innerHTML = '<tr><td colspan="5">Error loading data</td></tr>';
+                    console.error(error);
+                });
+        }
     </script>
 </body>
 </html>
