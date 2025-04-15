@@ -20,6 +20,7 @@ require_once __DIR__ . '/dao/elements/daoTransport.php';
     
     <!-- Archivos CSS locales -->
     <link rel="stylesheet" href="css/header.css">
+    <link rel="stylesheet" href="css/styles.css">
 </head> 
 <body> 
     <div class="container mt-5"> 
@@ -81,8 +82,12 @@ require_once __DIR__ . '/dao/elements/daoTransport.php';
         </form> 
     </div>
 
+    <!-- Archivos JS locales -->
+    <script src="js/header.js"></script>
+    
     <!-- Incluye la biblioteca jQuery desde una CDN. jQuery es necesario para Select2 y facilita la manipulación del DOM y eventos -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 
     <!-- Incluye el archivo JavaScript de Select2 desde una CDN -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
