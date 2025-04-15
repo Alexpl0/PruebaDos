@@ -54,8 +54,8 @@ require_once __DIR__ . '/dao/elements/daoTransport.php';
 
 
     <section id="newForm">
-    <div class="container mt-5"> 
-        <h1 class="text-center">Selecciona una Planta</h1> 
+    <div> 
+        <h1>Selecciona una Planta</h1> 
         <form id="plant-form"> 
             
             <div class="mb-3"> 
@@ -78,7 +78,7 @@ require_once __DIR__ . '/dao/elements/daoTransport.php';
                 </select>
             </div> 
 
-            <div class="mb-3">
+            <div>
                 <label for="codeplanta" class="form-label">Plant Code:</label>
                 <select name="codeplanta" id="codeplanta" class="form-select">
                     <?php if (!empty($jsonCodePlants)): ?>
@@ -93,7 +93,7 @@ require_once __DIR__ . '/dao/elements/daoTransport.php';
                 </select>
             </div>
 
-            <div class="mb-3">
+            <div>
                 <label for="transport" class="form-label">Transport Mode:</label> 
                 <select name="transport" id="transport" class="form-select">
                     <?php if (!empty($jsonTransport)): ?>
@@ -113,6 +113,8 @@ require_once __DIR__ . '/dao/elements/daoTransport.php';
         </form> 
     </div>
     </section>
+
+
     <!-- Archivos JS locales -->
     <script src="js/header.js"></script>
 
