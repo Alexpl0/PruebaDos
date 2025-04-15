@@ -57,20 +57,7 @@ require_once __DIR__ . '/dao/elements/daoTransport.php';
             <div> 
                 <label for="planta">Requesting Plant:</label> 
                 <select name="planta" id="planta" class="form-select"> <!-- Elemento desplegable (select) con nombre 'planta', ID 'planta' y clase de Bootstrap 'form-select' -->
-                    <?php if (!empty($jsonPlantas)): ?> <!-- Comienza un bloque PHP: verifica si la variable jsonPlantas (que contiene los datos de las plantas) no está vacía -->
-                        <?php foreach ($jsonPlantas as $planta): ?> <!-- Itera sobre cada elemento (planta) dentro del array jsonPlantas -->
-                            <!-- Crea una opción dentro del select. El atributo 'value' contendrá el ID de la planta -->
-                            <!-- Se usa htmlspecialchars para prevenir ataques XSS al mostrar datos -->
-                            <option value="<?php echo htmlspecialchars($planta['ID']); ?>">
-                                <!-- El texto visible de la opción será el nombre de la planta ('PLANT') -->
-                                <!-- Se usa htmlspecialchars para prevenir ataques XSS al mostrar datos -->
-                                <?php echo htmlspecialchars($planta['PLANT']); ?>
-                            </option> <!-- Fin de la opción -->
-                        <?php endforeach; ?> <!-- Fin del bucle foreach -->
-                    <?php else: ?> <!-- Si la variable $json está vacía -->
-                        <!-- Muestra una opción deshabilitada indicando que no se encontraron datos -->
-                        <option value="" disabled>No se encontraron datos, JSON_Plantas vacio</option>
-                    <?php endif; ?>
+                    
                 </select>
             </div> 
 
