@@ -55,8 +55,8 @@ require_once __DIR__ . '/dao/elements/daoTransport.php';
     <div> 
         <form id="plant-form"> 
             
-            <div class="mb-3"> 
-                <label for="planta" class="form-label">Rquesting Plant:</label> 
+            <div> 
+                <label for="planta" class="form-label">Requesting Plant:</label> 
                 <select name="planta" id="planta" class="form-select"> <!-- Elemento desplegable (select) con nombre 'planta', ID 'planta' y clase de Bootstrap 'form-select' -->
                     <?php if (!empty($jsonPlantas)): ?> <!-- Comienza un bloque PHP: verifica si la variable jsonPlantas (que contiene los datos de las plantas) no está vacía -->
                         <?php foreach ($jsonPlantas as $planta): ?> <!-- Itera sobre cada elemento (planta) dentro del array jsonPlantas -->
