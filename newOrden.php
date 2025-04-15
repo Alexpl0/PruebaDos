@@ -53,7 +53,7 @@ require_once __DIR__ . '/dao/elements/daoTransport.php';
 
 
 
-    <div class="container mt-5"> 
+    <div id="newForm" class="container mt-5"> 
         <h1 class="text-center">Selecciona una Planta</h1> 
         <form id="plant-form"> 
             
