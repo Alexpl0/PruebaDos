@@ -102,14 +102,14 @@ require_once __DIR__ . "/dao/db/db.php";
                         Swal.fire({
                             icon: 'success',
                             title: 'Usuario encontrado',
-                            text: 'El usuario ha sido encontrado exitosamente.'
+                            text: 'El usuario ha sido encontrado exitosamente.',
                             confirmButtonText: 'Aceptar'
                         });
                     } else {
                         Swal.fire({
                             icon: 'error',
                             title: 'Usuario no encontrado',
-                            text: 'No se encontró el usuario.'
+                            text: 'No se encontró el usuario.',
                             confirmButtonText: 'Aceptar'
                         });
                     }
@@ -118,7 +118,8 @@ require_once __DIR__ . "/dao/db/db.php";
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: 'Ocurrió un error al buscar el usuario.'
+                        text: 'Ocurrió un error al buscar el usuario.',
+                        confirmButtonText: 'Aceptar'
                     });
                     console.error(error);
                 });
