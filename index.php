@@ -87,13 +87,10 @@ require_once __DIR__ . "/dao/db/db.php";
 
             console.log(user)
 
-            const formData = new FormData();
-            formData.append('user', user);
-            console.log(formData)
 
             fetch('https://grammermx.com/Jesus/PruebaDos/test_db.php', {
                 method: 'POST',
-                body: formData
+                body: user,
             })
                 .then(response => {
                     if (!response.ok) {
