@@ -115,7 +115,7 @@ div > select, .select-container {
     transition: background-color 0.3s ease;
 }
 
-#main {
+#home {
     display: block;
     flex-direction: column;
     align-items: center;
