@@ -61,7 +61,7 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
         </nav>
     </header> 
     
-    <h1>Selecciona una Planta</h1> 
+    <h1>Geneador de Orden</h1> 
     <div> 
         <form id="plant-form"> 
             
