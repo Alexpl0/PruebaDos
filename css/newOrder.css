@@ -71,6 +71,16 @@ textarea {
     font-size: 1em;
 }
 
+select {
+    width: 90%;
+    padding: 5%;
+    margin-bottom: 2%;
+    border: 1px solid var(--first-color);
+    border-radius: 15px;
+    box-sizing: border-box;
+    font-size: 1em;
+}
+
 
 /*=== Cosos del SPAN === */
 /* Estilo para el Select2 personalizado */
