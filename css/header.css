@@ -20,7 +20,7 @@
   --z-fixed: 100;
 }
 
-@media screen and (min-width: 768px) {
+@media screen and (min-width: 900px) {
   :root {
     --normal-font-size: 1rem;
     --small-font-size: .875rem;
