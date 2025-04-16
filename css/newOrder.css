@@ -117,7 +117,6 @@ div > select, .select-container {
 
 #home {
     justify-self: center;
-    max-width: 600px;
     border-color: #085591;
     border-width: 2px;
     border-radius: 15px;
