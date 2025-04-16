@@ -115,3 +115,12 @@ div > select, .select-container {
     transition: background-color 0.3s ease;
 }
 
+#home {
+    justify-self: center;
+    max-width: 600px;
+    border-color: #085591;
+    border-width: 2px;
+    border-radius: 15px;
+    padding-top: 25px;
+    padding-bottom: 25px;
+}
