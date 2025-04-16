@@ -56,8 +56,8 @@ require_once __DIR__ . '/dao/elements/daoTransport.php';
         <form id="plant-form"> 
             
             <div> 
-                <label for="planta" class="form-label">Requesting Plant:</label> 
-                <select name="planta" id="planta" class="form-select"> <!-- Elemento desplegable (select) con nombre 'planta', ID 'planta' y clase de Bootstrap 'form-select' -->
+                <label for="planta" >Requesting Plant:</label> 
+                <select name="planta" id="planta" > <!-- Elemento desplegable (select) con nombre 'planta', ID 'planta' y clase de Bootstrap 'form-select' -->
                     <?php if (!empty($jsonPlantas)): ?> <!-- Comienza un bloque PHP: verifica si la variable jsonPlantas (que contiene los datos de las plantas) no está vacía -->
                         <?php foreach ($jsonPlantas as $planta): ?> <!-- Itera sobre cada elemento (planta) dentro del array jsonPlantas -->
                             <!-- Crea una opción dentro del select. El atributo 'value' contendrá el ID de la planta -->
@@ -76,8 +76,8 @@ require_once __DIR__ . '/dao/elements/daoTransport.php';
             </div> 
 
             <div>
-                <label for="codeplanta" class="form-label">Plant Code:</label>
-                <select name="codeplanta" id="codeplanta" class="form-select">
+                <label for="codeplanta" >Plant Code:</label>
+                <select name="codeplanta" id="codeplanta" >
                     <?php if (!empty($jsonCodePlants)): ?>
                         <?php foreach ($jsonCodePlants as $codeplanta): ?>
                             <option value="<?php echo htmlspecialchars($codeplanta['ID']); ?>">
@@ -91,8 +91,8 @@ require_once __DIR__ . '/dao/elements/daoTransport.php';
             </div>
 
             <div>
-                <label for="transport" class="form-label">Transport Mode:</label> 
-                <select name="transport" id="transport" class="form-select">
+                <label for="transport" >Transport Mode:</label> 
+                <select name="transport" id="transport" >
                     <?php if (!empty($jsonTransport)): ?>
                         <?php foreach ($jsonTransport as $transport): ?>
                             <option value="<?php echo htmlspecialchars($transport['ID']); ?>">
