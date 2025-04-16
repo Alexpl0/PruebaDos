@@ -38,26 +38,14 @@ h1 {
 
 form{
     display: flex;
-    flex-direction: column;
-    align-items: center;
     justify-content: center;
-    background-color: var(--hover-color);
-    border: 1px solid var(--first-color);
-    padding: 5%;
-    border-radius: 15px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    max-width: 600px;
-    margin: 0 auto; /* Centra horizontalmente */
-    position: relative; /* Necesario para el posicionamiento */
-    left: 50%;
-    transform: translateX(-50%); /* Ajusta perfectamente al centro */
-}
-
-/* Media query para dispositivos móviles */
-@media (max-width: 768px) {
-    form {
-        width: 90%; /* En dispositivos pequeños ocupa más ancho */
-    }
+    align-items: center;
+    margin: 20px auto;
+    padding: 20px;
+    border: 2px solid var(--first-color); /* Margen azul */
+    border-radius: 10px;
+    background-color: #f9f9f9; /* Fondo opcional */
+    max-width: 800px; /* Ajusta el ancho máximo */
 }
 
 label {
