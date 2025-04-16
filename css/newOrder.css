@@ -109,9 +109,9 @@ div > select, .select-container {
 
 #enviar {
     width: 90%;
-    max-height: 2px;
-    padding: 5%;
-    margin-top: 25px;
+    max-height: 1px;
+    padding: 4%;
+    margin: 5%;
     border: none;
     border-radius: 15px;
     background-color: var(--first-color);
