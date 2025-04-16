@@ -135,5 +135,6 @@ div > select, .select-container {
     width: 100%;
     box-sizing: border-box;
     max-width: 900px;
+    margin-top: 20px;
 }
 
