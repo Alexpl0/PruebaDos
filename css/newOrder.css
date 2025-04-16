@@ -75,7 +75,7 @@ textarea {
 select {
     width: 90%;
     padding: 5%;
-    margin-bottom: 5%;
+    margin-bottom: 10px;
     border: 1px solid var(--first-color);
     border-radius: 15px;
     box-sizing: border-box;
@@ -85,7 +85,7 @@ select {
 button {
     width: 20%;
     padding: 5%;
-    margin-top: 5%;
+    margin-top: 15px;
     border: none;
     border-radius: 15px;
     background-color: var(--first-color);
