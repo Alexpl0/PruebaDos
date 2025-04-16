@@ -103,9 +103,9 @@ div > select, .select-container {
 
 #enviar {
     width: 90%;
-    height: 5%;
+    height: 2%;
     padding: 5%;
-    margin-top: 15px;
+    margin-top: 2%px;
     border: none;
     border-radius: 15px;
     background-color: var(--first-color);
@@ -113,5 +113,15 @@ div > select, .select-container {
     font-size: 1.2em;
     cursor: pointer;
     transition: background-color 0.3s ease;
+}
+
+#main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;      /* Ocupa toda la altura de la ventana */
+    width: 100%;
+    box-sizing: border-box;
 }
 
