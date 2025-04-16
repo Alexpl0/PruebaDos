@@ -15,6 +15,7 @@ require_once __DIR__ . '/dao/elements/daoSupplier.php';
 require_once __DIR__ . '/dao/elements/daoMeasures.php';
 require_once __DIR__ . '/dao/elements/daoProducts.php';
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head> 
