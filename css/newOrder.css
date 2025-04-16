@@ -130,8 +130,8 @@ input{
     max-height: 1px;
     padding: 4%;
     margin: 5%;
-    border: 1px solid var(--first-color);
-    border-radius: 15px;
+    border: 1px solid var(--hover-color);
+    border-radius: 5px;
     font-size: 1.2em;
     cursor: text;
     display: flex;
