@@ -19,15 +19,23 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
 <!DOCTYPE html>
 <html lang="es">
 <head> 
-<meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>Plantas</title> <!-- Define el título que aparece en la pestaña o barra de título del navegador -->
+    
+    <!-- Incluye la biblioteca SweetAlert2 desde una CDN para mostrar alertas y mensajes bonitos -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <!-- Agregar Ionicons en el head con la versión más reciente -->
     <script type="module" src="https://unpkg.com/ionicons@7.2.2/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.2.2/dist/ionicons/ionicons.js"></script>
+    
+    
+    <!-- Enlaza la hoja de estilos CSS de Bootstrap desde una CDN para aplicar estilos predefinidos -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <!-- Enlaza la hoja de estilos CSS de Select2 desde una CDN para mejorar la apariencia y funcionalidad del elemento <select> -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
     
     <!-- Archivos CSS locales -->
     <link rel="stylesheet" href="css/header.css">
