@@ -37,15 +37,15 @@ h1 {
 }
 
 form{
-    flex-direction: column;
-    align-items: center;
+    display: flex;
     justify-content: center;
-    background-color: var(--hover-color);
-    border: 1px solid var(--first-color);
-    padding: 5%;
-    border-radius: 15px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    max-width: 600px;
+    align-items: center;
+    margin: 20px auto;
+    padding: 20px;
+    border: 2px solid var(--first-color); /* Margen azul */
+    border-radius: 10px;
+    background-color: #f9f9f9; /* Fondo opcional */
+    max-width: 800px; /* Ajusta el ancho máximo */
 }
 
 label {

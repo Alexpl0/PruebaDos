@@ -38,7 +38,7 @@
                 <div class="nav__menu">
                     <ul class="nav__list">
                         <li class="nav__item"><a href="index.php" class="nav__link ">Home</a></li>
-                        <li class="nav__item"><a href="newOrden.php" class="nav__link ">Nueva Orden</a></li>
+                        <li class="nav__item"><a href="newOrder.php" class="nav__link ">Nueva Orden</a></li>
                         <li class="nav__item"><a href="orders.php" class="nav__link ">Ordenes Generadas</a></li>
                         <li class="nav__item"><a href="register.php" class="nav__link active">Agregar Usuario</a></li>
                         <li class="nav__item"><a href="google.com" class="nav__link">Graficas</a></li>
