@@ -8,6 +8,7 @@
     --dark-color-alt: #282B3A;
     --white-color: #FFFFFF;
     --hover-color: #F7F7F7;
+    --border-color:#AAAAAA;
   
     /*===== Fuente y tipografia =====*/
     --body-font: 'Cambria', sans-serif;
@@ -117,7 +118,7 @@ input{
     max-height: 1px;
     padding: 4%;
     margin: 5%;
-    border: 1px solid var(--hover-color);
+    border: 5px solid var(--border-color);
     border-radius: 1px;
     font-size: 1.2em;
     cursor: text;
