@@ -210,9 +210,9 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
         </form> 
     </div>
 
-    <footer class="footer">
-        <div class="footer__content bd-grid">
-            <div class="footer__copy">
+    <footer>
+        <div >
+            <div>
                 <p>© 2023 Grammer. Todos los derechos reservados.</p>
             </div>
         </div>
