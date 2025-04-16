@@ -5,6 +5,15 @@
 require_once __DIR__ . '/dao/elements/daoPlantas.php';
 require_once __DIR__ . '/dao/elements/daoCodePlants.php';
 require_once __DIR__ . '/dao/elements/daoTransport.php';
+require_once __DIR__ . '/dao/elements/daoInOutBound.php';
+require_once __DIR__ . '/dao/elements/daoArea.php';
+require_once __DIR__ . '/dao/elements/daoInExt.php';
+require_once __DIR__ . '/dao/elements/daoCategoryCause.php';
+require_once __DIR__ . '/dao/elements/daoProjectStatus.php';
+require_once __DIR__ . '/dao/elements/daoRecovery.php';
+require_once __DIR__ . '/dao/elements/daoSupplier.php';
+require_once __DIR__ . '/dao/elements/daoMeasures.php';
+require_once __DIR__ . '/dao/elements/daoProducts.php';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -65,7 +74,7 @@ require_once __DIR__ . '/dao/elements/daoTransport.php';
                             <option value="<?php echo htmlspecialchars($planta['ID']); ?>">
                                 <!-- El texto visible de la opción será el nombre de la planta ('PLANT') -->
                                 <!-- Se usa htmlspecialchars para prevenir ataques XSS al mostrar datos -->
-                                <?php echo htmlspecialchars($planta['PLANT']); ?>
+                                <?php echo htmlspecialchars($planta['PLANT']); ?> <!-- Plant hace referencia al JSON -->
                             </option> <!-- Fin de la opción -->
                         <?php endforeach; ?> <!-- Fin del bucle foreach -->
                     <?php else: ?> <!-- Si la variable $json está vacía -->
@@ -105,6 +114,96 @@ require_once __DIR__ . '/dao/elements/daoTransport.php';
                 </select>
             </div>
 
+            <div>
+                <label for="InOut" >In/Out Service:</label> 
+                <select name="InOut" id="InOut" >
+                    <?php if (!empty($jsonInOut)): ?>
+                        <?php foreach ($jsonInOut as $InOut): ?>
+                            <option value="<?php echo htmlspecialchars($InOut['ID']); ?>">
+                                <?php echo htmlspecialchars($InOut['IN_OUT']); ?> 
+                            </option>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <option value="" disabled>No se encontraron datos, jsonInOut vacio</option>
+                    <?php endif; ?>
+                </select>
+            </div>
+
+            <div>
+                <label for="Area" >Area of Responsability:</label> 
+                <select name="Area" id="Area" >
+                    <?php if (!empty($jsonArea)): ?>
+                        <?php foreach ($jsonArea as $Area): ?>
+                            <option value="<?php echo htmlspecialchars($Area['ID']); ?>">
+                                <?php echo htmlspecialchars($Area['RESPONSIBILITY']); ?> 
+                            </option>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <option value="" disabled>No se encontraron datos, jsonArea vacio</option>
+                    <?php endif; ?>
+                </select>
+            </div>
+
+            <div>
+                <label for="IntExt" >Internal/External Service:</label> 
+                <select name="IntExt" id="IntExt" >
+                    <?php if (!empty($jsonInExt)): ?>
+                        <?php foreach ($jsonInExt as $IntExt): ?>
+                            <option value="<?php echo htmlspecialchars($IntExt['ID']); ?>">
+                                <?php echo htmlspecialchars($IntExt['IN_EXT']); ?> 
+                            </option>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <option value="" disabled>No se encontraron datos, jsonInExt vacio</option>
+                    <?php endif; ?>
+                </select>
+            </div>
+
+            <div>
+                <label for="CategoryCause" >Category Cause:</label> 
+                <select name="CategoryCause" id="CategoryCause" >
+                    <?php if (!empty($jsonCategoryCause)): ?>
+                        <?php foreach ($jsonCategoryCause as $CategoryCause): ?>
+                            <option value="<?php echo htmlspecialchars($CategoryCause['ID']); ?>">
+                                <?php echo htmlspecialchars($CategoryCause['CATEGORY']); ?> 
+                            </option>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <option value="" disabled>No se encontraron datos, jsonCategoryCause vacio</option>
+                    <?php endif; ?>
+                </select>
+            </div>
+
+            <div>
+                <label for="ProjectStatus" >Project Status:</label> 
+                <select name="ProjectStatus" id="ProjectStatus" >
+                    <?php if (!empty($jsonProjectStatus)): ?>
+                        <?php foreach ($jsonProjectStatus as $ProjectStatus): ?>
+                            <option value="<?php echo htmlspecialchars($ProjectStatus['ID']); ?>">
+                                <?php echo htmlspecialchars($ProjectStatus['STATUS']); ?> 
+                            </option>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <option value="" disabled>No se encontraron datos, jsonProjectStatus vacio</option>
+                    <?php endif; ?>
+                </select>
+            </div>
+
+            <div>
+                <label for="Recovery" >Recovery:</label> 
+                <select name="Recovery" id="Recovery" >
+                    <?php if (!empty($jsonProjectStatus)): ?>
+                        <?php foreach ($jsonProjectStatus as $Recovery): ?>
+                            <option value="<?php echo htmlspecialchars($Recovery['ID']); ?>">
+                                <?php echo htmlspecialchars($Recovery['RECOVERY']); ?> 
+                            </option>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <option value="" disabled>No se encontraron datos, jsonProjectStatus vacio</option>
+                    <?php endif; ?>
+                </select>
+            </div>
+
             <!-- El atributo 'onclick' llama a la función JavaScript 'enviar' cuando se hace clic, pasando el objeto evento -->
             <button type="button" class="btn btn-primary" onclick="enviar(event)">Enviar</button>
         </form> 
@@ -126,19 +225,47 @@ require_once __DIR__ . '/dao/elements/daoTransport.php';
         $(document).ready(function() {
             // Selecciona el elemento con ID 'planta' usando jQuery y le aplica la funcionalidad de Select2
             $('#planta').select2({
-                placeholder: "Plantas", // Define un texto de marcador de posición para el select
+                placeholder: "Plants", // Define un texto de marcador de posición para el select
                 allowClear: true // Permite que el usuario borre la selección actual
             });
-
             
             $('#codeplanta').select2({
-                placeholder: "Codigos de Plantas", 
+                placeholder: "Plant Code", 
                 allowClear: true 
             });
 
-             
-             $('#transport').select2({
-                placeholder: "Tipo de Transporte", 
+            $('#transport').select2({
+                placeholder: "Transport Mode", 
+                allowClear: true  InOut
+            });
+
+            $('#InOut').select2({
+                placeholder: "In/Out Service", 
+                allowClear: true 
+            });
+
+            $('#Area').select2({
+                placeholder: "Area of Responsability", 
+                allowClear: true 
+            });
+
+            $('#IntExt').select2({
+                placeholder: "Internal/External Service", 
+                allowClear: true 
+            });
+
+            $('#CategoryCause').select2({
+                placeholder: "Category Cause", 
+                allowClear: true 
+            });
+
+            $('#ProjectStatus').select2({
+                placeholder: "Project Status", 
+                allowClear: true 
+            });
+
+            $('#Recovery').select2({
+                placeholder: "Recovery", 
                 allowClear: true 
             });
         });
@@ -159,10 +286,34 @@ require_once __DIR__ . '/dao/elements/daoTransport.php';
             const selectTransport = document.getElementById('transport');
             const selectedTransport = selectTransport.options[selectTransport.selectedIndex].text;
 
+            const selectInOut = document.getElementById('InOut');
+            const selectedInOut = selectInOut.options[selectInOut.selectedIndex].text;
+
+            const selectArea = document.getElementById('Area');
+            const selectedArea = selectArea.options[selectArea.selectedIndex].text;
+
+            const selectIntExt = document.getElementById('IntExt');
+            const selectedIntExt = selectIntExt.options[selectIntExt.selectedIndex].text;
+
+            const selectCategoryCause = document.getElementById('CategoryCause');
+            const selectedCategoryCause = selectCategoryCause.options[selectCategoryCause.selectedIndex].text;
+
+            const selectProjectStatus = document.getElementById('ProjectStatus');
+            const selectedProjectStatus = selectProjectStatus.options[selectProjectStatus.selectedIndex].text;
+
+            const selectRecovery = document.getElementById('Recovery');
+            const selectedRecovery = selectRecovery.options[selectRecovery.selectedIndex].text;
+
             // Muestra el nombre de la planta seleccionada en la consola de desarrollador del navegador
             console.log('Planta seleccionada:', selectedPlantName);
             console.log('Código de planta seleccionado:', selectedCodePlant);
             console.log('Modo de Transporte: ', selectedTransport )
+            console.log('In/Out Service: ', selectedInOut )
+            console.log('Area de Responsabilidad: ', selectedArea )
+            console.log('Servicio Interno/Externo: ', selectedIntExt )
+            console.log('Causa de Categoria: ', selectedCategoryCause )
+            console.log('Estado del Proyecto: ', selectedProjectStatus )
+            console.log('Recuperación: ', selectedRecovery )
         }
     </script>
 </body> 
