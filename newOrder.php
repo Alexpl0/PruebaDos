@@ -193,14 +193,14 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
             <div>
                 <label for="Recovery" >Recovery:</label> 
                 <select name="Recovery" id="Recovery" >
-                    <?php if (!empty($jsonProjectStatus)): ?>
-                        <?php foreach ($jsonProjectStatus as $Recovery): ?>
+                    <?php if (!empty($jsonRecovery)): ?>
+                        <?php foreach ($jsonRecovery as $Recovery): ?>
                             <option value="<?php echo htmlspecialchars($Recovery['ID']); ?>">
                                 <?php echo htmlspecialchars($Recovery['RECOVERY']); ?> 
                             </option>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <option value="" disabled>No se encontraron datos, jsonProjectStatus vacio</option>
+                        <option value="" disabled>No se encontraron datos, jsonRecovery vacio</option>
                     <?php endif; ?>
                 </select>
             </div>
