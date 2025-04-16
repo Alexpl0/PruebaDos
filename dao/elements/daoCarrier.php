@@ -17,7 +17,7 @@ try {
     curl_close($ch);
 
     // Decodifica el resultado JSON en un array asociativo de PHP
-    $jsonSupplier = json_decode($result, true);
+    $jsonCarrier = json_decode($result, true);
 
     
 

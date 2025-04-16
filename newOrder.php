@@ -11,7 +11,7 @@ require_once __DIR__ . '/dao/elements/daoInExt.php';
 require_once __DIR__ . '/dao/elements/daoCategoryCause.php';
 require_once __DIR__ . '/dao/elements/daoProjectStatus.php';
 require_once __DIR__ . '/dao/elements/daoRecovery.php';
-require_once __DIR__ . '/dao/elements/daoSupplier.php';
+require_once __DIR__ . '/dao/elements/daoCarrier.php';
 require_once __DIR__ . '/dao/elements/daoMeasures.php';
 require_once __DIR__ . '/dao/elements/daoProducts.php';
 ?>
@@ -215,16 +215,16 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
             </div>
 
             <div>
-                <label for="Supplier" >Supplier:</label> 
-                <select name="Supplier" id="Supplier" >
-                    <?php if (!empty($jsonSupplier)): ?>
-                        <?php foreach ($jsonSupplier as $Supplier): ?>
-                            <option value="<?php echo htmlspecialchars($Supplier['ID']); ?>">
-                                <?php echo htmlspecialchars($Supplier['PROVEEDOR']); ?> 
+                <label for="Carrier" >Carrier:</label> 
+                <select name="Carrier" id="Carrier" >
+                    <?php if (!empty($jsonCarrier)): ?>
+                        <?php foreach ($jsonCarrier as $Carrier): ?>
+                            <option value="<?php echo htmlspecialchars($Carrier['ID']); ?>">
+                                <?php echo htmlspecialchars($Carrier['PROVEEDOR']); ?> 
                             </option>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <option value="" disabled>No se encontraron datos, jsonSupplier vacio</option>
+                        <option value="" disabled>No se encontraron datos, jsonCarrier vacio</option>
                     <?php endif; ?>
                 </select>
             </div>
@@ -335,8 +335,8 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
                 allowClear: true 
             });
 
-            $('#Supplier').select2({
-                placeholder: "Supplier", 
+            $('#Carrier').select2({
+                placeholder: "Carrier", 
                 allowClear: true 
             });
 
@@ -385,8 +385,8 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
             const selectRecovery = document.getElementById('Recovery');
             const selectedRecovery = selectRecovery.options[selectRecovery.selectedIndex].text;
 
-            const selectSupplier = document.getElementById('Supplier');
-            const selectedSupplier = selectSupplier.options[selectSupplier.selectedIndex].text;
+            const selectCarrier = document.getElementById('Carrier');
+            const selectedCarrier = selectCarrier.options[selectCarrier.selectedIndex].text;
 
             const selectMeasures = document.getElementById('Measures');
             const selectedMeasures = selectMeasures.options[selectMeasures.selectedIndex].text;
@@ -404,7 +404,7 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
             console.log('Causa de Categoria: ', selectedCategoryCause )
             console.log('Estado del Proyecto: ', selectedProjectStatus )
             console.log('Recuperación: ', selectedRecovery )
-            console.log('Proveedor: ', selectedSupplier )
+            console.log('Carrier: ', selectedCarrier )
             console.log('Medidas: ', selectedMeasures )
             console.log('Productos: ', selectedProducts )
         }
