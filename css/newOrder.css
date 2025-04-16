@@ -37,6 +37,7 @@ h1 {
 }
 
 form{
+    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -46,6 +47,17 @@ form{
     border-radius: 15px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     max-width: 600px;
+    margin: 0 auto; /* Centra horizontalmente */
+    position: relative; /* Necesario para el posicionamiento */
+    left: 50%;
+    transform: translateX(-50%); /* Ajusta perfectamente al centro */
+}
+
+/* Media query para dispositivos móviles */
+@media (max-width: 768px) {
+    form {
+        width: 90%; /* En dispositivos pequeños ocupa más ancho */
+    }
 }
 
 label {
@@ -102,8 +114,8 @@ div > select, .select-container {
 }
 
 #enviar {
-    width: 5%;
-    height: auto;
+    width: 90%;
+    height: 5%;
     padding: 5%;
     margin-top: 15px;
     border: none;
