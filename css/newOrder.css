@@ -125,6 +125,21 @@ div > select, .select-container {
     text-align: center;
     align-self: center;
 }
+input{
+    width: 90%;
+    max-height: 1px;
+    padding: 4%;
+    margin: 5%;
+    border: 1px solid var(--first-color);
+    border-radius: 15px;
+    font-size: 1.2em;
+    cursor: text;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    align-self: center;
+}
 
 #home {
     display: flex;
