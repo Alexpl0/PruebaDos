@@ -103,7 +103,7 @@ div > select, .select-container {
 
 #enviar {
     width: 90%;
-    height: 2%;
+    max-height: 10px;
     padding: 5%;
     margin-top: 2%px;
     border: none;
@@ -116,12 +116,13 @@ div > select, .select-container {
 }
 
 #main {
-    display: flex;
+    display: block;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: 100vh;      /* Ocupa toda la altura de la ventana */
     width: 100%;
     box-sizing: border-box;
+    justify-content: center;
 }
 
