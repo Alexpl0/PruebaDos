@@ -74,6 +74,8 @@ textarea {
 
 select {
     width: 90%;
+    align-self: center;
+    height: auto;
 }
 
 #enviar {
