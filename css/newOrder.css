@@ -82,7 +82,7 @@ select {
     font-size: 1em;
 }
 
-button {
+#enviar {
     width: 20%;
     padding: 5%;
     margin-top: 15px;
