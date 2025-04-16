@@ -27,7 +27,6 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    margin-bottom: 2rem;
 }
 
 .title1{
@@ -137,6 +136,7 @@ div > select, .select-container {
     box-sizing: border-box;
     max-width: 900px;
     margin-top: 20px;
+    margin-bottom: 2rem;
 }
 
 .select2-container--default .select2-selection--single .select2-selection__arrow {
