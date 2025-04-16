@@ -70,7 +70,8 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
         </nav>
     </header> 
     
-    <h1>Geneador de Orden</h1> 
+    <h1>SPECIAL FREIGHT AUTHORIZATION</h1>
+    <h2>Transport Order</h2> 
     <div id="home"> 
         <form id="plant-form"> 
             
