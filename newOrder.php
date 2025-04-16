@@ -215,7 +215,7 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
             </div>
 
             <!-- El atributo 'onclick' llama a la función JavaScript 'enviar' cuando se hace clic, pasando el objeto evento -->
-            <button type="button" id="enviar" onclick="enviar(event)">Enviar</button>
+            <button type="button" id="enviar">Enviar</button>
         </form> 
     </div>
 
@@ -333,6 +333,9 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
             console.log('Estado del Proyecto: ', selectedProjectStatus )
             console.log('Recuperación: ', selectedRecovery )
         }
+
+        // Asocia el evento al botón
+        document.getElementById('enviar').onclick = enviar;
     </script>
 </body> 
 </html>
