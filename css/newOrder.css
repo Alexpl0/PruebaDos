@@ -76,6 +76,9 @@ select {
     width: 90%;
     align-self: center;
     height: auto;
+    font-size: 1.2em;
+    justify-content: center;
+    align-items: center;
 }
 
 #enviar {
