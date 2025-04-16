@@ -109,9 +109,9 @@ div > select, .select-container {
 
 #enviar {
     width: 90%;
-    max-height: 10px;
+    max-height: 2px;
     padding: 5%;
-    margin-top: 5px;
+    margin-top: 25px;
     border: none;
     border-radius: 15px;
     background-color: var(--first-color);
@@ -123,6 +123,7 @@ div > select, .select-container {
     align-items: center;
     justify-content: center;
     text-align: center;
+    align-self: center;
 }
 
 #home {
