@@ -79,51 +79,17 @@ select {
     border-radius: 15px;
     box-sizing: border-box;
     font-size: 1em;
+    background-color: black;
 }
 
-
-/*=== Cosos del SPAN === */
-/* Estilo para el Select2 personalizado */
-.select2-container .select2-selection--single {
-  border: 2px solid var(--first-color) !important;
-  border-radius: 15px !important;
-  height: 45px !important;
-  padding: 8px !important;
-  font-size: 1em !important;
-  background-color: black !important;
-  width: 90% !important;
+#transport {
+    width: 90%;
+    padding: 5%;
+    margin-bottom: 2%;
+    border: 1px solid var(--first-color);
+    border-radius: 15px;
+    box-sizing: border-box;
+    font-size: 1em;
+    background-color: chartreuse;
 }
 
-.select2-selection__rendered {
-  color: #333 !important;
-  line-height: 28px !important;
-  padding-left: 8px !important;
-}
-
-.select2-selection__arrow {
-  height: 45px !important;
-  right: 10px !important;
-}
-
-.select2-selection__arrow b {
-  border-color: var(--first-color) transparent transparent transparent !important;
-  border-width: 6px 6px 0 6px !important;
-}
-
-/* Botón de borrar (×) */
-.select2-selection__clear {
-  margin-right: 10px !important;
-  background: #f0f0f0 !important;
-  border-radius: 50% !important;
-  padding: 0 6px !important;
-  font-weight: bold !important;
-  font-size: 16px !important;
-  color: var(--first-color) !important;
-  border: 1px solid #ccc !important;
-  margin-top: 2px !important;
-}
-
-.select2-selection__clear:hover {
-  background: #e0e0e0 !important;
-  color: #c00 !important;
-}
