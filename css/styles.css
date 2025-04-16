@@ -19,9 +19,9 @@
   }
 
 body {
-    margin: 0;
+    margin: 5%;
     padding: 5% 10%;
-    background-color: black;
+    background-color: var(--white-color);
 }
 
 .title1{
@@ -39,7 +39,7 @@ form {
     max-width: 600px;
     margin: 0 auto;
     padding: 20px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--first-color);
     border-radius: 10px;
     background-color: #f9f9f9;
 }
@@ -50,7 +50,7 @@ form {
     align-items: center;
     margin: 20px auto;
     padding: 20px;
-    border: 2px solid --first-color; /* Margen azul */
+    border: 2px solid var(--first-color); /* Margen azul */
     border-radius: 10px;
     background-color: #f9f9f9; /* Fondo opcional */
     max-width: 800px; /* Ajusta el ancho máximo */
