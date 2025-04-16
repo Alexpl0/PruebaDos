@@ -129,9 +129,7 @@ div > select, .select-container {
 #home {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;      /* Ocupa toda la altura de la ventana */
+    align-items: center;  /* Ocupa toda la altura de la ventana */
     width: 100%;
     box-sizing: border-box;
     max-width: 900px;
