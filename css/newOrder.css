@@ -48,6 +48,7 @@ form{
 }
 
 label {
+    margin-top: 2%;
     font-size: 1.2em;
     margin-bottom: 10px;
     display: flex;
@@ -74,22 +75,23 @@ textarea {
 select {
     width: 90%;
     padding: 5%;
-    margin-bottom: 2%;
+    margin-bottom: 5%;
     border: 1px solid var(--first-color);
     border-radius: 15px;
     box-sizing: border-box;
     font-size: 1em;
-    background-color: black;
 }
 
-#transport {
-    width: 90%;
+button {
+    width: 20%;
     padding: 5%;
-    margin-bottom: 2%;
-    border: 1px solid var(--first-color);
+    margin-top: 5%;
+    border: none;
     border-radius: 15px;
-    box-sizing: border-box;
-    font-size: 1em;
-    background-color: chartreuse;
+    background-color: var(--first-color);
+    color: var(--white-color);
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
