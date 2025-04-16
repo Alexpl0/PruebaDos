@@ -122,4 +122,5 @@ div > select, .select-container {
     border-radius: 15px;
     padding-top: 25px;
     padding-bottom: 25px;
+    min-height: 90%;
 }
