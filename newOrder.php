@@ -214,6 +214,54 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
                 </select>
             </div>
 
+            <div>
+                <label for="Supplier" >Supplier:</label> 
+                <select name="Supplier" id="Supplier" >
+                    <?php if (!empty($jsonSupplier)): ?>
+                        <?php foreach ($jsonSupplier as $Supplier): ?>
+                            <option value="<?php echo htmlspecialchars($Supplier['ID']); ?>">
+                                <?php echo htmlspecialchars($Supplier['PROVEEDOR']); ?> 
+                            </option>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <option value="" disabled>No se encontraron datos, jsonSupplier vacio</option>
+                    <?php endif; ?>
+                </select>
+            </div>
+
+            <div>
+                <label for="Measures" >Measures:</label> 
+                <select name="Measures" id="Measures" >
+                    <?php if (!empty($jsonMeasures)): ?>
+                        <?php foreach ($jsonMeasures as $Measures): ?>
+                            <option value="<?php echo htmlspecialchars($Measures['ID']); ?>">
+                                <?php echo htmlspecialchars($Measures['UM']); ?> 
+                            </option>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <option value="" disabled>No se encontraron datos, jsonMeasures vacio</option>
+                    <?php endif; ?>
+                </select>
+            </div>
+
+            <div>
+                <label for="Products" >Products:</label> 
+                <select name="Products" id="Products" >
+                    <?php if (!empty($jsonProducts)): ?>
+                        <?php foreach ($jsonProducts as $Products): ?>
+                            <option value="<?php echo htmlspecialchars($Products['ID']); ?>">
+                                <?php echo htmlspecialchars($Products['PRODUCT']); ?> 
+                            </option>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <option value="" disabled>No se encontraron datos, jsonProducts vacio</option>
+                    <?php endif; ?>
+                </select>
+            </div>
+
+
+
+
             <!-- El atributo 'onclick' llama a la función JavaScript 'enviar' cuando se hace clic, pasando el objeto evento -->
             <button type="button" id="enviar">Enviar</button>
         </form> 
@@ -286,6 +334,21 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
                 placeholder: "Recovery", 
                 allowClear: true 
             });
+
+            $('#Supplier').select2({
+                placeholder: "Supplier", 
+                allowClear: true 
+            });
+
+            $('#Measures').select2({
+                placeholder: "Measures", 
+                allowClear: true 
+            });
+
+            $('#Products').select2({
+                placeholder: "Products", 
+                allowClear: true 
+            });
         });
 
         // Define una función JavaScript llamada 'enviar' que recibe un parámetro 'event'
@@ -322,6 +385,15 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
             const selectRecovery = document.getElementById('Recovery');
             const selectedRecovery = selectRecovery.options[selectRecovery.selectedIndex].text;
 
+            const selectSupplier = document.getElementById('Supplier');
+            const selectedSupplier = selectSupplier.options[selectSupplier.selectedIndex].text;
+
+            const selectMeasures = document.getElementById('Measures');
+            const selectedMeasures = selectMeasures.options[selectMeasures.selectedIndex].text;
+
+            const selectProducts = document.getElementById('Products');
+            const selectedProducts = selectProducts.options[selectProducts.selectedIndex].text;
+
             // Muestra el nombre de la planta seleccionada en la consola de desarrollador del navegador
             console.log('Planta seleccionada:', selectedPlantName);
             console.log('Código de planta seleccionado:', selectedCodePlant);
@@ -332,6 +404,9 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
             console.log('Causa de Categoria: ', selectedCategoryCause )
             console.log('Estado del Proyecto: ', selectedProjectStatus )
             console.log('Recuperación: ', selectedRecovery )
+            console.log('Proveedor: ', selectedSupplier )
+            console.log('Medidas: ', selectedMeasures )
+            console.log('Productos: ', selectedProducts )
         }
 
         // Asocia el evento al botón
