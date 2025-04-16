@@ -72,7 +72,9 @@ textarea {
     font-size: 1em;
 }
 
-
+select {
+    width: 90%;
+}
 
 #enviar {
     width: 20%;
