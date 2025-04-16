@@ -118,8 +118,8 @@ input{
     max-height: 1px;
     padding: 4%;
     margin: 5%;
-    border: 5px solid var(--border-color);
-    border-radius: 1px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
     font-size: 1.2em;
     cursor: text;
     display: flex;
