@@ -46,6 +46,7 @@ form{
     border-radius: 10px;
     background-color: #f9f9f9; /* Fondo opcional */
     max-width: 800px; /* Ajusta el ancho máximo */
+    min-height: fit-content;
 }
 
 label {
