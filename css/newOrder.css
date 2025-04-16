@@ -73,12 +73,31 @@ textarea {
 }
 
 select {
-    width: 90%;
-    align-self: center;
+    width: 100%;
+    max-width: 90%;
+    margin: 0 auto;
+    display: block;
     height: auto;
     font-size: 1.2em;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 1px solid var(--first-color);
+    border-radius: 15px;
+}
+
+/* Contenedor para centrar el select */
+div > select, .select-container {
+    text-align: center;
+    margin: 0 auto;
+    display: flex;
     justify-content: center;
-    align-items: center;
+}
+
+/* Para los select2 */
+.select2-container {
+    margin: 0 auto !important;
+    width: 90% !important;
+    display: block !important;
 }
 
 #enviar {
