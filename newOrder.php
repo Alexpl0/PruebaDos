@@ -237,7 +237,7 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
 
             $('#transport').select2({
                 placeholder: "Transport Mode", 
-                allowClear: true  InOut
+                allowClear: true 
             });
 
             $('#InOut').select2({
