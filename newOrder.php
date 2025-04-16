@@ -140,11 +140,10 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
             </div>
 
             <div>
-                <label for="Description and Root Cause">
+                <label for="Description and Root Cause"> Description and Root Cause</label>
                     <input type="text" id="Description" name="Description" placeholder="Description and Root Cause" required>
-                </label>
             </div>
-            
+
 
             <div>
                 <label for="Area" >Area of Responsability:</label> 
