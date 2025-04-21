@@ -143,7 +143,6 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
             <div>
                 <label for="CostoEuros">Costo en Euros €</label>
                 <input type="text" id="CostoEuros" name="CostoEuros" readonly>
-                <br>
             </div>
 
             <div>
