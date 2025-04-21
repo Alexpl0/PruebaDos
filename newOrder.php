@@ -316,6 +316,7 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
         </form> 
     </div>
 
+    <h1>Modal de SVG</h1>
     
             <!-- Modal para mostrar el SVG -->
             <div class="modal fade" id="svgModal" tabindex="-1" role="dialog" aria-labelledby="svgModalLabel">
