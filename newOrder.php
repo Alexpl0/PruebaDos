@@ -335,6 +335,12 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
 
     <!-- Incluye el archivo JavaScript de Select2 desde una CDN -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+</body> 
+</html>
+
+
+<!--
     <script> // Inicio de un bloque de código JavaScript
         // Ejecuta la función anónima cuando el documento HTML esté completamente cargado y listo
         $(document).ready(function() {
@@ -461,5 +467,4 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
         // Asocia el evento al botón
         document.getElementById('enviar').onclick = enviar;
     </script>
-</body> 
-</html>
+                    -->
