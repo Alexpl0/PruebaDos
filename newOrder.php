@@ -308,8 +308,6 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
             </div>
 
 
-            <!-- Agregar este botón donde desees -->
-            <button id="verPDF" class="btn btn-primary">Ver Documento PDF</button>
 
             <!-- El atributo 'onclick' llama a la función JavaScript 'enviar' cuando se hace clic, pasando el objeto evento -->
             <button type="button" id="enviar">Enviar</button>
@@ -317,6 +315,10 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
     </div>
 
     <h1>Modal de SVG</h1>
+
+    
+            <!-- Agregar este botón donde desees -->
+            <button id="verPDF" class="btn btn-primary">Ver Documento PDF</button>
     
             <!-- Modal para mostrar el SVG -->
             <div class="modal fade" id="svgModal" tabindex="-1" role="dialog" aria-labelledby="svgModalLabel">
