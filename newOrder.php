@@ -151,7 +151,6 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
                     <input type="text" id="Description" name="Description" placeholder="Description and Root Cause" required>
             </div>
 
-
             <div>
                 <label for="Area" >Area of Responsability:</label> 
                 <select name="Area" id="Area" >
