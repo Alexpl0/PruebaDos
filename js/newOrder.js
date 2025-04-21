@@ -38,10 +38,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (btnMXN && btnUSD) {
         btnMXN.addEventListener('click', function () { // Escucha cuando se hace clic en el botón MXN
-            calcularEuros(quotedCostInput.value); // Llama a la función obteniendo el valor del input
+            calcularEuros('MXN'); // Llama a la función obteniendo el valor del input
         });
         btnUSD.addEventListener('click', function () {
-            calcularEuros(quotedCostInput.value);
+            calcularEuros('USD');
         });
     }
 });
