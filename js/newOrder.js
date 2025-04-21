@@ -41,6 +41,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnMXN = document.getElementById('MXN');
     const btnUSD = document.getElementById('USD');
 
+    if(!btnMXN || !btnUSD) {
+        console.log("Botones no encontrados");
+        return;
+    }
+
     if (btnMXN) {
         btnMXN.addEventListener('click', function () {
             calcularEuros('MXN');
