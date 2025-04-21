@@ -116,7 +116,6 @@ div > select, .select-container {
 input{
     width: 90%;
     max-height: 1px;
-    padding: 4%;
     margin: 5%;
     border: 1px solid var(--border-color);
     border-radius: 5px;
