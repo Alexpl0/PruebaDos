@@ -1,5 +1,6 @@
 async function obtenerTipoCambio(moneda) {
-    const url = `https://api.frankfurter.dev/latest?base=${moneda}&symbols=EUR`;
+    const url = `https://api.frankfurter.dev/v1/latest?base=${moneda}&symbols=EUR`;
+      
     try {
         const respuesta = await fetch(url);
         const datos = await respuesta.json();
