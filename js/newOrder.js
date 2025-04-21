@@ -1,5 +1,4 @@
 async function obtenerTipoCambio(moneda) {
-    // Consulta la API para obtener el tipo de cambio de la moneda a EUR
     const url = `https://api.exchangerate.host/latest?base=${moneda}&symbols=EUR`;
     try {
         const respuesta = await fetch(url);
@@ -16,7 +15,7 @@ async function calcularEuros(moneda) {
     const costoEuros = document.getElementById('CostoEuros');
     const valor = parseFloat(quotedCostInput.value);
 
-    if (isNaN(valor) || valor <= 0) {
+    if (!quotedCostInput.value || isNaN(valor) || valor <= 0) {
         costoEuros.textContent = "Ingrese un costo válido";
         return;
     }
@@ -32,14 +31,15 @@ async function calcularEuros(moneda) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    const btnMXN = document.getElementById('MXN'); // Botón para MXN
-    const btnUSD = document.getElementById('USD'); // Botón para USD
-    const quotedCostInput = document.getElementById('QuotedCost'); // Input de costo cotizado
+    const btnMXN = document.getElementById('MXN');
+    const btnUSD = document.getElementById('USD');
 
-    if (btnMXN && btnUSD) {
-        btnMXN.addEventListener('click', function () { // Escucha cuando se hace clic en el botón MXN
-            calcularEuros('MXN'); // Llama a la función obteniendo el valor del input
+    if (btnMXN) {
+        btnMXN.addEventListener('click', function () {
+            calcularEuros('MXN');
         });
+    }
+    if (btnUSD) {
         btnUSD.addEventListener('click', function () {
             calcularEuros('USD');
         });
