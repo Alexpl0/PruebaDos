@@ -307,9 +307,16 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
                 </div>
             </div>
 
+
             <!-- Agregar este botón donde desees -->
             <button id="verPDF" class="btn btn-primary">Ver Documento PDF</button>
 
+            <!-- El atributo 'onclick' llama a la función JavaScript 'enviar' cuando se hace clic, pasando el objeto evento -->
+            <button type="button" id="enviar">Enviar</button>
+        </form> 
+    </div>
+
+    
             <!-- Modal para mostrar el SVG -->
             <div class="modal fade" id="svgModal" tabindex="-1" role="dialog" aria-labelledby="svgModalLabel">
               <div class="modal-dialog modal-lg" role="document">
@@ -326,30 +333,6 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
                 </div>
               </div>
             </div>
-
-            <script>
-            $(document).ready(function() {
-                $('#verPDF').click(function() {
-                    $.ajax({
-                        url: 'pdf.svg',
-                        dataType: 'text',
-                        success: function(data) {
-                            $('#svgContainer').html(data);
-                            $('#svgModal').modal('show');
-                        },
-                        error: function() {
-                            alert('Error al cargar el documento');
-                        }
-                    });
-                });
-            });
-            </script>
-
-            <!-- El atributo 'onclick' llama a la función JavaScript 'enviar' cuando se hace clic, pasando el objeto evento -->
-            <button type="button" id="enviar">Enviar</button>
-        </form> 
-    </div>
-
     <footer>
         <div >
             <div>
@@ -436,5 +419,23 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
             });
         });
         </script>
+        
+        <script>
+            $(document).ready(function() {
+                $('#verPDF').click(function() {
+                    $.ajax({
+                        url: 'pdf.svg',
+                        dataType: 'text',
+                        success: function(data) {
+                            $('#svgContainer').html(data); // 
+                            $('#svgModal').modal('show');
+                        },
+                        error: function() {
+                            alert('Error al cargar el documento');
+                        }
+                    });
+                });
+            });
+            </script>
 </body> 
 </html>
