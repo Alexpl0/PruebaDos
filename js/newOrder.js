@@ -44,11 +44,13 @@ document.addEventListener('DOMContentLoaded', function () {
     if (btnMXN) {
         btnMXN.addEventListener('click', function () {
             calcularEuros('MXN');
+            console.log("Botón MXN presionado");
         });
     }
     if (btnUSD) {
         btnUSD.addEventListener('click', function () {
             calcularEuros('USD');
+            console.log("Botón USD presionado");
         });
     }
 });
