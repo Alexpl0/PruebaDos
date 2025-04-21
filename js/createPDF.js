@@ -17,6 +17,6 @@ function loadImage(url) {
 }
 
 window.addEventListener('load', async () => {
-    const image = await loadImage('../assets/media/SPECIAL_FREIGHT_AUTHORIZATION.png');
+    const image = await loadImage('C:/Users/Ex-Perez-J/OneDrive - GRAMMER AG/Desktop/PruebaDos/assets/media/SPECIAL_FREIGHT_AUTHORIZATION.png');
     console.log(image);
 });
