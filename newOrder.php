@@ -328,7 +328,7 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
     <!-- Archivos JS locales -->
     <script src="js/header.js"></script>
     <script src="js/newOrder.js"></script>
-    <script src="js/createJS.js"></script>
+    <script src="js/createPDF.js"></script>
 
     <!-- Incluye la biblioteca jQuery desde una CDN. jQuery es necesario para Select2 y facilita la manipulación del DOM y eventos -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
