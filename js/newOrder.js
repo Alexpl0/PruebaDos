@@ -3,7 +3,12 @@ async function obtenerTipoCambio(moneda) {
     try {
         const respuesta = await fetch(url);
         const datos = await respuesta.json();
-        return datos.rates.EUR;
+        if (datos && datos.rates && typeof datos.rates.EUR === 'number') {
+            return datos.rates.EUR;
+        } else {
+            console.error('Respuesta inesperada de la API:', datos);
+            return null;
+        }
     } catch (error) {
         console.error('Error al obtener el tipo de cambio:', error);
         return null;
