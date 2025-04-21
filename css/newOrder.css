@@ -150,8 +150,7 @@ footer{
     flex-direction: row;
     align-items: center;
     gap: 10px; /* Espacio entre el select y el input */
-    width: 100%;      /* <-- Asegura que ocupe todo el ancho disponible */
-    max-width: 100%;  /* <-- Opcional, para evitar límites */
+    max-width: 95%;  /* <-- Opcional, para evitar límites */
 }
 
 #ReferenceDiv select,
