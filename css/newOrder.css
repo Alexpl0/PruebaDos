@@ -149,8 +149,9 @@ footer{
 }
 
 .select2-search--dropdown .select2-search__field {
-    padding: 3%;
+   
     width: 95%;
     box-sizing: border-box;
+     padding: 3%;
     margin: 2%;
 }
