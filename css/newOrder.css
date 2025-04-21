@@ -165,8 +165,8 @@ footer{
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 10px; /* Espacio entre el input y el select */
-    max-width: 95%;
+    gap: 10px; /* Espacio entre el select y el input */
+    max-width: 95%;  /* <-- Opcional, para evitar límites */
 }
 
 #MeasuresDiv input,
