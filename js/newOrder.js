@@ -37,12 +37,12 @@ async function calcularEuros(moneda) {
     }
 
     const euros = valor * tipoCambio;
-    costoEuros.textContent = euros.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
+    costoEuros.value = euros.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
     console.log("Costo en Euros:", euros);
     console.log("Tipo de cambio:", tipoCambio);
     console.log("Valor ingresado:", valor);
     console.log("Moneda:", moneda);
-    console.log("Costo en Euros formateado:", costoEuros.textContent);
+    console.log("Costo en Euros formateado:", costoEuros.value);
 }
 
 document.addEventListener('DOMContentLoaded', function () {
