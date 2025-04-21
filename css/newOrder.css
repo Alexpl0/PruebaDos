@@ -65,22 +65,8 @@ label {
 
 }
 
-
-select {
-    width: 100%;
-    max-width: 90%;
-    margin: 0 auto;
-    display: block;
-    height: auto;
-    font-size: 1.2em;
-    padding: 10px;
-    box-sizing: border-box;
-    border: 1px solid var(--first-color);
-    border-radius: 15px;
-}
-
 /* Contenedor para centrar el select */
-div > select, .select-container {
+.select-container {
     text-align: center;
     margin: 0 auto;
     display: flex;
@@ -113,7 +99,7 @@ div > select, .select-container {
     align-self: center;
 }
 
-#Description, #CostoEuros {
+#Description, #CostoEuros, #PaidBy {
     padding: 3%;
     width: 90%;
     max-height: 1px;
