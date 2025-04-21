@@ -307,8 +307,43 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
                 </div>
             </div>
 
+            <!-- Agregar este botón donde desees -->
+            <button id="verPDF" class="btn btn-primary">Ver Documento PDF</button>
 
+            <!-- Modal para mostrar el SVG -->
+            <div class="modal fade" id="svgModal" tabindex="-1" role="dialog" aria-labelledby="svgModalLabel">
+              <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h4 class="modal-title" id="svgModalLabel">Documento PDF</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <div id="svgContainer" style="width:100%; overflow:auto;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
+            <script>
+            $(document).ready(function() {
+                $('#verPDF').click(function() {
+                    $.ajax({
+                        url: 'pdf.svg',
+                        dataType: 'text',
+                        success: function(data) {
+                            $('#svgContainer').html(data);
+                            $('#svgModal').modal('show');
+                        },
+                        error: function() {
+                            alert('Error al cargar el documento');
+                        }
+                    });
+                });
+            });
+            </script>
 
             <!-- El atributo 'onclick' llama a la función JavaScript 'enviar' cuando se hace clic, pasando el objeto evento -->
             <button type="button" id="enviar">Enviar</button>
@@ -403,69 +438,3 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
         </script>
 </body> 
 </html>
-
-
-<!--
-    <script>
-        // Define una función JavaScript llamada 'enviar' que recibe un parámetro 'event'
-        function enviar(event) {
-            // Previene el comportamiento predeterminado del evento (en este caso, el envío del formulario que recargaría la página)
-            event.preventDefault();
-
-            // Obtiene la referencia al elemento <select> usando su ID
-            const selectPlant = document.getElementById('planta');
-            // Obtiene el texto visible de la opción que está actualmente seleccionada en el <select>
-            const selectedPlantName = selectPlant.options[selectPlant.selectedIndex].text;
-
-            const selectCodePlant = document.getElementById('codeplanta');
-            const selectedCodePlant = selectCodePlant.options[selectCodePlant.selectedIndex].text;
-
-            const selectTransport = document.getElementById('transport');
-            const selectedTransport = selectTransport.options[selectTransport.selectedIndex].text;
-
-            const selectInOut = document.getElementById('InOut');
-            const selectedInOut = selectInOut.options[selectInOut.selectedIndex].text;
-
-            const selectArea = document.getElementById('Area');
-            const selectedArea = selectArea.options[selectArea.selectedIndex].text;
-
-            const selectIntExt = document.getElementById('IntExt');
-            const selectedIntExt = selectIntExt.options[selectIntExt.selectedIndex].text;
-
-            const selectCategoryCause = document.getElementById('CategoryCause');
-            const selectedCategoryCause = selectCategoryCause.options[selectCategoryCause.selectedIndex].text;
-
-            const selectProjectStatus = document.getElementById('ProjectStatus');
-            const selectedProjectStatus = selectProjectStatus.options[selectProjectStatus.selectedIndex].text;
-
-            const selectRecovery = document.getElementById('Recovery');
-            const selectedRecovery = selectRecovery.options[selectRecovery.selectedIndex].text;
-
-            const selectCarrier = document.getElementById('Carrier');
-            const selectedCarrier = selectCarrier.options[selectCarrier.selectedIndex].text;
-
-            const selectMeasures = document.getElementById('Measures');
-            const selectedMeasures = selectMeasures.options[selectMeasures.selectedIndex].text;
-
-            const selectProducts = document.getElementById('Products');
-            const selectedProducts = selectProducts.options[selectProducts.selectedIndex].text;
-
-            // Muestra el nombre de la planta seleccionada en la consola de desarrollador del navegador
-            console.log('Planta seleccionada:', selectedPlantName);
-            console.log('Código de planta seleccionado:', selectedCodePlant);
-            console.log('Modo de Transporte: ', selectedTransport )
-            console.log('In/Out Service: ', selectedInOut )
-            console.log('Area de Responsabilidad: ', selectedArea )
-            console.log('Servicio Interno/Externo: ', selectedIntExt )
-            console.log('Causa de Categoria: ', selectedCategoryCause )
-            console.log('Estado del Proyecto: ', selectedProjectStatus )
-            console.log('Recuperación: ', selectedRecovery )
-            console.log('Carrier: ', selectedCarrier )
-            console.log('Medidas: ', selectedMeasures )
-            console.log('Productos: ', selectedProducts )
-        }
-
-        // Asocia el evento al botón
-        document.getElementById('enviar').onclick = enviar;
-    </script>
-                    -->
