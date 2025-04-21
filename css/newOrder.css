@@ -167,8 +167,10 @@ footer{
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 10px; /* Espacio entre el select y el input */
-    max-width: 95%;  /* <-- Opcional, para evitar límites */
+    gap: 10px;
+    max-width: 95%;
+    margin-left: 5%;
+    margin-right: 5%;
 }
 
 #MeasuresDiv input,
@@ -176,7 +178,7 @@ footer{
     flex: 1 1 0;      /* <-- Hace que ambos crezcan igual */
     min-width: 0;
     min-height: 30px;
-    width: 100%;    
+    width: 100%;      /* <-- Asegura que ocupen todo el espacio del flex */
 }
 
 .select2-container .select2-selection--single {
