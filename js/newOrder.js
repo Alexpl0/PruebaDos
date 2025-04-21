@@ -45,6 +45,57 @@ async function calcularEuros(moneda) {
     console.log("Costo en Euros formateado:", costoEuros.value);
 }
 
+function enviar(event) {
+    event.preventDefault();
+
+    // Obtener todos los campos del formulario
+    const fields = [
+        'planta', 'codeplanta', 'transport', 'InOut', 'CostoEuros', 'Description',
+        'Area', 'IntExt', 'PaidBy', 'CategoryCause', 'ProjectStatus', 'Recovery',
+        'Weight', 'Measures', 'Products', 'Carrier', 'QuotedCost', 'Reference', 'ReferenceNumber'
+    ];
+
+    let data = {};
+    let emptyFields = [];
+
+    fields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            let value = el.value;
+            // Para selects, obtener el texto si es necesario
+            if (el.tagName === 'SELECT') {
+                value = el.options[el.selectedIndex]?.value || '';
+            }
+            // Para campos de texto, quitar espacios
+            if (typeof value === 'string') value = value.trim();
+            data[id] = value;
+            if (!value) emptyFields.push(id);
+        }
+    });
+
+    // Validar campos vacíos
+    if (emptyFields.length > 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Campos vacíos',
+            text: 'Por favor complete todos los campos: ' + emptyFields.join(', ')
+        });
+        return;
+    }
+
+    // Generar JSON
+    const jsonData = JSON.stringify(data, null, 2);
+    console.log('JSON generado:', jsonData);
+
+    Swal.fire({
+        icon: 'success',
+        title: 'Datos validados',
+        html: `<pre>${jsonData}</pre>`
+    });
+
+    // Aquí puedes enviar el JSON al servidor si lo necesitas
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     const btnMXN = document.getElementById('MXN');
     const btnUSD = document.getElementById('USD');
@@ -66,4 +117,10 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log("Botón USD presionado");
         });
     }
+
+    const btnEnviar = document.getElementById('enviar');
+    if (btnEnviar) {
+        btnEnviar.addEventListener('click', enviar);
+    }
 });
+
