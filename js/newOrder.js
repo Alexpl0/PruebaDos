@@ -17,17 +17,24 @@ async function calcularEuros(moneda) {
 
     if (!quotedCostInput.value || isNaN(valor) || valor <= 0) {
         costoEuros.textContent = "Ingrese un costo válido";
+        console.log("Valor no válido:", quotedCostInput.value);
         return;
     }
 
     const tipoCambio = await obtenerTipoCambio(moneda);
     if (!tipoCambio) {
         costoEuros.textContent = "No se pudo obtener el tipo de cambio";
+        console.log("Tipo de cambio no disponible");
         return;
     }
 
     const euros = valor * tipoCambio;
     costoEuros.textContent = euros.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
+    console.log("Costo en Euros:", euros);
+    console.log("Tipo de cambio:", tipoCambio);
+    console.log("Valor ingresado:", valor);
+    console.log("Moneda:", moneda);
+    console.log("Costo en Euros formateado:", costoEuros.textContent);
 }
 
 document.addEventListener('DOMContentLoaded', function () {
