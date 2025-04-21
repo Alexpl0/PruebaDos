@@ -113,7 +113,7 @@ div > select, .select-container {
     align-self: center;
 }
 
-#Description {
+#Descriptio, #CostoEuro {
     padding: 4%;
     width: 90%;
     max-height: 1px;
@@ -185,7 +185,7 @@ footer{
     min-width: 0;
 }
 
-.select2-container .select2-selection--single, #CostoEuro {
+.select2-container .select2-selection--single {
     box-sizing: border-box;
     cursor: pointer;
     display: block;
@@ -194,7 +194,7 @@ footer{
     -webkit-user-select: none;
 }
 
-.select2-container, #CostoEuro {
+.select2-container {
     margin: 0 auto !important;
     width: 90% !important;
     display: block !important;
