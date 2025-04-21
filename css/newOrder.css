@@ -113,7 +113,8 @@ div > select, .select-container {
     align-self: center;
 }
 
-input{
+#Description {
+    padding: 4%;
     width: 90%;
     max-height: 1px;
     margin: 5%;
