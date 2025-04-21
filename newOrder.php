@@ -284,10 +284,12 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
 
             <div>
                 <label for="Quoted Cost">Quoted Cost</label>
-                <input type="number" id="QuotedCost" name="QuotedCost" placeholder="Quoted Cost" required>
-                <div id="Divisa">
-                    <button type="button" id="MXN">MXN</button>
-                    <button type="button" id="USD">USD</button>
+                <div id="QuotedCostDiv">
+                    <input type="number" id="QuotedCost" name="QuotedCost" placeholder="Quoted Cost" required>
+                    <div id="Divisa">
+                        <button type="button" id="MXN">MXN</button>
+                        <button type="button" id="USD">USD</button>
+                    </div>
                 </div>
             </div>
 
