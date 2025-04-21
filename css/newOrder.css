@@ -150,15 +150,16 @@ footer{
     flex-direction: row;
     align-items: center;
     gap: 10px; /* Espacio entre el select y el input */
-    max-width: 95%;
+    width: 100%;      /* <-- Asegura que ocupe todo el ancho disponible */
+    max-width: 100%;  /* <-- Opcional, para evitar límites */
 }
 
 #ReferenceDiv select,
 #ReferenceDiv input {
-    width: auto;
-    flex: 1 1 0;
+    flex: 1 1 0;      /* <-- Hace que ambos crezcan igual */
     min-width: 0;
     min-height: 30px;
+    width: 100%;      /* <-- Asegura que ocupen todo el espacio del flex */
 }
 
 #MeasuresDiv {
