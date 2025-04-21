@@ -126,7 +126,7 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
             </div>
 
             <div>
-                <label for="InOut" >In/Out Service:</label> 
+                <label for="InOut" >In/Out Outbound:</label> 
                 <select name="InOut" id="InOut" >
                     <?php if (!empty($jsonInOut)): ?>
                         <?php foreach ($jsonInOut as $InOut): ?>
@@ -138,6 +138,11 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
                         <option value="" disabled>No se encontraron datos, jsonInOut vacio</option>
                     <?php endif; ?>
                 </select>
+            </div>
+
+            <div>
+                <label for="CostoEuros">Costo en Euros €</label>
+                <p id="CostoEuros"></p>
             </div>
 
             <div>
@@ -174,6 +179,14 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
                         <option value="" disabled>No se encontraron datos, jsonInExt vacio</option>
                     <?php endif; ?>
                 </select>
+            </div>
+
+            <div>
+                <label for="PaidBy">Costs paid By:</label>
+                <select name="PaidBy" id="PaidBy" >
+                    <option value="Grammer">Grammer</option>
+                    <option value="Cliente">Cliente</option>
+                </select>    
             </div>
 
             <div>
@@ -222,33 +235,21 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
             </div>
 
             <div>
-                <label for="Carrier" >Carrier:</label> 
-                <select name="Carrier" id="Carrier" >
-                    <?php if (!empty($jsonCarrier)): ?>
-                        <?php foreach ($jsonCarrier as $Carrier): ?>
-                            <option value="<?php echo htmlspecialchars($Carrier['ID']); ?>">
-                                <?php echo htmlspecialchars($Carrier['PROVEEDOR']); ?> 
-                            </option>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <option value="" disabled>No se encontraron datos, jsonCarrier vacio</option>
-                    <?php endif; ?>
-                </select>
-            </div>
-
-            <div>
-                <label for="Measures" >Measures:</label> 
-                <select name="Measures" id="Measures" >
-                    <?php if (!empty($jsonMeasures)): ?>
-                        <?php foreach ($jsonMeasures as $Measures): ?>
-                            <option value="<?php echo htmlspecialchars($Measures['ID']); ?>">
-                                <?php echo htmlspecialchars($Measures['UM']); ?> 
-                            </option>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <option value="" disabled>No se encontraron datos, jsonMeasures vacio</option>
-                    <?php endif; ?>
-                </select>
+                <label for="Measures" >Weight:</label> 
+                <div id="MeasuresDiv">
+                    <input type="number" id="Weight" name="Weight" placeholder="Weight" required>
+                    <select name="Measures" id="Measures" >
+                        <?php if (!empty($jsonMeasures)): ?>
+                            <?php foreach ($jsonMeasures as $Measures): ?>
+                                <option value="<?php echo htmlspecialchars($Measures['ID']); ?>">
+                                    <?php echo htmlspecialchars($Measures['UM']); ?> 
+                                </option>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <option value="" disabled>No se encontraron datos, jsonMeasures vacio</option>
+                        <?php endif; ?>
+                    </select>
+                </div>
             </div>
 
             <div>
@@ -264,6 +265,45 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
                         <option value="" disabled>No se encontraron datos, jsonProducts vacio</option>
                     <?php endif; ?>
                 </select>
+            </div>
+
+            <h2>Selected Carrier</h2>
+            <div>
+                <label for="Carrier" >Carrier:</label> 
+                <select name="Carrier" id="Carrier" >
+                    <?php if (!empty($jsonCarrier)): ?>
+                        <?php foreach ($jsonCarrier as $Carrier): ?>
+                            <option value="<?php echo htmlspecialchars($Carrier['ID']); ?>">
+                                <?php echo htmlspecialchars($Carrier['PROVEEDOR']); ?> 
+                            </option>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <option value="" disabled>No se encontraron datos, jsonCarrier vacio</option>
+                    <?php endif; ?>
+                </select>
+            </div>
+
+            <div>
+                <label for="Quoted Cost">Quoted Cost</label>
+                <input type="number" id="QuotedCost" name="QuotedCost" placeholder="Quoted Cost" required>
+                <div id="Divisa">
+                    <button type="button" id="MXN">MXN</button>
+                    <button type="button" id="USD">USD</button>
+                </div>
+            </div>
+
+            <div>
+                <label for="Reference">Reference</label>
+                <div id="ReferenceDiv">
+                    <select name="Reference" id="Reference" >
+                        <option value="" disabled selected>Seleccione una Referencia</option>
+                        <option value="45">45</option>
+                        <option value="3">3</option>
+                        <option value="CC">CC</option>
+                        <option value="Order">Order</option>
+                    </select>
+                    <input type="number" id="ReferenceNumber" name="ReferenceNumber" placeholder="Reference Number" required>
+                </div>
             </div>
 
 

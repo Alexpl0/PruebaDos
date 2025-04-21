@@ -156,3 +156,31 @@ footer{
      padding: 1%;
     margin: 2%;
 }
+
+#ReferenceDiv {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px; /* Espacio entre el select y el input */
+}
+
+#ReferenceDiv select,
+#ReferenceDiv input {
+    width: auto;
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+#MeasuresDiv {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px; /* Espacio entre el input y el select */
+}
+
+#MeasuresDiv input,
+#MeasuresDiv select {
+    width: auto;
+    flex: 1 1 0;
+    min-width: 0;
+}
