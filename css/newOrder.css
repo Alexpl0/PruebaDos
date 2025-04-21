@@ -193,3 +193,9 @@ footer{
     user-select: none;
     -webkit-user-select: none;
 }
+
+.select2-container, #CostoEuro {
+    margin: 0 auto !important;
+    width: 90% !important;
+    display: block !important;
+}
