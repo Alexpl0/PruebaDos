@@ -71,7 +71,7 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
     </header> 
     
     <h1>SPECIAL FREIGHT AUTHORIZATION</h1>
-    <h2>Transport Order</h2> 
+    <h2>Transport Order</h2>    
     <div id="home"> 
         <form id="plant-form"> 
             
