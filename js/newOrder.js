@@ -3,6 +3,8 @@ async function obtenerTipoCambio(moneda) {
     try {
         const respuesta = await fetch(url);
         const datos = await respuesta.json();
+        console.log("Datos obtenidos de la API:", datos);
+
         if (datos && datos.rates && typeof datos.rates.EUR === 'number') {
             return datos.rates.EUR;
         } else {
@@ -29,7 +31,7 @@ async function calcularEuros(moneda) {
     const tipoCambio = await obtenerTipoCambio(moneda);
     if (!tipoCambio) {
         costoEuros.textContent = "No se pudo obtener el tipo de cambio";
-        console.log("Tipo de cambio no disponible");
+        console.log("No se pudo obtener el tipo de cambio");
         return;
     }
 
