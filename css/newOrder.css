@@ -211,7 +211,7 @@ h2{
 
 /* Make sure select elements inside SectCarrier expand properly */
 #SectCarrier select, 
-#SectCarrier #QuotedCostDiv,
+#SectCarrier #QuotedCostDiv, #ReferenceDiv
 #SectCarrier .select2-container {
     width: 100% !important; /* Override any other width settings */
     max-width: 100% !important;
