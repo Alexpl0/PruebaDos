@@ -18,15 +18,20 @@ try {
     $conex = $con->conectar();
 
     // Busca la compañía por nombre en la tabla Location
-    $stmt = $conex->prepare("SELECT city, state, zip FROM Location WHERE company_name LIKE CONCAT('%', ?, '%') LIMIT 1");
+    $stmt = $conex->prepare("SELECT company_name, city, state, zip FROM Location WHERE company_name LIKE CONCAT('%', ?, '%') LIMIT 10");
     $stmt->bind_param("s", $name);
     $stmt->execute();
     $result = $stmt->get_result();
 
-    if ($company = $result->fetch_assoc()) {
+    $companies = [];
+    while ($row = $result->fetch_assoc()) {
+        $companies[] = $row;
+    }
+
+    if (count($companies) > 0) {
         echo json_encode([
             "success" => true,
-            "company" => $company
+            "companies" => $companies
         ]);
     } else {
         echo json_encode([

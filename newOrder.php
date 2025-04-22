@@ -282,7 +282,8 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
 
                 <div id="DivCompanyDest">
                     <label for="CompanyNameDest" id="CompanyNameDest">Company Name</label>
-                    <input type="text" id="inputCompanyNameDest" placeholder="Company Name">
+                    <input type="text" id="inputCompanyNameDest" list="companyNameDestList" autocomplete="off" />
+                    <datalist id="companyNameDestList"></datalist>
                 </div>
 
                 <div id="DivCityDest">

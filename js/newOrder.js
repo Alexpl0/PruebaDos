@@ -203,28 +203,43 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const inputCompanyNameDest = document.getElementById('inputCompanyNameDest');
+    const datalist = document.getElementById('companyNameDestList');
     let timeout = null;
 
     inputCompanyNameDest.addEventListener('input', function () {
         clearTimeout(timeout);
         const query = this.value.trim();
-        if (query.length < 2) return; // Espera mínimo 2 caracteres
+        if (query.length < 2) return;
 
         timeout = setTimeout(() => {
             fetch(`https://grammermx.com/Jesus/PruebaDos/dao/elements/daoSearchCompany.php?name=${encodeURIComponent(query)}`)
                 .then(res => res.json())
                 .then(data => {
-                    if (data && data.success && data.company) {
-                        // Rellena los campos relacionados
+                    // Si tu endpoint puede devolver varias compañías, ajusta aquí:
+                    if (data && data.success && Array.isArray(data.companies)) {
+                        datalist.innerHTML = '';
+                        data.companies.forEach(company => {
+                            const option = document.createElement('option');
+                            option.value = company.company_name;
+                            datalist.appendChild(option);
+                        });
+                    } else if (data && data.success && data.company) {
+                        // Si solo devuelve una compañía
+                        datalist.innerHTML = '';
+                        const option = document.createElement('option');
+                        option.value = data.company.company_name;
+                        datalist.appendChild(option);
+
+                        // Autorrellena los campos relacionados
                         document.getElementById('inputCityDest').value = data.company.city || '';
-                        document.getElementById('StatesDest').value = data.company.state_id || '';
+                        document.getElementById('StatesDest').value = data.company.state || '';
                         document.getElementById('inputZipDest').value = data.company.zip || '';
                     }
                 })
                 .catch(err => {
                     console.error('Error en autocompletar destino:', err);
                 });
-        }, 300); // Espera 300ms después de dejar de escribir
+        }, 300);
     });
 });
 
