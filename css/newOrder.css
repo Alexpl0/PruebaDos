@@ -217,15 +217,17 @@ h2{
     max-width: 100% !important;
 }
 
-#QuotedCostDiv {
+#QuotedCostDiv, #DivReference {
     display: flex;
     flex-direction: row;
     align-items: center;
     gap: 10px;
     width: 100%;
+    margin-left: 5%;
+    margin-right: 5%;
 }
 
-#QuotedCostDiv input {
+#QuotedCostDiv input, #Reference {
     flex: 1;
     min-width: 60%;
     min-height: 30px;
