@@ -193,12 +193,26 @@ h2{
     margin-bottom: 20px;
 }
 
-#SectCarrier{
+#SectCarrier {
     display: flex;
     flex-direction: row;
     align-items: center;
     gap: 10px;
-    max-width: 95%;
-    margin-left: 5%;
-    margin-right: 5%;
+    width: 100%; /* Change from max-width: 95% to width: 100% */
+    margin-left: 0; /* Remove the 5% left margin */
+    margin-right: 0; /* Remove the 5% right margin */
+}
+
+/* Add styles for the child elements of SectCarrier to distribute space properly */
+#DivCarrier, #DivCosto {
+    flex: 1; /* Make both child divs take equal space */
+    width: 100%; /* Ensure they use all available width */
+}
+
+/* Make sure select elements inside SectCarrier expand properly */
+#SectCarrier select, 
+#SectCarrier #QuotedCostDiv,
+#SectCarrier .select2-container {
+    width: 100% !important; /* Override any other width settings */
+    max-width: 100% !important;
 }
