@@ -99,7 +99,7 @@ label {
     align-self: center;
 }
 
-#Description, #CostoEuros, #PaidBy{
+#Description, #CostoEuros, #PaidBy, #inputZipShip, #inputZipDest{
     padding: 3%;
     width: 90%;
     max-height: 1px;

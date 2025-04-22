@@ -515,6 +515,11 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
                 placeholder: "Reference", 
                 allowClear: true 
             });
+
+            $('#StatesDest').select2({
+                placeholder: "StatesDest", 
+                allowClear: true 
+            });
         });
         
         </script>
