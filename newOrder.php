@@ -14,6 +14,7 @@ require_once __DIR__ . '/dao/elements/daoRecovery.php';
 require_once __DIR__ . '/dao/elements/daoCarrier.php';
 require_once __DIR__ . '/dao/elements/daoMeasures.php';
 require_once __DIR__ . '/dao/elements/daoProducts.php';
+require_once __DIR__ . '/dao/elements/daoStates.php';
 ?>
 
 <!DOCTYPE html>
@@ -242,7 +243,7 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
             <div id="SectShip">
 
                 <h2>Ship From</h2>
-                
+
                 <div id="DivCompanyShip">
                     <label for="CompanyNameShip" id="CompanyNameShip">Company Name</label>
                     <input type="text" id="inputCompanyNameShip" placeholder="Company Name">
@@ -254,9 +255,8 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
                 </div>
 
                 <div id="DivStatesShip">
-                    <label for="States" >Weight:</label> 
+                    <label for="States" >States:</label> 
                     <div id="DivStatesShip">
-                        <input type="number" id="StatesShip" name="StatesShip" placeholder="States" required>
                         <select name="StatesShip" id="StatesShip" >
                             <?php if (!empty($jsonStates)): ?>
                                 <?php foreach ($jsonStates as $StatesShip): ?>
@@ -272,7 +272,7 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
                 </div>
 
                 <div id="DivZipShip">
-                    <label for="ZipShip" id="ZipShip">City</label>
+                    <label for="ZipShip" id="ZipShip">ZIP</label>
                     <input type="number" id="inputZipShip" placeholder="ZIP">
                 </div>
 
