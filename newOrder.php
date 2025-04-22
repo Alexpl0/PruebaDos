@@ -292,7 +292,7 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
                     <label for="CityDest" id="CityDest">City</label>
                     <input type="text" id="inputCityDest" placeholder="City">
                 </div>
-
+            </div>
                 <div id="DivStatesDest">
                     <label for="States" >States:</label> 
                     <div id="DivStatesDest">
@@ -315,7 +315,7 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
                     <input type="number" id="inputZipDest" placeholder="ZIP">
                 </div>
 
-            </div>
+            
 
 
 
@@ -354,44 +354,48 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
 
             <h2>Selected Carrier</h2>
 
-            <div id="DivCarrier">
-                <label for="Carrier" >Carrier:</label> 
-                <select name="Carrier" id="Carrier" >
-                    <?php if (!empty($jsonCarrier)): ?>
-                        <?php foreach ($jsonCarrier as $Carrier): ?>
-                            <option value="<?php echo htmlspecialchars($Carrier['ID']); ?>">
-                                <?php echo htmlspecialchars($Carrier['PROVEEDOR']); ?> 
-                            </option>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <option value="" disabled>No se encontraron datos, jsonCarrier vacio</option>
-                    <?php endif; ?>
-                </select>
-            </div>
+            <div id="SectCarrier">
+                    
+                <div id="DivCarrier">
+                    <label for="Carrier" >Carrier:</label> 
+                    <select name="Carrier" id="Carrier" >
+                        <?php if (!empty($jsonCarrier)): ?>
+                            <?php foreach ($jsonCarrier as $Carrier): ?>
+                                <option value="<?php echo htmlspecialchars($Carrier['ID']); ?>">
+                                    <?php echo htmlspecialchars($Carrier['PROVEEDOR']); ?> 
+                                </option>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <option value="" disabled>No se encontraron datos, jsonCarrier vacio</option>
+                        <?php endif; ?>
+                    </select>
+                </div>
 
-            <div id="DivTransport">
-                <label for="Quoted Cost">Quoted Cost</label>
-                <div id="QuotedCostDiv">
-                    <input type="number" id="QuotedCost" name="QuotedCost" placeholder="Quoted Cost" required>
-                    <div id="Divisa">
-                        <button type="button" id="MXN">MXN</button>
-                        <button type="button" id="USD">USD</button>
+                <div id="DivTransport">
+                    <label for="Quoted Cost">Quoted Cost</label>
+                    <div id="QuotedCostDiv">
+                        <input type="number" id="QuotedCost" name="QuotedCost" placeholder="Quoted Cost" required>
+                        <div id="Divisa">
+                            <button type="button" id="MXN">MXN</button>
+                            <button type="button" id="USD">USD</button>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div id="DivReference">
-                <label for="Reference">Reference</label>
-                <div id="ReferenceDiv">
-                    <select name="Reference" id="Reference" >
-                        <option value="" disabled selected>Seleccione una Referencia</option>
-                        <option value="45">45</option>
-                        <option value="3">3</option>
-                        <option value="CC">CC</option>
-                        <option value="Order">Order</option>
-                    </select>
-                    <input type="number" id="ReferenceNumber" name="ReferenceNumber" placeholder="Reference Number" required>
+                <div id="DivReference">
+                    <label for="Reference">Reference</label>
+                    <div id="ReferenceDiv">
+                        <select name="Reference" id="Reference" >
+                            <option value="" disabled selected>Seleccione una Referencia</option>
+                            <option value="45">45</option>
+                            <option value="3">3</option>
+                            <option value="CC">CC</option>
+                            <option value="Order">Order</option>
+                        </select>
+                        <input type="number" id="ReferenceNumber" name="ReferenceNumber" placeholder="Reference Number" required>
+                    </div>
                 </div>
+
             </div>
 
 
