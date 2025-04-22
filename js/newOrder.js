@@ -72,13 +72,19 @@ async function calcularEuros(moneda) {
 function enviar(event) {
     event.preventDefault();
 
-    // Obtener todos los campos del formulario
+    // Lista de campos del formulario
     const fields = [
         'planta', 'codeplanta', 'transport', 'InOutBound', 'CostoEuros', 'Description',
         'Area', 'IntExt', 'PaidBy', 'CategoryCause', 'ProjectStatus', 'Recovery',
         'Weight', 'Measures', 'Products', 'Carrier', 'QuotedCost', 'Reference', 'ReferenceNumber',
         'inputCompanyNameShip', 'inputCityShip', 'StatesShip', 'inputZipShip',
         'inputCompanyNameDest', 'inputCityDest', 'StatesDest', 'inputZipDest'
+    ];
+
+    // Si quieres enviar el texto visible de estos selects:
+    const camposTexto = [
+        'planta', 'codeplanta', 'transport', 'InOutBound', 'Area', 'IntExt', 'PaidBy',
+        'CategoryCause', 'ProjectStatus', 'Recovery', 'Carrier'
     ];
 
     let data = {};
@@ -88,11 +94,9 @@ function enviar(event) {
         const el = document.getElementById(id);
         if (el) {
             let value = el.value;
-            // Para selects, obtener el texto si es necesario
-            if (el.tagName === 'SELECT') {
-                value = el.options[el.selectedIndex]?.value || '';
+            if (el.tagName === 'SELECT' && camposTexto.includes(id)) {
+                value = el.options[el.selectedIndex]?.text || '';
             }
-            // Para campos de texto, quitar espacios
             if (typeof value === 'string') value = value.trim();
             data[id] = value;
             if (!value) emptyFields.push(id);
@@ -111,28 +115,27 @@ function enviar(event) {
 
     // Mapear los datos al formato que espera la tabla
     data = {
-        // Puedes obtener user_id y date según tu lógica de sesión o del sistema
         user_id: 1, // Cambia esto por el ID real del usuario si lo tienes
         date: new Date().toISOString().slice(0, 19).replace('T', ' '), // Formato MySQL DATETIME
-        planta: document.getElementById('planta').value,
-        code_planta: document.getElementById('codeplanta').value,
-        transport: document.getElementById('transport').value,
-        in_out_bound: document.getElementById('InOutBound').value,
-        cost_euros: document.getElementById('CostoEuros').value,
-        description: document.getElementById('Description').value,
-        area: document.getElementById('Area').value,
-        int_ext: document.getElementById('IntExt').value,
-        paid_by: document.getElementById('PaidBy').value,
-        category_cause: document.getElementById('CategoryCause').value,
-        project_status: document.getElementById('ProjectStatus').value,
-        recovery: document.getElementById('Recovery').value,
-        weight: document.getElementById('Weight').value,
-        measures: document.getElementById('Measures').value,
-        products: document.getElementById('Products').value,
-        carrier: document.getElementById('Carrier').value,
-        quoted_cost: document.getElementById('QuotedCost').value,
-        reference: document.getElementById('Reference').value,
-        reference_number: document.getElementById('ReferenceNumber').value,
+        planta: data['planta'],
+        code_planta: data['codeplanta'],
+        transport: data['transport'],
+        in_out_bound: data['InOutBound'],
+        cost_euros: data['CostoEuros'],
+        description: data['Description'],
+        area: data['Area'],
+        int_ext: data['IntExt'],
+        paid_by: data['PaidBy'],
+        category_cause: data['CategoryCause'],
+        project_status: data['ProjectStatus'],
+        recovery: data['Recovery'],
+        weight: data['Weight'],
+        measures: data['Measures'],
+        products: data['Products'],
+        carrier: data['Carrier'],
+        quoted_cost: data['QuotedCost'],
+        reference: data['Reference'],
+        reference_number: data['ReferenceNumber'],
         origin_id: 1, // O el ID real si lo tienes
         destiny_id: 1 // O el ID real si lo tienes
     };
@@ -173,6 +176,9 @@ function enviar(event) {
     });
 }
 
+
+//==========================================================================================
+// Función para inicializar el evento de clic en los botones de moneda 
 document.addEventListener('DOMContentLoaded', function () {
     const btnMXN = document.getElementById('MXN');
     const btnUSD = document.getElementById('USD');
@@ -196,6 +202,9 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    
+    //==========================================================================================
+    // Inicializar el evento de clic en el botón de enviar
     const btnEnviar = document.getElementById('enviar');
     if (btnEnviar) {
         btnEnviar.addEventListener('click', enviar);
