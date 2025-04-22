@@ -18,5 +18,5 @@ function loadImage(url) {
 
 window.addEventListener('load', async () => {
     const image = await loadImage('https://grammermx.com/Jesus/PruebaDos/assets/media/SPECIAL_FREIGHT_AUTHORIZATION.png');
-    console.log(image);
 });
+

@@ -262,7 +262,7 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
                             <?php if (!empty($jsonStates)): ?>
                                 <?php foreach ($jsonStates as $StatesShip): ?>
                                     <option value="<?php echo htmlspecialchars($StatesShip['ID']); ?>">
-                                        <?php echo htmlspecialchars($StatesShip['UM']); ?> 
+                                        <?php echo htmlspecialchars($StatesShip['estadonombre']); ?> 
                                     </option>
                                 <?php endforeach; ?>
                             <?php else: ?>
