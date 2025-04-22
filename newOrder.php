@@ -75,7 +75,8 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
     <div id="home"> 
         <form id="plant-form"> 
             
-            <div> 
+        <div id="SectPlantas">
+            <div id="DivPlanta"> 
                 <label for="planta" >Requesting Plant:</label> 
                 <select name="planta" id="planta" > <!-- Elemento desplegable (select) con nombre 'planta', ID 'planta' y clase de Bootstrap 'form-select' -->
                     <?php if (!empty($jsonPlantas)): ?> <!-- Comienza un bloque PHP: verifica si la variable jsonPlantas (que contiene los datos de las plantas) no está vacía -->
@@ -95,7 +96,7 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
                 </select>
             </div> 
 
-            <div>
+            <div id="DivCodes">
                 <label for="codeplanta" >Plant Code:</label>
                 <select name="codeplanta" id="codeplanta" >
                     <?php if (!empty($jsonCodePlants)): ?>
@@ -109,8 +110,9 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
                     <?php endif; ?>
                 </select>
             </div>
-
-            <div>
+        </div>
+        <div id="SectTransporte">
+            <div id="DivTransport">
                 <label for="transport" >Transport Mode:</label> 
                 <select name="transport" id="transport" >
                     <?php if (!empty($jsonTransport)): ?>
@@ -125,7 +127,7 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
                 </select>
             </div>
 
-            <div>
+            <div id="DivInOut">
                 <label for="InOut" >In/Out Outbound:</label> 
                 <select name="InOut" id="InOut" >
                     <?php if (!empty($jsonInOut)): ?>
@@ -139,18 +141,15 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
                     <?php endif; ?>
                 </select>
             </div>
+        </div>
 
-            <div>
+            <div id="DivEuros">
                 <label for="CostoEuros">Costo en Euros €</label>
                 <input type="text" id="CostoEuros" name="CostoEuros" readonly>
             </div>
 
-            <div>
-                <label for="Description and Root Cause"> Description and Root Cause</label>
-                    <input type="text" id="Description" name="Description" placeholder="Description and Root Cause" required>
-            </div>
-
-            <div>
+        <div id="SectResponsability">
+            <div id="DivArea" >
                 <label for="Area" >Area of Responsability:</label> 
                 <select name="Area" id="Area" >
                     <?php if (!empty($jsonArea)): ?>
@@ -165,7 +164,7 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
                 </select>
             </div>
 
-            <div>
+            <div id="DivInExt">
                 <label for="IntExt" >Internal/External Service:</label> 
                 <select name="IntExt" id="IntExt" >
                     <?php if (!empty($jsonInExt)): ?>
@@ -179,8 +178,8 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
                     <?php endif; ?>
                 </select>
             </div>
-
-            <div>
+        </div>
+            <div id="DivPaidBy">
                 <label for="PaidBy">Costs paid By:</label>
                 <select name="PaidBy" id="PaidBy" >
                     <option value="Grammer">Grammer</option>
@@ -188,7 +187,8 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
                 </select>    
             </div>
 
-            <div>
+        <div id="SectCause">
+            <div id="DivCategoryCause">
                 <label for="CategoryCause" >Category Cause:</label> 
                 <select name="CategoryCause" id="CategoryCause" >
                     <?php if (!empty($jsonCategoryCause)): ?>
@@ -203,7 +203,7 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
                 </select>
             </div>
 
-            <div>
+            <div id="DivProjectStatus">
                 <label for="ProjectStatus" >Project Status:</label> 
                 <select name="ProjectStatus" id="ProjectStatus" >
                     <?php if (!empty($jsonProjectStatus)): ?>
@@ -217,8 +217,9 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
                     <?php endif; ?>
                 </select>
             </div>
+        </div>
 
-            <div>
+            <div id="DivRecovery">
                 <label for="Recovery" >Recovery:</label> 
                 <select name="Recovery" id="Recovery" >
                     <?php if (!empty($jsonRecovery)): ?>
@@ -232,8 +233,54 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
                     <?php endif; ?>
                 </select>
             </div>
+            
+            <div id="DivDescription">
+                <label for="Description and Root Cause"> Description and Root Cause</label>
+                    <input type="text" id="Description" name="Description" placeholder="Description and Root Cause" required>
+            </div>
 
-            <div>
+            <div id="SectShip">
+
+                <h2>Ship From</h2>
+                
+                <div id="DivCompanyShip">
+                    <label for="CompanyNameShip" id="CompanyNameShip">Company Name</label>
+                    <input type="text" id="inputCompanyNameShip" placeholder="Company Name">
+                </div>
+
+                <div id="DivCityShip">
+                    <label for="CityShip" id="CityShip">City</label>
+                    <input type="text" id="inputCityShip" placeholder="City">
+                </div>
+
+                <div id="DivStatesShip">
+                    <label for="States" >Weight:</label> 
+                    <div id="DivStatesShip">
+                        <input type="number" id="StatesShip" name="StatesShip" placeholder="States" required>
+                        <select name="StatesShip" id="StatesShip" >
+                            <?php if (!empty($jsonStates)): ?>
+                                <?php foreach ($jsonStates as $StatesShip): ?>
+                                    <option value="<?php echo htmlspecialchars($StatesShip['ID']); ?>">
+                                        <?php echo htmlspecialchars($StatesShip['UM']); ?> 
+                                    </option>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <option value="" disabled>No se encontraron datos, jsonStates vacio</option>
+                            <?php endif; ?>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="DivZipShip">
+                    <label for="ZipShip" id="ZipShip">City</label>
+                    <input type="number" id="inputZipShip" placeholder="ZIP">
+                </div>
+
+            </div>
+
+
+
+            <div id="DivMeasures">
                 <label for="Measures" >Weight:</label> 
                 <div id="MeasuresDiv">
                     <input type="number" id="Weight" name="Weight" placeholder="Weight" required>
@@ -251,7 +298,7 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
                 </div>
             </div>
 
-            <div>
+            <div id="DivProducts">
                 <label for="Products" >Products:</label> 
                 <select name="Products" id="Products" >
                     <?php if (!empty($jsonProducts)): ?>
@@ -267,7 +314,8 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
             </div>
 
             <h2>Selected Carrier</h2>
-            <div>
+
+            <div id="DivCarrier">
                 <label for="Carrier" >Carrier:</label> 
                 <select name="Carrier" id="Carrier" >
                     <?php if (!empty($jsonCarrier)): ?>
@@ -282,7 +330,7 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
                 </select>
             </div>
 
-            <div>
+            <div id="DivTransport">
                 <label for="Quoted Cost">Quoted Cost</label>
                 <div id="QuotedCostDiv">
                     <input type="number" id="QuotedCost" name="QuotedCost" placeholder="Quoted Cost" required>
@@ -293,7 +341,7 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
                 </div>
             </div>
 
-            <div>
+            <div id="DivReference">
                 <label for="Reference">Reference</label>
                 <div id="ReferenceDiv">
                     <select name="Reference" id="Reference" >
@@ -353,9 +401,7 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
 
     <!-- Incluye la biblioteca jQuery desde una CDN. jQuery es necesario para Select2 y facilita la manipulación del DOM y eventos -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.min.js" integrity="sha512-ykZ1QQr0Jy/4ZkvKuqWn4iF3lqPZyij9iRv6sGqLRdTPkY69YX6+7wvVGmsdBbiIfN/8OdsI7HABjvEok6ZopQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
-
+    
     <!-- Incluye el archivo JavaScript de Select2 desde una CDN -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script> // Inicio de un bloque de código JavaScript
