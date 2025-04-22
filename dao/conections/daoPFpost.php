@@ -25,6 +25,7 @@ try {
         ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
     );
 
+    // Todos los campos menos user_id (int) y weight, quoted_cost (pueden ser numéricos, pero si llegan como string está bien si la columna es VARCHAR)
     $stmt->bind_param(
         "issssssssssssssssssssss",
         $data['user_id'],
