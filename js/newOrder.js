@@ -2,7 +2,7 @@
 // Función para mostrar el select de selección de compañía
 
 async function mostrarSelect() {
-    const location = `https://grammermx.com/Jesus/PruebaDos/dao/conections/daoLocation.php`;
+    const location = `https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php`;
     try {
         const respuesta = await fetch(location);
         const datos = await respuesta.json();
