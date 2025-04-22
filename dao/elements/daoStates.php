@@ -1,7 +1,7 @@
 <?php
 
 // URL del archivo JSON que contiene la información de las plantas
-$url = "https://grammermx.com/Programas/Trafico/Premium%20Freight/EstadoRes.json";
+$url = "https://grammermx.com/Programas/Trafico/Premium%20Freight/EstadoRes.php";
 
 try {
     // Inicializa una sesión cURL para la URL especificada
