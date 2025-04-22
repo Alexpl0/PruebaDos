@@ -14,7 +14,6 @@ require_once __DIR__ . '/dao/elements/daoRecovery.php';
 require_once __DIR__ . '/dao/elements/daoCarrier.php';
 require_once __DIR__ . '/dao/elements/daoMeasures.php';
 require_once __DIR__ . '/dao/elements/daoProducts.php';
-require_once __DIR__ . '/dao/elements/daoStates.php';
 
 ?>
 
