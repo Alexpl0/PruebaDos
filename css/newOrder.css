@@ -334,3 +334,63 @@ h2{
         margin-bottom: 10px;
     }
 }
+
+/* Common styles for all sections to display elements in a single row */
+#SectTransporte,
+#SectResponsability,
+#SectCause,
+#SectShip,
+#SectDest {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    width: 90%;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+/* Style for child elements inside each section */
+#DivTransport, #DivInOut, 
+#DivArea, #DivInExt, 
+#DivCategoryCause, #DivProjectStatus,
+#DivCompanyShip, #DivCityShip,
+#DivCompanyDest, #DivCityDest {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+}
+
+/* Make sure select and input elements inside sections expand properly */
+#SectTransporte select,
+#SectTransporte .select2-container,
+#SectResponsability select,
+#SectResponsability .select2-container,
+#SectCause select,
+#SectCause .select2-container,
+#SectShip input,
+#SectDest input {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* Add media query for smaller screens for all sections */
+@media (max-width: 768px) {
+    #SectTransporte,
+    #SectResponsability, 
+    #SectCause,
+    #SectShip,
+    #SectDest {
+        flex-direction: column;
+        width: 90%;
+    }
+    
+    #DivTransport, #DivInOut, 
+    #DivArea, #DivInExt, 
+    #DivCategoryCause, #DivProjectStatus,
+    #DivCompanyShip, #DivCityShip,
+    #DivCompanyDest, #DivCityDest {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}

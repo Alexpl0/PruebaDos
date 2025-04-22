@@ -240,10 +240,9 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
                 <label for="Description and Root Cause"> Description and Root Cause</label>
                     <input type="text" id="Description" name="Description" placeholder="Description and Root Cause" required>
             </div>
+            <h2>Ship From</h2>
 
             <div id="SectShip">
-
-                <h2>Ship From</h2>
 
                 <div id="DivCompanyShip">
                     <label for="CompanyNameShip" id="CompanyNameShip">Company Name</label>
@@ -254,7 +253,7 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
                     <label for="CityShip" id="CityShip">City</label>
                     <input type="text" id="inputCityShip" placeholder="City">
                 </div>
-
+            </div>
                 <div id="DivStatesShip">
                     <label for="States" >States:</label> 
                     <div id="DivStatesShip">
@@ -277,11 +276,9 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
                     <input type="number" id="inputZipShip" placeholder="ZIP">
                 </div>
 
-            </div>
+            <h2>Destination</h2>
 
             <div id="SectDest">
-
-                <h2>Destination</h2>
 
                 <div id="DivCompanyDest">
                     <label for="CompanyNameDest" id="CompanyNameDest">Company Name</label>
@@ -335,7 +332,7 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
                         <?php endif; ?>
                     </select>
                 </div>
-            </div>
+            
 
             <div id="DivProducts">
                 <label for="Products" >Products:</label> 
