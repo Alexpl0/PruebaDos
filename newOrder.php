@@ -513,7 +513,13 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
                 placeholder: "StatesShip", 
                 allowClear: true 
             });
+
+            $('#Reference').select2({
+                placeholder: "Reference", 
+                allowClear: true 
+            });
         });
+        
         </script>
         StateShip
         <script>
