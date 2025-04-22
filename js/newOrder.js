@@ -201,5 +201,30 @@ document.addEventListener('DOMContentLoaded', function () {
     if (btnEnviar) {
         btnEnviar.addEventListener('click', enviar);
     }
+
+    const inputCompanyNameDest = document.getElementById('inputCompanyNameDest');
+    let timeout = null;
+
+    inputCompanyNameDest.addEventListener('input', function () {
+        clearTimeout(timeout);
+        const query = this.value.trim();
+        if (query.length < 2) return; // Espera mínimo 2 caracteres
+
+        timeout = setTimeout(() => {
+            fetch(`https://grammermx.com/Jesus/PruebaDos/dao/elements/daoSearchCompany.php?name=${encodeURIComponent(query)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.success && data.company) {
+                        // Rellena los campos relacionados
+                        document.getElementById('inputCityDest').value = data.company.city || '';
+                        document.getElementById('StatesDest').value = data.company.state_id || '';
+                        document.getElementById('inputZipDest').value = data.company.zip || '';
+                    }
+                })
+                .catch(err => {
+                    console.error('Error en autocompletar destino:', err);
+                });
+        }, 300); // Espera 300ms después de dejar de escribir
+    });
 });
 
