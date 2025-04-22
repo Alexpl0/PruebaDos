@@ -16,7 +16,6 @@ async function mostrarSelect() {
 
 
 
-
 //==========================================================================================
 //Funcion para obtener el tipo de cambio de la API
 async function obtenerTipoCambio(moneda) {
@@ -215,22 +214,23 @@ document.addEventListener('DOMContentLoaded', function () {
             fetch(`https://grammermx.com/Jesus/PruebaDos/dao/elements/daoSearchCompany.php?name=${encodeURIComponent(query)}`)
                 .then(res => res.json())
                 .then(data => {
-                    // Si tu endpoint puede devolver varias compañías, ajusta aquí:
-                    if (data && data.success && Array.isArray(data.companies)) {
-                        datalist.innerHTML = '';
+                    datalist.innerHTML = '';
+                    if (data && data.success && Array.isArray(data.companies) && data.companies.length > 0) {
                         data.companies.forEach(company => {
                             const option = document.createElement('option');
                             option.value = company.company_name;
                             datalist.appendChild(option);
                         });
-                    } else if (data && data.success && data.company) {
-                        // Si solo devuelve una compañía
-                        datalist.innerHTML = '';
+                    } else {
+                        // Mostrar mensaje de "No se han encontrado coincidencias"
                         const option = document.createElement('option');
-                        option.value = data.company.company_name;
+                        option.value = '';
+                        option.textContent = 'No se han encontrado coincidencias';
                         datalist.appendChild(option);
+                    }
 
-                        // Autorrellena los campos relacionados
+                    // Si solo devuelve una compañía y no es un array
+                    if (data && data.success && data.company && !Array.isArray(data.companies)) {
                         document.getElementById('inputCityDest').value = data.company.city || '';
                         document.getElementById('StatesDest').value = data.company.state || '';
                         document.getElementById('inputZipDest').value = data.company.zip || '';
