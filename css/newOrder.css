@@ -145,15 +145,6 @@ footer{
     margin: 2%;
 }
 
-#ReferenceDiv {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
-    max-width: 95%;
-    margin-left: 5%;
-    margin-right: 5%;
-}
 
 #ReferenceDiv select,
 #ReferenceDiv input {
