@@ -4,7 +4,7 @@
 async function mostrarSelect() {
     const location = `https://grammermx.com/Jesus/PruebaDos/dao/conections/daoLocation.php`;
     try {
-        const respuesta = await fetch(url);
+        const respuesta = await fetch(location);
         const datos = await respuesta.json();
         console.log("Datos obtenidos de la API Location:", datos);
     } catch (error) {
