@@ -46,8 +46,51 @@
     </header>
 
     <div id="mainOrders">
-        <h1 id="title1">Historial de Ordenes Generadas</h1>
-        <h1 id="title2"></h1>
+            <h1 id="title1">Historial de Ordenes Generadas</h1>
+            <h1 id="title2"></h1>
+        
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered" id="ordersTable">
+                    <thead>
+                        <tr>
+                            <th>Planta</th>
+                            <th>Code Planta</th>
+                            <th>Transport</th>
+                            <th>In/Out Bound</th>
+                            <th>Costo Euros</th>
+                            <th>Description</th>
+                            <th>Area</th>
+                            <th>Int/Ext</th>
+                            <th>Paid By</th>
+                            <th>Category Cause</th>
+                            <th>Project Status</th>
+                            <th>Recovery</th>
+                            <th>Weight</th>
+                            <th>Measures</th>
+                            <th>Products</th>
+                            <th>Carrier</th>
+                            <th>Quoted Cost</th>
+                            <th>Reference</th>
+                            <th>Reference Number</th>
+                            <th>Company Name Ship</th>
+                            <th>City Ship</th>
+                            <th>State Ship</th>
+                            <th>Zip Ship</th>
+                            <th>Company Name Dest</th>
+                            <th>City Dest</th>
+                            <th>State Dest</th>
+                            <th>Zip Dest</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyOrders">
+                        <!-- Aquí se insertarán las filas dinámicamente con JS o PHP -->
+                    </tbody>
+                </table>
+            </div>
+    </div>
+        <!-- ...existing code... -->
+
+
         
         <div class="card" style="width: 18rem;">
             <div class="card-body">
