@@ -5,10 +5,14 @@ async function mostrarSelect() {
     const locationURL = `https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php`;
     try {
         const respuesta = await fetch(locationURL);
-        const locations = await respuesta.json();
-        console.log("Datos obtenidos de la API Location:", respuesta);
+        const response = await respuesta.json();
+        console.log("Datos obtenidos de la API Location:", response);
 
-        
+        const locations = JSON.parse(response);
+
+        //Imprime el JSON en la consola
+        console.log("JSON Locations:", locations);
+
     } catch (error) {
         console.error('Error al obtener los datos:', error);
     }
