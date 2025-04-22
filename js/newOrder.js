@@ -6,7 +6,9 @@ async function mostrarSelect() {
     try {
         const respuesta = await fetch(locationURL);
         const locations = await respuesta.json();
-        console.log("Datos obtenidos de la API Location:", locations);
+        console.log("Datos obtenidos de la API Location:", respuesta);
+
+        
     } catch (error) {
         console.error('Error al obtener los datos:', error);
     }
