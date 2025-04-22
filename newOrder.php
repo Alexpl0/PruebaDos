@@ -468,9 +468,14 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
                 placeholder: "Products", 
                 allowClear: true 
             });
+
+            $('#StatesShip').select2({
+                placeholder: "StatesShip", 
+                allowClear: true 
+            });
         });
         </script>
-        
+        StateShip
         <script>
             $(document).ready(function() {
                 $('#verPDF').click(function() {
