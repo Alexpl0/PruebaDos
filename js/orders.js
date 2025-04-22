@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
+
+    function rellenarTabla() {
     fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPFget.php')
         .then(response => response.json())
         .then(data => {
@@ -42,4 +44,5 @@ document.addEventListener('DOMContentLoaded', function () {
         .catch(error => {
             console.error('Error al cargar las órdenes:', error);
         });
+    }
 });
