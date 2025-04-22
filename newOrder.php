@@ -279,6 +279,44 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
 
             </div>
 
+            <div id="SectDest">
+
+                <h2>Destination</h2>
+
+                <div id="DivCompanyDest">
+                    <label for="CompanyNameDest" id="CompanyNameDest">Company Name</label>
+                    <input type="text" id="inputCompanyNameDest" placeholder="Company Name">
+                </div>
+
+                <div id="DivCityDest">
+                    <label for="CityDest" id="CityDest">City</label>
+                    <input type="text" id="inputCityDest" placeholder="City">
+                </div>
+
+                <div id="DivStatesDest">
+                    <label for="States" >States:</label> 
+                    <div id="DivStatesDest">
+                        <select name="StatesDest" id="StatesDest" >
+                            <?php if (!empty($jsonStates)): ?>
+                                <?php foreach ($jsonStates as $StatesDest): ?>
+                                    <option value="<?php echo htmlspecialchars($StatesDest['ID']); ?>">
+                                        <?php echo htmlspecialchars($StatesDest['estadonombre']); ?> 
+                                    </option>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <option value="" disabled>No se encontraron datos, jsonStates vacio</option>
+                            <?php endif; ?>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="DivZipDest">
+                    <label for="ZipDest" id="ZipDest">ZIP</label>
+                    <input type="number" id="inputZipDest" placeholder="ZIP">
+                </div>
+
+            </div>
+
 
 
             <div id="DivMeasures">
