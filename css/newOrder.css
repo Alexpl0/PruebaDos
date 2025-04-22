@@ -193,7 +193,7 @@ h2{
     margin-bottom: 20px;
 }
 
-#SectCarrier {
+#SectCarrier, #DivReference  {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -217,7 +217,7 @@ h2{
     max-width: 100% !important;
 }
 
-#QuotedCostDiv, #DivReference {
+#QuotedCostDiv{
     display: flex;
     flex-direction: row;
     align-items: center;
