@@ -287,7 +287,19 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
 
                 <div id="DivCityDest">
                     <label for="CityDest" id="CityDest">City</label>
-                    <input type="text" id="inputCityDest" placeholder="City">
+                    <div id="DivLocations">
+                        <select name="CityDest" id="CityDest" >
+                            <?php if (!empty($locations)): ?>
+                                <?php foreach ($locations as $CityDest): ?>
+                                    <option value="<?php echo htmlspecialchars($CityDest['ID']); ?>">
+                                        <?php echo htmlspecialchars($CityDest['company_name']); ?> 
+                                    </option>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <option value="" disabled>No se encontraron datos, locations vacio</option>
+                            <?php endif; ?>
+                        </select>
+                    </div>
                 </div>
             </div>
                 <div id="DivStatesDest">

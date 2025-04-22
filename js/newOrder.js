@@ -2,11 +2,11 @@
 // Función para mostrar el select de selección de compañía
 
 async function mostrarSelect() {
-    const location = `https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php`;
+    const locationURL = `https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php`;
     try {
-        const respuesta = await fetch(location);
-        const datos = await respuesta.json();
-        console.log("Datos obtenidos de la API Location:", datos);
+        const respuesta = await fetch(locationURL);
+        const locations = await respuesta.json();
+        console.log("Datos obtenidos de la API Location:", locations);
     } catch (error) {
         console.error('Error al obtener los datos:', error);
     }
@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    
+
     //==========================================================================================
     // Inicializar el evento de clic en el botón de enviar
     const btnEnviar = document.getElementById('enviar');
