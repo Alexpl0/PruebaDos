@@ -198,9 +198,9 @@ h2{
     flex-direction: row;
     align-items: center;
     gap: 10px;
-    width: 100%; /* Change from max-width: 95% to width: 100% */
-    margin-left: 0; /* Remove the 5% left margin */
-    margin-right: 0; /* Remove the 5% right margin */
+    width: 95%; 
+    margin-left: 5%;
+    margin-right: 5%; 
 }
 
 /* Add styles for the child elements of SectCarrier to distribute space properly */
@@ -227,13 +227,13 @@ h2{
     margin-right: 5%;
 }
 
-#QuotedCostDiv input, #Reference {
+#QuotedCostDiv input, #ReferenceNumber  {
     flex: 1;
     min-width: 60%;
     min-height: 30px;
 }
 
-#Divisa {
+#Divisa, #Reference {
     display: flex;
     flex-direction: row;
     gap: 5px;
