@@ -381,8 +381,9 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
                         </div>
                     </div>
                 </div>
-
-                <div id="DivReference">
+            </div>
+            
+            <div id="DivReference">
                     <label for="Reference">Reference</label>
                     <div id="ReferenceDiv">
                         <select name="Reference" id="Reference" >
@@ -394,8 +395,6 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
                         </select>
                         <input type="number" id="ReferenceNumber" name="ReferenceNumber" placeholder="Reference Number" required>
                     </div>
-                </div>
-
             </div>
 
 
