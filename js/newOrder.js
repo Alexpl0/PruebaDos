@@ -109,8 +109,6 @@ function enviar(event) {
         return;
     }
 
-    console.log("Datos a enviar:", data);
-
     // Mapear los datos al formato que espera la tabla
     data = {
         // Puedes obtener user_id y date según tu lógica de sesión o del sistema
@@ -138,6 +136,8 @@ function enviar(event) {
         origin_id: document.getElementById('inputCompanyNameShip').value, // O el ID real si lo tienes
         destiny_id: document.getElementById('inputCompanyNameDest').value // O el ID real si lo tienes
     };
+
+    console.log("Datos a enviar:", data);
 
     // Enviar el JSON al backend usando fetch
     fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPFpost.php', {
@@ -200,46 +200,5 @@ document.addEventListener('DOMContentLoaded', function () {
     if (btnEnviar) {
         btnEnviar.addEventListener('click', enviar);
     }
-
-    const inputCompanyNameDest = document.getElementById('inputCompanyNameDest');
-    const datalist = document.getElementById('companyNameDestList');
-    let timeout = null;
-
-    inputCompanyNameDest.addEventListener('input', function () {
-        clearTimeout(timeout);
-        const query = this.value.trim();
-        if (query.length < 2) return;
-
-        timeout = setTimeout(() => {
-            fetch(`https://grammermx.com/Jesus/PruebaDos/dao/elements/daoSearchCompany.php?name=${encodeURIComponent(query)}`)
-                .then(res => res.json())
-                .then(data => {
-                    datalist.innerHTML = '';
-                    if (data && data.success && Array.isArray(data.companies) && data.companies.length > 0) {
-                        data.companies.forEach(company => {
-                            const option = document.createElement('option');
-                            option.value = company.company_name;
-                            datalist.appendChild(option);
-                        });
-                    } else {
-                        // Mostrar mensaje de "No se han encontrado coincidencias"
-                        const option = document.createElement('option');
-                        option.value = '';
-                        option.textContent = 'No se han encontrado coincidencias';
-                        datalist.appendChild(option);
-                    }
-
-                    // Si solo devuelve una compañía y no es un array
-                    if (data && data.success && data.company && !Array.isArray(data.companies)) {
-                        document.getElementById('inputCityDest').value = data.company.city || '';
-                        document.getElementById('StatesDest').value = data.company.state || '';
-                        document.getElementById('inputZipDest').value = data.company.zip || '';
-                    }
-                })
-                .catch(err => {
-                    console.error('Error en autocompletar destino:', err);
-                });
-        }, 300);
-    });
 });
 

@@ -282,8 +282,7 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
 
                 <div id="DivCompanyDest">
                     <label for="CompanyNameDest" id="CompanyNameDest">Company Name</label>
-                    <input type="text" id="inputCompanyNameDest" list="companyNameDestList" autocomplete="off" />
-                    <datalist id="companyNameDestList"></datalist>
+                    <input type="text" id="inputCompanyNameDest" placeholder="Company Name">
                 </div>
 
                 <div id="DivCityDest">
@@ -333,7 +332,7 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
                         <?php endif; ?>
                     </select>
                 </div>
-            
+            </div>
 
             <div id="DivProducts">
                 <label for="Products" >Products:</label> 
