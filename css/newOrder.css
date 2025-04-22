@@ -193,7 +193,7 @@ h2{
     margin-bottom: 20px;
 }
 
-#SectCarrier, #DivReference  {
+#SectCarrier{
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -204,7 +204,7 @@ h2{
 }
 
 /* Add styles for the child elements of SectCarrier to distribute space properly */
-#DivCarrier, #DivCosto {
+#DivCarrier, #DivCosto, DivReference {
     flex: 1; /* Make both child divs take equal space */
     width: 100%; /* Ensure they use all available width */
 }
