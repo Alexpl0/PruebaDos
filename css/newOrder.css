@@ -103,11 +103,7 @@ label {
 #CostoEuros, 
 #PaidBy, 
 #inputZipShip, 
-#inputZipDest,
-#inputCityDest,
-#inputCityShip,
-#inputCompanyNameDest,
-#inputCompanyNameShip {
+#inputZipDest {
     padding: 3%;
     width: 90%;
     max-height: 1px;
@@ -377,7 +373,11 @@ h2{
 #SectCause select,
 #SectCause .select2-container,
 #SectShip input,
-#SectDest input {
+#SectDest input,
+#inputCityDest,
+#inputCityShip,
+#inputCompanyNameDest,
+#inputCompanyNameShip {
     width: 100% !important;
     max-width: 100% !important;
 }
