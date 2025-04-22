@@ -204,10 +204,18 @@ h2{
 }
 
 /* Add styles for the child elements of SectCarrier to distribute space properly */
-#DivCarrier, #DivCosto {
-    flex: 1; 
-    min-width: 0; /* Prevents flex items from overflowing */
+#DivCarrier {
+    flex: 1;
+    min-width: 0;
     width: 100%;
+    max-width: 40%;
+}
+
+#DivCosto{
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    max-width: 60%;
 }
 
 /* Make sure select elements inside SectCarrier expand properly */
