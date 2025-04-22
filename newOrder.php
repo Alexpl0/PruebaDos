@@ -355,8 +355,8 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
             <h2>Selected Carrier</h2>
 
             <div id="SectCarrier">
-                    
-                <label for="Carrier" >Carrier:</label> 
+                <div id="DivCarrier">
+                    <label for="Carrier" >Carrier:</label> 
                     <select name="Carrier" id="Carrier" >
                         <?php if (!empty($jsonCarrier)): ?>
                             <?php foreach ($jsonCarrier as $Carrier): ?>
@@ -368,16 +368,18 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
                             <option value="" disabled>No se encontraron datos, jsonCarrier vacio</option>
                         <?php endif; ?>
                     </select>
+                </div>
 
-                <label for="Quoted Cost">Quoted Cost</label>
-                    <div id="QuotedCostDiv">
-                        <input type="number" id="QuotedCost" name="QuotedCost" placeholder="Quoted Cost" required>
-                        <div id="Divisa">
-                            <button type="button" id="MXN">MXN</button>
-                            <button type="button" id="USD">USD</button>
+                <div id="DivCosto">
+                    <label for="Quoted Cost">Quoted Cost</label>
+                        <div id="QuotedCostDiv">
+                            <input type="number" id="QuotedCost" name="QuotedCost" placeholder="Quoted Cost" required>
+                            <div id="Divisa">
+                                <button type="button" id="MXN">MXN</button>
+                                <button type="button" id="USD">USD</button>
+                            </div>
                         </div>
-                    </div>
-                
+                </div>
             </div>
             
             <div id="DivReference">
