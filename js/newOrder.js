@@ -1,3 +1,24 @@
+//==========================================================================================
+// Función para mostrar el select de selección de compañía
+
+async function mostrarSelect() {
+    const location = `https://grammermx.com/Jesus/PruebaDos/dao/conections/daoLocation.php`;
+    try {
+        const respuesta = await fetch(url);
+        const datos = await respuesta.json();
+        console.log("Datos obtenidos de la API Location:", datos);
+    } catch (error) {
+        console.error('Error al obtener los datos:', error);
+    }
+}
+
+
+
+
+
+
+//==========================================================================================
+//Funcion para obtener el tipo de cambio de la API
 async function obtenerTipoCambio(moneda) {
     const url = `https://api.frankfurter.dev/v1/latest?base=${moneda}&symbols=EUR`;
       
@@ -90,6 +111,34 @@ function enviar(event) {
     }
 
     console.log("Datos a enviar:", data);
+
+    // Mapear los datos al formato que espera la tabla
+    data = {
+        // Puedes obtener user_id y date según tu lógica de sesión o del sistema
+        user_id: 1, // Cambia esto por el ID real del usuario si lo tienes
+        date: new Date().toISOString().slice(0, 19).replace('T', ' '), // Formato MySQL DATETIME
+        planta: document.getElementById('planta').value,
+        code_planta: document.getElementById('codeplanta').value,
+        transport: document.getElementById('transport').value,
+        in_out_bound: document.getElementById('InOutBound').value,
+        cost_euros: document.getElementById('CostoEuros').value,
+        description: document.getElementById('Description').value,
+        area: document.getElementById('Area').value,
+        int_ext: document.getElementById('IntExt').value,
+        paid_by: document.getElementById('PaidBy').value,
+        category_cause: document.getElementById('CategoryCause').value,
+        project_status: document.getElementById('ProjectStatus').value,
+        recovery: document.getElementById('Recovery').value,
+        weight: document.getElementById('Weight').value,
+        measures: document.getElementById('Measures').value,
+        products: document.getElementById('Products').value,
+        carrier: document.getElementById('Carrier').value,
+        quoted_cost: document.getElementById('QuotedCost').value,
+        reference: document.getElementById('Reference').value,
+        reference_number: document.getElementById('ReferenceNumber').value,
+        origin_id: document.getElementById('inputCompanyNameShip').value, // O el ID real si lo tienes
+        destiny_id: document.getElementById('inputCompanyNameDest').value // O el ID real si lo tienes
+    };
 
     // Enviar el JSON al backend usando fetch
     fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPFpost.php', {

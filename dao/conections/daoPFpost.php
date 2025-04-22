@@ -8,7 +8,10 @@ $data = json_decode($input, true);
 
 if (!$data) {
     http_response_code(400);
-    echo json_encode(["success" => false, "message" => "Datos JSON inválidos"]);
+    echo json_encode([
+        "success" => false,
+        "message" => "Datos JSON inválidos"
+    ]);
     exit;
 }
 
@@ -17,52 +20,50 @@ try {
     $conex = $con->conectar();
 
     $stmt = $conex->prepare(
-        "INSERT INTO `PremiumFreight`(
-            planta, codeplanta, transport, InOutBound, CostoEuros, Description,
-            Area, IntExt, PaidBy, CategoryCause, ProjectStatus, Recovery,
-            Weight, Measures, Products, Carrier, QuotedCost, Reference, ReferenceNumber,
-            inputCompanyNameShip, inputCityShip, StatesShip, inputZipShip,
-            inputCompanyNameDest, inputCityDest, StatesDest, inputZipDest
-        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+        "INSERT INTO `PremiumFreight` (
+            user_id, date, planta, code_planta, transport, in_out_bound, cost_euros, description, area, int_ext, paid_by, category_cause, project_status, recovery, weight, measures, products, carrier, quoted_cost, reference, reference_number, origin_id, destiny_id
+        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
     );
 
     $stmt->bind_param(
-        "sssssssssssssssssssssssssss",
+        "issssssssssssssssssssss",
+        $data['user_id'],
+        $data['date'],
         $data['planta'],
-        $data['codeplanta'],
+        $data['code_planta'],
         $data['transport'],
-        $data['InOutBound'],
-        $data['CostoEuros'],
-        $data['Description'],
-        $data['Area'],
-        $data['IntExt'],
-        $data['PaidBy'],
-        $data['CategoryCause'],
-        $data['ProjectStatus'],
-        $data['Recovery'],
-        $data['Weight'],
-        $data['Measures'],
-        $data['Products'],
-        $data['Carrier'],
-        $data['QuotedCost'],
-        $data['Reference'],
-        $data['ReferenceNumber'],
-        $data['inputCompanyNameShip'],
-        $data['inputCityShip'],
-        $data['StatesShip'],
-        $data['inputZipShip'],
-        $data['inputCompanyNameDest'],
-        $data['inputCityDest'],
-        $data['StatesDest'],
-        $data['inputZipDest']
+        $data['in_out_bound'],
+        $data['cost_euros'],
+        $data['description'],
+        $data['area'],
+        $data['int_ext'],
+        $data['paid_by'],
+        $data['category_cause'],
+        $data['project_status'],
+        $data['recovery'],
+        $data['weight'],
+        $data['measures'],
+        $data['products'],
+        $data['carrier'],
+        $data['quoted_cost'],
+        $data['reference'],
+        $data['reference_number'],
+        $data['origin_id'],
+        $data['destiny_id']
     );
 
     $stmt->execute();
 
     if ($stmt->affected_rows > 0) {
-        echo json_encode(["success" => true, "message" => "Insert exitoso"]);
+        echo json_encode([
+            "success" => true,
+            "message" => "Insert exitoso"
+        ]);
     } else {
-        echo json_encode(["success" => false, "message" => "No se pudo insertar el registro"]);
+        echo json_encode([
+            "success" => false,
+            "message" => "No se pudo insertar el registro"
+        ]);
     }
 
     $stmt->close();
@@ -70,6 +71,9 @@ try {
 
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(["success" => false, "mensaje" => $e->getMessage()]);
+    echo json_encode([
+        "success" => false,
+        "mensaje" => $e->getMessage()
+    ]);
 }
 ?>
