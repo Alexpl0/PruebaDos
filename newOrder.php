@@ -129,17 +129,17 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
                 </select>
             </div>
 
-            <div id="DivInOut">
-                <label for="InOut" >In/Out Outbound:</label> 
-                <select name="InOut" id="InOut" >
-                    <?php if (!empty($jsonInOut)): ?>
-                        <?php foreach ($jsonInOut as $InOut): ?>
-                            <option value="<?php echo htmlspecialchars($InOut['ID']); ?>">
-                                <?php echo htmlspecialchars($InOut['IN_OUT']); ?> 
+            <div id="DivInOutBound">
+                <label for="InOutBound" >In/Out Outbound:</label> 
+                <select name="InOutBound" id="InOutBound" >
+                    <?php if (!empty($jsonInOutBound)): ?>
+                        <?php foreach ($jsonInOutBound as $InOutBound): ?>
+                            <option value="<?php echo htmlspecialchars($InOutBound['ID']); ?>">
+                                <?php echo htmlspecialchars($InOutBound['IN_OUT']); ?> 
                             </option>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <option value="" disabled>No se encontraron datos, jsonInOut vacio</option>
+                        <option value="" disabled>No se encontraron datos, jsonInOutBound vacio</option>
                     <?php endif; ?>
                 </select>
             </div>
@@ -461,7 +461,7 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
                 allowClear: true 
             });
 
-            $('#InOut').select2({
+            $('#InOutBound').select2({
                 placeholder: "In/Out Service", 
                 allowClear: true 
             });

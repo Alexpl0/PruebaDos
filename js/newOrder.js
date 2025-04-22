@@ -45,14 +45,20 @@ async function calcularEuros(moneda) {
     console.log("Costo en Euros formateado:", costoEuros.value);
 }
 
+
+//==========================================================================================
+// Función para validar y enviar el formulario a la Base de Datos
+
 function enviar(event) {
     event.preventDefault();
 
     // Obtener todos los campos del formulario
     const fields = [
-        'planta', 'codeplanta', 'transport', 'InOut', 'CostoEuros', 'Description',
+        'planta', 'codeplanta', 'transport', 'InOutBound', 'CostoEuros', 'Description',
         'Area', 'IntExt', 'PaidBy', 'CategoryCause', 'ProjectStatus', 'Recovery',
-        'Weight', 'Measures', 'Products', 'Carrier', 'QuotedCost', 'Reference', 'ReferenceNumber'
+        'Weight', 'Measures', 'Products', 'Carrier', 'QuotedCost', 'Reference', 'ReferenceNumber',
+        'inputCompanyNameShip', 'inputCityShip', 'StatesShip', 'inputZipShip',
+        'inputCompanyNameDest', 'inputCityDest', 'StatesDest', 'inputZipDest'
     ];
 
     let data = {};
@@ -83,17 +89,40 @@ function enviar(event) {
         return;
     }
 
-    // Generar JSON
-    const jsonData = JSON.stringify(data, null, 2);
-    console.log('JSON generado:', jsonData);
+    console.log("Datos a enviar:", data);
 
-    Swal.fire({
-        icon: 'success',
-        title: 'Datos validados',
-        html: `<pre>${jsonData}</pre>`
+    // Enviar el JSON al backend usando fetch
+    fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPFpost.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Datos guardados',
+                text: result.message
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: result.message || 'No se pudo guardar la información'
+            });
+        }
+    })
+    .catch(error => {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Error en la conexión o en el servidor'
+        });
+        console.error('Error:', error);
     });
-
-    // Aquí puedes enviar el JSON al servidor si lo necesitas
 }
 
 document.addEventListener('DOMContentLoaded', function () {
