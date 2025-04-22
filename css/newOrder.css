@@ -198,23 +198,60 @@ h2{
     flex-direction: row;
     align-items: center;
     gap: 10px;
-    width: 95%; 
-    margin-left: 5%;
-    margin-right: 5%; 
+    width: 90%;
+    margin: 0 auto;
+    box-sizing: border-box;
 }
 
 /* Add styles for the child elements of SectCarrier to distribute space properly */
 #DivCarrier, #DivCosto {
-    flex: 1; /* Make both child divs take equal space */
-    width: 100%; /* Ensure they use all available width */
+    flex: 1; 
+    min-width: 0; /* Prevents flex items from overflowing */
+    width: 100%;
 }
 
 /* Make sure select elements inside SectCarrier expand properly */
-#SectCarrier select, 
-#SectCarrier #QuotedCostDiv
+#SectCarrier select,
+#SectCarrier #QuotedCostDiv,
 #SectCarrier .select2-container {
-    width: 100% !important; /* Override any other width settings */
+    width: 100% !important;
     max-width: 100% !important;
+}
+
+/* Make QuotedCostDiv responsive */
+#QuotedCostDiv {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin: 0;
+}
+
+#QuotedCostDiv input {
+    flex: 1;
+    min-width: 0;
+    min-height: 30px;
+}
+
+#Divisa {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+/* Add media query for smaller screens */
+@media (max-width: 768px) {
+    #SectCarrier {
+        flex-direction: column;
+        width: 90%;
+    }
+    
+    #DivCarrier, #DivCosto {
+        width: 100%;
+        margin-bottom: 10px;
+    }
 }
 
 #QuotedCostDiv, #ReferenceDiv{
@@ -222,7 +259,6 @@ h2{
     flex-direction: row;
     align-items: center;
     gap: 10px;
-    width: 100%;
     margin-left: 5%;
     margin-right: 5%;
 }
