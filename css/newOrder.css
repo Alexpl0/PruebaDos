@@ -380,6 +380,7 @@ h2{
 #inputCompanyNameShip {
     width: 100% !important;
     max-width: 100% !important;
+    height: 35px !important; 
 }
 
 /* Add media query for smaller screens for all sections */
