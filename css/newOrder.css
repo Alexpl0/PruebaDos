@@ -147,7 +147,7 @@ footer{
 
 
 
-#MeasuresDiv, #QuotedCostDiv {
+#MeasuresDiv {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -157,7 +157,7 @@ footer{
     margin-right: 5%;
 }
 
-#MeasuresDiv select, #QuotedCostDiv select {
+#MeasuresDiv select{
     flex: 0 0 15%;
     min-width: 0;
     min-height: 30px;
