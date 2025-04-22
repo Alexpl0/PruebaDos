@@ -133,8 +133,8 @@ function enviar(event) {
         quoted_cost: document.getElementById('QuotedCost').value,
         reference: document.getElementById('Reference').value,
         reference_number: document.getElementById('ReferenceNumber').value,
-        origin_id: document.getElementById('inputCompanyNameShip').value, // O el ID real si lo tienes
-        destiny_id: document.getElementById('inputCompanyNameDest').value // O el ID real si lo tienes
+        origin_id: 1, // O el ID real si lo tienes
+        destiny_id: 1 // O el ID real si lo tienes
     };
 
     console.log("Datos a enviar:", data);
