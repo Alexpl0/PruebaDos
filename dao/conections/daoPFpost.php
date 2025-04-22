@@ -17,7 +17,7 @@ try {
     $conex = $con->conectar();
 
     $stmt = $conex->prepare(
-        "INSERT INTO [Premium Freight] (
+        "INSERT INTO `PremiumFreight`(
             planta, codeplanta, transport, InOutBound, CostoEuros, Description,
             Area, IntExt, PaidBy, CategoryCause, ProjectStatus, Recovery,
             Weight, Measures, Products, Carrier, QuotedCost, Reference, ReferenceNumber,
