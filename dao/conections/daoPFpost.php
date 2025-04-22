@@ -1,6 +1,6 @@
 <?php
 
-include_once('../../db/db.php');
+include_once('../db/db.php');
 
 // Recibe el JSON enviado por POST
 $input = file_get_contents('php://input');
