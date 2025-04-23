@@ -17,6 +17,8 @@
   
     /*===== z index =====*/
     --z-fixed: 100;
+
+    --page-background: #F7F7F7;
   }
 
 body {
@@ -431,4 +433,5 @@ h2{
     width: auto;
     flex: 1 1 0;
     justify-content: flex-start;
+    background-color: var(--page-background);
 }
