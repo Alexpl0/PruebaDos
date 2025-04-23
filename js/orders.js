@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
 
+    //==========================================================================================
+    //Aqui se obtienen los datos de la tabla principal de PF
     function rellenarTabla() {
         fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPFget.php')
             .then(response => response.json())
@@ -40,6 +42,43 @@ document.addEventListener('DOMContentLoaded', function () {
                     `;
                     tbody.appendChild(row);
                 });
+
+                //==========================================================================================
+                //Aqui se obtienen los datos de la tabla secundaria de PF
+                fetch('https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php')
+                    .then(response => response.json())
+                    .then(dataLoc => {
+                        const locations = dataLoc.data;
+                        const rows = document.querySelectorAll("#tbodyOrders tr");
+
+                        rows.forEach(row => {
+                            const originId = row.children[19].textContent.trim();
+                            const destinyId = row.children[20].textContent.trim();
+
+                            const origin = locations.find(location => location.id == originId);
+                            const destiny = locations.find(location => location.id == destinyId);
+
+                            // Company Name Ship
+                            row.children[21].textContent = origin ? origin.company_name || '' : '';
+                            // City Ship
+                            row.children[22].textContent = origin ? origin.city || '' : '';
+                            // State Ship
+                            row.children[23].textContent = origin ? origin.state || '' : '';
+                            // Zip Ship
+                            row.children[24].textContent = origin ? origin.zip || '' : '';
+                            // Company Name Dest
+                            row.children[25].textContent = destiny ? destiny.company_name || '' : '';
+                            // City Dest
+                            row.children[26].textContent = destiny ? destiny.city || '' : '';
+                            // State Dest
+                            row.children[27].textContent = destiny ? destiny.state || '' : '';
+                            // Zip Dest
+                            row.children[28].textContent = destiny ? destiny.zip || '' : '';
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar las ubicaciones:', error);
+                    });
             })
             .catch(error => {
                 console.error('Error al cargar las órdenes:', error);
