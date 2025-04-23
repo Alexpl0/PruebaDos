@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(response => response.json())
                 .then(dataLoc => {
                     rellenarTablaOrdenes(data.data, dataLoc.data);
-                    //createCards(data.data, dataLoc.data);
+                    createCards(data.data, dataLoc.data);
                 });
         });
 
@@ -78,11 +78,13 @@ document.addEventListener('DOMContentLoaded', function () {
             const card = document.createElement("div");
             card.className = "card";
             card.innerHTML = `
+            <div class="card-body">
                 <h5 class="card-title">Folio: ${order.id}</h5>
                 <h6 class="card-subtitle">${order.date}</h6>
                 <p class="card-text">${order.description}</p>
                 <button id="cardLink1" class="btn btn-primary">Card link</button>
                 <button id="cardLink2" class="btn btn-secondary">Another link</button>
+            </div>
             `;
             mainCards.appendChild(card);
         });
