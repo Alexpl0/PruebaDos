@@ -48,3 +48,11 @@ body{
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
+
+.ellipsis {
+    max-width: 115px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: inline-block; /* Necesario para que max-width funcione en elementos en línea */
+}

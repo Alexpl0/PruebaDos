@@ -89,15 +89,17 @@ document.addEventListener('DOMContentLoaded', function () {
             const origin = locations.find(loc => loc.id == order.origin_id) || {};
             const destiny = locations.find(loc => loc.id == order.destiny_id) || {};
             const semana = getWeekNumber(order.date);
-            const card = document.createElement("div");
+            const card = document.createElement("div"); 
             card.className = "card";
             card.innerHTML = `
             <div class="card-body text-center">
                 <h5 class="card-title">Folio: ${order.id}</h5>
                 <h6 class="card-subtitle">CW: ${semana}</h6>
-                <p class="card-text">Description: ${order.description}</p>
+                <p class="card-text ellipsis">Description: ${order.description}</p>
                 <p><p-tag class="p-element"><span class="p-tag p-component"> Falta: Senior Manager Logistic</p-tag></p></p>
-                <p-button label="ver" icon="pi pi-eye" class="p-element"></p-button>
+                <button class="btn btn-primary">
+                    <i class="fas fa-eye"></i> Ver
+                </button>
             </div>
             `;
             mainCards.appendChild(card);
