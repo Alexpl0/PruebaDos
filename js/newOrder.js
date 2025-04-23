@@ -21,9 +21,11 @@ async function mostrarSelect() {
         // Agrega una opción por cada compañía
         locations.forEach(company => {
             const option = document.createElement('option');
-            option.value = company.ID;
+            option.value = company.company_name;
             option.textContent = company.company_name; // Cambia por el campo correcto si es necesario
             select.appendChild(option);
+
+            console.log(company.company_name)
         });
 
     } catch (error) {
