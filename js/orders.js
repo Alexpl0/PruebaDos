@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const destiny = locations.find(loc => loc.id == order.destiny_id) || {};
             const row = document.createElement("tr");
             row.innerHTML = `
+                <td>${order.planta || ''}</td>
+                <td>${order.code_planta || ''}</td>
                 <td>${order.transport || ''}</td>
                 <td>${order.in_out_bound || ''}</td>
                 <td>${order.cost_euros || ''}</td>
@@ -17,17 +19,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 <td>${order.project_status || ''}</td>
                 <td>${order.recovery || ''}</td>
                 <td>${order.description || ''}</td>
+                <!-- SHIP FROM -->
                 <td>${origin.company_name || ''}</td>
                 <td>${origin.city || ''}</td>
                 <td>${origin.state || ''}</td>
                 <td>${origin.zip || ''}</td>
+                <!-- DESTINATION -->
                 <td>${destiny.company_name || ''}</td>
                 <td>${destiny.city || ''}</td>
                 <td>${destiny.state || ''}</td>
                 <td>${destiny.zip || ''}</td>
-                <td>${order.weight || ''} LBS</td>
+                <!-- ORDER -->
+                <td>${order.weight || ''}</td>
+                <td>${order.measures || ''}</td>
                 <td>${order.products || ''}</td>
-                <td>${order.recovery || ''}</td>
+                <!-- CARRIER -->
                 <td>${order.carrier || ''}</td>
                 <td>${order.quoted_cost || ''}</td>
                 <td>${order.reference || ''}</td>

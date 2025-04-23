@@ -55,52 +55,48 @@
             <h1 id="title2"></h1>
         
             <div class="table-responsive">
-                <table class="table table-striped table-bordered" id="ordersTable">
-                    <thead>
-                        <tr>
-                            <th colspan="29" class="text-center">Transport Information</th>
-                        </tr>
-                        <tr>
-                            <th>Transport Mode</th>
-                            <th>In/Out Outbound</th>
-                            <th>Cost in Euros (€)</th>
-                            <th>Area of Responsibility</th>
-                            <th>Internal/External Service</th>
-                            <th>Costs Paid By</th>
-                            <th>Category Cause</th>
-                            <th>Project Status</th>
-                            <th>Recovery</th>
-                            <th>Description and Root Cause</th>
-                            <th colspan="5" class="text-center">Shipping From</th>
-                            <th colspan="5" class="text-center">Destination</th>
-                            <th>Weight</th>
-                            <th>Products</th>
-                            <th>Recovery</th>
-                            <th colspan="5" class="text-center">Selected Carrier</th>
-                        </tr>
-                        <tr>
-                            <!-- Shipping From -->
-                            <th>Company Name (From)</th>
-                            <th>City (From)</th>
-                            <th>State (From)</th>
-                            <th>ZIP (From)</th>
-                            <!-- Destination -->
-                            <th>Company Name (To)</th>
-                            <th>City (To)</th>
-                            <th>State (To)</th>
-                            <th>ZIP (To)</th>
-                            <!-- Selected Carrier -->
-                            <th>Carrier</th>
-                            <th>Quoted Cost</th>
-                            <th>Reference</th>
-                            <th>Reference Number</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbodyOrders">
-                        <!-- Rows will be dynamically added via JavaScript -->
-                    </tbody>
-                </table>
-            </div>
+            <table class="table table-striped table-bordered" id="ordersTable">
+                <thead>
+                    <tr>
+                        <!--INFO PLANT -->
+                        <th>Plant</th>
+                        <th>Plant Code</th>
+                        <th>Transport Mode</th>
+                        <th>In/Out Bound</th>
+                        <th>Cost in Euros (€)</th>
+                        <th>Area of Responsibility</th>
+                        <th>Internal/External Service</th>
+                        <th>Costs Paid By</th>
+                        <th>Category Cause</th>
+                        <th>Project Status</th>
+                        <th>Recovery</th>
+                        <th>Description and Root Cause</th>
+                        <!-- SHIP FROM -->
+                        <th>Company Name (Ship From)</th>
+                        <th>City (Ship From)</th>
+                        <th>State (Ship From)</th>
+                        <th>ZIP (Ship From)</th>
+                        <!-- DESTINATION -->
+                        <th>Company Name (Destination)</th>
+                        <th>City (Destination)</th>
+                        <th>State (Destination)</th>
+                        <th>ZIP (Destination)</th>
+                        <!-- ORDER -->
+                        <th>Weight</th>
+                        <th>Measures</th>
+                        <th>Products</th>
+                        <!-- CARRIER -->
+                        <th>Carrier</th>
+                        <th>Quoted Cost</th>
+                        <th>Reference</th>
+                        <th>Reference Number</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyOrders">
+                    <!-- Rows will be dynamically added via JavaScript -->
+                </tbody>
+            </table>
+        </div>
     </div>
        <div class="card" style="width: 18rem;">
             <div class="card-body">
