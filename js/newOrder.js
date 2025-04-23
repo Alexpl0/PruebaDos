@@ -22,7 +22,7 @@ async function mostrarSelect() {
         locations.forEach(company => {
             const option = document.createElement('option');
             option.value = company.ID;
-            option.textContent = company.estadonombre; // Cambia por el campo correcto si es necesario
+            option.textContent = company.company_name; // Cambia por el campo correcto si es necesario
             select.appendChild(option);
         });
 
