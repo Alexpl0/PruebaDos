@@ -15,6 +15,7 @@ require_once __DIR__ . '/dao/elements/daoCarrier.php';
 require_once __DIR__ . '/dao/elements/daoMeasures.php';
 require_once __DIR__ . '/dao/elements/daoProducts.php';
 require_once __DIR__ . '/dao/elements/daoStates.php';
+require_once __DIR__ . '/dao/elements/daoLocation.php';
 
 ?>
 
@@ -246,7 +247,19 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
 
                 <div id="DivCompanyShip">
                     <label for="CompanyNameShip" id="CompanyNameShip">Company Name</label>
-                    <input type="text" id="inputCompanyNameShip" placeholder="Company Name">
+                    <div >
+                        <select name="CompanyShip" id="CompanyShip" >
+                            <?php if (!empty($Location)): ?>
+                                <?php foreach ($Location as $CompanyShip): ?>
+                                    <option value="<?php echo htmlspecialchars($CompanyShip['ID']); ?>">
+                                        <?php echo htmlspecialchars($CompanyShip['estadonombre']); ?> 
+                                    </option>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <option value="" disabled>No se encontraron datos, Location vacio</option>
+                            <?php endif; ?>
+                        </select>
+                    </div>
                 </div>
 
                 <div id="DivCityShip">
@@ -256,7 +269,7 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
             </div>
                 <div id="DivStatesShip">
                     <label for="States" >States:</label> 
-                    <div id="DivStatesShip">
+                    <div>
                         <select name="StatesShip" id="StatesShip" >
                             <?php if (!empty($jsonStates)): ?>
                                 <?php foreach ($jsonStates as $StatesShip): ?>
@@ -286,20 +299,8 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
                 </div>
 
                 <div id="DivCityDest">
-                    <label for="CityDest" id="CityDest">City</label>
-                    <div id="DivLocations">
-                        <select name="CityDest" id="CityDest" >
-                            <?php if (!empty($locations)): ?>
-                                <?php foreach ($locations as $CityDest): ?>
-                                    <option value="<?php echo htmlspecialchars($CityDest['ID']); ?>">
-                                        <?php echo htmlspecialchars($CityDest['company_name']); ?> 
-                                    </option>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <option value="" disabled>No se encontraron datos, locations vacio</option>
-                            <?php endif; ?>
-                        </select>
-                    </div>
+                    <label for="CityDest" id="CityDest">City Dest </label>
+                    <input type="text" id="inputCityDest" placeholder="City Dest">
                 </div>
             </div>
                 <div id="DivStatesDest">

@@ -8,9 +8,9 @@ async function mostrarSelect() {
         const response = await respuesta.json();
         console.log("Datos obtenidos de la API Location:", response);
 
-        const locations = JSON.parse(response);
+        const locations = response;
 
-        //Imprime el JSON en la consola
+        // Imprime el JSON en la consola
         console.log("JSON Locations:", locations);
 
     } catch (error) {
