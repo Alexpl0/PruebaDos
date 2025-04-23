@@ -100,7 +100,6 @@ label {
 }
 
 #Description, 
-#CostoEuros,
 #inputZipShip, 
 #inputZipDest {
     padding: 3%;
@@ -431,4 +430,5 @@ h2{
     margin: 0;
     width: auto;
     flex: 1 1 0;
+    justify-content: flex-start;
 }
