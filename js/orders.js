@@ -88,3 +88,34 @@ document.addEventListener('DOMContentLoaded', function () {
     // Llama a la función cuando la página termine de cargar
     rellenarTabla();
 });
+
+
+//==========================================================================================
+//Funcion para generar y rellenar las tarjetas de las ordenes
+
+function generarTarjetas() {
+    fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPFget.php')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById("cardContainer");
+            container.innerHTML = ""; // Limpiar el contenedor antes de agregar nuevas tarjetas
+
+            data.data.forEach(order => {
+                const card = document.createElement("div");
+                card.className = "card";
+                card.innerHTML = `
+                    <div class="card-body">
+                        <h5 class="card-title">ID: ${order.id || ''}</h5>
+                        <h6 class="card-subtitle">Fecha: ${order.date || ''}</h6>
+                        <p class="card-text">${order.description || ''}</p>
+                        <button class="btn btn-primary">Botón donde dice quien falta</button>
+                        <button class="btn btn-secondary">Botón para ver</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        })
+        .catch(error => {
+            console.error('Error al generar las tarjetas:', error);
+        });
+}
