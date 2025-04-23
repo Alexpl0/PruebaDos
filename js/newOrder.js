@@ -8,10 +8,23 @@ async function mostrarSelect() {
         const response = await respuesta.json();
         console.log("Datos obtenidos de la API Location:", response);
 
-        const locations = response;
+        // Asumiendo que tus datos están en response.data
+        const locations = response.data || [];
 
-        // Imprime el JSON en la consola
-        console.log("JSON Locations:", locations);
+        // Selecciona el select
+        const select = document.getElementById('CompanyShip');
+        if (!select) return;
+
+        // Limpia el select
+        select.innerHTML = '';
+
+        // Agrega una opción por cada compañía
+        locations.forEach(company => {
+            const option = document.createElement('option');
+            option.value = company.ID;
+            option.textContent = company.estadonombre; // Cambia por el campo correcto si es necesario
+            select.appendChild(option);
+        });
 
     } catch (error) {
         console.error('Error al obtener los datos:', error);

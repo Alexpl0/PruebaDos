@@ -15,7 +15,6 @@ require_once __DIR__ . '/dao/elements/daoCarrier.php';
 require_once __DIR__ . '/dao/elements/daoMeasures.php';
 require_once __DIR__ . '/dao/elements/daoProducts.php';
 require_once __DIR__ . '/dao/elements/daoStates.php';
-require_once __DIR__ . '/dao/elements/daoLocation.php';
 
 ?>
 
@@ -185,7 +184,7 @@ require_once __DIR__ . '/dao/elements/daoLocation.php';
             <div id="DivPaidBy">
                 <label for="PaidBy">Costs paid By:</label>
                 <select name="PaidBy" id="PaidBy" >
-                    <option value="Grammer">Grammer</option>
+                    <option value="Grammer" selected>Grammer</option>
                     <option value="Cliente">Cliente</option>
                 </select>    
             </div>
@@ -247,17 +246,9 @@ require_once __DIR__ . '/dao/elements/daoLocation.php';
 
                 <div id="DivCompanyShip">
                     <label for="CompanyNameShip" id="CompanyNameShip">Company Name</label>
-                    <div >
-                        <select name="CompanyShip" id="CompanyShip" >
-                            <?php if (!empty($Location)): ?>
-                                <?php foreach ($Location as $CompanyShip): ?>
-                                    <option value="<?php echo htmlspecialchars($CompanyShip['ID']); ?>">
-                                        <?php echo htmlspecialchars($CompanyShip['estadonombre']); ?> 
-                                    </option>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <option value="" disabled>No se encontraron datos, Location vacio</option>
-                            <?php endif; ?>
+                    <div>
+                        <select name="CompanyShip" id="CompanyShip">
+                            <!-- Las opciones serán agregadas dinámicamente por JS -->
                         </select>
                     </div>
                 </div>
