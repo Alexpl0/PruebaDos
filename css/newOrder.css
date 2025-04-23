@@ -417,7 +417,7 @@ h2{
     }
 }
 
-#DivEuros {
+#SectEuros {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -427,11 +427,16 @@ h2{
     box-sizing: border-box;
 }
 
-#DivEuros label,
-#DivEuros input {
+#SectEuros label,
+#SectEuros input {
     margin: 0;
     width: auto;
     flex: 1 1 0;
     justify-content: flex-start;
     background-color: var(--page-background);
+}
+
+/* Aplica margin-top a todos los divs cuyo id comienza con 'Div' */
+div[id^="Sect"] {
+    margin-top: 32px;
 }

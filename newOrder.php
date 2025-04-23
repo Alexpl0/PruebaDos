@@ -145,7 +145,7 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
             </div>
         </div>
 
-            <div id="DivEuros">
+            <div id="SectEuros">
                 <label for="CostoEuros">Costo en Euros €</label>
                 <input type="text" id="CostoEuros" name="CostoEuros" readonly>
             </div>
@@ -181,13 +181,13 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
                 </select>
             </div>
         </div>
-            <div id="DivPaidBy">
+            <div id="SectPaidBy">
                 <label for="PaidBy">Costs paid By:</label>
                 <select name="PaidBy" id="PaidBy" >
                     <option value="" disabled selected>Seleccione una Opcion</option>
                     <option value="Grammer">Grammer</option>
                     <option value="Cliente">Cliente</option> 
-                </select>
+                    </select>
             </div>
 
         <div id="SectCause">
@@ -222,7 +222,7 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
             </div>
         </div>
 
-            <div id="DivRecovery">
+            <div id="SectRecovery">
                 <label for="Recovery" >Recovery:</label> 
                 <select name="Recovery" id="Recovery" >
                     <?php if (!empty($jsonRecovery)): ?>
@@ -237,7 +237,7 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
                 </select>
             </div>
             
-            <div id="DivDescription">
+            <div id="SectDescription">
                 <label for="Description and Root Cause"> Description and Root Cause</label>
                     <input type="text" id="Description" name="Description" placeholder="Description and Root Cause" required>
             </div>
@@ -295,7 +295,7 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
                     <input type="text" id="inputCityDest" placeholder="City Dest">
                 </div>
             </div>
-                <div id="DivStatesDest">
+                <div id="SectStatesDest">
                     <label for="States" >States:</label> 
                     <div id="DivStatesDest">
                         <select name="StatesDest" id="StatesDest" >
@@ -312,7 +312,7 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
                     </div>
                 </div>
 
-                <div id="DivZipDest">
+                <div id="SectZipDest">
                     <label for="ZipDest" id="ZipDest">ZIP</label>
                     <input type="number" id="inputZipDest" placeholder="ZIP">
                 </div>
@@ -321,7 +321,7 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
 
 
 
-            <div id="DivMeasures">
+            <div id="SectMeasures">
                 <label for="Measures" >Weight:</label> 
                 <div id="MeasuresDiv">
                     <input type="number" id="Weight" name="Weight" placeholder="Weight" required>
@@ -339,7 +339,7 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
                 </div>
             </div>
 
-            <div id="DivProducts">
+            <div id="SectProducts">
                 <label for="Products" >Products:</label> 
                 <select name="Products" id="Products" >
                     <?php if (!empty($jsonProducts)): ?>
@@ -384,7 +384,7 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
                 </div>
             </div>
             
-            <div id="DivReference">
+            <div id="SectReference">
                     <label for="Reference">Reference</label>
                     <div id="ReferenceDiv">
                         <select name="Reference" id="Reference" >
