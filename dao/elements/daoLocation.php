@@ -14,13 +14,13 @@ try{
     $stmt->execute();
     $result = $stmt->get_result();
 
-    $Location = [];
+    $datos = [];
     while ($row = $result->fetch_assoc()) {
-        $Location[] = $row;
+        $datos[] = $row;
     }
 
 // Enviar datos como JSON
-    echo json_encode(['status' => 'success', 'data' => $Location]);
+    echo json_encode(['status' => 'success', 'data' => $datos]);
 
     $stmt->close(); // Cierra la declaración preparada.
     $conex->close(); // Cierra la conexión a la base de datos.
