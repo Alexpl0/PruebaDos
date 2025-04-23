@@ -183,7 +183,8 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
         </div>
             <div id="DivPaidBy">
                 <label for="PaidBy">Costs paid By:</label>
-                <select name="PaidBy" id="PaidBy" >
+                <select name="PaidBy" id="PaidBy">
+                    <option value="" disabled>Seleccione quién paga</option>
                     <option value="Grammer" selected>Grammer</option>
                     <option value="Cliente">Cliente</option>
                 </select>    
