@@ -10,7 +10,7 @@ try{
     $conex=$con ->conectar();
 
     // Recuperar datos de la base de datos
-    $stmt = $conex->prepare("SELECT * FROM `Location`");
+    $stmt = $conex->prepare("SELECT * FROM `PremiumFreight`");
     $stmt->execute();
     $result = $stmt->get_result();
 
