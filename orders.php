@@ -55,49 +55,45 @@
             <h1 id="title2"></h1>
         
             <div class="table-responsive">
-                <table class="table table-striped table-bordered" id="ordersTable">
-                    <thead>
-                        <tr>
-                            <th>Planta</th>
-                            <th>Code Planta</th>
-                            <th>Transport</th>
-                            <th>In/Out Bound</th>
-                            <th>Costo Euros</th>
-                            <th>Description</th>
-                            <th>Area</th>
-                            <th>Int/Ext</th>
-                            <th>Paid By</th>
-                            <th>Category Cause</th>
-                            <th>Project Status</th>
-                            <th>Recovery</th>
-                            <th>Weight</th>
-                            <th>Measures</th>
-                            <th>Products</th>
-                            <th>Carrier</th>
-                            <th>Quoted Cost</th>
-                            <th>Reference</th>
-                            <th>Reference Number</th>
-                            <th>Company Name Ship</th>
-                            <th>City Ship</th>
-                            <th>State Ship</th>
-                            <th>Zip Ship</th>
-                            <th>Company Name Dest</th>
-                            <th>City Dest</th>
-                            <th>State Dest</th>
-                            <th>Zip Dest</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbodyOrders">
-                        <!-- Las filas se llenarán dinámicamente con JS -->
-                    </tbody>
-                </table>
-            </div>
+            <table class="table table-striped table-bordered" id="ordersTable">
+                <thead>
+                    <tr>
+                        <th>Plant</th>
+                        <th>Plant Code</th>
+                        <th>Transport Mode</th>
+                        <th>In/Out Bound</th>
+                        <th>Cost in Euros (€)</th>
+                        <th>Description and Root Cause</th>
+                        <th>Area of Responsibility</th>
+                        <th>Internal/External Service</th>
+                        <th>Costs Paid By</th>
+                        <th>Category Cause</th>
+                        <th>Project Status</th>
+                        <th>Recovery</th>
+                        <th>Weight</th>
+                        <th>Measures</th>
+                        <th>Products</th>
+                        <th>Carrier</th>
+                        <th>Quoted Cost</th>
+                        <th>Reference</th>
+                        <th>Reference Number</th>
+                        <th>Company Name (Ship From)</th>
+                        <th>City (Ship From)</th>
+                        <th>State (Ship From)</th>
+                        <th>ZIP (Ship From)</th>
+                        <th>Company Name (Destination)</th>
+                        <th>City (Destination)</th>
+                        <th>State (Destination)</th>
+                        <th>ZIP (Destination)</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyOrders">
+                    <!-- Rows will be dynamically added via JavaScript -->
+                </tbody>
+            </table>
+        </div>
     </div>
-        <!-- ...existing code... -->
-
-
-        
-        <div class="card" style="width: 18rem;">
+       <div class="card" style="width: 18rem;">
             <div class="card-body">
                 <h5 class="card-title">Card title</h5>
                 <h6 class="card-subtitle">Card subtitle</h6>
