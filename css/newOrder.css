@@ -422,7 +422,7 @@ h2{
     align-items: center;
     gap: 10px;
     width: 90%;
-    margin: 0 auto 20px auto;
+    margin: 20px auto 20px auto; 
     box-sizing: border-box;
 }
 
