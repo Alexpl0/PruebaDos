@@ -11,32 +11,32 @@ document.addEventListener('DOMContentLoaded', function () {
                     const row = document.createElement("tr");
                     row.innerHTML = `
                         <td>${order.planta || ''}</td>
-                        <td>${order.codeplanta || ''}</td>
+                        <td>${order.code_planta || ''}</td>
                         <td>${order.transport || ''}</td>
-                        <td>${order.InOutBound || ''}</td>
-                        <td>${order.CostoEuros || ''}</td>
-                        <td>${order.Description || ''}</td>
-                        <td>${order.Area || ''}</td>
-                        <td>${order.IntExt || ''}</td>
-                        <td>${order.PaidBy || ''}</td>
-                        <td>${order.CategoryCause || ''}</td>
-                        <td>${order.ProjectStatus || ''}</td>
-                        <td>${order.Recovery || ''}</td>
-                        <td>${order.Weight || ''}</td>
-                        <td>${order.Measures || ''}</td>
-                        <td>${order.Products || ''}</td>
-                        <td>${order.Carrier || ''}</td>
-                        <td>${order.QuotedCost || ''}</td>
-                        <td>${order.Reference || ''}</td>
-                        <td>${order.ReferenceNumber || ''}</td>
-                        <td>${order.inputCompanyNameShip || ''}</td>
-                        <td>${order.inputCityShip || ''}</td>
-                        <td>${order.StatesShip || ''}</td>
-                        <td>${order.inputZipShip || ''}</td>
-                        <td>${order.inputCompanyNameDest || ''}</td>
-                        <td>${order.inputCityDest || ''}</td>
-                        <td>${order.StatesDest || ''}</td>
-                        <td>${order.inputZipDest || ''}</td>
+                        <td>${order.in_out_bound || ''}</td>
+                        <td>${order.cost_euros || ''}</td>
+                        <td>${order.description || ''}</td>
+                        <td>${order.area || ''}</td>
+                        <td>${order.int_ext || ''}</td>
+                        <td>${order.paid_by || ''}</td>
+                        <td>${order.category_cause || ''}</td>
+                        <td>${order.project_status || ''}</td>
+                        <td>${order.recovery || ''}</td>
+                        <td>${order.weight || ''}</td>
+                        <td>${order.measures || ''}</td>
+                        <td>${order.products || ''}</td>
+                        <td>${order.carrier || ''}</td>
+                        <td>${order.quoted_cost || ''}</td>
+                        <td>${order.reference || ''}</td>
+                        <td>${order.reference_number || ''}</td>
+                        <td>${order.origin_id || ''}</td>
+                        <td>${order.destiny_id || ''}</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
                     `;
                     tbody.appendChild(row);
                 });
