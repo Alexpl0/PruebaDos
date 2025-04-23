@@ -193,6 +193,7 @@ footer{
     width: 90%;
     margin-left: 5%;
     margin-right: 5%;
+    margin-bottom: 5%;
 }
 
 .select2-container {
@@ -413,4 +414,21 @@ h2{
         width: 100%;
         margin-bottom: 10px;
     }
+}
+
+#DivEuros {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    width: 90%;
+    margin: 0 auto 20px auto;
+    box-sizing: border-box;
+}
+
+#DivEuros label,
+#DivEuros input {
+    margin: 0;
+    width: auto;
+    flex: 1 1 0;
 }
