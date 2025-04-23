@@ -96,8 +96,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 <h5 class="card-title">Folio: ${order.id}</h5>
                 <h6 class="card-subtitle">CW: ${semana}</h6>
                 <p class="card-text">Description: ${order.description}</p>
-                <p _ngcontent-ng-c121527264=""><p-tag _ngcontent-ng-c121527264="" class="p-element ng-star-inserted"><span class="p-tag p-component"> Falta: Senior Manager Logistic<!----><!----><!----><!----><span class="p-tag-value"></span></span></p-tag><!----><!----><!----><!----><!----></p>
-                <p-button _ngcontent-ng-c121527264="" label="ver" icon="pi pi-eye" class="p-element"><button pripple="" class="p-ripple p-element p-button p-component" type="button" data-pc-name="button" data-pc-section="root" style="height: 20px;"><!----><!----><span data-pc-section="icon" class="pi pi-eye p-button-icon p-button-icon-left ng-star-inserted"></span><!----><!----><!----><!----><span class="p-button-label ng-star-inserted" aria-hidden="false" data-pc-section="label">ver</span><!----><!----></button></p-button>
+                <p><p-tag class="p-element"><span class="p-tag p-component"> Falta: Senior Manager Logistic</p-tag></p></p>
+                <p-button label="ver" icon="pi pi-eye" class="p-element"></p-button>
             </div>
             `;
             mainCards.appendChild(card);
