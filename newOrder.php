@@ -187,6 +187,7 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
                     <option value="" disabled selected>Seleccione una Opcion</option>
                     <option value="Grammer">Grammer</option>
                     <option value="Cliente">Cliente</option> 
+                </select>
             </div>
 
         <div id="SectCause">
