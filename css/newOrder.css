@@ -107,7 +107,7 @@ label {
     padding: 3%;
     width: 90%;
     max-height: 1px;
-    margin: 5%;
+    margin: auto 5% auto 5%;
     border: 1px solid var(--border-color);
     border-radius: 5px;
     font-size: 1.2em;
@@ -438,5 +438,5 @@ h2{
 
 /* Aplica margin-top a todos los divs cuyo id comienza con 'Div' */
 div[id^="Sect"] {
-    margin-top: 32px;
+    margin-top: 32px !important;
 }
