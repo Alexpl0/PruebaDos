@@ -101,14 +101,7 @@
 
     <main id="main">
 
-       <div class="card" style="width: 18rem;"> este es el div class card
-            <div class="card-body"> este es el class card-body
-                <h5 class="card-title">Card title</h5>
-                <h6 class="card-subtitle">Card subtitle</h6>
-                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                <button id="cardLink1" class="btn btn-primary">Card link</button>
-                <button id="cardLink2" class="btn btn-secondary">Another link</button>
-            </div>
+       <div id="card" style="width: 18rem;"> 
         </div>
 
     </main>

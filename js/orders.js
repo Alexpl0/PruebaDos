@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function createCards(orders, locations){
-        const mainCards = document.getElementById("main");
+        const mainCards = document.getElementById("card");
         mainCards.innerHTML = "";
         orders.forEach(order => {
             const origin = locations.find(loc => loc.id == order.origin_id) || {};
