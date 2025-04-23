@@ -92,12 +92,12 @@ document.addEventListener('DOMContentLoaded', function () {
             const card = document.createElement("div");
             card.className = "card";
             card.innerHTML = `
-            <div class="card-body">
+            <div class="card-body text-center">
                 <h5 class="card-title">Folio: ${order.id}</h5>
                 <h6 class="card-subtitle">CW: ${semana}</h6>
                 <p class="card-text">Description: ${order.description}</p>
-                <button id="cardLink1" class="btn btn-primary">Card link</button>
-                <button id="cardLink2" class="btn btn-secondary">Another link</button>
+                <p _ngcontent-ng-c121527264=""><p-tag _ngcontent-ng-c121527264="" class="p-element ng-star-inserted"><span class="p-tag p-component"> Falta: Senior Manager Logistic<!----><!----><!----><!----><span class="p-tag-value"></span></span></p-tag><!----><!----><!----><!----><!----></p>
+                <p-button _ngcontent-ng-c121527264="" label="ver" icon="pi pi-eye" class="p-element"><button pripple="" class="p-ripple p-element p-button p-component" type="button" data-pc-name="button" data-pc-section="root" style="height: 20px;"><!----><!----><span data-pc-section="icon" class="pi pi-eye p-button-icon p-button-icon-left ng-star-inserted"></span><!----><!----><!----><!----><span class="p-button-label ng-star-inserted" aria-hidden="false" data-pc-section="label">ver</span><!----><!----></button></p-button>
             </div>
             `;
             mainCards.appendChild(card);
