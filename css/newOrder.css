@@ -191,6 +191,8 @@ footer{
     user-select: none;
     -webkit-user-select: none;
     width: 90%;
+    margin-left: 5%;
+    margin-right: 5%;
 }
 
 .select2-container {
