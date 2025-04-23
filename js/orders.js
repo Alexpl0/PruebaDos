@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(response => response.json())
                 .then(dataLoc => {
                     rellenarTablaOrdenes(data.data, dataLoc.data);
-                    createCards(data.data, dataLoc.data);
+                    //createCards(data.data, dataLoc.data);
                 });
         });
 
