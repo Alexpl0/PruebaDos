@@ -78,13 +78,6 @@
                             <th>Reference</th>
                             <th>Reference Number</th>
                             <th>Company Name Ship</th>
-                            <th>City Ship</th>
-                            <th>State Ship</th>
-                            <th>Zip Ship</th>
-                            <th>Company Name Dest</th>
-                            <th>City Dest</th>
-                            <th>State Dest</th>
-                            <th>Zip Dest</th>
                         </tr>
                     </thead>
                     <tbody id="tbodyOrders">

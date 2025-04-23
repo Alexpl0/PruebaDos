@@ -31,16 +31,17 @@ document.addEventListener('DOMContentLoaded', function () {
                         <td>${order.quoted_cost || ''}</td>
                         <td>${order.reference || ''}</td>
                         <td>${order.reference_number || ''}</td>
-                        <td>${order.origin_id || ''}</td>
-                        <td>${order.destiny_id || ''}</td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
                         <td></td>
                     `;
                     tbody.appendChild(row);
+                });
+
+                // Cuando llenes el nombre de la compañía:
+                const rows = document.querySelectorAll("#tbodyOrders tr");
+                rows.forEach(row => {
+                    const originId = order.origin_id || '';
+                    const origin = locations.find(location => location.id == originId);
+                    row.children[19].textContent = origin ? origin.company_name || '' : '';
                 });
 
                 //==========================================================================================
