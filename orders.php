@@ -98,6 +98,9 @@
             </table>
         </div>
     </div>
+
+    <main>
+
        <div class="card" style="width: 18rem;">
             <div class="card-body">
                 <h5 class="card-title">Card title</h5>
@@ -108,7 +111,7 @@
             </div>
         </div>
 
-    </div>
+    </main>
 
        <!-- Archivos JS locales -->
     <script src="js/header.js"></script>

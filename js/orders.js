@@ -51,6 +51,45 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(response => response.json())
                 .then(dataLoc => {
                     rellenarTablaOrdenes(data.data, dataLoc.data);
+                    createCards(data.data, dataLoc.data);
                 });
         });
+
+
+    function getOrderById() {
+        const orderId = document.getElementById("orderId").value;
+        fetch(`https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPFget.php?id=${orderId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.data.length > 0) {
+                    rellenarTablaOrdenes(data.data, []);
+                } else {
+                    alert("No se encontró la orden con el ID proporcionado.");
+                }
+            });
+    }
+
+    function createCards(orders, locations){
+        const mainCards = document.getElementById("main");
+        mainCards.innerHTML = "";
+        orders.forEach(order => {
+            const origin = locations.find(loc => loc.id == order.origin_id) || {};
+            const destiny = locations.find(loc => loc.id == order.destiny_id) || {};
+            const card = document.createElement("div");
+            card.className = "card";
+            card.innerHTML = `
+                <h5 class="card-title">Folio: ${order.id}</h5>
+                <h6 class="card-subtitle">${order.date}</h6>
+                <p class="card-text">${order.description}</p>
+                <button id="cardLink1" class="btn btn-primary">Card link</button>
+                <button id="cardLink2" class="btn btn-secondary">Another link</button>
+            `;
+            mainCards.appendChild(card);
+        });
+
+
+    }
+
+
+
 });
