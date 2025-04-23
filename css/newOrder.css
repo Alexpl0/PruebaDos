@@ -175,7 +175,7 @@ footer{
     width: 85%;
 }
 
-.select2-container .select2-selection--single {
+.select2-container .select2-selection--single, #CompanyShip {
     box-sizing: border-box;
     cursor: pointer;
     display: block;
