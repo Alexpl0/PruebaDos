@@ -101,7 +101,7 @@
 
     <main id="main">
 
-       <div id="card" style="width: 18rem;"> 
+       <div id="card" style="width: 260px; height: 270px;"> 
         </div>
 
     </main>
