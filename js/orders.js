@@ -69,7 +69,21 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
+    function getWeekNumber(dateString) {
+        const date = new Date(dateString);
+        // Set to nearest Thursday: current date + 4 - current day number
+        // Make Sunday's day number 7
+        const dayNum = date.getDay() || 7;
+        date.setDate(date.getDate() + 4 - dayNum);
+        // Get first day of year
+        const yearStart = new Date(date.getFullYear(), 0, 1);
+        // Calculate full weeks to nearest Thursday
+        const weekNum = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+        return weekNum;
+    };
+
     function createCards(orders, locations){
+        const semana = getWeekNumber(order.date);
         const mainCards = document.getElementById("card");
         mainCards.innerHTML = "";
         orders.forEach(order => {
@@ -80,8 +94,8 @@ document.addEventListener('DOMContentLoaded', function () {
             card.innerHTML = `
             <div class="card-body">
                 <h5 class="card-title">Folio: ${order.id}</h5>
-                <h6 class="card-subtitle">${order.date}</h6>
-                <p class="card-text">${order.description}</p>
+                <h6 class="card-subtitle">CW: ${semana}</h6>
+                <p class="card-text">Description: ${order.description}</p>
                 <button id="cardLink1" class="btn btn-primary">Card link</button>
                 <button id="cardLink2" class="btn btn-secondary">Another link</button>
             </div>
