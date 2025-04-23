@@ -83,12 +83,12 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     function createCards(orders, locations){
-        const semana = getWeekNumber(order.date);
         const mainCards = document.getElementById("card");
         mainCards.innerHTML = "";
         orders.forEach(order => {
             const origin = locations.find(loc => loc.id == order.origin_id) || {};
             const destiny = locations.find(loc => loc.id == order.destiny_id) || {};
+            const semana = getWeekNumber(order.date);
             const card = document.createElement("div");
             card.className = "card";
             card.innerHTML = `
