@@ -18,6 +18,8 @@ require_once __DIR__ . "/dao/db/db.php";
     <!-- Archivos CSS locales -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
+    <link rel="stylesheet" href="css/index.css">
+    
 </head>
 <body>
     <header class="header">
@@ -66,7 +68,10 @@ require_once __DIR__ . "/dao/db/db.php";
                         
                             <div id="loginform">
                                 <input type="email" id="email" class="form-control" placeholder="Correo electrónico">
-                                <input type="password" id="password" class="form-control" placeholder="Contraseña">
+                                <div style="position: relative;">
+                                    <input type="password" id="password" class="form-control" placeholder="Contraseña">
+                                    <ion-icon id="togglePassword" name="eye-off-outline" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer;"></ion-icon>
+                                </div>
                                 <button id="btnLogin" class="btn btn-primary" onclick="loginUsuario()">Iniciar Sesión</button>
                             </div>
                         </div>
@@ -80,109 +85,7 @@ require_once __DIR__ . "/dao/db/db.php";
 
     <!-- Archivos JS locales -->
     <script src="js/header.js"></script>
-
-    <script>
-    // Lógica para enviar los datos del login por fetch a test_db.php
-
-    function buscarUsuario() {
-            const username = document.getElementById('user').value.trim();
-
-
-            if (!username) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Por favor ingresa un nombre de usuario.'
-                });
-                return;
-            }
-
-            fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoUserget.php?username=' + encodeURIComponent(username))
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success' && Array.isArray(data.data) && data.data.length > 0) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Usuario encontrado',
-                            text: 'El usuario ha sido encontrado exitosamente.',
-                            confirmButtonText: 'Aceptar'
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Usuario no encontrado',
-                            text: 'No se encontró el usuario.',
-                            confirmButtonText: 'Aceptar'
-                        });
-                    }
-                })
-                .catch(error => {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Ocurrió un error al buscar el usuario.',
-                        confirmButtonText: 'Aceptar'
-                    });
-                    console.error(error);
-                });
-        }
-    
-    function loginUsuario() {
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value.trim();
-
-        if (!email || !password) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Por favor ingresa tu correo y contraseña.'
-            });
-            return;
-        }
-
-        fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoUserLogin.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                // Guardar datos en sesión vía PHP
-                fetch('https://grammermx.com/Jesus/PruebaDos/loginSession.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data.data)
-                })
-                .then(() => {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Bienvenido',
-                        text: 'Inicio de sesión exitoso.'
-                    }).then(() => {
-                        console.log(data.data); // Muestra los datos del usuario en la consola
-                        //window.location.href = 'orders.php'; // Redirige a tu página principal
-                    });
-                });
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: data.mensaje || 'Credenciales incorrectas.'
-                });
-            }
-        })
-        .catch(error => {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Ocurrió un error al iniciar sesión.'
-            });
-            console.error(error);
-        });
-    }
-    </script>
-
+    <script src="js/index.js"></script>
 
 </body>
 </html>
