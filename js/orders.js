@@ -96,10 +96,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 <h5 class="card-title">Folio: ${order.id}</h5>
                 <h6 class="card-subtitle">CW: ${semana}</h6>
                 <p class="card-text ellipsis">Description: ${order.description}</p>
-                <p><p-tag class="p-element"><span class="p-tag p-component"> Falta: Senior Manager Logistic</p-tag></p></p>
-                <button class="btn btn-primary">
-                    <i class="fas fa-eye"></i> Ver
-                </button>
+                <div>
+                    <p><p-tag class="p-element"><span class="p-tag p-component"> Falta: Senior Manager Logistic</p-tag></p></p>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-eye"></i> Ver
+                    </button>
+                </div>
             </div>
             `;
             mainCards.appendChild(card);
