@@ -28,9 +28,19 @@ body{
     box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
 }
 
-.card-title{
+.card-title, .card-subtitle{
     font-size: 1.2rem;
     font-weight: bold;
     margin-bottom: 1%;
-    background-color: aqua;
+}
+
+.card-text{
+    font-size: 1rem;
+    margin-bottom: 1%;
+    max-width: 90%;
+    max-height: 50%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: inline-block;
 }
