@@ -95,17 +95,12 @@ document.addEventListener('DOMContentLoaded', function () {
             card.style.width = "16rem";
 
             card.innerHTML = `
-                <div class="card-body text-center" style="background-color: rgba(0, 128, 0, 0.37);">
+                <div class="card-body text-center">
                     <h5 class="card-title">Folio: ${order.id}</h5>
-                    <h6 class="card-subtitle mb-2 text-muted">CW: ${semana}</h6>
-                    <p class="card-text ellipsis">${order.description || ''}</p>
-                    <p>
-                        <span class="p-tag p-component"> Falta: Senior Manager Logistic</span>
-                    </p>
-                    <button class="btn btn-primary" style="height: 20px;">
-                        <span class="pi pi-eye p-button-icon p-button-icon-left"></span>
-                        <span class="p-button-label" aria-hidden="false">ver</span>
-                    </button>
+                    <h6 class="card-subtitle">CW: ${semana}</h6>
+                    <p class="card-text">${order.description || ''}</p>
+                    <p>Falta: Senior Manager Logistic</p>
+                    <p-button> Ver </p-button>
                 </div>
             `;
             mainCards.appendChild(card);
