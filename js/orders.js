@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <h6 class="card-subtitle">CW: ${semana}</h6>
                     <p class="card-text">${order.description || ''}</p>
                     <p class= "card-p">Falta: Senior Manager Logistic</p>
-                    <p-button> Ver </p-button>
+                    <p-button class= "card-button"> Ver </p-button>
                 </div>
             `;
             mainCards.appendChild(card);
