@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const origin = locations.find(loc => loc.id == order.origin_id) || {};
             const destiny = locations.find(loc => loc.id == order.destiny_id) || {};
             const semana = getWeekNumber(order.date);
-            const card = document.createElement("div"); 
+            const card = document.createElement("div"); //div indica que es un elemento div
             card.className = "card";
             card.innerHTML = `
             <div class="card-body text-center">
