@@ -63,9 +63,9 @@ require_once __DIR__ . "/dao/db/db.php";
                         <p class="text-center">Por favor ingresa tu usuario y contraseña</p>
                         
                             <div id="loginform">
-                                <input type="text" id="user" class="form-control" placeholder="Usuario">
-                                <input type="text" id="password" class="form-control" placeholder="Contraseña">
-                                <button id="btnLogin" class="btn btn-primary" onclick="buscarUsuario()">Iniciar Sesión</button>
+                                <input type="email" id="email" class="form-control" placeholder="Correo electrónico">
+                                <input type="password" id="password" class="form-control" placeholder="Contraseña">
+                                <button id="btnLogin" class="btn btn-primary" onclick="loginUsuario()">Iniciar Sesión</button>
                             </div>
                         </div>
                         <p class="text-center">¿No tienes cuenta? <a href="register.php">Registrate</a></p>
@@ -95,7 +95,7 @@ require_once __DIR__ . "/dao/db/db.php";
                 return;
             }
 
-            fetch('https://grammermx.com/Jesus/PruebaDos/dao/test_db.php?username=' + encodeURIComponent(username))
+            fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoUserget.php?username=' + encodeURIComponent(username))
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success' && Array.isArray(data.data) && data.data.length > 0) {
@@ -125,6 +125,59 @@ require_once __DIR__ . "/dao/db/db.php";
                 });
         }
     
+    function loginUsuario() {
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value.trim();
+
+        if (!email || !password) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Por favor ingresa tu correo y contraseña.'
+            });
+            return;
+        }
+
+        fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoUserget.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Guardar datos en sesión vía PHP
+                fetch('https://grammermx.com/Jesus/PruebaDos/loginSession.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data.data)
+                })
+                .then(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Bienvenido',
+                        text: 'Inicio de sesión exitoso.'
+                    }).then(() => {
+                        window.location.href = 'home.php'; // Redirige a tu página principal
+                    });
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.mensaje || 'Credenciales incorrectas.'
+                });
+            }
+        })
+        .catch(error => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Ocurrió un error al iniciar sesión.'
+            });
+            console.error(error);
+        });
+    }
     </script>
 
 
