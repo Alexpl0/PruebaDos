@@ -17,67 +17,13 @@ body{
     border: 1px solid #ddd;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 16px;
-    margin: 16px;
+    padding: 1%;
+    margin: 1%;
     font-family: Arial, sans-serif;
     color: #333;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-
-.card section {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 1rem;
-    text-align: center;
-    max-height: 20px;
-}
-
 .card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
-}
-
-.card h1, .card h2, .card h3, .card h4, .card h5, .card h6 {
-    margin-top: 0;
-}
-
-.card p {
-    margin: 0 0 1em;
-    font-size: 0.9em;
-}
-
-.card button {
-    background-color: #007bff;
-    display: flex; /* Habilitar Flexbox */
-    justify-content: center; /* Centrar horizontalmente */
-    align-items: center; /* Centrar verticalmente */
-    color: white;
-    border: none;
-    margin: 5%;
-    height: 2.5rem; /* Ajustar altura del botón */
-    padding: 0 1rem; /* Espaciado interno */
-    border-radius: 15px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.ellipsis {
-    max-width: 90%;
-    min-height: 100px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    display: inline-block;
-}
-
-.p-tag.p-component {
-    background: #1976d2;
-    color: #fff;
-    font-weight: bold;
-    border-radius: 8px;
-    padding: 0.5em 1em;
-    display: inline-block;
-    margin-bottom: 10px;
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
 }
