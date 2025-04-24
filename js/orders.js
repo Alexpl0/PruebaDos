@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function () {
             card.style.height = "270px";
 
             card.innerHTML = `
-                <div class="card-body text-center">
+                <div class="card-body">
                     <h5 class="card-title">Folio: ${order.id}</h5>
                     <h6 class="card-subtitle">CW: ${semana}</h6>
                     <p class="card-text">${order.description || ''}</p>
