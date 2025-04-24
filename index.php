@@ -138,7 +138,7 @@ require_once __DIR__ . "/dao/db/db.php";
             return;
         }
 
-        fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoUserget.php', {
+        fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/loginSession.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
