@@ -82,34 +82,33 @@ document.addEventListener('DOMContentLoaded', function () {
         return weekNum;
     };
 
-    function createCards(orders, locations){
+    function createCards(orders, locations) {
         const mainCards = document.getElementById("card");
         mainCards.innerHTML = "";
         orders.forEach(order => {
             const origin = locations.find(loc => loc.id == order.origin_id) || {};
             const destiny = locations.find(loc => loc.id == order.destiny_id) || {};
             const semana = getWeekNumber(order.date);
-            const card = document.createElement("div"); //div indica que es un elemento div
-            card.className = "card";
+
+            const card = document.createElement("div");
+            card.className = "card shadow rounded mx-2 mb-4";
+            card.style.width = "16rem";
+
             card.innerHTML = `
-            <div class="card-body text-center">
-                <h5 class="card-title">Folio: ${order.id}</h5>
-                <h6 class="card-subtitle">CW: ${semana}</h6>
-                <p class="card-text ellipsis">Description: ${order.description}</p>
-
-                    <p><p-tag class="p-element"><span class="p-tag p-component"> Falta: Senior Manager Logistic</p-tag></p></p>
-                    <button class="btn btn-primary">
-                        <i class="fas fa-eye"></i> Ver
+                <div class="card-body text-center" style="background-color: rgba(0, 128, 0, 0.37);">
+                    <h5 class="card-title">Folio: ${order.id}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">CW: ${semana}</h6>
+                    <p class="card-text ellipsis">${order.description || ''}</p>
+                    <p>
+                        <span class="p-tag p-component"> Falta: Senior Manager Logistic</span>
+                    </p>
+                    <button class="btn btn-primary" style="height: 20px;">
+                        <span class="pi pi-eye p-button-icon p-button-icon-left"></span>
+                        <span class="p-button-label" aria-hidden="false">ver</span>
                     </button>
-
-            </div>
+                </div>
             `;
             mainCards.appendChild(card);
         });
-
-
     }
-
-
-
 });

@@ -64,10 +64,20 @@ body{
 }
 
 .ellipsis {
-    max-width: 115px;
+    max-width: 90%;
     min-height: 100px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    display: inline-block; /* Necesario para que max-width funcione en elementos en línea */
+    display: inline-block;
+}
+
+.p-tag.p-component {
+    background: #1976d2;
+    color: #fff;
+    font-weight: bold;
+    border-radius: 8px;
+    padding: 0.5em 1em;
+    display: inline-block;
+    margin-bottom: 10px;
 }
