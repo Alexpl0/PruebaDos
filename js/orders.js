@@ -94,6 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
             card.className = "card shadow rounded mx-2 mb-4";
             card.style.maxWidth = "265px";
             card.style.maxHeight = "275px";
+            card.style.backgroundColor= "aqua";
 
             card.innerHTML = `
                 <div class="card-body">
