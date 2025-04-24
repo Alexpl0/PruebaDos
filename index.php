@@ -160,7 +160,8 @@ require_once __DIR__ . "/dao/db/db.php";
                         title: 'Bienvenido',
                         text: 'Inicio de sesión exitoso.'
                     }).then(() => {
-                        window.location.href = 'home.php'; // Redirige a tu página principal
+                        console.log(data.data); // Muestra los datos del usuario en la consola
+                        //window.location.href = 'orders.php'; // Redirige a tu página principal
                     });
                 });
             } else {
