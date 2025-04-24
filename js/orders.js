@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <h5 class="card-title">Folio: ${order.id}</h5>
                     <h6 class="card-subtitle">CW: ${semana}</h6>
                     <p class="card-text">${order.description || ''}</p>
-                    <p>Falta: Senior Manager Logistic</p>
+                    <p class= "card-p">Falta: Senior Manager Logistic</p>
                     <p-button> Ver </p-button>
                 </div>
             `;

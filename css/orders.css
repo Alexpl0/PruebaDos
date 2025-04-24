@@ -46,3 +46,16 @@ body{
     /* background-color: aqua;  quítalo si no lo necesitas */
     white-space: normal;         /* Permite varias líneas */
 }
+
+.card-p {
+    font-size: 0.9rem;
+    margin-bottom: 1%;
+    background-color: blue;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    display: -webkit-box;
+    border-radius: 10px;
+    -webkit-text-stroke-color: #ddd;
+    font-weight: bold;
+}
