@@ -37,11 +37,12 @@ body{
 .card-text{
     font-size: 1rem;
     margin-bottom: 1%;
-    max-width: 90%;
-    min-height: 50%;
     overflow: hidden;
-    white-space: nowrap;
     text-overflow: ellipsis;
-    display: block;
-    background-color: aqua;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;      /* Cambia este número según cuántas líneas quieras mostrar */
+    -webkit-box-orient: vertical;
+    max-width: 100%;
+    /* background-color: aqua;  quítalo si no lo necesitas */
+    white-space: normal;         /* Permite varias líneas */
 }
