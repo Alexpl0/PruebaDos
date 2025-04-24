@@ -38,7 +38,7 @@ body{
     font-size: 1rem;
     margin-bottom: 1%;
     max-width: 90%;
-    max-height: 50%;
+    min-height: 50%;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
