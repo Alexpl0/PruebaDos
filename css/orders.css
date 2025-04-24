@@ -26,7 +26,7 @@ body{
 
 .card div {
     display: flex;
-    flex-direction: row; /* Asegura que los elementos estén en una fila */
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     margin-bottom: 1rem;
