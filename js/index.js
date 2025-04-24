@@ -26,7 +26,7 @@ function loginUsuario() {
         return;
     }
 
-    fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoUserLogin.php', {
+    fetch('https://grammermx.com/Jesus/PruebaDos/dao/users/daoLogin.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })

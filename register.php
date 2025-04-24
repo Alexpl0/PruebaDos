@@ -8,17 +8,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
-    <!-- Agregar Ionicons en el head con la versión más reciente -->
     <script type="module" src="https://unpkg.com/ionicons@7.2.2/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.2.2/dist/ionicons/ionicons.js"></script>
-    
-    <!-- Archivos CSS locales -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
-
 </head>
 <body>
     <header class="header">
@@ -60,7 +55,7 @@
         <div id="registerform-container">
             <div id="register">
                 <div>
-                    <form action="register.php" method="post" id="register-form">
+                    <form id="register-form" autocomplete="off">
                         <div class="mb-3">
                             <label for="email" class="form-label">Correo Electrónico</label>
                             <input type="email" class="form-control" id="email" name="email" required>
@@ -73,10 +68,22 @@
                             <label for="password" class="form-label">Contraseña</label>
                             <input type="password" class="form-control" id="password" name="password" required>
                         </div>
+                        <div class="mb-3">
+                            <label for="role" class="form-label">Rol</label>
+                            <input type="text" class="form-control" id="role" name="role" placeholder="Manager, Senior, etc." required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="authorization_level" class="form-label">Nivel de Autorización</label>
+                            <input type="number" class="form-control" id="authorization_level" name="authorization_level" required min="1" max="10">
+                        </div>
                         <button type="submit" class="btn btn-primary">Registrar</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
+    <!-- Archivos JS locales -->
+    <script src="js/header.js"></script>
+    <script src="js/register.js"></script>
 </body>
+</html>
