@@ -8,6 +8,10 @@ body{
     align-items: center;
 }
 
+main{
+    padding: 5%;
+}
+
 .card {
     max-width: 260px !important;
     width: 100%;
