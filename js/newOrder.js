@@ -1,4 +1,8 @@
 //==========================================================================================
+// Variables globales
+let euros = 0; 
+
+//==========================================================================================
 // Función para mostrar el select de selección de compañía
 
 async function mostrarSelect() {
@@ -77,7 +81,7 @@ async function calcularEuros(moneda) {
         return;
     }
 
-    const euros = valor * tipoCambio;
+    euros = valor * tipoCambio;
     costoEuros.value = euros.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
     console.log("Costo en Euros:", euros);
     console.log("Tipo de cambio:", tipoCambio);
@@ -133,7 +137,25 @@ function enviar(event) {
         });
         return;
     }
+    //==========================================================================================
+    // Validar Rango respecto del valor en euros
+    const quotedCost = parseFloat(data['QuotedCost']); // Asegúrate de que este campo sea un número
+    const costoEuros = parseFloat(data['CostoEuros'].replace(/[^0-9.-]+/g, "")); // Eliminar caracteres no numéricos
+    const range = 0;
+    if (quotedCost <= 1500 || costoEuros <= 1500) {
+        range = 1;
+        return;
+    } else if ( (1500 > quotedCost || 1500 > costoEuros) && (quotedCost <= 5000 || costoEuros <= 5000) ) {
+        range = 2;
+        return;
+    } else if ( (5000 > quotedCost || 5000 > costoEuros) && (quotedCost <= 10000 || costoEuros <= 10000) ) {
+        range = 3;
+        return;
+    } else if ((10000 > quotedCost || 10000 > costoEuros)) {
+        range = 4;
+    }
 
+    //==========================================================================================
     // Mapear los datos al formato que espera la tabla
     data = {
         user_id: 1, // Cambia esto por el ID real del usuario si lo tienes
@@ -157,12 +179,16 @@ function enviar(event) {
         quoted_cost: data['QuotedCost'],
         reference: data['Reference'],
         reference_number: data['ReferenceNumber'],
-        origin_id: 1, // O el ID real si lo tienes
-        destiny_id: 1 // O el ID real si lo tienes
+        origin_id: 1, 
+        destiny_id: 1, 
+        status_id: 1, // Comienza en 1 porque es el nuevo
+        required_auth_level: range // aplica el valor de range en base a la validación
+
     };
 
-    console.log("Datos a enviar:", data);
+    console.log("Datos a enviar:", JSON.stringify(data));
 
+    //==========================================================================================
     // Enviar el JSON al backend usando fetch
     fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPFpost.php', {
         method: 'POST',
