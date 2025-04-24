@@ -24,8 +24,6 @@ body{
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-
-
 .card section {
     display: flex;
     flex-direction: column;
@@ -67,6 +65,7 @@ body{
 
 .ellipsis {
     max-width: 115px;
+    min-height: 100px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
