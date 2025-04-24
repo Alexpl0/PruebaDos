@@ -61,6 +61,8 @@ require_once __DIR__ . "/dao/db/db.php";
                     <h2 class="text-center">Ingresar a mi Cuenta</h2>
                     <div class="row text-center">
                         <p class="text-center">Por favor ingresa tu usuario y contraseña</p>
+                        <p class="text-center">Usuario: jesus@example.com</p>
+                        <p class="text-center">Contraseña: pass123</p>
                         
                             <div id="loginform">
                                 <input type="email" id="email" class="form-control" placeholder="Correo electrónico">
