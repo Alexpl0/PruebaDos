@@ -103,10 +103,28 @@ document.addEventListener('DOMContentLoaded', function () {
                     <h6 class="card-subtitle">CW: ${semana}</h6>
                     <p class="card-text">${order.description || ''}</p>
                     <p class= "card-p">Falta: Senior Manager Logistic</p>
-                    <p-button class= "card-button"> Ver </p-button>
+                    <button class="card-button ver-btn">Ver</button>
                 </div>
             `;
             mainCards.appendChild(card);
         });
+
+        // Agrega el evento a todos los botones "Ver"
+        document.querySelectorAll('.ver-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.getElementById('myModal').style.display = 'block';
+            });
+        });
     }
+
+    // Cerrar modal al hacer click en la X
+    document.addEventListener('click', function(e) {
+        if (e.target.id === 'closeModal') {
+            document.getElementById('myModal').style.display = 'none';
+        }
+        // Cerrar modal si se hace click fuera del contenido
+        if (e.target.id === 'myModal') {
+            document.getElementById('myModal').style.display = 'none';
+        }
+    });
 });
