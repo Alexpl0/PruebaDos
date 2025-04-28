@@ -95,7 +95,7 @@
     </main>
 
     <h1 id="title3">¿Necesitas ayuda?</h1>
-    <button id="openModal" class="btn btn-primary mb-3">Ver Ayuda 5</button>
+    <button id="openModal" class="btn btn-primary mb-3">Ver Ayuda 6</button>
     
     <!-- Modal -->
     <div id="myModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
@@ -103,7 +103,7 @@
         <span id="closeModal" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:28px; z-index:2;">&times;</span>
         <button id="savePdfBtn" class="btn btn-success" style="position:absolute; top:10px; left:15px; z-index:2;">Guardar PDF</button>
         <!-- Reemplazar object con iframe para mejor compatibilidad -->
-        <iframe id="svgFrame" src="PremiumFreight.svg" style="width:100%; height:100%; border:none;">
+        <iframe id="svgFrame" src="Premium_Freight.svg" style="width:100%; height:100%; border:none;">
           Tu navegador no soporta iframes.
         </iframe>
       </div>
