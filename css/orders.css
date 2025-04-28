@@ -136,7 +136,7 @@ main{
     border: none;
     background: none;
     box-shadow: #333 0px 0px 0px 1px inset;
-    padding: 30px !important;
+    padding-top: 20% !important;
     background-color: tomato;
 }
 
