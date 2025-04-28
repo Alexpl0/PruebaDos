@@ -192,24 +192,40 @@ document.addEventListener('DOMContentLoaded', function () {
             const imgData = canvas.toDataURL('image/png');
             pdf.addImage(imgData, 'PNG', 0, 0, 816, 1056);
             
-            // Guardar el PDF
-            pdf.save('PremiumFreight.pdf');
+            // Generar un BLOB para poder crear una URL
+            const pdfBlob = pdf.output('blob');
+            const pdfUrl = URL.createObjectURL(pdfBlob);
+            
+            // Guardar el PDF automáticamente (descarga)
+            const fileName = 'PremiumFreight.pdf';
+            pdf.save(fileName);
             
             // Limpiar
             document.body.removeChild(container);
             
-            // Cerrar el SweetAlert de carga y mostrar uno de éxito
+            // Cerrar el SweetAlert de carga y mostrar uno de éxito con dos botones
             Swal.fire({
                 icon: 'success',
                 title: '¡PDF generado con éxito!',
-                text: 'El archivo se ha descargado correctamente.',
-                confirmButtonText: 'Genial',
-                timer: 3000,
-                timerProgressBar: true,
+                html: `El archivo <b>${fileName}</b> se ha descargado correctamente.`,
+                showCancelButton: true,
+                confirmButtonText: 'Aceptar',
+                cancelButtonText: 'Ver PDF',
+                reverseButtons: true,
                 customClass: {
-                    container: 'swal-on-top'
+                    container: 'swal-on-top',
+                    confirmButton: 'btn btn-success',
+                    cancelButton: 'btn btn-primary'
                 }
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    // Si el usuario hace clic en "Ver PDF"
+                    window.open(pdfUrl, '_blank');
+                }
+                // Limpiar la URL del objeto para evitar fugas de memoria
+                setTimeout(() => URL.revokeObjectURL(pdfUrl), 100);
             });
+            
         } catch (error) {
             console.error('Error al generar el PDF:', error);
             
