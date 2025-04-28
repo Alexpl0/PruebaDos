@@ -107,8 +107,9 @@
     </main>
 
     <h1 id="title3">¿Necesitas ayuda?</h1>
+    <button id="openModal" class="btn btn-primary mb-3">Ver Ayuda</button>
     <!-- Modal -->
-    <div id="myModal" class="modal" style="display:block; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999;">
+    <div id="myModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999;">
   <div style="background:#fff; margin:10% auto; padding:20px; border-radius:8px; width:90vw; max-width:900px; position:relative;">
     <span id="closeModal" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:20px;">&times;</span>
     <object data="PremiumFreight.svg" type="image/svg+xml" style="width:100%; height:80vh; min-height:400px;">
@@ -116,6 +117,24 @@
     </object>
   </div>
 </div>
+
+<script>
+// Abrir el modal
+document.getElementById('openModal').onclick = function() {
+  document.getElementById('myModal').style.display = 'block';
+};
+// Cerrar el modal
+document.getElementById('closeModal').onclick = function() {
+  document.getElementById('myModal').style.display = 'none';
+};
+// Cerrar al hacer clic fuera del contenido
+window.onclick = function(event) {
+  var modal = document.getElementById('myModal');
+  if (event.target == modal) {
+    modal.style.display = 'none';
+  }
+};
+</script>
 
        <!-- Archivos JS locales -->
     <script src="js/header.js"></script>
