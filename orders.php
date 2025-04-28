@@ -144,7 +144,7 @@ document.getElementById('savePdfBtn').onclick = async function() {
     unit: 'pt',
     format: [816, 1056]
   });
-  await window.svg2pdf(svgElement, pdf, {
+  await window.svg2pdf.svg2pdf(svgElement, pdf, {
     xOffset: 0,
     yOffset: 0,
     scale: 1
