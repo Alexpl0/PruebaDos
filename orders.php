@@ -109,10 +109,10 @@
     <h1 id="title3">¿Necesitas ayuda?</h1>
     <button id="openModal" class="btn btn-primary mb-3">Ver Ayuda</button>
     <!-- Modal -->
-    <div id="myModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999;">
-  <div style="background:#fff; margin:10% auto; padding:20px; border-radius:8px; width:90vw; max-width:900px; position:relative;">
-    <span id="closeModal" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:20px;">&times;</span>
-    <object data="PremiumFreight.svg" type="image/svg+xml" style="width:100%; height:80vh; min-height:400px;">
+    <div id="myModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:9999;">
+  <div style="background:#fff; margin:0 auto; padding:0; border-radius:8px; width:850px; height:1100px; max-width:95vw; max-height:95vh; position:relative; top:50%; left:50%; transform:translate(-50%,-50%); box-shadow:0 0 20px #0004;">
+    <span id="closeModal" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:28px; z-index:2;">&times;</span>
+    <object data="PremiumFreight.svg" type="image/svg+xml" style="width:100%; height:100%;">
       Tu navegador no soporta SVG.
     </object>
   </div>
