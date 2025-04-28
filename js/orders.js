@@ -218,6 +218,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     cancelButton: 'btn btn-primary'
                 }
             }).then((result) => {
+                // Cerrar el modal independientemente de la opción seleccionada
+                document.getElementById('myModal').style.display = 'none';
+                
                 if (!result.isConfirmed) {
                     // Si el usuario hace clic en "Ver PDF"
                     window.open(pdfUrl, '_blank');
