@@ -1,11 +1,21 @@
+// Espera a que el contenido del DOM esté completamente cargado y parseado antes de ejecutar el script.
 document.addEventListener('DOMContentLoaded', function () {
-    function rellenarTablaOrdenes(orders, locations) {
+    /**
+     * Rellena la tabla de órdenes en el HTML con los datos proporcionados.
+     * @param {Array<Object>} orders - Un array de objetos, donde cada objeto representa una orden.
+     */
+    function rellenarTablaOrdenes(orders) {
+        // Obtiene la referencia al cuerpo de la tabla donde se insertarán las filas.
         const tbody = document.getElementById("tbodyOrders");
+        // Limpia el contenido previo de la tabla.
         tbody.innerHTML = "";
+        // Itera sobre cada orden en el array de órdenes.
         orders.forEach(order => {
-            const origin = locations.find(loc => loc.id == order.origin_id) || {};
-            const destiny = locations.find(loc => loc.id == order.destiny_id) || {};
+            // Crea un nuevo elemento de fila (<tr>).
             const row = document.createElement("tr");
+            // Define el contenido HTML de la fila usando template literals.
+            // Cada celda (<td>) muestra una propiedad de la orden.
+            // Se usa el operador OR (||) para mostrar una cadena vacía si la propiedad no existe o es null/undefined.
             row.innerHTML = `
                 <td>${order.planta || ''}</td>
                 <td>${order.code_planta || ''}</td>
@@ -20,15 +30,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 <td>${order.recovery || ''}</td>
                 <td>${order.description || ''}</td>
                 <!-- SHIP FROM -->
-                <td>${origin.company_name || ''}</td>
-                <td>${origin.city || ''}</td>
-                <td>${origin.state || ''}</td>
-                <td>${origin.zip || ''}</td>
+                <td>${order.origin_company_name || ''}</td>
+                <td>${order.origin_city || ''}</td>
+                <td>${order.origin_state || ''}</td>
+                <td>${order.origin_zip || ''}</td>
                 <!-- DESTINATION -->
-                <td>${destiny.company_name || ''}</td>
-                <td>${destiny.city || ''}</td>
-                <td>${destiny.state || ''}</td>
-                <td>${destiny.zip || ''}</td>
+                <td>${order.destiny_company_name || ''}</td>
+                <td>${order.destiny_city || ''}</td>
+                <td>${order.destiny_state || ''}</td>
+                <td>${order.destiny_zip || ''}</td>
                 <!-- ORDER -->
                 <td>${order.weight || ''}</td>
                 <td>${order.measures || ''}</td>
@@ -39,258 +49,312 @@ document.addEventListener('DOMContentLoaded', function () {
                 <td>${order.reference || ''}</td>
                 <td>${order.reference_number || ''}</td>
             `;
+            // Añade la fila creada al cuerpo de la tabla.
             tbody.appendChild(row);
         });
     }
 
-    // Llama a la función después de obtener los datos:
-    fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPFget.php')
+    // Realiza una petición fetch al endpoint especificado para obtener los datos de las órdenes.
+    fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php')
+        // Convierte la respuesta de la petición a formato JSON.
         .then(response => response.json())
+        // Una vez que los datos JSON están listos:
         .then(data => {
-            fetch('https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php')
-                .then(response => response.json())
-                .then(dataLoc => {
-                    rellenarTablaOrdenes(data.data, dataLoc.data);
-                    createCards(data.data, dataLoc.data);
-                });
-        });
+            // Llama a la función para rellenar la tabla con los datos de las órdenes (data.data).
+            rellenarTablaOrdenes(data.data);
+            // Llama a la función para crear las tarjetas (cards) con los datos de las órdenes (data.data).
+            createCards(data.data);
+        })
+        // Captura y muestra cualquier error que ocurra durante la petición fetch.
+        .catch(error => console.error('Error al cargar los datos:', error));
 
-
-    function getOrderById() {
-        const orderId = document.getElementById("orderId").value;
-        fetch(`https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPFget.php?id=${orderId}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.data.length > 0) {
-                    rellenarTablaOrdenes(data.data, []);
-                } else {
-                    alert("No se encontró la orden con el ID proporcionado.");
-                }
-            });
-    }
-
+    /**
+     * Calcula el número de la semana ISO 8601 para una fecha dada.
+     * @param {string} dateString - La fecha en formato de cadena (ej. "YYYY-MM-DD").
+     * @returns {number} El número de la semana del año.
+     */
     function getWeekNumber(dateString) {
+        // Crea un objeto Date a partir de la cadena de fecha.
         const date = new Date(dateString);
-        // Set to nearest Thursday: current date + 4 - current day number
-        // Make Sunday's day number 7
+        // Obtiene el día de la semana (0=Domingo, 1=Lunes,..., 6=Sábado). Se ajusta para que Domingo sea 7.
         const dayNum = date.getDay() || 7;
+        // Ajusta la fecha al jueves de la misma semana (según ISO 8601).
         date.setDate(date.getDate() + 4 - dayNum);
-        // Get first day of year
+        // Obtiene el primer día del año de la fecha ajustada.
         const yearStart = new Date(date.getFullYear(), 0, 1);
-        // Calculate full weeks to nearest Thursday
+        // Calcula el número de la semana.
+        // Se divide la diferencia en milisegundos entre la fecha ajustada y el inicio del año por los milisegundos de un día (86400000).
+        // Se suma 1 porque los días se cuentan desde 1.
+        // Se divide por 7 para obtener el número de semanas.
+        // Math.ceil redondea hacia arriba para obtener el número de semana completo.
         const weekNum = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+        // Devuelve el número de la semana calculado.
         return weekNum;
     };
 
-    function createCards(orders, locations) {
+    /**
+     * Crea y muestra tarjetas (cards) para cada orden en el contenedor especificado.
+     * @param {Array<Object>} orders - Un array de objetos de órdenes.
+     */
+    function createCards(orders) {
+        // Obtiene el contenedor principal donde se mostrarán las tarjetas.
         const mainCards = document.getElementById("card");
+        // Limpia el contenido previo del contenedor de tarjetas.
         mainCards.innerHTML = "";
+        // Itera sobre cada orden en el array de órdenes.
         orders.forEach(order => {
-            const origin = locations.find(loc => loc.id == order.origin_id) || {};
-            const destiny = locations.find(loc => loc.id == order.destiny_id) || {};
+            // Calcula el número de la semana para la fecha de la orden.
             const semana = getWeekNumber(order.date);
 
+            // Crea un nuevo elemento div para la tarjeta.
             const card = document.createElement("div");
+            // Asigna clases CSS para el estilo de la tarjeta (Bootstrap y personalizadas).
             card.className = "card shadow rounded mx-2 mb-4";
+            // Establece un ancho máximo para la tarjeta.
             card.style.maxWidth = "265px";
+            // Establece una altura máxima para la tarjeta.
             card.style.maxHeight = "275px";
+            // Si el estado del proyecto es "Cerrada", cambia el color de fondo a verde.
             if(order.project_status == "Cerrada"){
-                card.style.backgroundColor= "green";}
+                card.style.backgroundColor= "green";
+            }
 
+            // Define el contenido HTML interno de la tarjeta usando template literals.
+            // Muestra el folio (ID), número de semana (CW), descripción y un texto fijo.
+            // Incluye un botón "Ver" con un atributo data-order-id que almacena el ID de la orden.
             card.innerHTML = `
                 <div class="card-body">
                     <h5 class="card-title">Folio: ${order.id}</h5>
                     <h6 class="card-subtitle">CW: ${semana}</h6>
                     <p class="card-text">${order.description || ''}</p>
                     <p class= "card-p">Falta: Senior Manager Logistic</p>
-                    <button class="card-button ver-btn" data-order-id="${order.id}">Ver21</button>
+                    <button class="card-button ver-btn" data-order-id="${order.id}">Ver</button>
                 </div>
             `;
+            // Añade la tarjeta creada al contenedor principal.
             mainCards.appendChild(card);
         });
 
-        // Variable global para almacenar las órdenes
+        // Almacena todas las órdenes en una variable global (accesible desde window)
+        // para poder acceder a ellas más tarde (ej., en el modal).
         window.allOrders = orders;
 
-        // Agrega el evento a todos los botones "Ver"
+        // Selecciona todos los botones con la clase 'ver-btn' (los botones "Ver" de las tarjetas).
         document.querySelectorAll('.ver-btn').forEach(btn => {
+            // Añade un event listener de clic a cada botón "Ver".
             btn.addEventListener('click', async function() {
+                // Obtiene el ID de la orden desde el atributo 'data-order-id' del botón clickeado.
                 const orderId = this.getAttribute('data-order-id');
+                // Guarda el ID de la orden seleccionada en sessionStorage para poder recuperarlo después (ej., al guardar PDF).
                 sessionStorage.setItem('selectedOrderId', orderId);
+                // Muestra el modal estableciendo su estilo 'display' a 'flex'.
                 document.getElementById('myModal').style.display = 'flex';
 
-                // Vista previa SVG en el modal
+                // --- Lógica para la vista previa del SVG en el modal ---
+                // Busca la orden completa correspondiente al ID seleccionado en el array global 'allOrders'.
                 const selectedOrder = window.allOrders.find(order => order.id == orderId) || {};
+                // Obtiene el valor de 'planta' de la orden seleccionada, o una cadena vacía si no existe.
                 const plantaValue = selectedOrder.planta || '';
+                // Realiza una petición fetch para obtener el contenido del archivo SVG.
                 const response = await fetch('Premium_Freight.svg');
+                // Lee la respuesta como texto (el contenido del SVG).
                 const svgText = await response.text();
 
-                // Crear un div temporal para modificar el SVG
+                // Crea un div temporal en memoria para manipular el SVG sin afectar el DOM principal aún.
                 const tempDiv = document.createElement('div');
+                // Asigna el texto del SVG como HTML interno del div temporal.
                 tempDiv.innerHTML = svgText;
+                // Busca el elemento dentro del SVG temporal que tiene el ID 'RequestingPlantValue'.
                 const plantaElement = tempDiv.querySelector('#RequestingPlantValue');
+                // Si se encuentra el elemento...
                 if (plantaElement) {
+                    // Actualiza su contenido de texto con el valor de 'plantaValue'.
                     plantaElement.textContent = plantaValue;
                 }
 
-                // Mostrar el SVG modificado en el modal
+                // Obtiene el contenedor dentro del modal donde se mostrará la vista previa del SVG.
+                // Asigna el HTML interno del div temporal (el SVG modificado) a este contenedor.
                 document.getElementById('svgPreview').innerHTML = tempDiv.innerHTML;
             });
         });
     }
-    
-    // Abrir el modal
-    document.getElementById('openModal').onclick = function() {
-        document.getElementById('myModal').style.display = 'flex';
-    };
-    
-    // Cerrar el modal
+
+    // --- Lógica de manejo del Modal ---
+
+    // Asigna un event listener al botón con ID 'openModal' (si existiera uno para abrir genéricamente).
+    // Nota: Actualmente, el modal se abre desde los botones 'Ver' de las tarjetas.
+    // document.getElementById('openModal').onclick = function() {
+    //     document.getElementById('myModal').style.display = 'flex';
+    // };
+
+    // Asigna un event listener al botón de cerrar dentro del modal (ID 'closeModal').
     document.getElementById('closeModal').onclick = function() {
+        // Oculta el modal estableciendo su estilo 'display' a 'none'.
         document.getElementById('myModal').style.display = 'none';
     };
-    
-    // Cerrar al hacer clic fuera del contenido
+
+    // Asigna un event listener a la ventana para cerrar el modal si se hace clic fuera de su contenido.
     window.onclick = function(event) {
+        // Obtiene la referencia al elemento del modal.
         var modal = document.getElementById('myModal');
+        // Si el objetivo del clic (event.target) es el propio fondo del modal...
         if (event.target == modal) {
+            // Oculta el modal.
             modal.style.display = 'none';
         }
     };
-    
-    // Método para cargar el SVG directamente y guardarlo como PDF
+
+    // --- Lógica para guardar como PDF ---
+
+    // Asigna un event listener al botón con ID 'savePdfBtn'.
     document.getElementById('savePdfBtn').onclick = async function() {
         try {
-            // Mostrar Sweet Alert de carga con z-index alto
+            // Muestra una alerta de carga usando SweetAlert2 (Swal).
             Swal.fire({
                 title: 'Generando PDF',
                 html: 'Por favor espera mientras se procesa el documento...',
-                timerProgressBar: true,
+                timerProgressBar: true, // Muestra una barra de progreso.
                 didOpen: () => {
-                    Swal.showLoading();
+                    Swal.showLoading(); // Muestra el icono de carga.
                 },
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                allowEnterKey: false,
+                allowOutsideClick: false, // Impide cerrar la alerta haciendo clic fuera.
+                allowEscapeKey: false,    // Impide cerrar la alerta con la tecla Esc.
+                allowEnterKey: false,   // Impide cerrar la alerta con la tecla Enter.
                 customClass: {
-                    container: 'swal-on-top' // Usaremos esta clase para el z-index
+                    // Asegura que la alerta se muestre por encima del modal si es necesario.
+                    container: 'swal-on-top'
                 }
             });
-            
 
-            // ============================================================================================
-            // Obtener el ID de la orden seleccionada
+            // Obtiene el ID de la orden seleccionada que se guardó en sessionStorage.
             const selectedOrderId = sessionStorage.getItem('selectedOrderId');
-            
-            // Encontrar la orden correspondiente
+            // Busca la orden completa correspondiente a ese ID en el array global.
             const selectedOrder = window.allOrders.find(order => order.id == selectedOrderId) || {};
+            // Obtiene el valor de 'planta' de la orden seleccionada.
             const plantaValue = selectedOrder.planta || '';
 
-            console.log('Selected Order:', selectedOrder);
-            console.log('Planta Value:', plantaValue);
-            
-            // Hacer fetch del SVG como texto
+            // Realiza una petición fetch para obtener el contenido del archivo SVG nuevamente.
             const response = await fetch('Premium_Freight.svg');
+            // Lee la respuesta como texto.
             const svgText = await response.text();
-            
-            // Crear un div temporal para contener el SVG
+
+            // Crea un contenedor div temporal para renderizar el SVG fuera de la pantalla.
             const container = document.createElement('div');
+            // Establece dimensiones fijas (tamaño carta aproximado en píxeles para 96 DPI).
             container.style.width = '816px';
             container.style.height = '1056px';
+            // Lo posiciona fuera de la vista del usuario.
             container.style.position = 'absolute';
-            container.style.left = '-9999px'; // Fuera de la pantalla
+            container.style.left = '-9999px';
+            // Asigna el texto del SVG como HTML interno del contenedor.
             container.innerHTML = svgText;
-            
-            // Modificar el valor del elemento RequestingPlantValue con el valor de planta
+
+            // Busca el elemento de la planta dentro del SVG del contenedor temporal.
             const plantaElement = container.querySelector('#RequestingPlantValue');
+            // Si se encuentra, actualiza su contenido con el valor de la planta.
             if (plantaElement) {
                 plantaElement.textContent = plantaValue;
             }
-            
+
+            // Añade el contenedor temporal al cuerpo del documento para que pueda ser renderizado.
             document.body.appendChild(container);
-            
-            // El resto del código sigue igual...
-            // Esperar a que el SVG se renderice
+
+            // Espera un breve momento para asegurar que el SVG se haya renderizado completamente en el contenedor.
             await new Promise(resolve => setTimeout(resolve, 200));
-            
-            // Usar html2canvas en el div que contiene el SVG
+
+            // Usa html2canvas para tomar una "captura" del contenedor renderizado y convertirlo en un elemento canvas.
+            // scale: 2 aumenta la resolución para mejor calidad en el PDF.
+            // logging: true habilita logs de html2canvas en la consola (útil para depuración).
+            // useCORS: true permite cargar imágenes de otros dominios si las hubiera en el SVG.
+            // allowTaint: true (relacionado con CORS) permite que el canvas no se marque como "tainted".
             const canvas = await html2canvas(container, {
                 scale: 2,
                 logging: true,
                 useCORS: true,
                 allowTaint: true
             });
-            
-            // Crear PDF con jsPDF
+
+            // Obtiene la clase jsPDF del objeto global window.jspdf (asumiendo que la librería está cargada).
             const { jsPDF } = window.jspdf;
+            // Crea una nueva instancia de jsPDF.
+            // orientation: 'portrait' - Orientación vertical.
+            // unit: 'pt' - Unidades en puntos (points).
+            // format: [816, 1056] - Tamaño de página personalizado (aproximadamente carta).
             const pdf = new jsPDF({
                 orientation: 'portrait',
                 unit: 'pt',
                 format: [816, 1056]
             });
-            
-            // Agregar la imagen al PDF
+
+            // Convierte el contenido del canvas a una imagen PNG en formato Data URL.
             const imgData = canvas.toDataURL('image/png');
+            // Añade la imagen al PDF, ocupando toda la página.
             pdf.addImage(imgData, 'PNG', 0, 0, 816, 1056);
-            
-            // Generar un BLOB para poder crear una URL
+
+            // Genera el PDF como un Blob (Binary Large Object).
             const pdfBlob = pdf.output('blob');
+            // Crea una URL temporal para el Blob del PDF.
             const pdfUrl = URL.createObjectURL(pdfBlob);
-            
-            // Guardar el PDF automáticamente (descarga)
+
+            // Define el nombre del archivo PDF que se descargará.
             const fileName = 'PremiumFreight.pdf';
+            // Inicia la descarga del archivo PDF generado.
             pdf.save(fileName);
-            
-            // Limpiar
+
+            // Elimina el contenedor temporal del DOM, ya no es necesario.
             document.body.removeChild(container);
-            
-            // Cerrar el SweetAlert de carga y mostrar uno de éxito con dos botones
+
+            // Cierra la alerta de carga y muestra una de éxito usando SweetAlert2.
             Swal.fire({
                 icon: 'success',
                 title: '¡PDF generado con éxito!',
                 html: `El archivo <b>${fileName}</b> se ha descargado correctamente.`,
-                showCancelButton: true,
-                confirmButtonText: 'Aceptar',
-                cancelButtonText: 'Ver PDF',
-                reverseButtons: true,
+                showCancelButton: true, // Muestra un botón de cancelar.
+                confirmButtonText: 'Aceptar', // Texto del botón de confirmación.
+                cancelButtonText: 'Ver PDF', // Texto del botón de cancelar (que aquí usamos para ver).
+                reverseButtons: true, // Invierte la posición de los botones.
                 customClass: {
-                    container: 'swal-on-top',
-                    confirmButton: 'btn btn-success',
+                    container: 'swal-on-top', // Asegura que esté visible.
+                    confirmButton: 'btn btn-success', // Clases de Bootstrap para estilo.
                     cancelButton: 'btn btn-primary'
                 }
-            }).then((result) => {
-                // Cerrar el modal independientemente de la opción seleccionada
+            }).then((result) => { // Se ejecuta cuando el usuario interactúa con la alerta.
+                // Oculta el modal principal.
                 document.getElementById('myModal').style.display = 'none';
-                
+                // Si el usuario hizo clic en el botón "Ver PDF" (que es el 'cancelButton')...
                 if (!result.isConfirmed) {
-                    // Si el usuario hace clic en "Ver PDF"
+                    // Abre el PDF en una nueva pestaña del navegador usando la URL temporal.
                     window.open(pdfUrl, '_blank');
                 }
-                // Limpiar la URL del objeto para evitar fugas de memoria
+                // Libera la memoria asociada a la URL del objeto Blob después de un breve retraso.
                 setTimeout(() => URL.revokeObjectURL(pdfUrl), 100);
             });
-            
+
         } catch (error) {
+            // Si ocurre cualquier error durante el proceso try...
             console.error('Error al generar el PDF:', error);
-            
-            // Mostrar error con SweetAlert
+            // Muestra una alerta de error usando SweetAlert2.
             Swal.fire({
                 icon: 'error',
                 title: 'Error al generar el PDF',
-                text: error.message,
+                text: error.message, // Muestra el mensaje de error.
                 confirmButtonText: 'Entendido',
                 customClass: {
-                    container: 'swal-on-top'
+                    container: 'swal-on-top' // Asegura que esté visible.
                 }
             });
         }
     };
 
-    // Cerrar modal al hacer click en la X (ya está implementado arriba, este es redundante)
+    // --- Listener adicional para cerrar el modal (alternativa a window.onclick) ---
+    // Este listener es más específico y puede ser redundante con window.onclick,
+    // pero asegura el cierre si se hace clic exactamente en el botón de cerrar o en el fondo del modal.
     document.addEventListener('click', function(e) {
+        // Si el ID del elemento clickeado es 'closeModal'.
         if (e.target.id === 'closeModal') {
             document.getElementById('myModal').style.display = 'none';
         }
-        // Cerrar modal si se hace click fuera del contenido
+        // Si el ID del elemento clickeado es 'myModal' (el fondo del modal).
         if (e.target.id === 'myModal') {
             document.getElementById('myModal').style.display = 'none';
         }
