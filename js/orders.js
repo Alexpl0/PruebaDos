@@ -114,10 +114,43 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Agrega el evento a todos los botones "Ver"
         document.querySelectorAll('.ver-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', async function() {
                 // Almacenar el ID de la orden seleccionada
                 const orderId = this.getAttribute('data-order-id');
                 sessionStorage.setItem('selectedOrderId', orderId);
+                
+                // Encontrar la orden correspondiente
+                const selectedOrder = window.allOrders.find(order => order.id == orderId) || {};
+                const plantaValue = selectedOrder.planta || '';
+                
+                // Hacer fetch del SVG como texto
+                const response = await fetch('Premium_Freight.svg');
+                const svgText = await response.text();
+                
+                // Crear un contenedor para la vista previa
+                const previewContainer = document.getElementById('svgPreview') || document.createElement('div');
+                if (!document.getElementById('svgPreview')) {
+                    previewContainer.id = 'svgPreview';
+                    previewContainer.style.width = '100%';
+                    previewContainer.style.height = '500px'; // Altura ajustable según necesites
+                    previewContainer.style.overflow = 'auto';
+                    
+                    // Encuentra el contenedor del modal donde quieres insertar la vista previa
+                    const modalContent = document.querySelector('.modal-content');
+                    // Inserta el contenedor antes del botón de guardar PDF
+                    modalContent.insertBefore(previewContainer, document.getElementById('savePdfBtn'));
+                }
+                
+                // Insertar el SVG en el contenedor
+                previewContainer.innerHTML = svgText;
+                
+                // Modificar el valor del elemento RequestingPlantValue con el valor de planta
+                const plantaElement = previewContainer.querySelector('#RequestingPlantValue');
+                if (plantaElement) {
+                    plantaElement.textContent = plantaValue;
+                }
+                
+                // Mostrar el modal
                 document.getElementById('myModal').style.display = 'flex';
             });
         });
@@ -160,21 +193,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
             
-
-            // ============================================================================================
-            // Obtener el ID de la orden seleccionada
-            const selectedOrderId = sessionStorage.getItem('selectedOrderId');
-            
-            // Encontrar la orden correspondiente
-            const selectedOrder = window.allOrders.find(order => order.id == selectedOrderId) || {};
-            const plantaValue = selectedOrder.planta || '';
-
-            console.log('Selected Order:', selectedOrder);
-            console.log('Planta Value:', plantaValue);
-            
-            // Hacer fetch del SVG como texto
-            const response = await fetch('Premium_Freight.svg');
-            const svgText = await response.text();
+            // Obtener la vista previa del SVG que ya está en el modal
+            const svgPreview = document.getElementById('svgPreview');
             
             // Crear un div temporal para contener el SVG
             const container = document.createElement('div');
@@ -182,13 +202,7 @@ document.addEventListener('DOMContentLoaded', function () {
             container.style.height = '1056px';
             container.style.position = 'absolute';
             container.style.left = '-9999px'; // Fuera de la pantalla
-            container.innerHTML = svgText;
-            
-            // Modificar el valor del elemento RequestingPlantValue con el valor de planta
-            const plantaElement = container.querySelector('#RequestingPlantValue');
-            if (plantaElement) {
-                plantaElement.textContent = plantaValue;
-            }
+            container.innerHTML = svgPreview.innerHTML; // Usar el SVG ya modificado
             
             document.body.appendChild(container);
             
