@@ -123,9 +123,8 @@ main{
   position: absolute;
   top: 10px;
   left: 15px;
-  z-index: 2;
   margin-bottom: 20px;
-  color: #3B82F6;
+  background-color: #3B82F6;
   border-radius: 10px;
 }
 
