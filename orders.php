@@ -102,10 +102,11 @@
       <div class="modal-content">
         <span id="closeModal" class="close-button">&times;</span>
         <button id="savePdfBtn" class="btn btn-success save-pdf-button">Guardar PDF</button>
-        <!-- Reemplazar object con iframe para mejor compatibilidad -->
-        <iframe id="svgFrame" src="Premium_Freight.svg" class="svg-frame">
-          Tu navegador no soporta iframes.
-        </iframe>
+        <!-- Reemplaza esto: -->
+        <!-- <iframe id="svgFrame" src="Premium_Freight.svg" class="svg-frame"></iframe> -->
+
+        <!-- Por esto: -->
+        <div id="svgPreview" class="svg-frame"></div>
       </div>
     </div>
 

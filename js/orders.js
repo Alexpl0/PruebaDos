@@ -114,11 +114,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Agrega el evento a todos los botones "Ver"
         document.querySelectorAll('.ver-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                // Almacenar el ID de la orden seleccionada
+            btn.addEventListener('click', async function() {
                 const orderId = this.getAttribute('data-order-id');
                 sessionStorage.setItem('selectedOrderId', orderId);
                 document.getElementById('myModal').style.display = 'flex';
+
+                // Vista previa SVG en el modal
+                const selectedOrder = window.allOrders.find(order => order.id == orderId) || {};
+                const plantaValue = selectedOrder.planta || '';
+                const response = await fetch('Premium_Freight.svg');
+                const svgText = await response.text();
+
+                // Crear un div temporal para modificar el SVG
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = svgText;
+                const plantaElement = tempDiv.querySelector('#RequestingPlantValue');
+                if (plantaElement) {
+                    plantaElement.textContent = plantaValue;
+                }
+
+                // Mostrar el SVG modificado en el modal
+                document.getElementById('svgPreview').innerHTML = tempDiv.innerHTML;
             });
         });
     }
