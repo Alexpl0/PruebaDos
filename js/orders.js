@@ -122,8 +122,6 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     }
-
-    // SCRIPTS MOVIDOS DESDE HTML AL JS
     
     // Abrir el modal
     document.getElementById('openModal').onclick = function() {
@@ -162,12 +160,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
             
+
+            // ============================================================================================
             // Obtener el ID de la orden seleccionada
             const selectedOrderId = sessionStorage.getItem('selectedOrderId');
             
             // Encontrar la orden correspondiente
             const selectedOrder = window.allOrders.find(order => order.id == selectedOrderId) || {};
             const plantaValue = selectedOrder.planta || '';
+
+            console.log('Selected Order:', selectedOrder);
+            console.log('Planta Value:', plantaValue);
             
             // Hacer fetch del SVG como texto
             const response = await fetch('Premium_Freight.svg');
