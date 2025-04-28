@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 // Insertar el SVG en el contenedor
                 previewContainer.innerHTML = svgText;
-                
+
                 // Modificar el valor del elemento RequestingPlantValue con el valor de planta
                 const plantaElement = previewContainer.querySelector('#RequestingPlantValue');
                 if (plantaElement) {
@@ -193,8 +193,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
             
-            // Obtener la vista previa del SVG que ya está en el modal
-            const svgPreview = document.getElementById('svgPreview');
+
+            // ============================================================================================
+            // Obtener el ID de la orden seleccionada
+            const selectedOrderId = sessionStorage.getItem('selectedOrderId');
+            
+            // Encontrar la orden correspondiente
+            const selectedOrder = window.allOrders.find(order => order.id == selectedOrderId) || {};
+            const plantaValue = selectedOrder.planta || '';
+
+            console.log('Selected Order:', selectedOrder);
+            console.log('Planta Value:', plantaValue);
+            
+            // Hacer fetch del SVG como texto
+            const response = await fetch('Premium_Freight.svg');
+            const svgText = await response.text();
             
             // Crear un div temporal para contener el SVG
             const container = document.createElement('div');
@@ -202,7 +215,13 @@ document.addEventListener('DOMContentLoaded', function () {
             container.style.height = '1056px';
             container.style.position = 'absolute';
             container.style.left = '-9999px'; // Fuera de la pantalla
-            container.innerHTML = svgPreview.innerHTML; // Usar el SVG ya modificado
+            container.innerHTML = svgText;
+            
+            // Modificar el valor del elemento RequestingPlantValue con el valor de planta
+            const plantaElement = container.querySelector('#RequestingPlantValue');
+            if (plantaElement) {
+                plantaElement.textContent = plantaValue;
+            }
             
             document.body.appendChild(container);
             
