@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Método para cargar el SVG directamente y guardarlo como PDF
     document.getElementById('savePdfBtn').onclick = async function() {
         try {
-            // Mostrar Sweet Alert de carga
+            // Mostrar Sweet Alert de carga con z-index alto
             Swal.fire({
                 title: 'Generando PDF',
                 html: 'Por favor espera mientras se procesa el documento...',
@@ -150,7 +150,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
                 allowOutsideClick: false,
                 allowEscapeKey: false,
-                allowEnterKey: false
+                allowEnterKey: false,
+                customClass: {
+                    container: 'swal-on-top' // Usaremos esta clase para el z-index
+                }
             });
             
             // Hacer fetch del SVG como texto
@@ -202,7 +205,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 text: 'El archivo se ha descargado correctamente.',
                 confirmButtonText: 'Genial',
                 timer: 3000,
-                timerProgressBar: true
+                timerProgressBar: true,
+                customClass: {
+                    container: 'swal-on-top'
+                }
             });
         } catch (error) {
             console.error('Error al generar el PDF:', error);
@@ -212,7 +218,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 icon: 'error',
                 title: 'Error al generar el PDF',
                 text: error.message,
-                confirmButtonText: 'Entendido'
+                confirmButtonText: 'Entendido',
+                customClass: {
+                    container: 'swal-on-top'
+                }
             });
         }
     };

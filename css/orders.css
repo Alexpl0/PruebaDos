@@ -143,3 +143,10 @@ main{
   border-radius: 5px;
   z-index: 1000;
 }
+
+/* Asegurar que SweetAlert aparezca por encima del modal */
+.swal-on-top {
+  z-index: 20000 !important; /* Valor muy alto para asegurar que aparezca encima de todo */
+}
+
+/* El modal ya tiene z-index 9999, así que este valor es mucho mayor */
