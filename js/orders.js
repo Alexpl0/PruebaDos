@@ -153,8 +153,44 @@ document.addEventListener('DOMContentLoaded', function () {
                 // --- Lógica para la vista previa del SVG en el modal ---
                 // Busca la orden completa correspondiente al ID seleccionado en el array global 'allOrders'.
                 const selectedOrder = window.allOrders.find(order => order.id == orderId) || {};
-                // Obtiene el valor de 'planta' de la orden seleccionada, o una cadena vacía si no existe.
-                const plantaValue = selectedOrder.planta || '';
+
+                // Mapeo de IDs de SVG a propiedades del objeto 'order'
+                const svgMap = {
+                    'AreaOfResponsabilityValue': 'area',
+                    'CarrierNameValue': 'carrier',
+                    'CityDestValue': 'destiny_city',
+                    'CityShipValue': 'origin_city',
+                    'CompanyNameDestValue': 'destiny_company_name',
+                    'CompanyNameShipValue': 'origin_company_name',
+                    'CostInEurosValue': 'cost_euros',
+                    'CostPaidByValue': 'paid_by',
+                    'DateValue': 'date',
+                    'DescriptionAndRootCauseValue': 'description',
+                    'InExtValue': 'int_ext',
+                    'InOutBoundValue': 'in_out_bound',
+                    'IssuerValue': 'creator_name', // Asumiendo que 'creator_name' está en el JSON
+                    'ManagerOPSDivisionValue': 'creator_role', // Asumiendo que 'creator_role' está en el JSON
+                    'PlantCValue': 'planta',
+                    'PlantCodeValue': 'code_planta',
+                    'PlantManagerValue': 'approver_name', // Asumiendo que 'approver_name' está en el JSON
+                    'ProductValue': 'products',
+                    'ProjectStatusValue': 'project_status',
+                    'QuotedCostValue': 'quoted_cost',
+                    'RecoveryValue': 'recovery',
+                    'ReferenceNumberValue': 'reference_number',
+                    'RequestingPlantValue': 'planta',
+                    'RootCauseValue': 'category_cause',
+                    'SDestValue': 'destiny_state', // Duplicado con StateDestValue, usar uno
+                    'SRVPRegionalValue': 'creator_role', // Duplicado con ManagerOPSDivisionValue, usar uno
+                    'SeniorManagerValue': 'approver_role', // Asumiendo que 'approver_role' está en el JSON
+                    'StateDestValue': 'destiny_state',
+                    'StateShipValue': 'origin_state',
+                    'TransportValue': 'transport',
+                    'WeightValue': 'weight',
+                    'ZIPDestValue': 'destiny_zip',
+                    'ZIPShipValue': 'origin_zip'
+                };
+
                 // Realiza una petición fetch para obtener el contenido del archivo SVG.
                 const response = await fetch('Premium_Freight.svg');
                 // Lee la respuesta como texto (el contenido del SVG).
@@ -164,12 +200,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 const tempDiv = document.createElement('div');
                 // Asigna el texto del SVG como HTML interno del div temporal.
                 tempDiv.innerHTML = svgText;
-                // Busca el elemento dentro del SVG temporal que tiene el ID 'RequestingPlantValue'.
-                const plantaElement = tempDiv.querySelector('#RequestingPlantValue');
-                // Si se encuentra el elemento...
-                if (plantaElement) {
-                    // Actualiza su contenido de texto con el valor de 'plantaValue'.
-                    plantaElement.textContent = plantaValue;
+
+                // Itera sobre el mapeo y actualiza los elementos SVG correspondientes
+                for (const [svgId, orderKey] of Object.entries(svgMap)) {
+                    const element = tempDiv.querySelector(`#${svgId}`);
+                    if (element) {
+                        element.textContent = selectedOrder[orderKey] || ''; // Usa || '' para valores nulos/undefined
+                    } else {
+                        console.warn(`Elemento SVG con ID ${svgId} no encontrado.`); // Advertencia si no se encuentra un ID
+                    }
                 }
 
                 // Obtiene el contenedor dentro del modal donde se mostrará la vista previa del SVG.
@@ -230,8 +269,43 @@ document.addEventListener('DOMContentLoaded', function () {
             const selectedOrderId = sessionStorage.getItem('selectedOrderId');
             // Busca la orden completa correspondiente a ese ID en el array global.
             const selectedOrder = window.allOrders.find(order => order.id == selectedOrderId) || {};
-            // Obtiene el valor de 'planta' de la orden seleccionada.
-            const plantaValue = selectedOrder.planta || '';
+
+            // Mapeo de IDs de SVG a propiedades del objeto 'order' (repetido para claridad, podría refactorizarse)
+            const svgMap = {
+                'AreaOfResponsabilityValue': 'area',
+                'CarrierNameValue': 'carrier',
+                'CityDestValue': 'destiny_city',
+                'CityShipValue': 'origin_city',
+                'CompanyNameDestValue': 'destiny_company_name',
+                'CompanyNameShipValue': 'origin_company_name',
+                'CostInEurosValue': 'cost_euros',
+                'CostPaidByValue': 'paid_by',
+                'DateValue': 'date',
+                'DescriptionAndRootCauseValue': 'description',
+                'InExtValue': 'int_ext',
+                'InOutBoundValue': 'in_out_bound',
+                'IssuerValue': 'creator_name', // Asumiendo que 'creator_name' está en el JSON
+                'ManagerOPSDivisionValue': 'creator_role', // Asumiendo que 'creator_role' está en el JSON
+                'PlantCValue': 'planta',
+                'PlantCodeValue': 'code_planta',
+                'PlantManagerValue': 'approver_name', // Asumiendo que 'approver_name' está en el JSON
+                'ProductValue': 'products',
+                'ProjectStatusValue': 'project_status',
+                'QuotedCostValue': 'quoted_cost',
+                'RecoveryValue': 'recovery',
+                'ReferenceNumberValue': 'reference_number',
+                'RequestingPlantValue': 'planta',
+                'RootCauseValue': 'category_cause',
+                'SDestValue': 'destiny_state', // Duplicado con StateDestValue, usar uno
+                'SRVPRegionalValue': 'creator_role', // Duplicado con ManagerOPSDivisionValue, usar uno
+                'SeniorManagerValue': 'approver_role', // Asumiendo que 'approver_role' está en el JSON
+                'StateDestValue': 'destiny_state',
+                'StateShipValue': 'origin_state',
+                'TransportValue': 'transport',
+                'WeightValue': 'weight',
+                'ZIPDestValue': 'destiny_zip',
+                'ZIPShipValue': 'origin_zip'
+            };
 
             // Realiza una petición fetch para obtener el contenido del archivo SVG nuevamente.
             const response = await fetch('Premium_Freight.svg');
@@ -249,11 +323,14 @@ document.addEventListener('DOMContentLoaded', function () {
             // Asigna el texto del SVG como HTML interno del contenedor.
             container.innerHTML = svgText;
 
-            // Busca el elemento de la planta dentro del SVG del contenedor temporal.
-            const plantaElement = container.querySelector('#RequestingPlantValue');
-            // Si se encuentra, actualiza su contenido con el valor de la planta.
-            if (plantaElement) {
-                plantaElement.textContent = plantaValue;
+            // Itera sobre el mapeo y actualiza los elementos SVG correspondientes en el contenedor temporal
+            for (const [svgId, orderKey] of Object.entries(svgMap)) {
+                const element = container.querySelector(`#${svgId}`);
+                if (element) {
+                    element.textContent = selectedOrder[orderKey] || ''; // Usa || '' para valores nulos/undefined
+                } else {
+                    console.warn(`Elemento SVG con ID ${svgId} no encontrado para PDF.`); // Advertencia si no se encuentra un ID
+                }
             }
 
             // Añade el contenedor temporal al cuerpo del documento para que pueda ser renderizado.
@@ -314,7 +391,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 cancelButtonText: 'Ver PDF', // Texto del botón de cancelar (que aquí usamos para ver).
                 reverseButtons: true, // Invierte la posición de los botones.
                 customClass: {
-                    container: 'swal-on-top', // Asegura que esté visible.
+                    container: 'swal-on-top', // Asegura que la alerta se muestre por encima del modal si es necesario.
                     confirmButton: 'btn btn-success', // Clases de Bootstrap para estilo.
                     cancelButton: 'btn btn-primary'
                 }
@@ -340,7 +417,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 text: error.message, // Muestra el mensaje de error.
                 confirmButtonText: 'Entendido',
                 customClass: {
-                    container: 'swal-on-top' // Asegura que esté visible.
+                    container: 'swal-on-top' // Asegura que la alerta se muestre por encima del modal si es necesario.
                 }
             });
         }

@@ -46,7 +46,8 @@ try {
         $datos[] = $row;
     }
 
-    echo json_encode(['status' => 'success', 'data' => $datos], JSON_PRETTY_PRINT);
+    // Añadir JSON_UNESCAPED_UNICODE para manejar caracteres especiales correctamente
+    echo json_encode(['status' => 'success', 'data' => $datos], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
     $stmt->close();
     $conex->close();
