@@ -24,9 +24,9 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
-     inkscape:zoom="4.0000001"
-     inkscape:cx="320.74999"
-     inkscape:cy="472.37499"
+     inkscape:zoom="2.8284272"
+     inkscape:cx="472.34732"
+     inkscape:cy="720.36501"
      inkscape:window-width="1920"
      inkscape:window-height="991"
      inkscape:window-x="1191"
@@ -35,11 +35,6 @@
      inkscape:current-layer="layer4"
      showgrid="true"
      showguides="true">
-    <sodipodi:guide
-       position="172.11145,262.86354"
-       orientation="1,0"
-       id="guide1"
-       inkscape:locked="false" />
     <sodipodi:guide
        position="-12.303125,264.45104"
        orientation="1,0"
@@ -286,6 +281,26 @@
        id="RecoveryValue"
        x="174.73146"
        y="50.272728">RecoveryValue</text>
+    <text
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;font-family:Arial;-inkscape-font-specification:Arial;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
+       id="PlantManagerValue"
+       x="94.067123"
+       y="129.27274">PlantManagerValue</text>
+    <text
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;font-family:Arial;-inkscape-font-specification:Arial;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
+       id="SeniorManagerValue"
+       x="93.147804"
+       y="144.31149">SeniorManagerValue</text>
+    <text
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;font-family:Arial;-inkscape-font-specification:Arial;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
+       id="SeniorManagerValue-0"
+       x="88.779854"
+       y="162.31303">ManagerOPSDivisionValue</text>
+    <text
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;font-family:Arial;-inkscape-font-specification:Arial;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
+       id="SRVPRegionalValue"
+       x="93.441582"
+       y="179.81149">SRVPRegionalValue</text>
   </g>
   <g
      inkscape:groupmode="layer"
@@ -420,8 +435,7 @@
   <g
      inkscape:groupmode="layer"
      id="layer8"
-     inkscape:label="Labels"
-     sodipodi:insensitive="true">
+     inkscape:label="Labels">
     <text
        style="font-variant:normal;font-weight:bold;font-size:3.175px;font-family:Arial;-inkscape-font-specification:Arial-BoldMT;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
        id="SelectedCarrierLabel"
@@ -664,6 +678,26 @@
            id="tspan234"
            style="stroke-width:0.388056">root cause:</tspan></text>
     </g>
+    <text
+       style="font-variant:normal;font-weight:normal;font-size:3.175px;font-family:Calibri;-inkscape-font-specification:Calibri;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
+       id="PlantManagerCost"
+       x="172.5083"
+       y="129.03552">&gt; 1.500 €</text>
+    <text
+       style="font-variant:normal;font-weight:normal;font-size:3.175px;font-family:Calibri;-inkscape-font-specification:Calibri;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
+       id="SeniorManagerCost"
+       x="172.50832"
+       y="144.03554">&gt; 1.500 € - 5.000 €</text>
+    <text
+       style="font-variant:normal;font-weight:normal;font-size:3.175px;font-family:Calibri;-inkscape-font-specification:Calibri;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
+       id="SRVPRegionalCost"
+       x="172.50832"
+       y="179.53554">&gt; 10.000 €</text>
+    <text
+       style="font-variant:normal;font-weight:normal;font-size:3.175px;font-family:Calibri;-inkscape-font-specification:Calibri;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
+       id="ManagerOPSDivisionCost"
+       x="172.50832"
+       y="162.03554">&gt; 5.000 € - 10.000 €</text>
   </g>
   <g
      inkscape:label="Fondo"
