@@ -103,15 +103,21 @@ document.addEventListener('DOMContentLoaded', function () {
                     <h6 class="card-subtitle">CW: ${semana}</h6>
                     <p class="card-text">${order.description || ''}</p>
                     <p class= "card-p">Falta: Senior Manager Logistic</p>
-                    <button class="card-button ver-btn">Ver</button>
+                    <button class="card-button ver-btn" data-order-id="${order.id}">Ver</button>
                 </div>
             `;
             mainCards.appendChild(card);
         });
 
+        // Variable global para almacenar las órdenes
+        window.allOrders = orders;
+
         // Agrega el evento a todos los botones "Ver"
         document.querySelectorAll('.ver-btn').forEach(btn => {
             btn.addEventListener('click', function() {
+                // Almacenar el ID de la orden seleccionada
+                const orderId = this.getAttribute('data-order-id');
+                sessionStorage.setItem('selectedOrderId', orderId);
                 document.getElementById('myModal').style.display = 'flex';
             });
         });
@@ -156,6 +162,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
             
+            // Obtener el ID de la orden seleccionada
+            const selectedOrderId = sessionStorage.getItem('selectedOrderId');
+            
+            // Encontrar la orden correspondiente
+            const selectedOrder = window.allOrders.find(order => order.id == selectedOrderId) || {};
+            const plantaValue = selectedOrder.planta || '';
+            
             // Hacer fetch del SVG como texto
             const response = await fetch('Premium_Freight.svg');
             const svgText = await response.text();
@@ -167,8 +180,16 @@ document.addEventListener('DOMContentLoaded', function () {
             container.style.position = 'absolute';
             container.style.left = '-9999px'; // Fuera de la pantalla
             container.innerHTML = svgText;
+            
+            // Modificar el valor del elemento RequestingPlantValue con el valor de planta
+            const plantaElement = container.querySelector('#RequestingPlantValue');
+            if (plantaElement) {
+                plantaElement.textContent = plantaValue;
+            }
+            
             document.body.appendChild(container);
             
+            // El resto del código sigue igual...
             // Esperar a que el SVG se renderice
             await new Promise(resolve => setTimeout(resolve, 200));
             
@@ -256,3 +277,4 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+
