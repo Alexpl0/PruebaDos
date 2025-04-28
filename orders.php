@@ -112,7 +112,7 @@
     <div id="myModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
   <div style="background:#fff; border-radius:8px; width:816px; height:1056px; max-width:95vw; max-height:95vh; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; box-shadow:0 0 20px #0004;">
     <span id="closeModal" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:28px; z-index:2;">&times;</span>
-    <object data="Premium_Freight.svg" type="image/svg+xml" style="width:100%; height:100%;">
+    <object data="PremiumFreight.svg" type="image/svg+xml" style="width:100%; height:100%;">
       Tu navegador no soporta SVG.
     </object>
   </div>
