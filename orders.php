@@ -95,7 +95,7 @@
     </main>
 
     <h1 id="title3">¿Necesitas ayuda?</h1>
-    <button id="openModal" class="btn btn-primary mb-3">Ver Ayuda 3</button>
+    <button id="openModal" class="btn btn-primary mb-3">Ver Ayuda 4</button>
     <!-- Modal -->
     <div id="myModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
       <div style="background:#fff; border-radius:8px; width:816px; height:1056px; max-width:95vw; max-height:95vh; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; box-shadow:0 0 20px #0004;">
@@ -108,7 +108,7 @@
     </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://unpkg.com/svg2pdf.js@2.3.4/dist/svg2pdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/svg2pdf.js@2.2.0/dist/svg2pdf.min.js"></script>
 <script>
 // Abrir el modal
 document.getElementById('openModal').onclick = function() {
@@ -127,29 +127,42 @@ window.onclick = function(event) {
 };
 // Guardar SVG como PDF
 document.getElementById('savePdfBtn').onclick = async function() {
-  const svgObject = document.getElementById('svgObject');
-  const svgDoc = svgObject.contentDocument;
-  if (!svgDoc) {
-    alert('El SVG aún no está cargado. Intenta de nuevo en un momento.');
-    return;
+  try {
+    const svgObject = document.getElementById('svgObject');
+    const svgDoc = svgObject.contentDocument;
+    if (!svgDoc) {
+      alert('El SVG aún no está cargado. Intenta de nuevo en un momento.');
+      return;
+    }
+    const svgElement = svgDoc.querySelector('svg');
+    if (!svgElement) {
+      alert('No se encontró el SVG.');
+      return;
+    }
+    
+    // Usar jspdf desde la versión UMD
+    const { jsPDF } = window.jspdf;
+    
+    // Crear documento PDF
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'pt',
+      format: [816, 1056] // Tamaño carta
+    });
+    
+    // Convertir SVG a PDF usando la librería importada correctamente
+    await svg2pdf(svgElement, pdf, {
+      xOffset: 0,
+      yOffset: 0,
+      scale: 1
+    });
+    
+    // Guardar PDF
+    pdf.save('PremiumFreight.pdf');
+  } catch (error) {
+    console.error('Error al generar el PDF:', error);
+    alert('Error al generar el PDF: ' + error.message);
   }
-  const svgElement = svgDoc.querySelector('svg');
-  if (!svgElement) {
-    alert('No se encontró el SVG.');
-    return;
-  }
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF({
-    orientation: 'portrait',
-    unit: 'pt',
-    format: [816, 1056]
-  });
-  await window.svg2pdf.svg2pdf(svgElement, pdf, {
-    xOffset: 0,
-    yOffset: 0,
-    scale: 1
-  });
-  pdf.save('PremiumFreight.pdf');
 };
 </script>
 
