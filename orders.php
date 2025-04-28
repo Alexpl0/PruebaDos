@@ -95,7 +95,7 @@
     </main>
 
     <h1 id="title3">¿Necesitas ayuda?</h1>
-    <button id="openModal" class="btn btn-primary mb-3">Ver Ayuda 4</button>
+    <button id="openModal" class="btn btn-primary mb-3">Ver Ayuda 5</button>
     <!-- Modal -->
     <div id="myModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
       <div style="background:#fff; border-radius:8px; width:816px; height:1056px; max-width:95vw; max-height:95vh; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; box-shadow:0 0 20px #0004;">
@@ -107,8 +107,9 @@
       </div>
     </div>
 
+<!-- Reemplaza las librerías actuales por estas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/svg2pdf.js@2.2.0/dist/svg2pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 // Abrir el modal
 document.getElementById('openModal').onclick = function() {
@@ -125,40 +126,52 @@ window.onclick = function(event) {
     modal.style.display = 'none';
   }
 };
-// Guardar SVG como PDF
+// Guardar SVG como PDF usando html2canvas
 document.getElementById('savePdfBtn').onclick = async function() {
   try {
+    // Mostrar mensaje de carga
+    const loadingMsg = document.createElement('div');
+    loadingMsg.textContent = 'Generando PDF...';
+    loadingMsg.style.position = 'absolute';
+    loadingMsg.style.top = '50%';
+    loadingMsg.style.left = '50%';
+    loadingMsg.style.transform = 'translate(-50%, -50%)';
+    loadingMsg.style.background = 'rgba(255,255,255,0.8)';
+    loadingMsg.style.padding = '20px';
+    loadingMsg.style.borderRadius = '5px';
+    loadingMsg.style.zIndex = '1000';
+    document.querySelector('#myModal > div').appendChild(loadingMsg);
+    
+    // Obtener el SVG como imagen
     const svgObject = document.getElementById('svgObject');
-    const svgDoc = svgObject.contentDocument;
-    if (!svgDoc) {
-      alert('El SVG aún no está cargado. Intenta de nuevo en un momento.');
-      return;
-    }
-    const svgElement = svgDoc.querySelector('svg');
-    if (!svgElement) {
-      alert('No se encontró el SVG.');
-      return;
-    }
     
-    // Usar jspdf desde la versión UMD
+    // Crear instancia de jsPDF
     const { jsPDF } = window.jspdf;
-    
-    // Crear documento PDF
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'pt',
       format: [816, 1056] // Tamaño carta
     });
     
-    // Convertir SVG a PDF usando la librería importada correctamente
-    await svg2pdf(svgElement, pdf, {
-      xOffset: 0,
-      yOffset: 0,
-      scale: 1
+    // Capturar el objeto SVG como una imagen con html2canvas
+    const canvas = await html2canvas(svgObject, {
+      scale: 2, // Mayor calidad
+      useCORS: true,
+      allowTaint: true,
+      logging: true
     });
     
-    // Guardar PDF
+    // Convertir canvas a una imagen para el PDF
+    const imgData = canvas.toDataURL('image/png');
+    
+    // Agregar la imagen al PDF con el tamaño correcto
+    pdf.addImage(imgData, 'PNG', 0, 0, 816, 1056);
+    
+    // Guardar el PDF
     pdf.save('PremiumFreight.pdf');
+    
+    // Eliminar mensaje de carga
+    document.querySelector('#myModal > div').removeChild(loadingMsg);
   } catch (error) {
     console.error('Error al generar el PDF:', error);
     alert('Error al generar el PDF: ' + error.message);
