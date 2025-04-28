@@ -118,6 +118,7 @@
   </div>
 </div>
 
+
 <script>
 // Abrir el modal
 document.getElementById('openModal').onclick = function() {
