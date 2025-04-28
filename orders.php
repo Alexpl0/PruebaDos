@@ -3,23 +3,13 @@
 <head>
 <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>Orders</title> <!-- Define el título que aparece en la pestaña o barra de título del navegador -->
-    
-    <!-- Incluye la biblioteca SweetAlert2 desde una CDN para mostrar alertas y mensajes bonitos -->
+    <title>Orders</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
-    <!-- Agregar Ionicons en el head con la versión más reciente -->
     <script type="module" src="https://unpkg.com/ionicons@7.2.2/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.2.2/dist/ionicons/ionicons.js"></script>
-    
-    
-    <!-- Enlaza la hoja de estilos CSS de Bootstrap desde una CDN para aplicar estilos predefinidos -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    
-    <!-- Archivos CSS locales -->
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/orders.css">
-
 </head>
 <body>
     <header class="header">
@@ -100,24 +90,25 @@
     </div>
 
     <main id="main">
-
        <div id="card"> 
         </div>
-
     </main>
 
     <h1 id="title3">¿Necesitas ayuda?</h1>
     <button id="openModal" class="btn btn-primary mb-3">Ver Ayuda 2</button>
     <!-- Modal -->
     <div id="myModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
-  <div style="background:#fff; border-radius:8px; width:816px; height:1056px; max-width:95vw; max-height:95vh; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; box-shadow:0 0 20px #0004;">
-    <span id="closeModal" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:28px; z-index:2;">&times;</span>
-    <object data="PremiumFreight.svg" type="image/svg+xml" style="width:100%; height:100%;">
-      Tu navegador no soporta SVG.
-    </object>
-  </div>
-</div>
+      <div style="background:#fff; border-radius:8px; width:816px; height:1056px; max-width:95vw; max-height:95vh; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; box-shadow:0 0 20px #0004;">
+        <span id="closeModal" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:28px; z-index:2;">&times;</span>
+        <button id="savePdfBtn" class="btn btn-success" style="position:absolute; top:10px; left:15px; z-index:2;">Guardar PDF</button>
+        <object id="svgObject" data="PremiumFreight.svg" type="image/svg+xml" style="width:100%; height:100%;">
+          Tu navegador no soporta SVG.
+        </object>
+      </div>
+    </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://unpkg.com/svg2pdf.js@2.3.4/dist/svg2pdf.umd.min.js"></script>
 <script>
 // Abrir el modal
 document.getElementById('openModal').onclick = function() {
@@ -134,17 +125,37 @@ window.onclick = function(event) {
     modal.style.display = 'none';
   }
 };
+// Guardar SVG como PDF
+document.getElementById('savePdfBtn').onclick = async function() {
+  const svgObject = document.getElementById('svgObject');
+  const svgDoc = svgObject.contentDocument;
+  if (!svgDoc) {
+    alert('El SVG aún no está cargado. Intenta de nuevo en un momento.');
+    return;
+  }
+  const svgElement = svgDoc.querySelector('svg');
+  if (!svgElement) {
+    alert('No se encontró el SVG.');
+    return;
+  }
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({
+    orientation: 'portrait',
+    unit: 'pt',
+    format: [816, 1056]
+  });
+  await window.svg2pdf(svgElement, pdf, {
+    xOffset: 0,
+    yOffset: 0,
+    scale: 1
+  });
+  pdf.save('PremiumFreight.pdf');
+};
 </script>
 
-       <!-- Archivos JS locales -->
     <script src="js/header.js"></script>
     <script src="js/orders.js"></script>
-
-    <!-- Incluye la biblioteca jQuery desde una CDN. jQuery es necesario para Select2 y facilita la manipulación del DOM y eventos -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-
 </body>
 </html>
