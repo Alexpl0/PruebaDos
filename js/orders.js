@@ -140,18 +140,18 @@ document.addEventListener('DOMContentLoaded', function () {
     // Método para cargar el SVG directamente y guardarlo como PDF
     document.getElementById('savePdfBtn').onclick = async function() {
         try {
-            // Mostrar mensaje de carga
-            const loadingMsg = document.createElement('div');
-            loadingMsg.textContent = 'Generando PDF...';
-            loadingMsg.style.position = 'absolute';
-            loadingMsg.style.top = '50%';
-            loadingMsg.style.left = '50%';
-            loadingMsg.style.transform = 'translate(-50%, -50%)';
-            loadingMsg.style.background = 'rgba(255,255,255,0.8)';
-            loadingMsg.style.padding = '20px';
-            loadingMsg.style.borderRadius = '5px';
-            loadingMsg.style.zIndex = '1000';
-            document.querySelector('#myModal > div').appendChild(loadingMsg);
+            // Mostrar Sweet Alert de carga
+            Swal.fire({
+                title: 'Generando PDF',
+                html: 'Por favor espera mientras se procesa el documento...',
+                timerProgressBar: true,
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                allowEnterKey: false
+            });
             
             // Hacer fetch del SVG como texto
             const response = await fetch('PremiumFreight.svg');
@@ -194,10 +194,26 @@ document.addEventListener('DOMContentLoaded', function () {
             
             // Limpiar
             document.body.removeChild(container);
-            document.querySelector('#myModal > div').removeChild(loadingMsg);
+            
+            // Cerrar el SweetAlert de carga y mostrar uno de éxito
+            Swal.fire({
+                icon: 'success',
+                title: '¡PDF generado con éxito!',
+                text: 'El archivo se ha descargado correctamente.',
+                confirmButtonText: 'Genial',
+                timer: 3000,
+                timerProgressBar: true
+            });
         } catch (error) {
             console.error('Error al generar el PDF:', error);
-            alert('Error al generar el PDF: ' + error.message);
+            
+            // Mostrar error con SweetAlert
+            Swal.fire({
+                icon: 'error',
+                title: 'Error al generar el PDF',
+                text: error.message,
+                confirmButtonText: 'Entendido'
+            });
         }
     };
 
