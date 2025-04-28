@@ -243,6 +243,8 @@ document.addEventListener('DOMContentLoaded', function () {
         btnMXN.addEventListener('click', function () {
             calcularEuros('MXN');
             monedaSeleccionada = "MXN"; // MXN
+            btnMXN.classList.add('moneda-activa');
+            btnUSD.classList.remove('moneda-activa');
             console.log("Botón MXN presionado");
         });
     }
@@ -250,6 +252,8 @@ document.addEventListener('DOMContentLoaded', function () {
         btnUSD.addEventListener('click', function () {
             calcularEuros('USD');
             monedaSeleccionada = "USD"; // USD
+            btnUSD.classList.add('moneda-activa');
+            btnMXN.classList.remove('moneda-activa');
             console.log("Botón USD presionado");
         });
     }
