@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             
             // Hacer fetch del SVG como texto
-            const response = await fetch('PremiumFreight.svg');
+            const response = await fetch('Premium_Freight.svg');
             const svgText = await response.text();
             
             // Crear un div temporal para contener el SVG
