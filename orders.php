@@ -96,6 +96,7 @@
 
     <h1 id="title3">¿Necesitas ayuda?</h1>
     <button id="openModal" class="btn btn-primary mb-3">Ver Ayuda 5</button>
+    
     <!-- Modal -->
     <div id="myModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
       <div style="background:#fff; border-radius:8px; width:816px; height:1056px; max-width:95vw; max-height:95vh; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; box-shadow:0 0 20px #0004;">
@@ -108,90 +109,9 @@
       </div>
     </div>
 
-<!-- Reemplaza las librerías actuales por estas -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-<script>
-// Abrir el modal
-document.getElementById('openModal').onclick = function() {
-  document.getElementById('myModal').style.display = 'flex';
-};
-// Cerrar el modal
-document.getElementById('closeModal').onclick = function() {
-  document.getElementById('myModal').style.display = 'none';
-};
-// Cerrar al hacer clic fuera del contenido
-window.onclick = function(event) {
-  var modal = document.getElementById('myModal');
-  if (event.target == modal) {
-    modal.style.display = 'none';
-  }
-};
-// Método para cargar el SVG directamente y guardarlo como PDF
-document.getElementById('savePdfBtn').onclick = async function() {
-  try {
-    // Mostrar mensaje de carga
-    const loadingMsg = document.createElement('div');
-    loadingMsg.textContent = 'Generando PDF...';
-    loadingMsg.style.position = 'absolute';
-    loadingMsg.style.top = '50%';
-    loadingMsg.style.left = '50%';
-    loadingMsg.style.transform = 'translate(-50%, -50%)';
-    loadingMsg.style.background = 'rgba(255,255,255,0.8)';
-    loadingMsg.style.padding = '20px';
-    loadingMsg.style.borderRadius = '5px';
-    loadingMsg.style.zIndex = '1000';
-    document.querySelector('#myModal > div').appendChild(loadingMsg);
-    
-    // Hacer fetch del SVG como texto
-    const response = await fetch('PremiumFreight.svg');
-    const svgText = await response.text();
-    
-    // Crear un div temporal para contener el SVG
-    const container = document.createElement('div');
-    container.style.width = '816px';
-    container.style.height = '1056px';
-    container.style.position = 'absolute';
-    container.style.left = '-9999px'; // Fuera de la pantalla
-    container.innerHTML = svgText;
-    document.body.appendChild(container);
-    
-    // Esperar a que el SVG se renderice
-    await new Promise(resolve => setTimeout(resolve, 200));
-    
-    // Usar html2canvas en el div que contiene el SVG
-    const canvas = await html2canvas(container, {
-      scale: 2,
-      logging: true,
-      useCORS: true,
-      allowTaint: true
-    });
-    
-    // Crear PDF con jsPDF
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'pt',
-      format: [816, 1056]
-    });
-    
-    // Agregar la imagen al PDF
-    const imgData = canvas.toDataURL('image/png');
-    pdf.addImage(imgData, 'PNG', 0, 0, 816, 1056);
-    
-    // Guardar el PDF
-    pdf.save('PremiumFreight.pdf');
-    
-    // Limpiar
-    document.body.removeChild(container);
-    document.querySelector('#myModal > div').removeChild(loadingMsg);
-  } catch (error) {
-    console.error('Error al generar el PDF:', error);
-    alert('Error al generar el PDF: ' + error.message);
-  }
-};
-</script>
-
+    <!-- Scripts necesarios -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="js/header.js"></script>
     <script src="js/orders.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

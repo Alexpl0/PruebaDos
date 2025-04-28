@@ -112,12 +112,96 @@ document.addEventListener('DOMContentLoaded', function () {
         // Agrega el evento a todos los botones "Ver"
         document.querySelectorAll('.ver-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                document.getElementById('myModal').style.display = 'block';
+                document.getElementById('myModal').style.display = 'flex';
             });
         });
     }
 
-    // Cerrar modal al hacer click en la X
+    // SCRIPTS MOVIDOS DESDE HTML AL JS
+    
+    // Abrir el modal
+    document.getElementById('openModal').onclick = function() {
+        document.getElementById('myModal').style.display = 'flex';
+    };
+    
+    // Cerrar el modal
+    document.getElementById('closeModal').onclick = function() {
+        document.getElementById('myModal').style.display = 'none';
+    };
+    
+    // Cerrar al hacer clic fuera del contenido
+    window.onclick = function(event) {
+        var modal = document.getElementById('myModal');
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    };
+    
+    // Método para cargar el SVG directamente y guardarlo como PDF
+    document.getElementById('savePdfBtn').onclick = async function() {
+        try {
+            // Mostrar mensaje de carga
+            const loadingMsg = document.createElement('div');
+            loadingMsg.textContent = 'Generando PDF...';
+            loadingMsg.style.position = 'absolute';
+            loadingMsg.style.top = '50%';
+            loadingMsg.style.left = '50%';
+            loadingMsg.style.transform = 'translate(-50%, -50%)';
+            loadingMsg.style.background = 'rgba(255,255,255,0.8)';
+            loadingMsg.style.padding = '20px';
+            loadingMsg.style.borderRadius = '5px';
+            loadingMsg.style.zIndex = '1000';
+            document.querySelector('#myModal > div').appendChild(loadingMsg);
+            
+            // Hacer fetch del SVG como texto
+            const response = await fetch('PremiumFreight.svg');
+            const svgText = await response.text();
+            
+            // Crear un div temporal para contener el SVG
+            const container = document.createElement('div');
+            container.style.width = '816px';
+            container.style.height = '1056px';
+            container.style.position = 'absolute';
+            container.style.left = '-9999px'; // Fuera de la pantalla
+            container.innerHTML = svgText;
+            document.body.appendChild(container);
+            
+            // Esperar a que el SVG se renderice
+            await new Promise(resolve => setTimeout(resolve, 200));
+            
+            // Usar html2canvas en el div que contiene el SVG
+            const canvas = await html2canvas(container, {
+                scale: 2,
+                logging: true,
+                useCORS: true,
+                allowTaint: true
+            });
+            
+            // Crear PDF con jsPDF
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'pt',
+                format: [816, 1056]
+            });
+            
+            // Agregar la imagen al PDF
+            const imgData = canvas.toDataURL('image/png');
+            pdf.addImage(imgData, 'PNG', 0, 0, 816, 1056);
+            
+            // Guardar el PDF
+            pdf.save('PremiumFreight.pdf');
+            
+            // Limpiar
+            document.body.removeChild(container);
+            document.querySelector('#myModal > div').removeChild(loadingMsg);
+        } catch (error) {
+            console.error('Error al generar el PDF:', error);
+            alert('Error al generar el PDF: ' + error.message);
+        }
+    };
+
+    // Cerrar modal al hacer click en la X (ya está implementado arriba, este es redundante)
     document.addEventListener('click', function(e) {
         if (e.target.id === 'closeModal') {
             document.getElementById('myModal').style.display = 'none';
