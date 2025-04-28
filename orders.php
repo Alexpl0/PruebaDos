@@ -101,15 +101,16 @@
       <div style="background:#fff; border-radius:8px; width:816px; height:1056px; max-width:95vw; max-height:95vh; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; box-shadow:0 0 20px #0004;">
         <span id="closeModal" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:28px; z-index:2;">&times;</span>
         <button id="savePdfBtn" class="btn btn-success" style="position:absolute; top:10px; left:15px; z-index:2;">Guardar PDF</button>
-        <object id="svgObject" data="PremiumFreight.svg" type="image/svg+xml" style="width:100%; height:100%;">
-          Tu navegador no soporta SVG.
-        </object>
+        <!-- Reemplazar object con iframe para mejor compatibilidad -->
+        <iframe id="svgFrame" src="PremiumFreight.svg" style="width:100%; height:100%; border:none;">
+          Tu navegador no soporta iframes.
+        </iframe>
       </div>
     </div>
 
 <!-- Reemplaza las librerías actuales por estas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 <script>
 // Abrir el modal
 document.getElementById('openModal').onclick = function() {
@@ -126,7 +127,7 @@ window.onclick = function(event) {
     modal.style.display = 'none';
   }
 };
-// Guardar SVG como PDF usando html2canvas
+// Método para cargar el SVG directamente y guardarlo como PDF
 document.getElementById('savePdfBtn').onclick = async function() {
   try {
     // Mostrar mensaje de carga
@@ -142,35 +143,47 @@ document.getElementById('savePdfBtn').onclick = async function() {
     loadingMsg.style.zIndex = '1000';
     document.querySelector('#myModal > div').appendChild(loadingMsg);
     
-    // Obtener el SVG como imagen
-    const svgObject = document.getElementById('svgObject');
+    // Hacer fetch del SVG como texto
+    const response = await fetch('PremiumFreight.svg');
+    const svgText = await response.text();
     
-    // Crear instancia de jsPDF
+    // Crear un div temporal para contener el SVG
+    const container = document.createElement('div');
+    container.style.width = '816px';
+    container.style.height = '1056px';
+    container.style.position = 'absolute';
+    container.style.left = '-9999px'; // Fuera de la pantalla
+    container.innerHTML = svgText;
+    document.body.appendChild(container);
+    
+    // Esperar a que el SVG se renderice
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    // Usar html2canvas en el div que contiene el SVG
+    const canvas = await html2canvas(container, {
+      scale: 2,
+      logging: true,
+      useCORS: true,
+      allowTaint: true
+    });
+    
+    // Crear PDF con jsPDF
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'pt',
-      format: [816, 1056] // Tamaño carta
+      format: [816, 1056]
     });
     
-    // Capturar el objeto SVG como una imagen con html2canvas
-    const canvas = await html2canvas(svgObject, {
-      scale: 2, // Mayor calidad
-      useCORS: true,
-      allowTaint: true,
-      logging: true
-    });
-    
-    // Convertir canvas a una imagen para el PDF
+    // Agregar la imagen al PDF
     const imgData = canvas.toDataURL('image/png');
-    
-    // Agregar la imagen al PDF con el tamaño correcto
     pdf.addImage(imgData, 'PNG', 0, 0, 816, 1056);
     
     // Guardar el PDF
     pdf.save('PremiumFreight.pdf');
     
-    // Eliminar mensaje de carga
+    // Limpiar
+    document.body.removeChild(container);
     document.querySelector('#myModal > div').removeChild(loadingMsg);
   } catch (error) {
     console.error('Error al generar el PDF:', error);
