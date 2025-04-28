@@ -2,6 +2,9 @@
 // Variables globales
 let euros = 0; 
 
+// Variable global para la moneda seleccionada
+let monedaSeleccionada = "1"; // Por defecto "1" (MXN), puedes ajustar según tu lógica
+
 //==========================================================================================
 // Función para mostrar el select de selección de compañía
 
@@ -182,8 +185,8 @@ function enviar(event) {
         origin_id: 1, 
         destiny_id: 1, 
         status_id: 1, // Comienza en 1 porque es el nuevo
-        required_auth_level: range // aplica el valor de range en base a la validación
-
+        required_auth_level: range,
+        moneda: monedaSeleccionada // Usar la moneda seleccionada
     };
 
     console.log("Datos a enviar:", JSON.stringify(data));
@@ -239,12 +242,14 @@ document.addEventListener('DOMContentLoaded', function () {
     if (btnMXN) {
         btnMXN.addEventListener('click', function () {
             calcularEuros('MXN');
+            monedaSeleccionada = "MXN"; // MXN
             console.log("Botón MXN presionado");
         });
     }
     if (btnUSD) {
         btnUSD.addEventListener('click', function () {
             calcularEuros('USD');
+            monedaSeleccionada = "USD"; // USD
             console.log("Botón USD presionado");
         });
     }
