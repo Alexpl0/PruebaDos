@@ -114,43 +114,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Agrega el evento a todos los botones "Ver"
         document.querySelectorAll('.ver-btn').forEach(btn => {
-            btn.addEventListener('click', async function() {
+            btn.addEventListener('click', function() {
                 // Almacenar el ID de la orden seleccionada
                 const orderId = this.getAttribute('data-order-id');
                 sessionStorage.setItem('selectedOrderId', orderId);
-                
-                // Encontrar la orden correspondiente
-                const selectedOrder = window.allOrders.find(order => order.id == orderId) || {};
-                const plantaValue = selectedOrder.planta || '';
-                
-                // Hacer fetch del SVG como texto
-                const response = await fetch('Premium_Freight.svg');
-                const svgText = await response.text();
-                
-                // Crear un contenedor para la vista previa
-                const previewContainer = document.getElementById('svgPreview') || document.createElement('div');
-                if (!document.getElementById('svgPreview')) {
-                    previewContainer.id = 'svgPreview';
-                    previewContainer.style.width = '100%';
-                    previewContainer.style.height = '500px'; // Altura ajustable según necesites
-                    previewContainer.style.overflow = 'auto';
-                    
-                    // Encuentra el contenedor del modal donde quieres insertar la vista previa
-                    const modalContent = document.querySelector('.modal-content');
-                    // Inserta el contenedor antes del botón de guardar PDF
-                    modalContent.insertBefore(previewContainer, document.getElementById('savePdfBtn'));
-                }
-                
-                // Insertar el SVG en el contenedor
-                previewContainer.innerHTML = svgText;
-
-                // Modificar el valor del elemento RequestingPlantValue con el valor de planta
-                const plantaElement = previewContainer.querySelector('#RequestingPlantValue');
-                if (plantaElement) {
-                    plantaElement.textContent = plantaValue;
-                }
-                
-                // Mostrar el modal
                 document.getElementById('myModal').style.display = 'flex';
             });
         });
