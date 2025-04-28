@@ -136,7 +136,7 @@ main{
     border: none;
     background: none;
     box-shadow: #333 0px 0px 0px 1px inset;
-    padding-top: 10% !important;
+    padding-top: 6% !important;
 }
 
 /* Asegurar que SweetAlert aparezca por encima del modal */
