@@ -97,9 +97,11 @@
     <div id="myModal" class="modal">
       <div class="modal-content">
         <span id="closeModal" class="close-button">&times;</span>
-        <button id="savePdfBtn" class="btn btn-success save-pdf-button">Guardar PDF</button>
-        <button id="approveBtn" class="btn btn-primary approve-button" style="display: none;" >Aprobar</button>
-        <button id="rejectBtn" class="btn btn-danger reject-button" style="display: none;">Rechazar</button>
+        <div class="modal-buttons">
+  <button class="save-pdf-button">Guardar PDF</button>
+  <button id="approveBtn">Aprobar</button>
+  <button id="rejectBtn">Rechazar</button>
+</div>
 
         <div id="svgPreview" class="svg-frame"></div>
       </div>

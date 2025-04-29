@@ -123,14 +123,38 @@ main{
   z-index: 2;
 }
 
-.save-pdf-button, #approveBtn, #rejectBtn {
-  position: absolute;
-  top: 10px;
-  left: 15px;
+.modal-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
   margin-bottom: 20px;
+}
+
+.save-pdf-button {
   background-color: #3B82F6;
+  color: white;
   border-radius: 10px;
-  z-index: 2;
+  border: none;
+  padding: 8px 18px;
+  cursor: pointer;
+}
+
+#approveBtn {
+  background-color: #22c55e; /* verde */
+  color: white;
+  border-radius: 10px;
+  border: none;
+  padding: 8px 18px;
+  cursor: pointer;
+}
+
+#rejectBtn {
+  background-color: #ef4444; /* rojo */
+  color: white;
+  border-radius: 10px;
+  border: none;
+  padding: 8px 18px;
+  cursor: pointer;
 }
 
 .svg-frame {
