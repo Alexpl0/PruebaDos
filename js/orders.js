@@ -390,7 +390,26 @@ document.addEventListener('DOMContentLoaded', function () {
             for (const [svgId, orderKey] of Object.entries(svgMap)) {
                 const element = container.querySelector(`#${svgId}`);
                 if (element) {
-                    element.textContent = selectedOrder[orderKey] || '';
+                    if (svgId === 'DescriptionAndRootCauseValue') {
+                        // Obtener el ancho del área de texto
+                        let maxWidth = 300; // valor por defecto
+                        const descArea = container.querySelector('#DescriptionRootInput');
+                        if (descArea && descArea.tagName === 'rect') {
+                            maxWidth = parseFloat(descArea.getAttribute('width')) || maxWidth;
+                        }
+                        // Hacer wrap del texto
+                        const lines = wrapSvgText(selectedOrder[orderKey] || '', maxWidth, container);
+                        element.textContent = '';
+                        lines.forEach((l, i) => {
+                            const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+                            tspan.setAttribute('x', element.getAttribute('x'));
+                            tspan.setAttribute('dy', i === 0 ? '0' : '1.2em');
+                            tspan.textContent = l;
+                            element.appendChild(tspan);
+                        });
+                    } else {
+                        element.textContent = selectedOrder[orderKey] || '';
+                    }
                 } else {
                     console.warn(`Elemento SVG con ID ${svgId} no encontrado para PDF.`);
                 }
@@ -558,4 +577,27 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     };
 });
+
+function wrapSvgText(text, maxWidth, svgElement) {
+    const words = text.split(' ');
+    let line = '';
+    let lines = [];
+    const testText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    svgElement.appendChild(testText);
+
+    for (let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + ' ';
+        testText.textContent = testLine;
+        const length = testText.getComputedTextLength();
+        if (length > maxWidth && n > 0) {
+            lines.push(line.trim());
+            line = words[n] + ' ';
+        } else {
+            line = testLine;
+        }
+    }
+    lines.push(line.trim());
+    svgElement.removeChild(testText);
+    return lines;
+}
 
