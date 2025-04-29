@@ -27,6 +27,7 @@ try {
             u_approver.name AS approver_name,
             u_approver.email AS approver_email,
             u_approver.role AS approver_role
+            u_approver.authorization_level AS approver_level
         FROM PremiumFreight pf
         LEFT JOIN User u ON pf.user_id = u.id
         LEFT JOIN Location lo_from ON pf.origin_id = lo_from.id

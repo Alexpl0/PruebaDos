@@ -42,5 +42,6 @@
     "approval_date": "2025-04-24 16:46:18",
     "approver_name": "Jesús Alejadnro Perez Lopez",
     "approver_email": "jesus@example.com",
-    "approver_role": "Plant Manager"
+    "approver_role": "Plant Manager",
+    "approver_level": 6
 }

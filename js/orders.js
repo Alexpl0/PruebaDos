@@ -270,15 +270,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 console.log(`StatusID: ${selectedOrder.status_id}`)
 
-                if (selectedOrder.status_id === selectedOrder.approver_role) {
+                if (selectedOrder.status_id === selectedOrder.approver_level) {
                     approveBtn.style.display = "block";
                     approveBtn.disabled = false;
                     rejectBtn.style.display = "block";
-                    console.log(`El status_id ${selectedOrder.status_id} es igual al approver_role ${selectedOrder.approver_role}`); 
+                    console.log(`El status_id ${selectedOrder.status_id} es igual al approver_level ${selectedOrder.approver_level}`); 
                 } else {
                     approveBtn.style.display = "none";
                     rejectBtn.style.display = "none";
-                    console.log(`El status_id ${selectedOrder.status_id} NO es igual al approver_role ${selectedOrder.approver_role}`); 
+                    console.log(`El status_id ${selectedOrder.status_id} NO es igual al approver_level ${selectedOrder.approver_level}`); 
                 }
 
                 try {
