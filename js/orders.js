@@ -248,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 Swal.fire({
                     title: 'Cargando', 
                     html: 'Por favor espera mientras se carga el documento...',
-                    timer: 2000,
+                    timer: 1000,
                     timerProgressBar: true,
                     didOpen: () => {
                         Swal.showLoading();

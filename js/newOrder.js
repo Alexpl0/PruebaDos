@@ -146,16 +146,16 @@ function enviar(event) {
     const costoEuros = parseFloat(data['CostoEuros'].replace(/[^0-9.-]+/g, "")); // Eliminar caracteres no numéricos
     const range = 0;
     if (quotedCost <= 1500 || costoEuros <= 1500) {
-        range = 1;
-        return;
-    } else if ( (1500 > quotedCost || 1500 > costoEuros) && (quotedCost <= 5000 || costoEuros <= 5000) ) {
-        range = 2;
-        return;
-    } else if ( (5000 > quotedCost || 5000 > costoEuros) && (quotedCost <= 10000 || costoEuros <= 10000) ) {
         range = 3;
         return;
-    } else if ((10000 > quotedCost || 10000 > costoEuros)) {
+    } else if ( (1500 > quotedCost || 1500 > costoEuros) && (quotedCost <= 5000 || costoEuros <= 5000) ) {
         range = 4;
+        return;
+    } else if ( (5000 > quotedCost || 5000 > costoEuros) && (quotedCost <= 10000 || costoEuros <= 10000) ) {
+        range = 6;
+        return;
+    } else if ((10000 > quotedCost || 10000 > costoEuros)) {
+        range = 7;
     }
 
     //==========================================================================================
