@@ -124,10 +124,8 @@ main{
 }
 
 .modal-buttons {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  margin-bottom: 20px;
+  flex-direction: row !important;
+  align-items: center !important;
 }
 
 .save-pdf-button {
