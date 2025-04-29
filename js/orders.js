@@ -273,9 +273,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     approveBtn.style.display = "block";
                     approveBtn.disabled = false;
                     rejectBtn.style.display = "block";
+                    console.log(`El status_id ${selectedOrder.status_id} es igual al approval_id ${selectedOrder.approval_id}`); 
                 } else {
                     approveBtn.style.display = "none";
                     rejectBtn.style.display = "none";
+                    console.log(`El status_id ${selectedOrder.status_id} NO es igual al approval_id ${selectedOrder.approval_id}`); 
                 }
 
                 try {
