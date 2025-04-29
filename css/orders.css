@@ -123,7 +123,7 @@ main{
   z-index: 2;
 }
 
-.save-pdf-button {
+.save-pdf-button, #approveBtn, #rejectBtn {
   position: absolute;
   top: 10px;
   left: 15px;
