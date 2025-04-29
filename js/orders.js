@@ -295,18 +295,14 @@ document.addEventListener('DOMContentLoaded', function () {
                         const element = tempDiv.querySelector(`#${svgId}`);
                         if (element) {
                             if (svgId === 'DescriptionAndRootCauseValue') {
-                                // Obtener el ancho del área de texto
-                                let maxWidth = 300; // valor por defecto
-                                const descArea = tempDiv.querySelector('#DescriptionRootInput');
-                                if (descArea && descArea.tagName === 'rect') {
-                                    maxWidth = parseFloat(descArea.getAttribute('width')) || maxWidth;
-                                }
+                                // Define el ancho máximo manualmente (ajusta según tu SVG)
+                                const maxWidth = 300;
                                 // Hacer wrap del texto
                                 const lines = wrapSvgText(selectedOrder[orderKey] || '', maxWidth, tempDiv);
                                 element.textContent = '';
                                 lines.forEach((l, i) => {
                                     const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
-                                    tspan.setAttribute('x', element.getAttribute('x'));
+                                    tspan.setAttribute('x', element.getAttribute('x') || element.getAttribute('x1') || 0);
                                     tspan.setAttribute('dy', i === 0 ? '0' : '1.2em');
                                     tspan.textContent = l;
                                     element.appendChild(tspan);
@@ -314,9 +310,6 @@ document.addEventListener('DOMContentLoaded', function () {
                             } else {
                                 element.textContent = selectedOrder[orderKey] || '';
                             }
-                            console.log(`Elemento SVG con ID ${svgId} actualizado con valor: ${selectedOrder[orderKey] || ''}`);
-                        } else {
-                            console.warn(`Elemento SVG con ID ${svgId} no encontrado.`);
                         }
                     }
 
