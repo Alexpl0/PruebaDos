@@ -16,6 +16,10 @@ if (!$data || !isset($data['orderId']) || !isset($data['newStatusId'])) {
     exit;
 }
 
+// Opcional: fuerza los valores a enteros para mayor seguridad
+$orderId = intval($data['orderId']);
+$newStatusId = intval($data['newStatusId']);
+
 try {
     $con = new LocalConector();
     $conex = $con->conectar();
@@ -30,8 +34,8 @@ try {
     // Vinculamos los parámetros: newStatusId (integer), orderId (integer)
     $stmt->bind_param(
         "ii",
-        $data['newStatusId'],
-        $data['orderId']
+        $newStatusId,
+        $orderId
     );
 
     $stmt->execute();

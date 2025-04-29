@@ -183,9 +183,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Determina el mensaje de quién falta para aprobar
             let falta = '';
-            
-            // Corregido: reemplazamos el while por un if ya que solo necesitamos verificar una vez
-            // si el status_id es menor que el nivel requerido
             if (order.status_id <= order.required_auth_level) {
                 if (order.status_id === 0) {
                     falta = 'Falta: Logistic Manager';
@@ -464,8 +461,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 orderId: selectedOrder.id,
                 newStatusId: newStatusId
             };
-            
-            // Envía la actualización al servidor
+
+            console.log('Datos a enviar:', updateData);
+
             const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoStatusUpdate.php', {
                 method: 'POST',
                 headers: {
