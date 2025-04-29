@@ -27,7 +27,7 @@ try {
     // Preparamos la consulta UPDATE para modificar solo project_status
     $stmt = $conex->prepare(
         "UPDATE `PremiumFreight` 
-         SET project_status = ?
+         SET status_id = ?
          WHERE id = ?"
     );
 

@@ -266,6 +266,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Lógica para mostrar u ocultar los botones según el estado de la orden
                 const approveBtn = document.getElementById('approveBtn');
                 const rejectBtn = document.getElementById('rejectBtn');
+                
+                console.log(`StatusID: ${selectedOrder.status_id}`)
+
                 if (selectedOrder.status_id === selectedOrder.approval_id) {
                     approveBtn.style.display = "block";
                     approveBtn.disabled = false;
@@ -482,13 +485,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 Swal.fire({
                     icon: 'success',
                     title: 'Orden aprobada',
-                    text: `La orden ${selectedOrderId} ha sido aprobada correctamente.`,
+                    text: `La orden ${selectedOrder.id} ha sido aprobada correctamente.`,
                     confirmButtonText: 'Aceptar',
                     customClass: {
                         container: 'swal-on-top'
                     }
                 });
-                
+                console.log(`Nuevo Estatus de la Orden' ${newStatusId}`);
                 // Opcional: Actualizar la vista sin recargar la página
                 // Podrías volver a llamar a createCards() aquí o simplemente cerrar el modal
                 document.getElementById('myModal').style.display = 'none';
