@@ -82,6 +82,7 @@ document.addEventListener('DOMContentLoaded', function () {
         'RequestingPlantValue': 'planta',
         'RootCauseValue': 'category_cause',
         'SDestValue': 'destiny_state',
+        'ManagerOPSDivisionValue': '',
         'SRVPRegionalValue': '',
         'SeniorManagerValue': '',
         'ManagerOPSDivisionValue': '',
@@ -289,11 +290,30 @@ document.addEventListener('DOMContentLoaded', function () {
                     const tempDiv = document.createElement('div');
                     tempDiv.innerHTML = svgText;
 
-                    // Rellena los campos del SVG con los datos de la orden
+                    // --- Rellena los campos del SVG con los datos de la orden ---
                     for (const [svgId, orderKey] of Object.entries(svgMap)) {
                         const element = tempDiv.querySelector(`#${svgId}`);
                         if (element) {
-                            element.textContent = selectedOrder[orderKey] || '';
+                            if (svgId === 'DescriptionAndRootCauseValue') {
+                                // Obtener el ancho del área de texto
+                                let maxWidth = 300; // valor por defecto
+                                const descArea = tempDiv.querySelector('#DescriptionRootInput');
+                                if (descArea && descArea.tagName === 'rect') {
+                                    maxWidth = parseFloat(descArea.getAttribute('width')) || maxWidth;
+                                }
+                                // Hacer wrap del texto
+                                const lines = wrapSvgText(selectedOrder[orderKey] || '', maxWidth, tempDiv);
+                                element.textContent = '';
+                                lines.forEach((l, i) => {
+                                    const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+                                    tspan.setAttribute('x', element.getAttribute('x'));
+                                    tspan.setAttribute('dy', i === 0 ? '0' : '1.2em');
+                                    tspan.textContent = l;
+                                    element.appendChild(tspan);
+                                });
+                            } else {
+                                element.textContent = selectedOrder[orderKey] || '';
+                            }
                             console.log(`Elemento SVG con ID ${svgId} actualizado con valor: ${selectedOrder[orderKey] || ''}`);
                         } else {
                             console.warn(`Elemento SVG con ID ${svgId} no encontrado.`);
