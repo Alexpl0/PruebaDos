@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // response.json() convierte el cuerpo de la respuesta (que se espera sea JSON) en un objeto JavaScript.
         .then(response => response.json())
         // Este .then() se ejecuta después de que la respuesta ha sido convertida a JSON exitosamente.
-        // 'data' contiene el objeto JavaScript resultante.
+        // 'data' contiene el objeto JavaScript resultante
         .then(data => {
             // Llama a la función 'rellenarTablaOrdenes', pasándole el array de órdenes.
             // Se asume que los datos de las órdenes están dentro de una propiedad llamada 'data' en el objeto JSON recibido.
