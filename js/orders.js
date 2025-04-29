@@ -34,21 +34,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 <td>${order.status_name || ''}</td>
                 <td>${order.recovery || ''}</td>
                 <td>${order.description || ''}</td>
-                <!-- SHIP FROM -->
                 <td>${order.origin_company_name || ''}</td>
                 <td>${order.origin_city || ''}</td>
                 <td>${order.origin_state || ''}</td>
                 <td>${order.origin_zip || ''}</td>
-                <!-- DESTINATION -->
                 <td>${order.destiny_company_name || ''}</td>
                 <td>${order.destiny_city || ''}</td>
                 <td>${order.destiny_state || ''}</td>
                 <td>${order.destiny_zip || ''}</td>
-                <!-- ORDER -->
                 <td>${order.weight || ''}</td>
                 <td>${order.measures || ''}</td>
                 <td>${order.products || ''}</td>
-                <!-- CARRIER -->
                 <td>${order.carrier || ''}</td>
                 <td>${order.quoted_cost || ''}</td>
                 <td>${order.reference || ''}</td>
@@ -273,7 +269,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Lógica para mostrar u ocultar los botones según el estado de la orden
                 const approveBtn = document.getElementById('approveBtn');
                 const rejectBtn = document.getElementById('rejectBtn');
-
                 if (selectedOrder.status_id === selectedOrder.approval_id) {
                     approveBtn.style.display = "block";
                     approveBtn.disabled = false;
@@ -314,354 +309,229 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         });
+    }
 
-        // Asigna una función al evento 'onclick' del elemento con ID 'closeModal'.
-        document.getElementById('closeModal').onclick = function() {
-            // Oculta el modal estableciendo su estilo CSS 'display' a 'none'.
-            document.getElementById('myModal').style.display = 'none';
-        };
+    // Botón cerrar modal
+    document.getElementById('closeModal').onclick = function() {
+        document.getElementById('myModal').style.display = 'none';
+    };
 
-        // Asigna una función al evento 'onclick' del objeto global 'window'.
-        // Esto detecta clics en cualquier parte de la ventana del navegador.
-        window.onclick = function(event) {
-            // Obtiene la referencia al elemento del modal.
-            const modal = document.getElementById('myModal');
-            // Comprueba si el elemento que originó el clic (event.target) es el propio modal (el fondo oscuro).
-            if (event.target === modal) {
-                // Oculta el modal.
-                modal.style.display = 'none';
-            }
-        };
+    // Asigna una función al evento 'onclick' del objeto global 'window'.
+    // Esto detecta clics en cualquier parte de la ventana del navegador.
+    window.onclick = function(event) {
+        // Obtiene la referencia al elemento del modal.
+        const modal = document.getElementById('myModal');
+        // Comprueba si el elemento que originó el clic (event.target) es el propio modal (el fondo oscuro).
+        if (event.target === modal) {
+            // Oculta el modal.
+            modal.style.display = 'none';
+        }
+    };
 
-        // --- Lógica para guardar como PDF ---
-        document.getElementById('savePdfBtn').onclick = async function() {
-            try {
-                // Muestra una alerta de carga
-                Swal.fire({
-                    title: 'Generando PDF',
-                    html: 'Por favor espera mientras se procesa el documento...',
-                    timerProgressBar: true,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    },
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    allowEnterKey: false,
-                    customClass: {
-                        container: 'swal-on-top'
-                    }
-                });
-
-                // Obtiene el ID de la orden seleccionada
-                const selectedOrderId = sessionStorage.getItem('selectedOrderId');
-                const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
-
-                // Obtiene el SVG limpio
-                const response = await fetch('Premium_Freight.svg');
-                const svgText = await response.text();
-
-                // Crea un contenedor para el SVG
-                const container = document.createElement('div');
-                container.style.width = '816px';
-                container.style.height = '1056px';
-                container.style.position = 'absolute';
-                container.style.left = '-9999px';
-                container.innerHTML = svgText;
-
-                // Rellena los campos del SVG
-                for (const [svgId, orderKey] of Object.entries(svgMap)) {
-                    const element = container.querySelector(`#${svgId}`);
-                    if (element) {
-                        element.textContent = selectedOrder[orderKey] || '';
-                    } else {
-                        console.warn(`Elemento SVG con ID ${svgId} no encontrado para PDF.`);
-                    }
+    // --- Lógica para guardar como PDF ---
+    document.getElementById('savePdfBtn').onclick = async function() {
+        try {
+            // Muestra una alerta de carga
+            Swal.fire({
+                title: 'Generando PDF',
+                html: 'Por favor espera mientras se procesa el documento...',
+                timerProgressBar: true,
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                allowEnterKey: false,
+                customClass: {
+                    container: 'swal-on-top'
                 }
+            });
 
-                document.body.appendChild(container);
+            // Obtiene el ID de la orden seleccionada
+            const selectedOrderId = sessionStorage.getItem('selectedOrderId');
+            const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
 
-                // Da tiempo al navegador para renderizar el SVG
-                await new Promise(resolve => setTimeout(resolve, 200));
+            // Obtiene el SVG limpio
+            const response = await fetch('Premium_Freight.svg');
+            const svgText = await response.text();
 
-                // Captura el SVG como imagen
-                const canvas = await html2canvas(container, {
-                    scale: 2,
-                    logging: true,
-                    useCORS: true,
-                    allowTaint: true
-                });
+            // Crea un contenedor para el SVG
+            const container = document.createElement('div');
+            container.style.width = '816px';
+            container.style.height = '1056px';
+            container.style.position = 'absolute';
+            container.style.left = '-9999px';
+            container.innerHTML = svgText;
 
-                // Crea el PDF
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'pt',
-                    format: [816, 1056]
-                });
+            // Rellena los campos del SVG
+            for (const [svgId, orderKey] of Object.entries(svgMap)) {
+                const element = container.querySelector(`#${svgId}`);
+                if (element) {
+                    element.textContent = selectedOrder[orderKey] || '';
+                } else {
+                    console.warn(`Elemento SVG con ID ${svgId} no encontrado para PDF.`);
+                }
+            }
 
-                const imgData = canvas.toDataURL('image/png');
-                pdf.addImage(imgData, 'PNG', 0, 0, 816, 1056);
+            document.body.appendChild(container);
 
-                const pdfBlob = pdf.output('blob');
-                const pdfUrl = URL.createObjectURL(pdfBlob);
+            // Da tiempo al navegador para renderizar el SVG
+            await new Promise(resolve => setTimeout(resolve, 200));
 
-                const fileName = 'PremiumFreight.pdf';
-                pdf.save(fileName);
+            // Captura el SVG como imagen
+            const canvas = await html2canvas(container, {
+                scale: 2,
+                logging: true,
+                useCORS: true,
+                allowTaint: true
+            });
 
-                document.body.removeChild(container);
+            // Crea el PDF
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'pt',
+                format: [816, 1056]
+            });
 
-                // Muestra mensaje de éxito
+            const imgData = canvas.toDataURL('image/png');
+            pdf.addImage(imgData, 'PNG', 0, 0, 816, 1056);
+
+            const pdfBlob = pdf.output('blob');
+            const pdfUrl = URL.createObjectURL(pdfBlob);
+
+            const fileName = 'PremiumFreight.pdf';
+            pdf.save(fileName);
+
+            document.body.removeChild(container);
+
+            // Muestra mensaje de éxito
+            Swal.fire({
+                icon: 'success',
+                title: '¡PDF generado con éxito!',
+                html: `El archivo <b>${fileName}</b> se ha descargado correctamente.`,
+                showCancelButton: true,
+                confirmButtonText: 'Aceptar',
+                cancelButtonText: 'Ver PDF',
+                reverseButtons: true,
+                customClass: {
+                    container: 'swal-on-top',
+                    confirmButton: 'btn btn-success',
+                    cancelButton: 'btn btn-primary'
+                }
+            }).then((result) => {
+                document.getElementById('myModal').style.display = 'none';
+                if (!result.isConfirmed) {
+                    window.open(pdfUrl, '_blank');
+                }
+                setTimeout(() => URL.revokeObjectURL(pdfUrl), 100);
+            });
+
+        } catch (error) {
+            console.error('Error al generar el PDF:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error al generar el PDF',
+                text: error.message,
+                confirmButtonText: 'Entendido',
+                customClass: {
+                    container: 'swal-on-top'
+                }
+            });
+        }
+    };
+
+    // Aprobar orden
+    document.getElementById('approveBtn').onclick = async function() {
+        const selectedOrderId = sessionStorage.getItem('selectedOrderId');
+        const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
+        try {
+            // Muestra indicador de carga
+            Swal.fire({
+                title: 'Procesando...',
+                text: 'Actualizando estado de la orden',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            // Incrementa el status_id localmente
+            const newStatusId = selectedOrder.status_id + 1;
+            
+            // Prepara los datos para enviar al servidor
+            const updateData = {
+                orderId: selectedOrder.id,
+                newStatusId: newStatusId
+            };
+            
+            // Envía la actualización al servidor
+            const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoStatusUpdate.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updateData)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Actualiza el objeto local
+                selectedOrder.status_id = newStatusId;
+                
+                // Mostrar mensaje de éxito
                 Swal.fire({
                     icon: 'success',
-                    title: '¡PDF generado con éxito!',
-                    html: `El archivo <b>${fileName}</b> se ha descargado correctamente.`,
-                    showCancelButton: true,
+                    title: 'Orden aprobada',
+                    text: `La orden ${selectedOrderId} ha sido aprobada correctamente.`,
                     confirmButtonText: 'Aceptar',
-                    cancelButtonText: 'Ver PDF',
-                    reverseButtons: true,
-                    customClass: {
-                        container: 'swal-on-top',
-                        confirmButton: 'btn btn-success',
-                        cancelButton: 'btn btn-primary'
-                    }
-                }).then((result) => {
-                    document.getElementById('myModal').style.display = 'none';
-                    if (!result.isConfirmed) {
-                        window.open(pdfUrl, '_blank');
-                    }
-                    setTimeout(() => URL.revokeObjectURL(pdfUrl), 100);
-                });
-
-            } catch (error) {
-                console.error('Error al generar el PDF:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error al generar el PDF',
-                    text: error.message,
-                    confirmButtonText: 'Entendido',
                     customClass: {
                         container: 'swal-on-top'
                     }
                 });
-            }
-        };
-if (order.status_id === order.approval_id) {
-            document.getElementById('approveBtn').onclick = async function() {
-                //getElementById('approveBtn').style= "block"; // Muestra el botón de aprobar
-                //getElementById('approveBtn').disabled = true; // Desabilita el botón de aprobar
-                //getElementById('rejectBtn').style= "none"; // Oculta el botón de rechazar
-                // Obtiene el ID de la orden seleccionada
-
-                console.log("Aprobar orden");
-                const selectedOrderId = sessionStorage.getItem('selectedOrderId');
-                const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
                 
-                try {
-                    // Muestra indicador de carga
-                    Swal.fire({
-                        title: 'Procesando...',
-                        text: 'Actualizando estado de la orden',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-                    
-                    // Incrementa el status_id localmente
-                    const newStatusId = selectedOrder.status_id + 1;
-                    
-                    // Prepara los datos para enviar al servidor
-                    const updateData = {
-                        orderId: selectedOrder.id,
-                        newStatusId: newStatusId
-                    };
-                    
-                    // Envía la actualización al servidor
-                    const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoStatusUpdate.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(updateData)
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        // Actualiza el objeto local
-                        selectedOrder.status_id = newStatusId;
-                        
-                        // Mostrar mensaje de éxito
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Orden aprobada',
-                            text: `La orden ${selectedOrderId} ha sido aprobada correctamente.`,
-                            confirmButtonText: 'Aceptar',
-                            customClass: {
-                                container: 'swal-on-top'
-                            }
-                        });
-                        
-                        // Opcional: Actualizar la vista sin recargar la página
-                        // Podrías volver a llamar a createCards() aquí o simplemente cerrar el modal
-                        document.getElementById('myModal').style.display = 'none';
-                        
-                        // Si quieres recargar los datos actualizados:
-                        fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php')
-                            .then(response => response.json())
-                            .then(data => {
-                                rellenarTablaOrdenes(data.data);
-                                createCards(data.data);
-                            });
-                    } else {
-                        throw new Error(result.message || 'Error al actualizar la orden');
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'No se pudo actualizar la orden: ' + error.message,
-                        confirmButtonText: 'Entendido',
-                        customClass: {
-                            container: 'swal-on-top'
-                        }
-                    });
-                }
-            };
-        }
-
-
-
-        document.getElementById('rejectBtn').onclick = async function() {
-            // Obtiene el ID de la orden seleccionada
-            const selectedOrderId = sessionStorage.getItem('selectedOrderId');
-            const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
-
-            // Aquí puedes agregar la lógica para rechazar la orden
-            // Por ejemplo, enviar una solicitud al servidor para actualizar el estado de la orden
-
-            Swal.fire({
-                icon: 'error',
-                title: 'Orden rechazada',
-                text: `La orden ${selectedOrderId} ha sido rechazada.`,
-                confirmButtonText: 'Aceptar',
-                customClass: {
-                    container: 'swal-on-top'
-                }
-            });
-        }
-        if (order.status_id === order.approval_id) {
-            document.getElementById('approveBtn').onclick = async function() {
-                getElementById('approveBtn').style= "block"; // Muestra el botón de aprobar
-                getElementById('approveBtn').disabled = true; // Desabilita el botón de aprobar
-                getElementById('rejectBtn').style= "none"; // Oculta el botón de rechazar
-                // Obtiene el ID de la orden seleccionada
-                const selectedOrderId = sessionStorage.getItem('selectedOrderId');
-                const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
-                
-                try {
-                    // Muestra indicador de carga
-                    Swal.fire({
-                        title: 'Procesando...',
-                        text: 'Actualizando estado de la orden',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-                    
-                    // Incrementa el status_id localmente
-                    const newStatusId = selectedOrder.status_id + 1;
-                    
-                    // Prepara los datos para enviar al servidor
-                    const updateData = {
-                        orderId: selectedOrder.id,
-                        newStatusId: newStatusId
-                    };
-                    
-                    // Envía la actualización al servidor
-                    const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoStatusUpdate.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(updateData)
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        // Actualiza el objeto local
-                        selectedOrder.status_id = newStatusId;
-                        
-                        // Mostrar mensaje de éxito
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Orden aprobada',
-                            text: `La orden ${selectedOrderId} ha sido aprobada correctamente.`,
-                            confirmButtonText: 'Aceptar',
-                            customClass: {
-                                container: 'swal-on-top'
-                            }
-                        });
-                        
-                        // Opcional: Actualizar la vista sin recargar la página
-                        // Podrías volver a llamar a createCards() aquí o simplemente cerrar el modal
-                        document.getElementById('myModal').style.display = 'none';
-                        
-                        // Si quieres recargar los datos actualizados:
-                        fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php')
-                            .then(response => response.json())
-                            .then(data => {
-                                rellenarTablaOrdenes(data.data);
-                                createCards(data.data);
-                            });
-                    } else {
-                        throw new Error(result.message || 'Error al actualizar la orden');
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'No se pudo actualizar la orden: ' + error.message,
-                        confirmButtonText: 'Entendido',
-                        customClass: {
-                            container: 'swal-on-top'
-                        }
-                    });
-                }
-            };
-        }
-
-
-
-        document.getElementById('rejectBtn').onclick = async function() {
-            // Obtiene el ID de la orden seleccionada
-            const selectedOrderId = sessionStorage.getItem('selectedOrderId');
-            const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
-
-            // Aquí puedes agregar la lógica para rechazar la orden
-            // Por ejemplo, enviar una solicitud al servidor para actualizar el estado de la orden
-
-            Swal.fire({
-                icon: 'error',
-                title: 'Orden rechazada',
-                text: `La orden ${selectedOrderId} ha sido rechazada.`,
-                confirmButtonText: 'Aceptar',
-                customClass: {
-                    container: 'swal-on-top'
-                }
-            });
-        }
-
-        // Listener adicional para cerrar el modal
-        document.addEventListener('click', function(e) {
-            if (e.target.id === 'closeModal' || e.target.id === 'myModal') {
+                // Opcional: Actualizar la vista sin recargar la página
+                // Podrías volver a llamar a createCards() aquí o simplemente cerrar el modal
                 document.getElementById('myModal').style.display = 'none';
+                
+                // Si quieres recargar los datos actualizados:
+                fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php')
+                    .then(response => response.json())
+                    .then(data => {
+                        rellenarTablaOrdenes(data.data);
+                        createCards(data.data);
+                    });
+            } else {
+                throw new Error(result.message || 'Error al actualizar la orden');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo actualizar la orden: ' + error.message,
+                confirmButtonText: 'Entendido',
+                customClass: {
+                    container: 'swal-on-top'
+                }
+            });
+        }
+    };
+
+    // Rechazar orden
+    document.getElementById('rejectBtn').onclick = async function() {
+        const selectedOrderId = sessionStorage.getItem('selectedOrderId');
+        // Aquí puedes agregar la lógica para rechazar la orden (similar a aprobar)
+        Swal.fire({
+            icon: 'error',
+            title: 'Orden rechazada',
+            text: `La orden ${selectedOrderId} ha sido rechazada.`,
+            confirmButtonText: 'Aceptar',
+            customClass: {
+                container: 'swal-on-top'
             }
         });
-    }
+    };
 });
 
