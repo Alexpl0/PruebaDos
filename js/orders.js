@@ -92,6 +92,7 @@ document.addEventListener('DOMContentLoaded', function () {
         'ZIPDestValue': 'destiny_zip',
         'ZIPShipValue': 'origin_zip'
     };
+    
 
     // Realiza una petición asíncrona (fetch) a la URL especificada para obtener los datos de las órdenes.
     // La URL apunta a un script PHP que probablemente consulta una base de datos y devuelve los datos en formato JSON.
