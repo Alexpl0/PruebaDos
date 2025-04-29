@@ -432,7 +432,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             }
         };
-        if (order.status_id === order.required_auth_level) {
+        if (order.status_id === order.approval_id) {
             document.getElementById('approveBtn').onclick = async function() {
                 getElementById('approveBtn').style= "block"; // Muestra el botón de aprobar
                 getElementById('approveBtn').disabled = true; // Desabilita el botón de aprobar
