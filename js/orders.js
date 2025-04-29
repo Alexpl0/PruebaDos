@@ -270,6 +270,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Busca la orden completa correspondiente al 'orderId' dentro del array global 'window.allOrders'.
                 const selectedOrder = window.allOrders.find(order => order.id === parseInt(orderId)) || {};
 
+                // Lógica para mostrar u ocultar los botones según el estado de la orden
+                const approveBtn = document.getElementById('approveBtn');
+                const rejectBtn = document.getElementById('rejectBtn');
+
+                if (selectedOrder.status_id === selectedOrder.approval_id) {
+                    approveBtn.style.display = "block";
+                    approveBtn.disabled = false;
+                    rejectBtn.style.display = "block";
+                } else {
+                    approveBtn.style.display = "none";
+                    rejectBtn.style.display = "none";
+                }
+
                 try {
                     // Obtiene el contenido del SVG
                     const response = await fetch('Premium_Freight.svg');
@@ -432,6 +445,110 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             }
         };
+if (order.status_id === order.approval_id) {
+            document.getElementById('approveBtn').onclick = async function() {
+                //getElementById('approveBtn').style= "block"; // Muestra el botón de aprobar
+                //getElementById('approveBtn').disabled = true; // Desabilita el botón de aprobar
+                //getElementById('rejectBtn').style= "none"; // Oculta el botón de rechazar
+                // Obtiene el ID de la orden seleccionada
+                const selectedOrderId = sessionStorage.getItem('selectedOrderId');
+                const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
+                
+                try {
+                    // Muestra indicador de carga
+                    Swal.fire({
+                        title: 'Procesando...',
+                        text: 'Actualizando estado de la orden',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    
+                    // Incrementa el status_id localmente
+                    const newStatusId = selectedOrder.status_id + 1;
+                    
+                    // Prepara los datos para enviar al servidor
+                    const updateData = {
+                        orderId: selectedOrder.id,
+                        newStatusId: newStatusId
+                    };
+                    
+                    // Envía la actualización al servidor
+                    const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoStatusUpdate.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(updateData)
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Actualiza el objeto local
+                        selectedOrder.status_id = newStatusId;
+                        
+                        // Mostrar mensaje de éxito
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Orden aprobada',
+                            text: `La orden ${selectedOrderId} ha sido aprobada correctamente.`,
+                            confirmButtonText: 'Aceptar',
+                            customClass: {
+                                container: 'swal-on-top'
+                            }
+                        });
+                        
+                        // Opcional: Actualizar la vista sin recargar la página
+                        // Podrías volver a llamar a createCards() aquí o simplemente cerrar el modal
+                        document.getElementById('myModal').style.display = 'none';
+                        
+                        // Si quieres recargar los datos actualizados:
+                        fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php')
+                            .then(response => response.json())
+                            .then(data => {
+                                rellenarTablaOrdenes(data.data);
+                                createCards(data.data);
+                            });
+                    } else {
+                        throw new Error(result.message || 'Error al actualizar la orden');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudo actualizar la orden: ' + error.message,
+                        confirmButtonText: 'Entendido',
+                        customClass: {
+                            container: 'swal-on-top'
+                        }
+                    });
+                }
+            };
+        }
+
+
+
+        document.getElementById('rejectBtn').onclick = async function() {
+            // Obtiene el ID de la orden seleccionada
+            const selectedOrderId = sessionStorage.getItem('selectedOrderId');
+            const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
+
+            // Aquí puedes agregar la lógica para rechazar la orden
+            // Por ejemplo, enviar una solicitud al servidor para actualizar el estado de la orden
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Orden rechazada',
+                text: `La orden ${selectedOrderId} ha sido rechazada.`,
+                confirmButtonText: 'Aceptar',
+                customClass: {
+                    container: 'swal-on-top'
+                }
+            });
+        }
         if (order.status_id === order.approval_id) {
             document.getElementById('approveBtn').onclick = async function() {
                 getElementById('approveBtn').style= "block"; // Muestra el botón de aprobar
