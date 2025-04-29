@@ -93,19 +93,14 @@
        <div id="card"> 
         </div>
     </main>
-
-    <h1 id="title3">¿Necesitas ayuda?</h1>
-    <button id="openModal" class="btn btn-primary mb-3">Ver Ayuda 6</button>
-
     <!-- Modal -->
     <div id="myModal" class="modal">
       <div class="modal-content">
         <span id="closeModal" class="close-button">&times;</span>
         <button id="savePdfBtn" class="btn btn-success save-pdf-button">Guardar PDF</button>
-        <!-- Reemplaza esto: -->
-        <!-- <iframe id="svgFrame" src="Premium_Freight.svg" class="svg-frame"></iframe> -->
+        <button id="approveBtn" class="btn btn-primary approve-button" style="display: none;" >Aprobar</button>
+        <button id="rejectBtn" class="btn btn-danger reject-button" style="display: none;">Rechazar</button>
 
-        <!-- Por esto: -->
         <div id="svgPreview" class="svg-frame"></div>
       </div>
     </div>
