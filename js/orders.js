@@ -451,6 +451,8 @@ if (order.status_id === order.approval_id) {
                 //getElementById('approveBtn').disabled = true; // Desabilita el botón de aprobar
                 //getElementById('rejectBtn').style= "none"; // Oculta el botón de rechazar
                 // Obtiene el ID de la orden seleccionada
+
+                console.log("Aprobar orden");
                 const selectedOrderId = sessionStorage.getItem('selectedOrderId');
                 const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
                 

@@ -98,10 +98,10 @@
       <div class="modal-content">
         <span id="closeModal" class="close-button">&times;</span>
         <div class="modal-buttons">
-  <button class="save-pdf-button">Guardar PDF</button>
-  <button id="approveBtn">Aprobar</button>
-  <button id="rejectBtn">Rechazar</button>
-</div>
+        <button class="save-pdf-button">Guardar PDF</button>
+        <button id="approveBtn">Aprobar</button>
+        <button id="rejectBtn">Rechazar</button>
+    </div>
 
         <div id="svgPreview" class="svg-frame"></div>
       </div>
