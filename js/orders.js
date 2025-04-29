@@ -93,7 +93,6 @@ document.addEventListener('DOMContentLoaded', function () {
         'ZIPShipValue': 'origin_zip'
     };
     
-
     // Realiza una petición asíncrona (fetch) a la URL especificada para obtener los datos de las órdenes.
     // La URL apunta a un script PHP que probablemente consulta una base de datos y devuelve los datos en formato JSON.
     fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php')
