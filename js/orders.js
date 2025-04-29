@@ -294,6 +294,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         const element = tempDiv.querySelector(`#${svgId}`);
                         if (element) {
                             element.textContent = selectedOrder[orderKey] || '';
+                            console.log(`Elemento SVG con ID ${svgId} actualizado con valor: ${selectedOrder[orderKey] || ''}`);
                         } else {
                             console.warn(`Elemento SVG con ID ${svgId} no encontrado.`);
                         }
