@@ -66,6 +66,10 @@ require_once __DIR__ . '/dao/elements/daoStates.php';
                         <li class="nav__item"><a href="register.php" class="nav__link">Agregar Usuario</a></li>
                         <li class="nav__item"><a href="google.com" class="nav__link">Graficas</a></li>
                         <li class="nav__item"><a href="  " class="nav__link">Manual</a></li>
+                        <?php if (isset($_SESSION['user'])): ?>
+                            <li class="nav__item"><a href="logout.php" class="nav__link">Cerrar sesión</a></li>
+                        <?php endif; ?>
+                    </ul>
                     </ul>
                 </div>
             </div>
