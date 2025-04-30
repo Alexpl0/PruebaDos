@@ -21,8 +21,6 @@ try {
             lo_to.city AS destiny_city,
             lo_to.state AS destiny_state,
             lo_to.zip AS destiny_zip,
-            st.id AS status_id,
-            st.name AS status_name,
             pfa.id AS approval_id,
             pfa.approval_date,
             pfa.act_approv as approval_status,
@@ -39,7 +37,7 @@ try {
         ORDER BY pf.id DESC
     ";
 
-    
+
     $stmt = $conex->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();
