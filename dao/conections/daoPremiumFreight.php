@@ -24,7 +24,10 @@ try {
             st.name AS status_name,
             pfa.id AS approval_id,
             pfa.approval_date,
-            pfa.act_approv AS approval_status
+            pfa.act_approv as approval_status,
+            u_approver.name AS approver_name,
+            u_approver.email AS approver_email,
+            u_approver.role AS approver_role
         FROM PremiumFreight pf
         LEFT JOIN User u ON pf.user_id = u.id
         LEFT JOIN Location lo_from ON pf.origin_id = lo_from.id
