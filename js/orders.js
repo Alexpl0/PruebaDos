@@ -193,6 +193,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     rejectBtn.style.display = "none";
                 }
 
+                console.log('Auth Requested:', selectedOrder.required_auth_level);
+                console.log('Auth Level:', selectedOrder.approval_status);
+
                 try {
                     const response = await fetch('Premium_Freight.svg');
                     const svgText = await response.text();
@@ -381,6 +384,9 @@ document.addEventListener('DOMContentLoaded', function () {
             if (newStatusId === 99) updatedStatusId = 4; // 'rechazado'
             else if (newStatusId === selectedOrder.required_auth_level) updatedStatusId = 3; // 'aprobado'
             else if (newStatusId > 0) updatedStatusId = 2; // 'revision'
+
+            console.log('New Status ID:', newStatusId);
+            console.log('AuthRequired:', selectedOrder.required_auth_level);
                 
             const updateStatus = {
                 orderId: selectedOrder.id,
