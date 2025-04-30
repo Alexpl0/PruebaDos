@@ -493,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             
             // Incrementa el status_id localmente
-            const newStatusId = selectedOrder.status_id + 1;
+            const newStatusId = selectedOrder.approval_status + 1;
             
             // Prepara los datos para enviar al servidor
             const updateData = {
