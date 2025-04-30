@@ -6,6 +6,8 @@ $name = isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null;
 <script>
     window.authorizationLevel = <?php echo json_encode($nivel); ?>;
     window.userName = <?php echo json_encode($name); ?>;
+    console.log("Auth Level: " + window.authorizationLevel);
+    console.log("UserName: " + window.userName);
 </script>
 
 <!DOCTYPE html>
