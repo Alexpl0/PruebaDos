@@ -107,10 +107,10 @@ document.addEventListener('DOMContentLoaded', function () {
             card.style.maxHeight = "275px";
 
             // Colores según estado
-            if (order.status_name === "aprobado") card.style.backgroundColor = "#B3C2A5";
-            else if (order.status_name === "nuevo") card.style.backgroundColor = "#FEFAEF";
-            else if (order.status_name === "revision") card.style.backgroundColor = "#ECC26E";
-            else if (order.status_name === "rechazado") card.style.backgroundColor = "#E3B1A8";
+            if (order.status_name === "aprobado") card.style.backgroundColor = "#A7CAC3";
+            else if (order.status_name === "nuevo") card.style.backgroundColor = "#F0E2D5";
+            else if (order.status_name === "revision") card.style.backgroundColor = "#F3D1AB";
+            else if (order.status_name === "rechazado") card.style.backgroundColor = "#E0A4AE";
 
             // Mensaje de aprobación pendiente
             let falta = '';
