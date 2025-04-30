@@ -245,7 +245,7 @@ session_start();
             
             <div id="SectDescription">
                 <label for="Description and Root Cause"> Description and Root Cause</label>
-                    <input type="text" id="Description" name="Description" placeholder="Description and Root Cause" required>
+                    <textarea id="Description" name="Description" placeholder="Description and Root Cause" required></textarea>
             </div>
             <h2>Ship From</h2>
 

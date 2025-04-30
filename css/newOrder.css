@@ -121,17 +121,16 @@ label {
     padding: 3%;
     width: 90%;
     max-width: 90%;
+    min-height: 300px;
     margin: auto 5% auto 5%;
     border: 1px solid var(--border-color);
     border-radius: 5px;
     font-size: 1.2em;
     cursor: text;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    align-self: center;
+    text-align: left;        /* Alinea el texto a la izquierda */
+    vertical-align: top;     /* Alinea el texto arriba (para textarea) */
+    resize: vertical;        /* Permite redimensionar verticalmente si lo deseas */
 }
-
 
 #home {
     display: flex;
