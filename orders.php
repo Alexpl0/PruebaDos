@@ -61,50 +61,6 @@ $userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
     <div id="mainOrders">
             <h1 id="title1">Historial de Ordenes Generadas</h1>
             <h1 id="title2"></h1>
-        
-            <div class="table-responsive">
-            <table class="table table-striped table-bordered" id="ordersTable">
-                <thead>
-                    <tr>
-                        <!--INFO PLANT -->
-                        <th>Plant</th>
-                        <th>Plant Code</th>
-                        <th>Transport Mode</th>
-                        <th>In/Out Bound</th>
-                        <th>Cost in Euros (€)</th>
-                        <th>Area of Responsibility</th>
-                        <th>Internal/External Service</th>
-                        <th>Costs Paid By</th>
-                        <th>Category Cause</th>
-                        <th>Project Status</th>
-                        <th>Recovery</th>
-                        <th>Description and Root Cause</th>
-                        <!-- SHIP FROM -->
-                        <th>Company Name (Ship From)</th>
-                        <th>City (Ship From)</th>
-                        <th>State (Ship From)</th>
-                        <th>ZIP (Ship From)</th>
-                        <!-- DESTINATION -->
-                        <th>Company Name (Destination)</th>
-                        <th>City (Destination)</th>
-                        <th>State (Destination)</th>
-                        <th>ZIP (Destination)</th>
-                        <!-- ORDER -->
-                        <th>Weight</th>
-                        <th>Measures</th>
-                        <th>Products</th>
-                        <!-- CARRIER -->
-                        <th>Carrier</th>
-                        <th>Quoted Cost</th>
-                        <th>Reference</th>
-                        <th>Reference Number</th>
-                    </tr>
-                </thead>
-                <tbody id="tbodyOrders">
-                    <!-- Rows will be dynamically added via JavaScript -->
-                </tbody>
-            </table>
-        </div>
     </div>
 
     <main id="main">
