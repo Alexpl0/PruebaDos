@@ -185,8 +185,6 @@ main{
     z-index: 99999 !important;
 }
 
-/* El modal ya tiene z-index 9999, así que este valor es mucho mayor */
-
 /* Puedes poner esto en tu archivo CSS */
 .moneda-activa {
     background-color: #007bff !important;
