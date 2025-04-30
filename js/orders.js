@@ -184,22 +184,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Determina el mensaje de quién falta para aprobar
             let falta = '';
-            if (order.status_id <= order.required_auth_level) {
-                if (order.status_id === 0) {
+            if (order.approval_status <= order.required_auth_level) {
+                if (order.approval_status === 0) {
                     falta = 'Falta: Logistic Manager';
-                } else if (order.status_id === 1) {
+                } else if (order.approval_status === 1) {
                     falta = 'Falta: Controlling';
-                } else if (order.status_id === 2) {
+                } else if (order.approval_status === 2) {
                     falta = 'Falta: Plant Manager';
-                } else if (order.status_id === 3) {
+                } else if (order.approval_status === 3) {
                     falta = 'Falta: Senior Manager Logistic';
-                } else if (order.status_id === 4) {
+                } else if (order.approval_status === 4) {
                     falta = 'Falta: Senior Manager Logistics Division';
-                } else if (order.status_id === 5) {
+                } else if (order.approval_status === 5) {
                     falta = 'Falta: SR VP Regional';
-                } else if (order.status_id === 6) {
+                } else if (order.approval_status === 6) {
                     falta = 'Falta: Division Controlling Regional';
-                } else if (order.status_id === order.required_auth_level) {
+                } else if (order.approval_status === order.required_auth_level) {
                     falta = 'Totalmente Aprobado';
                 }
 
