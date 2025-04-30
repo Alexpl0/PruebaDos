@@ -192,3 +192,14 @@ main{
     background-color: #007bff !important;
     color: #fff !important;
 }
+
+#card {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+    justify-items: center;
+    align-items: stretch;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+}
