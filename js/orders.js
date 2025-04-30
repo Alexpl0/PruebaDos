@@ -114,17 +114,37 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Mensaje de aprobación pendiente
             let falta = '';
-            if (order.approval_status <= order.required_auth_level) {
-                if (order.approval_status === 0) falta = 'Falta: Logistic Manager';
-                else if (order.approval_status === 1) falta = 'Falta: Controlling';
-                else if (order.approval_status === 2) falta = 'Falta: Plant Manager';
-                else if (order.approval_status === 3) falta = 'Falta: Senior Manager Logistic';
-                else if (order.approval_status === 4) falta = 'Falta: Senior Manager Logistics Division';
-                else if (order.approval_status === 5) falta = 'Falta: SR VP Regional';
-                else if (order.approval_status === 6) falta = 'Falta: Division Controlling Regional';
-                else if (order.approval_status === 99) falta = 'Orden Rechazada';
-                else if (order.approval_status === order.required_auth_level) falta = 'Totalmente Aprobado';
-            }
+            switch (order.approval_status) {
+                    case 0:
+                        falta = 'Falta: Logistic Manager';
+                        break;
+                    case 1:
+                        falta = 'Falta: Controlling';
+                        break;
+                    case 2:
+                        falta = 'Falta: Plant Manager';
+                        break;
+                    case 3:
+                        falta = 'Falta: Senior Manager Logistic';
+                        break;
+                    case 4:
+                        falta = 'Falta: Senior Manager Logistics Division';
+                        break;
+                    case 5:
+                        falta = 'Falta: SR VP Regional';
+                        break;
+                    case 6:
+                        falta = 'Falta: Division Controlling Regional';
+                        break;
+                    case 99:
+                        falta = 'Orden Rechazada';
+                        break;
+                    case order.required_auth_level:
+                        falta = 'Totalmente Aprobado';
+                        break;
+                    default:
+                        falta = 'Falta: Desconocido';
+                }
 
             card.innerHTML = `
                 <div class="card-body">
