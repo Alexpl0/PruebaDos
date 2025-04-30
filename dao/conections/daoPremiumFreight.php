@@ -39,6 +39,7 @@ try {
         ORDER BY pf.id DESC
     ";
 
+    
     $stmt = $conex->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();
