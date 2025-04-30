@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     // --- Función para rellenar la tabla de órdenes ---
-    function rellenarTablaOrdenes(orders) {
+    /*function rellenarTablaOrdenes(orders) {
         const tbody = document.getElementById("tbodyOrders");
         tbody.innerHTML = "";
         orders.forEach(order => {
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
             `;
             tbody.appendChild(row);
         });
-    }
+    }*/
 
     // --- Mapeo de campos para el SVG ---
     const svgMap = {
