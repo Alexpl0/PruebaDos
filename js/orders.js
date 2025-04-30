@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function () {
     fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php')
         .then(response => response.json())
         .then(data => {
-            rellenarTablaOrdenes(data.data);
+            //rellenarTablaOrdenes(data.data);
             createCards(data.data);
         })
         .catch(error => console.error('Error al cargar los datos:', error));
@@ -423,7 +423,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php')
                     .then(response => response.json())
                     .then(data => {
-                        rellenarTablaOrdenes(data.data);
+                        //rellenarTablaOrdenes(data.data);
                         createCards(data.data);
                     });
             } else {
@@ -498,7 +498,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php')
                     .then(response => response.json())
                     .then(data => {
-                        rellenarTablaOrdenes(data.data);
+                        //rellenarTablaOrdenes(data.data);
                         createCards(data.data);
                     });
             } else {
