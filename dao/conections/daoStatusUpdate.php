@@ -13,13 +13,13 @@ if (
     !isset($data['orderId']) ||
     !isset($data['newStatusId']) ||
     !isset($data['userLevel']) ||
-    !isset($data['userName']) ||
+    !isset($data['userID']) ||
     !isset($data['authDate'])
 ) {
     http_response_code(400);
     echo json_encode([
         "success" => false,
-        "message" => "Datos JSON inválidos o incompletos. Se requiere 'orderId', 'newStatusId', 'userLevel', 'userName' y 'authDate'."
+        "message" => "Datos JSON inválidos o incompletos. Se requiere 'orderId', 'newStatusId', 'userLevel', 'userID' y 'authDate'."
     ]);
     exit;
 }
