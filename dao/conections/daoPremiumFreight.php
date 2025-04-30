@@ -23,7 +23,8 @@ try {
             lo_to.zip AS destiny_zip,
             st.name AS status_name,
             pfa.id AS approval_id,
-            pfa.approval_date
+            pfa.approval_date,
+            pfa.act_approv AS approval_status
         FROM PremiumFreight pf
         LEFT JOIN User u ON pf.user_id = u.id
         LEFT JOIN Location lo_from ON pf.origin_id = lo_from.id
