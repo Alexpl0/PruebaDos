@@ -36,8 +36,8 @@ if (!isset($_SESSION['user']) || !isset($_SESSION['user']['authorization_level']
 
 $sessionLevel = intval($_SESSION['user']['authorization_level']);
 $userLevel = intval($data['userLevel']);
-$userName = $data['userName'];
-$authDate = $data['authDate'];
+$userID = intval($data['userID']);
+$authDate =$data['authDate'];
 $orderId = intval($data['orderId']);
 $newStatusId = intval($data['newStatusId']);
 
@@ -89,14 +89,14 @@ try {
     $stmt = $conex->prepare(
         "UPDATE PremiumFreightApprovals 
          SET act_approv = ?, 
-             approver_name = ?, 
+             user_id = ?, 
              approval_date = ?
          WHERE premium_freight_id = ?"
     );
     $stmt->bind_param(
         "issi",
         $newStatusId,
-        $userName,
+        $userID,
         $authDate,
         $orderId
     );

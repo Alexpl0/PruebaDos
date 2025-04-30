@@ -500,7 +500,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 orderId: selectedOrder.id,
                 newStatusId: newStatusId,
                 userLevel: window.authorizationLevel, // Envía el nivel del usuario
-                userName: window.userName, // Envía el nombre del usuario
+                userID: window.userID, // Envía el id del usuario
                 authDate: new Date().toISOString() // Envía la fecha de autorización
             };
 
