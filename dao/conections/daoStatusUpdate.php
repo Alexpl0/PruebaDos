@@ -88,7 +88,7 @@ try {
     // 3. Actualiza el estado y registra el usuario y la fecha de autorización si tu tabla lo permite
     $stmt = $conex->prepare(
         "UPDATE PremiumFreightApprovals 
-         SET approval_status = ?, 
+         SET act_approv = ?, 
              approver_name = ?, 
              approval_date = ?
          WHERE premium_freight_id = ?"
