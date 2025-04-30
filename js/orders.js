@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Colores según estado
             if (order.status_name === "aprobado") card.style.backgroundColor = "#A7CAC3";
-            else if (order.status_name === "nuevo") card.style.backgroundColor = "#F0E2D5";
+            else if (order.status_name === "nuevo") card.style.backgroundColor = "#EAE8EB";
             else if (order.status_name === "revision") card.style.backgroundColor = "#F3D1AB";
             else if (order.status_name === "rechazado") card.style.backgroundColor = "#E0A4AE";
 
