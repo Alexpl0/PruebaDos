@@ -394,7 +394,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             // Segundo fetch: status_id
-            const responseStatus = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoStatusUpdate.php', {
+            const responseStatus = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoStatusText.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updateStatus)
