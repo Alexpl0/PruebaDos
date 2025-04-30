@@ -29,7 +29,7 @@ try {
     $conex = $con->conectar();
 
     $stmt = $conex->prepare(
-        "UPDATE PremiumFreight SET statusid = ? WHERE id = ?"
+        "UPDATE PremiumFreight SET status_id = ? WHERE id = ?"
     );
     $stmt->bind_param("ii", $statusid, $orderId);
     $stmt->execute();
