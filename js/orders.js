@@ -268,17 +268,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 const approveBtn = document.getElementById('approveBtn');
                 const rejectBtn = document.getElementById('rejectBtn');
                 
-                console.log(`StatusID: ${selectedOrder.status_id}`)
+                console.log(`StatusID: ${selectedOrder.approval_status}`)
 
-                if (selectedOrder.status_id === selectedOrder.approver_level) {
+                if (
+                    Number(selectedOrder.approval_status) === Number(window.authorizationLevel)) {
                     approveBtn.style.display = "block";
                     approveBtn.disabled = false;
                     rejectBtn.style.display = "block";
-                    console.log(`El status_id ${selectedOrder.status_id} es igual al approver_level ${selectedOrder.approver_level} cuyo nombre es ${selectedOrder.approver_name}`); 
+                    console.log(`El status_id ${selectedOrder.approval_status} es igual al approver_level ${window.authorizationLevel} cuyo nombre es ${window.userName}`); 
                 } else {
                     approveBtn.style.display = "none";
                     rejectBtn.style.display = "none";
-                    console.log(`El status_id ${selectedOrder.status_id} NO es igual al approver_level ${selectedOrder.approver_level} cuyo nombre es ${selectedOrder.approver_name}`); 
+                    console.log(`El status_id ${selectedOrder.approval_status} NO es igual al approver_level ${window.authorizationLevel} cuyo nombre es ${window.userName}`); 
                 }
 
                 try {
@@ -497,7 +498,10 @@ document.addEventListener('DOMContentLoaded', function () {
             // Prepara los datos para enviar al servidor
             const updateData = {
                 orderId: selectedOrder.id,
-                newStatusId: newStatusId
+                newStatusId: newStatusId,
+                userLevel: window.authorizationLevel, // Envía el nivel del usuario
+                userName: window.userName, // Envía el nombre del usuario
+                authDate: new Date().toISOString() // Envía la fecha de autorización
             };
 
             console.log('Datos a enviar:', updateData);

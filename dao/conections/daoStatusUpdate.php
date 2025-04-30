@@ -1,5 +1,6 @@
 <?php
 
+session_start();
 include_once('../db/db.php');
 
 // Recibe el JSON enviado por POST
@@ -7,37 +8,98 @@ $input = file_get_contents('php://input');
 $data = json_decode($input, true);
 
 // Verifica que existan los campos enviados desde JavaScript
-if (!$data || !isset($data['orderId']) || !isset($data['newStatusId'])) {
+if (
+    !$data ||
+    !isset($data['orderId']) ||
+    !isset($data['newStatusId']) ||
+    !isset($data['userLevel']) ||
+    !isset($data['userName']) ||
+    !isset($data['authDate'])
+) {
     http_response_code(400);
     echo json_encode([
         "success" => false,
-        "message" => "Datos JSON inválidos o incompletos. Se requiere 'orderId' y 'newStatusId'."
+        "message" => "Datos JSON inválidos o incompletos. Se requiere 'orderId', 'newStatusId', 'userLevel', 'userName' y 'authDate'."
     ]);
     exit;
 }
 
-// Opcional: fuerza los valores a enteros para mayor seguridad
+// Verifica que el usuario esté autenticado y que el nivel de sesión coincida con el enviado
+if (!isset($_SESSION['user']) || !isset($_SESSION['user']['authorization_level'])) {
+    http_response_code(401);
+    echo json_encode([
+        "success" => false,
+        "message" => "No autorizado. Debe iniciar sesión."
+    ]);
+    exit;
+}
+
+$sessionLevel = intval($_SESSION['user']['authorization_level']);
+$userLevel = intval($data['userLevel']);
+$userName = $data['userName'];
+$authDate = $data['authDate'];
 $orderId = intval($data['orderId']);
 $newStatusId = intval($data['newStatusId']);
+
+// Seguridad: El nivel enviado por el frontend debe coincidir con el de la sesión
+if ($sessionLevel !== $userLevel) {
+    http_response_code(403);
+    echo json_encode([
+        "success" => false,
+        "message" => "No autorizado. El nivel de sesión no coincide con el enviado."
+    ]);
+    exit;
+}
 
 try {
     $con = new LocalConector();
     $conex = $con->conectar();
 
-    // Preparamos la consulta UPDATE para modificar solo project_status
+    // 1. Consulta el nivel de aprobación requerido para la orden
     $stmt = $conex->prepare(
-        "UPDATE `PremiumFreight` 
-         SET status_id = ?
-         WHERE id = ?"
+        "SELECT act_approv FROM PremiumFreightApprovals WHERE premium_freight_id = ?"
     );
+    $stmt->bind_param("i", $orderId);
+    $stmt->execute();
+    $stmt->bind_result($approvalStatus);
+    if (!$stmt->fetch()) {
+        http_response_code(404);
+        echo json_encode([
+            "success" => false,
+            "message" => "Orden no encontrada."
+        ]);
+        $stmt->close();
+        $conex->close();
+        exit;
+    }
+    $stmt->close();
 
-    // Vinculamos los parámetros: newStatusId (integer), orderId (integer)
+    // 2. Solo permite actualizar si el nivel de usuario coincide con el requerido
+    if ($sessionLevel !== ((intval($approvalStatus))+1)) {
+        http_response_code(403);
+        echo json_encode([
+            "success" => false,
+            "message" => "No tienes permisos para aprobar/rechazar esta orden."
+        ]);
+        $conex->close();
+        exit;
+    }
+
+    // 3. Actualiza el estado y registra el usuario y la fecha de autorización si tu tabla lo permite
+    $stmt = $conex->prepare(
+        "UPDATE PremiumFreightApprovals 
+         SET approval_status = ?, 
+             approver_name = ?, 
+             approval_date = ?
+         WHERE premium_freight_id = ?"
+    );
     $stmt->bind_param(
-        "ii",
+        "issi",
         $newStatusId,
+        $userName,
+        $authDate,
         $orderId
     );
-
     $stmt->execute();
 
     if ($stmt->affected_rows > 0) {
@@ -46,7 +108,6 @@ try {
             "message" => "Estado actualizado correctamente"
         ]);
     } else {
-        // Si affected_rows es 0, podría ser que el ID no existe o que no se cambió el valor
         echo json_encode([
             "success" => false,
             "message" => "No se actualizó ningún registro. El ID podría no existir o el estado es el mismo."
