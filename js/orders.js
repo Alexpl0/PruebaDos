@@ -122,6 +122,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 else if (order.approval_status === 4) falta = 'Falta: Senior Manager Logistics Division';
                 else if (order.approval_status === 5) falta = 'Falta: SR VP Regional';
                 else if (order.approval_status === 6) falta = 'Falta: Division Controlling Regional';
+                else if (order.approval_status === 99) falta = 'Orden Rechazada';
                 else if (order.approval_status === order.required_auth_level) falta = 'Totalmente Aprobado';
             }
 
