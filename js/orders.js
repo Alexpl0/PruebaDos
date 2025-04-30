@@ -271,7 +271,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.log(`StatusID: ${selectedOrder.approval_status}`)
 
                 if (
-                    Number(selectedOrder.approval_status) === Number(window.authorizationLevel)) {
+                    Number(selectedOrder.approval_status) === ((Number(window.authorizationLevel)))-1) {
                     approveBtn.style.display = "block";
                     approveBtn.disabled = false;
                     rejectBtn.style.display = "block";
