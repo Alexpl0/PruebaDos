@@ -373,7 +373,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 newStatusId: newStatusId,
                 userLevel: window.authorizationLevel,
                 userID: window.userID,
-                authDate: new Date().toISOString()
+                authDate: new Date().toLocaleString('sv-SE', { timeZone: 'America/Mexico_City' }).replace(' ', 'T')
             };
 
             let updatedStatusId = 0;
@@ -452,7 +452,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 newStatusId: newStatusId,
                 userLevel: window.authorizationLevel,
                 userID: window.userID,
-                authDate: new Date().toISOString()
+                authDate: new Date().toLocaleString('sv-SE', { timeZone: 'America/Mexico_City' }).replace(' ', 'T')
             };
 
             let updatedStatusId = 4; // 'rechazado'
