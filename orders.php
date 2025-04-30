@@ -1,6 +1,12 @@
 <?php
 session_start();
-// Ahora puedes usar $_SESSION['user']
+// Verifica si el usuario está logueado y la variable existe
+if (isset($_SESSION['user']) && isset($_SESSION['user']['authorization_level'])) {
+    $nivel = $_SESSION['user']['authorization_level'];
+    echo "Tu nivel de autorización es: " . htmlspecialchars($nivel);
+} else {
+    echo "No tienes autorización o no has iniciado sesión.";
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
