@@ -114,37 +114,38 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Mensaje de aprobación pendiente
             let falta = '';
-            switch (order.approval_status) {
-                    case 0:
-                        falta = 'Falta: Logistic Manager';
-                        break;
-                    case 1:
-                        falta = 'Falta: Controlling';
-                        break;
-                    case 2:
-                        falta = 'Falta: Plant Manager';
-                        break;
-                    case 3:
-                        falta = 'Falta: Senior Manager Logistic';
-                        break;
-                    case 4:
-                        falta = 'Falta: Senior Manager Logistics Division';
-                        break;
-                    case 5:
-                        falta = 'Falta: SR VP Regional';
-                        break;
-                    case 6:
-                        falta = 'Falta: Division Controlling Regional';
-                        break;
-                    case 99:
-                        falta = 'Orden Rechazada';
-                        break;
-                    case order.required_auth_level:
-                        falta = 'Totalmente Aprobado';
-                        break;
-                    default:
-                        falta = 'Falta: Desconocido';
-                }
+            if(order.approval_status === null) {
+                falta = 'Totalmente Aprobado';
+            } else {
+                switch (order.approval_status) {
+                            case 0:
+                                falta = 'Falta: Logistic Manager';
+                                break;
+                            case 1:
+                                falta = 'Falta: Controlling';
+                                break;
+                            case 2:
+                                falta = 'Falta: Plant Manager';
+                                break;
+                            case 3:
+                                falta = 'Falta: Senior Manager Logistic';
+                                break;
+                            case 4:
+                                falta = 'Falta: Senior Manager Logistics Division';
+                                break;
+                            case 5:
+                                falta = 'Falta: SR VP Regional';
+                                break;
+                            case 6:
+                                falta = 'Falta: Division Controlling Regional';
+                                break;
+                            case 99:
+                                falta = 'Orden Rechazada';
+                                break;
+                            default:
+                                falta = 'Falta: Desconocido';
+                        }
+            }
 
             card.innerHTML = `
                 <div class="card-body">
@@ -377,10 +378,10 @@ document.addEventListener('DOMContentLoaded', function () {
             };
 
             let updatedStatusId = 0;
-            if (newStatusId > 0) updatedStatusId = 2; // 'revision'
+            if (newStatusId === 99) updatedStatusId = 4; // 'rechazado'
             else if (newStatusId === selectedOrder.required_auth_level) updatedStatusId = 3; // 'aprobado'
-            else if (newStatusId === 99) updatedStatusId = 4; // 'rechazado'
-
+            else if (newStatusId > 0) updatedStatusId = 2; // 'revision'
+                
             const updateStatus = {
                 orderId: selectedOrder.id,
                 statusid: updatedStatusId
