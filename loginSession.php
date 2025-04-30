@@ -1,11 +1,16 @@
 <?php
 session_start();
-$data = json_decode(file_get_contents('php://input'), true);
+// Supón que recibes los datos del usuario por POST (JSON)
+$input = json_decode(file_get_contents('php://input'), true);
 
-if ($data) {
-    $_SESSION['user'] = $data;
-    echo json_encode(['success' => true]);
-} else {
-    echo json_encode(['success' => false, 'mensaje' => 'No data received']);
-}
+// Aquí deberías validar los datos y obtener el usuario de la base de datos
+// Supongamos que $input['id'] y $input['email'] existen y son válidos
+
+$_SESSION['user'] = [
+    'id' => $input['id'],
+    'email' => $input['email'],
+    // Puedes agregar más datos si lo deseas
+];
+
+echo json_encode(['status' => 'success']);
 ?>

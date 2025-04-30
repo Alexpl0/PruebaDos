@@ -1,5 +1,6 @@
 <?php
-// filepath: c:\Users\Ex-Perez-J\OneDrive - GRAMMER AG\Desktop\SPECIAL FREIGHT\index.php
+session_start();
+// Ahora puedes usar $_SESSION['user']
 ?>
 
 <!DOCTYPE html>

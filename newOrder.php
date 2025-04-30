@@ -16,6 +16,8 @@ require_once __DIR__ . '/dao/elements/daoMeasures.php';
 require_once __DIR__ . '/dao/elements/daoProducts.php';
 require_once __DIR__ . '/dao/elements/daoStates.php';
 
+session_start();
+// Ahora puedes usar $_SESSION['user']
 ?>
 
 <!DOCTYPE html>

@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . "/dao/db/db.php";
+session_start();
+// Ahora puedes usar $_SESSION['user']
 ?>
 
 <!DOCTYPE html>
