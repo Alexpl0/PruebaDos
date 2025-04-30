@@ -9,6 +9,7 @@ $input = json_decode(file_get_contents('php://input'), true);
 $_SESSION['user'] = [
     'id' => $input['id'],
     'email' => $input['email'],
+    'name' => $input['name'], // Asegúrate de que 'name' esté en el JSON
     'authorization_level' => $input['authorization_level'], 
     // Puedes agregar más datos si lo deseas
 ];
