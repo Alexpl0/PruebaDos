@@ -383,7 +383,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const updateStatus = {
                 orderId: selectedOrder.id,
-                statusId: updatedStatusId
+                statusid: updatedStatusId
             };
 
             // Primer fetch: approval_status
@@ -458,7 +458,7 @@ document.addEventListener('DOMContentLoaded', function () {
             let updatedStatusId = 4; // 'rechazado'
             const updateStatus = {
                 orderId: selectedOrder.id,
-                statusId: updatedStatusId
+                statusid: updatedStatusId
             };
 
             // Primer fetch: approval_status

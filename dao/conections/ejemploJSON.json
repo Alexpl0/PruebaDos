@@ -37,11 +37,12 @@
     "destiny_city": "Qro",
     "destiny_state": "Querétaro",
     "destiny_zip": "47577",
+    "statusid": 1,
     "status_name": "nuevo",
     "approval_id": 2,
-    "approval_date": "2025-04-30 15:07:25",
-    "approval_status": "0",
-    "approver_name": "Juanito",
-    "approver_email": "controlling_regional@grammer.mx\r\n",
-    "approver_role": "Division Controlling Regional"
+    "approval_date": "2025-04-30 17:58:12",
+    "approval_status": 99,
+    "approver_name": "Dulce",
+    "approver_email": "dulce@example.com",
+    "approver_role": "Logistics Manager"
 }
