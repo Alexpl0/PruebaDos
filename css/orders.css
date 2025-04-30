@@ -8,6 +8,10 @@ body{
     align-items: center;
 }
 
+#title1{
+    margin: 5% 2% 5% 5%,
+}
+
 main{
     padding: 5%;
 }
