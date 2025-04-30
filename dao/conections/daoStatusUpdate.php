@@ -36,7 +36,7 @@ if (!isset($_SESSION['user']) || !isset($_SESSION['user']['authorization_level']
 
 $sessionLevel = intval($_SESSION['user']['authorization_level']);
 $userLevel = intval($data['userLevel']);
-$userID = intval($data['userID']);
+$userID = ($data['userID']);
 $authDate =$data['authDate'];
 $orderId = intval($data['orderId']);
 $newStatusId = intval($data['newStatusId']);
