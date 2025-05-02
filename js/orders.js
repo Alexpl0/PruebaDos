@@ -204,21 +204,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     for (const [svgId, orderKey] of Object.entries(svgMap)) {
                         const element = tempDiv.querySelector(`#${svgId}`);
                         if (element) {
-                            if (svgId === 'DescriptionAndRootCauseValue') {
-                                // Busca el tspan específico dentro del text
-                                const tspan = element.querySelector('#DescriptionAndRootCauseSpan');
-                                const value = selectedOrder[orderKey] || '';
-                                if (tspan) {
-                                    // Si existe el tspan, pon el texto ahí
-                                    tspan.textContent = value;
-                                } else {
-                                    // Si no existe, limpia y pon el texto directamente en el <text>
-                                    element.textContent = value;
-                                }
-                            } else {
-                                // Para los demás campos, simplemente asigna el texto
-                                element.textContent = selectedOrder[orderKey] || '';
-                            }
+                            // Asigna el texto directamente al <text>
+                            element.textContent = selectedOrder[orderKey] || '';
                         }
                     }
                     document.getElementById('svgPreview').innerHTML = tempDiv.innerHTML;
