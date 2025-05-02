@@ -553,11 +553,11 @@ document.addEventListener('DOMContentLoaded', function () {
 /**
  * Divide un texto largo en líneas para un elemento SVG text
  * @param {string} text - El texto a dividir
- * @param {number} maxWidth - El ancho máximo en px
+ * @param {number} [maxWidth=570] - El ancho máximo en px (valor predeterminado: 570px)
  * @param {Element} svgContainer - El elemento SVG contenedor para realizar mediciones
  * @returns {string[]} Array de líneas de texto
  */
-function wrapSvgText(text, maxWidth, svgContainer) {
+function wrapSvgText(text, maxWidth = 570, svgContainer) {
     if (!text) return [''];
     
     // Crear un elemento text temporal para medir
