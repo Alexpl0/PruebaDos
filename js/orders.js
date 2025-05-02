@@ -204,7 +204,39 @@ document.addEventListener('DOMContentLoaded', function () {
                     for (const [svgId, orderKey] of Object.entries(svgMap)) {
                         const element = tempDiv.querySelector(`#${svgId}`);
                         if (element) {
-                            element.textContent = selectedOrder[orderKey] || '';
+                            if (svgId === 'DescriptionAndRootCauseValue') {
+                                // Obtener el ancho máximo basado en el rectángulo contenedor
+                                let maxWidth = 570;
+                                const descArea = tempDiv.querySelector('#DescriptionRootInput');
+                                if (descArea && descArea.tagName === 'rect') {
+                                    maxWidth = Math.min(parseFloat(descArea.getAttribute('width')) || maxWidth, 570);
+                                }
+                                
+                                // Limpiar el texto actual
+                                element.textContent = '';
+                                
+                                // Dividir el texto en líneas
+                                const lines = wrapSvgText(selectedOrder[orderKey] || '', maxWidth, tempDiv);
+                                
+                                // Obtener la posición x original
+                                const xPos = element.getAttribute('x') || 0;
+                                
+                                // Crear tspans para cada línea
+                                lines.forEach((line, index) => {
+                                    const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+                                    tspan.setAttribute('x', xPos);
+                                    
+                                    // El primer tspan no necesita dy, los siguientes sí
+                                    if (index > 0) {
+                                        tspan.setAttribute('dy', '1.2em'); // Espaciado vertical entre líneas
+                                    }
+                                    
+                                    tspan.textContent = line;
+                                    element.appendChild(tspan);
+                                });
+                            } else {
+                                element.textContent = selectedOrder[orderKey] || '';
+                            }
                         }
                     }
                     document.getElementById('svgPreview').innerHTML = tempDiv.innerHTML;
@@ -262,19 +294,32 @@ document.addEventListener('DOMContentLoaded', function () {
                 const element = container.querySelector(`#${svgId}`);
                 if (element) {
                     if (svgId === 'DescriptionAndRootCauseValue') {
-                        let maxWidth = 570; // <-- Cambia aquí el ancho máximo
+                        // Obtener el ancho máximo
+                        let maxWidth = 570;
                         const descArea = container.querySelector('#DescriptionRootInput');
                         if (descArea && descArea.tagName === 'rect') {
-                            // Si quieres que nunca pase de 570, usa Math.min
                             maxWidth = Math.min(parseFloat(descArea.getAttribute('width')) || maxWidth, 570);
                         }
-                        const lines = wrapSvgText(selectedOrder[orderKey] || '', maxWidth, container);
+                        
+                        // Limpiar contenido existente
                         element.textContent = '';
-                        lines.forEach((l, i) => {
+                        
+                        // Obtener líneas divididas
+                        const lines = wrapSvgText(selectedOrder[orderKey] || '', maxWidth, container);
+                        
+                        // Obtener la posición x original
+                        const xPos = element.getAttribute('x') || 0;
+                        
+                        // Crear tspans para cada línea
+                        lines.forEach((line, index) => {
                             const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
-                            tspan.setAttribute('x', element.getAttribute('x') || element.getAttribute('x1') || 0);
-                            tspan.setAttribute('dy', i === 0 ? '0' : '1.2em');
-                            tspan.textContent = l;
+                            tspan.setAttribute('x', xPos);
+                            
+                            if (index > 0) {
+                                tspan.setAttribute('dy', '1.2em');
+                            }
+                            
+                            tspan.textContent = line;
                             element.appendChild(tspan);
                         });
                     } else {
