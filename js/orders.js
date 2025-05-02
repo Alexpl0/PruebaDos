@@ -505,17 +505,34 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // --- Función para hacer wrap de texto en SVG ---
-function wrapSvgText(text, maxWidth, svgElement) {
+/**
+ * Divide un texto largo en líneas para un elemento SVG text
+ * @param {string} text - El texto a dividir
+ * @param {number} maxWidth - El ancho máximo en px
+ * @param {Element} svgContainer - El elemento SVG contenedor para realizar mediciones
+ * @returns {string[]} Array de líneas de texto
+ */
+function wrapSvgText(text, maxWidth, svgContainer) {
+    if (!text) return [''];
+    
+    // Crear un elemento text temporal para medir
+    const testText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    testText.setAttribute('font-size', '3.175px');
+    testText.setAttribute('font-family', 'Arial');
+    testText.style.visibility = 'hidden'; // Ocultar el elemento temporal
+    svgContainer.appendChild(testText);
+    
     const words = text.split(' ');
     let line = '';
     let lines = [];
-    const testText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    svgElement.appendChild(testText);
-
+    
+    // Procesar cada palabra
     for (let n = 0; n < words.length; n++) {
         const testLine = line + words[n] + ' ';
         testText.textContent = testLine;
         const length = testText.getComputedTextLength();
+        
+        // Si la línea es demasiado larga, agregar la línea actual y comenzar una nueva
         if (length > maxWidth && n > 0) {
             lines.push(line.trim());
             line = words[n] + ' ';
@@ -523,8 +540,15 @@ function wrapSvgText(text, maxWidth, svgElement) {
             line = testLine;
         }
     }
-    lines.push(line.trim());
-    svgElement.removeChild(testText);
+    
+    // Agregar la última línea
+    if (line.trim()) {
+        lines.push(line.trim());
+    }
+    
+    // Eliminar el elemento de prueba
+    svgContainer.removeChild(testText);
+    
     return lines;
 }
 
