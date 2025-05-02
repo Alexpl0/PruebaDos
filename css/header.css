@@ -261,6 +261,7 @@ img {
   .nav__link:hover {
     font-style: italic;
     text-decoration: underline;
+    color: white;
   }
   .active {
     background-color: #a2a2a2;
