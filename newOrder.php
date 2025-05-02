@@ -46,7 +46,7 @@ session_start();
     <link rel="stylesheet" href="css/newOrder.css">
 </head> 
 <body>
-    <header class="header">
+<header class="header">
         <a href="#" class="header__logo">GRAMMER</a>
         <ion-icon name="menu-outline" class="header__toggle" id="nav-toggle"></ion-icon>
         <nav class="nav" id="nav-menu">
@@ -63,20 +63,19 @@ session_start();
                 <div class="nav__menu">
                     <ul class="nav__list">
                         <li class="nav__item"><a href="index.php" class="nav__link ">Home</a></li>
-                        <li class="nav__item"><a href="newOrden.php" class="nav__link active">Nueva Orden</a></li>
-                        <li class="nav__item"><a href="orders.php" class="nav__link">Ordenes Generadas</a></li>
-                        <li class="nav__item"><a href="register.php" class="nav__link">Agregar Usuario</a></li>
-                        <li class="nav__item"><a href="google.com" class="nav__link">Graficas</a></li>
+                        <li class="nav__item"><a href="newOrder.php" class="nav__link ">New Order</a></li>
+                        <li class="nav__item"><a href="orders.php" class="nav__link active">Generated Orders</a></li>
+                        <li class="nav__item"><a href="register.php" class="nav__link">Add User</a></li>
+                        <li class="nav__item"><a href="google.com" class="nav__link">Charts</a></li>
                         <li class="nav__item"><a href="  " class="nav__link">Manual</a></li>
                         <?php if (isset($_SESSION['user'])): ?>
-                            <li class="nav__item"><a href="logout.php" class="nav__link">Cerrar sesión</a></li>
+                            <li class="nav__item"><a href="logout.php" class="nav__link">Log Out</a></li>
                         <?php endif; ?>
-                    </ul>
                     </ul>
                 </div>
             </div>
         </nav>
-    </header> 
+    </header>
     
     <h1>SPECIAL FREIGHT AUTHORIZATION</h1>
     <h2>Transport Order</h2>    
