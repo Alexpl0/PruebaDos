@@ -213,7 +213,9 @@ document.addEventListener('DOMContentLoaded', function () {
                                 }
                                 
                                 // Limpiar el texto actual
-                                element.textContent = '';
+                                while (element.firstChild) {
+                                    element.removeChild(element.firstChild);
+                                }
                                 
                                 // Dividir el texto en líneas
                                 const lines = wrapSvgText(selectedOrder[orderKey] || '', maxWidth, tempDiv);
@@ -560,6 +562,9 @@ document.addEventListener('DOMContentLoaded', function () {
 function wrapSvgText(text, maxWidth = 570, svgContainer) {
     if (!text) return [''];
     
+    // Convertir maxWidth a un número
+    maxWidth = Number(maxWidth);
+    
     // Crear un elemento text temporal para medir
     const testText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     testText.setAttribute('font-size', '3.175px');
@@ -573,26 +578,38 @@ function wrapSvgText(text, maxWidth = 570, svgContainer) {
     
     // Procesar cada palabra
     for (let n = 0; n < words.length; n++) {
-        const testLine = line + words[n] + ' ';
+        const word = words[n];
+        // Probar añadir la palabra actual a la línea
+        const testLine = line + (line ? ' ' : '') + word;
         testText.textContent = testLine;
         const length = testText.getComputedTextLength();
         
-        // Si la línea es demasiado larga, agregar la línea actual y comenzar una nueva
-        if (length > maxWidth && n > 0) {
-            lines.push(line.trim());
-            line = words[n] + ' ';
+        // Si la línea es demasiado larga y ya teníamos texto previo
+        if (length > maxWidth && line !== '') {
+            // Guardar la línea actual sin la nueva palabra
+            lines.push(line);
+            // Comenzar nueva línea con la palabra actual
+            line = word;
         } else {
+            // Si cabe, actualizar la línea actual
             line = testLine;
         }
     }
     
-    // Agregar la última línea
-    if (line.trim()) {
-        lines.push(line.trim());
+    // Agregar la última línea si hay contenido
+    if (line) {
+        lines.push(line);
     }
     
     // Eliminar el elemento de prueba
     svgContainer.removeChild(testText);
+    
+    // Asegurarse de que haya al menos una línea
+    if (lines.length === 0) {
+        lines.push('');
+    }
+    
+    console.log("Texto dividido en", lines.length, "líneas:", lines);
     
     return lines;
 }
