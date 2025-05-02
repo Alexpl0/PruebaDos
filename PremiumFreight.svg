@@ -8,7 +8,7 @@
    version="1.1"
    id="svg1"
    inkscape:version="1.4 (86a8ad7, 2024-10-11)"
-   sodipodi:docname="Premium_Freight.svg"
+   sodipodi:docname="PremiumFreight.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -319,17 +319,9 @@
        y="179.81149">SRVPRegionalValue</text>
     <text
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;font-family:Arial;-inkscape-font-specification:Arial;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
-       id="text4"
-       x="49.520748"
-       y="59.426079"><tspan
-         sodipodi:role="line"
-         id="tspan4"
-         x="49.520748"
-         y="59.426079">DescriptionAndRootCauseValue</tspan><tspan
-         sodipodi:role="line"
-         id="tspan5"
-         x="49.520748"
-         y="63.394829" /></text>
+       id="DescriptionAndRootCauseValue"
+       x="48.962902"
+       y="59.461487">DescriptionAndRootCauseValue</text>
   </g>
   <g
      inkscape:groupmode="layer"
