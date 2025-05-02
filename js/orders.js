@@ -67,6 +67,80 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // --- Función para envolver texto en elemento SVG ---
+    function wrapSVGText() {
+        // Get the text element to wrap
+        const textElement = document.getElementById("DescriptionAndRootCauseValue");
+        if (!textElement) return;
+        
+        // Get the current text content
+        const text = textElement.textContent.trim();
+        if (!text) return;
+        
+        // Get original position and style properties
+        const x = textElement.getAttribute("x");
+        const y = textElement.getAttribute("y");
+        const fontSize = parseFloat(textElement.style.fontSize || "3.175px");
+        
+        // Calculate appropriate line spacing (usually 1.2-1.5× the font size)
+        const lineHeight = fontSize * 1.3;
+        
+        // Clear the current content
+        textElement.textContent = "";
+        
+        // Maximum characters per line
+        const maxCharsPerLine = 101;
+        
+        // Split text into words
+        const words = text.split(/\s+/);
+        let currentLine = "";
+        let firstLine = true;
+        
+        // Process each word
+        words.forEach(word => {
+            // Check if adding the next word exceeds the maximum line length
+            if ((currentLine + " " + word).length > maxCharsPerLine && currentLine.length > 0) {
+                // Create a new tspan for the completed line
+                const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+                tspan.setAttribute("x", x);
+                
+                // Set vertical position
+                if (firstLine) {
+                    // First line doesn't need dy adjustment
+                    firstLine = false;
+                } else {
+                    tspan.setAttribute("dy", `${lineHeight}px`);
+                }
+                
+                tspan.textContent = currentLine;
+                textElement.appendChild(tspan);
+                
+                // Start a new line with the current word
+                currentLine = word;
+            } else {
+                // Add the word to the current line (with a space if not the first word on the line)
+                if (currentLine.length > 0) {
+                    currentLine += " " + word;
+                } else {
+                    currentLine = word;
+                }
+            }
+        });
+        
+        // Add the last line if there's any text left
+        if (currentLine.length > 0) {
+            const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+            tspan.setAttribute("x", x);
+            
+            if (!firstLine) {
+                tspan.setAttribute("dy", `${lineHeight}px`);
+            }
+            
+            tspan.textContent = currentLine;
+            textElement.appendChild(tspan);
+        }
+    }
+
     // --- Crear tarjetas visuales para cada orden ---
     function createCards(orders) {
         const mainCards = document.getElementById("card");
@@ -205,6 +279,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     // Display the populated SVG in the preview area
                     document.getElementById('svgPreview').innerHTML = tempDiv.innerHTML;
+                    
+                    // Apply text wrapping to description field
+                    wrapSVGText();
 
                 } catch (error) {
                     console.error('Error al cargar o procesar el SVG:', error);
@@ -274,6 +351,104 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             document.body.appendChild(container); // Add to DOM for rendering
+            
+            // Apply text wrapping to the description field in the PDF export
+            const descriptionElement = container.querySelector('#DescriptionAndRootCauseValue');
+            if (descriptionElement) {
+                // Create a temporary element to manipulate
+                const tempTextElement = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                // Copy attributes from the original element
+                Array.from(descriptionElement.attributes).forEach(attr => {
+                    tempTextElement.setAttribute(attr.name, attr.value);
+                });
+                
+                // Set the text content for wrapping
+                tempTextElement.textContent = selectedOrder.description || '';
+                
+                // Replace the original element with our temporary one
+                descriptionElement.parentNode.replaceChild(tempTextElement, descriptionElement);
+                
+                // Now apply text wrapping to this element
+                // We need to temporarily place it inside the actual DOM to ensure proper SVG namespace
+                const tempDOMElement = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                Array.from(tempTextElement.attributes).forEach(attr => {
+                    tempDOMElement.setAttribute(attr.name, attr.value);
+                });
+                tempDOMElement.textContent = tempTextElement.textContent;
+                
+                // Add to and then remove from the real DOM to ensure proper namespace
+                const svgPreview = document.getElementById('svgPreview');
+                svgPreview.appendChild(tempDOMElement);
+                
+                // Now we can safely wrap the text
+                // Get the current text content
+                const text = tempDOMElement.textContent.trim();
+                if (text) {
+                    // Get original position and style properties
+                    const x = tempDOMElement.getAttribute("x");
+                    const y = tempDOMElement.getAttribute("y");
+                    const fontSize = parseFloat(tempDOMElement.style.fontSize || "3.175px");
+                    
+                    // Calculate appropriate line spacing
+                    const lineHeight = fontSize * 1.3;
+                    
+                    // Clear the current content
+                    tempDOMElement.textContent = "";
+                    
+                    // Maximum characters per line
+                    const maxCharsPerLine = 101;
+                    
+                    // Split text into words
+                    const words = text.split(/\s+/);
+                    let currentLine = "";
+                    let firstLine = true;
+                    
+                    // Process each word
+                    words.forEach(word => {
+                        if ((currentLine + " " + word).length > maxCharsPerLine && currentLine.length > 0) {
+                            const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+                            tspan.setAttribute("x", x);
+                            
+                            if (firstLine) {
+                                firstLine = false;
+                            } else {
+                                tspan.setAttribute("dy", `${lineHeight}px`);
+                            }
+                            
+                            tspan.textContent = currentLine;
+                            tempDOMElement.appendChild(tspan);
+                            
+                            currentLine = word;
+                        } else {
+                            if (currentLine.length > 0) {
+                                currentLine += " " + word;
+                            } else {
+                                currentLine = word;
+                            }
+                        }
+                    });
+                    
+                    if (currentLine.length > 0) {
+                        const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+                        tspan.setAttribute("x", x);
+                        
+                        if (!firstLine) {
+                            tspan.setAttribute("dy", `${lineHeight}px`);
+                        }
+                        
+                        tspan.textContent = currentLine;
+                        tempDOMElement.appendChild(tspan);
+                    }
+                    
+                    // Now replace the temporary element in the container
+                    const containerDescriptionElement = container.querySelector('#DescriptionAndRootCauseValue');
+                    containerDescriptionElement.parentNode.replaceChild(tempDOMElement.cloneNode(true), containerDescriptionElement);
+                    
+                    // Remove our temporary element from the DOM
+                    svgPreview.removeChild(tempDOMElement);
+                }
+            }
+            
             // Small delay to ensure rendering completes
             await new Promise(resolve => setTimeout(resolve, 300));
 
