@@ -26,7 +26,7 @@
      inkscape:document-units="mm"
      inkscape:zoom="2.0000001"
      inkscape:cx="444.24998"
-     inkscape:cy="277.24999"
+     inkscape:cy="357.24998"
      inkscape:window-width="1920"
      inkscape:window-height="991"
      inkscape:window-x="1191"
@@ -308,9 +308,10 @@
        y="144.31149">SeniorManagerValue</text>
     <text
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;font-family:Arial;-inkscape-font-specification:Arial;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
-       id="SeniorManagerValue-0"
+       id="ManagerOPSDivisionValue"
        x="88.779854"
-       y="162.31303">ManagerOPSDivisionValue</text>
+       y="162.31303"
+       inkscape:label="ManagerOPSDivisionValue">ManagerOPSDivisionValue</text>
     <text
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;font-family:Arial;-inkscape-font-specification:Arial;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
        id="SRVPRegionalValue"
@@ -323,9 +324,9 @@
        style="font-weight:bold;font-size:10.6667px;font-family:Arial;-inkscape-font-specification:'Arial Bold';text-align:start;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect2);display:inline;fill:#000000"><tspan
          x="182"
          y="222.10808"
-         id="tspan6"><tspan
+         id="tspan5"><tspan
            style="font-weight:normal;-inkscape-font-specification:Arial"
-           id="tspan5">DescriptionAndRootCauseValue</tspan></tspan></text>
+           id="tspan4">DescriptionAndRootCauseValue</tspan></tspan></text>
   </g>
   <g
      inkscape:groupmode="layer"

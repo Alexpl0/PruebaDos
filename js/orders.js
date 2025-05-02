@@ -206,12 +206,20 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (element) {
                             if (svgId === 'DescriptionAndRootCauseValue') {
                                 const maxWidth = 300;
+                                // Limpia todos los hijos (incluyendo tspan)
+                                while (element.firstChild) {
+                                    element.removeChild(element.firstChild);
+                                }
                                 const lines = wrapSvgText(selectedOrder[orderKey] || '', maxWidth, tempDiv);
-                                element.textContent = '';
                                 lines.forEach((l, i) => {
                                     const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
-                                    tspan.setAttribute('x', element.getAttribute('x') || element.getAttribute('x1') || 0);
-                                    tspan.setAttribute('dy', i === 0 ? '0' : '1.2em');
+                                    tspan.setAttribute('x', element.getAttribute('x') || 0);
+                                    // Usa el y del text solo en el primer tspan, luego dy
+                                    if (i === 0) {
+                                        tspan.setAttribute('y', element.getAttribute('y') || 0);
+                                    } else {
+                                        tspan.setAttribute('dy', '1.2em');
+                                    }
                                     tspan.textContent = l;
                                     element.appendChild(tspan);
                                 });
