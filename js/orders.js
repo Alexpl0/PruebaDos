@@ -1,43 +1,4 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // --- Función para rellenar la tabla de órdenes ---
-    /*function rellenarTablaOrdenes(orders) {
-        const tbody = document.getElementById("tbodyOrders");
-        tbody.innerHTML = "";
-        orders.forEach(order => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${order.planta || ''}</td>
-                <td>${order.code_planta || ''}</td>
-                <td>${order.transport || ''}</td>
-                <td>${order.in_out_bound || ''}</td>
-                <td>${order.cost_euros || ''}</td>
-                <td>${order.area || ''}</td>
-                <td>${order.int_ext || ''}</td>
-                <td>${order.paid_by || ''}</td>
-                <td>${order.category_cause || ''}</td>
-                <td>${order.status_name || ''}</td>
-                <td>${order.recovery || ''}</td>
-                <td>${order.description || ''}</td>
-                <td>${order.origin_company_name || ''}</td>
-                <td>${order.origin_city || ''}</td>
-                <td>${order.origin_state || ''}</td>
-                <td>${order.origin_zip || ''}</td>
-                <td>${order.destiny_company_name || ''}</td>
-                <td>${order.destiny_city || ''}</td>
-                <td>${order.destiny_state || ''}</td>
-                <td>${order.destiny_zip || ''}</td>
-                <td>${order.weight || ''}</td>
-                <td>${order.measures || ''}</td>
-                <td>${order.products || ''}</td>
-                <td>${order.carrier || ''}</td>
-                <td>${order.quoted_cost || ''}</td>
-                <td>${order.reference || ''}</td>
-                <td>${order.reference_number || ''}</td>
-            `;
-            tbody.appendChild(row);
-        });
-    }*/
-
     // --- Mapeo de campos para el SVG ---
     const svgMap = {
         'AreaOfResponsabilityValue': 'area',
@@ -55,18 +16,18 @@ document.addEventListener('DOMContentLoaded', function () {
         'IssuerValue': 'creator_name',
         'PlantCValue': 'planta',
         'PlantCodeValue': 'code_planta',
-        'PlantManagerValue': '',
+        'PlantManagerValue': '', // Placeholder, adjust if needed
         'ProductValue': 'products',
-        'ProjectStatusValue': 'project_status',
+        'ProjectStatusValue': 'project_status', // Placeholder, adjust if needed
         'QuotedCostValue': 'quoted_cost',
         'RecoveryValue': 'recovery',
         'ReferenceNumberValue': 'reference_number',
         'RequestingPlantValue': 'planta',
         'RootCauseValue': 'category_cause',
-        'SDestValue': 'destiny_state',
-        'ManagerOPSDivisionValue': '',
-        'SRVPRegionalValue': '',
-        'SeniorManagerValue': '',
+        'SDestValue': 'destiny_state', // Note: Duplicate key with StateDestValue, check SVG
+        'ManagerOPSDivisionValue': '', // Placeholder, adjust if needed
+        'SRVPRegionalValue': '', // Placeholder, adjust if needed
+        'SeniorManagerValue': '', // Placeholder, adjust if needed
         'StateDestValue': 'destiny_state',
         'StateShipValue': 'origin_state',
         'TransportValue': 'transport',
@@ -79,176 +40,182 @@ document.addEventListener('DOMContentLoaded', function () {
     fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php')
         .then(response => response.json())
         .then(data => {
-            //rellenarTablaOrdenes(data.data);
-            createCards(data.data);
+            if (data && data.data) {
+                createCards(data.data);
+            } else {
+                console.error('Error: No data received from API or data format is incorrect.');
+                // Optionally display an error message to the user
+            }
         })
         .catch(error => console.error('Error al cargar los datos:', error));
 
     // --- Calcular número de semana ISO 8601 ---
     function getWeekNumber(dateString) {
-        const date = new Date(dateString);
-        const dayNum = date.getDay() || 7;
-        date.setDate(date.getDate() + 4 - dayNum);
-        const yearStart = new Date(date.getFullYear(), 0, 1);
-        const weekNum = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
-        return weekNum;
+        if (!dateString) return 'N/A'; // Handle cases where date might be null or undefined
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) { // Check if date is valid
+                return 'N/A';
+            }
+            const dayNum = date.getDay() || 7;
+            date.setDate(date.getDate() + 4 - dayNum);
+            const yearStart = new Date(date.getFullYear(), 0, 1);
+            const weekNum = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+            return weekNum;
+        } catch (e) {
+            console.error("Error calculating week number for:", dateString, e);
+            return 'N/A';
+        }
     }
 
     // --- Crear tarjetas visuales para cada orden ---
     function createCards(orders) {
         const mainCards = document.getElementById("card");
-        mainCards.innerHTML = "";
+        if (!mainCards) {
+            console.error("Element with ID 'card' not found.");
+            return;
+        }
+        mainCards.innerHTML = ""; // Clear existing cards
         orders.forEach(order => {
             const semana = getWeekNumber(order.date);
             const card = document.createElement("div");
             card.className = "card shadow rounded mx-2 mb-4";
             card.style.maxWidth = "265px";
-            card.style.maxHeight = "275px";
+            card.style.minHeight = "250px"; // Use minHeight for consistency
+            card.style.display = "flex";
+            card.style.flexDirection = "column";
+            card.style.justifyContent = "space-between";
+
 
             // Colores según estado
-            if (order.status_name === "aprobado") card.style.backgroundColor = "#A7CAC3";
-            else if (order.status_name === "nuevo") card.style.backgroundColor = "#EAE8EB";
-            else if (order.status_name === "revision") card.style.backgroundColor = "#F3D1AB";
-            else if (order.status_name === "rechazado") card.style.backgroundColor = "#E0A4AE";
+            const statusName = (order.status_name || '').toLowerCase();
+            if (statusName === "aprobado") card.style.backgroundColor = "#A7CAC3";
+            else if (statusName === "nuevo") card.style.backgroundColor = "#EAE8EB";
+            else if (statusName === "revision") card.style.backgroundColor = "#F3D1AB";
+            else if (statusName === "rechazado") card.style.backgroundColor = "#E0A4AE";
+            else card.style.backgroundColor = "#FFFFFF"; // Default color
 
             // Mensaje de aprobación pendiente
             let falta = '';
-            if(order.approval_status === null) {
-                falta = 'Totalmente Aprobado';
+            const approvalStatus = order.approval_status; // Can be null or a number
+
+            if (approvalStatus === null || approvalStatus >= (order.required_auth_level || 7)) { // Assuming 7 is max level if required_auth_level is missing
+                 falta = 'Totalmente Aprobado';
+                 if (statusName === "rechazado") { // Override if rejected
+                    falta = 'Orden Rechazada';
+                 }
+            } else if (approvalStatus === 99) {
+                 falta = 'Orden Rechazada';
             } else {
-                switch (order.approval_status) {
-                            case 0:
-                                falta = 'Falta: Logistic Manager';
-                                break;
-                            case 1:
-                                falta = 'Falta: Controlling';
-                                break;
-                            case 2:
-                                falta = 'Falta: Plant Manager';
-                                break;
-                            case 3:
-                                falta = 'Falta: Senior Manager Logistic';
-                                break;
-                            case 4:
-                                falta = 'Falta: Senior Manager Logistics Division';
-                                break;
-                            case 5:
-                                falta = 'Falta: SR VP Regional';
-                                break;
-                            case 6:
-                                falta = 'Falta: Division Controlling Regional';
-                                break;
-                            case 99:
-                                falta = 'Orden Rechazada';
-                                break;
-                            default:
-                                falta = 'Falta: Desconocido';
-                        }
+                // Determine next required approver based on current status
+                switch (Number(approvalStatus)) {
+                    case 0: falta = 'Falta: Logistic Manager'; break;
+                    case 1: falta = 'Falta: Controlling'; break;
+                    case 2: falta = 'Falta: Plant Manager'; break;
+                    case 3: falta = 'Falta: Senior Manager Logistic'; break;
+                    case 4: falta = 'Falta: Senior Manager Logistics Division'; break;
+                    case 5: falta = 'Falta: SR VP Regional'; break;
+                    case 6: falta = 'Falta: Division Controlling Regional'; break;
+                    default: falta = `Falta: Nivel ${approvalStatus + 1}`; // Generic message
+                }
             }
 
+
             card.innerHTML = `
-                <div class="card-body">
-                    <h5 class="card-title">Folio: ${order.id}</h5>
-                    <h6 class="card-subtitle">CW: ${semana}</h6>
-                    <p class="card-text">${order.description || ''}</p>
-                    <p class="card-p">${falta}</p>
-                    <button class="card-button ver-btn" data-order-id="${order.id}">Ver</button>
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Folio: ${order.id || 'N/A'}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">CW: ${semana}</h6>
+                    <p class="card-text flex-grow-1" style="overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${order.description || 'Sin descripción'}</p>
+                    <p class="card-p fw-bold">${falta}</p>
+                </div>
+                <div class="card-footer bg-transparent border-0 text-center pb-3">
+                     <button class="btn btn-primary ver-btn" data-order-id="${order.id}">Ver</button>
                 </div>
             `;
             mainCards.appendChild(card);
         });
 
-        window.allOrders = orders;
+        window.allOrders = orders; // Store orders globally for modal use
 
+        // --- Event listeners for "Ver" buttons ---
         document.querySelectorAll('.ver-btn').forEach(btn => {
             btn.addEventListener('click', async function () {
                 const orderId = this.getAttribute('data-order-id');
-                sessionStorage.setItem('selectedOrderId', orderId);
+                sessionStorage.setItem('selectedOrderId', orderId); // Store selected ID
 
                 Swal.fire({
                     title: 'Cargando',
                     html: 'Por favor espera mientras se carga el documento...',
-                    timer: 1000,
+                    timer: 1000, // Short timer for visual feedback
                     timerProgressBar: true,
                     didOpen: () => { Swal.showLoading(); },
                     allowOutsideClick: false,
                     allowEscapeKey: false,
                     allowEnterKey: false,
-                    customClass: { container: 'swal-on-top' }
+                    customClass: { container: 'swal-on-top' } // Ensure modal is on top
                 });
 
-                document.getElementById('myModal').style.display = 'flex';
+                document.getElementById('myModal').style.display = 'flex'; // Show the modal
                 const selectedOrder = window.allOrders.find(order => order.id === parseInt(orderId)) || {};
 
+                // --- Configure Approve/Reject buttons based on user level and order status ---
                 const approveBtn = document.getElementById('approveBtn');
                 const rejectBtn = document.getElementById('rejectBtn');
 
-                if (Number(selectedOrder.approval_status) === (Number(window.authorizationLevel)) - 1) {
+                // Check if the current user's level is the *next* required approval level
+                // And the order is not already rejected (status 99) or fully approved (null or >= required)
+                const isNextApprover = Number(selectedOrder.approval_status) === (Number(window.authorizationLevel) - 1);
+                const isRejected = Number(selectedOrder.approval_status) === 99;
+                const isFullyApproved = selectedOrder.approval_status === null || Number(selectedOrder.approval_status) >= (selectedOrder.required_auth_level || 7);
+
+                if (isNextApprover && !isRejected && !isFullyApproved) {
                     approveBtn.style.display = "block";
                     approveBtn.disabled = false;
                     rejectBtn.style.display = "block";
+                    rejectBtn.disabled = false; // Ensure reject is also enabled
                 } else {
                     approveBtn.style.display = "none";
                     rejectBtn.style.display = "none";
                 }
 
-                console.log('Auth Requested:', selectedOrder.required_auth_level);
-                console.log('Auth Level:', selectedOrder.approval_status);
+                console.log('Order ID:', orderId);
+                console.log('Selected Order Status:', selectedOrder.approval_status);
+                console.log('User Auth Level:', window.authorizationLevel);
+                console.log('Required Auth Level:', selectedOrder.required_auth_level);
 
+
+                // --- Load and populate SVG ---
                 try {
                     const response = await fetch('PremiumFreight.svg');
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     const svgText = await response.text();
-                    const tempDiv = document.createElement('div');
+
+                    const tempDiv = document.createElement('div'); // Use temporary div to parse SVG
                     tempDiv.innerHTML = svgText;
 
+                    // Populate SVG elements based on svgMap
                     for (const [svgId, orderKey] of Object.entries(svgMap)) {
                         const element = tempDiv.querySelector(`#${svgId}`);
                         if (element) {
-                            if (svgId === 'DescriptionAndRootCauseValue') {
-                                // Obtener el ancho máximo basado en el rectángulo contenedor
-                                let maxWidth = 570;
-                                const descArea = tempDiv.querySelector('#DescriptionRootInput');
-                                if (descArea && descArea.tagName === 'rect') {
-                                    maxWidth = Math.min(parseFloat(descArea.getAttribute('width')) || maxWidth, 570);
-                                }
-                                
-                                // Limpiar el texto actual
-                                while (element.firstChild) {
-                                    element.removeChild(element.firstChild);
-                                }
-                                
-                                // Dividir el texto en exactamente 5 líneas
-                                const lines = wrapSvgText(selectedOrder[orderKey] || '', maxWidth, tempDiv);
-                                
-                                // Obtener la posición x original
-                                const xPos = element.getAttribute('x') || 0;
-                                
-                                // Crear los 5 tspans
-                                lines.forEach((line, index) => {
-                                    const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
-                                    tspan.setAttribute('x', xPos);
-                                    
-                                    // El primer tspan no necesita dy, los siguientes sí
-                                    if (index > 0) {
-                                        tspan.setAttribute('dy', '1.2em'); // Espaciado vertical entre líneas
-                                    }
-                                    
-                                    tspan.textContent = line;
-                                    element.appendChild(tspan);
-                                });
-                            } else {
-                                element.textContent = selectedOrder[orderKey] || '';
-                            }
+                            // Default behavior for all elements: set textContent
+                            element.textContent = selectedOrder[orderKey] || '';
+                        } else {
+                            // Log if an expected SVG element is not found
+                            // console.warn(`SVG element with ID #${svgId} not found in template.`);
                         }
                     }
+                    // Display the populated SVG in the preview area
                     document.getElementById('svgPreview').innerHTML = tempDiv.innerHTML;
+
                 } catch (error) {
-                    console.error('Error al cargar el SVG:', error);
+                    console.error('Error al cargar o procesar el SVG:', error);
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: 'No se pudo cargar la vista previa del documento.'
+                        text: 'No se pudo cargar la vista previa del documento.',
+                        customClass: { container: 'swal-on-top' }
                     });
+                    document.getElementById('myModal').style.display = 'none'; // Hide modal on error
                 }
             });
         });
@@ -259,6 +226,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('myModal').style.display = 'none';
     };
 
+    // Close modal if clicked outside of it
     window.onclick = function (event) {
         const modal = document.getElementById('myModal');
         if (event.target === modal) {
@@ -283,113 +251,84 @@ document.addEventListener('DOMContentLoaded', function () {
             const selectedOrderId = sessionStorage.getItem('selectedOrderId');
             const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
             const response = await fetch('PremiumFreight.svg');
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const svgText = await response.text();
 
+            // Create a container for rendering off-screen
             const container = document.createElement('div');
-            container.style.width = '816px';
-            container.style.height = '1056px';
+            container.style.width = '816px'; // Standard page width in points (adjust if needed)
+            container.style.height = '1056px'; // Standard page height in points (adjust if needed)
             container.style.position = 'absolute';
-            container.style.left = '-9999px';
-            container.innerHTML = svgText;
+            container.style.left = '-9999px'; // Position off-screen
+            container.style.backgroundColor = 'white'; // Ensure background for canvas
+            container.innerHTML = svgText; // Load SVG template
 
+            // Populate the SVG in the off-screen container
             for (const [svgId, orderKey] of Object.entries(svgMap)) {
                 const element = container.querySelector(`#${svgId}`);
                 if (element) {
-                    if (svgId === 'DescriptionAndRootCauseValue') {
-                        // Obtener el ancho máximo
-                        let maxWidth = 570;
-                        const descArea = container.querySelector('#DescriptionRootInput');
-                        if (descArea && descArea.tagName === 'rect') {
-                            maxWidth = Math.min(parseFloat(descArea.getAttribute('width')) || maxWidth, 570);
-                        }
-                        
-                        // Limpiar contenido existente
-                        element.textContent = '';
-                        
-                        // Obtener líneas divididas
-                        const lines = wrapSvgText(selectedOrder[orderKey] || '', maxWidth, container);
-                        
-                        // Obtener la posición x original
-                        const xPos = element.getAttribute('x') || 0;
-                        
-                        // Crear tspans para cada línea
-                        lines.forEach((line, index) => {
-                            const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
-                            tspan.setAttribute('x', xPos);
-                            
-                            if (index > 0) {
-                                tspan.setAttribute('dy', '1.2em');
-                            }
-                            
-                            tspan.textContent = line;
-                            element.appendChild(tspan);
-                        });
-                    } else {
-                        element.textContent = selectedOrder[orderKey] || '';
-                    }
+                     // Default behavior for all elements: set textContent
+                    element.textContent = selectedOrder[orderKey] || '';
                 } else {
-                    console.warn(`Elemento SVG con ID ${svgId} no encontrado para PDF.`);
+                    // console.warn(`Elemento SVG con ID ${svgId} no encontrado para PDF.`);
                 }
             }
 
-            document.body.appendChild(container);
-            await new Promise(resolve => setTimeout(resolve, 200));
+            document.body.appendChild(container); // Add to DOM for rendering
+            // Small delay to ensure rendering completes
+            await new Promise(resolve => setTimeout(resolve, 300));
 
+            // Generate canvas from the container
             const canvas = await html2canvas(container, {
-                scale: 2,
-                logging: true,
+                scale: 2, // Increase scale for better resolution
+                logging: false, // Disable logging unless debugging
                 useCORS: true,
-                allowTaint: true
+                allowTaint: true, // May be needed for external resources if any
+                backgroundColor: null // Use container's background
             });
 
+            document.body.removeChild(container); // Clean up the temporary container
+
+            // Initialize jsPDF
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({
                 orientation: 'portrait',
                 unit: 'pt',
-                format: [816, 1056]
+                format: [canvas.width / 2, canvas.height / 2] // Use canvas dimensions scaled back
             });
 
+            // Add canvas image to PDF
             const imgData = canvas.toDataURL('image/png');
-            pdf.addImage(imgData, 'PNG', 0, 0, 816, 1056);
+            pdf.addImage(imgData, 'PNG', 0, 0, canvas.width / 2, canvas.height / 2);
 
-            const pdfBlob = pdf.output('blob');
-            const pdfUrl = URL.createObjectURL(pdfBlob);
-
-            const fileName = 'PremiumFreight.pdf';
+            // Save the PDF
+            const fileName = `PremiumFreight_${selectedOrder.id || 'Order'}.pdf`;
             pdf.save(fileName);
 
-            document.body.removeChild(container);
-
+            // Success message
             Swal.fire({
                 icon: 'success',
                 title: '¡PDF generado con éxito!',
                 html: `El archivo <b>${fileName}</b> se ha descargado correctamente.`,
-                showCancelButton: true,
                 confirmButtonText: 'Aceptar',
-                cancelButtonText: 'Ver PDF',
-                reverseButtons: true,
-                customClass: {
-                    container: 'swal-on-top',
-                    confirmButton: 'btn btn-success',
-                    cancelButton: 'btn btn-primary'
-                }
-            }).then((result) => {
-                document.getElementById('myModal').style.display = 'none';
-                if (!result.isConfirmed) {
-                    window.open(pdfUrl, '_blank');
-                }
-                setTimeout(() => URL.revokeObjectURL(pdfUrl), 100);
+                customClass: { container: 'swal-on-top' }
             });
+            document.getElementById('myModal').style.display = 'none'; // Close modal after saving
 
         } catch (error) {
             console.error('Error al generar el PDF:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error al generar el PDF',
-                text: error.message,
+                text: error.message || 'Ocurrió un error inesperado.',
                 confirmButtonText: 'Entendido',
                 customClass: { container: 'swal-on-top' }
             });
+            // Ensure temporary container is removed even on error
+            const tempContainer = document.querySelector('div[style*="left: -9999px"]');
+            if (tempContainer) {
+                document.body.removeChild(tempContainer);
+            }
         }
     };
 
@@ -402,69 +341,88 @@ document.addEventListener('DOMContentLoaded', function () {
                 title: 'Procesando...',
                 text: 'Actualizando estado de la orden',
                 allowOutsideClick: false,
-                didOpen: () => { Swal.showLoading(); }
+                didOpen: () => { Swal.showLoading(); },
+                customClass: { container: 'swal-on-top' }
             });
 
-            const newStatusId = selectedOrder.approval_status + 1;
+            // Calculate the next approval status ID
+            const currentStatus = Number(selectedOrder.approval_status);
+            const newStatusId = currentStatus + 1;
+
+            // Prepare data for updating the approval status
             const updateData = {
                 orderId: selectedOrder.id,
                 newStatusId: newStatusId,
                 userLevel: window.authorizationLevel,
                 userID: window.userID,
-                authDate: new Date().toLocaleString('sv-SE', { timeZone: 'America/Mexico_City' }).replace(' ', 'T')
+                authDate: new Date().toISOString().slice(0, 19).replace('T', ' ') // Use ISO format
             };
 
-            let updatedStatusId = 0;
-            if (newStatusId === 99) updatedStatusId = 4; // 'rechazado'
-            else if (newStatusId === selectedOrder.required_auth_level) updatedStatusId = 3; // 'aprobado'
-            else if (newStatusId > 0) updatedStatusId = 2; // 'revision'
+            // Determine the overall status text ID based on the new approval level
+            let updatedStatusTextId = 2; // Default to 'revision'
+            const requiredLevel = Number(selectedOrder.required_auth_level || 7); // Assume 7 if missing
+            if (newStatusId >= requiredLevel) {
+                updatedStatusTextId = 3; // 'aprobado'
+            }
 
-            console.log('New Status ID:', newStatusId);
-            console.log('AuthRequired:', selectedOrder.required_auth_level);
-                
-            const updateStatus = {
+            const updateStatusText = {
                 orderId: selectedOrder.id,
-                statusid: updatedStatusId
+                statusid: updatedStatusTextId
             };
 
-            // Primer fetch: approval_status
-            const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoStatusUpdate.php', {
+            // --- API Calls ---
+            // 1. Update approval_status and log the approval step
+            const responseApproval = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoStatusUpdate.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updateData)
             });
+            const resultApproval = await responseApproval.json();
+            if (!resultApproval.success) {
+                throw new Error(resultApproval.message || 'Error al actualizar el nivel de aprobación.');
+            }
 
-            // Segundo fetch: status_id
-            const responseStatus = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoStatusText.php', {
+            // 2. Update the overall status_id (text representation)
+            const responseStatusText = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoStatusText.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updateStatus)
+                body: JSON.stringify(updateStatusText)
             });
-
-            const result = await response.json();
-            const resultStatus = await responseStatus.json();
-
-            if (result.success) {
-                selectedOrder.approval_status = newStatusId;
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Orden aprobada',
-                    text: `La orden ${selectedOrder.id} ha sido aprobada correctamente.`,
-                    confirmButtonText: 'Aceptar',
-                    customClass: { container: 'swal-on-top' }
-                });
-                document.getElementById('myModal').style.display = 'none';
-                fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php')
-                    .then(response => response.json())
-                    .then(data => {
-                        //rellenarTablaOrdenes(data.data);
-                        createCards(data.data);
-                    });
-            } else {
-                throw new Error(result.message || 'Error al actualizar la orden');
+            const resultStatusText = await responseStatusText.json();
+            if (!resultStatusText.success) {
+                // Log this error but might not need to stop the process if approval update worked
+                console.error('Error updating status text:', resultStatusText.message);
             }
+
+            // --- Success Handling ---
+            // Update local data immediately for responsiveness
+            selectedOrder.approval_status = newStatusId;
+            selectedOrder.status_id = updatedStatusTextId; // Update status text ID locally
+            // Find the corresponding status name (assuming you might have a map or need to fetch it)
+            // For now, let's assume IDs map like: 1=nuevo, 2=revision, 3=aprobado, 4=rechazado
+            if (updatedStatusTextId === 3) selectedOrder.status_name = 'aprobado';
+            else if (updatedStatusTextId === 2) selectedOrder.status_name = 'revision';
+
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Orden aprobada',
+                text: `La orden ${selectedOrder.id} ha sido aprobada para el siguiente nivel.`,
+                confirmButtonText: 'Aceptar',
+                customClass: { container: 'swal-on-top' }
+            });
+            document.getElementById('myModal').style.display = 'none'; // Close modal
+
+            // Refresh the cards display with updated data
+            createCards(window.allOrders); // Re-render cards with updated local data
+
+            // Optionally re-fetch all data from server if needed, but updating local is faster
+            // fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php')
+            //     .then(response => response.json())
+            //     .then(data => createCards(data.data));
+
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error al aprobar la orden:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
@@ -480,138 +438,97 @@ document.addEventListener('DOMContentLoaded', function () {
         const selectedOrderId = sessionStorage.getItem('selectedOrderId');
         const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
         try {
-            Swal.fire({
-                title: 'Procesando...',
-                text: 'Actualizando estado de la orden',
-                allowOutsideClick: false,
-                didOpen: () => { Swal.showLoading(); }
+            // Confirmation dialog before rejecting
+            const confirmation = await Swal.fire({
+                title: '¿Estás seguro?',
+                text: `¿Realmente deseas rechazar la orden ${selectedOrderId}? Esta acción no se puede deshacer.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, rechazar',
+                cancelButtonText: 'Cancelar',
+                customClass: { container: 'swal-on-top' }
             });
 
-            const newStatusId = 99;
+            if (!confirmation.isConfirmed) {
+                return; // Stop if user cancels
+            }
+
+            Swal.fire({
+                title: 'Procesando...',
+                text: 'Rechazando la orden',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); },
+                customClass: { container: 'swal-on-top' }
+            });
+
+            const newStatusId = 99; // Specific status ID for rejection
             const updateData = {
                 orderId: selectedOrder.id,
-                newStatusId: newStatusId,
+                newStatusId: newStatusId, // Set approval_status to 99
                 userLevel: window.authorizationLevel,
                 userID: window.userID,
-                authDate: new Date().toLocaleString('sv-SE', { timeZone: 'America/Mexico_City' }).replace(' ', 'T')
+                authDate: new Date().toISOString().slice(0, 19).replace('T', ' ') // Use ISO format
             };
 
-            let updatedStatusId = 4; // 'rechazado'
-            const updateStatus = {
+            const updatedStatusTextId = 4; // Status text ID for 'rechazado'
+            const updateStatusText = {
                 orderId: selectedOrder.id,
-                statusid: updatedStatusId
+                statusid: updatedStatusTextId
             };
 
-            // Primer fetch: approval_status
-            const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoStatusUpdate.php', {
+            // --- API Calls ---
+            // 1. Update approval_status to 99
+            const responseApproval = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoStatusUpdate.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updateData)
             });
+            const resultApproval = await responseApproval.json();
+            if (!resultApproval.success) {
+                throw new Error(resultApproval.message || 'Error al actualizar el nivel de aprobación a rechazado.');
+            }
 
-            // Segundo fetch: status_id
-            const responseStatus = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoStatusText.php', {
+            // 2. Update the overall status_id to 'rechazado'
+            const responseStatusText = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoStatusText.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updateStatus)
+                body: JSON.stringify(updateStatusText)
             });
-
-            const result = await response.json();
-            const resultStatus = await responseStatus.json();
-
-            if (result.success) {
-                selectedOrder.approval_status = newStatusId;
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Orden rechazada',
-                    text: `La orden ${selectedOrderId} ha sido rechazada.`,
-                    confirmButtonText: 'Aceptar',
-                    customClass: { container: 'swal-on-top' }
-                });
-                document.getElementById('myModal').style.display = 'none';
-                fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php')
-                    .then(response => response.json())
-                    .then(data => {
-                        //rellenarTablaOrdenes(data.data);
-                        createCards(data.data);
-                    });
-            } else {
-                throw new Error(result.message || 'Error al actualizar la orden');
+            const resultStatusText = await responseStatusText.json();
+            if (!resultStatusText.success) {
+                console.error('Error updating status text to rejected:', resultStatusText.message);
             }
+
+            // --- Success Handling ---
+             // Update local data immediately
+            selectedOrder.approval_status = newStatusId;
+            selectedOrder.status_id = updatedStatusTextId;
+            selectedOrder.status_name = 'rechazado';
+
+            Swal.fire({
+                icon: 'error', // Use error icon for rejection
+                title: 'Orden Rechazada',
+                text: `La orden ${selectedOrderId} ha sido rechazada correctamente.`,
+                confirmButtonText: 'Aceptar',
+                customClass: { container: 'swal-on-top' }
+            });
+            document.getElementById('myModal').style.display = 'none'; // Close modal
+
+            // Refresh the cards display
+            createCards(window.allOrders);
+
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error al rechazar la orden:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'No se pudo actualizar la orden: ' + error.message,
+                text: 'No se pudo rechazar la orden: ' + error.message,
                 confirmButtonText: 'Entendido',
                 customClass: { container: 'swal-on-top' }
             });
         }
     };
 });
-
-// --- Función para hacer wrap de texto en SVG ---
-/**
- * Divide un texto largo en 5 líneas para un elemento SVG text
- * @param {string} text - El texto a dividir
- * @param {number} [maxWidth=570] - El ancho máximo en px (valor predeterminado: 570px)
- * @param {Element} svgContainer - El elemento SVG contenedor para realizar mediciones
- * @returns {string[]} Array de 5 líneas de texto
- */
-function wrapSvgText(text, maxWidth = 570, svgContainer) {
-    if (!text) return Array(5).fill('');
-    
-    // Convertir maxWidth a un número
-    maxWidth = Number(maxWidth);
-    
-    // Crear un elemento text temporal para medir
-    const testText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    testText.setAttribute('font-size', '3.175px');
-    testText.setAttribute('font-family', 'Arial');
-    testText.style.visibility = 'hidden'; // Ocultar el elemento temporal
-    svgContainer.appendChild(testText);
-    
-    const words = text.split(' ');
-    let line = '';
-    let lines = [];
-    
-    // Procesar cada palabra para crear hasta 4 líneas (la 5ª será para el resto)
-    for (let n = 0; n < words.length && lines.length < 4; n++) {
-        const word = words[n];
-        const testLine = line + (line ? ' ' : '') + word;
-        testText.textContent = testLine;
-        const length = testText.getComputedTextLength();
-        
-        if (length > maxWidth && line !== '') {
-            lines.push(line);
-            line = word;
-        } else {
-            line = testLine;
-        }
-    }
-    
-    // Agregar la última línea procesada
-    if (line && lines.length < 4) {
-        lines.push(line);
-    }
-    
-    // Si hay palabras restantes, unirlas todas en la última línea
-    if (lines.length === 4) {
-        const remainingWords = words.slice(words.indexOf(line.split(' ')[0]) + line.split(' ').length);
-        lines.push(remainingWords.join(' '));
-    }
-    
-    // Asegurarse de tener exactamente 5 líneas
-    while (lines.length < 5) {
-        lines.push('');
-    }
-    
-    // Eliminar el elemento de prueba
-    svgContainer.removeChild(testText);
-    
-    console.log("Texto dividido en 5 líneas:", lines);
-    
-    return lines;
-}
 
