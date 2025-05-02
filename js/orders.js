@@ -269,7 +269,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const selectedOrderId = sessionStorage.getItem('selectedOrderId');
             const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
-            const response = await fetch('Premium_Freight.svg');
+            const response = await fetch('PremiumFreight.svg');
             const svgText = await response.text();
 
             const container = document.createElement('div');
