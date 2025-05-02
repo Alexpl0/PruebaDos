@@ -212,10 +212,16 @@ document.addEventListener('DOMContentLoaded', function () {
                                 }
                                 const lines = wrapSvgText(selectedOrder[orderKey] || '', maxWidth, tempDiv);
                                 element.textContent = '';
+                                const x = element.getAttribute('x') || element.getAttribute('x1') || 0;
                                 lines.forEach((l, i) => {
                                     const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
-                                    tspan.setAttribute('x', element.getAttribute('x') || element.getAttribute('x1') || 0);
-                                    tspan.setAttribute('dy', i === 0 ? '0' : '1.2em');
+                                    tspan.setAttribute('x', x);
+                                    tspan.setAttribute('y', element.getAttribute('y'));
+                                    if (i === 0) {
+                                        tspan.setAttribute('dy', '0');
+                                    } else {
+                                        tspan.setAttribute('dy', '1.2em');
+                                    }
                                     tspan.textContent = l;
                                     element.appendChild(tspan);
                                 });
