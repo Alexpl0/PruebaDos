@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // --- Mapeo de campos para el SVG ---
+    // --- Field mapping for SVG ---
     const svgMap = {
         'AreaOfResponsabilityValue': 'area',
         'CarrierNameValue': 'carrier',
@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
         'CompanyNameShipValue': 'origin_company_name',
         'CostInEurosValue': 'cost_euros',
         'CostPaidByValue': 'paid_by',
-        'DateValue': 'date', // Mantenemos el mapeo original
+        'DateValue': 'date', // Keep original mapping
         'DescriptionAndRootCauseValue': 'description',
         'InExtValue': 'int_ext',
         'InOutBoundValue': 'in_out_bound',
@@ -35,26 +35,26 @@ document.addEventListener('DOMContentLoaded', function () {
         'ZIPShipValue': 'origin_zip'
     };
 
-    // --- Función para formatear fechas sin hora ---
+    // --- Function to format dates without time ---
     function formatDate(dateString) {
         if (!dateString) return '';
         try {
             const date = new Date(dateString);
-            if (isNaN(date.getTime())) return dateString; // Si no es válida, devolver el string original
+            if (isNaN(date.getTime())) return dateString; // If invalid, return original string
             
-            // Formato DD/MM/YYYY
-            return date.toLocaleDateString('es-MX', {
+            // Format DD/MM/YYYY
+            return date.toLocaleDateString('en-US', {
                 day: '2-digit',
                 month: '2-digit', 
                 year: 'numeric'
             });
         } catch (e) {
-            console.error("Error al formatear fecha:", dateString, e);
+            console.error("Error formatting date:", dateString, e);
             return dateString;
         }
     }
 
-    // --- Cargar datos iniciales ---
+    // --- Load initial data ---
     fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php')
         .then(response => response.json())
         .then(data => {
@@ -65,9 +65,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Optionally display an error message to the user
             }
         })
-        .catch(error => console.error('Error al cargar los datos:', error));
+        .catch(error => console.error('Error loading data:', error));
 
-    // --- Calcular número de semana ISO 8601 ---
+    // --- Calculate ISO 8601 week number ---
     function getWeekNumber(dateString) {
         if (!dateString) return 'N/A'; // Handle cases where date might be null or undefined
         try {
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // --- Función para envolver texto en elemento SVG ---
+    // --- Function to wrap text in SVG element ---
     function wrapSVGText() {
         // Get the text element to wrap
         const textElement = document.getElementById("DescriptionAndRootCauseValue");
@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // --- Crear tarjetas visuales para cada orden ---
+    // --- Create visual cards for each order ---
     function createCards(orders) {
         const mainCards = document.getElementById("card");
         if (!mainCards) {
@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function () {
             card.style.justifyContent = "space-between";
 
 
-            // Colores según estado
+            // Colors based on status
             const statusName = (order.status_name || '').toLowerCase();
             if (statusName === "aprobado") card.style.backgroundColor = "#A7CAC3";
             else if (statusName === "nuevo") card.style.backgroundColor = "#EAE8EB";
@@ -187,41 +187,41 @@ document.addEventListener('DOMContentLoaded', function () {
             else if (statusName === "rechazado") card.style.backgroundColor = "#E0A4AE";
             else card.style.backgroundColor = "#FFFFFF"; // Default color
 
-            // Mensaje de aprobación pendiente
+            // Approval pending message
             let falta = '';
             const approvalStatus = order.approval_status; // Can be null or a number
 
             if (approvalStatus === null || approvalStatus >= (order.required_auth_level || 7)) { // Assuming 7 is max level if required_auth_level is missing
-                 falta = 'Totalmente Aprobado';
+                 falta = 'Fully Approved';
                  if (statusName === "rechazado") { // Override if rejected
-                    falta = 'Orden Rechazada';
+                    falta = 'Order Rejected';
                  }
             } else if (approvalStatus === 99) {
-                 falta = 'Orden Rechazada';
+                 falta = 'Order Rejected';
             } else {
                 // Determine next required approver based on current status
                 switch (Number(approvalStatus)) {
-                    case 0: falta = 'Falta: Logistic Manager'; break;
-                    case 1: falta = 'Falta: Controlling'; break;
-                    case 2: falta = 'Falta: Plant Manager'; break;
-                    case 3: falta = 'Falta: Senior Manager Logistic'; break;
-                    case 4: falta = 'Falta: Senior Manager Logistics Division'; break;
-                    case 5: falta = 'Falta: SR VP Regional'; break;
-                    case 6: falta = 'Falta: Division Controlling Regional'; break;
-                    default: falta = `Falta: Nivel ${approvalStatus + 1}`; // Generic message
+                    case 0: falta = 'Pending: Logistic Manager'; break;
+                    case 1: falta = 'Pending: Controlling'; break;
+                    case 2: falta = 'Pending: Plant Manager'; break;
+                    case 3: falta = 'Pending: Senior Manager Logistic'; break;
+                    case 4: falta = 'Pending: Senior Manager Logistics Division'; break;
+                    case 5: falta = 'Pending: SR VP Regional'; break;
+                    case 6: falta = 'Pending: Division Controlling Regional'; break;
+                    default: falta = `Pending: Level ${approvalStatus + 1}`; // Generic message
                 }
             }
 
 
             card.innerHTML = `
                 <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">Folio: ${order.id || 'N/A'}</h5>
+                    <h5 class="card-title">ID: ${order.id || 'N/A'}</h5>
                     <h6 class="card-subtitle mb-2 text-muted">CW: ${semana}</h6>
-                    <p class="card-text flex-grow-1" style="overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${order.description || 'Sin descripción'}</p>
+                    <p class="card-text flex-grow-1" style="overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${order.description || 'No description'}</p>
                     <p class="card-p fw-bold">${falta}</p>
                 </div>
                 <div class="card-footer bg-transparent border-0 text-center pb-3">
-                     <button class="btn btn-primary ver-btn" data-order-id="${order.id}">Ver</button>
+                     <button class="btn btn-primary ver-btn" data-order-id="${order.id}">View</button>
                 </div>
             `;
             mainCards.appendChild(card);
@@ -229,15 +229,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
         window.allOrders = orders; // Store orders globally for modal use
 
-        // --- Event listeners for "Ver" buttons ---
+        // --- Event listeners for "View" buttons ---
         document.querySelectorAll('.ver-btn').forEach(btn => {
             btn.addEventListener('click', async function () {
                 const orderId = this.getAttribute('data-order-id');
                 sessionStorage.setItem('selectedOrderId', orderId); // Store selected ID
 
                 Swal.fire({
-                    title: 'Cargando',
-                    html: 'Por favor espera mientras se carga el documento...',
+                    title: 'Loading',
+                    html: 'Please wait while the document is loading...',
                     timer: 1000, // Short timer for visual feedback
                     timerProgressBar: true,
                     didOpen: () => { Swal.showLoading(); },
@@ -289,7 +289,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     for (const [svgId, orderKey] of Object.entries(svgMap)) {
                         const element = tempDiv.querySelector(`#${svgId}`);
                         if (element) {
-                            // Caso especial para la fecha
+                            // Special case for date
                             if (svgId === 'DateValue') {
                                 element.textContent = formatDate(selectedOrder.date);
                             } else {
@@ -305,11 +305,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     wrapSVGText();
 
                 } catch (error) {
-                    console.error('Error al cargar o procesar el SVG:', error);
+                    console.error('Error loading or processing SVG:', error);
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: 'No se pudo cargar la vista previa del documento.',
+                        text: 'Could not load document preview.',
                         customClass: { container: 'swal-on-top' }
                     });
                     document.getElementById('myModal').style.display = 'none'; // Hide modal on error
@@ -318,7 +318,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // --- Cerrar modal ---
+    // --- Close modal ---
     document.getElementById('closeModal').onclick = function () {
         document.getElementById('myModal').style.display = 'none';
     };
@@ -331,12 +331,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
 
-    // --- Guardar como PDF ---
+    // --- Save as PDF ---
     document.getElementById('savePdfBtn').onclick = async function () {
         try {
             Swal.fire({
-                title: 'Generando PDF',
-                html: 'Por favor espera mientras se procesa el documento...',
+                title: 'Generating PDF',
+                html: 'Please wait while the document is being processed...',
                 timerProgressBar: true,
                 didOpen: () => { Swal.showLoading(); },
                 allowOutsideClick: false,
@@ -364,7 +364,7 @@ document.addEventListener('DOMContentLoaded', function () {
             for (const [svgId, orderKey] of Object.entries(svgMap)) {
                 const element = container.querySelector(`#${svgId}`);
                 if (element) {
-                    // Caso especial para la fecha
+                    // Special case for date
                     if (svgId === 'DateValue') {
                         element.textContent = formatDate(selectedOrder.date);
                     } else {
@@ -506,20 +506,20 @@ document.addEventListener('DOMContentLoaded', function () {
             // Success message
             Swal.fire({
                 icon: 'success',
-                title: '¡PDF generado con éxito!',
-                html: `El archivo <b>${fileName}</b> se ha descargado correctamente.`,
-                confirmButtonText: 'Aceptar',
+                title: 'PDF Successfully Generated!',
+                html: `The file <b>${fileName}</b> has been downloaded successfully.`,
+                confirmButtonText: 'OK',
                 customClass: { container: 'swal-on-top' }
             });
             document.getElementById('myModal').style.display = 'none'; // Close modal after saving
 
         } catch (error) {
-            console.error('Error al generar el PDF:', error);
+            console.error('Error generating PDF:', error);
             Swal.fire({
                 icon: 'error',
-                title: 'Error al generar el PDF',
-                text: error.message || 'Ocurrió un error inesperado.',
-                confirmButtonText: 'Entendido',
+                title: 'Error Generating PDF',
+                text: error.message || 'An unexpected error occurred.',
+                confirmButtonText: 'OK',
                 customClass: { container: 'swal-on-top' }
             });
             // Ensure temporary container is removed even on error
@@ -530,14 +530,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
 
-    // --- Aprobar orden ---
+    // --- Approve order ---
     document.getElementById('approveBtn').onclick = async function () {
         const selectedOrderId = sessionStorage.getItem('selectedOrderId');
         const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
         try {
             Swal.fire({
-                title: 'Procesando...',
-                text: 'Actualizando estado de la orden',
+                title: 'Processing...',
+                text: 'Updating order status',
                 allowOutsideClick: false,
                 didOpen: () => { Swal.showLoading(); },
                 customClass: { container: 'swal-on-top' }
@@ -577,7 +577,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             const resultApproval = await responseApproval.json();
             if (!resultApproval.success) {
-                throw new Error(resultApproval.message || 'Error al actualizar el nivel de aprobación.');
+                throw new Error(resultApproval.message || 'Error updating approval level.');
             }
 
             // 2. Update the overall status_id (text representation)
@@ -604,9 +604,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
             Swal.fire({
                 icon: 'success',
-                title: 'Orden aprobada',
-                text: `La orden ${selectedOrder.id} ha sido aprobada para el siguiente nivel.`,
-                confirmButtonText: 'Aceptar',
+                title: 'Order Approved',
+                text: `Order ${selectedOrder.id} has been approved for the next level.`,
+                confirmButtonText: 'OK',
                 customClass: { container: 'swal-on-top' }
             });
             document.getElementById('myModal').style.display = 'none'; // Close modal
@@ -620,32 +620,32 @@ document.addEventListener('DOMContentLoaded', function () {
             //     .then(data => createCards(data.data));
 
         } catch (error) {
-            console.error('Error al aprobar la orden:', error);
+            console.error('Error approving order:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'No se pudo actualizar la orden: ' + error.message,
-                confirmButtonText: 'Entendido',
+                text: 'Could not update order: ' + error.message,
+                confirmButtonText: 'OK',
                 customClass: { container: 'swal-on-top' }
             });
         }
     };
 
-    // --- Rechazar orden ---
+    // --- Reject order ---
     document.getElementById('rejectBtn').onclick = async function () {
         const selectedOrderId = sessionStorage.getItem('selectedOrderId');
         const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
         try {
             // Confirmation dialog before rejecting
             const confirmation = await Swal.fire({
-                title: '¿Estás seguro?',
-                text: `¿Realmente deseas rechazar la orden ${selectedOrderId}? Esta acción no se puede deshacer.`,
+                title: 'Are you sure?',
+                text: `Do you really want to reject order ${selectedOrderId}? This action cannot be undone.`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
                 cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Sí, rechazar',
-                cancelButtonText: 'Cancelar',
+                confirmButtonText: 'Yes, reject it',
+                cancelButtonText: 'Cancel',
                 customClass: { container: 'swal-on-top' }
             });
 
@@ -654,8 +654,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             Swal.fire({
-                title: 'Procesando...',
-                text: 'Rechazando la orden',
+                title: 'Processing...',
+                text: 'Rejecting the order',
                 allowOutsideClick: false,
                 didOpen: () => { Swal.showLoading(); },
                 customClass: { container: 'swal-on-top' }
@@ -685,7 +685,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             const resultApproval = await responseApproval.json();
             if (!resultApproval.success) {
-                throw new Error(resultApproval.message || 'Error al actualizar el nivel de aprobación a rechazado.');
+                throw new Error(resultApproval.message || 'Error updating approval level to rejected.');
             }
 
             // 2. Update the overall status_id to 'rechazado'
@@ -707,9 +707,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
             Swal.fire({
                 icon: 'error', // Use error icon for rejection
-                title: 'Orden Rechazada',
-                text: `La orden ${selectedOrderId} ha sido rechazada correctamente.`,
-                confirmButtonText: 'Aceptar',
+                title: 'Order Rejected',
+                text: `Order ${selectedOrderId} has been rejected successfully.`,
+                confirmButtonText: 'OK',
                 customClass: { container: 'swal-on-top' }
             });
             document.getElementById('myModal').style.display = 'none'; // Close modal
@@ -718,12 +718,12 @@ document.addEventListener('DOMContentLoaded', function () {
             createCards(window.allOrders);
 
         } catch (error) {
-            console.error('Error al rechazar la orden:', error);
+            console.error('Error rejecting order:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'No se pudo rechazar la orden: ' + error.message,
-                confirmButtonText: 'Entendido',
+                text: 'Could not reject order: ' + error.message,
+                confirmButtonText: 'OK',
                 customClass: { container: 'swal-on-top' }
             });
         }

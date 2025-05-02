@@ -44,13 +44,13 @@ $userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
                 <div class="nav__menu">
                     <ul class="nav__list">
                         <li class="nav__item"><a href="index.php" class="nav__link ">Home</a></li>
-                        <li class="nav__item"><a href="newOrder.php" class="nav__link ">Nueva Orden</a></li>
-                        <li class="nav__item"><a href="orders.php" class="nav__link active">Ordenes Generadas</a></li>
-                        <li class="nav__item"><a href="register.php" class="nav__link">Agregar Usuario</a></li>
-                        <li class="nav__item"><a href="google.com" class="nav__link">Graficas</a></li>
+                        <li class="nav__item"><a href="newOrder.php" class="nav__link ">New Order</a></li>
+                        <li class="nav__item"><a href="orders.php" class="nav__link active">Generated Orders</a></li>
+                        <li class="nav__item"><a href="register.php" class="nav__link">Add User</a></li>
+                        <li class="nav__item"><a href="google.com" class="nav__link">Charts</a></li>
                         <li class="nav__item"><a href="  " class="nav__link">Manual</a></li>
                         <?php if (isset($_SESSION['user'])): ?>
-                            <li class="nav__item"><a href="logout.php" class="nav__link">Cerrar sesión</a></li>
+                            <li class="nav__item"><a href="logout.php" class="nav__link">Log Out</a></li>
                         <?php endif; ?>
                     </ul>
                 </div>
@@ -59,7 +59,7 @@ $userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
     </header>
 
     <div id="mainOrders">
-            <h1 id="title1">Historial de Ordenes Generadas</h1>
+            <h1 id="title1">Generated Orders History</h1>
             <h1 id="title2"></h1>
     </div>
 
@@ -72,9 +72,9 @@ $userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
       <div class="modal-content">
         <span id="closeModal" class="close-button">&times;</span>
         <div class="modal-buttons">
-        <button id="savePdfBtn" class="save-pdf-button">Guardar PDF</button>
-        <button id="approveBtn">Aprobar</button>
-        <button id="rejectBtn">Rechazar</button>
+        <button id="savePdfBtn" class="save-pdf-button">Save PDF</button>
+        <button id="approveBtn">Approve</button>
+        <button id="rejectBtn">Reject</button>
     </div>
 
         <div id="svgPreview" class="svg-frame"></div>
