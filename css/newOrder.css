@@ -54,7 +54,7 @@ form{
     border-radius: 15px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     max-width: 800px;
-    width: 80%;
+    width: 90%;
 }
 
 label {
@@ -141,6 +141,7 @@ label {
     max-width: 900px;
     margin-top: 20px;
     margin-bottom: 2rem;
+    font-size: 17px;
 }
 
 
