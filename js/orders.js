@@ -67,7 +67,6 @@ document.addEventListener('DOMContentLoaded', function () {
         'ManagerOPSDivisionValue': '',
         'SRVPRegionalValue': '',
         'SeniorManagerValue': '',
-        'ManagerOPSDivisionValue': '',
         'StateDestValue': 'destiny_state',
         'StateShipValue': 'origin_state',
         'TransportValue': 'transport',
