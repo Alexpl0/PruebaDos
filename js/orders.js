@@ -204,7 +204,24 @@ document.addEventListener('DOMContentLoaded', function () {
                     for (const [svgId, orderKey] of Object.entries(svgMap)) {
                         const element = tempDiv.querySelector(`#${svgId}`);
                         if (element) {
-                            element.textContent = selectedOrder[orderKey] || '';
+                            if (svgId === 'DescriptionAndRootCauseValue') {
+                                let maxWidth = 570;
+                                const descArea = tempDiv.querySelector('#DescriptionRootInput');
+                                if (descArea && descArea.tagName === 'rect') {
+                                    maxWidth = Math.min(parseFloat(descArea.getAttribute('width')) || maxWidth, 570);
+                                }
+                                const lines = wrapSvgText(selectedOrder[orderKey] || '', maxWidth, tempDiv);
+                                element.textContent = '';
+                                lines.forEach((l, i) => {
+                                    const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+                                    tspan.setAttribute('x', element.getAttribute('x') || element.getAttribute('x1') || 0);
+                                    tspan.setAttribute('dy', i === 0 ? '0' : '1.2em');
+                                    tspan.textContent = l;
+                                    element.appendChild(tspan);
+                                });
+                            } else {
+                                element.textContent = selectedOrder[orderKey] || '';
+                            }
                         }
                     }
                     document.getElementById('svgPreview').innerHTML = tempDiv.innerHTML;
