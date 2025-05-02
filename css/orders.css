@@ -232,3 +232,10 @@ main{
     max-width: 1400px;
     margin: 0 auto;
 }
+
+#DescriptionAndRootCauseValue{
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 1%;
+    color: white;
+}

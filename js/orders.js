@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', function () {
         'ReferenceNumberValue': 'reference_number',
         'RequestingPlantValue': 'planta',
         'RootCauseValue': 'category_cause',
-        'SDestValue': 'destiny_state', // Note: Duplicate key with StateDestValue, check SVG
         'ManagerOPSDivisionValue': '', // Placeholder, adjust if needed
         'SRVPRegionalValue': '', // Placeholder, adjust if needed
         'SeniorManagerValue': '', // Placeholder, adjust if needed
