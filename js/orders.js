@@ -262,10 +262,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 const element = container.querySelector(`#${svgId}`);
                 if (element) {
                     if (svgId === 'DescriptionAndRootCauseValue') {
-                        let maxWidth = 300;
+                        let maxWidth = 570; // <-- Cambia aquí el ancho máximo
                         const descArea = container.querySelector('#DescriptionRootInput');
                         if (descArea && descArea.tagName === 'rect') {
-                            maxWidth = parseFloat(descArea.getAttribute('width')) || maxWidth;
+                            // Si quieres que nunca pase de 570, usa Math.min
+                            maxWidth = Math.min(parseFloat(descArea.getAttribute('width')) || maxWidth, 570);
                         }
                         const lines = wrapSvgText(selectedOrder[orderKey] || '', maxWidth, container);
                         element.textContent = '';
