@@ -285,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         element.textContent = '';
                         lines.forEach((l, i) => {
                             const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
-                            tspan.setAttribute('x', element.getAttribute('x'));
+                            tspan.setAttribute('x', element.getAttribute('x') || element.getAttribute('x1') || 0);
                             tspan.setAttribute('dy', i === 0 ? '0' : '1.2em');
                             tspan.textContent = l;
                             element.appendChild(tspan);
