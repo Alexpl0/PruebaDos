@@ -259,7 +259,8 @@ img {
     border-radius: .25rem;
   }
   .nav__link:hover {
-    color:var(--dark-color);
+    font-style: italic;
+    text-decoration: underline;
   }
   .active {
     background-color: #a2a2a2;
