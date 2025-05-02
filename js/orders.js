@@ -204,7 +204,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     for (const [svgId, orderKey] of Object.entries(svgMap)) {
                         const element = tempDiv.querySelector(`#${svgId}`);
                         if (element) {
-                            // Asigna el texto directamente al <text>
                             element.textContent = selectedOrder[orderKey] || '';
                         }
                     }
