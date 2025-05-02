@@ -46,6 +46,7 @@ form {
     border: 1px solid var(--first-color);
     border-radius: 10px;
     background-color: #f9f9f9;
+    width: 90%;
 }
 
 #loginform-container {
@@ -122,6 +123,7 @@ form button, form input[type="submit"] {
     border-radius: 15px;
     padding-top: 25px;
     padding-bottom: 25px;
+    font-size: 17px;
 }
 
 #container {
