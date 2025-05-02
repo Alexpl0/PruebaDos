@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function () {
         'PlantManagerValue': '', // Placeholder, adjust if needed
         'ProductValue': 'products',
         'ProjectStatusValue': 'project_status', // Placeholder, adjust if needed
-        'QuotedCostValue': 'quoted_cost',
+        'QuotedCostValue': (order) => `$ ${order.quoted_cost || '0'} ${order.moneda || 'MXN'}`,
         'RecoveryValue': 'recovery',
         'ReferenceNumberValue': 'reference_number',
         'RequestingPlantValue': 'planta',
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const date = new Date(dateString);
             if (isNaN(date.getTime())) return dateString; // If invalid, return original string
             
-            // Format DD/MM/YYYY
+            // Format MM/DD/YYYY
             return date.toLocaleDateString('en-US', {
                 day: '2-digit',
                 month: '2-digit', 
@@ -168,6 +168,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
         mainCards.innerHTML = ""; // Clear existing cards
+        
         orders.forEach(order => {
             const semana = getWeekNumber(order.date);
             const card = document.createElement("div");
@@ -177,7 +178,6 @@ document.addEventListener('DOMContentLoaded', function () {
             card.style.display = "flex";
             card.style.flexDirection = "column";
             card.style.justifyContent = "space-between";
-
 
             // Colors based on status
             const statusName = (order.status_name || '').toLowerCase();
@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', function () {
             let falta = '';
             const approvalStatus = order.approval_status; // Can be null or a number
 
-            if (approvalStatus === null || approvalStatus >= (order.required_auth_level || 7)) { // Assuming 7 is max level if required_auth_level is missing
+            if (approvalStatus === null || approvalStatus >= (order.required_auth_level || 7)) { 
                  falta = 'Fully Approved';
                  if (statusName === "rechazado") { // Override if rejected
                     falta = 'Order Rejected';
@@ -211,7 +211,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     default: falta = `Pending: Level ${approvalStatus + 1}`; // Generic message
                 }
             }
-
 
             card.innerHTML = `
                 <div class="card-body d-flex flex-column">
@@ -258,7 +257,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 // And the order is not already rejected (status 99) or fully approved (null or >= required)
                 const isNextApprover = Number(selectedOrder.approval_status) === (Number(window.authorizationLevel) - 1);
                 const isRejected = Number(selectedOrder.approval_status) === 99;
-                const isFullyApproved = selectedOrder.approval_status === null || Number(selectedOrder.approval_status) >= (selectedOrder.required_auth_level || 7);
+                const isFullyApproved = selectedOrder.approval_status === null || 
+                                       Number(selectedOrder.approval_status) >= (selectedOrder.required_auth_level || 7);
 
                 if (isNextApprover && !isRejected && !isFullyApproved) {
                     approveBtn.style.display = "block";
@@ -274,7 +274,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.log('Selected Order Status:', selectedOrder.approval_status);
                 console.log('User Auth Level:', window.authorizationLevel);
                 console.log('Required Auth Level:', selectedOrder.required_auth_level);
-
 
                 // --- Load and populate SVG ---
                 try {
@@ -292,12 +291,16 @@ document.addEventListener('DOMContentLoaded', function () {
                             // Special case for date
                             if (svgId === 'DateValue') {
                                 element.textContent = formatDate(selectedOrder.date);
+                            } else if (typeof orderKey === 'function') {
+                                // Handle function-based mappings
+                                element.textContent = orderKey(selectedOrder);
                             } else {
-                                // Default behavior for all other elements
+                                // Default behavior for string mappings
                                 element.textContent = selectedOrder[orderKey] || '';
                             }
                         }
                     }
+                    
                     // Display the populated SVG in the preview area
                     document.getElementById('svgPreview').innerHTML = tempDiv.innerHTML;
                     
@@ -353,8 +356,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Create a container for rendering off-screen
             const container = document.createElement('div');
-            container.style.width = '816px'; // Standard page width in points (adjust if needed)
-            container.style.height = '1056px'; // Standard page height in points (adjust if needed)
+            container.style.width = '816px'; // Standard page width in points
+            container.style.height = '1056px'; // Standard page height in points
             container.style.position = 'absolute';
             container.style.left = '-9999px'; // Position off-screen
             container.style.backgroundColor = 'white'; // Ensure background for canvas
@@ -367,8 +370,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Special case for date
                     if (svgId === 'DateValue') {
                         element.textContent = formatDate(selectedOrder.date);
+                    } else if (typeof orderKey === 'function') {
+                        // Handle function-based mappings
+                        element.textContent = orderKey(selectedOrder);
                     } else {
-                        // Default behavior for all other elements
+                        // Default behavior for string mappings
                         element.textContent = selectedOrder[orderKey] || '';
                     }
                 }
@@ -596,11 +602,10 @@ document.addEventListener('DOMContentLoaded', function () {
             // Update local data immediately for responsiveness
             selectedOrder.approval_status = newStatusId;
             selectedOrder.status_id = updatedStatusTextId; // Update status text ID locally
-            // Find the corresponding status name (assuming you might have a map or need to fetch it)
-            // For now, let's assume IDs map like: 1=nuevo, 2=revision, 3=aprobado, 4=rechazado
+            
+            // Update status name based on ID
             if (updatedStatusTextId === 3) selectedOrder.status_name = 'aprobado';
             else if (updatedStatusTextId === 2) selectedOrder.status_name = 'revision';
-
 
             Swal.fire({
                 icon: 'success',
@@ -613,11 +618,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Refresh the cards display with updated data
             createCards(window.allOrders); // Re-render cards with updated local data
-
-            // Optionally re-fetch all data from server if needed, but updating local is faster
-            // fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php')
-            //     .then(response => response.json())
-            //     .then(data => createCards(data.data));
 
         } catch (error) {
             console.error('Error approving order:', error);
@@ -667,7 +667,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 newStatusId: newStatusId, // Set approval_status to 99
                 userLevel: window.authorizationLevel,
                 userID: window.userID,
-                authDate: new Date().toISOString().slice(0, 19).replace('T', ' ') // Use ISO format
+                authDate: new Date().toISOString().slice(0, 19).replace('T', ' ')
             };
 
             const updatedStatusTextId = 4; // Status text ID for 'rechazado'
@@ -700,7 +700,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             // --- Success Handling ---
-             // Update local data immediately
+            // Update local data immediately
             selectedOrder.approval_status = newStatusId;
             selectedOrder.status_id = updatedStatusTextId;
             selectedOrder.status_name = 'rechazado';

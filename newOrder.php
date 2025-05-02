@@ -409,29 +409,7 @@ session_start();
             <button type="button" id="enviar">Submit</button>
         </form> 
     </div>
-
-    <h1>SVG Modal</h1>
-
     
-            <!-- Add this button where you want -->
-            <button id="verPDF" class="btn btn-primary">View PDF Document</button>
-    
-            <!-- Modal to display the SVG -->
-            <div class="modal fade" id="svgModal" tabindex="-1" role="dialog" aria-labelledby="svgModalLabel">
-              <div class="modal-dialog modal-lg" role="document">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h4 class="modal-title" id="svgModalLabel">PDF Document</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                      <span aria-hidden="true">&times;</span>
-                    </button>
-                  </div>
-                  <div class="modal-body">
-                    <div id="svgContainer" style="width:100%; overflow:auto;"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
     <footer>
         <div >
             <div>
