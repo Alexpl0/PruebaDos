@@ -25,14 +25,14 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      inkscape:zoom="2.0000001"
-     inkscape:cx="444.74998"
-     inkscape:cy="99.249995"
+     inkscape:cx="444.99998"
+     inkscape:cy="818.74996"
      inkscape:window-width="1920"
      inkscape:window-height="991"
      inkscape:window-x="1191"
      inkscape:window-y="72"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer4"
+     inkscape:current-layer="layer8"
      showgrid="true"
      showguides="true">
     <sodipodi:guide
@@ -284,7 +284,7 @@
     <text
        style="font-variant:normal;font-weight:normal;font-size:3.175px;font-family:Arial;-inkscape-font-specification:ArialMT;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
        id="QuotedCostValue"
-       x="89.932495"
+       x="100.51582"
        y="233.88805">QuotedCostValue</text>
     <text
        style="font-variant:normal;font-weight:normal;font-size:3.175px;font-family:Arial;-inkscape-font-specification:ArialMT;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
@@ -616,7 +616,7 @@
     <text
        style="font-variant:normal;font-weight:normal;font-size:3.11997px;font-family:Arial;-inkscape-font-specification:ArialMT;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
        id="QuotedCostsLabel"
-       x="98.576607"
+       x="105.45578"
        y="237.7506"
        inkscape:label="QuotedCostsLabel">Quoted Costs</text>
     <text
