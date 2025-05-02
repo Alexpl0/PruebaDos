@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.log('Auth Level:', selectedOrder.approval_status);
 
                 try {
-                    const response = await fetch('Premium_Freight.svg');
+                    const response = await fetch('Juanito.svg');
                     const svgText = await response.text();
                     const tempDiv = document.createElement('div');
                     tempDiv.innerHTML = svgText;
@@ -269,7 +269,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const selectedOrderId = sessionStorage.getItem('selectedOrderId');
             const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
-            const response = await fetch('Premium_Freight.svg');
+            const response = await fetch('Juanito.svg');
             const svgText = await response.text();
 
             const container = document.createElement('div');
