@@ -553,14 +553,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // --- Función para hacer wrap de texto en SVG ---
 /**
- * Divide un texto largo en líneas para un elemento SVG text
+ * Divide un texto largo en 5 líneas para un elemento SVG text
  * @param {string} text - El texto a dividir
  * @param {number} [maxWidth=570] - El ancho máximo en px (valor predeterminado: 570px)
  * @param {Element} svgContainer - El elemento SVG contenedor para realizar mediciones
- * @returns {string[]} Array de líneas de texto
+ * @returns {string[]} Array de 5 líneas de texto
  */
 function wrapSvgText(text, maxWidth = 570, svgContainer) {
-    if (!text) return [''];
+    if (!text) return Array(5).fill('');
     
     // Convertir maxWidth a un número
     maxWidth = Number(maxWidth);
@@ -576,40 +576,41 @@ function wrapSvgText(text, maxWidth = 570, svgContainer) {
     let line = '';
     let lines = [];
     
-    // Procesar cada palabra
-    for (let n = 0; n < words.length; n++) {
+    // Procesar cada palabra para crear hasta 4 líneas (la 5ª será para el resto)
+    for (let n = 0; n < words.length && lines.length < 4; n++) {
         const word = words[n];
-        // Probar añadir la palabra actual a la línea
         const testLine = line + (line ? ' ' : '') + word;
         testText.textContent = testLine;
         const length = testText.getComputedTextLength();
         
-        // Si la línea es demasiado larga y ya teníamos texto previo
         if (length > maxWidth && line !== '') {
-            // Guardar la línea actual sin la nueva palabra
             lines.push(line);
-            // Comenzar nueva línea con la palabra actual
             line = word;
         } else {
-            // Si cabe, actualizar la línea actual
             line = testLine;
         }
     }
     
-    // Agregar la última línea si hay contenido
-    if (line) {
+    // Agregar la última línea procesada
+    if (line && lines.length < 4) {
         lines.push(line);
+    }
+    
+    // Si hay palabras restantes, unirlas todas en la última línea
+    if (lines.length === 4) {
+        const remainingWords = words.slice(words.indexOf(line.split(' ')[0]) + line.split(' ').length);
+        lines.push(remainingWords.join(' '));
+    }
+    
+    // Asegurarse de tener exactamente 5 líneas
+    while (lines.length < 5) {
+        lines.push('');
     }
     
     // Eliminar el elemento de prueba
     svgContainer.removeChild(testText);
     
-    // Asegurarse de que haya al menos una línea
-    if (lines.length === 0) {
-        lines.push('');
-    }
-    
-    console.log("Texto dividido en", lines.length, "líneas:", lines);
+    console.log("Texto dividido en 5 líneas:", lines);
     
     return lines;
 }
