@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.log('Auth Level:', selectedOrder.approval_status);
 
                 try {
-                    const response = await fetch('Premium_Freight.svg');
+                    const response = await fetch('PremiumFreight.svg');
                     const svgText = await response.text();
                     const tempDiv = document.createElement('div');
                     tempDiv.innerHTML = svgText;
