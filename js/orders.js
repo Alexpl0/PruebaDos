@@ -217,13 +217,13 @@ document.addEventListener('DOMContentLoaded', function () {
                                     element.removeChild(element.firstChild);
                                 }
                                 
-                                // Dividir el texto en líneas
+                                // Dividir el texto en exactamente 5 líneas
                                 const lines = wrapSvgText(selectedOrder[orderKey] || '', maxWidth, tempDiv);
                                 
                                 // Obtener la posición x original
                                 const xPos = element.getAttribute('x') || 0;
                                 
-                                // Crear tspans para cada línea
+                                // Crear los 5 tspans
                                 lines.forEach((line, index) => {
                                     const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
                                     tspan.setAttribute('x', xPos);
