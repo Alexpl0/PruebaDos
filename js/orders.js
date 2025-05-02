@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
         'CompanyNameShipValue': 'origin_company_name',
         'CostInEurosValue': 'cost_euros',
         'CostPaidByValue': 'paid_by',
-        'DateValue': 'date',
+        'DateValue': 'date', // Mantenemos el mapeo original
         'DescriptionAndRootCauseValue': 'description',
         'InExtValue': 'int_ext',
         'InOutBoundValue': 'in_out_bound',
@@ -34,6 +34,25 @@ document.addEventListener('DOMContentLoaded', function () {
         'ZIPDestValue': 'destiny_zip',
         'ZIPShipValue': 'origin_zip'
     };
+
+    // --- Función para formatear fechas sin hora ---
+    function formatDate(dateString) {
+        if (!dateString) return '';
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return dateString; // Si no es válida, devolver el string original
+            
+            // Formato DD/MM/YYYY
+            return date.toLocaleDateString('es-MX', {
+                day: '2-digit',
+                month: '2-digit', 
+                year: 'numeric'
+            });
+        } catch (e) {
+            console.error("Error al formatear fecha:", dateString, e);
+            return dateString;
+        }
+    }
 
     // --- Cargar datos iniciales ---
     fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php')
@@ -270,11 +289,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     for (const [svgId, orderKey] of Object.entries(svgMap)) {
                         const element = tempDiv.querySelector(`#${svgId}`);
                         if (element) {
-                            // Default behavior for all elements: set textContent
-                            element.textContent = selectedOrder[orderKey] || '';
-                        } else {
-                            // Log if an expected SVG element is not found
-                            // console.warn(`SVG element with ID #${svgId} not found in template.`);
+                            // Caso especial para la fecha
+                            if (svgId === 'DateValue') {
+                                element.textContent = formatDate(selectedOrder.date);
+                            } else {
+                                // Default behavior for all other elements
+                                element.textContent = selectedOrder[orderKey] || '';
+                            }
                         }
                     }
                     // Display the populated SVG in the preview area
@@ -343,10 +364,13 @@ document.addEventListener('DOMContentLoaded', function () {
             for (const [svgId, orderKey] of Object.entries(svgMap)) {
                 const element = container.querySelector(`#${svgId}`);
                 if (element) {
-                     // Default behavior for all elements: set textContent
-                    element.textContent = selectedOrder[orderKey] || '';
-                } else {
-                    // console.warn(`Elemento SVG con ID ${svgId} no encontrado para PDF.`);
+                    // Caso especial para la fecha
+                    if (svgId === 'DateValue') {
+                        element.textContent = formatDate(selectedOrder.date);
+                    } else {
+                        // Default behavior for all other elements
+                        element.textContent = selectedOrder[orderKey] || '';
+                    }
                 }
             }
 
