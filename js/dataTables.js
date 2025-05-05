@@ -271,6 +271,8 @@ const generarHistoricoTotal = async () => {
         let content = ``;
         premiumFreightData.forEach(item => {
             try {
+
+                console.log("Fecha de emisión:", item.date);
                 // Usar nuestra función parseDate en lugar de new Date directamente
                 const issueDate = item.date ? parseDate(item.date) : null;
                 console.log("Fecha de emisión:", issueDate);
