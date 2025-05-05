@@ -69,6 +69,8 @@ const parseDate = (dateString) => {
         const second = parseInt(timeParts[2], 10);
         
         const date = new Date(year, month, day, hour, minute, second);
+
+        console.log('parseDate: Fecha convertida:', dateString, '->', date);
         
         // Verificar si la fecha es válida
         if (isNaN(date.getTime())) {
@@ -95,6 +97,7 @@ const getWeekNumber = (date) => {
         d.setDate(d.getDate() + 4 - (d.getDay() || 7));
         const yearStart = new Date(d.getFullYear(), 0, 1);
         const weekNumber = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        console.log('Número de semana:', weekNumber);
         return weekNumber;
     } catch (error) {
         console.error('Error en getWeekNumber:', error);
