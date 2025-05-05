@@ -34,17 +34,7 @@ const dataTableOptions = {
             text: 'Excel',
             className: 'btn-success',
             title: 'Premium_Freight_Report',
-            filename: function() {
-                // Use DataTables API context
-                const data = this.api().exportData();
-                const table = data.body;
-                if (table.length === 0) return 'PF_no_data';
-
-                const firstId = table[0][0] || 'NA';
-                const lastId = table[table.length-1][0] || 'NA';
-
-                return `PF_${firstId}-${lastId}`;
-            },
+            filename: 'Premium_Freight_Report',
             exportOptions: {
                 columns: ':visible'
             }
