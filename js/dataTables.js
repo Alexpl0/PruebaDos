@@ -1,0 +1,384 @@
+let dataTableHistoricoSemanal; // Instancia DataTable para histórico semanal
+let dataTableHistoricoTotal; // Instancia DataTable para histórico total
+
+let dataTableSemanalInitialized = false;
+let dataTableTotalInitialized = false;
+
+// Opciones comunes para ambas DataTables
+const dataTableOptions = {
+    lengthMenu: [10, 25, 50, 100, 200, 500],
+    columnDefs: [
+        { className: "centered", targets: "_all" } // Todas las columnas centradas
+    ],
+    pageLength: 10,
+    destroy: true,
+    language: {
+        lengthMenu: "Mostrar _MENU_ registros por página",
+        zeroRecords: "No se encontraron registros",
+        info: "Mostrando de _START_ a _END_ de un total de _TOTAL_ registros",
+        infoEmpty: "No hay registros disponibles",
+        infoFiltered: "(filtrados desde _MAX_ registros totales)",
+        search: "Buscar:",
+        loadingRecords: "Cargando...",
+        paginate: {
+            first: "Primero",
+            last: "Último",
+            next: "Siguiente",
+            previous: "Anterior"
+        }
+    },
+    dom: 'Bfrtip',
+    buttons: [
+        'copy', 'csv', 'excel', 'pdf', 'print'
+    ]
+};
+
+// Función para cargar los datos de Premium Freight
+const cargarDatosPremiumFreight = async () => {
+    try {
+        const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php');
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error al cargar datos de Premium Freight:", error);
+        return [];
+    }
+};
+
+// Función para obtener el número de semana de una fecha
+const getWeekNumber = (date) => {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+    const yearStart = new Date(d.getFullYear(), 0, 1);
+    const weekNumber = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    return weekNumber;
+};
+
+// Función para obtener el mes de una fecha
+const getMonthName = (date) => {
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const d = new Date(date);
+    return months[d.getMonth()];
+};
+
+// Función para generar tabla histórico semanal
+const generarHistoricoSemanal = async () => {
+    try {
+        const premiumFreightData = await cargarDatosPremiumFreight();
+        
+        // Obtener referencia al elemento de la tabla
+        const tableBody_semanal = document.getElementById('tableBody_historico_semanal');
+        if (!tableBody_semanal) {
+            console.error('No se encontró el elemento tableBody_historico_semanal');
+            return;
+        }
+
+        // Obtener semana actual
+        const currentDate = new Date();
+        const currentWeek = getWeekNumber(currentDate);
+        const currentYear = currentDate.getFullYear();
+        
+        // Filtrar datos para la semana actual
+        const datosSemanaActual = Array.isArray(premiumFreightData) 
+            ? premiumFreightData.filter(item => {
+                const itemDate = new Date(item.date);
+                return getWeekNumber(itemDate) === currentWeek && itemDate.getFullYear() === currentYear;
+              })
+            : [premiumFreightData].filter(item => {
+                const itemDate = new Date(item.date);
+                return getWeekNumber(itemDate) === currentWeek && itemDate.getFullYear() === currentYear;
+              });
+        
+        let content = ``;
+        datosSemanaActual.forEach(item => {
+            const issueDate = new Date(item.date);
+            const issueMonth = getMonthName(issueDate);
+            const issueCW = getWeekNumber(issueDate);
+            
+            content += `
+                <tr>
+                    <td>${item.id}</td>
+                    <td>Grammer AG</td>
+                    <td>${item.code_planta}</td>
+                    <td>${item.planta}</td>
+                    <td>${item.date}</td>
+                    <td>${item.in_out_bound}</td>
+                    <td>${issueCW}</td>
+                    <td>${issueMonth}</td>
+                    <td>${item.reference_number}</td>
+                    <td>${item.creator_name}</td>
+                    <td>${item.area}</td>
+                    <td>${item.description}</td>
+                    <td>${item.category_cause}</td>
+                    <td>${item.cost_euros}</td>
+                    <td>${item.transport}</td>
+                    <td>${item.int_ext}</td>
+                    <td>${item.carrier}</td>
+                    <td>${item.origin_company_name}</td>
+                    <td>${item.origin_city}</td>
+                    <td>${item.destiny_company_name}</td>
+                    <td>${item.destiny_city}</td>
+                    <td>${item.weight}</td>
+                    <td>${item.project_status}</td>
+                    <td>${item.approver_name || 'Pendiente'}</td>
+                    <td>${item.recovery || 'N/A'}</td>
+                </tr>`;
+        });
+        
+        tableBody_semanal.innerHTML = content;
+    } catch (ex) {
+        console.error("Error en generarHistoricoSemanal:", ex);
+    }
+};
+
+// Función para generar tabla histórico total
+const generarHistoricoTotal = async () => {
+    try {
+        const premiumFreightData = await cargarDatosPremiumFreight();
+        
+        // Obtener referencia al elemento de la tabla
+        const tableBody_total = document.getElementById('tableBody_historico_total');
+        if (!tableBody_total) {
+            console.error('No se encontró el elemento tableBody_historico_total');
+            return;
+        }
+
+        // Garantizar que premiumFreightData sea un array
+        const datosTotal = Array.isArray(premiumFreightData) ? premiumFreightData : [premiumFreightData];
+        
+        let content = ``;
+        datosTotal.forEach(item => {
+            const issueDate = new Date(item.date);
+            const issueMonth = getMonthName(issueDate);
+            const issueCW = getWeekNumber(issueDate);
+            
+            content += `
+                <tr>
+                    <td>${item.id}</td>
+                    <td>Grammer AG</td>
+                    <td>${item.code_planta}</td>
+                    <td>${item.planta}</td>
+                    <td>${item.date}</td>
+                    <td>${item.in_out_bound}</td>
+                    <td>${issueCW}</td>
+                    <td>${issueMonth}</td>
+                    <td>${item.reference_number}</td>
+                    <td>${item.creator_name}</td>
+                    <td>${item.area}</td>
+                    <td>${item.description}</td>
+                    <td>${item.category_cause}</td>
+                    <td>${item.cost_euros}</td>
+                    <td>${item.transport}</td>
+                    <td>${item.int_ext}</td>
+                    <td>${item.carrier}</td>
+                    <td>${item.origin_company_name}</td>
+                    <td>${item.origin_city}</td>
+                    <td>${item.destiny_company_name}</td>
+                    <td>${item.destiny_city}</td>
+                    <td>${item.weight}</td>
+                    <td>${item.project_status}</td>
+                    <td>${item.approver_name || 'Pendiente'}</td>
+                    <td>${item.recovery || 'N/A'}</td>
+                </tr>`;
+        });
+        
+        tableBody_total.innerHTML = content;
+    } catch (ex) {
+        console.error("Error en generarHistoricoTotal:", ex);
+    }
+};
+
+// Inicializar las DataTables
+const initDataTables = () => {
+    try {
+        // Destruir instancias anteriores si existen
+        if (dataTableSemanalInitialized && dataTableHistoricoSemanal) {
+            dataTableHistoricoSemanal.destroy();
+        }
+        if (dataTableTotalInitialized && dataTableHistoricoTotal) {
+            dataTableHistoricoTotal.destroy();
+        }
+        
+        // Inicializar DataTable para histórico semanal
+        dataTableHistoricoSemanal = $("#datatable_historico_semanal").DataTable({
+            ...dataTableOptions,
+            scrollX: true,
+            scrollCollapse: true
+        });
+        dataTableSemanalInitialized = true;
+        
+        // Inicializar DataTable para histórico total
+        dataTableHistoricoTotal = $("#datatable_historico_total").DataTable({
+            ...dataTableOptions,
+            scrollX: true,
+            scrollCollapse: true
+        });
+        dataTableTotalInitialized = true;
+        
+        console.log("DataTables inicializadas correctamente");
+    } catch (error) {
+        console.error("Error al inicializar DataTables:", error);
+    }
+};
+
+// Event listeners para los botones de mostrar modal
+document.addEventListener('DOMContentLoaded', async function() {
+    // Agregar botones al DOM
+    const buttonsContainer = document.getElementById('mainOrders');
+    if (buttonsContainer) {
+        const buttonHTML = `
+            <div class="buttons-container">
+                <button id="btnHistoricoSemanal" class="btn btn-primary">Ver Histórico Semanal</button>
+                <button id="btnHistoricoTotal" class="btn btn-success">Ver Histórico Total</button>
+            </div>
+        `;
+        buttonsContainer.insertAdjacentHTML('beforeend', buttonHTML);
+    }
+    
+    // Crear modales en el DOM
+    const modalsHTML = `
+        <!-- Modal Histórico Semanal -->
+        <div id="modalHistoricoSemanal" class="modal fade" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Histórico Semanal de Premium Freight</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="table-responsive">
+                            <table id="datatable_historico_semanal" class="table table-striped table-bordered" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Division</th>
+                                        <th>Plant Code</th>
+                                        <th>Plant Name</th>
+                                        <th>Issue Date</th>
+                                        <th>Inbound/Outbound</th>
+                                        <th>Issue CW</th>
+                                        <th>Issue Month</th>
+                                        <th>Orden</th>
+                                        <th>Issuer</th>
+                                        <th>Area of Responsibility</th>
+                                        <th>Description & Root Cause</th>
+                                        <th>Root cause category</th>
+                                        <th>Costs [€]</th>
+                                        <th>Transport mode</th>
+                                        <th>Internal/external</th>
+                                        <th>Forwarder</th>
+                                        <th>Shipper Name</th>
+                                        <th>City shipped from</th>
+                                        <th>Consignee Name</th>
+                                        <th>City shipped to</th>
+                                        <th>Chargable weight in kg</th>
+                                        <th>Status of the effected project</th>
+                                        <th>Special freight approved by</th>
+                                        <th>Recovery from whom</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableBody_historico_semanal">
+                                    <!-- Aquí se cargarán los datos -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Histórico Total -->
+        <div id="modalHistoricoTotal" class="modal fade" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Histórico Total de Premium Freight</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="table-responsive">
+                            <table id="datatable_historico_total" class="table table-striped table-bordered" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Division</th>
+                                        <th>Plant Code</th>
+                                        <th>Plant Name</th>
+                                        <th>Issue Date</th>
+                                        <th>Inbound/Outbound</th>
+                                        <th>Issue CW</th>
+                                        <th>Issue Month</th>
+                                        <th>Orden</th>
+                                        <th>Issuer</th>
+                                        <th>Area of Responsibility</th>
+                                        <th>Description & Root Cause</th>
+                                        <th>Root cause category</th>
+                                        <th>Costs [€]</th>
+                                        <th>Transport mode</th>
+                                        <th>Internal/external</th>
+                                        <th>Forwarder</th>
+                                        <th>Shipper Name</th>
+                                        <th>City shipped from</th>
+                                        <th>Consignee Name</th>
+                                        <th>City shipped to</th>
+                                        <th>Chargable weight in kg</th>
+                                        <th>Status of the effected project</th>
+                                        <th>Special freight approved by</th>
+                                        <th>Recovery from whom</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableBody_historico_total">
+                                    <!-- Aquí se cargarán los datos -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalsHTML);
+    
+    // Añadir event listeners a los botones
+    document.getElementById('btnHistoricoSemanal').addEventListener('click', async function() {
+        await generarHistoricoSemanal();
+        
+        // Inicializar o actualizar DataTable
+        if (!dataTableSemanalInitialized) {
+            initDataTables();
+        } else {
+            dataTableHistoricoSemanal.destroy();
+            dataTableHistoricoSemanal = $("#datatable_historico_semanal").DataTable({
+                ...dataTableOptions,
+                scrollX: true,
+                scrollCollapse: true
+            });
+        }
+        
+        // Mostrar el modal
+        const modalHistoricoSemanal = new bootstrap.Modal(document.getElementById('modalHistoricoSemanal'));
+        modalHistoricoSemanal.show();
+    });
+    
+    document.getElementById('btnHistoricoTotal').addEventListener('click', async function() {
+        await generarHistoricoTotal();
+        
+        // Inicializar o actualizar DataTable
+        if (!dataTableTotalInitialized) {
+            initDataTables();
+        } else {
+            dataTableHistoricoTotal.destroy();
+            dataTableHistoricoTotal = $("#datatable_historico_total").DataTable({
+                ...dataTableOptions,
+                scrollX: true,
+                scrollCollapse: true
+            });
+        }
+        
+        // Mostrar el modal
+        const modalHistoricoTotal = new bootstrap.Modal(document.getElementById('modalHistoricoTotal'));
+        modalHistoricoTotal.show();
+    });
+});
