@@ -495,7 +495,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         <!-- Modal Histórico Total -->
         <div id="modalHistoricoTotal" class="modal fade" aria-labelledby="tituloModalHistoricoTotal" aria-modal="true" role="dialog">
-            <div class="modal-dialog modal-xl">
+            <div id="23" class="modal-dialog modal-xl">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="tituloModalHistoricoTotal">Histórico Total de Premium Freight</h5>
