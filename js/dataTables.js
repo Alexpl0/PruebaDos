@@ -264,7 +264,7 @@ const generarHistoricoSemanal = async () => {
 // Función para generar tabla histórico total
 const generarHistoricoTotal = async () => {
     try {
-        const premiumFreightData = await cargarDatosPremiumFreight();
+        const response = await cargarDatosPremiumFreight();
         
         // Obtener referencia al elemento de la tabla
         const tableBody_total = document.getElementById('tableBody_historico_total');
@@ -273,21 +273,36 @@ const generarHistoricoTotal = async () => {
             return;
         }
 
-//======================================================================================================        
-
-        // Garantizar que premiumFreightData sea un array
-        const datosTotal = Array.isArray(premiumFreightData) ? premiumFreightData : (premiumFreightData ? [premiumFreightData] : []);
+        // Extraer el array de datos de la respuesta
+        // La estructura esperada es { status: 'success', data: [...] }
+        let itemsArray = [];
         
-
-
+        if (response && response.status === 'success' && Array.isArray(response.data)) {
+            // Caso correcto: la respuesta tiene la estructura esperada
+            itemsArray = response.data;
+            console.log(`Se encontraron ${itemsArray.length} registros en response.data`);
+        } else if (Array.isArray(response)) {
+            // Caso alternativo: la respuesta es directamente un array
+            itemsArray = response;
+            console.log(`Se encontraron ${itemsArray.length} registros en response (array directo)`);
+        } else {
+            // Si no podemos encontrar un array, mostrar un error
+            console.error('Formato de respuesta inesperado:', response);
+            tableBody_total.innerHTML = '<tr><td colspan="25" class="text-center">No hay datos disponibles o formato inválido</td></tr>';
+            return;
+        }
+        
         let content = ``;
-        datosTotal.forEach(item => {
+        
+        // Ahora itemsArray es siempre un array que podemos recorrer con forEach
+        itemsArray.forEach(item => {
             try {
-                console.log("Item:", item);
+                // Aquí podemos acceder al campo date de cada item
+                const dateValue = item.date;
+                console.log("Fecha del registro:", dateValue);
                 
                 // Usar nuestra función parseDate en lugar de new Date directamente
-                const issueDate = item.date ? parseDate(item.date) : null;
-                
+                const issueDate = dateValue ? parseDate(dateValue) : null;
                 
                 // Verificar si la fecha es válida
                 if (!issueDate) {
@@ -298,7 +313,7 @@ const generarHistoricoTotal = async () => {
                             <td>Grammer AG</td>
                             <td>${item.code_planta || '-'}</td>
                             <td>${item.planta || '-'}</td>
-                            <td>${item.date || 'Fecha inválida'}</td>
+                            <td>${dateValue || 'Fecha inválida'}</td>
                             <td>${item.in_out_bound || '-'}</td>
                             <td>-</td>
                             <td>-</td>
@@ -332,7 +347,7 @@ const generarHistoricoTotal = async () => {
                         <td>Grammer AG</td>
                         <td>${item.code_planta || '-'}</td>
                         <td>${item.planta || '-'}</td>
-                        <td>${item.date || '-'}</td>
+                        <td>${dateValue || '-'}</td>
                         <td>${item.in_out_bound || '-'}</td>
                         <td>${issueCW}</td>
                         <td>${issueMonth}</td>
@@ -359,9 +374,20 @@ const generarHistoricoTotal = async () => {
             }
         });
         
+        // Si no hay contenido, mostrar un mensaje
+        if (!content) {
+            content = '<tr><td colspan="25" class="text-center">No hay datos disponibles</td></tr>';
+        }
+        
         tableBody_total.innerHTML = content;
     } catch (ex) {
         console.error("Error en generarHistoricoTotal:", ex);
+        
+        // Mostrar un mensaje de error en la tabla
+        const tableBody_total = document.getElementById('tableBody_historico_total');
+        if (tableBody_total) {
+            tableBody_total.innerHTML = '<tr><td colspan="25" class="text-center text-danger">Error al cargar los datos</td></tr>';
+        }
     }
 };
 
