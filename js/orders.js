@@ -1,87 +1,12 @@
 // Espera a que el contenido del DOM esté completamente cargado antes de ejecutar el script.
+import { 
+    svgMap, 
+    formatDate, 
+    loadAndPopulateSVG, 
+    generatePDF 
+} from './svgOrders.js';
+
 document.addEventListener('DOMContentLoaded', function () {
-    // --- Mapeo de campos para el SVG ---
-    // Define un objeto que mapea los IDs de los elementos SVG a las claves correspondientes en el objeto de datos de la orden.
-    // Esto se usa para poblar dinámicamente el SVG con la información de la orden seleccionada.
-    const svgMap = {
-        'AreaOfResponsabilityValue': 'area', // Mapea el ID 'AreaOfResponsabilityValue' del SVG al campo 'area' de la orden.
-        'CarrierNameValue': 'carrier', // Mapea 'CarrierNameValue' a 'carrier'.
-        'CityDestValue': 'destiny_city', // Mapea 'CityDestValue' a 'destiny_city'.
-        'CityShipValue': 'origin_city', // Mapea 'CityShipValue' a 'origin_city'.
-        'CompanyNameDestValue': 'destiny_company_name', // Mapea 'CompanyNameDestValue' a 'destiny_company_name'.
-        'CompanyNameShipValue': 'origin_company_name', // Mapea 'CompanyNameShipValue' a 'origin_company_name'.
-        'CostInEurosValue': 'cost_euros', // Mapea 'CostInEurosValue' a 'cost_euros'.
-        'CostPaidByValue': 'paid_by', // Mapea 'CostPaidByValue' a 'paid_by'.
-        'DateValue': 'date', // Mantiene el mapeo original para la fecha. Se formateará por separado.
-        'DescriptionAndRootCauseValue': 'description', // Mapea 'DescriptionAndRootCauseValue' a 'description'.
-        'InExtValue': 'int_ext', // Mapea 'InExtValue' a 'int_ext'.
-        'InOutBoundValue': 'in_out_bound', // Mapea 'InOutBoundValue' a 'in_out_bound'.
-        'IssuerValue': 'creator_name', // Mapea 'IssuerValue' a 'creator_name'.
-        'PlantCValue': 'planta', // Mapea 'PlantCValue' a 'planta'.
-        'PlantCodeValue': 'code_planta', // Mapea 'PlantCodeValue' a 'code_planta'.
-        'PlantManagerValue': '', // Placeholder, ajustar si es necesario. Campo sin mapeo directo por ahora.
-        'ProductValue': 'products', // Mapea 'ProductValue' a 'products'.
-        'ProjectStatusValue': 'project_status', // Placeholder, ajustar si es necesario. Campo sin mapeo directo por ahora.
-        // Mapeo especial para 'QuotedCostValue'. Usa una función para formatear el costo con la moneda.
-        'QuotedCostValue': (order) => `$ ${order.quoted_cost || '0'} ${order.moneda || 'MXN'}`,
-        'RecoveryValue': 'recovery', // Mapea 'RecoveryValue' a 'recovery'.
-        'ReferenceNumberValue': 'reference_number', // Mapea 'ReferenceNumberValue' a 'reference_number'.
-        'RequestingPlantValue': 'planta', // Mapea 'RequestingPlantValue' a 'planta'.
-        'RootCauseValue': 'category_cause', // Mapea 'RootCauseValue' a 'category_cause'.
-        'ManagerOPSDivisionValue': '', // Placeholder, ajustar si es necesario. Campo sin mapeo directo por ahora.
-        'SRVPRegionalValue': '', // Placeholder, ajustar si es necesario. Campo sin mapeo directo por ahora.
-        'SeniorManagerValue': '', // Placeholder, ajustar si es necesario. Campo sin mapeo directo por ahora.
-        'StateDestValue': 'destiny_state', // Mapea 'StateDestValue' a 'destiny_state'.
-        'StateShipValue': 'origin_state', // Mapea 'StateShipValue' a 'origin_state'.
-        'TransportValue': 'transport', // Mapea 'TransportValue' a 'transport'.
-        'WeightValue': 'weight', // Mapea 'WeightValue' a 'weight'.
-        'ZIPDestValue': 'destiny_zip', // Mapea 'ZIPDestValue' a 'destiny_zip'.
-        'ZIPShipValue': 'origin_zip' // Mapea 'ZIPShipValue' a 'origin_zip'.
-    };
-
-    // --- Función para formatear fechas sin la hora ---
-    // Recibe una cadena de fecha y la devuelve en formato MM/DD/YYYY.
-    function formatDate(dateString) {
-        // Verifica si la cadena de fecha es nula o vacía. Si lo es, devuelve una cadena vacía.
-        if (!dateString) return '';
-        try {
-            // Intenta crear un objeto Date a partir de la cadena proporcionada.
-            const date = new Date(dateString);
-            // Verifica si el objeto Date es inválido (por ejemplo, si la cadena no era un formato de fecha reconocible).
-            // Si es inválido, devuelve la cadena original para evitar errores.
-            if (isNaN(date.getTime())) return dateString; 
-            
-            // Formatea la fecha al formato MM/DD/YYYY usando la configuración regional 'en-US'.
-            return date.toLocaleDateString('en-US', {
-                day: '2-digit', // Asegura que el día tenga dos dígitos (ej. 05).
-                month: '2-digit', // Asegura que el mes tenga dos dígitos (ej. 09).
-                year: 'numeric' // Asegura que el año se muestre completo (ej. 2025).
-            });
-        } catch (e) {
-            // Si ocurre un error durante el proceso de formateo, lo registra en la consola.
-            console.error("Error al formatear la fecha:", dateString, e);
-            // Devuelve la cadena de fecha original en caso de error.
-            return dateString;
-        }
-    }
-
-    // --- Cargar datos iniciales ---
-    // Realiza una petición fetch a la API para obtener la lista de órdenes.
-    fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php')
-        .then(response => response.json()) // Convierte la respuesta a formato JSON.
-        .then(data => {
-            // Verifica si la respuesta contiene datos válidos.
-            if (data && data.data) {
-                // Si hay datos, llama a la función createCards para mostrar las órdenes.
-                createCards(data.data);
-            } else {
-                // Si no hay datos o el formato es incorrecto, muestra un error en la consola.
-                console.error('Error: No se recibieron datos de la API o el formato es incorrecto.');
-                // Opcionalmente, se podría mostrar un mensaje de error al usuario en la interfaz.
-            }
-        })
-        .catch(error => console.error('Error al cargar los datos:', error)); // Captura y muestra errores de la petición fetch.
-
     // --- Calcular número de semana ISO 8601 ---
     // Recibe una cadena de fecha y devuelve el número de semana del año según la norma ISO 8601.
     function getWeekNumber(dateString) {
@@ -110,86 +35,22 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // --- Función para ajustar el texto en un elemento SVG ---
-    // Ajusta (envuelve) el texto largo dentro del elemento SVG especificado para que quepa en múltiples líneas.
-    function wrapSVGText() {
-        // Obtiene el elemento SVG de texto por su ID.
-        const textElement = document.getElementById("DescriptionAndRootCauseValue");
-        // Si el elemento no existe, termina la función.
-        if (!textElement) return;
-        
-        // Obtiene el contenido de texto actual y elimina espacios en blanco al inicio y final.
-        const text = textElement.textContent.trim();
-        // Si no hay texto, termina la función.
-        if (!text) return;
-        
-        // Obtiene los atributos originales de posición (x, y) y tamaño de fuente.
-        const x = textElement.getAttribute("x");
-        const y = textElement.getAttribute("y");
-        const fontSize = parseFloat(textElement.style.fontSize || "3.175px"); // Usa 3.175px como valor por defecto si no está definido.
-        
-        // Calcula el espaciado entre líneas (interlineado), generalmente 1.2-1.5 veces el tamaño de fuente.
-        const lineHeight = fontSize * 1.3;
-        
-        // Limpia el contenido actual del elemento de texto.
-        textElement.textContent = "";
-        
-        // Define el número máximo de caracteres por línea.
-        const maxCharsPerLine = 101;
-        
-        // Divide el texto en palabras usando espacios como delimitadores.
-        const words = text.split(/\s+/);
-        let currentLine = ""; // Almacena la línea actual que se está construyendo.
-        let firstLine = true; // Bandera para saber si es la primera línea (no necesita ajuste 'dy').
-        
-        // Procesa cada palabra.
-        words.forEach(word => {
-            // Comprueba si añadir la siguiente palabra excede el límite de caracteres por línea.
-            if ((currentLine + " " + word).length > maxCharsPerLine && currentLine.length > 0) {
-                // Si excede, crea un nuevo elemento <tspan> para la línea completada.
-                const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-                tspan.setAttribute("x", x); // Establece la posición horizontal.
-                
-                // Establece la posición vertical ('dy' para desplazamiento relativo).
-                if (firstLine) {
-                    // La primera línea no necesita ajuste 'dy'.
-                    firstLine = false;
-                } else {
-                    // Las líneas siguientes se desplazan hacia abajo según el interlineado.
-                    tspan.setAttribute("dy", `${lineHeight}px`);
-                }
-                
-                tspan.textContent = currentLine; // Asigna el texto de la línea al tspan.
-                textElement.appendChild(tspan); // Añade el tspan al elemento de texto principal.
-                
-                // Comienza una nueva línea con la palabra actual.
-                currentLine = word;
+    // --- Cargar datos iniciales ---
+    // Realiza una petición fetch a la API para obtener la lista de órdenes.
+    fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php')
+        .then(response => response.json()) // Convierte la respuesta a formato JSON.
+        .then(data => {
+            // Verifica si la respuesta contiene datos válidos.
+            if (data && data.data) {
+                // Si hay datos, llama a la función createCards para mostrar las órdenes.
+                createCards(data.data);
             } else {
-                // Si no excede, añade la palabra a la línea actual.
-                if (currentLine.length > 0) {
-                    // Añade un espacio si no es la primera palabra de la línea.
-                    currentLine += " " + word;
-                } else {
-                    // Si es la primera palabra, simplemente la asigna.
-                    currentLine = word;
-                }
+                // Si no hay datos o el formato es incorrecto, muestra un error en la consola.
+                console.error('Error: No se recibieron datos de la API o el formato es incorrecto.');
+                // Opcionalmente, se podría mostrar un mensaje de error al usuario en la interfaz.
             }
-        });
-        
-        // Añade la última línea si queda texto en currentLine.
-        if (currentLine.length > 0) {
-            const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-            tspan.setAttribute("x", x);
-            
-            // Aplica el desplazamiento vertical si no es la primera línea.
-            if (!firstLine) {
-                tspan.setAttribute("dy", `${lineHeight}px`);
-            }
-            
-            tspan.textContent = currentLine;
-            textElement.appendChild(tspan);
-        }
-    }
+        })
+        .catch(error => console.error('Error al cargar los datos:', error)); // Captura y muestra errores de la petición fetch.
 
     // --- Crear tarjetas visuales para cada orden ---
     // Genera y muestra las tarjetas de resumen para cada orden en la interfaz.
@@ -342,42 +203,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // --- Cargar y poblar SVG ---
                 try {
-                    // Realiza una petición fetch para obtener el contenido del archivo SVG.
-                    const response = await fetch('PremiumFreight.svg');
-                    // Si la respuesta no es exitosa (ej. 404 Not Found), lanza un error.
-                    if (!response.ok) throw new Error(`Error HTTP! estado: ${response.status}`);
-                    // Lee el contenido del SVG como texto.
-                    const svgText = await response.text();
-
-                    // Crea un div temporal para parsear el texto SVG y convertirlo en nodos DOM.
-                    const tempDiv = document.createElement('div'); 
-                    tempDiv.innerHTML = svgText;
-
-                    // Itera sobre el mapeo 'svgMap' para poblar los elementos del SVG.
-                    for (const [svgId, orderKey] of Object.entries(svgMap)) {
-                        // Busca el elemento SVG dentro del div temporal usando su ID.
-                        const element = tempDiv.querySelector(`#${svgId}`);
-                        if (element) {
-                            // Caso especial para el campo de fecha: usa la función formatDate.
-                            if (svgId === 'DateValue') {
-                                element.textContent = formatDate(selectedOrder.date);
-                            // Si el mapeo es una función (ej. para QuotedCostValue), la ejecuta.
-                            } else if (typeof orderKey === 'function') {
-                                element.textContent = orderKey(selectedOrder);
-                            } else {
-                                // Comportamiento por defecto: asigna el valor del campo correspondiente de la orden.
-                                // Usa '' (cadena vacía) si el campo no existe en la orden.
-                                element.textContent = selectedOrder[orderKey] || '';
-                            }
-                        }
-                    }
-                    
-                    // Muestra el SVG poblado en el área de previsualización del modal.
-                    document.getElementById('svgPreview').innerHTML = tempDiv.innerHTML;
-                    
-                    // Aplica el ajuste de texto al campo de descripción después de poblar el SVG.
-                    wrapSVGText();
-
+                    // Usa la función del módulo SVG para cargar y mostrar el SVG
+                    await loadAndPopulateSVG(selectedOrder, 'svgPreview');
                 } catch (error) {
                     // Captura y maneja errores durante la carga o procesamiento del SVG.
                     console.error('Error al cargar o procesar el SVG:', error);
@@ -431,144 +258,9 @@ document.addEventListener('DOMContentLoaded', function () {
             const selectedOrderId = sessionStorage.getItem('selectedOrderId');
             // Busca la orden correspondiente en el array global.
             const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
-            // Carga de nuevo el template SVG (necesario para la renderización limpia en html2canvas).
-            const response = await fetch('PremiumFreight.svg');
-            if (!response.ok) throw new Error(`Error HTTP! estado: ${response.status}`);
-            const svgText = await response.text();
-
-            // --- Preparación para html2canvas ---
-            // Crea un contenedor div fuera de la pantalla para renderizar el SVG.
-            const container = document.createElement('div');
-            // Establece dimensiones estándar de página (aproximadas en puntos).
-            container.style.width = '816px'; 
-            container.style.height = '1056px';
-            // Posiciona el contenedor fuera de la vista del usuario.
-            container.style.position = 'absolute';
-            container.style.left = '-9999px'; 
-            container.style.backgroundColor = 'white'; // Fondo blanco para el canvas.
-            container.innerHTML = svgText; // Carga el template SVG en el contenedor.
-
-            // Puebla el SVG dentro del contenedor off-screen con los datos de la orden.
-            for (const [svgId, orderKey] of Object.entries(svgMap)) {
-                const element = container.querySelector(`#${svgId}`);
-                if (element) {
-                    if (svgId === 'DateValue') {
-                        element.textContent = formatDate(selectedOrder.date);
-                    } else if (typeof orderKey === 'function') {
-                        element.textContent = orderKey(selectedOrder);
-                    } else {
-                        element.textContent = selectedOrder[orderKey] || '';
-                    }
-                }
-            }
-
-            // Añade el contenedor al DOM para que html2canvas pueda renderizarlo.
-            document.body.appendChild(container); 
             
-            // --- Aplicar ajuste de texto al campo de descripción específicamente para el PDF ---
-            // Busca el elemento de descripción dentro del contenedor off-screen.
-            const descriptionElement = container.querySelector('#DescriptionAndRootCauseValue');
-            if (descriptionElement) {
-                // Crea un elemento de texto SVG temporal para manipular el ajuste.
-                const tempTextElement = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                // Copia todos los atributos del elemento original al temporal.
-                Array.from(descriptionElement.attributes).forEach(attr => {
-                    tempTextElement.setAttribute(attr.name, attr.value);
-                });
-                
-                // Establece el contenido de texto que se va a ajustar.
-                tempTextElement.textContent = selectedOrder.description || '';
-                
-                // Reemplaza el elemento original en el contenedor off-screen con el temporal.
-                // Esto es necesario porque vamos a modificar el contenido (añadir tspans).
-                descriptionElement.parentNode.replaceChild(tempTextElement, descriptionElement);
-                
-                // --- Lógica de ajuste de texto (similar a wrapSVGText, pero aplicada al elemento temporal) ---
-                const text = tempTextElement.textContent.trim();
-                if (text) {
-                    const x = tempTextElement.getAttribute("x");
-                    const y = tempTextElement.getAttribute("y");
-                    const fontSize = parseFloat(tempTextElement.style.fontSize || "3.175px");
-                    const lineHeight = fontSize * 1.3;
-                    
-                    tempTextElement.textContent = ""; // Limpia el contenido para añadir tspans.
-                    
-                    const maxCharsPerLine = 101;
-                    const words = text.split(/\s+/);
-                    let currentLine = "";
-                    let firstLine = true;
-                    
-                    words.forEach(word => {
-                        if ((currentLine + " " + word).length > maxCharsPerLine && currentLine.length > 0) {
-                            const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-                            tspan.setAttribute("x", x);
-                            if (firstLine) {
-                                firstLine = false;
-                            } else {
-                                tspan.setAttribute("dy", `${lineHeight}px`);
-                            }
-                            tspan.textContent = currentLine;
-                            tempTextElement.appendChild(tspan);
-                            currentLine = word;
-                        } else {
-                            if (currentLine.length > 0) {
-                                currentLine += " " + word;
-                            } else {
-                                currentLine = word;
-                            }
-                        }
-                    });
-                    
-                    if (currentLine.length > 0) {
-                        const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-                        tspan.setAttribute("x", x);
-                        if (!firstLine) {
-                            tspan.setAttribute("dy", `${lineHeight}px`);
-                        }
-                        tspan.textContent = currentLine;
-                        tempTextElement.appendChild(tspan);
-                    }
-                    // Nota: No es necesario clonar ni añadir/quitar del DOM principal aquí,
-                    // ya que estamos trabajando directamente en el contenedor off-screen que será renderizado.
-                }
-            }
-            
-            // Pequeña pausa para asegurar que el navegador haya renderizado completamente el contenedor off-screen.
-            await new Promise(resolve => setTimeout(resolve, 300));
-
-            // --- Generación del Canvas y PDF ---
-            // Usa html2canvas para convertir el contenedor div (con el SVG poblado) en un canvas.
-            const canvas = await html2canvas(container, {
-                scale: 2, // Aumenta la escala para mejorar la resolución del PDF.
-                logging: false, // Deshabilita logs de html2canvas (útil para depuración).
-                useCORS: true, // Necesario si el SVG referencia recursos externos.
-                allowTaint: true, // Permite "contaminar" el canvas con imágenes de origen cruzado (si aplica).
-                backgroundColor: null // Usa el fondo blanco definido en el contenedor.
-            });
-
-            // Elimina el contenedor temporal del DOM una vez que se ha generado el canvas.
-            document.body.removeChild(container); 
-
-            // Inicializa jsPDF.
-            const { jsPDF } = window.jspdf; // Accede a jsPDF desde el objeto global window.
-            // Crea una nueva instancia de jsPDF.
-            const pdf = new jsPDF({
-                orientation: 'portrait', // Orientación vertical.
-                unit: 'pt', // Unidad de medida: puntos.
-                // Establece el formato del PDF basado en las dimensiones del canvas (dividido por la escala).
-                format: [canvas.width / 2, canvas.height / 2] 
-            });
-
-            // Añade la imagen del canvas al PDF.
-            const imgData = canvas.toDataURL('image/png'); // Obtiene los datos del canvas como imagen PNG.
-            // Añade la imagen al PDF, ocupando toda la página.
-            pdf.addImage(imgData, 'PNG', 0, 0, canvas.width / 2, canvas.height / 2);
-
-            // Guarda el PDF.
-            // Define el nombre del archivo PDF.
-            const fileName = `PremiumFreight_${selectedOrder.id || 'Order'}.pdf`;
-            // Desencadena la descarga del archivo PDF en el navegador.
-            pdf.save(fileName);
+            // Usa la función del módulo SVG para generar el PDF
+            const fileName = await generatePDF(selectedOrder);
 
             // Muestra un mensaje de éxito al usuario.
             Swal.fire({
