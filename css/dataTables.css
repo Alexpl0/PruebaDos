@@ -42,3 +42,8 @@ table.dataTable thead th {
     padding: 8px 16px;
     font-weight: 500;
 }
+
+.modal-dataTables{
+    max-width: 95%;
+    margin: auto;
+}
