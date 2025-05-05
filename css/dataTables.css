@@ -44,7 +44,7 @@ table.dataTable thead th {
 }
 
 #modalDTWeek, #modalDTAll {
-    max-width: 95%;
+    min-width: 95% !important;
     margin: auto;
     padding-top: 10% !important;
 }
