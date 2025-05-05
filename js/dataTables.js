@@ -34,9 +34,9 @@ const dataTableOptions = {
             text: 'Excel',
             className: 'btn-success',
             title: 'Premium_Freight_Report',
-            filename: function(e, dt, button, config) {
-                // Usa dt.exportData() directamente
-                const data = dt.exportData();
+            filename: function() {
+                // Use DataTables API context
+                const data = this.api().exportData();
                 const table = data.body;
                 if (table.length === 0) return 'PF_no_data';
 
@@ -56,9 +56,9 @@ const dataTableOptions = {
             orientation: 'portrait',
             pageSize: 'LETTER',
             title: 'Premium Freight Report',
-            filename: function(e, dt, button, config) {
-                // Usa dt.exportData() directamente
-                const data = dt.exportData();
+            filename: function() {
+                // Use DataTables API context
+                const data = this.api().exportData();
                 const table = data.body;
                 if (table.length === 0) return 'PF_no_data';
 
