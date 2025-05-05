@@ -44,7 +44,7 @@ const dataTableOptions = {
             text: 'PDF',
             className: 'btn-danger',
             orientation: 'landscape', // Mantenemos horizontal
-            pageSize: 'A3', // Cambiamos de 'LETTER' a 'A3' (o prueba 'LEGAL')
+            pageSize: 'LEGAL', // Cambiamos de 'LETTER' a 'A3' (o prueba 'LEGAL')
             title: 'Premium Freight Report',
             filename: 'Premium Freight Report',
             customize: function(doc) {
