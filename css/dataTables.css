@@ -43,15 +43,6 @@ table.dataTable thead th {
     font-weight: 500;
 }
 
-.modal-DT {
-    display: block;
-    background: white;
-    max-width: 90%;
-    padding: 5%;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    position: relative;
-    z-index: 9999;
+#modalHistoricoTotal{
+    padding: 0px;
 }
