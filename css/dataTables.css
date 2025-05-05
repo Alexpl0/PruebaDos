@@ -50,8 +50,7 @@ table.dataTable thead th {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(0, 0, 0, 0.5);
+    background: white;
     z-index: 9999;
-    align-items: center;
-    justify-content: center;
+    max-width: 100%;
 }
