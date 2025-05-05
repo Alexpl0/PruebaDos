@@ -43,6 +43,10 @@ table.dataTable thead th {
     font-weight: 500;
 }
 
-#F23 {
-    background-color: aquamarine;
+#modaldiv {
+    margin: 0px;
+    min-width: 90%;
+}
+#modalContent{
+    padding-top: 50% !important;
 }
