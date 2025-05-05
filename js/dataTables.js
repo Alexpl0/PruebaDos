@@ -119,12 +119,25 @@ const getMonthName = (date) => {
 // Función para generar tabla histórico semanal
 const generarHistoricoSemanal = async () => {
     try {
-        const premiumFreightData = await cargarDatosPremiumFreight();
+        const response = await cargarDatosPremiumFreight();
         
         // Obtener referencia al elemento de la tabla
         const tableBody_semanal = document.getElementById('tableBody_historico_semanal');
         if (!tableBody_semanal) {
             console.error('No se encontró el elemento tableBody_historico_semanal');
+            return;
+        }
+
+        // Extraer el array de datos de la respuesta
+        let itemsArray = [];
+        
+        if (response && response.status === 'success' && Array.isArray(response.data)) {
+            itemsArray = response.data;
+        } else if (Array.isArray(response)) {
+            itemsArray = response;
+        } else {
+            console.error('Formato de respuesta inesperado:', response);
+            tableBody_semanal.innerHTML = '<tr><td colspan="25" class="text-center">No hay datos disponibles o formato inválido</td></tr>';
             return;
         }
 
@@ -134,60 +147,84 @@ const generarHistoricoSemanal = async () => {
         const currentYear = currentDate.getFullYear();
         
         // Filtrar datos para la semana actual
-        const datosSemanaActual = Array.isArray(premiumFreightData) 
-            ? premiumFreightData.filter(item => {
-                if (!item || !item.date) return false;
-                
-                try {
-                    // Usar nuestra función parseDate en lugar de new Date directamente
-                    const itemDate = parseDate(item.date);
-                    if (!itemDate) return false;
-                    
-                    const itemWeek = getWeekNumber(itemDate);
-                    const itemYear = itemDate.getFullYear();
-                    
-                    return itemWeek === currentWeek && itemYear === currentYear;
-                } catch (error) {
-                    console.error('Error procesando fecha:', error);
-                    return false;
-                }
-              })
-            : (premiumFreightData && [premiumFreightData] || []).filter(item => {
-                if (!item || !item.date) return false;
-                
-                try {
-                    // Usar nuestra función parseDate en lugar de new Date directamente
-                    const itemDate = parseDate(item.date);
-                    if (!itemDate) return false;
-                    
-                    const itemWeek = getWeekNumber(itemDate);
-                    const itemYear = itemDate.getFullYear();
-                    
-                    return itemWeek === currentWeek && itemYear === currentYear;
-                } catch (error) {
-                    console.error('Error procesando fecha:', error);
-                    return false;
-                }
-              });
-        
-        let content = ``;
-        datosSemanaActual.forEach(item => {
+        const datosSemanaActual = itemsArray.filter(item => {
+            if (!item || !item.date) return false;
+            
             try {
                 // Usar nuestra función parseDate en lugar de new Date directamente
-                const issueDate = item.date ? parseDate(item.date) : null;                
-                // Verificar si la fecha es válida
-                if (!issueDate) {
-                    // Usar valores por defecto para fechas inválidas
+                const itemDate = parseDate(item.date);
+                if (!itemDate) return false;
+                
+                const itemWeek = getWeekNumber(itemDate);
+                const itemYear = itemDate.getFullYear();
+                
+                return itemWeek === currentWeek && itemYear === currentYear;
+            } catch (error) {
+                console.error('Error procesando fecha:', error);
+                return false;
+            }
+        });
+        
+        let content = ``;
+        
+        if (datosSemanaActual.length === 0) {
+            content = '<tr><td colspan="25" class="text-center">No hay datos para la semana actual</td></tr>';
+        } else {
+            datosSemanaActual.forEach(item => {
+                try {
+                    // Aquí podemos acceder al campo date de cada item
+                    const dateValue = item.date;
+                    
+                    // Usar nuestra función parseDate en lugar de new Date directamente
+                    const issueDate = dateValue ? parseDate(dateValue) : null;
+                    
+                    // Verificar si la fecha es válida
+                    if (!issueDate) {
+                        // Usar valores por defecto para fechas inválidas
+                        content += `
+                            <tr>
+                                <td>${item.id || '-'}</td>
+                                <td>Grammer AG</td>
+                                <td>${item.code_planta || '-'}</td>
+                                <td>${item.planta || '-'}</td>
+                                <td>${dateValue || 'Fecha inválida'}</td>
+                                <td>${item.in_out_bound || '-'}</td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>${item.reference_number || '-'}</td>
+                                <td>${item.creator_name || '-'}</td>
+                                <td>${item.area || '-'}</td>
+                                <td>${item.description || '-'}</td>
+                                <td>${item.category_cause || '-'}</td>
+                                <td>${item.cost_euros || '-'}</td>
+                                <td>${item.transport || '-'}</td>
+                                <td>${item.int_ext || '-'}</td>
+                                <td>${item.carrier || '-'}</td>
+                                <td>${item.origin_company_name || '-'}</td>
+                                <td>${item.origin_city || '-'}</td>
+                                <td>${item.destiny_company_name || '-'}</td>
+                                <td>${item.destiny_city || '-'}</td>
+                                <td>${item.weight || '-'}</td>
+                                <td>${item.project_status || '-'}</td>
+                                <td>${item.approver_name || 'Pendiente'}</td>
+                                <td>${item.recovery || 'N/A'}</td>
+                            </tr>`;
+                        return;
+                    }
+                    
+                    const issueMonth = getMonthName(issueDate);
+                    const issueCW = getWeekNumber(issueDate);
+                    
                     content += `
                         <tr>
                             <td>${item.id || '-'}</td>
                             <td>Grammer AG</td>
                             <td>${item.code_planta || '-'}</td>
                             <td>${item.planta || '-'}</td>
-                            <td>${item.date || 'Fecha inválida'}</td>
+                            <td>${dateValue || '-'}</td>
                             <td>${item.in_out_bound || '-'}</td>
-                            <td>-</td>
-                            <td>-</td>
+                            <td>${issueCW}</td>
+                            <td>${issueMonth}</td>
                             <td>${item.reference_number || '-'}</td>
                             <td>${item.creator_name || '-'}</td>
                             <td>${item.area || '-'}</td>
@@ -206,48 +243,21 @@ const generarHistoricoSemanal = async () => {
                             <td>${item.approver_name || 'Pendiente'}</td>
                             <td>${item.recovery || 'N/A'}</td>
                         </tr>`;
-                    return;
+                } catch (error) {
+                    console.error('Error procesando registro:', error, item);
                 }
-                
-                const issueMonth = getMonthName(issueDate);
-                const issueCW = getWeekNumber(issueDate);
-                
-                content += `
-                    <tr>
-                        <td>${item.id || '-'}</td>
-                        <td>Grammer AG</td>
-                        <td>${item.code_planta || '-'}</td>
-                        <td>${item.planta || '-'}</td>
-                        <td>${item.date || '-'}</td>
-                        <td>${item.in_out_bound || '-'}</td>
-                        <td>${issueCW}</td>
-                        <td>${issueMonth}</td>
-                        <td>${item.reference_number || '-'}</td>
-                        <td>${item.creator_name || '-'}</td>
-                        <td>${item.area || '-'}</td>
-                        <td>${item.description || '-'}</td>
-                        <td>${item.category_cause || '-'}</td>
-                        <td>${item.cost_euros || '-'}</td>
-                        <td>${item.transport || '-'}</td>
-                        <td>${item.int_ext || '-'}</td>
-                        <td>${item.carrier || '-'}</td>
-                        <td>${item.origin_company_name || '-'}</td>
-                        <td>${item.origin_city || '-'}</td>
-                        <td>${item.destiny_company_name || '-'}</td>
-                        <td>${item.destiny_city || '-'}</td>
-                        <td>${item.weight || '-'}</td>
-                        <td>${item.project_status || '-'}</td>
-                        <td>${item.approver_name || 'Pendiente'}</td>
-                        <td>${item.recovery || 'N/A'}</td>
-                    </tr>`;
-            } catch (error) {
-                console.error('Error procesando registro:', error, item);
-            }
-        });
+            });
+        }
         
         tableBody_semanal.innerHTML = content;
     } catch (ex) {
         console.error("Error en generarHistoricoSemanal:", ex);
+        
+        // Mostrar un mensaje de error en la tabla
+        const tableBody_semanal = document.getElementById('tableBody_historico_semanal');
+        if (tableBody_semanal) {
+            tableBody_semanal.innerHTML = '<tr><td colspan="25" class="text-center text-danger">Error al cargar los datos</td></tr>';
+        }
     }
 };
 
