@@ -46,14 +46,7 @@ const dataTableOptions = {
             orientation: 'landscape', // Cambia a horizontal
             pageSize: 'LETTER', // Tamaño carta
             title: 'Premium Freight Report',
-            filename: function() {
-                const data = this.api().exportData();
-                const table = data.body;
-                if (table.length === 0) return 'PF_no_data';
-                const firstId = table[0][0] || 'NA';
-                const lastId = table[table.length-1][0] || 'NA';
-                return `PF_${firstId}-${lastId}`;
-            },
+            filename: 'Premium Freight Report',
             customize: function(doc) {
                 doc.defaultStyle.fontSize = 7; // Reduce tamaño de fuente para más columnas
                 doc.styles.tableHeader.fontSize = 8;
