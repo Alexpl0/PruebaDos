@@ -52,5 +52,7 @@ table.dataTable thead th {
     height: 100vh;
     background: white;
     z-index: 9999;
-    max-width: 100%;
+    max-width: 90%;
+    padding: 5%;
+    border-radius: 8px;
 }
