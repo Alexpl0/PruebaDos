@@ -34,9 +34,10 @@ const dataTableOptions = {
             text: 'Excel',
             className: 'btn-success',
             title: 'Premium_Freight_Report',
-            filename: function() {
+            filename: function(e, dt, button, config) {
                 // Obtiene los IDs visibles en la tabla actual
-                const table = this.exportData().body;
+                const data = dt.buttons.exportData();
+                const table = data.body;
                 if (table.length === 0) return 'PF_no_data';
                 
                 const firstId = table[0][0] || 'NA'; // Primera columna del primer registro (ID)
@@ -55,9 +56,10 @@ const dataTableOptions = {
             orientation: 'portrait',
             pageSize: 'LETTER', // Tamaño carta
             title: 'Premium Freight Report',
-            filename: function() {
+            filename: function(e, dt, button, config) {
                 // Obtiene los IDs visibles en la tabla actual
-                const table = this.exportData().body;
+                const data = dt.buttons.exportData();
+                const table = data.body;
                 if (table.length === 0) return 'PF_no_data';
                 
                 const firstId = table[0][0] || 'NA';
