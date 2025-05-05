@@ -66,6 +66,8 @@ const getMonthName = (date) => {
 const generarHistoricoSemanal = async () => {
     try {
         const premiumFreightData = await cargarDatosPremiumFreight();
+
+        console.log("Datos Premium Freight:", premiumFreightData);
         
         // Obtener referencia al elemento de la tabla
         const tableBody_semanal = document.getElementById('tableBody_historico_semanal');
