@@ -47,19 +47,36 @@ const cargarDatosPremiumFreight = async () => {
 
 // Función para obtener el número de semana de una fecha
 const getWeekNumber = (date) => {
-    const d = new Date(date);
-    d.setHours(0, 0, 0, 0);
-    d.setDate(d.getDate() + 4 - (d.getDay() || 7));
-    const yearStart = new Date(d.getFullYear(), 0, 1);
-    const weekNumber = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-    return weekNumber;
+    try {
+        if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+            return '-';
+        }
+        
+        const d = new Date(date);
+        d.setHours(0, 0, 0, 0);
+        d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+        const yearStart = new Date(d.getFullYear(), 0, 1);
+        const weekNumber = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        return weekNumber;
+    } catch (error) {
+        console.error('Error en getWeekNumber:', error);
+        return '-';
+    }
 };
 
 // Función para obtener el mes de una fecha
 const getMonthName = (date) => {
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    const d = new Date(date);
-    return months[d.getMonth()];
+    try {
+        if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+            return '-';
+        }
+        
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        return months[date.getMonth()];
+    } catch (error) {
+        console.error('Error en getMonthName:', error);
+        return '-';
+    }
 };
 
 // Función para generar tabla histórico semanal
@@ -82,50 +99,117 @@ const generarHistoricoSemanal = async () => {
         // Filtrar datos para la semana actual
         const datosSemanaActual = Array.isArray(premiumFreightData) 
             ? premiumFreightData.filter(item => {
-                const itemDate = new Date(item.date);
-                console.log(itemDate, currentWeek, itemDate.getFullYear(), currentYear);
-                return getWeekNumber(itemDate) === currentWeek && itemDate.getFullYear() === currentYear;
+                if (!item || !item.date) return false;
+                
+                try {
+                    const itemDate = new Date(item.date);
+                    // Verificar si la fecha es válida antes de usarla
+                    if (isNaN(itemDate.getTime())) {
+                        return false;
+                    }
+                    
+                    const itemWeek = getWeekNumber(itemDate);
+                    const itemYear = itemDate.getFullYear();
+                    
+                    return itemWeek === currentWeek && itemYear === currentYear;
+                } catch (error) {
+                    console.error('Error procesando fecha:', error);
+                    return false;
+                }
               })
-            : [premiumFreightData].filter(item => {
-                const itemDate = new Date(item.date);
-                console.log(itemDate, currentWeek, itemDate.getFullYear(), currentYear);
-                return getWeekNumber(itemDate) === currentWeek && itemDate.getFullYear() === currentYear;
+            : (premiumFreightData && [premiumFreightData] || []).filter(item => {
+                if (!item || !item.date) return false;
+                
+                try {
+                    const itemDate = new Date(item.date);
+                    // Verificar si la fecha es válida antes de usarla
+                    if (isNaN(itemDate.getTime())) {
+                        return false;
+                    }
+                    
+                    const itemWeek = getWeekNumber(itemDate);
+                    const itemYear = itemDate.getFullYear();
+                    
+                    return itemWeek === currentWeek && itemYear === currentYear;
+                } catch (error) {
+                    console.error('Error procesando fecha:', error);
+                    return false;
+                }
               });
         
         let content = ``;
         datosSemanaActual.forEach(item => {
-            const issueDate = new Date(item.date);
-            const issueMonth = getMonthName(issueDate);
-            const issueCW = getWeekNumber(issueDate);
-            
-            content += `
-                <tr>
-                    <td>${item.id}</td>
-                    <td>Grammer AG</td>
-                    <td>${item.code_planta}</td>
-                    <td>${item.planta}</td>
-                    <td>${item.date}</td>
-                    <td>${item.in_out_bound}</td>
-                    <td>${issueCW}</td>
-                    <td>${issueMonth}</td>
-                    <td>${item.reference_number}</td>
-                    <td>${item.creator_name}</td>
-                    <td>${item.area}</td>
-                    <td>${item.description}</td>
-                    <td>${item.category_cause}</td>
-                    <td>${item.cost_euros}</td>
-                    <td>${item.transport}</td>
-                    <td>${item.int_ext}</td>
-                    <td>${item.carrier}</td>
-                    <td>${item.origin_company_name}</td>
-                    <td>${item.origin_city}</td>
-                    <td>${item.destiny_company_name}</td>
-                    <td>${item.destiny_city}</td>
-                    <td>${item.weight}</td>
-                    <td>${item.project_status}</td>
-                    <td>${item.approver_name || 'Pendiente'}</td>
-                    <td>${item.recovery || 'N/A'}</td>
-                </tr>`;
+            try {
+                const issueDate = item.date ? new Date(item.date) : null;
+                
+                // Verificar si la fecha es válida
+                if (!issueDate || isNaN(issueDate.getTime())) {
+                    // Usar valores por defecto para fechas inválidas
+                    content += `
+                        <tr>
+                            <td>${item.id || '-'}</td>
+                            <td>Grammer AG</td>
+                            <td>${item.code_planta || '-'}</td>
+                            <td>${item.planta || '-'}</td>
+                            <td>${item.date || 'Fecha inválida'}</td>
+                            <td>${item.in_out_bound || '-'}</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>${item.reference_number || '-'}</td>
+                            <td>${item.creator_name || '-'}</td>
+                            <td>${item.area || '-'}</td>
+                            <td>${item.description || '-'}</td>
+                            <td>${item.category_cause || '-'}</td>
+                            <td>${item.cost_euros || '-'}</td>
+                            <td>${item.transport || '-'}</td>
+                            <td>${item.int_ext || '-'}</td>
+                            <td>${item.carrier || '-'}</td>
+                            <td>${item.origin_company_name || '-'}</td>
+                            <td>${item.origin_city || '-'}</td>
+                            <td>${item.destiny_company_name || '-'}</td>
+                            <td>${item.destiny_city || '-'}</td>
+                            <td>${item.weight || '-'}</td>
+                            <td>${item.project_status || '-'}</td>
+                            <td>${item.approver_name || 'Pendiente'}</td>
+                            <td>${item.recovery || 'N/A'}</td>
+                        </tr>`;
+                    return;
+                }
+                
+                const issueMonth = getMonthName(issueDate);
+                const issueCW = getWeekNumber(issueDate);
+                
+                content += `
+                    <tr>
+                        <td>${item.id || '-'}</td>
+                        <td>Grammer AG</td>
+                        <td>${item.code_planta || '-'}</td>
+                        <td>${item.planta || '-'}</td>
+                        <td>${item.date || '-'}</td>
+                        <td>${item.in_out_bound || '-'}</td>
+                        <td>${issueCW}</td>
+                        <td>${issueMonth}</td>
+                        <td>${item.reference_number || '-'}</td>
+                        <td>${item.creator_name || '-'}</td>
+                        <td>${item.area || '-'}</td>
+                        <td>${item.description || '-'}</td>
+                        <td>${item.category_cause || '-'}</td>
+                        <td>${item.cost_euros || '-'}</td>
+                        <td>${item.transport || '-'}</td>
+                        <td>${item.int_ext || '-'}</td>
+                        <td>${item.carrier || '-'}</td>
+                        <td>${item.origin_company_name || '-'}</td>
+                        <td>${item.origin_city || '-'}</td>
+                        <td>${item.destiny_company_name || '-'}</td>
+                        <td>${item.destiny_city || '-'}</td>
+                        <td>${item.weight || '-'}</td>
+                        <td>${item.project_status || '-'}</td>
+                        <td>${item.approver_name || 'Pendiente'}</td>
+                        <td>${item.recovery || 'N/A'}</td>
+                    </tr>`;
+            } catch (error) {
+                console.error('Error procesando registro:', error, item);
+            }
         });
         
         tableBody_semanal.innerHTML = content;
@@ -147,42 +231,81 @@ const generarHistoricoTotal = async () => {
         }
 
         // Garantizar que premiumFreightData sea un array
-        const datosTotal = Array.isArray(premiumFreightData) ? premiumFreightData : [premiumFreightData];
+        const datosTotal = Array.isArray(premiumFreightData) ? premiumFreightData : (premiumFreightData ? [premiumFreightData] : []);
         
         let content = ``;
         datosTotal.forEach(item => {
-            const issueDate = new Date(item.date);
-            const issueMonth = getMonthName(issueDate);
-            const issueCW = getWeekNumber(issueDate);
-            
-            content += `
-                <tr>
-                    <td>${item.id}</td>
-                    <td>Grammer AG</td>
-                    <td>${item.code_planta}</td>
-                    <td>${item.planta}</td>
-                    <td>${item.date}</td>
-                    <td>${item.in_out_bound}</td>
-                    <td>${issueCW}</td>
-                    <td>${issueMonth}</td>
-                    <td>${item.reference_number}</td>
-                    <td>${item.creator_name}</td>
-                    <td>${item.area}</td>
-                    <td>${item.description}</td>
-                    <td>${item.category_cause}</td>
-                    <td>${item.cost_euros}</td>
-                    <td>${item.transport}</td>
-                    <td>${item.int_ext}</td>
-                    <td>${item.carrier}</td>
-                    <td>${item.origin_company_name}</td>
-                    <td>${item.origin_city}</td>
-                    <td>${item.destiny_company_name}</td>
-                    <td>${item.destiny_city}</td>
-                    <td>${item.weight}</td>
-                    <td>${item.project_status}</td>
-                    <td>${item.approver_name || 'Pendiente'}</td>
-                    <td>${item.recovery || 'N/A'}</td>
-                </tr>`;
+            try {
+                const issueDate = item.date ? new Date(item.date) : null;
+                
+                // Verificar si la fecha es válida
+                if (!issueDate || isNaN(issueDate.getTime())) {
+                    // Usar valores por defecto para fechas inválidas
+                    content += `
+                        <tr>
+                            <td>${item.id || '-'}</td>
+                            <td>Grammer AG</td>
+                            <td>${item.code_planta || '-'}</td>
+                            <td>${item.planta || '-'}</td>
+                            <td>${item.date || 'Fecha inválida'}</td>
+                            <td>${item.in_out_bound || '-'}</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>${item.reference_number || '-'}</td>
+                            <td>${item.creator_name || '-'}</td>
+                            <td>${item.area || '-'}</td>
+                            <td>${item.description || '-'}</td>
+                            <td>${item.category_cause || '-'}</td>
+                            <td>${item.cost_euros || '-'}</td>
+                            <td>${item.transport || '-'}</td>
+                            <td>${item.int_ext || '-'}</td>
+                            <td>${item.carrier || '-'}</td>
+                            <td>${item.origin_company_name || '-'}</td>
+                            <td>${item.origin_city || '-'}</td>
+                            <td>${item.destiny_company_name || '-'}</td>
+                            <td>${item.destiny_city || '-'}</td>
+                            <td>${item.weight || '-'}</td>
+                            <td>${item.project_status || '-'}</td>
+                            <td>${item.approver_name || 'Pendiente'}</td>
+                            <td>${item.recovery || 'N/A'}</td>
+                        </tr>`;
+                    return;
+                }
+                
+                const issueMonth = getMonthName(issueDate);
+                const issueCW = getWeekNumber(issueDate);
+                
+                content += `
+                    <tr>
+                        <td>${item.id || '-'}</td>
+                        <td>Grammer AG</td>
+                        <td>${item.code_planta || '-'}</td>
+                        <td>${item.planta || '-'}</td>
+                        <td>${item.date || '-'}</td>
+                        <td>${item.in_out_bound || '-'}</td>
+                        <td>${issueCW}</td>
+                        <td>${issueMonth}</td>
+                        <td>${item.reference_number || '-'}</td>
+                        <td>${item.creator_name || '-'}</td>
+                        <td>${item.area || '-'}</td>
+                        <td>${item.description || '-'}</td>
+                        <td>${item.category_cause || '-'}</td>
+                        <td>${item.cost_euros || '-'}</td>
+                        <td>${item.transport || '-'}</td>
+                        <td>${item.int_ext || '-'}</td>
+                        <td>${item.carrier || '-'}</td>
+                        <td>${item.origin_company_name || '-'}</td>
+                        <td>${item.origin_city || '-'}</td>
+                        <td>${item.destiny_company_name || '-'}</td>
+                        <td>${item.destiny_city || '-'}</td>
+                        <td>${item.weight || '-'}</td>
+                        <td>${item.project_status || '-'}</td>
+                        <td>${item.approver_name || 'Pendiente'}</td>
+                        <td>${item.recovery || 'N/A'}</td>
+                    </tr>`;
+            } catch (error) {
+                console.error('Error procesando registro:', error, item);
+            }
         });
         
         tableBody_total.innerHTML = content;
