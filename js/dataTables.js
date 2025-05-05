@@ -438,11 +438,9 @@ const generarHistoricoTotal = async () => {
         if (response && response.status === 'success' && Array.isArray(response.data)) {
             // Caso correcto: la respuesta tiene la estructura esperada
             itemsArray = response.data;
-            console.log(`Se encontraron ${itemsArray.length} registros en response.data`);
         } else if (Array.isArray(response)) {
             // Caso alternativo: la respuesta es directamente un array
             itemsArray = response;
-            console.log(`Se encontraron ${itemsArray.length} registros en response (array directo)`);
         } else {
             // Si no podemos encontrar un array, mostrar un error
             console.error('Formato de respuesta inesperado:', response);
@@ -457,7 +455,6 @@ const generarHistoricoTotal = async () => {
             try {
                 // Aquí podemos acceder al campo date de cada item
                 const dateValue = item.date;
-                console.log("Fecha del registro:", dateValue);
                 
                 // Usar nuestra función parseDate en lugar de new Date directamente
                 const issueDate = dateValue ? parseDate(dateValue) : null;
