@@ -443,7 +443,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         <!-- Modal Histórico Semanal -->
         <div id="modalHistoricoSemanal" class="modal fade" aria-labelledby="tituloModalHistoricoSemanal" aria-modal="true" role="dialog">
             <div class="modal-dialog modal-xl"> 
-                <div id="modalDTWeek" class="modal-content">
+                <div class="modal-DT">
                     <div class="modal-header">
                         <h5 class="modal-title" id="tituloModalHistoricoSemanal">Histórico Semanal de Premium Freight</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
@@ -496,7 +496,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         <!-- Modal Histórico Total -->
         <div id="modalHistoricoTotal" class="modal fade" aria-labelledby="tituloModalHistoricoTotal" aria-modal="true" role="dialog">
             <div class="modal-dialog modal-xl">
-                <div id="modalDTAll" class="modal-content">
+                <div class="modal-DT">
                     <div class="modal-header">
                         <h5 class="modal-title" id="tituloModalHistoricoTotal">Histórico Total de Premium Freight</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
