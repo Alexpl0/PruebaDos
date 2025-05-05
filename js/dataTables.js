@@ -46,17 +46,7 @@ const dataTableOptions = {
             orientation: 'portrait',
             pageSize: 'LETTER',
             title: 'Premium Freight Report',
-            filename: function() {
-                // Use DataTables API context
-                const data = this.api().exportData();
-                const table = data.body;
-                if (table.length === 0) return 'PF_no_data';
-
-                const firstId = table[0][0] || 'NA';
-                const lastId = table[table.length-1][0] || 'NA';
-
-                return `PF_${firstId}-${lastId}`;
-            },
+            filename: 'Premium_Freight_Report',
             customize: function(doc) {
                 // Personaliza el PDF para ajustar al tamaño carta
                 doc.defaultStyle.fontSize = 8; // Reduce tamaño de fuente
@@ -98,7 +88,7 @@ const dataTableOptions = {
             }
         },
         {
-            text: 'SVG/PDF Individual',
+            text: 'SVG Individual',
             className: 'btn-info',
             action: async function(e, dt, node, config) {
                 try {
