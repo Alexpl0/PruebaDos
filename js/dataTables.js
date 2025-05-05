@@ -150,6 +150,7 @@ const generarHistoricoSemanal = async () => {
                 try {
                     // Usar nuestra función parseDate en lugar de new Date directamente
                     const itemDate = parseDate(item.date);
+                    console.log('Fecha del item Array:', item.date, '->', itemDate);
                     if (!itemDate) return false;
                     
                     const itemWeek = getWeekNumber(itemDate);
@@ -167,6 +168,7 @@ const generarHistoricoSemanal = async () => {
                 try {
                     // Usar nuestra función parseDate en lugar de new Date directamente
                     const itemDate = parseDate(item.date);
+                    console.log('Fecha del item Not Array:', item.date, '->', itemDate);
                     if (!itemDate) return false;
                     
                     const itemWeek = getWeekNumber(itemDate);
@@ -184,6 +186,7 @@ const generarHistoricoSemanal = async () => {
             try {
                 // Usar nuestra función parseDate en lugar de new Date directamente
                 const issueDate = item.date ? parseDate(item.date) : null;
+                console.log('Fecha del item ForEach:', item.date, '->', issueDate);
                 
                 // Verificar si la fecha es válida
                 if (!issueDate) {
