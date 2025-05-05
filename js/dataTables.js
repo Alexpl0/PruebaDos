@@ -255,12 +255,6 @@ const generarHistoricoSemanal = async () => {
 const generarHistoricoTotal = async () => {
     try {
         const premiumFreightData = await cargarDatosPremiumFreight();
-        console.log("Datos Premium Freight:", premiumFreightData);
-
-        if (!premiumFreightData || premiumFreightData.length === 0) {
-            console.warn("No hay datos disponibles para mostrar en el histórico total.");
-            return;
-        }
         
         // Obtener referencia al elemento de la tabla
         const tableBody_total = document.getElementById('tableBody_historico_total');
@@ -269,9 +263,14 @@ const generarHistoricoTotal = async () => {
             return;
         }
 
+//======================================================================================================        
+
         // Garantizar que premiumFreightData sea un array
         const datosTotal = Array.isArray(premiumFreightData) ? premiumFreightData : (premiumFreightData ? [premiumFreightData] : []);
         
+        console.log("Datos Premium Freight:", datosTotal);
+
+
         let content = ``;
         datosTotal.forEach(item => {
             try {
