@@ -68,10 +68,7 @@ const parseDate = (dateString) => {
         const minute = parseInt(timeParts[1], 10);
         const second = parseInt(timeParts[2], 10);
         
-        const date = new Date(year, month, day, hour, minute, second);
-
-        console.log('parseDate: Fecha convertida:', dateString, '->', date);
-        
+        const date = new Date(year, month, day, hour, minute, second);        
         // Verificar si la fecha es válida
         if (isNaN(date.getTime())) {
             console.warn('parseDate: Fecha resultante inválida:', dateString);
@@ -97,7 +94,6 @@ const getWeekNumber = (date) => {
         d.setDate(d.getDate() + 4 - (d.getDay() || 7));
         const yearStart = new Date(d.getFullYear(), 0, 1);
         const weekNumber = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-        console.log('Número de semana:', weekNumber);
         return weekNumber;
     } catch (error) {
         console.error('Error en getWeekNumber:', error);
@@ -124,9 +120,6 @@ const getMonthName = (date) => {
 const generarHistoricoSemanal = async () => {
     try {
         const premiumFreightData = await cargarDatosPremiumFreight();
-
-        // Verificar si los datos son válidos
-        console.log('Datos de Premium Freight:', premiumFreightData);
         
         // Obtener referencia al elemento de la tabla
         const tableBody_semanal = document.getElementById('tableBody_historico_semanal');
@@ -139,8 +132,6 @@ const generarHistoricoSemanal = async () => {
         const currentDate = new Date();
         const currentWeek = getWeekNumber(currentDate);
         const currentYear = currentDate.getFullYear();
-
-        console.log('Semana actual:', currentWeek, 'Año actual:', currentYear);
         
         // Filtrar datos para la semana actual
         const datosSemanaActual = Array.isArray(premiumFreightData) 
@@ -150,7 +141,6 @@ const generarHistoricoSemanal = async () => {
                 try {
                     // Usar nuestra función parseDate en lugar de new Date directamente
                     const itemDate = parseDate(item.date);
-                    console.log('Fecha del item Array:', item.date, '->', itemDate);
                     if (!itemDate) return false;
                     
                     const itemWeek = getWeekNumber(itemDate);
@@ -168,7 +158,6 @@ const generarHistoricoSemanal = async () => {
                 try {
                     // Usar nuestra función parseDate en lugar de new Date directamente
                     const itemDate = parseDate(item.date);
-                    console.log('Fecha del item Not Array:', item.date, '->', itemDate);
                     if (!itemDate) return false;
                     
                     const itemWeek = getWeekNumber(itemDate);
@@ -185,9 +174,7 @@ const generarHistoricoSemanal = async () => {
         datosSemanaActual.forEach(item => {
             try {
                 // Usar nuestra función parseDate en lugar de new Date directamente
-                const issueDate = item.date ? parseDate(item.date) : null;
-                console.log('Fecha del item ForEach:', item.date, '->', issueDate);
-                
+                const issueDate = item.date ? parseDate(item.date) : null;                
                 // Verificar si la fecha es válida
                 if (!issueDate) {
                     // Usar valores por defecto para fechas inválidas
@@ -268,6 +255,12 @@ const generarHistoricoSemanal = async () => {
 const generarHistoricoTotal = async () => {
     try {
         const premiumFreightData = await cargarDatosPremiumFreight();
+        console.log("Datos Premium Freight:", premiumFreightData);
+
+        if (!premiumFreightData || premiumFreightData.length === 0) {
+            console.warn("No hay datos disponibles para mostrar en el histórico total.");
+            return;
+        }
         
         // Obtener referencia al elemento de la tabla
         const tableBody_total = document.getElementById('tableBody_historico_total');
