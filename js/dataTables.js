@@ -45,6 +45,44 @@ const cargarDatosPremiumFreight = async () => {
     }
 };
 
+// Función para convertir cadena de texto de fecha a objeto Date
+const parseDate = (dateString) => {
+    try {
+        if (!dateString) return null;
+        
+        // Formato esperado: "2025-04-28 20:59:18"
+        const parts = dateString.split(' ');
+        if (parts.length !== 2) return null;
+        
+        const dateParts = parts[0].split('-');
+        const timeParts = parts[1].split(':');
+        
+        if (dateParts.length !== 3 || timeParts.length !== 3) return null;
+        
+        // El formato es: new Date(año, mes-1, día, hora, minuto, segundo)
+        // Mes es 0-indexed en JavaScript (0-11)
+        const year = parseInt(dateParts[0], 10);
+        const month = parseInt(dateParts[1], 10) - 1; // Restar 1 porque los meses van de 0-11
+        const day = parseInt(dateParts[2], 10);
+        const hour = parseInt(timeParts[0], 10);
+        const minute = parseInt(timeParts[1], 10);
+        const second = parseInt(timeParts[2], 10);
+        
+        const date = new Date(year, month, day, hour, minute, second);
+        
+        // Verificar si la fecha es válida
+        if (isNaN(date.getTime())) {
+            console.warn('parseDate: Fecha resultante inválida:', dateString);
+            return null;
+        }
+        
+        return date;
+    } catch (error) {
+        console.error('Error en parseDate:', error, dateString);
+        return null;
+    }
+};
+
 // Función para obtener el número de semana de una fecha
 const getWeekNumber = (date) => {
     try {
@@ -102,11 +140,9 @@ const generarHistoricoSemanal = async () => {
                 if (!item || !item.date) return false;
                 
                 try {
-                    const itemDate = new Date(item.date);
-                    // Verificar si la fecha es válida antes de usarla
-                    if (isNaN(itemDate.getTime())) {
-                        return false;
-                    }
+                    // Usar nuestra función parseDate en lugar de new Date directamente
+                    const itemDate = parseDate(item.date);
+                    if (!itemDate) return false;
                     
                     const itemWeek = getWeekNumber(itemDate);
                     const itemYear = itemDate.getFullYear();
@@ -121,11 +157,9 @@ const generarHistoricoSemanal = async () => {
                 if (!item || !item.date) return false;
                 
                 try {
-                    const itemDate = new Date(item.date);
-                    // Verificar si la fecha es válida antes de usarla
-                    if (isNaN(itemDate.getTime())) {
-                        return false;
-                    }
+                    // Usar nuestra función parseDate en lugar de new Date directamente
+                    const itemDate = parseDate(item.date);
+                    if (!itemDate) return false;
                     
                     const itemWeek = getWeekNumber(itemDate);
                     const itemYear = itemDate.getFullYear();
@@ -140,10 +174,11 @@ const generarHistoricoSemanal = async () => {
         let content = ``;
         datosSemanaActual.forEach(item => {
             try {
-                const issueDate = item.date ? new Date(item.date) : null;
+                // Usar nuestra función parseDate en lugar de new Date directamente
+                const issueDate = item.date ? parseDate(item.date) : null;
                 
                 // Verificar si la fecha es válida
-                if (!issueDate || isNaN(issueDate.getTime())) {
+                if (!issueDate) {
                     // Usar valores por defecto para fechas inválidas
                     content += `
                         <tr>
@@ -236,10 +271,11 @@ const generarHistoricoTotal = async () => {
         let content = ``;
         datosTotal.forEach(item => {
             try {
-                const issueDate = item.date ? new Date(item.date) : null;
+                // Usar nuestra función parseDate en lugar de new Date directamente
+                const issueDate = item.date ? parseDate(item.date) : null;
                 
                 // Verificar si la fecha es válida
-                if (!issueDate || isNaN(issueDate.getTime())) {
+                if (!issueDate) {
                     // Usar valores por defecto para fechas inválidas
                     content += `
                         <tr>
