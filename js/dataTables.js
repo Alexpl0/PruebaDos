@@ -276,6 +276,8 @@ const generarHistoricoTotal = async () => {
             try {
                 // Usar nuestra función parseDate en lugar de new Date directamente
                 const issueDate = item.date ? parseDate(item.date) : null;
+                console.log("Fecha de emisión:", issueDate);
+                console.log("Item:", item);
                 
                 // Verificar si la fecha es válida
                 if (!issueDate) {
