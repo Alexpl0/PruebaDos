@@ -66,8 +66,6 @@ const getMonthName = (date) => {
 const generarHistoricoSemanal = async () => {
     try {
         const premiumFreightData = await cargarDatosPremiumFreight();
-
-        console.log("Datos Premium Freight:", premiumFreightData);
         
         // Obtener referencia al elemento de la tabla
         const tableBody_semanal = document.getElementById('tableBody_historico_semanal');
@@ -85,10 +83,12 @@ const generarHistoricoSemanal = async () => {
         const datosSemanaActual = Array.isArray(premiumFreightData) 
             ? premiumFreightData.filter(item => {
                 const itemDate = new Date(item.date);
+                console.log(itemDate, currentWeek, itemDate.getFullYear(), currentYear);
                 return getWeekNumber(itemDate) === currentWeek && itemDate.getFullYear() === currentYear;
               })
             : [premiumFreightData].filter(item => {
                 const itemDate = new Date(item.date);
+                console.log(itemDate, currentWeek, itemDate.getFullYear(), currentYear);
                 return getWeekNumber(itemDate) === currentWeek && itemDate.getFullYear() === currentYear;
               });
         
