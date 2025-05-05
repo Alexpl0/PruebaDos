@@ -268,17 +268,16 @@ const generarHistoricoTotal = async () => {
         // Garantizar que premiumFreightData sea un array
         const datosTotal = Array.isArray(premiumFreightData) ? premiumFreightData : (premiumFreightData ? [premiumFreightData] : []);
         
-        console.log("Datos Premium Freight:", datosTotal);
 
 
         let content = ``;
         datosTotal.forEach(item => {
             try {
-                console.log("Fecha de emisión:", item.date);
+                console.log("Item:", item);
+                
                 // Usar nuestra función parseDate en lugar de new Date directamente
                 const issueDate = item.date ? parseDate(item.date) : null;
-                console.log("Fecha de emisión:", issueDate);
-                console.log("Item:", item);
+                
                 
                 // Verificar si la fecha es válida
                 if (!issueDate) {
