@@ -43,22 +43,24 @@ const dataTableOptions = {
             extend: 'pdf',
             text: 'PDF',
             className: 'btn-danger',
-            orientation: 'landscape', // Cambia a horizontal
-            pageSize: 'LETTER', // Tamaño carta
+            orientation: 'landscape', // Mantenemos horizontal
+            pageSize: 'A3', // Cambiamos de 'LETTER' a 'A3' (o prueba 'LEGAL')
             title: 'Premium Freight Report',
             filename: 'Premium Freight Report',
             customize: function(doc) {
-                doc.defaultStyle.fontSize = 7; // Reduce tamaño de fuente para más columnas
+                doc.defaultStyle.fontSize = 7;
                 doc.styles.tableHeader.fontSize = 8;
                 doc.styles.tableHeader.fillColor = '#A7CAC3';
 
-                doc.pageMargins = [10, 15, 10, 15];
+                // Márgenes más pequeños si es necesario para A3/Legal
+                doc.pageMargins = [10, 15, 10, 15]; // Puedes ajustar si necesitas más espacio
 
-                // Ajusta el ancho de la tabla al 100% del espacio disponible
+                // Esta línea sigue siendo útil para distribuir el ancho en la nueva página más grande
                 if (doc.content[1] && doc.content[1].table && doc.content[1].table.body[0]) {
                     doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
                 }
 
+                // ... resto de la función customize (título, footer) ...
                 doc.content.splice(0, 0, {
                     margin: [0, 0, 0, 12],
                     alignment: 'center',
