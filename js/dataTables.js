@@ -35,14 +35,14 @@ const dataTableOptions = {
             className: 'btn-success',
             title: 'Premium_Freight_Report',
             filename: function(e, dt, button, config) {
-                // Obtiene los IDs visibles en la tabla actual
-                const data = dt.buttons.exportData();
+                // Usa dt.exportData() directamente
+                const data = dt.exportData();
                 const table = data.body;
                 if (table.length === 0) return 'PF_no_data';
-                
-                const firstId = table[0][0] || 'NA'; // Primera columna del primer registro (ID)
-                const lastId = table[table.length-1][0] || 'NA'; // Primera columna del último registro (ID)
-                
+
+                const firstId = table[0][0] || 'NA';
+                const lastId = table[table.length-1][0] || 'NA';
+
                 return `PF_${firstId}-${lastId}`;
             },
             exportOptions: {
@@ -54,17 +54,17 @@ const dataTableOptions = {
             text: 'PDF',
             className: 'btn-danger',
             orientation: 'portrait',
-            pageSize: 'LETTER', // Tamaño carta
+            pageSize: 'LETTER',
             title: 'Premium Freight Report',
             filename: function(e, dt, button, config) {
-                // Obtiene los IDs visibles en la tabla actual
-                const data = dt.buttons.exportData();
+                // Usa dt.exportData() directamente
+                const data = dt.exportData();
                 const table = data.body;
                 if (table.length === 0) return 'PF_no_data';
-                
+
                 const firstId = table[0][0] || 'NA';
                 const lastId = table[table.length-1][0] || 'NA';
-                
+
                 return `PF_${firstId}-${lastId}`;
             },
             customize: function(doc) {
