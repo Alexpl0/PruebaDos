@@ -43,23 +43,29 @@ const dataTableOptions = {
             extend: 'pdf',
             text: 'PDF',
             className: 'btn-danger',
-            orientation: 'portrait',
-            pageSize: 'LETTER',
+            orientation: 'landscape', // Cambia a horizontal
+            pageSize: 'LETTER', // Tamaño carta
             title: 'Premium Freight Report',
-            filename: 'Premium_Freight_Report',
+            filename: function() {
+                const data = this.api().exportData();
+                const table = data.body;
+                if (table.length === 0) return 'PF_no_data';
+                const firstId = table[0][0] || 'NA';
+                const lastId = table[table.length-1][0] || 'NA';
+                return `PF_${firstId}-${lastId}`;
+            },
             customize: function(doc) {
-                // Personaliza el PDF para ajustar al tamaño carta
-                doc.defaultStyle.fontSize = 8; // Reduce tamaño de fuente
-                doc.styles.tableHeader.fontSize = 9;
+                doc.defaultStyle.fontSize = 7; // Reduce tamaño de fuente para más columnas
+                doc.styles.tableHeader.fontSize = 8;
                 doc.styles.tableHeader.fillColor = '#A7CAC3';
-                
-                // Ajusta los márgenes para aprovechar más espacio
-                doc.pageMargins = [10, 15, 10, 15]; // [izquierda, arriba, derecha, abajo]
-                
+
+                doc.pageMargins = [10, 15, 10, 15];
+
                 // Ajusta el ancho de la tabla al 100% del espacio disponible
-                doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
-                
-                // Añade logo GRAMMER en la esquina superior
+                if (doc.content[1] && doc.content[1].table && doc.content[1].table.body[0]) {
+                    doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
+                }
+
                 doc.content.splice(0, 0, {
                     margin: [0, 0, 0, 12],
                     alignment: 'center',
@@ -70,8 +76,7 @@ const dataTableOptions = {
                         color: '#1c4481'
                     }
                 });
-                
-                // Añade pie de página con fecha y número de página
+
                 const now = new Date();
                 doc.footer = function(currentPage, pageCount) {
                     return {
