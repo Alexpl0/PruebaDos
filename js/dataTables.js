@@ -400,12 +400,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Crear modales en el DOM
     const modalsHTML = `
         <!-- Modal Histórico Semanal -->
-        <div id="modalHistoricoSemanal" class="modal fade" tabindex="-1">
+        <div id="modalHistoricoSemanal" class="modal fade" aria-labelledby="tituloModalHistoricoSemanal" aria-modal="true" role="dialog">
             <div class="modal-dialog modal-xl">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Histórico Semanal de Premium Freight</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <h5 class="modal-title" id="tituloModalHistoricoSemanal">Histórico Semanal de Premium Freight</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
                     <div class="modal-body">
                         <div class="table-responsive">
@@ -445,17 +445,20 @@ document.addEventListener('DOMContentLoaded', async function() {
                             </table>
                         </div>
                     </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Modal Histórico Total -->
-        <div id="modalHistoricoTotal" class="modal fade" tabindex="-1">
+        <div id="modalHistoricoTotal" class="modal fade" aria-labelledby="tituloModalHistoricoTotal" aria-modal="true" role="dialog">
             <div class="modal-dialog modal-xl">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Histórico Total de Premium Freight</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <h5 class="modal-title" id="tituloModalHistoricoTotal">Histórico Total de Premium Freight</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
                     <div class="modal-body">
                         <div class="table-responsive">
@@ -495,6 +498,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                             </table>
                         </div>
                     </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -503,7 +509,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     document.body.insertAdjacentHTML('beforeend', modalsHTML);
     
     // Añadir event listeners a los botones
+    let lastFocusedElement;
+
     document.getElementById('btnHistoricoSemanal').addEventListener('click', async function() {
+        // Guardar elemento con foco antes de abrir el modal
+        lastFocusedElement = document.activeElement;
+        
         await generarHistoricoSemanal();
         
         // Inicializar o actualizar DataTable
@@ -519,11 +530,32 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
         
         // Mostrar el modal
-        const modalHistoricoSemanal = new bootstrap.Modal(document.getElementById('modalHistoricoSemanal'));
+        const modalElement = document.getElementById('modalHistoricoSemanal');
+        const modalHistoricoSemanal = new bootstrap.Modal(modalElement);
+        
+        // Manejar eventos de accesibilidad
+        modalElement.addEventListener('hidden.bs.modal', function () {
+            // Restaurar el foco al elemento anterior cuando se cierra el modal
+            if (lastFocusedElement) {
+                lastFocusedElement.focus();
+            }
+        }, { once: true });
+        
         modalHistoricoSemanal.show();
+        
+        // Establecer el foco en el primer elemento interactivo del modal
+        setTimeout(() => {
+            const firstFocusableElement = modalElement.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+            if (firstFocusableElement) {
+                firstFocusableElement.focus();
+            }
+        }, 300);
     });
-    
+
     document.getElementById('btnHistoricoTotal').addEventListener('click', async function() {
+        // Guardar elemento con foco antes de abrir el modal
+        lastFocusedElement = document.activeElement;
+        
         await generarHistoricoTotal();
         
         // Inicializar o actualizar DataTable
@@ -539,7 +571,25 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
         
         // Mostrar el modal
-        const modalHistoricoTotal = new bootstrap.Modal(document.getElementById('modalHistoricoTotal'));
+        const modalElement = document.getElementById('modalHistoricoTotal');
+        const modalHistoricoTotal = new bootstrap.Modal(modalElement);
+        
+        // Manejar eventos de accesibilidad
+        modalElement.addEventListener('hidden.bs.modal', function () {
+            // Restaurar el foco al elemento anterior cuando se cierra el modal
+            if (lastFocusedElement) {
+                lastFocusedElement.focus();
+            }
+        }, { once: true });
+        
         modalHistoricoTotal.show();
+        
+        // Establecer el foco en el primer elemento interactivo del modal
+        setTimeout(() => {
+            const firstFocusableElement = modalElement.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+            if (firstFocusableElement) {
+                firstFocusableElement.focus();
+            }
+        }, 300);
     });
 });
