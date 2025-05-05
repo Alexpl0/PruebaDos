@@ -271,11 +271,12 @@ function applyTextWrappingForPDF(container, selectedOrder) {
 }
 
 /**
- * Generates a PDF from the SVG and initiates download
- * @param {Object} selectedOrder - The order data
- * @returns {Promise<void>}
+ * Genera un PDF a partir del SVG y lo descarga
+ * @param {Object} selectedOrder - Los datos de la orden
+ * @param {string} [customFileName] - Nombre personalizado para el archivo (opcional)
+ * @returns {Promise<string>} - Nombre del archivo generado
  */
-async function generatePDF(selectedOrder) {
+async function generatePDF(selectedOrder, customFileName) {
     // Prepare SVG in off-screen container
     const container = await prepareOffscreenSVG(selectedOrder);
     
@@ -289,23 +290,43 @@ async function generatePDF(selectedOrder) {
             logging: false,
             useCORS: true,
             allowTaint: true,
-            backgroundColor: null
+            backgroundColor: 'white'
         });
         
-        // Create PDF
+        // Create PDF - ajustado a tamaño carta (8.5 x 11 pulgadas = 612 x 792 puntos)
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF({
             orientation: 'portrait',
             unit: 'pt',
-            format: [canvas.width / 2, canvas.height / 2]
+            format: 'letter'  // Formato carta
         });
         
-        // Add image to PDF
+        // Calcula el factor de escala para ajustar a la página
+        const pageWidth = 612;
+        const pageHeight = 792;
+        const imgWidth = canvas.width;
+        const imgHeight = canvas.height;
+        
+        // Calcula la escala para ajustar el ancho de la página con margen de 40pt
+        let scale = (pageWidth - 80) / imgWidth;
+        
+        // Si la altura escalada excede la altura de la página, ajustar por altura
+        if (imgHeight * scale > (pageHeight - 80)) {
+            scale = (pageHeight - 80) / imgHeight;
+        }
+        
+        // Coordenadas centradas
+        const xPos = (pageWidth - imgWidth * scale) / 2;
+        const yPos = (pageHeight - imgHeight * scale) / 2;
+        
+        // Add image to PDF con el tamaño ajustado
         const imgData = canvas.toDataURL('image/png');
-        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width / 2, canvas.height / 2);
+        pdf.addImage(imgData, 'PNG', xPos, yPos, imgWidth * scale, imgHeight * scale);
         
         // Save the PDF
-        const fileName = `PremiumFreight_${selectedOrder.id || 'Order'}.pdf`;
+        const fileName = customFileName 
+            ? `${customFileName}.pdf` 
+            : `PF_${selectedOrder.id || 'Order'}.pdf`;
         pdf.save(fileName);
         
         return fileName;

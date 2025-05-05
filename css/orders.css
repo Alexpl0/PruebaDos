@@ -152,7 +152,7 @@ main{
   right: 15px;
   cursor: pointer;
   font-size: 28px;
-  z-index: 2;
+  z-index: 99;
 }
 
 .modal-buttons {

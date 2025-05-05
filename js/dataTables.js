@@ -29,7 +29,183 @@ const dataTableOptions = {
     },
     dom: 'Bfrtip',
     buttons: [
-        'copy', 'csv', 'excel', 'pdf', 'print'
+        {
+            extend: 'excel',
+            text: 'Excel',
+            className: 'btn-success',
+            title: 'Premium_Freight_Report',
+            filename: function() {
+                // Obtiene los IDs visibles en la tabla actual
+                const table = this.exportData().body;
+                if (table.length === 0) return 'PF_no_data';
+                
+                const firstId = table[0][0] || 'NA'; // Primera columna del primer registro (ID)
+                const lastId = table[table.length-1][0] || 'NA'; // Primera columna del último registro (ID)
+                
+                return `PF_${firstId}-${lastId}`;
+            },
+            exportOptions: {
+                columns: ':visible'
+            }
+        },
+        {
+            extend: 'pdf',
+            text: 'PDF',
+            className: 'btn-danger',
+            orientation: 'portrait',
+            pageSize: 'LETTER', // Tamaño carta
+            title: 'Premium Freight Report',
+            filename: function() {
+                // Obtiene los IDs visibles en la tabla actual
+                const table = this.exportData().body;
+                if (table.length === 0) return 'PF_no_data';
+                
+                const firstId = table[0][0] || 'NA';
+                const lastId = table[table.length-1][0] || 'NA';
+                
+                return `PF_${firstId}-${lastId}`;
+            },
+            customize: function(doc) {
+                // Personaliza el PDF para ajustar al tamaño carta
+                doc.defaultStyle.fontSize = 8; // Reduce tamaño de fuente
+                doc.styles.tableHeader.fontSize = 9;
+                doc.styles.tableHeader.fillColor = '#A7CAC3';
+                
+                // Ajusta los márgenes para aprovechar más espacio
+                doc.pageMargins = [10, 15, 10, 15]; // [izquierda, arriba, derecha, abajo]
+                
+                // Ajusta el ancho de la tabla al 100% del espacio disponible
+                doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
+                
+                // Añade logo GRAMMER en la esquina superior
+                doc.content.splice(0, 0, {
+                    margin: [0, 0, 0, 12],
+                    alignment: 'center',
+                    text: 'GRAMMER Premium Freight Report',
+                    style: {
+                        fontSize: 14,
+                        bold: true,
+                        color: '#1c4481'
+                    }
+                });
+                
+                // Añade pie de página con fecha y número de página
+                const now = new Date();
+                doc.footer = function(currentPage, pageCount) {
+                    return {
+                        columns: [
+                            { text: 'Generated: ' + now.toLocaleDateString(), alignment: 'left', margin: [10, 0], fontSize: 8 },
+                            { text: 'Page ' + currentPage.toString() + ' of ' + pageCount, alignment: 'right', margin: [0, 0, 10, 0], fontSize: 8 }
+                        ],
+                        margin: [10, 0]
+                    };
+                };
+            },
+            exportOptions: {
+                columns: ':visible'
+            }
+        },
+        {
+            text: 'SVG/PDF Individual',
+            className: 'btn-info',
+            action: async function(e, dt, node, config) {
+                try {
+                    // Muestra una alerta de carga
+                    Swal.fire({
+                        title: 'Preparando documentos',
+                        html: 'Generando SVGs para cada registro. Esto puede tomar un momento...',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+                    
+                    // Obtiene los registros visibles (después de filtrados)
+                    const exportData = dt.rows({search: 'applied'}).data().toArray();
+                    if (exportData.length === 0) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Sin datos',
+                            text: 'No hay registros para exportar'
+                        });
+                        return;
+                    }
+                    
+                    // Si hay muchos registros, pide confirmación
+                    if (exportData.length > 10) {
+                        const confirm = await Swal.fire({
+                            icon: 'warning',
+                            title: 'Muchos registros',
+                            html: `Está a punto de generar ${exportData.length} documentos SVG/PDF. ¿Desea continuar?`,
+                            showCancelButton: true,
+                            confirmButtonText: 'Sí, generar todos',
+                            cancelButtonText: 'Cancelar',
+                        });
+                        
+                        if (!confirm.isConfirmed) return;
+                    }
+                    
+                    // Importa las funciones necesarias del módulo svgOrders
+                    const { loadAndPopulateSVG, generatePDF } = await import('./svgOrders.js');
+                    
+                    // Prepara los IDs para hacer fetch desde la API
+                    const ids = exportData.map(row => row[0]);
+                    
+                    // Obtiene los datos completos de cada orden
+                    const ordersResponse = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php');
+                    const ordersData = await ordersResponse.json();
+                    
+                    // Extrae las órdenes del formato { status: 'success', data: [...] }
+                    const allOrders = ordersData.data || [];
+                    
+                    // Filtra para obtener solo las órdenes visibles en la tabla
+                    const visibleOrders = allOrders.filter(order => ids.includes(String(order.id)));
+                    
+                    // Crea un contenedor oculto para los SVGs
+                    const container = document.createElement('div');
+                    container.style.position = 'absolute';
+                    container.style.left = '-9999px';
+                    document.body.appendChild(container);
+                    
+                    // Para cada orden, genera un SVG y un PDF
+                    for (let i = 0; i < visibleOrders.length; i++) {
+                        const order = visibleOrders[i];
+                        const orderId = order.id;
+                        
+                        // Actualiza el mensaje de progreso
+                        Swal.update({
+                            html: `Procesando documento ${i+1} de ${visibleOrders.length}...`
+                        });
+                        
+                        try {
+                            // Genera el PDF con el nombre requerido
+                            await generatePDF(order, `PF_${orderId}`);
+                        } catch (error) {
+                            console.error(`Error generando PDF para orden ${orderId}:`, error);
+                        }
+                        
+                        // Pequeña pausa para no sobrecargar el navegador
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    }
+                    
+                    // Elimina el contenedor temporal
+                    document.body.removeChild(container);
+                    
+                    // Muestra mensaje de éxito
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Documentos generados',
+                        html: `Se han generado ${visibleOrders.length} documentos PDF.<br>Revise su carpeta de descargas.`
+                    });
+                    
+                } catch (error) {
+                    console.error('Error generando documentos:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Ocurrió un error al generar los documentos: ' + error.message
+                    });
+                }
+            }
+        }
     ]
 };
 
