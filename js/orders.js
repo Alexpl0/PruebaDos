@@ -222,6 +222,52 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // --- Funcionalidad de búsqueda ---
+    // Añadir manejo de eventos para el campo de búsqueda
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            
+            // Si no hay término de búsqueda, mostrar todas las órdenes
+            if (!searchTerm) {
+                createCards(window.allOrders);
+                return;
+            }
+            
+            // Filtrar las órdenes que coincidan con el término de búsqueda
+            const filteredOrders = window.allOrders.filter(order => {
+                const idMatch = order.id.toString().includes(searchTerm);
+                const descMatch = (order.description || '').toLowerCase().includes(searchTerm);
+                return idMatch || descMatch;
+            });
+            
+            // Mostrar resultados filtrados o mensaje si no hay coincidencias
+            if (filteredOrders.length > 0) {
+                createCards(filteredOrders);
+            } else {
+                const mainCards = document.getElementById("card");
+                if (mainCards) {
+                    mainCards.innerHTML = `
+                        <div class="alert alert-info w-100 text-center" role="alert">
+                            No se encontraron órdenes que coincidan con "${searchTerm}"
+                        </div>
+                    `;
+                }
+            }
+        });
+        
+        // Botón para limpiar la búsqueda
+        const clearButton = document.getElementById('clearSearch');
+        if (clearButton) {
+            clearButton.addEventListener('click', function() {
+                searchInput.value = '';
+                createCards(window.allOrders);
+                searchInput.focus();
+            });
+        }
+    }
+
     // --- Cerrar modal ---
     // Añade un event listener al botón de cerrar (X) del modal.
     document.getElementById('closeModal').onclick = function () {
