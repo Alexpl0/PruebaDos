@@ -379,5 +379,53 @@ session_start();
     <script src="js/header.js"></script>
     <script src="js/newOrder.js"></script>
     <script src="js/createPDF.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('#planta').select2({
+                placeholder: 'Select a Plant',
+                allowClear: true
+            });
+            $('#codeplanta').select2({
+                placeholder: 'Select a Plant Code',
+                allowClear: true
+            });
+            $('#transport').select2({
+                placeholder: 'Select a Transport Mode',
+                allowClear: true
+            });
+            $('#InOutBound').select2({
+                placeholder: 'Select In/Out Outbound',
+                allowClear: true
+            });
+            $('#Area').select2({
+                placeholder: 'Select Area of Responsibility',
+                allowClear: true
+            });
+            $('#IntExt').select2({
+                placeholder: 'Select Internal/External Service',
+                allowClear: true
+            });
+            $('#PaidBy').select2({
+                placeholder: 'Select Costs paid By',
+                allowClear: true
+            });
+            $('#CategoryCause').select2({
+                placeholder: 'Select Category Cause',
+                allowClear: true
+            });
+            $('#ProjectStatus').select2({
+                placeholder: 'Select Project Status',
+                allowClear: true
+            });
+            $('#Recovery').select2({
+                placeholder: 'Select Recovery',
+                allowClear: true
+            });
+            $('#CompanyShip').select2({
+                placeholder: 'Select Company Name',
+                allowClear: true
+            });
+        });
 </body>
 </html>
