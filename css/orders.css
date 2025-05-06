@@ -306,3 +306,75 @@ main {
 #myModal #svgPreview.svg-frame { ... }
 #myModal #svgPreview.svg-frame svg { ... }
 */
+
+/* Estilos para el contenedor de controles */
+.container-fluid .row {
+    background-color: #f8f9fa;
+    padding: 12px;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    margin: 0 5px;
+}
+
+/* Estilos para los botones de control */
+#btnHistoricoSemanal, #btnTodas {
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+#btnHistoricoSemanal:hover, #btnTodas:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,.15);
+}
+
+/* Estilos para el campo de búsqueda */
+.input-group {
+    box-shadow: 0 1px 3px rgba(0,0,0,.05);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.input-group-text {
+    background-color: #fff;
+    border-right: none;
+    color: #6c757d;
+}
+
+#searchInput {
+    border-left: none;
+    transition: all 0.2s ease;
+}
+
+#searchInput:focus {
+    box-shadow: none;
+    border-color: #ced4da;
+}
+
+#clearSearch {
+    border-left: none;
+    background-color: white;
+}
+
+#clearSearch:hover {
+    background-color: #f8f9fa;
+}
+
+/* Mensaje de no resultados */
+.alert-info {
+    margin: 20px;
+    background-color: #f8f9fc;
+    border-color: #d1ddf0;
+    color: #5a6f8d;
+}
+
+/* Mejoras para dispositivos móviles */
+@media (max-width: 768px) {
+    .col-md-8, .col-md-4 {
+        padding: 0 15px;
+    }
+    
+    #btnHistoricoSemanal, #btnTodas {
+        padding: 5px 10px;
+        font-size: 14px;
+    }
+}
