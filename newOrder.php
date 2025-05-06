@@ -375,7 +375,7 @@ session_start();
     <script src="js/createPDF.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script>
+    <!-- <script>
         $(document).ready(function() {
             $('#planta, #codeplanta, #transport, #InOutBound, #Area, #IntExt, #CategoryCause, #ProjectStatus, #Recovery, #Carrier, #Measures, #Products, #StatesShip, #Reference, #StatesDest').select2({
                 allowClear: true
@@ -409,6 +409,6 @@ session_start();
                 allowClear: true
             });
         });
-    </script>
+    </script> -->
 </body>
 </html>
