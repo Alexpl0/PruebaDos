@@ -203,7 +203,7 @@ main{
 .svg-frame {
     position: relative;
     width: 100% !important;
-    height: 105% !important;
+    height: 100% !important;
     background: none;
     box-shadow: #333 0px 0px 0px 1px inset;
     display: flex;
@@ -219,6 +219,7 @@ main{
     height: auto;
     width: auto;
     margin: 0 auto;
+    object-fit: contain;
 }
 
 /* Asegurar que SweetAlert aparezca por encima del modal */
@@ -248,4 +249,52 @@ main{
     font-weight: bold;
     margin-bottom: 1%;
     color: white;
+}
+
+/* Ajustes específicos para el modal del SVG (#myModal) */
+#myModal .modal-content {
+    width: 85%; /* Ajusta el ancho según necesites para el SVG */
+    max-width: 1200px; /* Un máximo razonable */
+    /* Hereda display: flex, flex-direction: column, max-height, overflow: hidden
+       de la regla general .modal-content, lo cual está bien. */
+}
+
+#myModal .modal-buttons {
+    flex-shrink: 0; /* Evita que la sección de botones se encoja */
+    padding: 1rem; /* Espaciado interno */
+    /* Tus estilos existentes para display: flex y gap deberían funcionar aquí */
+    border-bottom: 1px solid #dee2e6; /* Línea separadora opcional */
+}
+
+/* Contenedor de la previsualización del SVG dentro de #myModal */
+#myModal #svgPreview.svg-frame {
+    flex-grow: 1; /* Permite que esta área crezca para ocupar el espacio vertical disponible */
+    min-height: 0; /* MUY IMPORTANTE para que flex-grow funcione correctamente y permita encoger si es necesario */
+    padding: 1rem; /* Espacio alrededor del SVG */
+    box-sizing: border-box; /* Para que el padding no aumente el tamaño total */
+    
+    /* display: flex, align-items, justify-content ya están en la regla .svg-frame general
+       y son buenos para centrar el SVG hijo. */
+    /* Eliminamos la altura fija porcentual para que flex-grow la maneje */
+    /* height: 105% !important; <-- Esto se elimina o se sobrescribe */
+    height: 100%; /* Ocupa el 100% del espacio asignado por flex-grow */
+
+    /* Los siguientes estilos vienen de tu regla .svg-frame original y están bien aquí: */
+    position: relative;
+    width: 100% !important; /* Asegura que ocupe todo el ancho disponible en el layout flex */
+    background: none;
+    box-shadow: #333 0px 0px 0px 1px inset;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* El elemento SVG dentro de #svgPreview */
+#myModal #svgPreview.svg-frame svg {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;  /* Mantiene la relación de aspecto */
+    height: auto; /* Mantiene la relación de aspecto */
+    object-fit: contain; /* Asegura que todo el SVG sea visible, escalado para caber */
 }
