@@ -225,62 +225,23 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- Funcionalidad de búsqueda ---
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
-        // Función simplificada para manejar la búsqueda
-        function handleSearch() {
-            const searchTerm = searchInput.value.toLowerCase().trim();
-            
-            // Si no hay término de búsqueda, mostrar todas las órdenes originales
-            if (!searchTerm) {
-                createCards(window.allOrders);
-                return;
-            }
-            
-            // Filtrar las órdenes que coincidan con el término de búsqueda
-            const filteredOrders = window.allOrders.filter(order => {
-                const idMatch = order.id.toString().includes(searchTerm);
-                const descMatch = (order.description || '').toLowerCase().includes(searchTerm);
-                return idMatch || descMatch;
-            });
-            
-            // Mostrar resultados filtrados o mensaje si no hay coincidencias
-            if (filteredOrders.length > 0) {
-                createCards(filteredOrders);
-            } else {
-                const mainCards = document.getElementById("card");
-                if (mainCards) {
-                    mainCards.innerHTML = `
-                        <div class="alert alert-info w-100 text-center" role="alert">
-                            No se encontraron órdenes que coincidan con "${searchTerm}"
-                        </div>
-                    `;
-                }
-            }
-        }
+        searchInput.addEventListener('input', function () {
+            const query = searchInput.value.trim().toLowerCase();
+            if (!window.allOrders) return;
 
-        // Remover todos los event listeners previos (limpieza)
-        const newSearchInput = searchInput.cloneNode(true);
-        searchInput.parentNode.replaceChild(newSearchInput, searchInput);
-        searchInput = newSearchInput;
-        
-        // Añadir el principal event listener que controla todo
-        searchInput.addEventListener('input', function() {
-            // Si el campo está vacío, mostrar todas las órdenes
-            if (this.value === '') {
+            if (query === "") {
+                // Si el campo está vacío, muestra todas las órdenes
                 createCards(window.allOrders);
             } else {
-                handleSearch();
+                // Filtra por ID (como texto) o descripción
+                const filtered = window.allOrders.filter(order => {
+                    const idMatch = String(order.id).toLowerCase().includes(query);
+                    const descMatch = (order.description || '').toLowerCase().includes(query);
+                    return idMatch || descMatch;
+                });
+                createCards(filtered);
             }
         });
-        
-        // Botón para limpiar la búsqueda
-        const clearButton = document.getElementById('clearSearch');
-        if (clearButton) {
-            clearButton.addEventListener('click', function() {
-                searchInput.value = '';
-                createCards(window.allOrders);
-                searchInput.focus();
-            });
-        }
     }
 
     // --- Cerrar modal ---
