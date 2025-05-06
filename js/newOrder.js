@@ -3,9 +3,10 @@
 let euros = 0;
 let selectedCurrency = "MXN"; // Default currency
 let range = 0; // Authorization range, declared with let
-/*
+
 //==========================================================================================
 // Function to initialize Select2 for CompanyShip with AJAX and add-new support
+/*
 function showCompanySelect() {
     $('#CompanyShip').select2({
         placeholder: "Buscar o agregar compañía",
@@ -46,7 +47,7 @@ function showCompanySelect() {
             return data.text.replace(/^Agregar nueva compañía: "/, '').replace(/"$/, '');
         }
     });
-
+*/
     // Evento cuando se selecciona una opción (existente o nueva)
     $('#CompanyShip').on('select2:select', function (e) {
         const data = e.params.data;
@@ -76,8 +77,8 @@ function showCompanySelect() {
             });
         }
     });
-}
-*/
+//}
+
 //==========================================================================================
 // Function to get the exchange rate from the API
 async function getExchangeRate(baseCurrency) {
