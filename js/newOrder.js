@@ -3,7 +3,7 @@
 let euros = 0;
 let selectedCurrency = "MXN"; // Default currency
 let range = 0; // Authorization range, declared with let
-
+/*
 //==========================================================================================
 // Function to initialize Select2 for CompanyShip with AJAX and add-new support
 function showCompanySelect() {
@@ -14,7 +14,7 @@ function showCompanySelect() {
         ajax: {
             url: 'https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php',
             dataType: 'json',
-            delay: 250,
+            delay: 20,
             data: function (params) {
                 return { q: params.term || '' };
             },
@@ -77,7 +77,7 @@ function showCompanySelect() {
         }
     });
 }
-
+*/
 //==========================================================================================
 // Function to get the exchange rate from the API
 async function getExchangeRate(baseCurrency) {
