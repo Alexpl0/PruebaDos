@@ -72,9 +72,6 @@ $userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
     </div>
 
     <main id="main"> 
-        <div>
-            <input type="text" id="searchInput" placeholder="Buscar por ID o descripción...">
-        </div>
        <div id="card"> 
         </div>
     </main>

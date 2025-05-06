@@ -691,6 +691,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             <div class="buttons-container">
                 <button id="btnHistoricoSemanal" class="btn btn-primary">Ver Histórico Semanal</button>
                 <button id="btnHistoricoTotal" class="btn btn-success">Ver Histórico Total</button>
+                <input type="text" id="searchInput" placeholder="Buscar por ID o descripción...">
             </div>
         `;
         buttonsContainer.insertAdjacentHTML('beforeend', buttonHTML);
