@@ -65,6 +65,12 @@ document.addEventListener('DOMContentLoaded', function () {
         // Limpia el contenido existente en el contenedor de tarjetas.
         mainCards.innerHTML = ""; 
         
+        // Almacena todas las órdenes originales solo la primera vez
+        if (!window.originalOrders) {
+            window.originalOrders = orders.slice(); // copia del arreglo original
+        }
+        window.allOrders = orders; // este sí puede cambiar con los filtros
+
         // Itera sobre cada objeto de orden en el array 'orders'.
         orders.forEach(order => {
             // Calcula el número de semana para la fecha de la orden.
@@ -227,14 +233,14 @@ document.addEventListener('DOMContentLoaded', function () {
     if (searchInput) {
         searchInput.addEventListener('input', function () {
             const query = searchInput.value.trim().toLowerCase();
-            if (!window.allOrders) return;
+            if (!window.originalOrders) return;
 
             if (query === "") {
-                // Si el campo está vacío, muestra todas las órdenes
-                createCards(window.allOrders);
+                // Si el campo está vacío, muestra todas las órdenes originales
+                createCards(window.originalOrders);
             } else {
                 // Filtra por ID (como texto) o descripción
-                const filtered = window.allOrders.filter(order => {
+                const filtered = window.originalOrders.filter(order => {
                     const idMatch = String(order.id).toLowerCase().includes(query);
                     const descMatch = (order.description || '').toLowerCase().includes(query);
                     return idMatch || descMatch;
