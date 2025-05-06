@@ -75,7 +75,7 @@ $userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
        <div class="search-container mb-3 mx-2">
           <div class="input-group">
             <span class="input-group-text"><i class="fas fa-search"></i></span>
-            <input type="text" id="searchInput" class="form-control" placeholder="Buscar por ID o descripción...">
+            <input type="text" id="searchInput" placeholder="Buscar por ID o descripción...">
             <button class="btn btn-outline-secondary" type="button" id="clearSearch">
               <i class="fas fa-times"></i>
             </button>
