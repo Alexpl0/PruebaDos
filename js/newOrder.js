@@ -17,21 +17,32 @@ function showCompanySelect() {
             dataType: 'json',
             delay: 250,
             data: function (params) {
+                console.log("Select2 AJAX params:", params); // Log de los parámetros enviados
                 return { q: params.term || '' };
             },
-            processResults: function (data) {
-                const results = (data.data || []).map(company => ({
+            processResults: function (data, params) {
+                console.log("Raw data from AJAX:", data); // Log de la data cruda recibida
+
+                // Asegurarse de que data.data existe y es un array
+                if (!data || !Array.isArray(data.data)) {
+                    console.error("Data from server is not in the expected format or data.data is missing/not an array:", data);
+                    return { results: [] }; // Devuelve un array vacío para evitar errores en Select2
+                }
+
+                const results = data.data.map(company => ({
                     id: company.company_name,
                     text: company.company_name
                 }));
+                console.log("Processed results for Select2:", results); // Log de los resultados procesados
                 return { results };
             },
-            cache: true
+            cache: true,
+            error: function(jqXHR, textStatus, errorThrown) { // Manejo de errores AJAX
+                console.error("AJAX Error for CompanyShip:", textStatus, errorThrown, jqXHR.responseText);
+            }
         }
         // No tags, no createTag, solo muestra las opciones existentes
     });
-    // Elimina cualquier evento para agregar nuevas compañías
-    $('#CompanyShip').off('select2:select');
 }
 
 //==========================================================================================

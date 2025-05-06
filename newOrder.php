@@ -229,10 +229,12 @@ session_start();
             <h2 class="mt-4">Ship From</h2>
             <div id="SectShip" class="mb-3">
                 <div id="DivCompanyShip" class="mb-2">
+
                     <label for="CompanyShip">Company Name</label>
                     <select name="CompanyShip" id="CompanyShip" class="form-select">
                         <option value="" disabled selected>Select a company</option>
                     </select>
+                    
                 </div>
                 <div id="DivCityShip" class="mb-2">
                     <label for="inputCityShip">City</label>
@@ -261,10 +263,14 @@ session_start();
 
             <h2 class="mt-4">Destination</h2>
             <div id="SectDest" class="mb-3">
+
                 <div id="DivCompanyDest" class="mb-2">
+
                     <label for="inputCompanyNameDest">Company Name</label>
                     <input type="text" id="inputCompanyNameDest" class="form-control" placeholder="Company Name">
+
                 </div>
+
                 <div id="DivCityDest" class="mb-2">
                     <label for="inputCityDest">City Dest</label>
                     <input type="text" id="inputCityDest" class="form-control" placeholder="City Dest">
