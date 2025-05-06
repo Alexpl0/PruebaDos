@@ -225,11 +225,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- Funcionalidad de búsqueda ---
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
-        // Función para manejar la búsqueda
+        // Función simplificada para manejar la búsqueda
         function handleSearch() {
             const searchTerm = searchInput.value.toLowerCase().trim();
             
-            // Si no hay término de búsqueda, mostrar todas las órdenes
+            // Si no hay término de búsqueda, mostrar todas las órdenes originales
             if (!searchTerm) {
                 createCards(window.allOrders);
                 return;
@@ -257,25 +257,19 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        // Event listener para cada cambio en el input
-        searchInput.addEventListener('input', handleSearch);
+        // Remover todos los event listeners previos (limpieza)
+        const newSearchInput = searchInput.cloneNode(true);
+        searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+        searchInput = newSearchInput;
         
-        // Event listener específico para detectar cuando se borra el contenido
-        searchInput.addEventListener('keyup', function(e) {
-            // Si el campo está vacío (después de presionar teclas como Backspace o Delete)
+        // Añadir el principal event listener que controla todo
+        searchInput.addEventListener('input', function() {
+            // Si el campo está vacío, mostrar todas las órdenes
             if (this.value === '') {
                 createCards(window.allOrders);
+            } else {
+                handleSearch();
             }
-        });
-        
-        // También detectamos el evento de cortar texto (Ctrl+X o menú contextual)
-        searchInput.addEventListener('cut', function(e) {
-            // Usamos setTimeout porque el valor se actualiza después del evento 'cut'
-            setTimeout(() => {
-                if (this.value === '') {
-                    createCards(window.allOrders);
-                }
-            }, 10);
         });
         
         // Botón para limpiar la búsqueda
