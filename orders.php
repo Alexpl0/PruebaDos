@@ -16,14 +16,13 @@ $userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"> 
+<meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
     <title>Orders</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script type="module" src="https://unpkg.com/ionicons@7.2.2/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.2.2/dist/ionicons/ionicons.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/orders.css">
     <link rel="stylesheet" href="css/dataTables.css">
@@ -68,38 +67,39 @@ $userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
     </header>
 
     <div id="mainOrders">
-        <h1 id="title1">Generated Orders History</h1>
-        <h1 id="title2"></h1>
-    </div>
-
-    <!-- Nuevo contenedor para controles y búsqueda -->
-    <div class="container-fluid mt-3 mb-3">
-        <div class="row">
-            <div class="col-md-8 d-flex align-items-center mb-2 mb-md-0">
-                <!-- Aquí van los botones para la funcionalidad histórica -->
-                <button id="btnHistoricoSemanal" class="btn btn-outline-primary me-2">Histórico Semanal</button>
-                <button id="btnTodas" class="btn btn-outline-secondary me-2">Todas</button>
-                <!-- Puedes agregar más botones según sea necesario -->
-            </div>
-            <div class="col-md-4">
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                    <input type="text" id="searchInput" class="form-control" placeholder="Buscar por ID o descripción...">
-                    <button class="btn btn-outline-secondary" type="button" id="clearSearch">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
+            <h1 id="title1">Generated Orders History</h1>
+            <h1 id="title2"></h1>
     </div>
 
     <main id="main"> 
-        <div id="card"></div>
+        <div>
+            <input type="text" id="searchInput" placeholder="Buscar por ID o descripción...">
+        </div>
+       <div id="card"> 
+        </div>
     </main>
-
     <!-- Modal -->
     <div id="myModal" class="modal">
       <div class="modal-content">
+        <span id="closeModal" class="close-button">&times;</span>
+        <div class="modal-buttons">
+        <button id="savePdfBtn" class="save-pdf-button">Save PDF</button>
+        <button id="approveBtn">Approve</button>
+        <button id="rejectBtn">Reject</button>
+    </div>
+
+        <div id="svgPreview" class="svg-frame"></div>
+      </div>
+    </div>
+
+    <!-- Scripts necesarios -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="js/header.js"></script>
+    <script src="js/orders.js" type="module"></script>
+
     <!-- jQuery y Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
