@@ -227,12 +227,12 @@ session_start();
 
             <h2 class="mt-4">Ship From</h2>
             <div id="SectShip" class="mb-3">
-                <div id="DivCompanyShip" class="mb-2">
+                <!-- <div id="DivCompanyShip" class="mb-2">
                     <label for="CompanyShip">Company Name</label>
                     <select name="CompanyShip" id="CompanyShip" class="form-select">
                         <option value="" disabled selected>Select a company</option>
                     </select>
-                </div>
+                </div> -->
                 <div id="DivCityShip" class="mb-2">
                     <label for="inputCityShip">City</label>
                     <input type="text" id="inputCityShip" class="form-control" placeholder="City">
