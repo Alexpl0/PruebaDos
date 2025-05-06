@@ -225,8 +225,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- Funcionalidad de búsqueda ---
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase().trim();
+        // Función para manejar la búsqueda
+        function handleSearch() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
             
             // Si no hay término de búsqueda, mostrar todas las órdenes
             if (!searchTerm) {
@@ -254,13 +255,27 @@ document.addEventListener('DOMContentLoaded', function () {
                     `;
                 }
             }
-        });
+        }
+
+        // Event listener para cada cambio en el input
+        searchInput.addEventListener('input', handleSearch);
         
-        // Evento adicional para detectar cuando se borra completamente el texto con Backspace o Delete
+        // Event listener específico para detectar cuando se borra el contenido
         searchInput.addEventListener('keyup', function(e) {
+            // Si el campo está vacío (después de presionar teclas como Backspace o Delete)
             if (this.value === '') {
                 createCards(window.allOrders);
             }
+        });
+        
+        // También detectamos el evento de cortar texto (Ctrl+X o menú contextual)
+        searchInput.addEventListener('cut', function(e) {
+            // Usamos setTimeout porque el valor se actualiza después del evento 'cut'
+            setTimeout(() => {
+                if (this.value === '') {
+                    createCards(window.allOrders);
+                }
+            }, 10);
         });
         
         // Botón para limpiar la búsqueda
