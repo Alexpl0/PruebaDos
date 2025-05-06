@@ -1,61 +1,71 @@
 //==========================================================================================
 // Global variables
 let euros = 0;
-
-// Global variable for the selected currency
-let selectedCurrency = "MXN"; // Default "MXN", adjust according to your logic
-
-let range = 0; // Variable for the authorization range
+let selectedCurrency = "MXN"; // Default currency
+let range = 0; // Authorization range, declared with let
 
 //==========================================================================================
-// Function to display the company selection select
-
+// Function to populate the company selection dropdown
 async function showCompanySelect() {
     const locationURL = `https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php`;
     try {
         const response = await fetch(locationURL);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const responseData = await response.json();
         console.log("Data obtained from Location API:", responseData);
 
-        // Assuming your data is in responseData.data
         const locations = responseData.data || [];
-
-        // Select the select element
         const select = document.getElementById('CompanyShip');
-        if (!select) return;
 
-        // Clear the select
-        select.innerHTML = '';
+        if (!select) {
+            console.warn("Company select element ('CompanyShip') not found.");
+            return;
+        }
+
+        select.innerHTML = ''; // Clear existing options
+
+        // Add a default placeholder option
+        const placeholderOption = document.createElement('option');
+        placeholderOption.value = "";
+        placeholderOption.textContent = "-- Select Company --";
+        placeholderOption.disabled = true;
+        placeholderOption.selected = true;
+        select.appendChild(placeholderOption);
 
         // Add an option for each company
         locations.forEach(company => {
             const option = document.createElement('option');
-            option.value = company.company_name;
-            option.textContent = company.company_name; // Change if the correct field is different
+            option.value = company.company_name; // Assuming value should be the name
+            option.textContent = company.company_name;
             select.appendChild(option);
-
-            console.log(company.company_name)
         });
 
     } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error fetching or processing company data:', error);
+        // Optionally display an error to the user
     }
 }
 
 //==========================================================================================
 // Function to get the exchange rate from the API
-async function getExchangeRate(currency) {
-    const url = `https://api.frankfurter.dev/v1/latest?base=${currency}&symbols=EUR`;
+async function getExchangeRate(baseCurrency) {
+    // Use EUR as the base for conversion to EUR, request the rate for the baseCurrency
+    const url = `https://api.frankfurter.app/latest?from=${baseCurrency}&to=EUR`;
 
     try {
         const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data = await response.json();
-        console.log("Data obtained from API:", data);
+        console.log("Exchange rate data obtained from API:", data);
 
         if (data && data.rates && typeof data.rates.EUR === 'number') {
             return data.rates.EUR;
         } else {
-            console.error('Unexpected API response:', data);
+            console.error('Unexpected API response format:', data);
             return null;
         }
     } catch (error) {
@@ -64,41 +74,57 @@ async function getExchangeRate(currency) {
     }
 }
 
+//==========================================================================================
+// Function to calculate and display the cost in Euros
 async function calculateEuros(currency) {
     const quotedCostInput = document.getElementById('QuotedCost');
-    const costEurosElement = document.getElementById('CostoEuros'); // Renamed variable for clarity
+    const costEurosElement = document.getElementById('CostoEuros'); // Input field for Euros
+
+    if (!quotedCostInput || !costEurosElement) {
+        console.error("Required input elements ('QuotedCost' or 'CostoEuros') not found.");
+        return;
+    }
+
     const value = parseFloat(quotedCostInput.value);
 
     if (!quotedCostInput.value || isNaN(value) || value <= 0) {
-        costEurosElement.value = "Enter a valid cost"; // Changed textContent to value for input field
-        console.log("Invalid value:", quotedCostInput.value);
+        costEurosElement.value = "Enter a valid cost";
+        console.log("Invalid cost value entered:", quotedCostInput.value);
+        euros = 0; // Reset euros value
+        return;
+    }
+
+    if (currency === 'EUR') {
+        euros = value; // If the input is already EUR, no conversion needed
+        costEurosElement.value = euros.toLocaleString('en-US', { style: 'currency', currency: 'EUR' });
+        console.log("Cost is already in Euros:", euros);
         return;
     }
 
     const exchangeRate = await getExchangeRate(currency);
-    if (!exchangeRate) {
-        costEurosElement.value = "Could not get exchange rate"; // Changed textContent to value
-        console.log("Could not get exchange rate");
+    if (exchangeRate === null) { // Check for null specifically
+        costEurosElement.value = "Could not get exchange rate";
+        console.log("Failed to retrieve exchange rate.");
+        euros = 0; // Reset euros value
         return;
     }
 
     euros = value * exchangeRate;
-    costEurosElement.value = euros.toLocaleString('en-US', { style: 'currency', currency: 'EUR' }); // Use en-US locale for formatting
-    console.log("Cost in Euros:", euros);
-    console.log("Exchange rate:", exchangeRate);
+    costEurosElement.value = euros.toLocaleString('en-US', { style: 'currency', currency: 'EUR' });
+    console.log("Calculated Cost in Euros:", euros);
+    console.log("Exchange rate used:", exchangeRate);
     console.log("Entered value:", value);
-    console.log("Currency:", currency);
+    console.log("Selected currency:", currency);
     console.log("Formatted Cost in Euros:", costEurosElement.value);
 }
 
 
 //==========================================================================================
-// Function to validate and send the form to the Database
+// Function to validate and submit the form data
+function submitForm(event) {
+    event.preventDefault(); // Prevent default form submission
 
-function submitForm(event) { // Renamed function to submitForm
-    event.preventDefault();
-
-    // List of form fields
+    // List of form field IDs
     const fields = [
         'planta', 'codeplanta', 'transport', 'InOutBound', 'CostoEuros', 'Description',
         'Area', 'IntExt', 'PaidBy', 'CategoryCause', 'ProjectStatus', 'Recovery',
@@ -107,59 +133,67 @@ function submitForm(event) { // Renamed function to submitForm
         'inputCompanyNameDest', 'inputCityDest', 'StatesDest', 'inputZipDest'
     ];
 
-    // If you want to send the visible text of these selects:
+    // List of select field IDs where the visible text should be sent
     const textFields = [
         'planta', 'codeplanta', 'transport', 'InOutBound', 'Area', 'IntExt', 'PaidBy',
         'CategoryCause', 'ProjectStatus', 'Recovery', 'Carrier'
+        // Add 'StatesShip', 'StatesDest' if you want their text, otherwise their value (abbreviation?) will be sent
     ];
 
-    let data = {};
+    let formData = {}; // Use a more descriptive name
     let emptyFields = [];
 
+    // Collect data from form fields
     fields.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            let value = el.value;
-            // Get text from select if it's in textFields list
-            if (el.tagName === 'SELECT' && textFields.includes(id)) {
-                value = el.options[el.selectedIndex]?.text || '';
+        const element = document.getElementById(id);
+        if (element) {
+            let value = element.value;
+            // Get selected text for specific select fields
+            if (element.tagName === 'SELECT' && textFields.includes(id)) {
+                value = element.options[element.selectedIndex]?.text || '';
             }
-            if (typeof value === 'string') value = value.trim(); // Trim whitespace
-            data[id] = value;
-            // Check if the value is empty after trimming
-            if (!value && value !== 0) { // Allow 0 as a valid value if needed
-                 emptyFields.push(id);
+            // Trim whitespace from string values
+            if (typeof value === 'string') {
+                value = value.trim();
+            }
+            formData[id] = value;
+            // Check for empty fields (allow 0 as a valid value)
+            if (value === '' || value === null || value === undefined) {
+                 // Exclude CostoEuros from empty check if it's calculated automatically
+                 if (id !== 'CostoEuros') {
+                    emptyFields.push(id);
+                 }
             }
         } else {
-             console.warn(`Element with ID '${id}' not found.`); // Warn if an element is missing
+             console.warn(`Form element with ID '${id}' not found.`);
         }
     });
 
-
-    // Validate empty fields
+    // Validate required fields
     if (emptyFields.length > 0) {
         Swal.fire({
             icon: 'warning',
-            title: 'Empty Fields',
-            text: 'Please complete all fields: ' + emptyFields.join(', ')
+            title: 'Missing Information',
+            text: 'Please complete all required fields: ' + emptyFields.join(', ')
         });
-        return;
+        return; // Stop submission
     }
-    //==========================================================================================
-    // Validate Range based on the value in euros (or quoted cost)
-    const quotedCost = parseFloat(data['QuotedCost']); // Ensure this field is a number
 
-    // Ensure quotedCost is a valid number before calculating the range
+    //==========================================================================================
+    // Validate and Calculate Authorization Range based on Quoted Cost
+    // Assuming QuotedCost is the primary value for range calculation
+    const quotedCost = parseFloat(formData['QuotedCost']);
+
     if (isNaN(quotedCost)) {
          Swal.fire({
             icon: 'warning',
             title: 'Invalid Cost',
-            text: 'The Quoted Cost field must be a valid number.'
+            text: 'The "Quoted Cost" field must contain a valid number.'
         });
-        return; // Stop if the cost is not valid
+        return; // Stop submission
     }
 
-    // --- Calculate range (removed returns) ---
+    // Calculate range (ensure 'range' is declared with 'let' globally)
     if (quotedCost <= 1500) {
         range = 3;
     } else if (quotedCost > 1500 && quotedCost <= 5000) {
@@ -169,139 +203,164 @@ function submitForm(event) { // Renamed function to submitForm
     } else if (quotedCost > 10000) {
         range = 7;
     } else {
-        // Optional: Handle case if no condition is met
-        console.warn("Could not determine the range for the cost:", quotedCost);
-        range = 0; // Or an appropriate default value
+        // This case should ideally not be reached if quotedCost is a non-negative number
+        console.warn("Could not determine the authorization range for the cost:", quotedCost);
+        range = 0; // Assign a default or handle as an error
     }
-    // --- End range calculation ---
-
-    console.log("Calculated Range:", range); // Verify the range is assigned
+    console.log("Calculated Authorization Range:", range);
 
     //==========================================================================================
-    // Map the data to the format expected by the table/backend
-    const payload = { // Renamed 'data' to 'payload' to avoid confusion
-        user_id: 1, // Change this to the actual user ID if available
-        date: new Date().toISOString().slice(0, 19).replace('T', ' '), // MySQL DATETIME format
-        planta: data['planta'],
-        code_planta: data['codeplanta'],
-        transport: data['transport'],
-        in_out_bound: data['InOutBound'],
-        // Ensure CostoEuros is sent as a number if required by backend, otherwise keep formatted string
-        // cost_euros: euros, // Send the calculated numeric value
-        cost_euros: data['CostoEuros'], // Or send the formatted string as before
-        description: data['Description'],
-        area: data['Area'],
-        int_ext: data['IntExt'],
-        paid_by: data['PaidBy'],
-        category_cause: data['CategoryCause'],
-        project_status: data['ProjectStatus'],
-        recovery: data['Recovery'],
-        weight: data['Weight'],
-        measures: data['Measures'],
-        products: data['Products'],
-        carrier: data['Carrier'],
-        quoted_cost: data['QuotedCost'], // Send as string or number depending on backend
-        reference: data['Reference'],
-        reference_number: data['ReferenceNumber'],
-        // Assuming these IDs are placeholders or will be determined differently
-        origin_id: 1,
-        destiny_id: 1,
-        status_id: 1, // Starts at 1 because it's new
+    // Prepare payload for the backend API
+    const payload = {
+        user_id: 1, // TODO: Replace with actual logged-in user ID
+        date: new Date().toISOString().slice(0, 19).replace('T', ' '), // Format for MySQL DATETIME
+        planta: formData['planta'],
+        code_planta: formData['codeplanta'],
+        transport: formData['transport'],
+        in_out_bound: formData['InOutBound'],
+        // Send the formatted Euro string, or the calculated numeric value 'euros'
+        // depending on what the backend expects. Sending the string for now.
+        cost_euros: formData['CostoEuros'],
+        // cost_euros: euros, // Alternative: send the numeric value
+        description: formData['Description'],
+        area: formData['Area'],
+        int_ext: formData['IntExt'],
+        paid_by: formData['PaidBy'],
+        category_cause: formData['CategoryCause'],
+        project_status: formData['ProjectStatus'],
+        recovery: formData['Recovery'],
+        weight: formData['Weight'], // Ensure backend handles potential units if included
+        measures: formData['Measures'], // Ensure backend handles potential units if included
+        products: formData['Products'],
+        carrier: formData['Carrier'],
+        // Send QuotedCost as a number if the backend expects float/decimal, otherwise string
+        quoted_cost: quotedCost, // Sending the parsed number
+        // quoted_cost: formData['QuotedCost'], // Alternative: send original string
+        reference: formData['Reference'],
+        reference_number: formData['ReferenceNumber'],
+        // TODO: Determine how origin_id and destiny_id should be set
+        // Maybe based on selected company names or codes? Requires backend logic or more frontend data.
+        origin_id: 1, // Placeholder
+        destiny_id: 1, // Placeholder
+        status_id: 1, // Default status for new entries
         required_auth_level: range,
-        moneda: selectedCurrency // Use the selected currency
+        moneda: selectedCurrency // Use the globally selected currency ('MXN' or 'USD')
     };
 
-    console.log("Data to send:", JSON.stringify(payload));
+    console.log("Data to send to backend:", JSON.stringify(payload, null, 2)); // Pretty print JSON
 
     //==========================================================================================
-    // Send the JSON to the backend using fetch
+    // Send data to the backend using Fetch API
     fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPFpost.php', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Accept': 'application/json' // Often good practice to include Accept header
         },
-        body: JSON.stringify(payload) // Send the payload object
+        body: JSON.stringify(payload)
     })
     .then(response => {
-        // Check if response is ok (status in the range 200-299)
+        // Check if the response status indicates success
         if (!response.ok) {
-            // Try to parse error response from backend if available
+            // Try to parse error details from the response body
             return response.json().then(err => {
+                // Throw an error with the message from the backend, or a default server status message
                 throw new Error(err.message || `Server responded with status: ${response.status}`);
             }).catch(() => {
-                // If no JSON error message, throw generic error
+                // If the response body isn't JSON or parsing fails, throw a generic error
                 throw new Error(`Server responded with status: ${response.status}`);
             });
         }
-        return response.json(); // Parse JSON body for successful responses
+        // If response is ok, parse the JSON body
+        return response.json();
     })
     .then(result => {
+        console.log("Backend response:", result);
         if (result.success) {
             Swal.fire({
                 icon: 'success',
                 title: 'Data Saved',
-                text: result.message || 'Information saved successfully.' // Provide default message
+                text: result.message || 'Information saved successfully.'
             });
-            // Optionally reset the form or redirect user
-            // document.getElementById('your-form-id').reset();
+            // Optionally reset the form after successful submission
+            // document.getElementById('your-form-id').reset(); // Replace 'your-form-id' with your actual form ID
         } else {
+            // Handle cases where the backend indicates failure (e.g., validation error)
             Swal.fire({
                 icon: 'error',
                 title: 'Error Saving Data',
-                text: result.message || 'Could not save the information.' // Provide default message
+                text: result.message || 'Could not save the information. Please check the details.'
             });
         }
     })
     .catch(error => {
+        // Handle network errors or errors thrown during response processing
+        console.error('Fetch Error:', error);
         Swal.fire({
             icon: 'error',
             title: 'Request Error',
-            text: error.message || 'Error connecting to the server.' // Display specific error message
+            text: error.message || 'An error occurred while communicating with the server.'
         });
-        console.error('Fetch Error:', error);
     });
 }
 
 
 //==========================================================================================
-// Function to initialize click events on currency buttons
+// Initialize event listeners when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', function () {
     const btnMXN = document.getElementById('MXN');
     const btnUSD = document.getElementById('USD');
-    showCompanySelect(); // Changed function name
+    const btnSubmit = document.getElementById('enviar'); // Submit button
 
-    if(!btnMXN || !btnUSD) {
-        console.warn("Currency buttons not found"); // Use warn for non-critical issues
-        // return; // Decide if execution should stop if buttons are missing
-    }
+    // Initial population of company select
+    showCompanySelect();
 
+    // --- Currency Button Event Listeners ---
     if (btnMXN) {
         btnMXN.addEventListener('click', function () {
-            calculateEuros('MXN');
+            calculateEuros('MXN'); // Recalculate Euros based on QuotedCost
             selectedCurrency = "MXN";
-            btnMXN.classList.add('moneda-activa'); // Keep class name or change if needed
+            btnMXN.classList.add('moneda-activa');
             if (btnUSD) btnUSD.classList.remove('moneda-activa');
-            console.log("MXN button pressed");
+            console.log("MXN currency selected");
         });
+        // Set initial active state if MXN is default
+        if (selectedCurrency === "MXN") {
+             btnMXN.classList.add('moneda-activa');
+        }
+    } else {
+        console.warn("MXN currency button not found.");
     }
+
     if (btnUSD) {
         btnUSD.addEventListener('click', function () {
-            calculateEuros('USD');
+            calculateEuros('USD'); // Recalculate Euros based on QuotedCost
             selectedCurrency = "USD";
             btnUSD.classList.add('moneda-activa');
             if (btnMXN) btnMXN.classList.remove('moneda-activa');
-            console.log("USD button pressed");
+            console.log("USD currency selected");
+        });
+         // Set initial active state if USD is default (adjust if needed)
+        if (selectedCurrency === "USD") {
+             btnUSD.classList.add('moneda-activa');
+        }
+    } else {
+        console.warn("USD currency button not found.");
+    }
+
+    // --- Submit Button Event Listener ---
+    if (btnSubmit) {
+        btnSubmit.addEventListener('click', submitForm);
+    } else {
+        console.error("Submit button ('enviar') not found. Form cannot be submitted.");
+    }
+
+    // --- Optional: Recalculate Euros when QuotedCost changes ---
+    const quotedCostInput = document.getElementById('QuotedCost');
+    if (quotedCostInput) {
+        quotedCostInput.addEventListener('input', function() {
+            // Recalculate using the currently selected currency
+            calculateEuros(selectedCurrency);
         });
     }
-
-
-    //==========================================================================================
-    // Initialize the click event for the submit button
-    const btnSubmit = document.getElementById('enviar'); // Assuming 'enviar' is the ID of the submit button
-    if (btnSubmit) {
-        btnSubmit.addEventListener('click', submitForm); // Changed function name
-    } else {
-        console.warn("Submit button ('enviar') not found.");
-    }
 });
-
