@@ -127,23 +127,33 @@ main{
 }
 
 .modal-content {
-    margin: 5%;
+    margin: auto; /* Centra el modal, Bootstrap .modal-dialog suele manejar esto */
     background: #fff;
     border-radius: 8px;
-    width: 56%;
-    height: 110%;
-    max-width: 100%;
-    max-height: 100%;
+    /* width: 56%; */ /* Comentado: .modal-xl (usado en tus DataTables modales) ya define el ancho. Esto podría ser para otros modales más pequeños. */
+    /* height: 110%; */ /* Eliminado: Esto puede causar que el header se oculte o desplace. */
+    max-height: 90vh; /* Limita la altura máxima del modal al 90% del alto de la ventana gráfica. */
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    /* justify-content: center; */ /* Eliminado: Puede empujar el título hacia abajo si el contenido es corto. */
     position: relative;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.25);
-    padding-top: 5%;
-    overflow: auto;
-    padding-bottom: 1%;
-    padding-left: 2%;
-    padding-right: 2%;
+    /* padding-top: 5%; */ /* Eliminado: Esto empuja el contenido, incluido el header, hacia abajo. */
+    overflow: hidden; /* Evita que .modal-content haga scroll; el scroll debe estar en .modal-body. */
+    /* Los paddings generales es mejor aplicarlos al .modal-body o .modal-header/.modal-footer específicamente */
+}
+
+/* Asegura que el header y footer del modal no se encojan y tomen su altura natural */
+.modal-content .modal-header,
+.modal-content .modal-footer {
+    flex-shrink: 0;
+    padding: 1rem; /* Padding estándar de Bootstrap para header/footer */
+}
+
+.modal-content .modal-body {
+    overflow-y: auto; /* Permite el scroll vertical solo en el cuerpo del modal */
+    flex-grow: 1; /* Permite que el cuerpo del modal ocupe el espacio disponible */
+    padding: 1rem; /* Padding para el contenido del cuerpo del modal */
 }
 
 .close-button {
