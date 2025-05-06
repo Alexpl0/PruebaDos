@@ -11,37 +11,30 @@ function showCompanySelect() {
     $('#CompanyShip').select2({
         placeholder: "Buscar compañía",
         allowClear: true,
-        minimumInputLength: 1, // Empieza a buscar desde el primer carácter
+        minimumInputLength: 0, // Permite buscar desde el inicio, sin escribir caracteres
         ajax: {
             url: 'https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php',
             dataType: 'json',
             delay: 250,
             data: function (params) {
-                console.log("Select2 AJAX params:", params); // Log de los parámetros enviados
-                return { q: params.term || '' };
+                return { q: params.term || '' }; // Envía el término de búsqueda (puede ser vacío)
             },
             processResults: function (data, params) {
-                console.log("Raw data from AJAX:", data); // Log de la data cruda recibida
-
-                // Asegurarse de que data.data existe y es un array
                 if (!data || !Array.isArray(data.data)) {
                     console.error("Data from server is not in the expected format or data.data is missing/not an array:", data);
-                    return { results: [] }; // Devuelve un array vacío para evitar errores en Select2
+                    return { results: [] };
                 }
-
                 const results = data.data.map(company => ({
                     id: company.company_name,
                     text: company.company_name
                 }));
-                console.log("Processed results for Select2:", results); // Log de los resultados procesados
                 return { results };
             },
             cache: true,
-            error: function(jqXHR, textStatus, errorThrown) { // Manejo de errores AJAX
+            error: function(jqXHR, textStatus, errorThrown) {
                 console.error("AJAX Error for CompanyShip:", textStatus, errorThrown, jqXHR.responseText);
             }
         }
-        // No tags, no createTag, solo muestra las opciones existentes
     });
 }
 
