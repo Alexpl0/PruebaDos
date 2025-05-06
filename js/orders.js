@@ -223,7 +223,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // --- Funcionalidad de búsqueda ---
-    // Añadir manejo de eventos para el campo de búsqueda
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('input', function() {
@@ -254,6 +253,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         </div>
                     `;
                 }
+            }
+        });
+        
+        // Evento adicional para detectar cuando se borra completamente el texto con Backspace o Delete
+        searchInput.addEventListener('keyup', function(e) {
+            if (this.value === '') {
+                createCards(window.allOrders);
             }
         });
         
