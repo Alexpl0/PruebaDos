@@ -12,7 +12,6 @@ require_once __DIR__ . '/dao/elements/daoCarrier.php';
 require_once __DIR__ . '/dao/elements/daoMeasures.php';
 require_once __DIR__ . '/dao/elements/daoProducts.php';
 require_once __DIR__ . '/dao/elements/daoStates.php';
-require_once __DIR__ . '/dao/elements/daoLocation.php';
 
 session_start();
 ?>
@@ -375,53 +374,6 @@ session_start();
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="js/header.js"></script>
-    <script>
-        $(document).ready(function() {
-            // Inicializar los select2
-            $('#planta, #codeplanta, #transport, #InOutBound, #Area, #IntExt, #CategoryCause, #ProjectStatus, #Recovery, #Carrier, #Measures, #Products, #StatesShip, #Reference, #StatesDest').select2({
-                allowClear: true
-            });
-
-            // Llenar CompanyShip dinámicamente
-            $.ajax({
-                url: 'https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php',
-                method: 'GET',
-                dataType: 'json',
-                success: function(response) {
-                    if (response.status === 'success' && Array.isArray(response.data)) {
-                        var $select = $('#CompanyShip');
-                        $select.empty().append('<option value="" disabled selected>Select a company</option>');
-                        response.data.forEach(function(location) {
-                            if (location.company_name) {
-                                $select.append(
-                                    $('<option>', {
-                                        value: location.id,
-                                        text: location.company_name
-                                    })
-                                );
-                            }
-                        });
-                        
-                        // Inicializar Select2 para CompanyShip después de cargar los datos
-                        $('#CompanyShip').select2({
-                            placeholder: "Company Name",
-                            allowClear: true
-                        });
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error("AJAX Error:", status, error);
-                    alert('Error loading company names: ' + error);
-                }
-            });
-            
-            // Manejar el clic en los botones de divisa
-            $('#MXN, #USD').click(function() {
-                $('#Divisa button').removeClass('active btn-primary').addClass('btn-outline-secondary');
-                $(this).removeClass('btn-outline-secondary').addClass('active btn-primary');
-            });
-        });
-    </script>
     <script src="js/newOrder.js"></script>
     <script src="js/createPDF.js"></script>
 </body>
