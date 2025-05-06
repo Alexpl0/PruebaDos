@@ -19,27 +19,24 @@
 
     /*===== font size =====*/
     --font-size: 15px;
-  }
+}
 
-
-
-
-body{
+body {
     margin-top: 3.5rem;
     padding: 0;
     background-color: #FFFFFF !important;
     min-height: 100vh;
     max-width: 100%;
-    flex-direction: column;
-    align-items: center;
+    /* flex-direction: column; // No es necesario en body directamente */
+    /* align-items: center; // No es necesario en body directamente */
     font-size: var(--font-size);
 }
 
-#title1{
+#title1 {
     margin: 6% 2% 5% 5%;
 }
 
-main{
+main {
     padding: 5%;
 }
 
@@ -63,23 +60,22 @@ main{
     box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
 }
 
-.card-title, .card-subtitle{
+.card-title, .card-subtitle {
     font-size: 1.2rem;
     font-weight: bold;
     margin-bottom: 1%;
 }
 
-.card-text{
+.card-text {
     font-size: 1rem;
     margin-bottom: 1%;
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
-    -webkit-line-clamp: 4;      /* Cambia este número según cuántas líneas quieras mostrar */
+    -webkit-line-clamp: 4;
     -webkit-box-orient: vertical;
     max-width: 100%;
-    /* background-color: aqua;  quítalo si no lo necesitas */
-    white-space: normal;         /* Permite varias líneas */
+    white-space: normal;
 }
 
 .card-p {
@@ -97,7 +93,7 @@ main{
     display: flex;
 }
 
-.card-button{
+.card-button {
     background-color: #3B82F6;
     color: white;
     border: none;
@@ -106,125 +102,175 @@ main{
     width: 50%;
     display: flex;
     justify-content: center;
-    justify-self: center;
+    align-self: center; /* Para centrarlo si el padre es flex column */
     font-size: 90%;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
-/* Estilos para el modal */
+/* === ESTILOS GENERALES PARA MODALES === */
 .modal {
-  display: none;
-  position: fixed;
-  top: 0;
+  display: none; 
+  position: fixed; 
+  z-index: 1050; 
   left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 9999;
-  align-items: center;
-  justify-content: center;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden; 
+  outline: 0;
+  background-color: rgba(0, 0, 0, 0.5); 
+  /* Usamos flex para centrar el .modal-content si no se usa .modal-dialog */
+  /* align-items: center; */ /* Bootstrap .modal-dialog lo maneja */
+  /* justify-content: center; */ /* Bootstrap .modal-dialog lo maneja */
 }
 
 .modal-content {
-    margin: auto; /* Centra el modal, Bootstrap .modal-dialog suele manejar esto */
-    background: #fff;
-    border-radius: 8px;
-    /* width: 56%; */ /* Comentado: .modal-xl (usado en tus DataTables modales) ya define el ancho. Esto podría ser para otros modales más pequeños. */
-    /* height: 110%; */ /* Eliminado: Esto puede causar que el header se oculte o desplace. */
-    max-height: 90vh; /* Limita la altura máxima del modal al 90% del alto de la ventana gráfica. */
+    position: relative;
     display: flex;
     flex-direction: column;
-    /* justify-content: center; */ /* Eliminado: Puede empujar el título hacia abajo si el contenido es corto. */
-    position: relative;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.25);
-    /* padding-top: 5%; */ /* Eliminado: Esto empuja el contenido, incluido el header, hacia abajo. */
-    overflow: hidden; /* Evita que .modal-content haga scroll; el scroll debe estar en .modal-body. */
-    /* Los paddings generales es mejor aplicarlos al .modal-body o .modal-header/.modal-footer específicamente */
+    width: auto; /* Bootstrap .modal-dialog y clases como .modal-xl lo manejan */
+    margin: 1.75rem auto; /* Margen estándar de Bootstrap para centrar y espaciar */
+    pointer-events: auto;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid rgba(0,0,0,.2);
+    border-radius: 0.3rem;
+    max-height: 90vh; /* Altura máxima para el contenido del modal */
+    overflow: hidden; /* El scroll debe estar en .modal-body */
 }
 
-/* Asegura que el header y footer del modal no se encojan y tomen su altura natural */
-.modal-content .modal-header,
-.modal-content .modal-footer {
+.modal-content .modal-header {
+    display: flex;
     flex-shrink: 0;
-    padding: 1rem; /* Padding estándar de Bootstrap para header/footer */
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
+    border-top-left-radius: calc(0.3rem - 1px);
+    border-top-right-radius: calc(0.3rem - 1px);
 }
 
 .modal-content .modal-body {
-    overflow-y: auto; /* Permite el scroll vertical solo en el cuerpo del modal */
-    flex-grow: 1; /* Permite que el cuerpo del modal ocupe el espacio disponible */
-    padding: 1rem; /* Padding para el contenido del cuerpo del modal */
+    position: relative;
+    flex: 1 1 auto; /* Permite que el cuerpo crezca y se encoja */
+    padding: 1rem;
+    overflow-y: auto; /* Habilita el scroll vertical SOLO en el cuerpo */
 }
 
-.close-button {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  cursor: pointer;
-  font-size: 28px;
-  z-index: 99;
-}
-
-.modal-buttons {
+.modal-content .modal-footer {
     display: flex;
-    z-index: 2;
-    margin-bottom: 2%;
-    flex-direction: row !important;
-    gap: 10px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0.75rem;
+    border-top: 1px solid #dee2e6;
+    border-bottom-right-radius: calc(0.3rem - 1px);
+    border-bottom-left-radius: calc(0.3rem - 1px);
+}
+
+.close-button { /* Tu botón de cierre personalizado para el modal SVG */
+  position: absolute;
+  top: 10px; 
+  right: 15px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  text-shadow: 0 1px 0 #fff;
+  opacity: .5;
+  cursor: pointer;
+  background-color: transparent;
+  border: 0;
+  padding: 1rem; /* Área de click más grande */
+  z-index: 10; 
+}
+.close-button:hover {
+  opacity: .75;
+}
+
+/* === ESTILOS ESPECÍFICOS PARA EL MODAL DEL SVG (#myModal) === */
+#myModal .modal-content { /* Asumiendo que #myModal es el div con clase .modal */
+    /* Si #myModal es el .modal-content directamente, entonces no necesitas anidar .modal-content */
+    width: 85%; 
+    max-width: 1200px; 
+    /* Hereda display:flex, flex-direction:column, max-height, overflow:hidden de .modal-content */
+}
+
+#myModal .modal-buttons { /* Contenedor de botones "Save PDF", "Approve", "Reject" */
+    display: flex;
+    flex-direction: row !important; 
+    gap: 10px; 
+    padding: 1rem; 
+    border-bottom: 1px solid #dee2e6; 
+    flex-shrink: 0; 
+}
+
+/* Botones específicos del modal SVG */
+.save-pdf-button, 
+#approveBtn, 
+#rejectBtn {
+  color: white;
+  border-radius: 10px;
+  border: none;
+  padding: 8px 18px;
+  cursor: pointer;
+  font-weight: 500; /* Añadido para consistencia */
 }
 
 .save-pdf-button {
   background-color: #3B82F6;
-  color: white;
-  border-radius: 10px;
-  border: none;
-  padding: 8px 18px;
-  cursor: pointer;
 }
 
 #approveBtn {
   background-color: #22c55e; /* verde */
-  color: white;
-  border-radius: 10px;
-  border: none;
-  padding: 8px 18px;
-  cursor: pointer;
 }
 
 #rejectBtn {
   background-color: #ef4444; /* rojo */
-  color: white;
-  border-radius: 10px;
-  border: none;
-  padding: 8px 18px;
-  cursor: pointer;
 }
 
+/* Contenedor de la previsualización del SVG dentro de #myModal */
+/* Asumiendo que #svgPreview está dentro del .modal-body de #myModal */
+#myModal .modal-body #svgPreview.svg-frame {
+    flex-grow: 1; 
+    min-height: 0; 
+    height: 100%;  
+    width: 100%;   
+    padding: 0; /* El padding ya está en .modal-body, o ajusta según necesites */
+    box-sizing: border-box; 
+    
+    /* display: flex, align-items, justify-content ya están en la regla .svg-frame general */
+}
+
+/* === REGLA GENERAL .svg-frame CORREGIDA === */
 .svg-frame {
     position: relative;
-    width: 100% !important;
-    height: 100% !important;
+    width: 100%; 
+    height: auto; /* Cambiado de 100% !important. La altura se define por contenido o contexto. */
+                  /* Para #myModal #svgPreview.svg-frame, la altura la gestiona flexbox del .modal-body y el height:100% del frame. */
     background: none;
     box-shadow: #333 0px 0px 0px 1px inset;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden; /* Para asegurar que el SVG no se desborde si es más grande que el frame */
 }
 
-/* Opcional: Asegura que el SVG no se desborde */
+/* El elemento SVG dentro de CUALQUIER .svg-frame */
 .svg-frame svg {
     display: block;
     max-width: 100%;
     max-height: 100%;
-    height: auto;
     width: auto;
-    margin: 0 auto;
-    object-fit: contain;
+    height: auto;
+    object-fit: contain; /* Asegura que todo el SVG sea visible y escale bien */
 }
 
 /* Asegurar que SweetAlert aparezca por encima del modal */
 .swal-on-top {
-    z-index: 99999 !important;
+    z-index: 1060 !important; /* Bootstrap modals van hasta ~1055 */
 }
 
 /* Puedes poner esto en tu archivo CSS */
@@ -244,57 +290,19 @@ main{
     margin: 0 auto;
 }
 
-#DescriptionAndRootCauseValue{
-    font-size: 1.2rem;
-    font-weight: bold;
-    margin-bottom: 1%;
-    color: white;
+#DescriptionAndRootCauseValue { /* Esto parece un ID de un elemento SVG específico */
+    /* font-size: 1.2rem; */ /* El tamaño de fuente en SVG se maneja diferente */
+    /* font-weight: bold; */
+    /* margin-bottom: 1%; */
+    /* color: white; */ /* El 'fill' se usa para el color en SVG text */
+    /* Si es un <text> SVG, usa atributos SVG o CSS fill, font-size, font-weight */
 }
 
-/* Ajustes específicos para el modal del SVG (#myModal) */
-#myModal .modal-content {
-    width: 85%; /* Ajusta el ancho según necesites para el SVG */
-    max-width: 1200px; /* Un máximo razonable */
-    /* Hereda display: flex, flex-direction: column, max-height, overflow: hidden
-       de la regla general .modal-content, lo cual está bien. */
-}
-
-#myModal .modal-buttons {
-    flex-shrink: 0; /* Evita que la sección de botones se encoja */
-    padding: 1rem; /* Espaciado interno */
-    /* Tus estilos existentes para display: flex y gap deberían funcionar aquí */
-    border-bottom: 1px solid #dee2e6; /* Línea separadora opcional */
-}
-
-/* Contenedor de la previsualización del SVG dentro de #myModal */
-#myModal #svgPreview.svg-frame {
-    flex-grow: 1; /* Permite que esta área crezca para ocupar el espacio vertical disponible */
-    min-height: 0; /* MUY IMPORTANTE para que flex-grow funcione correctamente y permita encoger si es necesario */
-    padding: 1rem; /* Espacio alrededor del SVG */
-    box-sizing: border-box; /* Para que el padding no aumente el tamaño total */
-    
-    /* display: flex, align-items, justify-content ya están en la regla .svg-frame general
-       y son buenos para centrar el SVG hijo. */
-    /* Eliminamos la altura fija porcentual para que flex-grow la maneje */
-    /* height: 105% !important; <-- Esto se elimina o se sobrescribe */
-    height: 100%; /* Ocupa el 100% del espacio asignado por flex-grow */
-
-    /* Los siguientes estilos vienen de tu regla .svg-frame original y están bien aquí: */
-    position: relative;
-    width: 100% !important; /* Asegura que ocupe todo el ancho disponible en el layout flex */
-    background: none;
-    box-shadow: #333 0px 0px 0px 1px inset;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* El elemento SVG dentro de #svgPreview */
-#myModal #svgPreview.svg-frame svg {
-    display: block;
-    max-width: 100%;
-    max-height: 100%;
-    width: auto;  /* Mantiene la relación de aspecto */
-    height: auto; /* Mantiene la relación de aspecto */
-    object-fit: contain; /* Asegura que todo el SVG sea visible, escalado para caber */
-}
+/* Elimina las reglas duplicadas o específicas de #myModal que estaban al final de tu archivo original,
+   ya que se han integrado arriba de forma más estructurada. */
+/* Por ejemplo, estas ya están cubiertas o reemplazadas:
+#myModal .modal-content { ... }
+#myModal .modal-buttons { ... }
+#myModal #svgPreview.svg-frame { ... }
+#myModal #svgPreview.svg-frame svg { ... }
+*/
