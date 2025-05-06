@@ -428,10 +428,13 @@ session_start();
                 placeholder: 'Select Recovery',
                 allowClear: true
             });
+            // Elimina o comenta la siguiente inicialización para CompanyShip
+            /*
             $('#CompanyShip').select2({
                 placeholder: 'Select Company Name',
                 allowClear: true
             });
+            */
             $('#StatesShip').select2({
                 placeholder: 'Select States',
                 allowClear: true
