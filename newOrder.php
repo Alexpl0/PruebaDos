@@ -513,7 +513,6 @@ session_start();
         });
         
         </script>
-        StateShip
         <script>
             $(document).ready(function() {
                 $('#verPDF').click(function() {
