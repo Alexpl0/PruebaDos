@@ -275,7 +275,7 @@ const getMonthName = (date) => {
 };
 
 // Función para generar tabla histórico semanal
-const generarHistoricoSemanal = async () => {
+const generarHistoricoSemanal = async (semanasAnteriores = 0) => {
     try {
         const response = await cargarDatosPremiumFreight();
         
@@ -286,9 +286,8 @@ const generarHistoricoSemanal = async () => {
             return;
         }
 
-        // Extraer el array de datos de la respuesta
+        // Extraer el array de datos
         let itemsArray = [];
-        
         if (response && response.status === 'success' && Array.isArray(response.data)) {
             itemsArray = response.data;
         } else if (Array.isArray(response)) {
@@ -299,115 +298,76 @@ const generarHistoricoSemanal = async () => {
             return;
         }
 
-        // Obtener semana actual
-        const currentDate = new Date();
-        const currentWeek = getWeekNumber(currentDate);
-        const currentYear = currentDate.getFullYear();
+        // Temporalmente, mostrar todos los datos sin filtro de semana
+        const datosSemanaActual = itemsArray; // Quita el filtro
         
-        // Filtrar datos para la semana actual
-        const datosSemanaActual = itemsArray.filter(item => {
+        // Calcular la semana objetivo (actual - semanasAnteriores)
+        const currentDate = new Date();
+        // Si queremos ver semanas anteriores, restamos días
+        currentDate.setDate(currentDate.getDate() - (semanasAnteriores * 7));
+        
+        const targetWeek = getWeekNumber(currentDate);
+        const targetYear = currentDate.getFullYear();
+        
+        console.log(`Mostrando datos de la semana ${targetWeek} del año ${targetYear}`);
+        
+        // Actualizar el título del modal para reflejar la semana mostrada
+        const modalTitle = document.getElementById('tituloModalHistoricoSemanal');
+        if (modalTitle) {
+            modalTitle.textContent = `Histórico Semanal de Premium Freight - Semana ${targetWeek} de ${targetYear}`;
+        }
+        
+        // Filtrar datos para la semana objetivo
+        const datosSemanaFiltrada = itemsArray.filter(item => {
             if (!item || !item.date) return false;
             
             try {
-                // Usar nuestra función parseDate en lugar de new Date directamente
                 const itemDate = parseDate(item.date);
                 if (!itemDate) return false;
                 
                 const itemWeek = getWeekNumber(itemDate);
                 const itemYear = itemDate.getFullYear();
                 
-                return itemWeek === currentWeek && itemYear === currentYear;
+                return itemWeek === targetWeek && itemYear === targetYear;
             } catch (error) {
                 console.error('Error procesando fecha:', error);
                 return false;
             }
         });
         
-        let content = ``;
+        // Resto del código para generar el contenido...
         
-        if (datosSemanaActual.length === 0) {
-            content = '<tr><td colspan="25" class="text-center">No hay datos para la semana actual</td></tr>';
-        } else {
-            datosSemanaActual.forEach(item => {
-                try {
-                    // Aquí podemos acceder al campo date de cada item
-                    const dateValue = item.date;
-                    
-                    // Usar nuestra función parseDate en lugar de new Date directamente
-                    const issueDate = dateValue ? parseDate(dateValue) : null;
-                    
-                    // Verificar si la fecha es válida
-                    if (!issueDate) {
-                        // Usar valores por defecto para fechas inválidas
-                        content += `
-                            <tr>
-                                <td>${item.id || '-'}</td>
-                                <td>Grammer AG</td>
-                                <td>${item.code_planta || '-'}</td>
-                                <td>${item.planta || '-'}</td>
-                                <td>${dateValue || 'Fecha inválida'}</td>
-                                <td>${item.in_out_bound || '-'}</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td>${item.reference_number || '-'}</td>
-                                <td>${item.creator_name || '-'}</td>
-                                <td>${item.area || '-'}</td>
-                                <td>${item.description || '-'}</td>
-                                <td>${item.category_cause || '-'}</td>
-                                <td>${item.cost_euros || '-'}</td>
-                                <td>${item.transport || '-'}</td>
-                                <td>${item.int_ext || '-'}</td>
-                                <td>${item.carrier || '-'}</td>
-                                <td>${item.origin_company_name || '-'}</td>
-                                <td>${item.origin_city || '-'}</td>
-                                <td>${item.destiny_company_name || '-'}</td>
-                                <td>${item.destiny_city || '-'}</td>
-                                <td>${item.weight || '-'}</td>
-                                <td>${item.project_status || '-'}</td>
-                                <td>${item.approver_name || 'Pendiente'}</td>
-                                <td>${item.recovery || 'N/A'}</td>
-                            </tr>`;
-                        return;
-                    }
-                    
-                    const issueMonth = getMonthName(issueDate);
-                    const issueCW = getWeekNumber(issueDate);
-                    
-                    content += `
-                        <tr>
-                            <td>${item.id || '-'}</td>
-                            <td>Grammer AG</td>
-                            <td>${item.code_planta || '-'}</td>
-                            <td>${item.planta || '-'}</td>
-                            <td>${dateValue || '-'}</td>
-                            <td>${item.in_out_bound || '-'}</td>
-                            <td>${issueCW}</td>
-                            <td>${issueMonth}</td>
-                            <td>${item.reference_number || '-'}</td>
-                            <td>${item.creator_name || '-'}</td>
-                            <td>${item.area || '-'}</td>
-                            <td>${item.description || '-'}</td>
-                            <td>${item.category_cause || '-'}</td>
-                            <td>${item.cost_euros || '-'}</td>
-                            <td>${item.transport || '-'}</td>
-                            <td>${item.int_ext || '-'}</td>
-                            <td>${item.carrier || '-'}</td>
-                            <td>${item.origin_company_name || '-'}</td>
-                            <td>${item.origin_city || '-'}</td>
-                            <td>${item.destiny_company_name || '-'}</td>
-                            <td>${item.destiny_city || '-'}</td>
-                            <td>${item.weight || '-'}</td>
-                            <td>${item.project_status || '-'}</td>
-                            <td>${item.approver_name || 'Pendiente'}</td>
-                            <td>${item.recovery || 'N/A'}</td>
-                        </tr>`;
-                } catch (error) {
-                    console.error('Error procesando registro:', error, item);
+        // Agregar controles de navegación para semanas anteriores/siguientes
+        const modalFooter = document.querySelector('#modalHistoricoSemanal .modal-footer');
+        if (modalFooter) {
+            // Eliminar controles anteriores si existen
+            const existingControls = modalFooter.querySelector('.semana-navigation');
+            if (existingControls) {
+                existingControls.remove();
+            }
+            
+            // Crear controles de navegación
+            const navControls = document.createElement('div');
+            navControls.className = 'semana-navigation me-auto';
+            navControls.innerHTML = `
+                <button class="btn btn-outline-primary me-2" id="prevSemana">« Semana Anterior</button>
+                <button class="btn btn-outline-primary" id="nextSemana" ${semanasAnteriores === 0 ? 'disabled' : ''}>Semana Siguiente »</button>
+            `;
+            
+            // Insertar antes del botón de cerrar
+            modalFooter.insertBefore(navControls, modalFooter.firstChild);
+            
+            // Agregar event listeners
+            document.getElementById('prevSemana').addEventListener('click', () => {
+                generarHistoricoSemanal(semanasAnteriores + 1);
+            });
+            
+            document.getElementById('nextSemana').addEventListener('click', () => {
+                if (semanasAnteriores > 0) {
+                    generarHistoricoSemanal(semanasAnteriores - 1);
                 }
             });
         }
-        
-        tableBody_semanal.innerHTML = content;
     } catch (ex) {
         console.error("Error en generarHistoricoSemanal:", ex);
         
@@ -711,7 +671,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Guardar elemento con foco antes de abrir el modal
         lastFocusedElement = document.activeElement;
         
-        await generarHistoricoSemanal();
+        // Iniciar con la semana actual (0 semanas atrás)
+        await generarHistoricoSemanal(0);
         
         // Inicializar o actualizar DataTable
         if (!dataTableSemanalInitialized) {
