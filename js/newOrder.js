@@ -6,21 +6,20 @@ let range = 0; // Authorization range, declared with let
 
 //==========================================================================================
 // Function to initialize Select2 for CompanyShip with AJAX and add-new support
-/*
+
 function showCompanySelect() {
     $('#CompanyShip').select2({
-        placeholder: "Buscar o agregar compañía",
+        placeholder: "Buscar compañía",
         allowClear: true,
         minimumInputLength: 1, // Empieza a buscar desde el primer carácter
         ajax: {
             url: 'https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php',
             dataType: 'json',
-            delay: 20,
+            delay: 250,
             data: function (params) {
                 return { q: params.term || '' };
             },
             processResults: function (data) {
-                // Ajusta según la estructura de tu respuesta
                 const results = (data.data || []).map(company => ({
                     id: company.company_name,
                     text: company.company_name
@@ -28,56 +27,12 @@ function showCompanySelect() {
                 return { results };
             },
             cache: true
-        },
-        tags: true,
-        createTag: function (params) {
-            return {
-                id: params.term,
-                text: 'Agregar nueva compañía: "' + params.term + '"',
-                newOption: true
-            };
-        },
-        templateResult: function (data) {
-            if (data.newOption) {
-                return $('<span style="color:green;">' + data.text + '</span>');
-            }
-            return data.text;
-        },
-        templateSelection: function (data) {
-            return data.text.replace(/^Agregar nueva compañía: "/, '').replace(/"$/, '');
         }
+        // No tags, no createTag, solo muestra las opciones existentes
     });
-*/
-    // Evento cuando se selecciona una opción (existente o nueva)
-    $('#CompanyShip').on('select2:select', function (e) {
-        const data = e.params.data;
-        if (data.newOption) {
-            // Llama al endpoint para registrar la nueva compañía
-            fetch('https://grammermx.com/Jesus/PruebaDos/dao/elements/addCompany.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ company_name: data.id })
-            })
-            .then(res => res.json())
-            .then(result => {
-                if (result.success) {
-                    // Reemplaza la opción temporal por la definitiva
-                    const newOption = new Option(data.id, data.id, true, true);
-                    $('#CompanyShip').append(newOption).trigger('change');
-                    Swal.fire('¡Compañía agregada!', '', 'success');
-                } else {
-                    Swal.fire('Error', result.message, 'error');
-                    // Limpia la selección si hubo error
-                    $('#CompanyShip').val(null).trigger('change');
-                }
-            })
-            .catch(() => {
-                Swal.fire('Error', 'No se pudo registrar la compañía.', 'error');
-                $('#CompanyShip').val(null).trigger('change');
-            });
-        }
-    });
-//}
+    // Elimina cualquier evento para agregar nuevas compañías
+    $('#CompanyShip').off('select2:select');
+}
 
 //==========================================================================================
 // Function to get the exchange rate from the API
