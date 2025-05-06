@@ -20,18 +20,18 @@ const dataTableOptions = {
     pageLength: 10,
     destroy: true,
     language: {
-        lengthMenu: "Mostrar _MENU_ registros por página",
-        zeroRecords: "No se encontraron registros",
-        info: "Mostrando de _START_ a _END_ de un total de _TOTAL_ registros",
-        infoEmpty: "No hay registros disponibles",
-        infoFiltered: "(filtrados desde _MAX_ registros totales)",
-        search: "Buscar:",
-        loadingRecords: "Cargando...",
+        lengthMenu: "Show _MENU_ records per page",
+        zeroRecords: "No records found",
+        info: "Showing _START_ to _END_ of _TOTAL_ records",
+        infoEmpty: "No records available",
+        infoFiltered: "(filtered from _MAX_ total records)",
+        search: "Search:",
+        loadingRecords: "Loading...",
         paginate: {
-            first: "Primero",
-            last: "Último",
-            next: "Siguiente",
-            previous: "Anterior"
+            first: "First",
+            last: "Last",
+            next: "Next",
+            previous: "Previous"
         }
     },
     dom: 'Bfrtip',
@@ -96,102 +96,83 @@ const dataTableOptions = {
             }
         },
         {
-            text: 'SVG Individual',
+            text: 'Individual SVG',
             className: 'btn-info',
             action: async function(e, dt, node, config) {
                 try {
-                    // Muestra una alerta de carga
                     Swal.fire({
-                        title: 'Preparando documentos',
-                        html: 'Generando SVGs para cada registro. Esto puede tomar un momento...',
+                        title: 'Preparing documents',
+                        html: 'Generating SVGs for each record. This may take a moment...',
                         allowOutsideClick: false,
                         didOpen: () => { Swal.showLoading(); }
                     });
-                    
-                    // Obtiene los registros visibles (después de filtrados)
+
                     const exportData = dt.rows({search: 'applied'}).data().toArray();
                     if (exportData.length === 0) {
                         Swal.fire({
                             icon: 'info',
-                            title: 'Sin datos',
-                            text: 'No hay registros para exportar'
+                            title: 'No data',
+                            text: 'There are no records to export'
                         });
                         return;
                     }
-                    
-                    // Si hay muchos registros, pide confirmación
+
                     if (exportData.length > 10) {
                         const confirm = await Swal.fire({
                             icon: 'warning',
-                            title: 'Muchos registros',
-                            html: `Está a punto de generar ${exportData.length} documentos SVG/PDF. ¿Desea continuar?`,
+                            title: 'Many records',
+                            html: `You are about to generate ${exportData.length} SVG/PDF documents. Do you want to continue?`,
                             showCancelButton: true,
-                            confirmButtonText: 'Sí, generar todos',
-                            cancelButtonText: 'Cancelar',
+                            confirmButtonText: 'Yes, generate all',
+                            cancelButtonText: 'Cancel',
                         });
-                        
+
                         if (!confirm.isConfirmed) return;
                     }
-                    
-                    // Importa las funciones necesarias del módulo svgOrders
+
                     const { loadAndPopulateSVG, generatePDF } = await import('./svgOrders.js');
-                    
-                    // Prepara los IDs para hacer fetch desde la API
                     const ids = exportData.map(row => row[0]);
-                    
-                    // Obtiene los datos completos de cada orden
                     const ordersResponse = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php');
                     const ordersData = await ordersResponse.json();
-                    
-                    // Extrae las órdenes del formato { status: 'success', data: [...] }
                     const allOrders = ordersData.data || [];
-                    
-                    // Filtra para obtener solo las órdenes visibles en la tabla
                     const visibleOrders = allOrders.filter(order => ids.includes(String(order.id)));
-                    
-                    // Crea un contenedor oculto para los SVGs
+
                     const container = document.createElement('div');
                     container.style.position = 'absolute';
                     container.style.left = '-9999px';
                     document.body.appendChild(container);
-                    
-                    // Para cada orden, genera un SVG y un PDF
+
                     for (let i = 0; i < visibleOrders.length; i++) {
                         const order = visibleOrders[i];
                         const orderId = order.id;
-                        
-                        // Actualiza el mensaje de progreso
+
                         Swal.update({
-                            html: `Procesando documento ${i+1} de ${visibleOrders.length}...`
+                            html: `Processing document ${i+1} of ${visibleOrders.length}...`
                         });
-                        
+
                         try {
-                            // Genera el PDF con el nombre requerido
                             await generatePDF(order, `PF_${orderId}`);
                         } catch (error) {
-                            console.error(`Error generando PDF para orden ${orderId}:`, error);
+                            console.error(`Error generating PDF for order ${orderId}:`, error);
                         }
-                        
-                        // Pequeña pausa para no sobrecargar el navegador
+
                         await new Promise(resolve => setTimeout(resolve, 500));
                     }
-                    
-                    // Elimina el contenedor temporal
+
                     document.body.removeChild(container);
-                    
-                    // Muestra mensaje de éxito
+
                     Swal.fire({
                         icon: 'success',
-                        title: 'Documentos generados',
-                        html: `Se han generado ${visibleOrders.length} documentos PDF.<br>Revise su carpeta de descargas.`
+                        title: 'Documents generated',
+                        html: `${visibleOrders.length} PDF documents have been generated.<br>Check your downloads folder.`
                     });
-                    
+
                 } catch (error) {
-                    console.error('Error generando documentos:', error);
+                    console.error('Error generating documents:', error);
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: 'Ocurrió un error al generar los documentos: ' + error.message
+                        text: 'An error occurred while generating the documents: ' + error.message
                     });
                 }
             }
@@ -689,9 +670,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (buttonsContainer) {
         const buttonHTML = `
             <div class="buttons-container">
-                <button id="btnHistoricoSemanal" class="btn btn-primary">Ver Histórico Semanal</button>
-                <button id="btnHistoricoTotal" class="btn btn-success">Ver Histórico Total</button>
-                <input type="text" id="searchInput" placeholder="Buscar por ID o descripción...">
+                <button id="btnHistoricoSemanal" class="btn btn-primary">View Weekly History</button>
+                <button id="btnHistoricoTotal" class="btn btn-success">View Total History</button>
+                <input type="text" id="searchInput" placeholder="Search by ID or description...">
             </div>
         `;
         buttonsContainer.insertAdjacentHTML('beforeend', buttonHTML);
@@ -699,13 +680,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Crear modales en el DOM
     const modalsHTML = `
-        <!-- Modal Histórico Semanal -->
+        <!-- Weekly History Modal -->
         <div id="modalHistoricoSemanal" class="modal fade" aria-labelledby="tituloModalHistoricoSemanal" aria-modal="true" role="dialog">
             <div id="modaldiv" class="modal-dialog modal-xl"> 
                 <div id="modalContent" class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="tituloModalHistoricoSemanal">Histórico Semanal de Premium Freight</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                        <h5 class="modal-title" id="tituloModalHistoricoSemanal">Premium Freight Weekly History</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <div class="table-responsive">
@@ -720,7 +701,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                                         <th>Inbound/Outbound</th>
                                         <th>Issue CW</th>
                                         <th>Issue Month</th>
-                                        <th>Orden</th>
+                                        <th>Order</th>
                                         <th>Issuer</th>
                                         <th>Area of Responsibility</th>
                                         <th>Description & Root Cause</th>
@@ -740,25 +721,25 @@ document.addEventListener('DOMContentLoaded', async function() {
                                     </tr>
                                 </thead>
                                 <tbody id="tableBody_historico_semanal">
-                                    <!-- Aquí se cargarán los datos -->
+                                    <!-- Data will be loaded here -->
                                 </tbody>
                             </table>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Modal Histórico Total -->
+        <!-- Total History Modal -->
         <div id="modalHistoricoTotal" class="modal fade" aria-labelledby="tituloModalHistoricoTotal" aria-modal="true" role="dialog">
             <div id="modaldiv" class="modal-dialog modal-xl">
                 <div id="modalContent" class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="tituloModalHistoricoTotal">Histórico Total de Premium Freight</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                        <h5 class="modal-title" id="tituloModalHistoricoTotal">Premium Freight Total History</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <div class="table-responsive">
@@ -773,7 +754,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                                         <th>Inbound/Outbound</th>
                                         <th>Issue CW</th>
                                         <th>Issue Month</th>
-                                        <th>Orden</th>
+                                        <th>Order</th>
                                         <th>Issuer</th>
                                         <th>Area of Responsibility</th>
                                         <th>Description & Root Cause</th>
@@ -793,13 +774,13 @@ document.addEventListener('DOMContentLoaded', async function() {
                                     </tr>
                                 </thead>
                                 <tbody id="tableBody_historico_total">
-                                    <!-- Aquí se cargarán los datos -->
+                                    <!-- Data will be loaded here -->
                                 </tbody>
                             </table>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     </div>
                 </div>
             </div>
