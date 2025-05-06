@@ -1,10 +1,17 @@
-let dataTableHistoricoSemanal; // Instancia DataTable para histórico semanal
-let dataTableHistoricoTotal; // Instancia DataTable para histórico total
+/**
+ * Premium Freight - Manejo de DataTables para históricos
+ * Este módulo gestiona la visualización de datos históricos en tablas interactivas
+ */
 
+// Variables globales para las instancias de DataTable
+let dataTableHistoricoSemanal;
+let dataTableHistoricoTotal;
 let dataTableSemanalInitialized = false;
 let dataTableTotalInitialized = false;
 
-// Opciones comunes para ambas DataTables
+/**
+ * Opciones comunes para ambas DataTables
+ */
 const dataTableOptions = {
     lengthMenu: [10, 25, 50, 100, 200, 500],
     columnDefs: [
@@ -43,8 +50,8 @@ const dataTableOptions = {
             extend: 'pdf',
             text: 'PDF',
             className: 'btn-danger',
-            orientation: 'landscape', // Mantenemos horizontal
-            pageSize: 'LEGAL', // Cambiamos de 'LETTER' a 'A3' (o prueba 'LEGAL')
+            orientation: 'landscape',
+            pageSize: 'LEGAL',
             title: 'Premium Freight Report',
             filename: 'Premium Freight Report',
             customize: function(doc) {
@@ -52,15 +59,15 @@ const dataTableOptions = {
                 doc.styles.tableHeader.fontSize = 8;
                 doc.styles.tableHeader.fillColor = '#A7CAC3';
 
-                // Márgenes más pequeños si es necesario para A3/Legal
-                doc.pageMargins = [10, 15, 10, 15]; // Puedes ajustar si necesitas más espacio
+                // Márgenes más pequeños para aprovechar el espacio
+                doc.pageMargins = [10, 15, 10, 15];
 
-                // Esta línea sigue siendo útil para distribuir el ancho en la nueva página más grande
+                // Distribuir el ancho de las columnas uniformemente
                 if (doc.content[1] && doc.content[1].table && doc.content[1].table.body[0]) {
                     doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
                 }
 
-                // ... resto de la función customize (título, footer) ...
+                // Título personalizado
                 doc.content.splice(0, 0, {
                     margin: [0, 0, 0, 12],
                     alignment: 'center',
@@ -72,6 +79,7 @@ const dataTableOptions = {
                     }
                 });
 
+                // Pie de página con fecha y número de página
                 const now = new Date();
                 doc.footer = function(currentPage, pageCount) {
                     return {
@@ -191,7 +199,10 @@ const dataTableOptions = {
     ]
 };
 
-// Función para cargar los datos de Premium Freight
+/**
+ * Función para cargar los datos de Premium Freight desde la API
+ * @returns {Promise<Array|Object>} Datos de Premium Freight
+ */
 const cargarDatosPremiumFreight = async () => {
     try {
         const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php');
@@ -203,7 +214,11 @@ const cargarDatosPremiumFreight = async () => {
     }
 };
 
-// Función para convertir cadena de texto de fecha a objeto Date
+/**
+ * Función para convertir cadena de texto de fecha a objeto Date
+ * @param {string} dateString - Cadena de fecha en formato "YYYY-MM-DD HH:MM:SS"
+ * @returns {Date|null} Objeto Date o null si la fecha es inválida
+ */
 const parseDate = (dateString) => {
     try {
         if (!dateString) return null;
@@ -240,18 +255,30 @@ const parseDate = (dateString) => {
     }
 };
 
-// Función para obtener el número de semana de una fecha
+/**
+ * Función para obtener el número de semana de una fecha (ISO 8601)
+ * @param {Date} date - Objeto Date
+ * @returns {number|string} Número de semana o "-" si la fecha es inválida
+ */
 const getWeekNumber = (date) => {
     try {
         if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
             return '-';
         }
         
-        const d = new Date(date);
-        d.setHours(0, 0, 0, 0);
-        d.setDate(d.getDate() + 4 - (d.getDay() || 7));
-        const yearStart = new Date(d.getFullYear(), 0, 1);
+        // Crear una copia de la fecha para no modificar la original
+        const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+        
+        // Configurar al primer día de la semana (lunes en ISO 8601)
+        const dayNum = d.getUTCDay() || 7;
+        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+        
+        // Primer día del año
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        
+        // Calcular el número de semana
         const weekNumber = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        
         return weekNumber;
     } catch (error) {
         console.error('Error en getWeekNumber:', error);
@@ -259,14 +286,19 @@ const getWeekNumber = (date) => {
     }
 };
 
-// Función para obtener el mes de una fecha
+/**
+ * Función para obtener el nombre del mes de una fecha
+ * @param {Date} date - Objeto Date
+ * @returns {string} Nombre del mes o "-" si la fecha es inválida
+ */
 const getMonthName = (date) => {
     try {
         if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
             return '-';
         }
         
-        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                        'July', 'August', 'September', 'October', 'November', 'December'];
         return months[date.getMonth()];
     } catch (error) {
         console.error('Error en getMonthName:', error);
@@ -274,10 +306,14 @@ const getMonthName = (date) => {
     }
 };
 
-// Función para generar tabla histórico semanal
+/**
+ * Función para generar tabla histórico semanal
+ * @param {number} semanasAnteriores - Número de semanas para retroceder desde la actual
+ */
 const generarHistoricoSemanal = async (semanasAnteriores = 0) => {
     try {
         const response = await cargarDatosPremiumFreight();
+        console.log("Datos recibidos de la API:", response);
         
         // Obtener referencia al elemento de la tabla
         const tableBody_semanal = document.getElementById('tableBody_historico_semanal');
@@ -298,8 +334,7 @@ const generarHistoricoSemanal = async (semanasAnteriores = 0) => {
             return;
         }
 
-        // Temporalmente, mostrar todos los datos sin filtro de semana
-        const datosSemanaActual = itemsArray; // Quita el filtro
+        console.log("Total de registros obtenidos:", itemsArray.length);
         
         // Calcular la semana objetivo (actual - semanasAnteriores)
         const currentDate = new Date();
@@ -317,16 +352,25 @@ const generarHistoricoSemanal = async (semanasAnteriores = 0) => {
             modalTitle.textContent = `Histórico Semanal de Premium Freight - Semana ${targetWeek} de ${targetYear}`;
         }
         
+        // Log de los primeros 5 registros para inspección
+        console.log("Muestra de datos (primeros 5 registros):", itemsArray.slice(0, 5));
+        
         // Filtrar datos para la semana objetivo
         const datosSemanaFiltrada = itemsArray.filter(item => {
             if (!item || !item.date) return false;
             
             try {
                 const itemDate = parseDate(item.date);
-                if (!itemDate) return false;
+                if (!itemDate) {
+                    console.log(`Fecha inválida en item ID ${item.id}: ${item.date}`);
+                    return false;
+                }
                 
                 const itemWeek = getWeekNumber(itemDate);
                 const itemYear = itemDate.getFullYear();
+                
+                // Log para depuración
+                console.log(`Item ID ${item.id}: Fecha ${item.date}, Semana calculada ${itemWeek}, Año ${itemYear}`);
                 
                 return itemWeek === targetWeek && itemYear === targetYear;
             } catch (error) {
@@ -335,7 +379,95 @@ const generarHistoricoSemanal = async (semanasAnteriores = 0) => {
             }
         });
         
-        // Resto del código para generar el contenido...
+        console.log(`Registros filtrados para semana ${targetWeek}: ${datosSemanaFiltrada.length}`, datosSemanaFiltrada);
+        
+        // Generar el contenido HTML para la tabla
+        let content = '';
+        
+        if (datosSemanaFiltrada.length === 0) {
+            content = `<tr><td colspan="25" class="text-center">No hay datos disponibles para la semana ${targetWeek} de ${targetYear}</td></tr>`;
+        } else {
+            // Generar filas para cada item filtrado
+            datosSemanaFiltrada.forEach(item => {
+                try {
+                    // Procesar fecha
+                    const dateValue = item.date;
+                    const issueDate = dateValue ? parseDate(dateValue) : null;
+                    
+                    // Si la fecha es inválida, mostrar con valores por defecto
+                    if (!issueDate) {
+                        content += `
+                            <tr>
+                                <td>${item.id || '-'}</td>
+                                <td>Grammer AG</td>
+                                <td>${item.code_planta || '-'}</td>
+                                <td>${item.planta || '-'}</td>
+                                <td>${dateValue || 'Fecha inválida'}</td>
+                                <td>${item.in_out_bound || '-'}</td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>${item.reference_number || '-'}</td>
+                                <td>${item.creator_name || '-'}</td>
+                                <td>${item.area || '-'}</td>
+                                <td>${item.description || '-'}</td>
+                                <td>${item.category_cause || '-'}</td>
+                                <td>${item.cost_euros || '-'}</td>
+                                <td>${item.transport || '-'}</td>
+                                <td>${item.int_ext || '-'}</td>
+                                <td>${item.carrier || '-'}</td>
+                                <td>${item.origin_company_name || '-'}</td>
+                                <td>${item.origin_city || '-'}</td>
+                                <td>${item.destiny_company_name || '-'}</td>
+                                <td>${item.destiny_city || '-'}</td>
+                                <td>${item.weight || '-'}</td>
+                                <td>${item.project_status || '-'}</td>
+                                <td>${item.approver_name || 'Pendiente'}</td>
+                                <td>${item.recovery || 'N/A'}</td>
+                            </tr>`;
+                        return;
+                    }
+                    
+                    // Fecha válida, calcular semana y mes
+                    const issueMonth = getMonthName(issueDate);
+                    const issueCW = getWeekNumber(issueDate);
+                    
+                    content += `
+                        <tr>
+                            <td>${item.id || '-'}</td>
+                            <td>Grammer AG</td>
+                            <td>${item.code_planta || '-'}</td>
+                            <td>${item.planta || '-'}</td>
+                            <td>${dateValue || '-'}</td>
+                            <td>${item.in_out_bound || '-'}</td>
+                            <td>${issueCW}</td>
+                            <td>${issueMonth}</td>
+                            <td>${item.reference_number || '-'}</td>
+                            <td>${item.creator_name || '-'}</td>
+                            <td>${item.area || '-'}</td>
+                            <td>${item.description || '-'}</td>
+                            <td>${item.category_cause || '-'}</td>
+                            <td>${item.cost_euros || '-'}</td>
+                            <td>${item.transport || '-'}</td>
+                            <td>${item.int_ext || '-'}</td>
+                            <td>${item.carrier || '-'}</td>
+                            <td>${item.origin_company_name || '-'}</td>
+                            <td>${item.origin_city || '-'}</td>
+                            <td>${item.destiny_company_name || '-'}</td>
+                            <td>${item.destiny_city || '-'}</td>
+                            <td>${item.weight || '-'}</td>
+                            <td>${item.project_status || '-'}</td>
+                            <td>${item.approver_name || 'Pendiente'}</td>
+                            <td>${item.recovery || 'N/A'}</td>
+                        </tr>`;
+                } catch (error) {
+                    console.error('Error procesando registro:', error, item);
+                }
+            });
+        }
+        
+        // Insertar el contenido en la tabla
+        tableBody_semanal.innerHTML = content;
+        console.log("Contenido HTML generado para la tabla");
         
         // Agregar controles de navegación para semanas anteriores/siguientes
         const modalFooter = document.querySelector('#modalHistoricoSemanal .modal-footer');
@@ -379,7 +511,9 @@ const generarHistoricoSemanal = async (semanasAnteriores = 0) => {
     }
 };
 
-// Función para generar tabla histórico total
+/**
+ * Función para generar tabla histórico total
+ */
 const generarHistoricoTotal = async () => {
     try {
         const response = await cargarDatosPremiumFreight();
@@ -407,6 +541,8 @@ const generarHistoricoTotal = async () => {
             tableBody_total.innerHTML = '<tr><td colspan="25" class="text-center">No hay datos disponibles o formato inválido</td></tr>';
             return;
         }
+        
+        console.log("Total de registros para histórico total:", itemsArray.length);
         
         let content = ``;
         
@@ -494,7 +630,10 @@ const generarHistoricoTotal = async () => {
             content = '<tr><td colspan="25" class="text-center">No hay datos disponibles</td></tr>';
         }
         
+        // Insertar el contenido en la tabla
         tableBody_total.innerHTML = content;
+        console.log("Contenido HTML generado para la tabla de histórico total");
+        
     } catch (ex) {
         console.error("Error en generarHistoricoTotal:", ex);
         
@@ -506,7 +645,9 @@ const generarHistoricoTotal = async () => {
     }
 };
 
-// Inicializar las DataTables
+/**
+ * Inicializar o reinicializar las DataTables
+ */
 const initDataTables = () => {
     try {
         // Destruir instancias anteriores si existen
@@ -539,7 +680,9 @@ const initDataTables = () => {
     }
 };
 
-// Event listeners para los botones de mostrar modal
+/**
+ * Event listeners y preparación inicial
+ */
 document.addEventListener('DOMContentLoaded', async function() {
     // Agregar botones al DOM
     const buttonsContainer = document.getElementById('mainOrders');
