@@ -238,6 +238,7 @@ session_start();
                     <label for="inputCityShip">City</label>
                     <input type="text" id="inputCityShip" class="form-control" placeholder="City">
                 </div>
+            </div>
                 <div id="DivStatesShip" class="mb-2">
                     <label for="StatesShip">States:</label>
                     <select name="StatesShip" id="StatesShip" class="form-select">
@@ -268,6 +269,7 @@ session_start();
                     <label for="inputCityDest">City Dest</label>
                     <input type="text" id="inputCityDest" class="form-control" placeholder="City Dest">
                 </div>
+            </div>
                 <div id="DivStatesDest" class="mb-2">
                     <label for="StatesDest">States:</label>
                     <select name="StatesDest" id="StatesDest" class="form-select">
@@ -282,6 +284,7 @@ session_start();
                         <?php endif; ?>
                     </select>
                 </div>
+
                 <div id="SectZipDest" class="mb-2">
                     <label for="inputZipDest">ZIP</label>
                     <input type="number" id="inputZipDest" class="form-control" placeholder="ZIP">
