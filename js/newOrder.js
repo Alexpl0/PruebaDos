@@ -5,47 +5,76 @@ let selectedCurrency = "MXN"; // Default currency
 let range = 0; // Authorization range, declared with let
 
 //==========================================================================================
-// Function to populate the company selection dropdown
-async function showCompanySelect() {
-    const locationURL = `https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php`;
-    try {
-        const response = await fetch(locationURL);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+// Function to initialize Select2 for CompanyShip with AJAX and add-new support
+function showCompanySelect() {
+    $('#CompanyShip').select2({
+        placeholder: "Buscar o agregar compañía",
+        allowClear: true,
+        ajax: {
+            url: 'https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php',
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return { q: params.term || '' };
+            },
+            processResults: function (data) {
+                // Ajusta según la estructura de tu respuesta
+                const results = (data.data || []).map(company => ({
+                    id: company.company_name,
+                    text: company.company_name
+                }));
+                return { results };
+            },
+            cache: true
+        },
+        tags: true,
+        createTag: function (params) {
+            return {
+                id: params.term,
+                text: 'Agregar nueva compañía: "' + params.term + '"',
+                newOption: true
+            };
+        },
+        templateResult: function (data) {
+            if (data.newOption) {
+                return $('<span style="color:green;">' + data.text + '</span>');
+            }
+            return data.text;
+        },
+        templateSelection: function (data) {
+            return data.text.replace(/^Agregar nueva compañía: "/, '').replace(/"$/, '');
         }
-        const responseData = await response.json();
-        console.log("Data obtained from Location API:", responseData);
+    });
 
-        const locations = responseData.data || [];
-        const select = document.getElementById('CompanyShip');
-
-        if (!select) {
-            console.warn("Company select element ('CompanyShip') not found.");
-            return;
+    // Evento cuando se selecciona una opción (existente o nueva)
+    $('#CompanyShip').on('select2:select', function (e) {
+        const data = e.params.data;
+        if (data.newOption) {
+            // Llama al endpoint para registrar la nueva compañía
+            fetch('https://grammermx.com/Jesus/PruebaDos/dao/elements/addCompany.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ company_name: data.id })
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (result.success) {
+                    // Reemplaza la opción temporal por la definitiva
+                    const newOption = new Option(data.id, data.id, true, true);
+                    $('#CompanyShip').append(newOption).trigger('change');
+                    Swal.fire('¡Compañía agregada!', '', 'success');
+                } else {
+                    Swal.fire('Error', result.message, 'error');
+                    // Limpia la selección si hubo error
+                    $('#CompanyShip').val(null).trigger('change');
+                }
+            })
+            .catch(() => {
+                Swal.fire('Error', 'No se pudo registrar la compañía.', 'error');
+                $('#CompanyShip').val(null).trigger('change');
+            });
         }
-
-        select.innerHTML = ''; // Clear existing options
-
-        // Add a default placeholder option
-        const placeholderOption = document.createElement('option');
-        placeholderOption.value = "";
-        placeholderOption.textContent = "-- Select Company --";
-        placeholderOption.disabled = true;
-        placeholderOption.selected = true;
-        select.appendChild(placeholderOption);
-
-        // Add an option for each company
-        locations.forEach(company => {
-            const option = document.createElement('option');
-            option.value = company.company_name; // Assuming value should be the name
-            option.textContent = company.company_name;
-            select.appendChild(option);
-        });
-
-    } catch (error) {
-        console.error('Error fetching or processing company data:', error);
-        // Optionally display an error to the user
-    }
+    });
 }
 
 //==========================================================================================

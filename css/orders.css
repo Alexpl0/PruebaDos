@@ -27,9 +27,6 @@ body {
     background-color: #FFFFFF !important;
     min-height: 100vh;
     max-width: 100%;
-    /* flex-direction: column; // No es necesario en body directamente */
-    /* align-items: center; // No es necesario en body directamente */
-    font-size: var(--font-size);
 }
 
 #title1 {
@@ -289,20 +286,3 @@ main {
     max-width: 1400px;
     margin: 0 auto;
 }
-
-#DescriptionAndRootCauseValue { /* Esto parece un ID de un elemento SVG específico */
-    /* font-size: 1.2rem; */ /* El tamaño de fuente en SVG se maneja diferente */
-    /* font-weight: bold; */
-    /* margin-bottom: 1%; */
-    /* color: white; */ /* El 'fill' se usa para el color en SVG text */
-    /* Si es un <text> SVG, usa atributos SVG o CSS fill, font-size, font-weight */
-}
-
-/* Elimina las reglas duplicadas o específicas de #myModal que estaban al final de tu archivo original,
-   ya que se han integrado arriba de forma más estructurada. */
-/* Por ejemplo, estas ya están cubiertas o reemplazadas:
-#myModal .modal-content { ... }
-#myModal .modal-buttons { ... }
-#myModal #svgPreview.svg-frame { ... }
-#myModal #svgPreview.svg-frame svg { ... }
-*/

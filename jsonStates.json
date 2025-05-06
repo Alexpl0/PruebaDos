@@ -1,0 +1,436 @@
+[
+    {
+      "ID": 1,
+      "COMPANY_FROM": "GRAMMER AUTOMOTIVE PUEBLA",
+      "CITY_FROM": "Querétaro",
+      "STATE_FROM": "Querétaro de Arteaga",
+      "ZIP_FROM": "76120"
+    },
+    {
+      "ID": 2,
+      "COMPANY_FROM": "CENTURY PLASTICS",
+      "CITY_FROM": "Macomb",
+      "STATE_FROM": "Michigan",
+      "ZIP_FROM": "48042"
+    },
+    {
+      "ID": 4,
+      "COMPANY_FROM": "GUELPH MANUFACTURING GROUP INC",
+      "CITY_FROM": "Irving",
+      "STATE_FROM": "Texas",
+      "ZIP_FROM": "75062"
+    },
+    {
+      "ID": 8,
+      "COMPANY_FROM": "FEDEX",
+      "CITY_FROM": "Querétaro",
+      "STATE_FROM": "Querétaro de Arteaga",
+      "ZIP_FROM": "76120"
+    },
+    {
+      "ID": 9,
+      "COMPANY_FROM": "INTEGRATED MICRO-ELECTRONICS (IMI) ",
+      "CITY_FROM": "Guadalajara",
+      "STATE_FROM": "Jalisco",
+      "ZIP_FROM": "45680 "
+    },
+    {
+      "ID": 10,
+      "COMPANY_FROM": "GRAMMER",
+      "CITY_FROM": "Querétaro",
+      "STATE_FROM": "Querétaro de Arteaga",
+      "ZIP_FROM": "76113"
+    },
+    {
+      "ID": 11,
+      "COMPANY_FROM": "ADIENT AGUASCALIENTES",
+      "CITY_FROM": "Aguascalientes",
+      "STATE_FROM": "Aguascalientes",
+      "ZIP_FROM": "20349"
+    },
+    {
+      "ID": 14,
+      "COMPANY_FROM": "SALTILLO LAMINATION SA DE CV",
+      "CITY_FROM": "León",
+      "STATE_FROM": "Guanajuato",
+      "ZIP_FROM": "37660"
+    },
+    {
+      "ID": 15,
+      "COMPANY_FROM": "GALVANIADORA DE OCCIDENTE",
+      "CITY_FROM": "Guadalajara",
+      "STATE_FROM": "Jalisco",
+      "ZIP_FROM": "44960"
+    },
+    {
+      "ID": 16,
+      "COMPANY_FROM": "BALTEC COORPORATION",
+      "CITY_FROM": "Canonsburg",
+      "STATE_FROM": "Pennsylvania",
+      "ZIP_FROM": "15317"
+    },
+    {
+      "ID": 21,
+      "COMPANY_FROM": "RESORTES ASOCIADOS S.A DE C.V",
+      "CITY_FROM": "Ciudad de México",
+      "STATE_FROM": "México",
+      "ZIP_FROM": "15000"
+    },
+    {
+      "ID": 24,
+      "COMPANY_FROM": "MAGNA LOUISVILLE SEATING SYSTEMS",
+      "CITY_FROM": "165 Omicron Court, Shepherdsville",
+      "STATE_FROM": "Kentucky",
+      "ZIP_FROM": "40165"
+    },
+    {
+      "ID": 31,
+      "COMPANY_FROM": "SAIA LTL FREIGHT",
+      "CITY_FROM": "Laredo",
+      "STATE_FROM": "Texas",
+      "ZIP_FROM": "78045"
+    },
+    {
+      "ID": 32,
+      "COMPANY_FROM": "APTIV",
+      "CITY_FROM": "Laredo",
+      "STATE_FROM": "Texas",
+      "ZIP_FROM": "78045"
+    },
+    {
+      "ID": 36,
+      "COMPANY_FROM": "CH MUELLER",
+      "CITY_FROM": "Sc, Usa",
+      "STATE_FROM": "South Carolina",
+      "ZIP_FROM": "29651"
+    },
+    {
+      "ID": 41,
+      "COMPANY_FROM": "CONTITECH",
+      "CITY_FROM": "Slp",
+      "STATE_FROM": "San Luis Potosí",
+      "ZIP_FROM": "78395"
+    },
+    {
+      "ID": 42,
+      "COMPANY_FROM": "BADER",
+      "CITY_FROM": "Leon, Gto",
+      "STATE_FROM": "Guanajuato",
+      "ZIP_FROM": "37690"
+    },
+    {
+      "ID": 47,
+      "COMPANY_FROM": "CYCCA ADHESIVE TAPE SA DE CV",
+      "CITY_FROM": "Lopez Mateos",
+      "STATE_FROM": "Mezica",
+      "ZIP_FROM": "52928"
+    },
+    {
+      "ID": 48,
+      "COMPANY_FROM": "BH EVS ",
+      "CITY_FROM": "Huizhou",
+      "STATE_FROM": "Guangdong",
+      "ZIP_FROM": "516000"
+    },
+    {
+      "ID": 51,
+      "COMPANY_FROM": "PANGEA MADE INC",
+      "CITY_FROM": "Rochester Hills",
+      "STATE_FROM": "New Mexico",
+      "ZIP_FROM": "48309"
+    },
+    {
+      "ID": 61,
+      "COMPANY_FROM": "DESMEX DE MÉXICO SA DE CV",
+      "CITY_FROM": "León, Gto",
+      "STATE_FROM": "Guanajuato",
+      "ZIP_FROM": "37290"
+    },
+    {
+      "ID": 62,
+      "COMPANY_FROM": "TRINSEO ",
+      "CITY_FROM": "Estado de México",
+      "STATE_FROM": "México",
+      "ZIP_FROM": "57073"
+    },
+    {
+      "ID": 76,
+      "COMPANY_FROM": "ALL- STATE INDUSTRIES",
+      "CITY_FROM": "Elk Grove Village",
+      "STATE_FROM": "Illinois",
+      "ZIP_FROM": "60007"
+    },
+    {
+      "ID": 79,
+      "COMPANY_FROM": "CGT US LTD",
+      "CITY_FROM": "New Braunfels",
+      "STATE_FROM": "Texas",
+      "ZIP_FROM": "78130"
+    },
+    {
+      "ID": 81,
+      "COMPANY_FROM": "VEIT AMERICAS",
+      "CITY_FROM": "Winder, Ga 30680",
+      "STATE_FROM": "Georgia",
+      "ZIP_FROM": "30680"
+    },
+    {
+      "ID": 82,
+      "COMPANY_FROM": "SSI SCHAEFER PACKAGING S.A. DE C.V.",
+      "CITY_FROM": "Slp",
+      "STATE_FROM": "San Luis Potosí",
+      "ZIP_FROM": "78395"
+    },
+    {
+      "ID": 85,
+      "COMPANY_FROM": "PRECISION RESOURSE",
+      "CITY_FROM": "Illinois",
+      "STATE_FROM": "Illinois",
+      "ZIP_FROM": "60061"
+    },
+    {
+      "ID": 88,
+      "COMPANY_FROM": "CURTIDOS TREVINO SA DE CV",
+      "CITY_FROM": "El Carmen",
+      "STATE_FROM": "Nuevo León",
+      "ZIP_FROM": "66550"
+    },
+    {
+      "ID": 89,
+      "COMPANY_FROM": "EAGLE OTTAWA BY LEAR",
+      "CITY_FROM": "Cd. Juarez",
+      "STATE_FROM": "Chihuahua",
+      "ZIP_FROM": "32470"
+    },
+    {
+      "ID": 99,
+      "COMPANY_FROM": "GRAMMER AUTOMOTIVE POLSKA SP. Z O.O. ",
+      "CITY_FROM": "Sosnowiec",
+      "STATE_FROM": "Katowice",
+      "ZIP_FROM": "41208"
+    },
+    {
+      "ID": 100,
+      "COMPANY_FROM": "LÜBKE & VOGT GMBH & CO. KG",
+      "CITY_FROM": "Sundern, Germany",
+      "STATE_FROM": "Nordrhein-Westfalen",
+      "ZIP_FROM": "59846"
+    },
+    {
+      "ID": 105,
+      "COMPANY_FROM": "DEPRAG MÉXICO S DE RL DE CV",
+      "CITY_FROM": "Zapopan",
+      "STATE_FROM": "Jalisco",
+      "ZIP_FROM": "45019"
+    },
+    {
+      "ID": 115,
+      "COMPANY_FROM": "TR PLAST GMBH",
+      "CITY_FROM": "Neumarkt",
+      "STATE_FROM": "Oberösterreich",
+      "ZIP_FROM": "92318"
+    },
+    {
+      "ID": 117,
+      "COMPANY_FROM": "BENECKE",
+      "CITY_FROM": "Hamburg",
+      "STATE_FROM": "Azerbaijan",
+      "ZIP_FROM": "20457"
+    },
+    {
+      "ID": 129,
+      "COMPANY_FROM": "PT TECH",
+      "CITY_FROM": "Madison Heights",
+      "STATE_FROM": "Michigan",
+      "ZIP_FROM": "48071"
+    },
+    {
+      "ID": 130,
+      "COMPANY_FROM": "VEIT AMERICAS",
+      "CITY_FROM": "Winder, Ga 30680",
+      "STATE_FROM": "Georgia",
+      "ZIP_FROM": "30680"
+    },
+    {
+      "ID": 140,
+      "COMPANY_FROM": "ZWISSTEX",
+      "CITY_FROM": "Mexico",
+      "STATE_FROM": "Tlaxcala",
+      "ZIP_FROM": "90430"
+    },
+    {
+      "ID": 142,
+      "COMPANY_FROM": "COBA AUTOMOTIVE",
+      "CITY_FROM": "Slovakia",
+      "STATE_FROM": "Slovenj Gradec",
+      "ZIP_FROM": "1306"
+    },
+    {
+      "ID": 144,
+      "COMPANY_FROM": "RESORTES ASOCIADOS Y COMPAÑIA SA DE CV",
+      "CITY_FROM": "Cdmx",
+      "STATE_FROM": "México",
+      "ZIP_FROM": "15000"
+    },
+    {
+      "ID": 148,
+      "COMPANY_FROM": "CORPORACIÓN DE EQUIPOS",
+      "CITY_FROM": "San Andrés Cholula",
+      "STATE_FROM": "Puebla",
+      "ZIP_FROM": "72820"
+    },
+    {
+      "ID": 152,
+      "COMPANY_FROM": "DEPRAG MEXICO S. DE R.L DE C.V",
+      "CITY_FROM": "Zapopan",
+      "STATE_FROM": "Jalisco",
+      "ZIP_FROM": "45019"
+    },
+    {
+      "ID": 154,
+      "COMPANY_FROM": "INTEGRAM WINDSOR SEATING",
+      "CITY_FROM": "Tecumseh",
+      "STATE_FROM": "Ontario",
+      "ZIP_FROM": "2"
+    },
+    {
+      "ID": 159,
+      "COMPANY_FROM": "CENTRO FEDEX",
+      "CITY_FROM": "Toluca",
+      "STATE_FROM": "Central",
+      "ZIP_FROM": "52100"
+    },
+    {
+      "ID": 165,
+      "COMPANY_FROM": "GRAMMER AG",
+      "CITY_FROM": "Amberg",
+      "STATE_FROM": "Central",
+      "ZIP_FROM": "92224"
+    },
+    {
+      "ID": 167,
+      "COMPANY_FROM": "ITW",
+      "CITY_FROM": "Rockford",
+      "STATE_FROM": "Michigan",
+      "ZIP_FROM": "49341"
+    },
+    {
+      "ID": 175,
+      "COMPANY_FROM": "A. RAYMOND GMBH",
+      "CITY_FROM": "Weil am ",
+      "STATE_FROM": "Rheinland-Pfalz",
+      "ZIP_FROM": "79576"
+    },
+    {
+      "ID": 185,
+      "COMPANY_FROM": "PROVEM",
+      "CITY_FROM": "Querétaro",
+      "STATE_FROM": "Querétaro de Arteaga",
+      "ZIP_FROM": "76220"
+    },
+    {
+      "ID": 200,
+      "COMPANY_FROM": "WILLY SCHMITZ | TESCA GROUP",
+      "CITY_FROM": "Monchengladbach",
+      "STATE_FROM": "Berlin",
+      "ZIP_FROM": "41063"
+    },
+    {
+      "ID": 201,
+      "COMPANY_FROM": "LEAR CORPORATION- TUSCALOOSA PLANT",
+      "CITY_FROM": "Vance",
+      "STATE_FROM": "Alabama",
+      "ZIP_FROM": "35490"
+    },
+    {
+      "ID": 202,
+      "COMPANY_FROM": "COLONIAL PLASTICS INC",
+      "CITY_FROM": "Filomena Dr, Shelby",
+      "STATE_FROM": "Michigan",
+      "ZIP_FROM": "48315"
+    },
+    {
+      "ID": 209,
+      "COMPANY_FROM": "WINDSOR MACHINE DE MÉXICO",
+      "CITY_FROM": "Saltillo",
+      "STATE_FROM": "Coahuila de Zaragoza",
+      "ZIP_FROM": "22350"
+    },
+    {
+      "ID": 211,
+      "COMPANY_FROM": "LEAR HERMOSILLO",
+      "CITY_FROM": "Hermosillo",
+      "STATE_FROM": "Sonora",
+      "ZIP_FROM": "83299"
+    },
+    {
+      "ID": 216,
+      "COMPANY_FROM": "GRAMMER ESLOVENIA",
+      "CITY_FROM": "Celjska",
+      "STATE_FROM": "Slovenj Gradec",
+      "ZIP_FROM": "2380"
+    },
+    {
+      "ID": 223,
+      "COMPANY_FROM": "ARD LOGISTICS",
+      "CITY_FROM": "Vance",
+      "STATE_FROM": "Alabama",
+      "ZIP_FROM": "35490"
+    },
+    {
+      "ID": 224,
+      "COMPANY_FROM": "GRAMMER AUTOMOTIVE CZ S.R.O.",
+      "CITY_FROM": "Ceska Lipa",
+      "STATE_FROM": "Republika Srpska",
+      "ZIP_FROM": "47001"
+    },
+    {
+      "ID": 225,
+      "COMPANY_FROM": "FEDEX",
+      "CITY_FROM": "Toluca",
+      "STATE_FROM": "Central",
+      "ZIP_FROM": "76120"
+    },
+    {
+      "ID": 227,
+      "COMPANY_FROM": "GRAMMER SERBIA",
+      "CITY_FROM": "Aleksinas",
+      "STATE_FROM": "Southern District",
+      "ZIP_FROM": "18220"
+    },
+    {
+      "ID": 228,
+      "COMPANY_FROM": "INTEGRAM WINDSOR SEATING",
+      "CITY_FROM": "Tecumsehq",
+      "STATE_FROM": "Ontario",
+      "ZIP_FROM": "12345"
+    },
+    {
+      "ID": 241,
+      "COMPANY_FROM": "PALOS GARZA",
+      "CITY_FROM": "Nuevo Laredo",
+      "STATE_FROM": "Tamaulipas",
+      "ZIP_FROM": "88284"
+  },
+  {
+    "ID": 245,
+    "COMPANY_FROM": "FEDEX AV ROSALES 103-B CENTRO",
+    "CITY_FROM": "Hermosillo",
+    "STATE_FROM": "Sonora",
+    "ZIP_FROM": "83000"
+  },
+  {
+    "ID": 249,
+    "COMPANY_FROM": "BUREAU VERITAS",
+    "CITY_FROM": "Querétaro",
+    "STATE_FROM": "Querétaro de Arteaga",
+    "ZIP_FROM": "76150"
+  },
+  {
+    "ID": 257,
+    "COMPANY_FROM": "DHL",
+    "CITY_FROM": "Querétaro",
+    "STATE_FROM": "Querétaro",
+    "ZIP_FROM": "76180"
+  }
+]
