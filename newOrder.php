@@ -12,7 +12,7 @@ require_once __DIR__ . '/dao/elements/daoCarrier.php';
 require_once __DIR__ . '/dao/elements/daoMeasures.php';
 require_once __DIR__ . '/dao/elements/daoProducts.php';
 require_once __DIR__ . '/dao/elements/daoStates.php';
-//require_once __DIR__ . '/dao/elements/daoLocation.php';
+require_once __DIR__ . '/dao/elements/daoLocation.php';
 
 session_start();
 ?>
@@ -30,6 +30,8 @@ session_start();
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/newOrder.css">
+    <!-- Asegúrate de que jQuery esté cargado antes que otros scripts que lo utilizan -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
     <header class="header">
@@ -52,7 +54,7 @@ session_start();
                         <li class="nav__item"><a href="newOrder.php" class="nav__link active">New Order</a></li>
                         <li class="nav__item"><a href="orders.php" class="nav__link">Generated Orders</a></li>
                         <li class="nav__item"><a href="register.php" class="nav__link">Add User</a></li>
-                        <li class="nav__item"><a href="google.com" class="nav__link">Charts</a></li>
+                        <li class="nav__item"><a href="https://www.google.com" class="nav__link">Charts</a></li>
                         <li class="nav__item"><a href="#" class="nav__link">Manual</a></li>
                         <?php if (isset($_SESSION['user'])): ?>
                             <li class="nav__item"><a href="logout.php" class="nav__link">Log Out</a></li>
@@ -227,12 +229,12 @@ session_start();
 
             <h2 class="mt-4">Ship From</h2>
             <div id="SectShip" class="mb-3">
-                <!-- <div id="DivCompanyShip" class="mb-2">
+                <div id="DivCompanyShip" class="mb-2">
                     <label for="CompanyShip">Company Name</label>
                     <select name="CompanyShip" id="CompanyShip" class="form-select">
                         <option value="" disabled selected>Select a company</option>
                     </select>
-                </div> -->
+                </div>
                 <div id="DivCityShip" class="mb-2">
                     <label for="inputCityShip">City</label>
                     <input type="text" id="inputCityShip" class="form-control" placeholder="City">
@@ -370,13 +372,12 @@ session_start();
         <p>© 2023 Grammer. All rights reserved.</p>
     </footer>
 
-    <script src="js/header.js"></script>
-    <script src="js/newOrder.js"></script>
-    <script src="js/createPDF.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <!-- <script>
+    <script src="js/header.js"></script>
+    <script>
         $(document).ready(function() {
+            // Inicializar los select2
             $('#planta, #codeplanta, #transport, #InOutBound, #Area, #IntExt, #CategoryCause, #ProjectStatus, #Recovery, #Carrier, #Measures, #Products, #StatesShip, #Reference, #StatesDest').select2({
                 allowClear: true
             });
@@ -391,24 +392,37 @@ session_start();
                         var $select = $('#CompanyShip');
                         $select.empty().append('<option value="" disabled selected>Select a company</option>');
                         response.data.forEach(function(location) {
-                            $select.append(
-                                $('<option>', {
-                                    value: location.id,
-                                    text: location.company_name
-                                })
-                            );
+                            if (location.company_name) {
+                                $select.append(
+                                    $('<option>', {
+                                        value: location.id,
+                                        text: location.company_name
+                                    })
+                                );
+                            }
+                        });
+                        
+                        // Inicializar Select2 para CompanyShip después de cargar los datos
+                        $('#CompanyShip').select2({
+                            placeholder: "Company Name",
+                            allowClear: true
                         });
                     }
                 },
-                error: function() {
-                    alert('Error loading company names');
+                error: function(xhr, status, error) {
+                    console.error("AJAX Error:", status, error);
+                    alert('Error loading company names: ' + error);
                 }
             });
-            $('#CompanyShip').select2({
-                placeholder: "Company Name",
-                allowClear: true
+            
+            // Manejar el clic en los botones de divisa
+            $('#MXN, #USD').click(function() {
+                $('#Divisa button').removeClass('active btn-primary').addClass('btn-outline-secondary');
+                $(this).removeClass('btn-outline-secondary').addClass('active btn-primary');
             });
         });
-    </script> -->
+    </script>
+    <script src="js/newOrder.js"></script>
+    <script src="js/createPDF.js"></script>
 </body>
 </html>
