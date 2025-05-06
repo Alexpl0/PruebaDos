@@ -426,6 +426,31 @@ session_start();
                 placeholder: 'Select Company Name',
                 allowClear: true
             });
+            $('#StatesShip').select2({
+                placeholder: 'Select States',
+                allowClear: true
+            });
+            $('#StatesDest').select2({
+                placeholder: 'Select States',
+                allowClear: true
+            });
+            $('#Products').select2({
+                placeholder: 'Select Products',
+                allowClear: true
+            });
+            $('#Carrier').select2({
+                placeholder: 'Select Carrier',
+                allowClear: true
+            });
+            $('#Measures').select2({
+                placeholder: 'Select Unit of Measure',
+                allowClear: true
+            });
+            $('#Reference').select2({
+                placeholder: 'Select a Reference',
+                allowClear: true
+            });
         });
+    </script>
 </body>
 </html>
