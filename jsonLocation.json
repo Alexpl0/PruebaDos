@@ -1,0 +1,439 @@
+{
+    "status": "success",
+    "data": [
+        {
+            "id": 1,
+            "company_name": "GRAMMER AUTOMOTIVE PUEBLA",
+            "city": "Querétaro",
+            "state": "Querétaro de Arteaga",
+            "zip": "76120"
+        },
+        {
+            "id": 2,
+            "company_name": "CENTURY PLASTICS",
+            "city": "Macomb",
+            "state": "Michigan",
+            "zip": "48042"
+        },
+        {
+            "id": 3,
+            "company_name": "GUELPH MANUFACTURING GROUP INC",
+            "city": "Irving",
+            "state": "Texas",
+            "zip": "75062"
+        },
+        {
+            "id": 4,
+            "company_name": "FEDEX",
+            "city": "Querétaro",
+            "state": "Querétaro de Arteaga",
+            "zip": "76120"
+        },
+        {
+            "id": 5,
+            "company_name": "INTEGRATED MICRO-ELECTRONICS (IMI) ",
+            "city": "Guadalajara",
+            "state": "Jalisco",
+            "zip": "45680 "
+        },
+        {
+            "id": 6,
+            "company_name": "GRAMMER",
+            "city": "Querétaro",
+            "state": "Querétaro de Arteaga",
+            "zip": "76113"
+        },
+        {
+            "id": 7,
+            "company_name": "ADIENT AGUASCALIENTES",
+            "city": "Aguascalientes",
+            "state": "Aguascalientes",
+            "zip": "20349"
+        },
+        {
+            "id": 8,
+            "company_name": "SALTILLO LAMINATION SA DE CV",
+            "city": "León",
+            "state": "Guanajuato",
+            "zip": "37660"
+        },
+        {
+            "id": 9,
+            "company_name": "GALVANIADORA DE OCCIDENTE",
+            "city": "Guadalajara",
+            "state": "Jalisco",
+            "zip": "44960"
+        },
+        {
+            "id": 10,
+            "company_name": "BALTEC COORPORATION",
+            "city": "Canonsburg",
+            "state": "Pennsylvania",
+            "zip": "15317"
+        },
+        {
+            "id": 11,
+            "company_name": "RESORTES ASOCIADOS S.A DE C.V",
+            "city": "Ciudad de México",
+            "state": "México",
+            "zip": "15000"
+        },
+        {
+            "id": 12,
+            "company_name": "MAGNA LOUISVILLE SEATING SYSTEMS",
+            "city": "165 Omicron Court, Shepherdsville",
+            "state": "Kentucky",
+            "zip": "40165"
+        },
+        {
+            "id": 13,
+            "company_name": "SAIA LTL FREIGHT",
+            "city": "Laredo",
+            "state": "Texas",
+            "zip": "78045"
+        },
+        {
+            "id": 14,
+            "company_name": "APTIV",
+            "city": "Laredo",
+            "state": "Texas",
+            "zip": "78045"
+        },
+        {
+            "id": 15,
+            "company_name": "CH MUELLER",
+            "city": "Sc, Usa",
+            "state": "South Carolina",
+            "zip": "29651"
+        },
+        {
+            "id": 16,
+            "company_name": "CONTITECH",
+            "city": "Slp",
+            "state": "San Luis Potosí",
+            "zip": "78395"
+        },
+        {
+            "id": 17,
+            "company_name": "BADER",
+            "city": "Leon, Gto",
+            "state": "Guanajuato",
+            "zip": "37690"
+        },
+        {
+            "id": 18,
+            "company_name": "CYCCA ADHESIVE TAPE SA DE CV",
+            "city": "Lopez Mateos",
+            "state": "Mezica",
+            "zip": "52928"
+        },
+        {
+            "id": 19,
+            "company_name": "BH EVS ",
+            "city": "Huizhou",
+            "state": "Guangdong",
+            "zip": "516000"
+        },
+        {
+            "id": 20,
+            "company_name": "PANGEA MADE INC",
+            "city": "Rochester Hills",
+            "state": "New Mexico",
+            "zip": "48309"
+        },
+        {
+            "id": 21,
+            "company_name": "DESMEX DE MÉXICO SA DE CV",
+            "city": "León, Gto",
+            "state": "Guanajuato",
+            "zip": "37290"
+        },
+        {
+            "id": 22,
+            "company_name": "TRINSEO ",
+            "city": "Estado de México",
+            "state": "México",
+            "zip": "57073"
+        },
+        {
+            "id": 23,
+            "company_name": "ALL- STATE INDUSTRIES",
+            "city": "Elk Grove Village",
+            "state": "Illinois",
+            "zip": "60007"
+        },
+        {
+            "id": 24,
+            "company_name": "CGT US LTD",
+            "city": "New Braunfels",
+            "state": "Texas",
+            "zip": "78130"
+        },
+        {
+            "id": 25,
+            "company_name": "VEIT AMERICAS",
+            "city": "Winder, Ga 30680",
+            "state": "Georgia",
+            "zip": "30680"
+        },
+        {
+            "id": 26,
+            "company_name": "SSI SCHAEFER PACKAGING S.A. DE C.V.",
+            "city": "Slp",
+            "state": "San Luis Potosí",
+            "zip": "78395"
+        },
+        {
+            "id": 27,
+            "company_name": "PRECISION RESOURSE",
+            "city": "Illinois",
+            "state": "Illinois",
+            "zip": "60061"
+        },
+        {
+            "id": 28,
+            "company_name": "CURTIDOS TREVINO SA DE CV",
+            "city": "El Carmen",
+            "state": "Nuevo León",
+            "zip": "66550"
+        },
+        {
+            "id": 29,
+            "company_name": "EAGLE OTTAWA BY LEAR",
+            "city": "Cd. Juarez",
+            "state": "Chihuahua",
+            "zip": "32470"
+        },
+        {
+            "id": 30,
+            "company_name": "GRAMMER AUTOMOTIVE POLSKA SP. Z O.O. ",
+            "city": "Sosnowiec",
+            "state": "Katowice",
+            "zip": "41208"
+        },
+        {
+            "id": 31,
+            "company_name": "LÜBKE & VOGT GMBH & CO. KG",
+            "city": "Sundern, Germany",
+            "state": "Nordrhein-Westfalen",
+            "zip": "59846"
+        },
+        {
+            "id": 32,
+            "company_name": "DEPRAG MÉXICO S DE RL DE CV",
+            "city": "Zapopan",
+            "state": "Jalisco",
+            "zip": "45019"
+        },
+        {
+            "id": 33,
+            "company_name": "TR PLAST GMBH",
+            "city": "Neumarkt",
+            "state": "Oberösterreich",
+            "zip": "92318"
+        },
+        {
+            "id": 34,
+            "company_name": "BENECKE",
+            "city": "Hamburg",
+            "state": "Azerbaijan",
+            "zip": "20457"
+        },
+        {
+            "id": 35,
+            "company_name": "PT TECH",
+            "city": "Madison Heights",
+            "state": "Michigan",
+            "zip": "48071"
+        },
+        {
+            "id": 36,
+            "company_name": "VEIT AMERICAS",
+            "city": "Winder, Ga 30680",
+            "state": "Georgia",
+            "zip": "30680"
+        },
+        {
+            "id": 37,
+            "company_name": "ZWISSTEX",
+            "city": "Mexico",
+            "state": "Tlaxcala",
+            "zip": "90430"
+        },
+        {
+            "id": 38,
+            "company_name": "COBA AUTOMOTIVE",
+            "city": "Slovakia",
+            "state": "Slovenj Gradec",
+            "zip": "1306"
+        },
+        {
+            "id": 39,
+            "company_name": "RESORTES ASOCIADOS Y COMPAÑIA SA DE CV",
+            "city": "Cdmx",
+            "state": "México",
+            "zip": "15000"
+        },
+        {
+            "id": 40,
+            "company_name": "CORPORACIÓN DE EQUIPOS",
+            "city": "San Andrés Cholula",
+            "state": "Puebla",
+            "zip": "72820"
+        },
+        {
+            "id": 41,
+            "company_name": "DEPRAG MEXICO S. DE R.L DE C.V",
+            "city": "Zapopan",
+            "state": "Jalisco",
+            "zip": "45019"
+        },
+        {
+            "id": 42,
+            "company_name": "INTEGRAM WINDSOR SEATING",
+            "city": "Tecumseh",
+            "state": "Ontario",
+            "zip": "2"
+        },
+        {
+            "id": 43,
+            "company_name": "CENTRO FEDEX",
+            "city": "Toluca",
+            "state": "Central",
+            "zip": "52100"
+        },
+        {
+            "id": 44,
+            "company_name": "GRAMMER AG",
+            "city": "Amberg",
+            "state": "Central",
+            "zip": "92224"
+        },
+        {
+            "id": 45,
+            "company_name": "ITW",
+            "city": "Rockford",
+            "state": "Michigan",
+            "zip": "49341"
+        },
+        {
+            "id": 46,
+            "company_name": "A. RAYMOND GMBH",
+            "city": "Weil am ",
+            "state": "Rheinland-Pfalz",
+            "zip": "79576"
+        },
+        {
+            "id": 47,
+            "company_name": "PROVEM",
+            "city": "Querétaro",
+            "state": "Querétaro de Arteaga",
+            "zip": "76220"
+        },
+        {
+            "id": 48,
+            "company_name": "WILLY SCHMITZ | TESCA GROUP",
+            "city": "Monchengladbach",
+            "state": "Berlin",
+            "zip": "41063"
+        },
+        {
+            "id": 49,
+            "company_name": "LEAR CORPORATION- TUSCALOOSA PLANT",
+            "city": "Vance",
+            "state": "Alabama",
+            "zip": "35490"
+        },
+        {
+            "id": 50,
+            "company_name": "COLONIAL PLASTICS INC",
+            "city": "Filomena Dr, Shelby",
+            "state": "Michigan",
+            "zip": "48315"
+        },
+        {
+            "id": 51,
+            "company_name": "WINDSOR MACHINE DE MÉXICO",
+            "city": "Saltillo",
+            "state": "Coahuila de Zaragoza",
+            "zip": "22350"
+        },
+        {
+            "id": 52,
+            "company_name": "LEAR HERMOSILLO",
+            "city": "Hermosillo",
+            "state": "Sonora",
+            "zip": "83299"
+        },
+        {
+            "id": 53,
+            "company_name": "GRAMMER ESLOVENIA",
+            "city": "Celjska",
+            "state": "Slovenj Gradec",
+            "zip": "2380"
+        },
+        {
+            "id": 54,
+            "company_name": "ARD LOGISTICS",
+            "city": "Vance",
+            "state": "Alabama",
+            "zip": "35490"
+        },
+        {
+            "id": 55,
+            "company_name": "GRAMMER AUTOMOTIVE CZ S.R.O.",
+            "city": "Ceska Lipa",
+            "state": "Republika Srpska",
+            "zip": "47001"
+        },
+        {
+            "id": 56,
+            "company_name": "FEDEX",
+            "city": "Toluca",
+            "state": "Central",
+            "zip": "76120"
+        },
+        {
+            "id": 57,
+            "company_name": "GRAMMER SERBIA",
+            "city": "Aleksinas",
+            "state": "Southern District",
+            "zip": "18220"
+        },
+        {
+            "id": 58,
+            "company_name": "INTEGRAM WINDSOR SEATING",
+            "city": "Tecumsehq",
+            "state": "Ontario",
+            "zip": "12345"
+        },
+        {
+            "id": 59,
+            "company_name": "PALOS GARZA",
+            "city": "Nuevo Laredo",
+            "state": "Tamaulipas",
+            "zip": "88284"
+        },
+        {
+            "id": 60,
+            "company_name": "FEDEX AV ROSALES 103-B CENTRO",
+            "city": "Hermosillo",
+            "state": "Sonora",
+            "zip": "83000"
+        },
+        {
+            "id": 61,
+            "company_name": "BUREAU VERITAS",
+            "city": "Querétaro",
+            "state": "Querétaro de Arteaga",
+            "zip": "76150"
+        },
+        {
+            "id": 62,
+            "company_name": "DHL",
+            "city": "Querétaro",
+            "state": "Querétaro",
+            "zip": "76180"
+        }
+    ]
+}

@@ -15,6 +15,7 @@ require_once __DIR__ . '/dao/elements/daoCarrier.php';
 require_once __DIR__ . '/dao/elements/daoMeasures.php';
 require_once __DIR__ . '/dao/elements/daoProducts.php';
 require_once __DIR__ . '/dao/elements/daoStates.php';
+require_once __DIR__ . '/dao/elements/daoLocation.php';
 
 session_start();
 // Now you can use $_SESSION['user']
@@ -254,7 +255,7 @@ session_start();
                     <label for="CompanyNameShip" id="CompanyNameShip">Company Name</label>
                     <div>
                         <select name="CompanyShip" id="CompanyShip">
-                            <!-- Options will be added dynamically by JS -->
+                            <option value="" disabled selected>Select a company</option>
                         </select>
                     </div>
                 </div>
@@ -527,6 +528,33 @@ session_start();
                             alert('Error loading document');
                         }
                     });
+                });
+
+                $.ajax({
+                    url: 'https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php',
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.status === 'success' && Array.isArray(response.data)) {
+                            var $select = $('#CompanyShip');
+                            response.data.forEach(function(location) {
+                                $select.append(
+                                    $('<option>', {
+                                        value: location.id,
+                                        text: location.company_name
+                                    })
+                                );
+                            });
+                        }
+                    },
+                    error: function() {
+                        alert('Error loading company names');
+                    }
+                });
+                // Opcional: Si usas Select2
+                $('#CompanyShip').select2({
+                    placeholder: "Company Name",
+                    allowClear: true
                 });
             });
             </script>
