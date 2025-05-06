@@ -105,26 +105,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Comprueba si la orden está completamente aprobada.
             if (approvalStatus === null || approvalStatus >= requiredAuthLevel) { 
-                 falta = 'Completamente Aprobado';
+                 falta = 'Fully Approved';
                  // Si está rechazada, sobrescribe el mensaje.
                  if (statusName === "rechazado") { 
-                    falta = 'Orden Rechazada';
+                    falta = 'Order Rejected';
                  }
             // Comprueba si la orden está explícitamente rechazada (estado 99).
             } else if (approvalStatus === 99) {
-                 falta = 'Orden Rechazada';
+                 falta = 'Order Rejected';
             } else {
                 // Determina el siguiente aprobador requerido según el nivel actual.
                 switch (Number(approvalStatus)) {
-                    case 0: falta = 'Pendiente: Gerente Logística'; break;
-                    case 1: falta = 'Pendiente: Controlling'; break;
-                    case 2: falta = 'Pendiente: Gerente Planta'; break;
-                    case 3: falta = 'Pendiente: Gerente Senior Logística'; break;
-                    case 4: falta = 'Pendiente: Gerente Senior División Logística'; break;
-                    case 5: falta = 'Pendiente: SR VP Regional'; break;
-                    case 6: falta = 'Pendiente: Controlling División Regional'; break;
+                    case 0: falta = 'Pending: Logistics Manager'; break;
+                    case 1: falta = 'Pending: Controlling'; break;
+                    case 2: falta = 'Pending: Plant Manager'; break;
+                    case 3: falta = 'Pending: Senior Logistics Manager'; break;
+                    case 4: falta = 'Pending: Senior Division Logistics Manager'; break;
+                    case 5: falta = 'Pending: SR VP Regional'; break;
+                    case 6: falta = 'Pending: Regional Division Controlling'; break;
                     // Mensaje genérico si el estado no coincide con los casos anteriores.
-                    default: falta = `Pendiente: Nivel ${approvalStatus + 1}`; 
+                    default: falta = `Pending: Level ${approvalStatus + 1}`; 
                 }
             }
 
@@ -136,13 +136,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     <h6 class="card-subtitle mb-2 text-muted">CW: ${semana}</h6> <!-- Muestra el número de semana -->
                     <!-- Muestra la descripción (limitada a 3 líneas con ellipsis) -->
                     <p class="card-text flex-grow-1" style="overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">
-                        ${order.description || 'Sin descripción'} 
+                        ${order.description || 'No description'} 
                     </p>
                     <p class="card-p fw-bold">${falta}</p> <!-- Muestra el mensaje de estado de aprobación -->
                 </div>
                 <div class="card-footer bg-transparent border-0 text-center pb-3">
                      <!-- Botón para ver los detalles de la orden -->
-                     <button class="btn btn-primary ver-btn" data-order-id="${order.id}">Ver</button>
+                     <button class="btn btn-primary ver-btn" data-order-id="${order.id}">View</button>
                 </div>
             `;
             // Añade la tarjeta creada al contenedor principal.
@@ -163,8 +163,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // Muestra una alerta de carga mientras se prepara el modal.
                 Swal.fire({
-                    title: 'Cargando',
-                    html: 'Por favor espera mientras se carga el documento...',
+                    title: 'Loading',
+                    html: 'Please wait while the document is loading...',
                     timer: 1000, // Duración corta para feedback visual.
                     timerProgressBar: true,
                     didOpen: () => { Swal.showLoading(); }, // Muestra el icono de carga.
@@ -218,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: 'No se pudo cargar la previsualización del documento.',
+                        text: 'Could not load the document preview.',
                         customClass: { container: 'swal-on-top' }
                     });
                     // Oculta el modal si ocurre un error al cargar el SVG.
@@ -272,8 +272,8 @@ document.addEventListener('DOMContentLoaded', function () {
         try {
             // Muestra una alerta de progreso mientras se genera el PDF.
             Swal.fire({
-                title: 'Generando PDF',
-                html: 'Por favor espera mientras se procesa el documento...',
+                title: 'Generating PDF',
+                html: 'Please wait while the document is being processed...',
                 timerProgressBar: true,
                 didOpen: () => { Swal.showLoading(); },
                 allowOutsideClick: false,
@@ -293,8 +293,8 @@ document.addEventListener('DOMContentLoaded', function () {
             // Muestra un mensaje de éxito al usuario.
             Swal.fire({
                 icon: 'success',
-                title: '¡PDF Generado Exitosamente!',
-                html: `El archivo <b>${fileName}</b> se ha descargado correctamente.`,
+                title: 'PDF Generated Successfully!',
+                html: `The file <b>${fileName}</b> has been downloaded successfully.`,
                 confirmButtonText: 'OK',
                 customClass: { container: 'swal-on-top' }
             });
@@ -307,8 +307,8 @@ document.addEventListener('DOMContentLoaded', function () {
             // Muestra una alerta de error al usuario.
             Swal.fire({
                 icon: 'error',
-                title: 'Error al Generar PDF',
-                text: error.message || 'Ocurrió un error inesperado.',
+                title: 'Error Generating PDF',
+                text: error.message || 'An unexpected error occurred.',
                 confirmButtonText: 'OK',
                 customClass: { container: 'swal-on-top' }
             });
@@ -330,8 +330,8 @@ document.addEventListener('DOMContentLoaded', function () {
         try {
             // Muestra una alerta de procesamiento.
             Swal.fire({
-                title: 'Procesando...',
-                text: 'Actualizando estado de la orden',
+                title: 'Processing...',
+                text: 'Updating order status',
                 allowOutsideClick: false,
                 didOpen: () => { Swal.showLoading(); },
                 customClass: { container: 'swal-on-top' }
@@ -401,8 +401,8 @@ document.addEventListener('DOMContentLoaded', function () {
             // Muestra un mensaje de éxito al usuario.
             Swal.fire({
                 icon: 'success',
-                title: 'Orden Aprobada',
-                text: `La orden ${selectedOrder.id} ha sido aprobada para el siguiente nivel.`,
+                title: 'Order Approved',
+                text: `Order ${selectedOrder.id} has been approved for the next level.`,
                 confirmButtonText: 'OK',
                 customClass: { container: 'swal-on-top' }
             });
@@ -419,7 +419,7 @@ document.addEventListener('DOMContentLoaded', function () {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'No se pudo actualizar la orden: ' + error.message,
+                text: 'Could not update the order: ' + error.message,
                 confirmButtonText: 'OK',
                 customClass: { container: 'swal-on-top' }
             });
@@ -436,14 +436,14 @@ document.addEventListener('DOMContentLoaded', function () {
         try {
             // Muestra un diálogo de confirmación antes de rechazar.
             const confirmation = await Swal.fire({
-                title: '¿Estás seguro?',
-                text: `¿Realmente quieres rechazar la orden ${selectedOrderId}? Esta acción no se puede deshacer.`,
+                title: 'Are you sure?',
+                text: `Do you really want to reject order ${selectedOrderId}? This action cannot be undone.`,
                 icon: 'warning',
                 showCancelButton: true, // Muestra el botón de cancelar.
                 confirmButtonColor: '#d33', // Color rojo para el botón de confirmar (rechazar).
                 cancelButtonColor: '#3085d6', // Color azul para el botón de cancelar.
-                confirmButtonText: 'Sí, rechazarla',
-                cancelButtonText: 'Cancelar',
+                confirmButtonText: 'Yes, reject it',
+                cancelButtonText: 'Cancel',
                 customClass: { container: 'swal-on-top' } // Asegura que esté por encima.
             });
 
@@ -454,8 +454,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Muestra una alerta de procesamiento si el usuario confirma.
             Swal.fire({
-                title: 'Procesando...',
-                text: 'Rechazando la orden',
+                title: 'Processing...',
+                text: 'Rejecting order',
                 allowOutsideClick: false,
                 didOpen: () => { Swal.showLoading(); },
                 customClass: { container: 'swal-on-top' }
@@ -514,8 +514,8 @@ document.addEventListener('DOMContentLoaded', function () {
             // Muestra un mensaje de confirmación de rechazo.
             Swal.fire({
                 icon: 'error', // Usa icono de error/advertencia para rechazo.
-                title: 'Orden Rechazada',
-                text: `La orden ${selectedOrderId} ha sido rechazada exitosamente.`,
+                title: 'Order Rejected',
+                text: `Order ${selectedOrderId} has been successfully rejected.`,
                 confirmButtonText: 'OK',
                 customClass: { container: 'swal-on-top' }
             });
@@ -532,7 +532,7 @@ document.addEventListener('DOMContentLoaded', function () {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'No se pudo rechazar la orden: ' + error.message,
+                text: 'Could not reject the order: ' + error.message,
                 confirmButtonText: 'OK',
                 customClass: { container: 'swal-on-top' }
             });
