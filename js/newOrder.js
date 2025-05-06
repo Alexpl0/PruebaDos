@@ -10,6 +10,7 @@ function showCompanySelect() {
     $('#CompanyShip').select2({
         placeholder: "Buscar o agregar compañía",
         allowClear: true,
+        minimumInputLength: 1, // Empieza a buscar desde el primer carácter
         ajax: {
             url: 'https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php',
             dataType: 'json',
