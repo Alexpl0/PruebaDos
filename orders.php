@@ -100,24 +100,6 @@ $userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
     <!-- Modal -->
     <div id="myModal" class="modal">
       <div class="modal-content">
-        <span id="closeModal" class="close-button">&times;</span>
-        <div class="modal-buttons">
-            <button id="savePdfBtn" class="save-pdf-button">Save PDF</button>
-            <button id="approveBtn">Approve</button>
-            <button id="rejectBtn">Reject</button>
-        </div>
-        <div id="svgPreview" class="svg-frame"></div>
-      </div>
-    </div>
-
-    <!-- Scripts necesarios -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-    <script src="js/header.js"></script>
-    <script src="js/orders.js" type="module"></script>
-
     <!-- jQuery y Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
