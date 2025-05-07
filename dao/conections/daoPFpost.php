@@ -1,6 +1,11 @@
 <?php
 include_once('../db/db.php');
 
+// Enable detailed error reporting for debugging
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 // Establecer cabeceras para JSON
 header('Content-Type: application/json; charset=utf-8');
 
@@ -17,6 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // Obtener datos JSON del cuerpo de la solicitud
 $requestBody = file_get_contents('php://input');
 $data = json_decode($requestBody, true);
+
+// Log incoming data for debugging
+error_log("Incoming data: " . print_r($data, true));
 
 // Verificar si los datos se pudieron decodificar correctamente
 if ($data === null) {
@@ -69,6 +77,11 @@ foreach ($numericFields as $field) {
 try {
     $con = new LocalConector();
     $conex = $con->conectar();
+    
+    if (!$conex) {
+        throw new Exception("Database connection failed");
+    }
+    
     $conex->set_charset("utf8mb4");
 
     // Iniciar transacción para asegurar que ambas inserciones se ejecuten juntas
@@ -96,49 +109,75 @@ try {
     }
 
     // Obtener valor del usuario (usar 1 como valor predeterminado si no está definido)
-    $userId = isset($data['user_id']) ? $data['user_id'] : 1;
+    $userId = isset($data['user_id']) ? intval($data['user_id']) : 1;
     
     // Obtener valor del estado (usar 1 como valor predeterminado si no está definido)
-    $statusId = isset($data['status_id']) ? $data['status_id'] : 1;
+    $statusId = isset($data['status_id']) ? intval($data['status_id']) : 1;
     
     // Obtener el nivel de autorización requerido
-    $requiredAuthLevel = isset($data['required_auth_level']) ? $data['required_auth_level'] : 1;
+    $requiredAuthLevel = isset($data['required_auth_level']) ? intval($data['required_auth_level']) : 1;
     
-    // Asegurar que los valores decimales se formateen correctamente
+    // Asegurar que los valores numéricos son del tipo correcto
     $costEuros = floatval($data['cost_euros']);
     $quotedCost = floatval($data['quoted_cost']);
     $weight = floatval($data['weight']);
+    $originId = intval($data['origin_id']);
+    $destinyId = intval($data['destiny_id']);
+    
+    // Asegurar que las cadenas no exceden los límites de la base de datos
+    $date = substr($data['date'], 0, 30);
+    $planta = substr($data['planta'], 0, 100);
+    $codePlanta = substr($data['code_planta'], 0, 50);
+    $transport = substr($data['transport'], 0, 50);
+    $inOutBound = substr($data['in_out_bound'], 0, 50);
+    $description = substr($data['description'], 0, 500);
+    $area = substr($data['area'], 0, 100);
+    $intExt = substr($data['int_ext'], 0, 50);
+    $paidBy = substr($data['paid_by'], 0, 100);
+    $categoryCause = substr($data['category_cause'], 0, 100);
+    $projectStatus = substr($data['project_status'], 0, 100);
+    $recovery = substr($data['recovery'], 0, 100);
+    $measures = substr($data['measures'], 0, 100);
+    $products = substr($data['products'], 0, 100);
+    $carrier = substr($data['carrier'], 0, 100);
+    $reference = substr($data['reference'], 0, 100);
+    $referenceNumber = substr($data['reference_number'], 0, 100);
+    $moneda = substr($data['moneda'], 0, 10);
 
     // Vincular parámetros con los tipos de datos correctos
-    $stmt->bind_param(
+    $bindResult = $stmt->bind_param(
         "issssssssssssssssssssiiiis",
         $userId,
-        $data['date'],
-        $data['planta'],
-        $data['code_planta'],
-        $data['transport'],
-        $data['in_out_bound'],
+        $date,
+        $planta,
+        $codePlanta,
+        $transport,
+        $inOutBound,
         $costEuros,
-        $data['description'],
-        $data['area'],
-        $data['int_ext'],
-        $data['paid_by'],
-        $data['category_cause'],
-        $data['project_status'],
-        $data['recovery'],
+        $description,
+        $area,
+        $intExt,
+        $paidBy,
+        $categoryCause,
+        $projectStatus,
+        $recovery,
         $weight,
-        $data['measures'],
-        $data['products'],
-        $data['carrier'],
+        $measures,
+        $products,
+        $carrier,
         $quotedCost,
-        $data['reference'],
-        $data['reference_number'],
-        $data['origin_id'],
-        $data['destiny_id'],
+        $reference,
+        $referenceNumber,
+        $originId,
+        $destinyId,
         $statusId,
         $requiredAuthLevel,
-        $data['moneda']
+        $moneda
     );
+    
+    if (!$bindResult) {
+        throw new Exception("Error binding parameters: " . $stmt->error);
+    }
 
     // Ejecutar la consulta para PremiumFreight
     if (!$stmt->execute()) {
@@ -149,6 +188,12 @@ try {
     
     // Obtener el ID de la inserción de PremiumFreight
     $premiumFreightId = $stmt->insert_id;
+    
+    if (!$premiumFreightId) {
+        $conex->rollback();
+        throw new Exception("Failed to get last insert ID");
+    }
+    
     $stmt->close();
     
     // Ahora insertar en la tabla PremiumFreightApprovals
@@ -165,7 +210,16 @@ try {
     }
     
     // Vincular parámetros para la tabla de aprobaciones
-    $stmtApproval->bind_param("iii", $premiumFreightId, $userId, $statusId);
+    $bindApprovalResult = $stmtApproval->bind_param("iii", 
+        $premiumFreightId, 
+        $userId, 
+        $statusId
+    );
+    
+    if (!$bindApprovalResult) {
+        $conex->rollback();
+        throw new Exception("Error binding approval parameters: " . $stmtApproval->error);
+    }
     
     // Ejecutar la inserción en la tabla de aprobaciones
     if (!$stmtApproval->execute()) {
@@ -194,6 +248,10 @@ try {
         $conex->rollback();
         $conex->close();
     }
+    
+    // Log the detailed error for server-side debugging
+    error_log("PremiumFreight insertion error: " . $e->getMessage());
+    error_log("Stack trace: " . $e->getTraceAsString());
     
     http_response_code(500);
     echo json_encode([
