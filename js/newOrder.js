@@ -41,9 +41,9 @@ function showCompanySelect() {
                 // Si hay un término de búsqueda y no se encontraron resultados, agregar opción para crear nueva compañía
                 if (params.term && results.length === 0) {
                     results.push({
-                        id: "new:" + params.term,
+                        id: params.term, // Usar directamente el término, sin "new:" prefijo
                         text: `Agregar nueva compañía: "${params.term}"`,
-                        isNew: true
+                        isNew: true // Mantenemos esta propiedad para identificar que es nueva
                     });
                 }
                 
@@ -59,13 +59,11 @@ function showCompanySelect() {
         const data = e.params.data;
         if (data) {
             if (data.isNew) {
-                // Si es una nueva compañía, extraer el nombre del ID (después de "new:")
-                const companyName = data.id.substring(4); // Quita "new:"
+                // Si es una nueva compañía, usamos directamente el ID que ya contiene el nombre
+                const companyName = data.id;
                 
-                // Establecer el nombre en el campo y habilitar campos para edición
-                $('#CompanyShip').val(companyName).trigger('change');
-                
-                // Limpiar y habilitar los campos para edición
+                // Ya no necesitamos hacer trigger change ya que el valor ya está establecido
+                // Solo necesitamos limpiar y habilitar los demás campos
                 $('#inputCityShip').val('').prop('readonly', false);
                 $('#StatesShip').val('').prop('readonly', false);
                 $('#inputZipShip').val('').prop('readonly', false);
@@ -129,9 +127,9 @@ function showCompanyDestSelect() {
                 // Si hay un término de búsqueda y no se encontraron resultados, agregar opción para crear nueva compañía
                 if (params.term && results.length === 0) {
                     results.push({
-                        id: "new:" + params.term,
+                        id: params.term, // Usar directamente el término, sin "new:" prefijo
                         text: `Agregar nueva compañía: "${params.term}"`,
-                        isNew: true
+                        isNew: true // Mantenemos esta propiedad para identificar que es nueva
                     });
                 }
                 
@@ -147,13 +145,11 @@ function showCompanyDestSelect() {
         const data = e.params.data;
         if (data) {
             if (data.isNew) {
-                // Si es una nueva compañía, extraer el nombre del ID (después de "new:")
-                const companyName = data.id.substring(4); // Quita "new:"
+                // Si es una nueva compañía, usamos directamente el ID que ya contiene el nombre
+                const companyName = data.id;
                 
-                // Establecer el nombre en el campo y habilitar campos para edición
-                $('#inputCompanyNameDest').val(companyName).trigger('change');
-                
-                // Limpiar y habilitar los campos para edición
+                // Ya no necesitamos hacer trigger change ya que el valor ya está establecido
+                // Solo necesitamos limpiar y habilitar los demás campos
                 $('#inputCityDest').val('').prop('readonly', false);
                 $('#StatesDest').val('').prop('readonly', false);
                 $('#inputZipDest').val('').prop('readonly', false);
@@ -474,15 +470,7 @@ async function saveNewCompany(companyName, city, state, zip, isDestination = fal
             });
             
             // Actualizamos el select con el valor actual (ya que ahora existe en la BD)
-            if (isDestination) {
-                // Crear una nueva opción que no tenga el prefijo "new:"
-                const newOption = new Option(companyName, companyName, true, true);
-                $('#inputCompanyNameDest').append(newOption).trigger('change');
-            } else {
-                // Crear una nueva opción que no tenga el prefijo "new:"
-                const newOption = new Option(companyName, companyName, true, true);
-                $('#CompanyShip').append(newOption).trigger('change');
-            }
+            // No necesitamos hacer nada aquí, ya que el valor original se mantiene en el select
             
             return true;
         } else {
