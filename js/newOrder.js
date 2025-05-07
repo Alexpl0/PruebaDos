@@ -8,6 +8,11 @@ let range = 0; // Authorization range, declared with let
 // Function to initialize Select2 for CompanyShip with AJAX and add-new support
 
 function showCompanySelect() {
+    // Hacer que los campos de dirección no sean editables inicialmente
+    $('#inputCityShip').prop('readonly', true);
+    $('#StatesShip').prop('disabled', true);
+    $('#inputZipShip').prop('readonly', true);
+    
     $('#CompanyShip').select2({
         placeholder: "Buscar compañía",
         allowClear: true,
@@ -62,10 +67,23 @@ function showCompanySelect() {
             
             if (!stateFound) {
                 console.warn(`Estado "${data.state}" no encontrado en las opciones disponibles`);
+                // Opcionalmente, si tienes un campo de texto para el estado como alternativa:
+                // $('#StatesShip').val(data.state);
             }
             
             $('#inputZipShip').val(data.zip);
+            
+            // Los campos siguen siendo no editables para prevenir cambios manuales
+            // Si quieres permitir edición manual después de autocompletar, descomenta las líneas siguientes:
+            // $('#inputCityShip').prop('readonly', false);
+            // $('#StatesShip').prop('disabled', false);
+            // $('#inputZipShip').prop('readonly', false);
         }
+    }).on('select2:clear', function() {
+        // Si se limpia la selección de compañía, limpiar y desactivar los campos relacionados
+        $('#inputCityShip').val('').prop('readonly', true);
+        $('#StatesShip').val('').prop('disabled', true);
+        $('#inputZipShip').val('').prop('readonly', true);
     });
 }
 

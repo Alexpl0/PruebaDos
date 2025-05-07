@@ -243,9 +243,7 @@ session_start();
             </div>
                 <div id="DivStatesShip" class="mb-2">
                     <label for="StatesShip">States:</label>
-                    <select name="StatesShip" id="StatesShip" class="form-select">
-                        
-                    </select>
+                    <input type="text" id="StatesShip" class="form-control" placeholder="States">
                 </div>
 
                 <div id="DivZipShip" class="mb-2">
