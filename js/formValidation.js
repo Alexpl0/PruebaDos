@@ -139,3 +139,77 @@ async function processNewCompanies() {
         newCompanyIds: newCompanyIds
     };
 }
+
+// Función para validar exhaustivamente todos los campos del formulario
+function validateCompleteForm() {
+    // Agruparemos los campos por secciones para poder dar mensajes de error más específicos
+    const sections = {
+        "General Information": ['planta', 'codeplanta', 'transport', 'InOutBound'],
+        "Cost Information": ['QuotedCost'],
+        "Responsibility": ['Area', 'IntExt', 'PaidBy'],
+        "Project Details": ['CategoryCause', 'ProjectStatus', 'Recovery', 'Description'],
+        "Ship From": ['CompanyShip', 'inputCityShip', 'StatesShip', 'inputZipShip'],
+        "Destination": ['inputCompanyNameDest', 'inputCityDest', 'StatesDest', 'inputZipDest'],
+        "Shipment Details": ['Weight', 'Measures', 'Products', 'Carrier'],
+        "Reference Information": ['Reference', 'ReferenceNumber']
+    };
+
+    // Recolectar los datos del formulario utilizando la función existente
+    const { formData, emptyFields } = collectFormData();
+
+    // Si no hay campos vacíos, el formulario está completo
+    if (emptyFields.length === 0) {
+        return { isValid: true, formData };
+    }
+
+    // Identificar qué secciones tienen campos vacíos
+    const sectionsWithEmptyFields = {};
+    
+    for (const [sectionName, sectionFields] of Object.entries(sections)) {
+        const missingFields = sectionFields.filter(field => emptyFields.includes(field));
+        if (missingFields.length > 0) {
+            sectionsWithEmptyFields[sectionName] = missingFields;
+        }
+    }
+
+    // Crear un mensaje detallado para el usuario
+    let errorMessage = 'Please complete all required fields in the following sections:\n';
+    for (const [section, fields] of Object.entries(sectionsWithEmptyFields)) {
+        const fieldLabels = fields.map(fieldId => {
+            // Obtener etiquetas más amigables para los campos
+            const element = document.getElementById(fieldId);
+            if (element) {
+                const labelElement = document.querySelector(`label[for="${fieldId}"]`);
+                return labelElement ? labelElement.textContent : fieldId;
+            }
+            return fieldId;
+        });
+        
+        errorMessage += `\n• ${section}: ${fieldLabels.join(', ')}`;
+    }
+
+    // Verificar específicamente la validez de la moneda y del costo en euros
+    if (!selectedCurrency) {
+        errorMessage += '\n\n• Currency: Please select a currency (MXN or USD)';
+    }
+    
+    if (euros <= 0 && !emptyFields.includes('QuotedCost')) {
+        errorMessage += '\n\n• Exchange Rate: Could not calculate cost in Euros. Please check your internet connection or try again later.';
+    }
+
+    // Verificar si los campos numéricos tienen valores válidos
+    if (formData['QuotedCost'] && isNaN(parseFloat(formData['QuotedCost']))) {
+        errorMessage += '\n\n• Quoted Cost: Please enter a valid number';
+    }
+    
+    if (formData['Weight'] && isNaN(parseFloat(formData['Weight']))) {
+        errorMessage += '\n\n• Weight: Please enter a valid number';
+    }
+
+    return {
+        isValid: false,
+        errorMessage,
+        sectionsWithEmptyFields,
+        formData
+    };
+}

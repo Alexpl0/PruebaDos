@@ -8,20 +8,22 @@ let range = 0; // Rango de autorización, se declara con let para poder modifica
 async function submitForm(event) {
     event.preventDefault(); // Previene el comportamiento por defecto del formulario (que recargaría la página).
 
-    // Obtiene los datos del formulario y los campos vacíos desde el módulo de validación.
-    // Se asume que collectFormData() está definido en formValidation.js y devuelve un objeto con formData y emptyFields.
-    const { formData, emptyFields } = collectFormData();
+    // Usar la nueva función de validación completa que ofrece más detalles
+    const validationResult = validateCompleteForm();
 
-    // Valida los campos requeridos.
-    // Si hay campos vacíos, muestra una alerta y detiene el envío.
-    if (emptyFields.length > 0) {
+    // Si la validación falla, muestra el mensaje detallado y detiene el envío
+    if (!validationResult.isValid) {
         Swal.fire({
             icon: 'warning',
-            title: 'Missing Information', // Título de la alerta en inglés.
-            text: 'Please complete all required fields: ' + emptyFields.join(', ') // Mensaje de la alerta en inglés.
+            title: 'Missing Information',
+            html: validationResult.errorMessage.replace(/\n/g, '<br>'),
+            confirmButtonText: 'Complete Form'
         });
-        return; // Detiene la ejecución de la función si hay campos vacíos.
+        return;
     }
+
+    // Extraer los datos validados del formulario
+    const formData = validationResult.formData;
 
     // Process any new companies first
     const processResult = await processNewCompanies();
@@ -31,28 +33,16 @@ async function submitForm(event) {
     }
 
     //==========================================================================================
-    // Valida y calcula el rango de autorización basado en el costo cotizado.
-    const quotedCost = parseFloat(formData['QuotedCost']); // Convierte el costo cotizado a un número flotante.
-
-    // Verifica si el costo cotizado no es un número (NaN - Not a Number).
-    if (isNaN(quotedCost)) {
-         Swal.fire({
-            icon: 'warning',
-            title: 'Invalid Cost', // Título de la alerta en inglés.
-            text: 'The "Quoted Cost" field must contain a valid number.' // Mensaje de la alerta en inglés.
-        });
-        return; // Detiene la ejecución si el costo no es válido.
-    }
-
     // Calcula el rango de autorización utilizando la función auxiliar.
+    const quotedCost = parseFloat(formData['QuotedCost']);
     range = calculateAuthorizationRange(quotedCost);
-    console.log("Rango de Autorización Calculado:", range); // Muestra el rango calculado en la consola.
+    console.log("Rango de Autorización Calculado:", range);
 
     //==========================================================================================
     // Prepara el objeto 'payload' (carga útil) con los datos que se enviarán a la API del backend.
     const payload = {
         user_id: 1, // TODO: Reemplazar con el ID del usuario autenticado.
-        date: new Date().toISOString().slice(0, 19).replace('T', ' '), // Obtiene la fecha y hora actual en formato MySQL DATETIME.
+        date: new Date().toISOString().slice(0, 19).replace('T', ' '),
         planta: formData['planta'],
         code_planta: formData['codeplanta'],
         transport: formData['transport'],
@@ -69,21 +59,23 @@ async function submitForm(event) {
         measures: formData['Measures'],
         products: formData['Products'],
         carrier: formData['Carrier'],
-        quoted_cost: quotedCost, // Costo cotizado como número.
+        quoted_cost: quotedCost,
         reference: formData['Reference'],
         reference_number: formData['ReferenceNumber'],
-        origin_id: processResult.newCompanyIds.origin_id || formData['origin_id'], // Use the new company IDs if available, otherwise fall back to existing values
-        destiny_id: processResult.newCompanyIds.destiny_id || formData['destiny_id'], // Use the new company IDs if available, otherwise fall back to existing values
-        status_id: 1, // Estado por defecto para nuevas entradas (ej. "Pendiente").
-        required_auth_level: range, // Nivel de autorización requerido, calculado previamente.
-        moneda: getSelectedCurrency() // Use the getter function instead of direct variable access
+        origin_id: processResult.newCompanyIds.origin_id || formData['origin_id'],
+        destiny_id: processResult.newCompanyIds.destiny_id || formData['destiny_id'],
+        status_id: 1,
+        required_auth_level: range,
+        moneda: getSelectedCurrency()
     };
 
-    // Muestra los datos que se enviarán al backend en la consola, en formato JSON legible.
-    console.log("Datos para enviar al backend:", JSON.stringify(payload, null, 2));
-
-    // Add a console log before sending the data to verify currency is correct
+    // Log para verificar que todos los datos estén correctos
+    console.log("Datos completos validados para envío:", JSON.stringify(payload, null, 2));
     console.log("Selected currency:", getSelectedCurrency());
+    console.log("Company IDs:", {
+        origin: payload.origin_id,
+        destiny: payload.destiny_id
+    });
 
     // Send the data to the backend
     sendFormData(payload);
