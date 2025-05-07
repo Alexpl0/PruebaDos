@@ -1,40 +1,121 @@
 <?php
-
 include_once('../db/db.php');
 
-// Recibe el JSON enviado por POST
-$input = file_get_contents('php://input');
-$data = json_decode($input, true);
+// Establecer cabeceras para JSON
+header('Content-Type: application/json; charset=utf-8');
 
-if (!$data) {
-    http_response_code(400);
+// Verificar si es una solicitud POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405); // Method Not Allowed
     echo json_encode([
         "success" => false,
-        "message" => "Datos JSON inválidos"
+        "message" => "Method not allowed. Use POST."
     ]);
     exit;
+}
+
+// Obtener datos JSON del cuerpo de la solicitud
+$requestBody = file_get_contents('php://input');
+$data = json_decode($requestBody, true);
+
+// Verificar si los datos se pudieron decodificar correctamente
+if ($data === null) {
+    http_response_code(400); // Bad Request
+    echo json_encode([
+        "success" => false,
+        "message" => "Invalid JSON data provided."
+    ]);
+    exit;
+}
+
+// Validar campos obligatorios
+$requiredFields = [
+    'planta', 'code_planta', 'transport', 'in_out_bound', 'cost_euros',
+    'description', 'area', 'int_ext', 'paid_by', 'category_cause',
+    'project_status', 'recovery', 'weight', 'measures', 'products',
+    'carrier', 'quoted_cost', 'reference', 'reference_number',
+    'origin_id', 'destiny_id', 'moneda'
+];
+
+$missingFields = [];
+foreach ($requiredFields as $field) {
+    if (!isset($data[$field]) || (is_string($data[$field]) && trim($data[$field]) === '')) {
+        $missingFields[] = $field;
+    }
+}
+
+if (!empty($missingFields)) {
+    http_response_code(400); // Bad Request
+    echo json_encode([
+        "success" => false,
+        "message" => "Missing required fields: " . implode(', ', $missingFields)
+    ]);
+    exit;
+}
+
+// Validar que los campos numéricos tengan valores válidos
+$numericFields = ['cost_euros', 'weight', 'quoted_cost'];
+foreach ($numericFields as $field) {
+    if (isset($data[$field]) && !is_numeric($data[$field])) {
+        http_response_code(400);
+        echo json_encode([
+            "success" => false,
+            "message" => "Field '$field' must be a valid number."
+        ]);
+        exit;
+    }
 }
 
 try {
     $con = new LocalConector();
     $conex = $con->conectar();
+    $conex->set_charset("utf8mb4");
 
-    $stmt = $conex->prepare(
-        "INSERT INTO `PremiumFreight` (
-            user_id, date, planta, code_planta, transport, in_out_bound, cost_euros, description, area, int_ext, paid_by, category_cause, project_status, recovery, weight, measures, products, carrier, quoted_cost, reference, reference_number, origin_id, destiny_id
-        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
-    );
+    // Preparar la consulta SQL
+    $sql = "INSERT INTO ShipmentDetails (
+                user_id, date, planta, code_planta, transport, in_out_bound,
+                cost_euros, description, area, int_ext, paid_by, category_cause,
+                project_status, recovery, weight, measures, products,
+                carrier, quoted_cost, reference, reference_number,
+                origin_id, destiny_id, status_id, required_auth_level, moneda
+            ) VALUES (
+                ?, ?, ?, ?, ?, ?,
+                ?, ?, ?, ?, ?, ?,
+                ?, ?, ?, ?, ?,
+                ?, ?, ?, ?,
+                ?, ?, ?, ?, ?
+            )";
 
-    // Todos los campos menos user_id (int) y weight, quoted_cost (pueden ser numéricos, pero si llegan como string está bien si la columna es VARCHAR)
+    $stmt = $conex->prepare($sql);
+
+    if (!$stmt) {
+        throw new Exception("Error preparing statement: " . $conex->error);
+    }
+
+    // Obtener valor del usuario (usar 1 como valor predeterminado si no está definido)
+    $userId = isset($data['user_id']) ? $data['user_id'] : 1;
+    
+    // Obtener valor del estado (usar 1 como valor predeterminado si no está definido)
+    $statusId = isset($data['status_id']) ? $data['status_id'] : 1;
+    
+    // Obtener el nivel de autorización requerido
+    $requiredAuthLevel = isset($data['required_auth_level']) ? $data['required_auth_level'] : 1;
+    
+    // Asegurar que los valores decimales se formateen correctamente
+    $costEuros = floatval($data['cost_euros']);
+    $quotedCost = floatval($data['quoted_cost']);
+    $weight = floatval($data['weight']);
+
+    // Vincular parámetros con los tipos de datos correctos
     $stmt->bind_param(
-        "issssssssssssssssssssss",
-        $data['user_id'],
+        "issssssssssssssssssssiiiis",
+        $userId,
         $data['date'],
         $data['planta'],
         $data['code_planta'],
         $data['transport'],
         $data['in_out_bound'],
-        $data['cost_euros'],
+        $costEuros,
         $data['description'],
         $data['area'],
         $data['int_ext'],
@@ -42,39 +123,41 @@ try {
         $data['category_cause'],
         $data['project_status'],
         $data['recovery'],
-        $data['weight'],
+        $weight,
         $data['measures'],
         $data['products'],
         $data['carrier'],
-        $data['quoted_cost'],
+        $quotedCost,
         $data['reference'],
         $data['reference_number'],
         $data['origin_id'],
-        $data['destiny_id']
+        $data['destiny_id'],
+        $statusId,
+        $requiredAuthLevel,
+        $data['moneda']
     );
 
-    $stmt->execute();
-
-    if ($stmt->affected_rows > 0) {
+    // Ejecutar la consulta
+    if ($stmt->execute()) {
+        $shipmentId = $stmt->insert_id;
+        
+        // Cerrar la declaración y la conexión
+        $stmt->close();
+        $conex->close();
+        
         echo json_encode([
             "success" => true,
-            "message" => "Insert exitoso"
+            "message" => "Special freight order created successfully.",
+            "shipment_id" => $shipmentId
         ]);
     } else {
-        echo json_encode([
-            "success" => false,
-            "message" => "No se pudo insertar el registro"
-        ]);
+        throw new Exception("Error executing statement: " . $stmt->error);
     }
-
-    $stmt->close();
-    $conex->close();
-
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode([
         "success" => false,
-        "mensaje" => $e->getMessage()
+        "message" => "Database error: " . $e->getMessage()
     ]);
 }
 ?>

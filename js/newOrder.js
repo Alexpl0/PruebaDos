@@ -47,7 +47,7 @@ async function submitForm(event) {
         code_planta: formData['codeplanta'],
         transport: formData['transport'],
         in_out_bound: formData['InOutBound'],
-        cost_euros: euros, // Use the numeric value, not the formatted string
+        cost_euros: (typeof euros === 'number' && !isNaN(euros)) ? euros : 0, // Use the numeric value, not the formatted string
         description: formData['Description'],
         area: formData['Area'],
         int_ext: formData['IntExt'],
@@ -62,12 +62,34 @@ async function submitForm(event) {
         quoted_cost: quotedCost,
         reference: formData['Reference'],
         reference_number: formData['ReferenceNumber'],
-        origin_id: processResult.newCompanyIds.origin_id || formData['origin_id'],
-        destiny_id: processResult.newCompanyIds.destiny_id || formData['destiny_id'],
+        origin_id: processResult.newCompanyIds.origin_id || formData['origin_id'] || null,
+        destiny_id: processResult.newCompanyIds.destiny_id || formData['destiny_id'] || null,
         status_id: 1,
         required_auth_level: range,
         moneda: getSelectedCurrency()
     };
+
+    // Verificar campos críticos
+    if (!payload.origin_id || !payload.destiny_id) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Company Information Missing',
+            text: 'Please select or create valid companies for origin and destination.'
+        });
+        return;
+    }
+
+    if (!payload.cost_euros || payload.cost_euros <= 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Currency Conversion Issue',
+            text: 'There was a problem calculating the cost in Euros. Please check your connection and try again.'
+        });
+        return;
+    }
+
+    // Log completo para debugging
+    console.log("Final payload being sent:", payload);
 
     // Log para verificar que todos los datos estén correctos
     console.log("Datos completos validados para envío:", JSON.stringify(payload, null, 2));
@@ -77,7 +99,7 @@ async function submitForm(event) {
         destiny: payload.destiny_id
     });
 
-    // Send the data to the backend
+    // Si todo está bien, enviar los datos
     sendFormData(payload);
 }
 
