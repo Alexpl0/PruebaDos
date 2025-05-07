@@ -420,10 +420,10 @@ session_start();
             //     placeholder: 'Select States',
             //     allowClear: true
             // });
-            $('#StatesDest').select2({
-                placeholder: 'Select States',
-                allowClear: true
-            });
+            // $('#StatesDest').select2({
+            //     placeholder: 'Select States',
+            //     allowClear: true
+            // });
             $('#Products').select2({
                 placeholder: 'Select Products',
                 allowClear: true
