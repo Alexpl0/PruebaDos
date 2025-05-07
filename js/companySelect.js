@@ -63,6 +63,7 @@ function showCompanySelect() {
         }
     }).on('select2:select', function(e) { // Evento que se dispara cuando se selecciona una opción.
         const data = e.params.data; // Obtiene los datos de la opción seleccionada.
+        console.log("Company selected:", e.params.data);
         if (data) {
             if (data.isNew) { // Si la opción seleccionada es para agregar una nueva compañía.
                 const companyName = data.id; // El nombre de la compañía es el ID que se estableció.
@@ -86,12 +87,19 @@ function showCompanySelect() {
                 $('#inputZipShip').prop('readonly', false);
             }
         }
+        // If this is an existing company (not a new one)
+        if (!data.isNew && data.id) {
+            // Store the ID in a data attribute for later use
+            $(this).data('selected-id', parseInt(data.id, 10));
+            console.log("Selected origin company ID:", parseInt(data.id, 10));
+        }
     }).on('select2:clear', function() { // Evento que se dispara cuando se borra la selección.
         // Limpia los campos de dirección y los vuelve a poner como de solo lectura.
         $('#inputCityShip').val('').prop('readonly', true);
         $('#StatesShip').val('').prop('readonly', true);
         $('#inputZipShip').val('').prop('readonly', true);
     });
+    console.log("CompanyShip select initialized");
 }
 
 //==========================================================================================
@@ -145,6 +153,7 @@ function showCompanyDestSelect() {
         }
     }).on('select2:select', function(e) { // Evento al seleccionar una opción.
         const data = e.params.data;
+        console.log("Company selected:", e.params.data);
         if (data) {
             if (data.isNew) { // Si es una nueva compañía.
                 const companyName = data.id;
@@ -166,12 +175,19 @@ function showCompanyDestSelect() {
                 $('#inputZipDest').prop('readonly', false);
             }
         }
+        // If this is an existing company (not a new one)
+        if (!data.isNew && data.id) {
+            // Store the ID in a data attribute for later use
+            $(this).data('selected-id', parseInt(data.id, 10));
+            console.log("Selected destination company ID:", parseInt(data.id, 10));
+        }
     }).on('select2:clear', function() { // Evento al borrar la selección.
         // Limpiar y deshabilitar (solo lectura) campos de dirección de destino.
         $('#inputCityDest').val('').prop('readonly', true);
         $('#StatesDest').val('').prop('readonly', true);
         $('#inputZipDest').val('').prop('readonly', true);
     });
+    console.log("inputCompanyNameDest select initialized");
 }
 
 //==========================================================================================

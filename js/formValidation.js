@@ -59,18 +59,28 @@ function collectFormData() {
 
     // After collecting all form fields, specifically get company IDs using Select2
     if (typeof $ !== 'undefined' && $.fn.select2) {
-        // Get company IDs from Select2
-        const originCompany = $('#CompanyShip');
-        const destCompany = $('#inputCompanyNameDest');
-        
-        if (originCompany.length) {
-            formData['origin_id'] = originCompany.val();
-            formData['CompanyShipName'] = originCompany.find('option:selected').text();
+        // Get origin company ID
+        const originSelect = $('#CompanyShip');
+        console.log("Raw Select2 origin data:", originSelect.select2('data')[0]);
+        if (originSelect.length && originSelect.select2('data')[0]) {
+            const originData = originSelect.select2('data')[0];
+            if (originData.id) {
+                // Make sure we're storing the numeric ID, not the text
+                formData['origin_id'] = parseInt(originData.id, 10);
+                console.log("Origin company ID captured:", formData['origin_id']);
+            }
         }
         
-        if (destCompany.length) {
-            formData['destiny_id'] = destCompany.val();
-            formData['CompanyDestName'] = destCompany.find('option:selected').text();
+        // Get destination company ID
+        const destSelect = $('#inputCompanyNameDest');
+        console.log("Raw Select2 destination data:", destSelect.select2('data')[0]);
+        if (destSelect.length && destSelect.select2('data')[0]) {
+            const destData = destSelect.select2('data')[0];
+            if (destData.id) {
+                // Make sure we're storing the numeric ID, not the text
+                formData['destiny_id'] = parseInt(destData.id, 10);
+                console.log("Destination company ID captured:", formData['destiny_id']);
+            }
         }
     }
 

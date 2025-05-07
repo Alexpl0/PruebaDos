@@ -32,6 +32,17 @@ async function submitForm(event) {
         return;
     }
 
+    // Add this before creating the payload
+    const companyValidation = validateCompanyIds();
+    if (!companyValidation.valid) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Company Selection Required',
+            text: 'Please select valid companies for both origin and destination.'
+        });
+        return;
+    }
+
     //==========================================================================================
     // Calcula el rango de autorización utilizando la función auxiliar.
     const quotedCost = parseFloat(formData['QuotedCost']);
@@ -61,10 +72,8 @@ async function submitForm(event) {
         quoted_cost: quotedCost,
         reference: formData['Reference'],
         reference_number: formData['ReferenceNumber'],
-        origin_id: processResult.newCompanyIds.origin_id || 
-                   (formData['origin_id'] ? parseInt(formData['origin_id'], 10) : null),
-        destiny_id: processResult.newCompanyIds.destiny_id || 
-                    (formData['destiny_id'] ? parseInt(formData['destiny_id'], 10) : null),
+        origin_id: processResult.newCompanyIds.origin_id || companyValidation.originId,
+        destiny_id: processResult.newCompanyIds.destiny_id || companyValidation.destinyId,
         status_id: 1,
         required_auth_level: range,
         moneda: getSelectedCurrency()
@@ -95,6 +104,9 @@ async function submitForm(event) {
     // Log para verificar que todos los datos estén correctos
     console.log("Datos completos validados para envío:", JSON.stringify(payload, null, 2));
     
+    // Add more detailed logging for debugging
+    console.log("Origin ID type:", typeof payload.origin_id, "Value:", payload.origin_id);
+    console.log("Destiny ID type:", typeof payload.destiny_id, "Value:", payload.destiny_id);
 
     // Si todo está bien, enviar los datos
     sendFormData(payload);
@@ -172,6 +184,26 @@ function calculateAuthorizationRange(quotedCost) {
         console.warn("No se pudo determinar el rango de autorización para el costo:", quotedCost);
         return 0; // Valor por defecto o para indicar un error.
     }
+}
+
+// Add this function
+function validateCompanyIds() {
+    // Get the selected company IDs from the Select2 elements
+    const originCompanyId = $('#CompanyShip').data('selected-id') || 
+                           ($('#CompanyShip').select2('data')[0] ? 
+                            parseInt($('#CompanyShip').select2('data')[0].id, 10) : null);
+    
+    const destCompanyId = $('#inputCompanyNameDest').data('selected-id') || 
+                          ($('#inputCompanyNameDest').select2('data')[0] ? 
+                           parseInt($('#inputCompanyNameDest').select2('data')[0].id, 10) : null);
+    
+    console.log("Validating company IDs - Origin:", originCompanyId, "Destination:", destCompanyId);
+    
+    return {
+        valid: Boolean(originCompanyId && destCompanyId),
+        originId: originCompanyId,
+        destinyId: destCompanyId
+    };
 }
 
 //==========================================================================================
