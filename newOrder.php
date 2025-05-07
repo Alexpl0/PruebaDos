@@ -366,6 +366,9 @@ session_start();
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="js/header.js"></script>
+    <script src="js/formValidation.js"></script>
+    <script src="js/companySelect.js"></script>
+    <script src="js/currencyUtils.js"></script>
     <script src="js/newOrder.js"></script>
     <script src="js/createPDF.js"></script>
 
@@ -446,15 +449,3 @@ session_start();
     </script>
 </body>
 </html>
-
-
-
-<!-- <?php if (!empty($jsonStates)): ?>
-                            <?php foreach ($jsonStates as $StatesShip): ?>
-                                <option value="<?php echo htmlspecialchars($StatesShip['ID']); ?>">
-                                    <?php echo htmlspecialchars($StatesShip['estadonombre']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <option value="" disabled>No data found, jsonStates empty</option>
-                        <?php endif; ?> -->

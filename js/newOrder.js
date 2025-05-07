@@ -1,355 +1,56 @@
 //==========================================================================================
-// Global variables
-let euros = 0;
-let selectedCurrency = "MXN"; // Default currency
-let range = 0; // Authorization range, declared with let
+// Variables globales
+let range = 0; // Rango de autorización, se declara con let para poder modificar su valor.
 
 //==========================================================================================
-// Function to initialize Select2 for CompanyShip with AJAX and add-new support
-
-function showCompanySelect() {
-    // Make address fields readonly initially
-    $('#inputCityShip').prop('readonly', true);
-    $('#StatesShip').prop('readonly', true); // Changed from 'disabled' to 'readonly' as it's a text input
-    $('#inputZipShip').prop('readonly', true);
-    
-    $('#CompanyShip').select2({
-        placeholder: "Search company",
-        allowClear: true,
-        minimumInputLength: 0, // Allows searching from the beginning without typing characters
-        ajax: {
-            url: 'https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php',
-            dataType: 'json',
-            delay: 250,
-            data: function (params) {
-                return { q: params.term || '' }; // Send search term (can be empty)
-            },
-            processResults: function (data, params) {
-                if (!data || !Array.isArray(data.data)) {
-                    console.error("Data from server is not in the expected format or data.data is missing/not an array:", data);
-                    return { results: [] };
-                }
-                const results = data.data.map(company => ({
-                    id: company.company_name,
-                    text: company.company_name,
-                    // Store all company data for later use
-                    city: company.city, 
-                    state: company.state,
-                    zip: company.zip
-                }));
-                
-                // If there's a search term and no results found, add option to create new company
-                if (params.term && results.length === 0) {
-                    results.push({
-                        id: params.term, // Use the term directly without "new:" prefix
-                        text: `Add new company: "${params.term}"`,
-                        isNew: true // Keep this property to identify it's new
-                    });
-                }
-                
-                return { results };
-            },
-            cache: true,
-            error: function(jqXHR, textStatus, errorThrown) {
-                console.error("AJAX Error for CompanyShip:", textStatus, errorThrown, jqXHR.responseText);
-            }
-        }
-    }).on('select2:select', function(e) {
-        // When a company is selected, auto-fill the fields
-        const data = e.params.data;
-        if (data) {
-            if (data.isNew) {
-                // If it's a new company, use the ID directly which already contains the name
-                const companyName = data.id;
-                
-                // No need to trigger change as the value is already set
-                // Just clear and enable the other fields
-                $('#inputCityShip').val('').prop('readonly', false);
-                $('#StatesShip').val('').prop('readonly', false);
-                $('#inputZipShip').val('').prop('readonly', false);
-                
-                // Optional: focus on the next field to make data entry easier
-                $('#inputCityShip').focus();
-            } else {
-                // Fill related fields with existing data
-                $('#inputCityShip').val(data.city);
-                $('#StatesShip').val(data.state);
-                $('#inputZipShip').val(data.zip);
-                
-                // Make fields editable after auto-filling
-                $('#inputCityShip').prop('readonly', false);
-                $('#StatesShip').prop('readonly', false); 
-                $('#inputZipShip').prop('readonly', false);
-            }
-        }
-    }).on('select2:clear', function() {
-        // If company selection is cleared, clear and disable related fields
-        $('#inputCityShip').val('').prop('readonly', true);
-        $('#StatesShip').val('').prop('readonly', true);
-        $('#inputZipShip').val('').prop('readonly', true);
-    });
-}
-
-//==========================================================================================
-// Function to initialize Select2 for CompanyDest with AJAX and add-new support
-
-function showCompanyDestSelect() {
-    // Make address fields readonly initially
-    $('#inputCityDest').prop('readonly', true);
-    $('#StatesDest').prop('readonly', true); // Text input, use readonly
-    $('#inputZipDest').prop('readonly', true);
-    
-    $('#inputCompanyNameDest').select2({
-        placeholder: "Search destination company",
-        allowClear: true,
-        minimumInputLength: 0, // Allows searching from the beginning without typing characters
-        ajax: {
-            url: 'https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php',
-            dataType: 'json',
-            delay: 250,
-            data: function (params) {
-                return { q: params.term || '' }; // Send search term (can be empty)
-            },
-            processResults: function (data, params) {
-                if (!data || !Array.isArray(data.data)) {
-                    console.error("Data from server is not in the expected format or data.data is missing/not an array:", data);
-                    return { results: [] };
-                }
-                const results = data.data.map(company => ({
-                    id: company.company_name,
-                    text: company.company_name,
-                    // Store all company data for later use
-                    city: company.city, 
-                    state: company.state,
-                    zip: company.zip
-                }));
-                
-                // If there's a search term and no results found, add option to create new company
-                if (params.term && results.length === 0) {
-                    results.push({
-                        id: params.term, // Use the term directly without "new:" prefix
-                        text: `Add new company: "${params.term}"`,
-                        isNew: true // Keep this property to identify it's new
-                    });
-                }
-                
-                return { results };
-            },
-            cache: true,
-            error: function(jqXHR, textStatus, errorThrown) {
-                console.error("AJAX Error for CompanyDest:", textStatus, errorThrown, jqXHR.responseText);
-            }
-        }
-    }).on('select2:select', function(e) {
-        // When a company is selected, auto-fill the fields
-        const data = e.params.data;
-        if (data) {
-            if (data.isNew) {
-                // If it's a new company, use the ID directly which already contains the name
-                const companyName = data.id;
-                
-                // No need to trigger change as the value is already set
-                // Just clear and enable the other fields
-                $('#inputCityDest').val('').prop('readonly', false);
-                $('#StatesDest').val('').prop('readonly', false);
-                $('#inputZipDest').val('').prop('readonly', false);
-                
-                // Optional: focus on the next field to make data entry easier
-                $('#inputCityDest').focus();
-            } else {
-                // Fill related fields with existing data
-                $('#inputCityDest').val(data.city);
-                $('#StatesDest').val(data.state);
-                $('#inputZipDest').val(data.zip);
-                
-                // Make fields editable after auto-filling
-                $('#inputCityDest').prop('readonly', false);
-                $('#StatesDest').prop('readonly', false);
-                $('#inputZipDest').prop('readonly', false);
-            }
-        }
-    }).on('select2:clear', function() {
-        // If company selection is cleared, clear and disable related fields
-        $('#inputCityDest').val('').prop('readonly', true);
-        $('#StatesDest').val('').prop('readonly', true);
-        $('#inputZipDest').val('').prop('readonly', true);
-    });
-}
-
-//==========================================================================================
-// Function to get the exchange rate from the API
-async function getExchangeRate(baseCurrency) {
-    // Use EUR as the base for conversion to EUR, request the rate for the baseCurrency
-    const url = `https://api.frankfurter.app/latest?from=${baseCurrency}&to=EUR`;
-
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        console.log("Exchange rate data obtained from API:", data);
-
-        if (data && data.rates && typeof data.rates.EUR === 'number') {
-            return data.rates.EUR;
-        } else {
-            console.error('Unexpected API response format:', data);
-            return null;
-        }
-    } catch (error) {
-        console.error('Error getting exchange rate:', error);
-        return null;
-    }
-}
-
-//==========================================================================================
-// Function to calculate and display the cost in Euros
-async function calculateEuros(currency) {
-    const quotedCostInput = document.getElementById('QuotedCost');
-    const costEurosElement = document.getElementById('CostoEuros'); // Input field for Euros
-
-    if (!quotedCostInput || !costEurosElement) {
-        console.error("Required input elements ('QuotedCost' or 'CostoEuros') not found.");
-        return;
-    }
-
-    const value = parseFloat(quotedCostInput.value);
-
-    if (!quotedCostInput.value || isNaN(value) || value <= 0) {
-        costEurosElement.value = "Enter a valid cost";
-        console.log("Invalid cost value entered:", quotedCostInput.value);
-        euros = 0; // Reset euros value
-        return;
-    }
-
-    if (currency === 'EUR') {
-        euros = value; // If the input is already EUR, no conversion needed
-        costEurosElement.value = euros.toLocaleString('en-US', { style: 'currency', currency: 'EUR' });
-        console.log("Cost is already in Euros:", euros);
-        return;
-    }
-
-    const exchangeRate = await getExchangeRate(currency);
-    if (exchangeRate === null) { // Check for null specifically
-        costEurosElement.value = "Could not get exchange rate";
-        console.log("Failed to retrieve exchange rate.");
-        euros = 0; // Reset euros value
-        return;
-    }
-
-    euros = value * exchangeRate;
-    costEurosElement.value = euros.toLocaleString('en-US', { style: 'currency', currency: 'EUR' });
-    console.log("Calculated Cost in Euros:", euros);
-    console.log("Exchange rate used:", exchangeRate);
-    console.log("Entered value:", value);
-    console.log("Selected currency:", currency);
-    console.log("Formatted Cost in Euros:", costEurosElement.value);
-}
-
-
-//==========================================================================================
-// Function to validate and submit the form data
+// Función para validar y enviar los datos del formulario.
+// Se activa cuando se hace clic en el botón de envío.
 function submitForm(event) {
-    event.preventDefault(); // Prevent default form submission
+    event.preventDefault(); // Previene el comportamiento por defecto del formulario (que recargaría la página).
 
-    // List of form field IDs
-    const fields = [
-        'planta', 'codeplanta', 'transport', 'InOutBound', 'CostoEuros', 'Description',
-        'Area', 'IntExt', 'PaidBy', 'CategoryCause', 'ProjectStatus', 'Recovery',
-        'Weight', 'Measures', 'Products', 'Carrier', 'QuotedCost', 'Reference', 'ReferenceNumber',
-        'CompanyShip', 'inputCityShip', 'StatesShip', 'inputZipShip',
-        'inputCompanyNameDest', 'inputCityDest', 'StatesDest', 'inputZipDest'
-    ];
+    // Obtiene los datos del formulario y los campos vacíos desde el módulo de validación.
+    // Se asume que collectFormData() está definido en formValidation.js y devuelve un objeto con formData y emptyFields.
+    const { formData, emptyFields } = collectFormData();
 
-    // List of select field IDs where the visible text should be sent
-    const textFields = [
-        'planta', 'codeplanta', 'transport', 'InOutBound', 'Area', 'IntExt', 'PaidBy',
-        'CategoryCause', 'ProjectStatus', 'Recovery', 'Carrier',
-        'CompanyShip', 'inputCompanyNameDest', 'StatesDest'
-    ];
-    
-    let formData = {}; // Use a more descriptive name
-    let emptyFields = [];
-
-    // Collect data from form fields
-    fields.forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-            let value = element.value;
-            // Get selected text for specific select fields
-            if (element.tagName === 'SELECT' && textFields.includes(id)) {
-                value = element.options[element.selectedIndex]?.text || '';
-            }
-            // Trim whitespace from string values
-            if (typeof value === 'string') {
-                value = value.trim();
-            }
-            formData[id] = value;
-            // Check for empty fields (allow 0 as a valid value)
-            if (value === '' || value === null || value === undefined) {
-                 // Exclude CostoEuros from empty check if it's calculated automatically
-                 if (id !== 'CostoEuros') {
-                    emptyFields.push(id);
-                 }
-            }
-        } else {
-             console.warn(`Form element with ID '${id}' not found.`);
-        }
-    });
-
-    // Validate required fields
+    // Valida los campos requeridos.
+    // Si hay campos vacíos, muestra una alerta y detiene el envío.
     if (emptyFields.length > 0) {
         Swal.fire({
             icon: 'warning',
-            title: 'Missing Information',
-            text: 'Please complete all required fields: ' + emptyFields.join(', ')
+            title: 'Información Faltante', // Título de la alerta en español.
+            text: 'Por favor complete todos los campos requeridos: ' + emptyFields.join(', ') // Mensaje de la alerta en español.
         });
-        return; // Stop submission
+        return; // Detiene la ejecución de la función si hay campos vacíos.
     }
 
     //==========================================================================================
-    // Validate and Calculate Authorization Range based on Quoted Cost
-    // Assuming QuotedCost is the primary value for range calculation
-    const quotedCost = parseFloat(formData['QuotedCost']);
+    // Valida y calcula el rango de autorización basado en el costo cotizado.
+    const quotedCost = parseFloat(formData['QuotedCost']); // Convierte el costo cotizado a un número flotante.
 
+    // Verifica si el costo cotizado no es un número (NaN - Not a Number).
     if (isNaN(quotedCost)) {
          Swal.fire({
             icon: 'warning',
-            title: 'Invalid Cost',
-            text: 'The "Quoted Cost" field must contain a valid number.'
+            title: 'Costo Inválido', // Título de la alerta en español.
+            text: 'El campo "Costo Cotizado" debe contener un número válido.' // Mensaje de la alerta en español.
         });
-        return; // Stop submission
+        return; // Detiene la ejecución si el costo no es válido.
     }
 
-    // Calculate range (ensure 'range' is declared with 'let' globally)
-    if (quotedCost <= 1500) {
-        range = 3;
-    } else if (quotedCost > 1500 && quotedCost <= 5000) {
-        range = 4;
-    } else if (quotedCost > 5000 && quotedCost <= 10000) {
-        range = 6;
-    } else if (quotedCost > 10000) {
-        range = 7;
-    } else {
-        // This case should ideally not be reached if quotedCost is a non-negative number
-        console.warn("Could not determine the authorization range for the cost:", quotedCost);
-        range = 0; // Assign a default or handle as an error
-    }
-    console.log("Calculated Authorization Range:", range);
+    // Calcula el rango de autorización utilizando la función auxiliar.
+    range = calculateAuthorizationRange(quotedCost);
+    console.log("Rango de Autorización Calculado:", range); // Muestra el rango calculado en la consola.
 
     //==========================================================================================
-    // Prepare payload for the backend API
+    // Prepara el objeto 'payload' (carga útil) con los datos que se enviarán a la API del backend.
     const payload = {
-        user_id: 1, // TODO: Replace with actual logged-in user ID
-        date: new Date().toISOString().slice(0, 19).replace('T', ' '), // Format for MySQL DATETIME
+        user_id: 1, // TODO: Reemplazar con el ID del usuario autenticado.
+        date: new Date().toISOString().slice(0, 19).replace('T', ' '), // Obtiene la fecha y hora actual en formato MySQL DATETIME.
         planta: formData['planta'],
         code_planta: formData['codeplanta'],
         transport: formData['transport'],
         in_out_bound: formData['InOutBound'],
-        // Send the formatted Euro string, or the calculated numeric value 'euros'
-        // depending on what the backend expects. Sending the string for now.
-        cost_euros: formData['CostoEuros'],
-        // cost_euros: euros, // Alternative: send the numeric value
+        cost_euros: formData['CostoEuros'], // Costo en euros, ya formateado o calculado.
         description: formData['Description'],
         area: formData['Area'],
         int_ext: formData['IntExt'],
@@ -357,196 +58,120 @@ function submitForm(event) {
         category_cause: formData['CategoryCause'],
         project_status: formData['ProjectStatus'],
         recovery: formData['Recovery'],
-        weight: formData['Weight'], // Ensure backend handles potential units if included
-        measures: formData['Measures'], // Ensure backend handles potential units if included
+        weight: formData['Weight'],
+        measures: formData['Measures'],
         products: formData['Products'],
         carrier: formData['Carrier'],
-        // Send QuotedCost as a number if the backend expects float/decimal, otherwise string
-        quoted_cost: quotedCost, // Sending the parsed number
-        // quoted_cost: formData['QuotedCost'], // Alternative: send original string
+        quoted_cost: quotedCost, // Costo cotizado como número.
         reference: formData['Reference'],
         reference_number: formData['ReferenceNumber'],
-        // TODO: Determine how origin_id and destiny_id should be set
-        // Maybe based on selected company names or codes? Requires backend logic or more frontend data.
-        origin_id: 1, // Placeholder
-        destiny_id: 1, // Placeholder
-        status_id: 1, // Default status for new entries
-        required_auth_level: range,
-        moneda: selectedCurrency // Use the globally selected currency ('MXN' or 'USD')
+        origin_id: 1, // TODO: Placeholder - Determinar cómo se obtendrá el ID de origen real.
+        destiny_id: 1, // TODO: Placeholder - Determinar cómo se obtendrá el ID de destino real.
+        status_id: 1, // Estado por defecto para nuevas entradas (ej. "Pendiente").
+        required_auth_level: range, // Nivel de autorización requerido, calculado previamente.
+        moneda: selectedCurrency // Moneda seleccionada (ej. 'MXN', 'USD'), variable global de currencyUtils.js.
     };
 
-    console.log("Data to send to backend:", JSON.stringify(payload, null, 2)); // Pretty print JSON
+    // Muestra los datos que se enviarán al backend en la consola, en formato JSON legible.
+    console.log("Datos para enviar al backend:", JSON.stringify(payload, null, 2));
 
     //==========================================================================================
-    // Send data to the backend using Fetch API
+    // Envía los datos al backend utilizando la API Fetch.
+    sendFormData(payload);
+}
+
+//==========================================================================================
+// Función para enviar los datos del formulario al backend.
+function sendFormData(payload) {
+    // Realiza una petición POST al endpoint especificado.
     fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPFpost.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json' // Often good practice to include Accept header
+        method: 'POST', // Método HTTP.
+        headers: { // Cabeceras de la petición.
+            'Content-Type': 'application/json', // Indica que el cuerpo de la petición es JSON.
+            'Accept': 'application/json' // Indica que se espera una respuesta en formato JSON.
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload) // Convierte el objeto payload a una cadena JSON para enviarlo en el cuerpo.
     })
-    .then(response => {
-        // Check if the response status indicates success
+    .then(response => { // Primera promesa: maneja la respuesta inicial del servidor.
+        // Verifica si la respuesta del servidor fue exitosa (código de estado 200-299).
         if (!response.ok) {
-            // Try to parse error details from the response body
+            // Si la respuesta no es exitosa, intenta parsear el cuerpo como JSON para obtener un mensaje de error del backend.
             return response.json().then(err => {
-                // Throw an error with the message from the backend, or a default server status message
-                throw new Error(err.message || `Server responded with status: ${response.status}`);
+                // Lanza un error con el mensaje del backend o un mensaje genérico con el estado del servidor.
+                throw new Error(err.message || `El servidor respondió con el estado: ${response.status}`);
             }).catch(() => {
-                // If the response body isn't JSON or parsing fails, throw a generic error
-                throw new Error(`Server responded with status: ${response.status}`);
+                // Si el cuerpo de la respuesta no es JSON o falla el parseo, lanza un error genérico.
+                throw new Error(`El servidor respondió con el estado: ${response.status}`);
             });
         }
-        // If response is ok, parse the JSON body
+        // Si la respuesta es exitosa, parsea el cuerpo como JSON.
         return response.json();
     })
-    .then(result => {
-        console.log("Backend response:", result);
-        if (result.success) {
+    .then(result => { // Segunda promesa: maneja el resultado JSON parseado.
+        console.log("Respuesta del backend:", result); // Muestra la respuesta del backend en la consola.
+        if (result.success) { // Si el backend indica que la operación fue exitosa.
             Swal.fire({
                 icon: 'success',
-                title: 'Data Saved',
-                text: result.message || 'Information saved successfully.'
+                title: 'Datos Guardados', // Título de la alerta en español.
+                text: result.message || 'La información se guardó correctamente.' // Mensaje de la alerta en español.
             });
-            // Optionally reset the form after successful submission
-            // document.getElementById('your-form-id').reset(); // Replace 'your-form-id' with your actual form ID
+            // Opcionalmente, resetea el formulario después de un envío exitoso.
+            // document.getElementById('plant-form').reset(); // Descomentar si se desea resetear el formulario.
         } else {
-            // Handle cases where the backend indicates failure (e.g., validation error)
+            // Si el backend indica que hubo un error (ej. error de validación).
             Swal.fire({
                 icon: 'error',
-                title: 'Error Saving Data',
-                text: result.message || 'Could not save the information. Please check the details.'
+                title: 'Error al Guardar Datos', // Título de la alerta en español.
+                text: result.message || 'No se pudo guardar la información. Por favor, verifique los detalles.' // Mensaje de la alerta en español.
             });
         }
     })
-    .catch(error => {
-        // Handle network errors or errors thrown during response processing
-        console.error('Fetch Error:', error);
+    .catch(error => { // Maneja errores de red o errores lanzados durante el procesamiento de la respuesta.
+        console.error('Error en Fetch:', error); // Muestra el error en la consola.
         Swal.fire({
             icon: 'error',
-            title: 'Request Error',
-            text: error.message || 'An error occurred while communicating with the server.'
+            title: 'Error en la Solicitud', // Título de la alerta en español.
+            text: error.message || 'Ocurrió un error al comunicarse con el servidor.' // Mensaje de la alerta en español.
         });
     });
 }
 
-
 //==========================================================================================
-// Function to save a new company location to the database
-async function saveNewCompany(companyName, city, state, zip, isDestination = false) {
-    // Validate that all fields have a value
-    if (!companyName || !city || !state || !zip) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Incomplete Data',
-            text: 'Please complete all company fields (Name, City, State and Zip Code).'
-        });
-        return false;
-    }
-    
-    try {
-        const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/elements/daoAddLocation.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                company_name: companyName,
-                city: city,
-                state: state,
-                zip: zip
-            })
-        });
-        
-        const result = await response.json();
-        
-        if (result.status === 'success') {
-            Swal.fire({
-                icon: 'success',
-                title: 'Company Saved',
-                text: `The company "${companyName}" has been added to the database.`
-            });
-            
-            // We don't need to do anything here as the original value is kept in the select
-            
-            return true;
-        } else {
-            throw new Error(result.message || 'Error saving company');
-        }
-    } catch (error) {
-        console.error('Error saving new company:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Could not save the company: ' + error.message
-        });
-        return false;
+// Función auxiliar para calcular el rango de autorización basado en el costo cotizado.
+function calculateAuthorizationRange(quotedCost) {
+    if (quotedCost <= 1500) {
+        return 3;
+    } else if (quotedCost > 1500 && quotedCost <= 5000) {
+        return 4;
+    } else if (quotedCost > 5000 && quotedCost <= 10000) {
+        return 6;
+    } else if (quotedCost > 10000) {
+        return 7;
+    } else {
+        // Este caso no debería alcanzarse si quotedCost es un número no negativo.
+        console.warn("No se pudo determinar el rango de autorización para el costo:", quotedCost);
+        return 0; // Valor por defecto o para indicar un error.
     }
 }
 
 //==========================================================================================
-// Initialize event listeners when the DOM is fully loaded
+// Inicializa los escuchadores de eventos cuando el DOM (Document Object Model) está completamente cargado.
+// Esto asegura que todos los elementos HTML estén disponibles antes de intentar interactuar con ellos.
 document.addEventListener('DOMContentLoaded', function () {
-    // Initialize company selectors
-    showCompanySelect();
-    showCompanyDestSelect();
+    // Inicializa los selectores de compañía (se asume que esta función está en companySelect.js).
+    initializeCompanySelectors();
     
-    const btnMXN = document.getElementById('MXN');
-    const btnUSD = document.getElementById('USD');
-    const btnSubmit = document.getElementById('enviar'); // Submit button
+    // Inicializa los selectores de moneda (se asume que esta función está en currencyUtils.js).
+    initializeCurrencySelectors();
 
-    // Initial population of company select
-    showCompanySelect();
-    showCompanyDestSelect(); // Add this line
-
-    // --- Currency Button Event Listeners ---
-    if (btnMXN) {
-        btnMXN.addEventListener('click', function () {
-            calculateEuros('MXN'); // Recalculate Euros based on QuotedCost
-            selectedCurrency = "MXN";
-            btnMXN.classList.add('moneda-activa');
-            if (btnUSD) btnUSD.classList.remove('moneda-activa');
-            console.log("MXN currency selected");
-        });
-        // Set initial active state if MXN is default
-        if (selectedCurrency === "MXN") {
-             btnMXN.classList.add('moneda-activa');
-        }
-    } else {
-        console.warn("MXN currency button not found.");
-    }
-
-    if (btnUSD) {
-        btnUSD.addEventListener('click', function () {
-            calculateEuros('USD'); // Recalculate Euros based on QuotedCost
-            selectedCurrency = "USD";
-            btnUSD.classList.add('moneda-activa');
-            if (btnMXN) btnMXN.classList.remove('moneda-activa');
-            console.log("USD currency selected");
-        });
-         // Set initial active state if USD is default (adjust if needed)
-        if (selectedCurrency === "USD") {
-             btnUSD.classList.add('moneda-activa');
-        }
-    } else {
-        console.warn("USD currency button not found.");
-    }
-
-    // --- Submit Button Event Listener ---
-    if (btnSubmit) {
+    // Configura el envío del formulario.
+    const btnSubmit = document.getElementById('enviar'); // Obtiene el botón de envío por su ID.
+    if (btnSubmit) { // Verifica si el botón existe.
+        // Agrega un escuchador de eventos para el clic en el botón de envío.
+        // Cuando se hace clic, se llama a la función submitForm.
         btnSubmit.addEventListener('click', submitForm);
     } else {
-        console.error("Submit button ('enviar') not found. Form cannot be submitted.");
-    }
-
-    // --- Optional: Recalculate Euros when QuotedCost changes ---
-    const quotedCostInput = document.getElementById('QuotedCost');
-    if (quotedCostInput) {
-        quotedCostInput.addEventListener('input', function() {
-            // Recalculate using the currently selected currency
-            calculateEuros(selectedCurrency);
-        });
+        // Si el botón no se encuentra, muestra un error en la consola.
+        console.error("Botón de envío ('enviar') no encontrado. El formulario no se puede enviar.");
     }
 });
