@@ -426,10 +426,10 @@ session_start();
                 allowClear: true
             });
             */
-            $('#StatesShip').select2({
-                placeholder: 'Select States',
-                allowClear: true
-            });
+            // $('#StatesShip').select2({
+            //     placeholder: 'Select States',
+            //     allowClear: true
+            // });
             $('#StatesDest').select2({
                 placeholder: 'Select States',
                 allowClear: true
