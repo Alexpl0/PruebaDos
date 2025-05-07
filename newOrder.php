@@ -258,7 +258,9 @@ session_start();
                 <div id="DivCompanyDest" class="mb-2">
 
                     <label for="inputCompanyNameDest">Company Name</label>
-                    <input type="text" id="inputCompanyNameDest" class="form-control" placeholder="Company Name">
+                    <select name="inputCompanyNameDest" id="inputCompanyNameDest" class="form-select">
+                        <option value="" disabled selected>Select a company</option>
+                    </select>
 
                 </div>
 

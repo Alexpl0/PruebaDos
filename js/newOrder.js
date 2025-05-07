@@ -75,7 +75,7 @@ function showCompanySelect() {
 function showCompanyDestSelect() {
     // Hacer que los campos de dirección no sean editables inicialmente
     $('#inputCityDest').prop('readonly', true);
-    $('#StatesDest').prop('disabled', true); // Para el campo select StatesDest
+    $('#StatesDest').prop('readonly', true); // Input de texto, usamos readonly
     $('#inputZipDest').prop('readonly', true);
     
     $('#inputCompanyNameDest').select2({
@@ -116,36 +116,20 @@ function showCompanyDestSelect() {
             // Completar campos relacionados
             $('#inputCityDest').val(data.city);
             
-            // Para el select de estados, necesitamos seleccionar la opción correcta
-            if (data.state) {
-                const stateSelect = $('#StatesDest');
-                const stateOptions = stateSelect.find('option');
-                let stateFound = false;
-                
-                stateOptions.each(function() {
-                    if ($(this).text().trim().toLowerCase() === data.state.toLowerCase()) {
-                        stateSelect.val($(this).val()).trigger('change');
-                        stateFound = true;
-                        return false; // Break the loop
-                    }
-                });
-                
-                if (!stateFound) {
-                    console.warn(`Estado "${data.state}" no encontrado en las opciones disponibles`);
-                }
-            }
+            // Para el campo de estado que es un input text, simplemente asignamos el valor
+            $('#StatesDest').val(data.state);
             
             $('#inputZipDest').val(data.zip);
             
             // Hacemos que los campos sean editables después de autocompletar
             $('#inputCityDest').prop('readonly', false);
-            $('#StatesDest').prop('disabled', false);
+            $('#StatesDest').prop('readonly', false);
             $('#inputZipDest').prop('readonly', false);
         }
     }).on('select2:clear', function() {
         // Si se limpia la selección de compañía, limpiar y desactivar los campos relacionados
         $('#inputCityDest').val('').prop('readonly', true);
-        $('#StatesDest').val('').prop('disabled', true);
+        $('#StatesDest').val('').prop('readonly', true);
         $('#inputZipDest').val('').prop('readonly', true);
     });
 }
@@ -410,6 +394,10 @@ function submitForm(event) {
 //==========================================================================================
 // Initialize event listeners when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', function () {
+    // Inicializamos los selectores de compañía
+    showCompanySelect();
+    showCompanyDestSelect();
+    
     const btnMXN = document.getElementById('MXN');
     const btnUSD = document.getElementById('USD');
     const btnSubmit = document.getElementById('enviar'); // Submit button
