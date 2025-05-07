@@ -269,17 +269,7 @@ session_start();
             </div>
                 <div id="DivStatesDest" class="mb-2">
                     <label for="StatesDest">States:</label>
-                    <select name="StatesDest" id="StatesDest" class="form-select">
-                        <?php if (!empty($jsonStates)): ?>
-                            <?php foreach ($jsonStates as $StatesDest): ?>
-                                <option value="<?php echo htmlspecialchars($StatesDest['ID']); ?>">
-                                    <?php echo htmlspecialchars($StatesDest['estadonombre']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <option value="" disabled>No data found, jsonStates empty</option>
-                        <?php endif; ?>
-                    </select>
+                    <input type="text" id="StatesDest" class="form-control" placeholder="States">
                 </div>
 
                 <div id="SectZipDest" class="mb-2">

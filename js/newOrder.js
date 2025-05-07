@@ -70,6 +70,87 @@ function showCompanySelect() {
 }
 
 //==========================================================================================
+// Function to initialize Select2 for CompanyDest with AJAX and add-new support
+
+function showCompanyDestSelect() {
+    // Hacer que los campos de dirección no sean editables inicialmente
+    $('#inputCityDest').prop('readonly', true);
+    $('#StatesDest').prop('disabled', true); // Para el campo select StatesDest
+    $('#inputZipDest').prop('readonly', true);
+    
+    $('#inputCompanyNameDest').select2({
+        placeholder: "Buscar compañía de destino",
+        allowClear: true,
+        minimumInputLength: 0, // Permite buscar desde el inicio, sin escribir caracteres
+        ajax: {
+            url: 'https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php',
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return { q: params.term || '' }; // Envía el término de búsqueda (puede ser vacío)
+            },
+            processResults: function (data, params) {
+                if (!data || !Array.isArray(data.data)) {
+                    console.error("Data from server is not in the expected format or data.data is missing/not an array:", data);
+                    return { results: [] };
+                }
+                const results = data.data.map(company => ({
+                    id: company.company_name,
+                    text: company.company_name,
+                    // Almacenamos todos los datos de la compañía para usarlos después
+                    city: company.city, 
+                    state: company.state,
+                    zip: company.zip
+                }));
+                return { results };
+            },
+            cache: true,
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error("AJAX Error for CompanyDest:", textStatus, errorThrown, jqXHR.responseText);
+            }
+        }
+    }).on('select2:select', function(e) {
+        // Cuando se selecciona una compañía, completamos los campos automáticamente
+        const data = e.params.data;
+        if (data) {
+            // Completar campos relacionados
+            $('#inputCityDest').val(data.city);
+            
+            // Para el select de estados, necesitamos seleccionar la opción correcta
+            if (data.state) {
+                const stateSelect = $('#StatesDest');
+                const stateOptions = stateSelect.find('option');
+                let stateFound = false;
+                
+                stateOptions.each(function() {
+                    if ($(this).text().trim().toLowerCase() === data.state.toLowerCase()) {
+                        stateSelect.val($(this).val()).trigger('change');
+                        stateFound = true;
+                        return false; // Break the loop
+                    }
+                });
+                
+                if (!stateFound) {
+                    console.warn(`Estado "${data.state}" no encontrado en las opciones disponibles`);
+                }
+            }
+            
+            $('#inputZipDest').val(data.zip);
+            
+            // Hacemos que los campos sean editables después de autocompletar
+            $('#inputCityDest').prop('readonly', false);
+            $('#StatesDest').prop('disabled', false);
+            $('#inputZipDest').prop('readonly', false);
+        }
+    }).on('select2:clear', function() {
+        // Si se limpia la selección de compañía, limpiar y desactivar los campos relacionados
+        $('#inputCityDest').val('').prop('readonly', true);
+        $('#StatesDest').val('').prop('disabled', true);
+        $('#inputZipDest').val('').prop('readonly', true);
+    });
+}
+
+//==========================================================================================
 // Function to get the exchange rate from the API
 async function getExchangeRate(baseCurrency) {
     // Use EUR as the base for conversion to EUR, request the rate for the baseCurrency
@@ -150,17 +231,17 @@ function submitForm(event) {
         'planta', 'codeplanta', 'transport', 'InOutBound', 'CostoEuros', 'Description',
         'Area', 'IntExt', 'PaidBy', 'CategoryCause', 'ProjectStatus', 'Recovery',
         'Weight', 'Measures', 'Products', 'Carrier', 'QuotedCost', 'Reference', 'ReferenceNumber',
-        'CompanyShip', 'inputCityShip', 'StatesShip', 'inputZipShip',  // Cambiado de 'inputCompanyNameShip' a 'CompanyShip'
+        'CompanyShip', 'inputCityShip', 'StatesShip', 'inputZipShip',
         'inputCompanyNameDest', 'inputCityDest', 'StatesDest', 'inputZipDest'
     ];
 
     // List of select field IDs where the visible text should be sent
     const textFields = [
         'planta', 'codeplanta', 'transport', 'InOutBound', 'Area', 'IntExt', 'PaidBy',
-        'CategoryCause', 'ProjectStatus', 'Recovery', 'Carrier'
-        // Add 'StatesShip', 'StatesDest' if you want their text, otherwise their value (abbreviation?) will be sent
+        'CategoryCause', 'ProjectStatus', 'Recovery', 'Carrier',
+        'CompanyShip', 'inputCompanyNameDest', 'StatesDest'
     ];
-
+    
     let formData = {}; // Use a more descriptive name
     let emptyFields = [];
 
@@ -335,6 +416,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Initial population of company select
     showCompanySelect();
+    showCompanyDestSelect(); // Añadir esta línea
 
     // --- Currency Button Event Listeners ---
     if (btnMXN) {
