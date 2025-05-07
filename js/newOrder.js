@@ -17,8 +17,8 @@ function submitForm(event) {
     if (emptyFields.length > 0) {
         Swal.fire({
             icon: 'warning',
-            title: 'Información Faltante', // Título de la alerta en español.
-            text: 'Por favor complete todos los campos requeridos: ' + emptyFields.join(', ') // Mensaje de la alerta en español.
+            title: 'Missing Information', // Título de la alerta en inglés.
+            text: 'Please complete all required fields: ' + emptyFields.join(', ') // Mensaje de la alerta en inglés.
         });
         return; // Detiene la ejecución de la función si hay campos vacíos.
     }
@@ -31,8 +31,8 @@ function submitForm(event) {
     if (isNaN(quotedCost)) {
          Swal.fire({
             icon: 'warning',
-            title: 'Costo Inválido', // Título de la alerta en español.
-            text: 'El campo "Costo Cotizado" debe contener un número válido.' // Mensaje de la alerta en español.
+            title: 'Invalid Cost', // Título de la alerta en inglés.
+            text: 'The "Quoted Cost" field must contain a valid number.' // Mensaje de la alerta en inglés.
         });
         return; // Detiene la ejecución si el costo no es válido.
     }
@@ -98,10 +98,10 @@ function sendFormData(payload) {
             // Si la respuesta no es exitosa, intenta parsear el cuerpo como JSON para obtener un mensaje de error del backend.
             return response.json().then(err => {
                 // Lanza un error con el mensaje del backend o un mensaje genérico con el estado del servidor.
-                throw new Error(err.message || `El servidor respondió con el estado: ${response.status}`);
+                throw new Error(err.message || `Server responded with status: ${response.status}`);
             }).catch(() => {
                 // Si el cuerpo de la respuesta no es JSON o falla el parseo, lanza un error genérico.
-                throw new Error(`El servidor respondió con el estado: ${response.status}`);
+                throw new Error(`Server responded with status: ${response.status}`);
             });
         }
         // Si la respuesta es exitosa, parsea el cuerpo como JSON.
@@ -112,8 +112,8 @@ function sendFormData(payload) {
         if (result.success) { // Si el backend indica que la operación fue exitosa.
             Swal.fire({
                 icon: 'success',
-                title: 'Datos Guardados', // Título de la alerta en español.
-                text: result.message || 'La información se guardó correctamente.' // Mensaje de la alerta en español.
+                title: 'Data Saved', // Título de la alerta en inglés.
+                text: result.message || 'The information was saved successfully.' // Mensaje de la alerta en inglés.
             });
             // Opcionalmente, resetea el formulario después de un envío exitoso.
             // document.getElementById('plant-form').reset(); // Descomentar si se desea resetear el formulario.
@@ -121,8 +121,8 @@ function sendFormData(payload) {
             // Si el backend indica que hubo un error (ej. error de validación).
             Swal.fire({
                 icon: 'error',
-                title: 'Error al Guardar Datos', // Título de la alerta en español.
-                text: result.message || 'No se pudo guardar la información. Por favor, verifique los detalles.' // Mensaje de la alerta en español.
+                title: 'Error Saving Data', // Título de la alerta en inglés.
+                text: result.message || 'Could not save the information. Please check the details.' // Mensaje de la alerta en inglés.
             });
         }
     })
@@ -130,8 +130,8 @@ function sendFormData(payload) {
         console.error('Error en Fetch:', error); // Muestra el error en la consola.
         Swal.fire({
             icon: 'error',
-            title: 'Error en la Solicitud', // Título de la alerta en español.
-            text: error.message || 'Ocurrió un error al comunicarse con el servidor.' // Mensaje de la alerta en español.
+            title: 'Request Error', // Título de la alerta en inglés.
+            text: error.message || 'An error occurred while communicating with the server.' // Mensaje de la alerta en inglés.
         });
     });
 }

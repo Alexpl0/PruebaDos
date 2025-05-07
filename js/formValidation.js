@@ -54,7 +54,7 @@ function collectFormData() {
             }
         } else {
              // Advierte en la consola si no se encuentra un elemento del formulario con el ID esperado.
-             console.warn(`Elemento del formulario con ID '${id}' no encontrado.`);
+             console.warn(`Form element with ID '${id}' not found.`);
         }
     });
 
@@ -120,11 +120,11 @@ async function processNewCompanies() {
             }
             return true; // Retorna `true` si todas las operaciones fueron exitosas.
         } catch (error) { // Captura cualquier error que ocurra durante `Promise.all`.
-            console.error('Error al guardar nuevas compañías:', error);
+            console.error('Error saving new companies:', error);
             Swal.fire({ // Muestra una alerta de error.
                 icon: 'error',
                 title: 'Error',
-                text: 'No se pudieron guardar las nuevas compañías: ' + error.message
+                text: 'Could not save the new companies: ' + error.message
             });
             return false; // Retorna `false` en caso de error.
         }

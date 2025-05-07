@@ -18,7 +18,7 @@ function showCompanySelect() {
     
     // Inicializa Select2 en el elemento con ID 'CompanyShip'.
     $('#CompanyShip').select2({
-        placeholder: "Buscar compañía", // Texto que se muestra antes de escribir.
+        placeholder: "Search company", // Texto que se muestra antes de escribir.
         allowClear: true, // Permite borrar la selección actual.
         minimumInputLength: 0, // Permite iniciar la búsqueda sin escribir caracteres (muestra todos al abrir).
         ajax: { // Configuración para la búsqueda de datos vía AJAX.
@@ -49,7 +49,7 @@ function showCompanySelect() {
                 if (params.term && results.length === 0) {
                     results.push({
                         id: params.term, // El ID será el propio término de búsqueda (nombre de la nueva compañía).
-                        text: `Agregar nueva compañía: "${params.term}"`, // Texto para la opción de agregar.
+                        text: `Add new company: "${params.term}"`, // Texto para la opción de agregar.
                         isNew: true // Propiedad personalizada para identificar esta opción como "nueva compañía".
                     });
                 }
@@ -105,7 +105,7 @@ function showCompanyDestSelect() {
     
     // Inicializa Select2 en el elemento con ID 'inputCompanyNameDest'.
     $('#inputCompanyNameDest').select2({
-        placeholder: "Buscar compañía de destino", // Texto placeholder.
+        placeholder: "Search destination company", // Texto placeholder.
         allowClear: true, // Permite borrar la selección.
         minimumInputLength: 0, // Permite búsqueda sin escribir.
         ajax: { // Configuración AJAX.
@@ -131,7 +131,7 @@ function showCompanyDestSelect() {
                 if (params.term && results.length === 0) { // Opción para agregar nueva compañía.
                     results.push({
                         id: params.term,
-                        text: `Agregar nueva compañía: "${params.term}"`,
+                        text: `Add new company: "${params.term}"`,
                         isNew: true
                     });
                 }
@@ -182,8 +182,8 @@ async function saveNewCompany(companyName, city, state, zip, isDestination = fal
     if (!companyName || !city || !state || !zip) {
         Swal.fire({ // Muestra una alerta si faltan datos.
             icon: 'warning',
-            title: 'Datos Incompletos',
-            text: 'Por favor complete todos los campos de la compañía (Nombre, Ciudad, Estado y Código Postal).'
+            title: 'Incomplete Data',
+            text: 'Please complete all company fields (Name, City, State and Zip Code).'
         });
         return false; // Retorna falso indicando que no se guardó.
     }
@@ -208,21 +208,21 @@ async function saveNewCompany(companyName, city, state, zip, isDestination = fal
         if (result.status === 'success') { // Si el servidor indica que la operación fue exitosa.
             Swal.fire({ // Muestra una alerta de éxito.
                 icon: 'success',
-                title: 'Compañía Guardada',
-                text: `La compañía "${companyName}" ha sido agregada a la base de datos.`
+                title: 'Company Saved',
+                text: `The company "${companyName}" has been added to the database.`
             });
             
             return true; // Retorna verdadero indicando que se guardó correctamente.
         } else {
             // Si el servidor indica un error, lanza una excepción con el mensaje del servidor.
-            throw new Error(result.message || 'Error al guardar la compañía');
+            throw new Error(result.message || 'Error saving company');
         }
     } catch (error) { // Captura errores de la petición fetch o excepciones lanzadas.
         console.error('Error al guardar nueva compañía:', error);
         Swal.fire({ // Muestra una alerta de error.
             icon: 'error',
             title: 'Error',
-            text: 'No se pudo guardar la compañía: ' + error.message
+            text: 'Could not save the company: ' + error.message
         });
         return false; // Retorna falso indicando que no se guardó.
     }

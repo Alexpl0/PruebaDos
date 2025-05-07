@@ -18,7 +18,7 @@ function initializeCurrencySelectors() {
             selectedCurrency = "MXN"; // Actualiza la variable global de moneda seleccionada.
             btnMXN.classList.add('moneda-activa'); // Añade la clase CSS para resaltar el botón activo.
             if (btnUSD) btnUSD.classList.remove('moneda-activa'); // Remueve la clase activa del botón USD si existe.
-            console.log("Moneda MXN seleccionada"); // Mensaje de depuración.
+            console.log("MXN currency selected"); // Mensaje de depuración en inglés.
         });
         
         // Establece el estado activo inicial si MXN es la moneda por defecto.
@@ -27,7 +27,7 @@ function initializeCurrencySelectors() {
         }
     } else {
         // Advierte en consola si el botón MXN no se encuentra.
-        console.warn("Botón de moneda MXN no encontrado.");
+        console.warn("MXN currency button not found.");
     }
 
     // Configuración para el botón USD.
@@ -37,7 +37,7 @@ function initializeCurrencySelectors() {
             selectedCurrency = "USD"; // Actualiza la variable global de moneda seleccionada.
             btnUSD.classList.add('moneda-activa'); // Añade la clase CSS para resaltar el botón activo.
             if (btnMXN) btnMXN.classList.remove('moneda-activa'); // Remueve la clase activa del botón MXN si existe.
-            console.log("Moneda USD seleccionada"); // Mensaje de depuración.
+            console.log("USD currency selected"); // Mensaje de depuración en inglés.
         });
         
         // Establece el estado activo inicial si USD es la moneda por defecto (ajustar si es necesario).
@@ -46,7 +46,7 @@ function initializeCurrencySelectors() {
         }
     } else {
         // Advierte en consola si el botón USD no se encuentra.
-        console.warn("Botón de moneda USD no encontrado.");
+        console.warn("USD currency button not found.");
     }
 
     // Agrega un escuchador al campo 'QuotedCost' para recalcular los Euros automáticamente cuando su valor cambie.
@@ -71,23 +71,23 @@ async function getExchangeRate(baseCurrency) {
         const response = await fetch(url);
         // Verifica si la respuesta de la API no fue exitosa (ej. error 4xx o 5xx).
         if (!response.ok) {
-            throw new Error(`Error HTTP! estado: ${response.status}`); // Lanza un error si la respuesta no es OK.
+            throw new Error(`HTTP error! status: ${response.status}`); // Lanza un error si la respuesta no es OK.
         }
         // Parsea la respuesta JSON de la API.
         const data = await response.json();
-        console.log("Datos de tasa de cambio obtenidos de la API:", data); // Mensaje de depuración.
+        console.log("Exchange rate data obtained from API:", data); // Mensaje de depuración en inglés.
 
         // Verifica si la respuesta contiene las tasas y específicamente la tasa para EUR.
         if (data && data.rates && typeof data.rates.EUR === 'number') {
             return data.rates.EUR; // Devuelve la tasa de cambio a EUR.
         } else {
             // Si el formato de la respuesta no es el esperado, registra un error.
-            console.error('Formato de respuesta de API inesperado:', data);
+            console.error('Unexpected API response format:', data);
             return null; // Devuelve null si no se puede obtener la tasa.
         }
     } catch (error) {
         // Captura cualquier error durante la petición fetch o el procesamiento.
-        console.error('Error al obtener la tasa de cambio:', error);
+        console.error('Error getting exchange rate:', error);
         return null; // Devuelve null en caso de error.
     }
 }
@@ -102,7 +102,7 @@ async function calculateEuros(currency) {
 
     // Verifica si los elementos necesarios existen en el DOM.
     if (!quotedCostInput || !costEurosElement) {
-        console.error("Elementos de entrada requeridos ('QuotedCost' o 'CostoEuros') no encontrados.");
+        console.error("Required input elements ('QuotedCost' or 'CostoEuros') not found.");
         return; // Termina la ejecución si faltan elementos.
     }
 
@@ -111,8 +111,8 @@ async function calculateEuros(currency) {
 
     // Valida si el valor ingresado es válido (no vacío, es un número y mayor que cero).
     if (!quotedCostInput.value || isNaN(value) || value <= 0) {
-        costEurosElement.value = "Ingrese un costo válido"; // Muestra un mensaje de error en el campo de Euros.
-        console.log("Valor de costo inválido ingresado:", quotedCostInput.value); // Mensaje de depuración.
+        costEurosElement.value = "Enter a valid cost"; // Muestra un mensaje de error en inglés en el campo de Euros.
+        console.log("Invalid cost value entered:", quotedCostInput.value); // Mensaje de depuración en inglés.
         euros = 0; // Resetea la variable global de euros.
         return; // Termina la ejecución.
     }
@@ -122,7 +122,7 @@ async function calculateEuros(currency) {
         euros = value; // Asigna el valor directamente a la variable de euros.
         // Formatea y muestra el valor en el campo de Euros.
         costEurosElement.value = euros.toLocaleString('en-US', { style: 'currency', currency: 'EUR' });
-        console.log("El costo ya está en Euros:", euros); // Mensaje de depuración.
+        console.log("Cost is already in Euros:", euros); // Mensaje de depuración en inglés.
         return; // Termina la ejecución.
     }
 
@@ -130,8 +130,8 @@ async function calculateEuros(currency) {
     const exchangeRate = await getExchangeRate(currency);
     // Verifica si se pudo obtener la tasa de cambio.
     if (exchangeRate === null) { // Comprueba específicamente si es null.
-        costEurosElement.value = "No se pudo obtener la tasa de cambio"; // Muestra un mensaje de error.
-        console.log("Fallo al recuperar la tasa de cambio."); // Mensaje de depuración.
+        costEurosElement.value = "Could not get exchange rate"; // Muestra un mensaje de error en inglés.
+        console.log("Failed to retrieve exchange rate."); // Mensaje de depuración en inglés.
         euros = 0; // Resetea la variable global de euros.
         return; // Termina la ejecución.
     }
@@ -140,7 +140,7 @@ async function calculateEuros(currency) {
     euros = value * exchangeRate;
     // Formatea y muestra el costo calculado en el campo de Euros.
     costEurosElement.value = euros.toLocaleString('en-US', { style: 'currency', currency: 'EUR' });
-    // Mensajes de depuración.
-    console.log("Costo Calculado en Euros:", euros);
-    console.log("Tasa de cambio utilizada:", exchangeRate);
+    // Mensajes de depuración en inglés.
+    console.log("Calculated Cost in Euros:", euros);
+    console.log("Exchange rate used:", exchangeRate);
 }
