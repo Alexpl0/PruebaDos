@@ -71,7 +71,10 @@ try {
     $conex = $con->conectar();
     $conex->set_charset("utf8mb4");
 
-    // Preparar la consulta SQL
+    // Iniciar transacción para asegurar que ambas inserciones se ejecuten juntas
+    $conex->begin_transaction();
+
+    // Preparar la consulta SQL para PremiumFreight
     $sql = "INSERT INTO PremiumFreight (
                 user_id, date, planta, code_planta, transport, in_out_bound,
                 cost_euros, description, area, int_ext, paid_by, category_cause,
@@ -137,23 +140,61 @@ try {
         $data['moneda']
     );
 
-    // Ejecutar la consulta
-    if ($stmt->execute()) {
-        $shipmentId = $stmt->insert_id;
-        
-        // Cerrar la declaración y la conexión
-        $stmt->close();
-        $conex->close();
-        
-        echo json_encode([
-            "success" => true,
-            "message" => "Premium freight order created successfully.",
-            "shipment_id" => $shipmentId
-        ]);
-    } else {
+    // Ejecutar la consulta para PremiumFreight
+    if (!$stmt->execute()) {
+        // Si hay error, revertir la transacción
+        $conex->rollback();
         throw new Exception("Error executing statement: " . $stmt->error);
     }
+    
+    // Obtener el ID de la inserción de PremiumFreight
+    $premiumFreightId = $stmt->insert_id;
+    $stmt->close();
+    
+    // Ahora insertar en la tabla PremiumFreightApprovals
+    $sqlApproval = "INSERT INTO PremiumFreightApprovals 
+                    (premium_freight_id, user_id, approval_date, status_id, act_approv) 
+                    VALUES (?, ?, NOW(), ?, 0)";
+                    
+    $stmtApproval = $conex->prepare($sqlApproval);
+    
+    if (!$stmtApproval) {
+        // Si hay error, revertir la transacción
+        $conex->rollback();
+        throw new Exception("Error preparing approval statement: " . $conex->error);
+    }
+    
+    // Vincular parámetros para la tabla de aprobaciones
+    $stmtApproval->bind_param("iii", $premiumFreightId, $userId, $statusId);
+    
+    // Ejecutar la inserción en la tabla de aprobaciones
+    if (!$stmtApproval->execute()) {
+        // Si hay error, revertir la transacción
+        $conex->rollback();
+        throw new Exception("Error inserting approval record: " . $stmtApproval->error);
+    }
+    
+    $stmtApproval->close();
+    
+    // Si todo ha ido bien, confirmar la transacción
+    $conex->commit();
+    
+    // Cerrar la conexión
+    $conex->close();
+    
+    echo json_encode([
+        "success" => true,
+        "message" => "Premium freight order created successfully with approval record.",
+        "shipment_id" => $premiumFreightId
+    ]);
+
 } catch (Exception $e) {
+    // En caso de error, asegurarse de que cualquier transacción abierta se revierta
+    if (isset($conex) && $conex->connect_errno === 0) {
+        $conex->rollback();
+        $conex->close();
+    }
+    
     http_response_code(500);
     echo json_encode([
         "success" => false,

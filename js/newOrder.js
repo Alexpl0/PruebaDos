@@ -135,8 +135,8 @@ function sendFormData(payload) {
         if (result.success) { // Si el backend indica que la operación fue exitosa.
             Swal.fire({
                 icon: 'success',
-                title: 'Data Saved', // Título de la alerta en inglés.
-                text: result.message || 'The information was saved successfully.' // Mensaje de la alerta en inglés.
+                title: 'Data Saved',
+                text: 'Premium freight order and approval record created successfully.'
             });
             // Opcionalmente, resetea el formulario después de un envío exitoso.
             // document.getElementById('plant-form').reset(); // Descomentar si se desea resetear el formulario.
