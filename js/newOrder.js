@@ -36,7 +36,6 @@ async function submitForm(event) {
     // Calcula el rango de autorización utilizando la función auxiliar.
     const quotedCost = parseFloat(formData['QuotedCost']);
     range = calculateAuthorizationRange(quotedCost);
-    console.log("Rango de Autorización Calculado:", range);
 
     //==========================================================================================
     // Prepara el objeto 'payload' (carga útil) con los datos que se enviarán a la API del backend.
@@ -93,11 +92,7 @@ async function submitForm(event) {
 
     // Log para verificar que todos los datos estén correctos
     console.log("Datos completos validados para envío:", JSON.stringify(payload, null, 2));
-    console.log("Selected currency:", getSelectedCurrency());
-    console.log("Company IDs:", {
-        origin: payload.origin_id,
-        destiny: payload.destiny_id
-    });
+    
 
     // Si todo está bien, enviar los datos
     sendFormData(payload);
