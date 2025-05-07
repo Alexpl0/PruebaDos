@@ -243,20 +243,27 @@ try {
     ]);
 
 } catch (Exception $e) {
-    // En caso de error, asegurarse de que cualquier transacción abierta se revierta
+    // Log more detailed information
+    error_log("PremiumFreight insertion error: " . $e->getMessage());
+    error_log("Error occurred in file: " . $e->getFile() . " on line " . $e->getLine());
+    error_log("Stack trace: " . $e->getTraceAsString());
+    
+    // Log SQL info if applicable
+    if (isset($stmt) && $stmt) {
+        error_log("SQL Error: " . $stmt->error);
+    }
+    
+    // In case of connection, revert transaction
     if (isset($conex) && $conex->connect_errno === 0) {
         $conex->rollback();
         $conex->close();
     }
     
-    // Log the detailed error for server-side debugging
-    error_log("PremiumFreight insertion error: " . $e->getMessage());
-    error_log("Stack trace: " . $e->getTraceAsString());
-    
     http_response_code(500);
     echo json_encode([
         "success" => false,
-        "message" => "Database error: " . $e->getMessage()
+        "message" => "Database error: " . $e->getMessage(),
+        "details" => "Check server logs for more information"
     ]);
 }
 ?>

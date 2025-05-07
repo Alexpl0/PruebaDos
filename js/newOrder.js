@@ -61,8 +61,10 @@ async function submitForm(event) {
         quoted_cost: quotedCost,
         reference: formData['Reference'],
         reference_number: formData['ReferenceNumber'],
-        origin_id: processResult.newCompanyIds.origin_id || formData['origin_id'] || null,
-        destiny_id: processResult.newCompanyIds.destiny_id || formData['destiny_id'] || null,
+        origin_id: processResult.newCompanyIds.origin_id || 
+                   (formData['origin_id'] ? parseInt(formData['origin_id'], 10) : null),
+        destiny_id: processResult.newCompanyIds.destiny_id || 
+                    (formData['destiny_id'] ? parseInt(formData['destiny_id'], 10) : null),
         status_id: 1,
         required_auth_level: range,
         moneda: getSelectedCurrency()
