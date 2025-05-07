@@ -103,7 +103,8 @@ label {
 
 #inputZipShip, 
 #inputZipDest,
-#StatesShip {
+#StatesShip, 
+#StatesDest {
     padding: 3%;
     width: 90%;
     max-height: 1px;
