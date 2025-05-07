@@ -1,7 +1,12 @@
 //==========================================================================================
 // Variables globales para la gestión de moneda y costos.
 let euros = 0; // Almacena el costo calculado en Euros. Se actualiza mediante la función calculateEuros.
-let selectedCurrency = "MXN"; // Moneda seleccionada por defecto (Pesos Mexicanos). Puede cambiar a "USD".
+let selectedCurrency = "MXN"; // Default currency
+
+// Add a new function to explicitly get the current selected currency
+function getSelectedCurrency() {
+    return selectedCurrency;
+}
 
 //==========================================================================================
 // Función para inicializar los botones selectores de moneda (MXN y USD) y el cálculo automático de Euros.

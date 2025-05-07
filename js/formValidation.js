@@ -16,8 +16,7 @@ function collectFormData() {
     const textFields = [
         'planta', 'codeplanta', 'transport', 'InOutBound', 'Area', 'IntExt', 'PaidBy',
         'CategoryCause', 'ProjectStatus', 'Recovery', 'Carrier',
-        'CompanyShip', 'inputCompanyNameDest', // Nombres de las compañías
-        'StatesShip', 'StatesDest' // Nombres de los estados (si son selects)
+        'StatesShip', 'StatesDest'
     ];
     
     let formData = {}; // Objeto para almacenar los datos del formulario.
@@ -58,6 +57,23 @@ function collectFormData() {
         }
     });
 
+    // After collecting all form fields, specifically get company IDs using Select2
+    if (typeof $ !== 'undefined' && $.fn.select2) {
+        // Get company IDs from Select2
+        const originCompany = $('#CompanyShip');
+        const destCompany = $('#inputCompanyNameDest');
+        
+        if (originCompany.length) {
+            formData['origin_id'] = originCompany.val();
+            formData['CompanyShipName'] = originCompany.find('option:selected').text();
+        }
+        
+        if (destCompany.length) {
+            formData['destiny_id'] = destCompany.val();
+            formData['CompanyDestName'] = destCompany.find('option:selected').text();
+        }
+    }
+
     // Devuelve el objeto con los datos del formulario y la lista de campos vacíos.
     return { formData, emptyFields };
 }
@@ -66,69 +82,60 @@ function collectFormData() {
 // Función asíncrona para verificar y guardar nuevas compañías (origen y destino)
 // antes de enviar el formulario principal.
 // Llama a `saveNewCompany` (definida en companySelect.js) para cada nueva compañía.
+// Modify the processNewCompanies function to use the returned company IDs
 async function processNewCompanies() {
-    // Obtiene los elementos Select2 para las compañías de origen y destino.
     const companyShipElement = $('#CompanyShip');
     const companyDestElement = $('#inputCompanyNameDest');
-
-    // Obtiene los datos de la opción seleccionada en cada Select2.
-    // `select2('data')` devuelve un array, por lo que se accede al primer elemento [0].
     const companyShipData = companyShipElement.select2('data')[0];
     const companyDestData = companyDestElement.select2('data')[0];
     
-    let saveOperations = []; // Array para almacenar las promesas de las operaciones de guardado.
+    let newCompanyIds = {
+        origin_id: null,
+        destiny_id: null
+    };
 
-    // Verifica si la compañía de origen es nueva (si tiene la propiedad `isNew` establecida por Select2).
+    // Handle origin company if it's new
     if (companyShipData && companyShipData.isNew) {
-        // Agrega la promesa devuelta por `saveNewCompany` al array de operaciones.
-        saveOperations.push(
-            saveNewCompany( // Llama a la función para guardar la nueva compañía de origen.
-                companyShipData.id, // El ID contiene el nombre de la nueva compañía.
-                $('#inputCityShip').val(), 
-                $('#StatesShip').val(), 
-                $('#inputZipShip').val(),
-                false // Indica que no es una compañía de destino.
-            )
+        const originResult = await saveNewCompany(
+            companyShipData.id,
+            $('#inputCityShip').val(), 
+            $('#StatesShip').val(), 
+            $('#inputZipShip').val(),
+            false
         );
-    }
-
-    // Verifica si la compañía de destino es nueva.
-    if (companyDestData && companyDestData.isNew) {
-        // Agrega la promesa devuelta por `saveNewCompany` al array de operaciones.
-        saveOperations.push(
-            saveNewCompany( // Llama a la función para guardar la nueva compañía de destino.
-                companyDestData.id, // El ID contiene el nombre de la nueva compañía.
-                $('#inputCityDest').val(), 
-                $('#StatesDest').val(), 
-                $('#inputZipDest').val(),
-                true // Indica que es una compañía de destino.
-            )
-        );
-    }
-
-    // Si hay operaciones de guardado pendientes (nuevas compañías para guardar).
-    if (saveOperations.length > 0) {
-        try {
-            // Espera a que todas las promesas de guardado se resuelvan.
-            // `Promise.all` devuelve un array con los resultados de cada promesa.
-            const results = await Promise.all(saveOperations);
-            
-            // Verifica si alguna de las operaciones de guardado falló.
-            // `saveNewCompany` devuelve `false` en caso de error.
-            if (results.some(result => result === false)) {
-                return false; // Retorna `false` si al menos una operación falló.
-            }
-            return true; // Retorna `true` si todas las operaciones fueron exitosas.
-        } catch (error) { // Captura cualquier error que ocurra durante `Promise.all`.
-            console.error('Error saving new companies:', error);
-            Swal.fire({ // Muestra una alerta de error.
-                icon: 'error',
-                title: 'Error',
-                text: 'Could not save the new companies: ' + error.message
-            });
-            return false; // Retorna `false` en caso de error.
+        
+        if (originResult === false) {
+            return { success: false };
+        }
+        
+        // If the server returned a numeric ID, store it
+        if (typeof originResult === 'number') {
+            newCompanyIds.origin_id = originResult;
         }
     }
-    // Si no hay operaciones de guardado pendientes, retorna `true` (no hay nuevas compañías que guardar).
-    return true;
+
+    // Handle destination company if it's new
+    if (companyDestData && companyDestData.isNew) {
+        const destResult = await saveNewCompany(
+            companyDestData.id,
+            $('#inputCityDest').val(), 
+            $('#StatesDest').val(), 
+            $('#inputZipDest').val(),
+            true
+        );
+        
+        if (destResult === false) {
+            return { success: false };
+        }
+        
+        // If the server returned a numeric ID, store it
+        if (typeof destResult === 'number') {
+            newCompanyIds.destiny_id = destResult;
+        }
+    }
+
+    return { 
+        success: true,
+        newCompanyIds: newCompanyIds
+    };
 }

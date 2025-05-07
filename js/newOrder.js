@@ -5,7 +5,7 @@ let range = 0; // Rango de autorización, se declara con let para poder modifica
 //==========================================================================================
 // Función para validar y enviar los datos del formulario.
 // Se activa cuando se hace clic en el botón de envío.
-function submitForm(event) {
+async function submitForm(event) {
     event.preventDefault(); // Previene el comportamiento por defecto del formulario (que recargaría la página).
 
     // Obtiene los datos del formulario y los campos vacíos desde el módulo de validación.
@@ -21,6 +21,13 @@ function submitForm(event) {
             text: 'Please complete all required fields: ' + emptyFields.join(', ') // Mensaje de la alerta en inglés.
         });
         return; // Detiene la ejecución de la función si hay campos vacíos.
+    }
+
+    // Process any new companies first
+    const processResult = await processNewCompanies();
+    if (!processResult.success) {
+        // If there was an error processing new companies, stop here
+        return;
     }
 
     //==========================================================================================
@@ -50,7 +57,7 @@ function submitForm(event) {
         code_planta: formData['codeplanta'],
         transport: formData['transport'],
         in_out_bound: formData['InOutBound'],
-        cost_euros: formData['CostoEuros'], // Costo en euros, ya formateado o calculado.
+        cost_euros: euros, // Use the numeric value, not the formatted string
         description: formData['Description'],
         area: formData['Area'],
         int_ext: formData['IntExt'],
@@ -65,18 +72,20 @@ function submitForm(event) {
         quoted_cost: quotedCost, // Costo cotizado como número.
         reference: formData['Reference'],
         reference_number: formData['ReferenceNumber'],
-        origin_id: 1, // TODO: Placeholder - Determinar cómo se obtendrá el ID de origen real.
-        destiny_id: 1, // TODO: Placeholder - Determinar cómo se obtendrá el ID de destino real.
+        origin_id: processResult.newCompanyIds.origin_id || formData['origin_id'], // Use the new company IDs if available, otherwise fall back to existing values
+        destiny_id: processResult.newCompanyIds.destiny_id || formData['destiny_id'], // Use the new company IDs if available, otherwise fall back to existing values
         status_id: 1, // Estado por defecto para nuevas entradas (ej. "Pendiente").
         required_auth_level: range, // Nivel de autorización requerido, calculado previamente.
-        moneda: selectedCurrency // Moneda seleccionada (ej. 'MXN', 'USD'), variable global de currencyUtils.js.
+        moneda: getSelectedCurrency() // Use the getter function instead of direct variable access
     };
 
     // Muestra los datos que se enviarán al backend en la consola, en formato JSON legible.
     console.log("Datos para enviar al backend:", JSON.stringify(payload, null, 2));
 
-    //==========================================================================================
-    // Envía los datos al backend utilizando la API Fetch.
+    // Add a console log before sending the data to verify currency is correct
+    console.log("Selected currency:", getSelectedCurrency());
+
+    // Send the data to the backend
     sendFormData(payload);
 }
 

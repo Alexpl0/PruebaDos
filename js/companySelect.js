@@ -177,6 +177,7 @@ function showCompanyDestSelect() {
 //==========================================================================================
 // Función asíncrona para guardar una nueva ubicación de compañía en la base de datos.
 // Recibe el nombre de la compañía, ciudad, estado, código postal y un booleano opcional para indicar si es destino.
+// Modify the saveNewCompany function to return the company ID from the server response
 async function saveNewCompany(companyName, city, state, zip, isDestination = false) {
     // Valida que todos los campos necesarios tengan valor.
     if (!companyName || !city || !state || !zip) {
@@ -212,7 +213,8 @@ async function saveNewCompany(companyName, city, state, zip, isDestination = fal
                 text: `The company "${companyName}" has been added to the database.`
             });
             
-            return true; // Retorna verdadero indicando que se guardó correctamente.
+            // Return the new company ID if provided by the server
+            return result.company_id || true;
         } else {
             // Si el servidor indica un error, lanza una excepción con el mensaje del servidor.
             throw new Error(result.message || 'Error saving company');
