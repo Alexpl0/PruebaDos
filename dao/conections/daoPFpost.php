@@ -72,7 +72,7 @@ try {
     $conex->set_charset("utf8mb4");
 
     // Preparar la consulta SQL
-    $sql = "INSERT INTO ShipmentDetails (
+    $sql = "INSERT INTO PremiumFreight (
                 user_id, date, planta, code_planta, transport, in_out_bound,
                 cost_euros, description, area, int_ext, paid_by, category_cause,
                 project_status, recovery, weight, measures, products,
@@ -147,7 +147,7 @@ try {
         
         echo json_encode([
             "success" => true,
-            "message" => "Special freight order created successfully.",
+            "message" => "Premium freight order created successfully.",
             "shipment_id" => $shipmentId
         ]);
     } else {
