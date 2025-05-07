@@ -36,7 +36,7 @@ function showCompanySelect() {
                 }
                 // Mapea los datos recibidos al formato que Select2 espera.
                 const results = data.data.map(company => ({
-                    id: company.company_name, // El valor único para la opción.
+                    id: company.id, // El valor único para la opción.
                     text: company.company_name, // El texto que se muestra en la opción.
                     // Almacena datos adicionales de la compañía para usarlos después.
                     city: company.city, 
@@ -129,7 +129,7 @@ function showCompanyDestSelect() {
                     return { results: [] };
                 }
                 const results = data.data.map(company => ({
-                    id: company.company_name,
+                    id: company.id,
                     text: company.company_name,
                     city: company.city, 
                     state: company.state,
