@@ -244,17 +244,10 @@ session_start();
                 <div id="DivStatesShip" class="mb-2">
                     <label for="StatesShip">States:</label>
                     <select name="StatesShip" id="StatesShip" class="form-select">
-                        <?php if (!empty($jsonStates)): ?>
-                            <?php foreach ($jsonStates as $StatesShip): ?>
-                                <option value="<?php echo htmlspecialchars($StatesShip['ID']); ?>">
-                                    <?php echo htmlspecialchars($StatesShip['estadonombre']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <option value="" disabled>No data found, jsonStates empty</option>
-                        <?php endif; ?>
+                        
                     </select>
                 </div>
+
                 <div id="DivZipShip" class="mb-2">
                     <label for="inputZipShip">ZIP</label>
                     <input type="number" id="inputZipShip" class="form-control" placeholder="ZIP">
@@ -463,3 +456,15 @@ session_start();
     </script>
 </body>
 </html>
+
+
+
+<!-- <?php if (!empty($jsonStates)): ?>
+                            <?php foreach ($jsonStates as $StatesShip): ?>
+                                <option value="<?php echo htmlspecialchars($StatesShip['ID']); ?>">
+                                    <?php echo htmlspecialchars($StatesShip['estadonombre']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <option value="" disabled>No data found, jsonStates empty</option>
+                        <?php endif; ?> -->

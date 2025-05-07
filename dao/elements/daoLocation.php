@@ -12,8 +12,8 @@ try {
     $searchTerm = $_GET['q'] ?? '';
     $datos = [];
     
-    // Construir la consulta base
-    $query = "SELECT company_name FROM `Location`";
+    // Construir la consulta base - ahora devolvemos todos los campos necesarios
+    $query = "SELECT company_name, city, state, zip FROM `Location`";
 
     if (!empty($searchTerm)) {
         // Si hay un término de búsqueda, añadir la cláusula WHERE LIKE

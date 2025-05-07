@@ -26,7 +26,11 @@ function showCompanySelect() {
                 }
                 const results = data.data.map(company => ({
                     id: company.company_name,
-                    text: company.company_name
+                    text: company.company_name,
+                    // Almacenamos todos los datos de la compañía para usarlos después
+                    city: company.city, 
+                    state: company.state,
+                    zip: company.zip
                 }));
                 return { results };
             },
@@ -34,6 +38,33 @@ function showCompanySelect() {
             error: function(jqXHR, textStatus, errorThrown) {
                 console.error("AJAX Error for CompanyShip:", textStatus, errorThrown, jqXHR.responseText);
             }
+        }
+    }).on('select2:select', function(e) {
+        // Cuando se selecciona una compañía, completamos los campos automáticamente
+        const data = e.params.data;
+        if (data) {
+            // Completar campos relacionados
+            $('#inputCityShip').val(data.city);
+            
+            // Para el select de estados, necesitamos encontrar la opción correspondiente
+            const stateSelect = $('#StatesShip');
+            const stateOptions = stateSelect.find('option');
+            let stateFound = false;
+            
+            // Buscar la opción que contenga el nombre del estado
+            stateOptions.each(function() {
+                if ($(this).text().trim().toLowerCase() === data.state.toLowerCase()) {
+                    stateSelect.val($(this).val()).trigger('change');
+                    stateFound = true;
+                    return false; // Break the loop
+                }
+            });
+            
+            if (!stateFound) {
+                console.warn(`Estado "${data.state}" no encontrado en las opciones disponibles`);
+            }
+            
+            $('#inputZipShip').val(data.zip);
         }
     });
 }
@@ -119,7 +150,7 @@ function submitForm(event) {
         'planta', 'codeplanta', 'transport', 'InOutBound', 'CostoEuros', 'Description',
         'Area', 'IntExt', 'PaidBy', 'CategoryCause', 'ProjectStatus', 'Recovery',
         'Weight', 'Measures', 'Products', 'Carrier', 'QuotedCost', 'Reference', 'ReferenceNumber',
-        'inputCompanyNameShip', 'inputCityShip', 'StatesShip', 'inputZipShip',
+        'CompanyShip', 'inputCityShip', 'StatesShip', 'inputZipShip',  // Cambiado de 'inputCompanyNameShip' a 'CompanyShip'
         'inputCompanyNameDest', 'inputCityDest', 'StatesDest', 'inputZipDest'
     ];
 
