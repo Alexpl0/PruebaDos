@@ -37,6 +37,16 @@ function showCompanySelect() {
                     state: company.state,
                     zip: company.zip
                 }));
+                
+                // Si hay un término de búsqueda y no se encontraron resultados, agregar opción para crear nueva compañía
+                if (params.term && results.length === 0) {
+                    results.push({
+                        id: "new:" + params.term,
+                        text: `Agregar nueva compañía: "${params.term}"`,
+                        isNew: true
+                    });
+                }
+                
                 return { results };
             },
             cache: true,
@@ -48,18 +58,31 @@ function showCompanySelect() {
         // Cuando se selecciona una compañía, completamos los campos automáticamente
         const data = e.params.data;
         if (data) {
-            // Completar campos relacionados
-            $('#inputCityShip').val(data.city);
-            
-            // Para el campo de estado que es un input text, simplemente asignamos el valor
-            $('#StatesShip').val(data.state);
-            
-            $('#inputZipShip').val(data.zip);
-            
-            // Hacemos que los campos sean editables después de autocompletar
-            $('#inputCityShip').prop('readonly', false);
-            $('#StatesShip').prop('readonly', false); 
-            $('#inputZipShip').prop('readonly', false);
+            if (data.isNew) {
+                // Si es una nueva compañía, extraer el nombre del ID (después de "new:")
+                const companyName = data.id.substring(4); // Quita "new:"
+                
+                // Establecer el nombre en el campo y habilitar campos para edición
+                $('#CompanyShip').val(companyName).trigger('change');
+                
+                // Limpiar y habilitar los campos para edición
+                $('#inputCityShip').val('').prop('readonly', false);
+                $('#StatesShip').val('').prop('readonly', false);
+                $('#inputZipShip').val('').prop('readonly', false);
+                
+                // Opcional: enfocar el siguiente campo para facilitar la introducción de datos
+                $('#inputCityShip').focus();
+            } else {
+                // Completar campos relacionados con datos existentes
+                $('#inputCityShip').val(data.city);
+                $('#StatesShip').val(data.state);
+                $('#inputZipShip').val(data.zip);
+                
+                // Hacemos que los campos sean editables después de autocompletar
+                $('#inputCityShip').prop('readonly', false);
+                $('#StatesShip').prop('readonly', false); 
+                $('#inputZipShip').prop('readonly', false);
+            }
         }
     }).on('select2:clear', function() {
         // Si se limpia la selección de compañía, limpiar y desactivar los campos relacionados
@@ -102,6 +125,16 @@ function showCompanyDestSelect() {
                     state: company.state,
                     zip: company.zip
                 }));
+                
+                // Si hay un término de búsqueda y no se encontraron resultados, agregar opción para crear nueva compañía
+                if (params.term && results.length === 0) {
+                    results.push({
+                        id: "new:" + params.term,
+                        text: `Agregar nueva compañía: "${params.term}"`,
+                        isNew: true
+                    });
+                }
+                
                 return { results };
             },
             cache: true,
@@ -113,18 +146,31 @@ function showCompanyDestSelect() {
         // Cuando se selecciona una compañía, completamos los campos automáticamente
         const data = e.params.data;
         if (data) {
-            // Completar campos relacionados
-            $('#inputCityDest').val(data.city);
-            
-            // Para el campo de estado que es un input text, simplemente asignamos el valor
-            $('#StatesDest').val(data.state);
-            
-            $('#inputZipDest').val(data.zip);
-            
-            // Hacemos que los campos sean editables después de autocompletar
-            $('#inputCityDest').prop('readonly', false);
-            $('#StatesDest').prop('readonly', false);
-            $('#inputZipDest').prop('readonly', false);
+            if (data.isNew) {
+                // Si es una nueva compañía, extraer el nombre del ID (después de "new:")
+                const companyName = data.id.substring(4); // Quita "new:"
+                
+                // Establecer el nombre en el campo y habilitar campos para edición
+                $('#inputCompanyNameDest').val(companyName).trigger('change');
+                
+                // Limpiar y habilitar los campos para edición
+                $('#inputCityDest').val('').prop('readonly', false);
+                $('#StatesDest').val('').prop('readonly', false);
+                $('#inputZipDest').val('').prop('readonly', false);
+                
+                // Opcional: enfocar el siguiente campo para facilitar la introducción de datos
+                $('#inputCityDest').focus();
+            } else {
+                // Completar campos relacionados con datos existentes
+                $('#inputCityDest').val(data.city);
+                $('#StatesDest').val(data.state);
+                $('#inputZipDest').val(data.zip);
+                
+                // Hacemos que los campos sean editables después de autocompletar
+                $('#inputCityDest').prop('readonly', false);
+                $('#StatesDest').prop('readonly', false);
+                $('#inputZipDest').prop('readonly', false);
+            }
         }
     }).on('select2:clear', function() {
         // Si se limpia la selección de compañía, limpiar y desactivar los campos relacionados
@@ -390,6 +436,68 @@ function submitForm(event) {
     });
 }
 
+
+//==========================================================================================
+// Function to save a new company location to the database
+async function saveNewCompany(companyName, city, state, zip, isDestination = false) {
+    // Validar que todos los campos tengan valor
+    if (!companyName || !city || !state || !zip) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Datos incompletos',
+            text: 'Por favor complete todos los campos de la compañía (Nombre, Ciudad, Estado y Código Postal).'
+        });
+        return false;
+    }
+    
+    try {
+        const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/elements/daoAddLocation.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                company_name: companyName,
+                city: city,
+                state: state,
+                zip: zip
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Compañía guardada',
+                text: `La compañía "${companyName}" ha sido agregada a la base de datos.`
+            });
+            
+            // Actualizamos el select con el valor actual (ya que ahora existe en la BD)
+            if (isDestination) {
+                // Crear una nueva opción que no tenga el prefijo "new:"
+                const newOption = new Option(companyName, companyName, true, true);
+                $('#inputCompanyNameDest').append(newOption).trigger('change');
+            } else {
+                // Crear una nueva opción que no tenga el prefijo "new:"
+                const newOption = new Option(companyName, companyName, true, true);
+                $('#CompanyShip').append(newOption).trigger('change');
+            }
+            
+            return true;
+        } else {
+            throw new Error(result.message || 'Error al guardar la compañía');
+        }
+    } catch (error) {
+        console.error('Error saving new company:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo guardar la compañía: ' + error.message
+        });
+        return false;
+    }
+}
 
 //==========================================================================================
 // Initialize event listeners when the DOM is fully loaded
