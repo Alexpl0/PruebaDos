@@ -43,7 +43,7 @@ function loginUsuario() {
                 Swal.fire({
                     icon: 'success',
                     title: 'Bienvenido',
-                    text: 'Inicio de sesión exitoso. Redirigiendo a newOrers'
+                    text: 'Inicio de sesión exitoso.'
 
                 }).then(() => {
                     window.location.href = 'newOrder.php';
