@@ -83,12 +83,13 @@ label {
 }
 
 #enviar {
-    width: 90%;
+    width: 13%;
     max-height: 1px;
-    padding: 4%;
-    margin: 5%;
+    padding: 3%;
+    margin-left: 5%;
+    margin-top: 5%;
     border: none;
-    border-radius: 15px;
+    border-radius: 10px;
     background-color: var(--first-color);
     color: var(--white-color);
     font-size: 1.2em;
