@@ -39,15 +39,14 @@ $user = $_SESSION['user'];
                 </div>
                 <div class="nav__menu">
                     <ul class="nav__list">
-                        <li class="nav__item"><a href="index.php" class="nav__link">Home</a></li>
-                        <li class="nav__item"><a href="newOrder.php" class="nav__link">New Order</a></li>
+                        <li class="nav__item"><a href="profile.php" class="nav__link active">My Profile</a></li>                        <li class="nav__item"><a href="newOrder.php" class="nav__link active">New Order</a></li>
                         <li class="nav__item"><a href="orders.php" class="nav__link">Generated Orders</a></li>
-                        <?php if (isset($_SESSION['user']) && $_SESSION['user']['authorization_level'] >= 7): ?>
-                            <li class="nav__item"><a href="register.php" class="nav__link">Add User</a></li>
-                        <?php endif; ?>
-                        <li class="nav__item"><a href="profile.php" class="nav__link active">My Profile</a></li>
+                        <li class="nav__item"><a href="register.php" class="nav__link">Add User</a></li>
+                        <li class="nav__item"><a href="https://www.google.com" class="nav__link">Charts</a></li>
                         <li class="nav__item"><a href="#" class="nav__link">Manual</a></li>
-                        <li class="nav__item"><a href="logout.php" class="nav__link">Log Out</a></li>
+                        <?php if (isset($_SESSION['user'])): ?>
+                            <li class="nav__item"><a href="logout.php" class="nav__link">Log Out</a></li>
+                        <?php endif; ?>
                     </ul>
                 </div>
             </div>
