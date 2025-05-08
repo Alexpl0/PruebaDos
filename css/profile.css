@@ -93,7 +93,7 @@
     height: 38px; /* Establecer altura explícita para el contenedor */
 }
 
-.form-control {
+.form-input {
     flex: 0.95;
     height: 100%; /* Cambiar a 100% para que ocupe toda la altura del contenedor */
     border-right: none;
@@ -105,7 +105,7 @@
 }
 
 
-.input-group .form-control {
+.input-group .form-input {
     flex: 0.95;
     height: 100%; /* Cambiar a 100% para que ocupe toda la altura del contenedor */
     border-right: none;
