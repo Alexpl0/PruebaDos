@@ -27,7 +27,6 @@ function linkAction(){
 navLink.forEach(n => n.addEventListener('click', linkAction));
 
 function createHeader(authLevel) {
-
     console.log('Authorization Level:', authLevel);
     // Detecta la página actual
     const currentPage = window.location.pathname.split('/').pop();
@@ -85,17 +84,20 @@ function createHeader(authLevel) {
     document.getElementById('header-container').innerHTML = headerHTML;
 }
 
-// Espera a que el DOM esté listo y window.authorizationLevel esté disponible
 document.addEventListener('DOMContentLoaded', function() {
     createHeader(window.authorizationLevel || 0);
 
-    // Vuelve a enlazar los eventos del menú
+    // Ahora que el header existe, enlaza los eventos
     const navMenu = document.getElementById('nav-menu'),
         toggleMenu = document.getElementById('nav-toggle'),
         closeMenu = document.getElementById('nav-close');
 
-    toggleMenu.addEventListener('click', ()=>{ navMenu.classList.toggle('show') });
-    closeMenu.addEventListener('click', ()=>{ navMenu.classList.remove('show') });
+    if (toggleMenu && navMenu) {
+        toggleMenu.addEventListener('click', ()=>{ navMenu.classList.toggle('show') });
+    }
+    if (closeMenu && navMenu) {
+        closeMenu.addEventListener('click', ()=>{ navMenu.classList.remove('show') });
+    }
 
     const navLink = document.querySelectorAll('.nav__link');   
     function linkAction(){
