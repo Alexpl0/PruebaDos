@@ -100,6 +100,7 @@
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     margin: 0; /* Eliminar cualquier margen que pueda afectar */
+    height: 7% !important; /* Cambiado a 7% para que ocupe el 7% de la altura del contenedor */
     max-height: 7% !important;
 }
 
