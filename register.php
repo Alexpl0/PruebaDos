@@ -1,6 +1,6 @@
 <?php
 session_start();
-// Ahora puedes usar $_SESSION['user']
+// Now you can use $_SESSION['user']
 ?>
 
 <!DOCTYPE html>
@@ -8,7 +8,7 @@ session_start();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>User Registration</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script type="module" src="https://unpkg.com/ionicons@7.2.2/dist/ionicons/ionicons.esm.js"></script>
@@ -52,7 +52,7 @@ session_start();
         <div class="container">
             <div class="row">
                 <div>
-                    <h1 id="title1">Registro de Usuario</h1>
+                    <h1 id="title1">User Registration</h1>
                 </div>
             </div>
         </div>
@@ -61,26 +61,26 @@ session_start();
                 <div>
                     <form id="register-form" autocomplete="off">
                         <div class="mb-3">
-                            <label for="email" class="form-label">Correo Electrónico</label>
+                            <label for="email" class="form-label">Email Address</label>
                             <input type="email" class="form-control" id="email" name="email" required>
                         </div>
                         <div class="mb-3">
-                            <label for="username" class="form-label">Nombre de Usuario</label>
+                            <label for="username" class="form-label">Username</label>
                             <input type="text" class="form-control" id="username" name="username" required>
                         </div>
                         <div class="mb-3">
-                            <label for="password" class="form-label">Contraseña</label>
+                            <label for="password" class="form-label">Password</label>
                             <input type="password" class="form-control" id="password" name="password" required>
                         </div>
                         <div class="mb-3">
-                            <label for="role" class="form-label">Rol</label>
+                            <label for="role" class="form-label">Role</label>
                             <input type="text" class="form-control" id="role" name="role" placeholder="Manager, Senior, etc." required>
                         </div>
                         <div class="mb-3">
-                            <label for="authorization_level" class="form-label">Nivel de Autorización</label>
+                            <label for="authorization_level" class="form-label">Authorization Level</label>
                             <input type="number" class="form-control" id="authorization_level" name="authorization_level" required min="1" max="10">
                         </div>
-                        <button type="submit" class="btn btn-primary">Registrar</button>
+                        <button type="submit" class="btn btn-primary">Register</button>
                     </form>
                 </div>
             </div>
@@ -91,7 +91,7 @@ session_start();
         <p>© 2025 Grammer. All rights reserved.</p>
     </footer>
     
-    <!-- Archivos JS locales -->
+    <!-- JS files -->
     <script src="js/header.js"></script>
     <script src="js/register.js"></script>
 </body>
