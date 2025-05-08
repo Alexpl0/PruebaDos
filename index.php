@@ -43,7 +43,7 @@ include_once 'dao/users/auth_check.php';
                         <li class="nav__item"><a href="index.php" class="nav__link active">Home</a></li>
                         <li class="nav__item"><a href="  " class="nav__link">Manual</a></li>
                         <?php if (isset($_SESSION['user'])): ?>
-                            <li class="nav__item"><a href="logout.php" class="nav__link">Log Out</a></li>
+                            <li class="nav__item"><a href="dao/users/logout.php" class="nav__link">Log Out</a></li>
                         <?php endif; ?>
                     </ul>
                 </div>
