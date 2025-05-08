@@ -53,7 +53,7 @@ session_start();
         <div class="container">
             <div class="row">
                 <div>
-                    <h1 id="title1">User Registration</h1>
+                    <h1 id="title1">Add New User</h1>
                 </div>
             </div>
         </div>
