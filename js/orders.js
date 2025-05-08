@@ -71,6 +71,28 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         window.allOrders = orders; // este sí puede cambiar con los filtros
 
+        // Ordena las órdenes por color/estado antes de crear las tarjetas
+        orders.sort((a, b) => {
+            // Obtiene los nombres de estado (manejando nulos)
+            const statusA = (a.status_name || '').toLowerCase();
+            const statusB = (b.status_name || '').toLowerCase();
+            
+            // Asigna prioridades según el orden deseado:
+            // 1. nuevo/default (blanco) - prioridad 1
+            // 2. revision (amarillo) - prioridad 2
+            // 3. rechazado (rojo) - prioridad 3
+            // 4. aprobado (verde) - prioridad 4
+            const getPriority = (status) => {
+                if (status === 'nuevo' || status === '') return 1;
+                if (status === 'revision') return 2;
+                if (status === 'rechazado') return 3;
+                if (status === 'aprobado') return 4;
+                return 5; // para cualquier otro estado
+            };
+            
+            return getPriority(statusA) - getPriority(statusB);
+        });
+
         // Itera sobre cada objeto de orden en el array 'orders'.
         orders.forEach(order => {
             // Calcula el número de semana para la fecha de la orden.
