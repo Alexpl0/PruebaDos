@@ -27,6 +27,8 @@ function linkAction(){
 navLink.forEach(n => n.addEventListener('click', linkAction));
 
 function createHeader(authLevel) {
+
+    console.log('Authorization Level:', authLevel);
     // Detecta la página actual
     const currentPage = window.location.pathname.split('/').pop();
 
