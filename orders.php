@@ -89,6 +89,10 @@ $userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
       </div>
     </div>
 
+    <footer class="text-center py-3">
+        <p>© 2025 Grammer. All rights reserved.</p>
+    </footer>
+
     <!-- Scripts necesarios -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>

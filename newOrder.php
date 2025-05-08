@@ -361,7 +361,7 @@ session_start();
     </main>
 
     <footer class="text-center py-3 bg-light">
-        <p>© 2023 Grammer. All rights reserved.</p>
+        <p>© 2025 Grammer. All rights reserved.</p>
     </footer>
 
     <!-- Scripts -->

@@ -83,6 +83,10 @@ session_start();
         </div>
     </div>
 
+    <footer class="text-center py-3">
+        <p>© 2025 Grammer. All rights reserved.</p>
+    </footer>
+
     <!-- Archivos JS locales -->
     <script src="js/header.js"></script>
     <script src="js/index.js"></script>
