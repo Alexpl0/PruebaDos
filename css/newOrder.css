@@ -147,14 +147,7 @@ label {
 }
 
 
-footer{
-    margin-top: 20px;
-    padding: 20px;
-    background-color: var(--first-color);
-    color: var(--white-color);
-    text-align: center;
-    width: 100%;
-}
+
 
 .select2-search--dropdown .select2-search__field {
    

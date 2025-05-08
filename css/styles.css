@@ -182,5 +182,10 @@ form button, form input[type="submit"] {
 }
 
 footer{
-    background-color: transparent;
+    margin-top: 20px;
+    padding: 20px;
+    background-color: var(--first-color);
+    color: var(--white-color);
+    text-align: center;
+    width: 100%;
 }
