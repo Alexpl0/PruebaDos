@@ -185,7 +185,7 @@ footer{
     margin-top: 20px;
     padding: 20px;
     background-color: transparent;
-    color: var(--white-color);
+    color: black;
     text-align: center;
     width: 100%;
 }
