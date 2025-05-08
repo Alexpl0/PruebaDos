@@ -8,6 +8,11 @@ if (!isset($_SESSION['user'])) {
 $user = $_SESSION['user'];
 include_once 'dao/users/auth_check.php';
 ?>
+<script>
+    window.authorizationLevel = <?php echo json_encode(isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null); ?>;
+    window.userName = <?php echo json_encode(isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null); ?>;
+    window.userID = <?php echo json_encode(isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null); ?>;
+</script>
 
 <!DOCTYPE html>
 <html lang="en">

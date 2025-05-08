@@ -13,6 +13,11 @@ include_once 'dao/users/auth_check.php';
     console.log("UserName: " + window.userName);
     console.log("UserID: " + window.userID);
 </script>
+<script>
+    window.authorizationLevel = <?php echo json_encode(isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null); ?>;
+    window.userName = <?php echo json_encode(isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null); ?>;
+    window.userID = <?php echo json_encode(isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null); ?>;
+</script>
 
 <!DOCTYPE html>
 <html lang="en">
