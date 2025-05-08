@@ -2,7 +2,7 @@ document.getElementById('register-form').addEventListener('submit', function(e) 
     e.preventDefault();
 
     const data = {
-        name: document.getElementById('username').value.trim(),
+        name: document.getElementById('name').value.trim(),
         email: document.getElementById('email').value.trim(),
         password: document.getElementById('password').value.trim(),
         role: document.getElementById('role').value.trim(),
