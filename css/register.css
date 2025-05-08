@@ -1,0 +1,48 @@
+/* Estilos para el formulario de registro */
+#registerform-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Estilos para el grupo de input de contraseña */
+.input-group {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    height: 38px; /* Altura fija para el contenedor */
+}
+
+.input-group .form-control {
+    flex: 0.95; /* 95% del espacio disponible */
+    height: 100%; /* Ocupa toda la altura del contenedor */
+    border-right: none;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    margin: 0;
+}
+
+.input-group .toggle-password {
+    flex: 0.05; /* 5% del espacio disponible */
+    min-width: 40px; /* Ancho mínimo para que el icono sea visible */
+    height: 100%; /* Ocupa toda la altura del contenedor */
+    padding: 0;
+    display: flex;
+    justify-content: center; /* Centra horizontalmente el icono */
+    align-items: center; /* Centra verticalmente el icono */
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    z-index: 0;
+    margin: 0;
+}
+
+.input-group .toggle-password ion-icon {
+    font-size: 1.2rem;
+}
+
+/* Ajuste para pantallas pequeñas */
+@media (max-width: 576px) {
+    .input-group .toggle-password {
+        min-width: 38px;
+    }
+}

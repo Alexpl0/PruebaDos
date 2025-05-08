@@ -15,6 +15,7 @@ session_start();
     <script nomodule src="https://unpkg.com/ionicons@7.2.2/dist/ionicons/ionicons.js"></script>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
+    <link rel="stylesheet" href="css/register.css">
 </head>
 <body>
 <header class="header">
@@ -68,7 +69,7 @@ session_start();
                             <label for="name" class="form-label">Complete Name</label>
                             <input type="text" class="form-control" id="name" name="name" required>
                         </div>
-                        <div class="mb-3">
+                        <div id="passwordInput" class="mb-3">
                             <label for="password" class="form-label">Password</label>
                             <div class="input-group">
                                 <input type="password" class="form-control" id="password" name="password" required>
