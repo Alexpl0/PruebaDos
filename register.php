@@ -1,6 +1,7 @@
 <?php
 session_start();
 // Now you can use $_SESSION['user']
+include_once 'dao/users/auth_check.php';
 ?>
 
 <!DOCTYPE html>

@@ -6,6 +6,7 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 $user = $_SESSION['user'];
+include_once 'dao/users/auth_check.php';
 ?>
 
 <!DOCTYPE html>

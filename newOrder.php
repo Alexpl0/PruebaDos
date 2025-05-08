@@ -14,6 +14,7 @@ require_once __DIR__ . '/dao/elements/daoProducts.php';
 require_once __DIR__ . '/dao/elements/daoStates.php';
 
 session_start();
+include_once 'dao/users/auth_check.php';
 ?>
 
 <!DOCTYPE html>

@@ -3,6 +3,7 @@ session_start();
 $nivel = isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null;
 $name = isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null;
 $userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
+include_once 'dao/users/auth_check.php';
 ?>
 <script>
     window.authorizationLevel = <?php echo json_encode($nivel); ?>;
