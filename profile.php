@@ -55,8 +55,6 @@ $user = $_SESSION['user'];
     </header>
 
     <main class="container my-4">
-        <h1 class="mb-3">My Profile</h1>
-        
         <div class="profile-container">
             <div class="profile-header">
                 <div class="avatar-container">
