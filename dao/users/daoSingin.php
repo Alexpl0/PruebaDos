@@ -11,7 +11,7 @@ try {
     $email = $input['email'] ?? '';
     $role = $input['role'] ?? '';
     $password = $input['password'] ?? '';
-    $authorization_level = $input['authorization_level'] ?? '';
+    $authorization_level = isset($input['authorization_level']) ? $input['authorization_level'] : null;
 
     // Verificar cada campo individualmente
     $missing_fields = [];
@@ -28,7 +28,8 @@ try {
     if (empty($password)) {
         $missing_fields[] = 'Password';
     }
-    if (empty($authorization_level)) {
+    // Validación especial para authorization_level que permite el valor 0
+    if (!isset($input['authorization_level']) || $authorization_level === null || $authorization_level === '') {
         $missing_fields[] = 'Authorization Level';
     }
 
@@ -56,6 +57,9 @@ try {
         exit;
     }
     $stmt->close();
+
+    // Asegurarnos de que authorization_level sea un entero
+    $authorization_level = (int)$authorization_level;
 
     // Insertar nuevo usuario
     $stmt = $conex->prepare("INSERT INTO `User` (name, email, role, password, authorization_level) VALUES (?, ?, ?, ?, ?)");

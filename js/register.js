@@ -1,12 +1,14 @@
 document.getElementById('register-form').addEventListener('submit', function(e) {
     e.preventDefault();
 
+    const authLevelValue = document.getElementById('authorization_level').value.trim();
+    
     const data = {
         name: document.getElementById('name').value.trim(),
         email: document.getElementById('email').value.trim(),
         password: document.getElementById('password').value.trim(),
         role: document.getElementById('role').value.trim(),
-        authorization_level: parseInt(document.getElementById('authorization_level').value, 10)
+        authorization_level: authLevelValue === '' ? '' : parseInt(authLevelValue, 10)
     };
 
     console.log(JSON.stringify(data)); // Log the data to the console for debugging
@@ -19,7 +21,7 @@ document.getElementById('register-form').addEventListener('submit', function(e) 
     .then(res => res.json())
     .then(res => {
         if (res.success) {
-            Swal.fire('¡Éxito!', res.mensaje, 'success').then(() => {
+            Swal.fire('Success!', res.mensaje, 'success').then(() => {
                 window.location.href = 'index.php';
             });
         } else {
@@ -27,7 +29,7 @@ document.getElementById('register-form').addEventListener('submit', function(e) 
         }
     })
     .catch(() => {
-        Swal.fire('Error', 'No se pudo registrar el usuario.', 'error');
+        Swal.fire('Error', 'Unable to register the user.', 'error');
     });
 });
 
