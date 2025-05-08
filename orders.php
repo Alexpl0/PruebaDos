@@ -40,36 +40,8 @@ include_once 'dao/users/auth_check.php';
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <header class="header">
-        <a href="#" class="header__logo">GRAMMER</a>
-        <ion-icon name="menu-outline" class="header__toggle" id="nav-toggle"></ion-icon>
-        <nav class="nav" id="nav-menu">
-            <div class="nav__content bd-grid">
-                <ion-icon name="close-outline" class="nav__close" id="nav-close"></ion-icon>
-                <div class="nav__perfil">
-                    <div class="nav__img">
-                        <img src="assets/logo/logo.png" alt="logoGRAMMER">
-                    </div>
-                    <div>
-                        <a href="#" class="nav__name">SPECIAL FREIGHT</a>
-                    </div>
-                </div> 
-                <div class="nav__menu">
-                    <ul class="nav__list">
-                        <li class="nav__item"><a href="profile.php" class="nav__link">My Profile</a></li>                        
-                        <li class="nav__item"><a href="newOrder.php" class="nav__link ">New Order</a></li>
-                        <li class="nav__item"><a href="orders.php" class="nav__link active">Generated Orders</a></li>
-                        <li class="nav__item"><a href="register.php" class="nav__link">Add User</a></li>
-                        <li class="nav__item"><a href="google.com" class="nav__link">Charts</a></li>
-                        <li class="nav__item"><a href="  " class="nav__link">Manual</a></li>
-                        <?php if (isset($_SESSION['user'])): ?>
-                            <li class="nav__item"><a href="dao/users/logout.php" class="nav__link">Log Out</a></li>
-                        <?php endif; ?>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-    </header>
+    <div id="header-container"></div>
+    
 
     <div id="mainOrders">
             <h1 id="title1">Generated Orders History</h1>
