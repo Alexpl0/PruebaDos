@@ -88,44 +88,27 @@
 
 .input-group {
     display: flex;
-    align-items: center; /* Cambiado de 'stretch' a 'center' */
+    align-items: center;
     width: 100%;
-    height: 38px; /* Establecer altura explícita para el contenedor */
-}
-
-.form-control {
-    flex: 0.95;
-    height: 100%; /* Cambiar a 100% para que ocupe toda la altura del contenedor */
-    border-right: none;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    margin: 0; /* Eliminar cualquier margen que pueda afectar */
-    min-height: 7% !important; /* Cambiado a 7% para que ocupe el 7% de la altura del contenedor */
-    max-height: 7% !important;
-}
-
-.input-group .form-control,
-.input-group .toggle-password {
-    height: 38px; /* Altura estándar de Bootstrap */
-    min-height: 38px !important;
-    max-height: 38px !important;
-    box-sizing: border-box;
-    margin: 0;
-    padding-top: 0;
-    padding-bottom: 0;
+    height: 38px;
 }
 
 .input-group .form-control {
-    /* Elimina min-width y max-height en % */
-    min-width: 0 !important;
-    max-width: 100%;
+    flex: 0 1 95%;
+    width: 0; /* Permite que flex funcione correctamente */
+    min-width: 0;
+    height: 100%;
     border-right: none;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
+    margin: 0;
 }
 
 .input-group .toggle-password {
-    min-width: 40px;
+    flex: 0 1 5%;
+    min-width: 0;
+    width: 0; /* Permite que flex funcione correctamente */
+    height: 100%;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
     display: flex;
@@ -137,6 +120,8 @@
 
 .input-group .toggle-password ion-icon {
     font-size: 1.2rem;
+    margin: 0 auto;
+    display: block;
 }
 
 @media (max-width: 576px) {
