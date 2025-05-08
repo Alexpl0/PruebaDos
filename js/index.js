@@ -43,10 +43,10 @@ function loginUsuario() {
                 Swal.fire({
                     icon: 'success',
                     title: 'Bienvenido',
-                    text: 'Inicio de sesión exitoso.'
+                    text: 'Inicio de sesión exitoso. Redirigiendo a newOrers'
 
                 }).then(() => {
-                    window.location.href = 'google.com';
+                    window.location.href = 'newOrder.php';
                     
                 });
             });
