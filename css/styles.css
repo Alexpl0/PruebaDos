@@ -184,7 +184,7 @@ form button, form input[type="submit"] {
 footer{
     margin-top: 20px;
     padding: 20px;
-    background-color: var(--first-color);
+    background-color: transparent;
     color: var(--white-color);
     text-align: center;
     width: 100%;
