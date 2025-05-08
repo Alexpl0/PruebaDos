@@ -93,7 +93,7 @@
     height: 38px; /* Establecer altura explícita para el contenedor */
 }
 
-.form-input {
+.form-control {
     flex: 0.95;
     height: 100%; /* Cambiar a 100% para que ocupe toda la altura del contenedor */
     border-right: none;
@@ -104,30 +104,35 @@
     max-height: 7% !important;
 }
 
+.input-group .form-control,
+.input-group .toggle-password {
+    height: 38px; /* Altura estándar de Bootstrap */
+    min-height: 38px !important;
+    max-height: 38px !important;
+    box-sizing: border-box;
+    margin: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
 
-.input-group .form-input {
-    flex: 0.95;
-    height: 100%; /* Cambiar a 100% para que ocupe toda la altura del contenedor */
+.input-group .form-control {
+    /* Elimina min-width y max-height en % */
+    min-width: 0 !important;
+    max-width: 100%;
     border-right: none;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
-    margin: 0; /* Eliminar cualquier margen que pueda afectar */
-    min-width: 7% !important; /* Cambiado a 7% para que ocupe el 7% de la altura del contenedor */
-    max-height: 7% !important;
 }
 
 .input-group .toggle-password {
-    flex: 0.05;
     min-width: 40px;
-    height: 100%; /* Cambiar a 100% para que ocupe toda la altura del contenedor */
-    padding: 0;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
+    padding: 0;
     z-index: 0;
-    margin: 0; /* Eliminar cualquier margen que pueda afectar */
 }
 
 .input-group .toggle-password ion-icon {

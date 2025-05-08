@@ -49,18 +49,18 @@ include_once 'dao/users/auth_check.php';
                 <form id="profile-form">
                     <div class="mb-3">
                         <label for="email" class="form-label">Email Address</label>
-                        <input type="email" class="form-input" id="email" value="<?php echo htmlspecialchars($user['email']); ?>" readonly>
+                        <input type="email" class="form-control" id="email" value="<?php echo htmlspecialchars($user['email']); ?>" readonly>
                     </div>
                     
                     <div class="mb-3">
                         <label for="username" class="form-label">Name</label>
-                        <input type="text" class="form-input" id="username" value="<?php echo htmlspecialchars($user['name']); ?>">
+                        <input type="text" class="form-control" id="username" value="<?php echo htmlspecialchars($user['name']); ?>">
                     </div>
                     
                     <div class="mb-3">
                         <label for="current-password" class="form-label">Current Password</label>
                         <div class="input-group">
-                            <input type="password" class="form-input" id="current-password">
+                            <input type="password" class="form-control" id="current-password">
                             <button class="btn btn-outline-secondary toggle-password" type="button" data-target="current-password">
                                 <ion-icon name="eye-off-outline"></ion-icon>
                             </button>
@@ -70,7 +70,7 @@ include_once 'dao/users/auth_check.php';
                     <div class="mb-3">
                         <label for="new-password" class="form-label">New Password</label>
                         <div class="input-group">
-                            <input type="password" class="form-input" id="new-password">
+                            <input type="password" class="form-control" id="new-password">
                             <button class="btn btn-outline-secondary toggle-password" type="button" data-target="new-password">
                                 <ion-icon name="eye-off-outline"></ion-icon>
                             </button>
@@ -80,7 +80,7 @@ include_once 'dao/users/auth_check.php';
                     <div class="mb-3">
                         <label for="confirm-password" class="form-label">Confirm New Password</label>
                         <div class="input-group">
-                            <input type="password" class="form-input" id="confirm-password">
+                            <input type="password" class="form-control" id="confirm-password">
                             <button class="btn btn-outline-secondary toggle-password" type="button" data-target="confirm-password">
                                 <ion-icon name="eye-off-outline"></ion-icon>
                             </button>
