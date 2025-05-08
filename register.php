@@ -84,7 +84,7 @@ session_start();
                         </div>
                         <div class="mb-3">
                             <label for="authorization_level" class="form-label">Authorization Level</label>
-                            <input type="number" class="form-control" id="authorization_level" name="authorization_level" max="10" placeholder="0 for Worker" required>
+                            <input type="number" class="form-control" id="authorization_level" name="authorization_level" min="0" max="10" placeholder="0 for Worker" required>
                         </div>
                         <button type="submit" class="btn btn-primary">Register</button>
                     </form>

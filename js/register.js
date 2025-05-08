@@ -9,6 +9,8 @@ document.getElementById('register-form').addEventListener('submit', function(e) 
         authorization_level: parseInt(document.getElementById('authorization_level').value, 10)
     };
 
+    console.log(JSON.stringify(data)); // Log the data to the console for debugging
+
     fetch('https://grammermx.com/Jesus/PruebaDos/dao/users/daoSingin.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
