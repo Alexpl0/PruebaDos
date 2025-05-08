@@ -34,7 +34,7 @@ function loginUsuario() {
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            fetch('https://grammermx.com/Jesus/PruebaDos/loginSession.php', {
+            fetch('https://grammermx.com/Jesus/PruebaDos/dao/users/loginSession.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data.data)
