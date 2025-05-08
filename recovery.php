@@ -38,7 +38,8 @@ session_start();
                 </div> 
                 <div class="nav__menu">
                     <ul class="nav__list">
-                        <li class="nav__item"><a href="profile.php" class="nav__link">My Profile</a></li>                        <li class="nav__item"><a href="newOrder.php" class="nav__link ">New Order</a></li>
+                        <li class="nav__item"><a href="profile.php" class="nav__link">My Profile</a></li>                        
+                        <li class="nav__item"><a href="newOrder.php" class="nav__link ">New Order</a></li>
                         <li class="nav__item"><a href="newOrder.php" class="nav__link ">New Order</a></li>
                         <li class="nav__item"><a href="orders.php" class="nav__link ">Generated Orders</a></li>
                         <li class="nav__item"><a href="register.php" class="nav__link active">Add User</a></li>
