@@ -93,15 +93,6 @@
     height: 38px;
 }
 
-.input-group .form-control {
-    flex: 1 1 auto;
-    height: 38px;
-    border-right: none;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    margin: 0;
-}
-
 .input-group .toggle-password {
     flex: none;
     width: 38px;
