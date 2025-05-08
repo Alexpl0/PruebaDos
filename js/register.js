@@ -28,3 +28,18 @@ document.getElementById('register-form').addEventListener('submit', function(e) 
         Swal.fire('Error', 'No se pudo registrar el usuario.', 'error');
     });
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    const togglePassword = document.querySelector('.toggle-password');
+    const passwordInput = document.querySelector('#password');
+    
+    togglePassword.addEventListener('click', function() {
+        // Toggle the type attribute
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        
+        // Toggle the icon
+        const iconName = type === 'password' ? 'eye-outline' : 'eye-off-outline';
+        this.innerHTML = `<ion-icon name="${iconName}"></ion-icon>`;
+    });
+});
