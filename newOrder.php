@@ -360,7 +360,7 @@ session_start();
         </form>
     </main>
 
-    <footer class="text-center py-3 bg-light">
+    <footer class="text-center py-3">
         <p>© 2025 Grammer. All rights reserved.</p>
     </footer>
 
