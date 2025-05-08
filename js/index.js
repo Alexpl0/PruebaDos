@@ -46,6 +46,7 @@ function loginUsuario() {
                     text: 'Inicio de sesión exitoso.'
                 }).then(() => {
                     window.location.href = 'newOrder.php';
+                    
                 });
             });
         } else {
