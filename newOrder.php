@@ -391,43 +391,53 @@ include_once 'dao/users/auth_check.php';
         $(document).ready(function() {
             $('#planta').select2({
                 placeholder: 'Select a Plant',
-                allowClear: true
+                allowClear: true,
+                width: '100%'
             });
             $('#codeplanta').select2({
                 placeholder: 'Select a Plant Code',
-                allowClear: true
+                allowClear: true,
+                width: '100%'
             });
             $('#transport').select2({
                 placeholder: 'Select a Transport Mode',
-                allowClear: true
+                allowClear: true,
+                width: '100%'
             });
             $('#InOutBound').select2({
                 placeholder: 'Select In/Out Outbound',
-                allowClear: true
+                allowClear: true,
+                width: '100%'
             });
             $('#Area').select2({
                 placeholder: 'Select Area of Responsibility',
-                allowClear: true
+                allowClear: true,
+                width: '100%'
             });
             $('#IntExt').select2({
                 placeholder: 'Select Internal/External Service',
-                allowClear: true
+                allowClear: true,
+                width: '100%'
             });
             $('#PaidBy').select2({
                 placeholder: 'Select Costs paid By',
-                allowClear: true
+                allowClear: true,
+                width: '100%'
             });
             $('#CategoryCause').select2({
                 placeholder: 'Select Category Cause',
-                allowClear: true
+                allowClear: true,
+                width: '100%'
             });
             $('#ProjectStatus').select2({
                 placeholder: 'Select Project Status',
-                allowClear: true
+                allowClear: true,
+                width: '100%'
             });
             $('#Recovery').select2({
                 placeholder: 'Select Recovery',
-                allowClear: true
+                allowClear: true,
+                width: '100%'
             });
             // Elimina o comenta la siguiente inicialización para CompanyShip
             /*
@@ -446,19 +456,23 @@ include_once 'dao/users/auth_check.php';
             // });
             $('#Products').select2({
                 placeholder: 'Select Products',
-                allowClear: true
+                allowClear: true,
+                width: '100%'
             });
             $('#Carrier').select2({
                 placeholder: 'Select Carrier',
-                allowClear: true
+                allowClear: true,
+                width: '100%'
             });
             $('#Measures').select2({
                 placeholder: 'Select Unit of Measure',
-                allowClear: true
+                allowClear: true,
+                width: '100%'
             });
             $('#Reference').select2({
                 placeholder: 'Select a Reference',
-                allowClear: true
+                allowClear: true,
+                width: '100%'
             });
         });
     </script>

@@ -76,9 +76,11 @@ label {
 
 /* Para los select2 */
 .select2-container {
-    margin: 0 auto !important;
-    width: 90% !important;
-    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    display: inline-block;
+    vertical-align: middle;
 }
 
 #enviar {
@@ -206,9 +208,11 @@ label {
 }
 
 .select2-container {
-    margin: 0 auto !important;
-    width: 90% !important;
-    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    display: inline-block;
+    vertical-align: middle;
 }
 
 h2{
@@ -447,4 +451,22 @@ h2{
 /* Aplica margin-top a todos los divs cuyo id comienza con 'Div' */
 div[id^="Sect"] {
     margin-top: 32px !important;
+}
+
+/* Mejora la alineación visual de los selects */
+.select2-selection--single {
+    height: 38px !important;
+    padding: 6px 12px;
+    border-radius: 5px;
+    border: 1px solid #ced4da;
+    display: flex;
+    align-items: center;
+    font-size: 1em;
+    background: #fff;
+}
+
+/* Opcional: mejora el focus */
+.select2-container--default .select2-selection--single:focus {
+    border-color: #80bdff;
+    outline: 0;
 }
