@@ -45,7 +45,7 @@ function loginUsuario() {
                     title: 'Bienvenido',
                     text: 'Inicio de sesión exitoso.'
                 }).then(() => {
-                    window.location.href = 'newOrders.php';
+                    window.location.href = 'newOrder.php';
                 });
             });
         } else {

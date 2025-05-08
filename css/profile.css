@@ -1,0 +1,91 @@
+.profile-container {
+    background-color: var(--white-color);
+    border: 1px solid var(--first-color);
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    margin: 2rem auto;
+    max-width: 800px;
+    overflow: hidden;
+}
+
+.profile-header {
+    background-color: var(--first-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    padding: 2rem;
+}
+
+.avatar-container {
+    margin-right: 2rem;
+}
+
+.avatar-icon {
+    font-size: 5rem;
+    color: white;
+}
+
+.user-info h2 {
+    margin-bottom: 0.5rem;
+}
+
+.user-info .badge {
+    margin-right: 0.5rem;
+}
+
+.profile-body {
+    padding: 2rem;
+}
+
+.profile-stats {
+    padding: 0 2rem 2rem;
+    border-top: 1px solid #eee;
+}
+
+.stats-container {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+.stat-item {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    width: 30%;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.stat-item h4 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    color: var(--first-color);
+}
+
+.stat-item div {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+@media (max-width: 768px) {
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .avatar-container {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+    
+    .stat-item {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+}
+
+.input-group .toggle-password {
+    z-index: 0;
+}
