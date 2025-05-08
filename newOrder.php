@@ -303,7 +303,8 @@ session_start();
                 <select name="Products" id="Products" class="form-select">
                     <?php if (!empty($jsonProducts)): ?>
                         <?php foreach ($jsonProducts as $Products): ?>
-                            <option value="<?php echo htmlspecialchars($Products['ID']); ?>">
+                            <!-- Cambia aquí para usar PRODUCT como valor en lugar de ID -->
+                            <option value="<?php echo htmlspecialchars($Products['PRODUCT']); ?>">
                                 <?php echo htmlspecialchars($Products['PRODUCT']); ?>
                             </option>
                         <?php endforeach; ?>
