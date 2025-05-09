@@ -388,10 +388,10 @@ function handleRecoveryFileVisibility() {
     // Obtener el contenedor del campo de archivo
     const fileContainer = document.getElementById('recoveryFileContainer');
     
-    // Obtener el valor de "No Recovery" (generalmente es 1, pero podría variar)
-    const noRecoveryValue = "1"; // Ajustar este valor según corresponda
+    // Usar "NO RECOVERY" como valor para mantener consistencia con el resto del código
+    const noRecoveryValue = "NO RECOVERY";
     
-    // Verificar si la selección actual es diferente a "No Recovery"
+    // Verificar si la selección actual es diferente a "NO RECOVERY"
     if (recoverySelect.value !== noRecoveryValue) {
         // Mostrar el campo de archivo
         fileContainer.style.display = 'block';
