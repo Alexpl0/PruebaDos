@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Asigna un color de fondo a la tarjeta según el estado.
             if (statusName === "aprobado") card.style.backgroundColor = "#77BA1C"; // Verde claro
             else if (statusName === "nuevo") card.style.backgroundColor = "#F5F5F5"; // Gris claro
-            else if (statusName === "revision") card.style.backgroundColor = "#F5F28B"; // Naranja claro
+            else if (statusName === "revision") card.style.backgroundColor = "#015B27"; // Naranja claro
             else if (statusName === "rechazado") card.style.backgroundColor = "#EC5854"; // Rojo claro
             else card.style.backgroundColor = "#FFFFFF"; // Color por defecto (blanco).
 
