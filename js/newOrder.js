@@ -146,9 +146,99 @@ async function submitForm(event) {
     console.log("Tipo de ID de Origen:", typeof payload.origin_id, "Valor:", payload.origin_id);
     console.log("Tipo de ID de Destino:", typeof payload.destiny_id, "Valor:", payload.destiny_id);
 
-    // Si todas las validaciones y preparaciones son exitosas, envía los datos del formulario al servidor.
-    // Llama a la función 'sendFormData' pasando el 'payload' construido.
-    sendFormData(payload);
+    // Verificar si se necesita subir un archivo de recuperación
+    const recoverySelect = document.getElementById('Recovery');
+    const noRecoveryValue = "1"; // Ajustar este valor según corresponda
+    const recoveryFile = document.getElementById('recoveryFile');
+    const needsFile = recoverySelect.value !== noRecoveryValue;
+    
+    // Guardar primero los datos del formulario y luego el archivo si es necesario
+    try {
+        // Enviar los datos del formulario como se hace actualmente
+        const result = await sendFormDataAsync(payload);
+        
+        // Si se guardó correctamente y se necesita subir un archivo
+        if (result.success && needsFile && recoveryFile.files.length > 0) {
+            // Crear FormData para el archivo
+            const formData = new FormData();
+            formData.append('premium_freight_id', result.id); // El ID devuelto por el servidor
+            formData.append('recoveryFile', recoveryFile.files[0]);
+            
+            // Subir el archivo
+            await uploadRecoveryFile(formData);
+        }
+        
+        // Mostrar mensaje de éxito
+        Swal.fire({
+            icon: 'success',
+            title: 'Datos Guardados',
+            text: 'La orden de flete premium se creó exitosamente.'
+        });
+        
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message || 'Ocurrió un error al procesar la solicitud.'
+        });
+    }
+    
+    return; // Detener la ejecución aquí para evitar que se llame al sendFormData original
+}
+
+// Función para enviar datos del formulario como promesa
+function sendFormDataAsync(payload) {
+    return new Promise((resolve, reject) => {
+        fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPFpost.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => {
+                    throw new Error(err.message || `El servidor respondió con el estado: ${response.status}`);
+                }).catch(() => {
+                    throw new Error(`El servidor respondió con el estado: ${response.status}`);
+                });
+            }
+            return response.json();
+        })
+        .then(result => {
+            if (result.success) {
+                resolve(result);
+            } else {
+                reject(new Error(result.message || 'No se pudo guardar la información'));
+            }
+        })
+        .catch(error => {
+            reject(error);
+        });
+    });
+}
+
+// Función para subir el archivo de recuperación
+function uploadRecoveryFile(formData) {
+    return fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/uploadRecoveryFile.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Error uploading file: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(result => {
+        if (!result.success) {
+            throw new Error(result.message || 'Error uploading recovery file');
+        }
+        return result;
+    });
 }
 
 //==========================================================================================
@@ -283,6 +373,29 @@ function validateCompanyIds() {
 }
 
 //==========================================================================================
+// Función para manejar la visibilidad del campo de archivo según la selección de Recovery
+function handleRecoveryFileVisibility() {
+    // Obtener el select de Recovery
+    const recoverySelect = document.getElementById('Recovery');
+    // Obtener el contenedor del campo de archivo
+    const fileContainer = document.getElementById('recoveryFileContainer');
+    
+    // Obtener el valor de "No Recovery" (generalmente es 1, pero podría variar)
+    const noRecoveryValue = "1"; // Ajustar este valor según corresponda
+    
+    // Verificar si la selección actual es diferente a "No Recovery"
+    if (recoverySelect.value !== noRecoveryValue) {
+        // Mostrar el campo de archivo
+        fileContainer.style.display = 'block';
+    } else {
+        // Ocultar el campo de archivo
+        fileContainer.style.display = 'none';
+        // Limpiar el campo de archivo
+        document.getElementById('recoveryFile').value = '';
+    }
+}
+
+//==========================================================================================
 // Inicializa los escuchadores de eventos y otras configuraciones cuando el DOM (Document Object Model)
 // está completamente cargado y listo para ser manipulado.
 // Esto asegura que todos los elementos HTML estén disponibles antes de intentar interactuar con ellos mediante JavaScript.
@@ -307,5 +420,13 @@ document.addEventListener('DOMContentLoaded', function () {
         // Si el botón de envío no se encuentra en el DOM, muestra un mensaje de error en la consola.
         // Esto ayuda a diagnosticar problemas si el formulario no se puede enviar porque el botón no existe o tiene un ID incorrecto.
         console.error("Botón de envío ('enviar') no encontrado. El formulario no se puede enviar.");
+    }
+
+    // Agregar listener para el cambio en el select de Recovery
+    const recoverySelect = document.getElementById('Recovery');
+    if (recoverySelect) {
+        recoverySelect.addEventListener('change', handleRecoveryFileVisibility);
+        // Ejecutar al cargar para establecer el estado inicial
+        handleRecoveryFileVisibility();
     }
 });

@@ -208,6 +208,13 @@ include_once 'dao/users/auth_check.php';
                         <option value="" disabled>No data found, jsonRecovery empty</option>
                     <?php endif; ?>
                 </select>
+                
+                <!-- Nuevo campo para subir archivo PDF -->
+                <div id="recoveryFileContainer" class="mt-2" style="display: none;">
+                    <label for="recoveryFile">Recovery Evidence (PDF):</label>
+                    <input type="file" id="recoveryFile" name="recoveryFile" class="form-control" accept=".pdf">
+                    <small class="text-muted">Please upload a PDF file as evidence for recovery</small>
+                </div>
             </div>
 
             <div id="SectDescription" class="mb-3">
