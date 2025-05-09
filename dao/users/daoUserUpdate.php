@@ -39,8 +39,9 @@ try {
     $con = new LocalConector();
     $conex = $con->conectar();
     
-    // If user is trying to change password, verify current password
+    // Si el usuario está intentando cambiar la contraseña, verificar la contraseña actual
     if (!empty($current_password) && !empty($new_password)) {
+        // Verificación y actualización de nombre + contraseña
         $stmt = $conex->prepare("SELECT password FROM `User` WHERE id = ?");
         $stmt->bind_param("i", $userId);
         $stmt->execute();
@@ -61,7 +62,7 @@ try {
         $stmt = $conex->prepare("UPDATE `User` SET name = ?, password = ? WHERE id = ?");
         $stmt->bind_param("ssi", $name, $new_password, $userId);
     } else {
-        // Update only name
+        // Actualizar solo el nombre
         $stmt = $conex->prepare("UPDATE `User` SET name = ? WHERE id = ?");
         $stmt->bind_param("si", $name, $userId);
     }
