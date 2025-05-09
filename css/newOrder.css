@@ -470,3 +470,19 @@ div[id^="Sect"] {
     border-color: #80bdff;
     outline: 0;
 }
+
+/* Centra el main y su contenido */
+main.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh; /* Ajusta según tu preferencia */
+}
+
+/* Centra el form dentro del main */
+form#plant-form {
+    margin: 0 auto;
+    width: 100%;
+    max-width: 900px; /* Ajusta el ancho máximo según tu diseño */
+}
