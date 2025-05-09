@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function loadUserStats() {
     try {
-        const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoUserStats.php');
+        const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/users/daoUserStats.php');
         const data = await response.json();
         
         if (data.success) {
