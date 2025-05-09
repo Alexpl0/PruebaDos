@@ -1,25 +1,23 @@
 /*===== VARIABLES CSS =====*/
 :root {
     --header-height: 3rem;
-    
-    /*===== Colores =====*/
     --first-color: #034C8C;
     --dark-color: #034C8C;
     --dark-color-alt: #282B3A;
     --white-color: #FFFFFF;
     --hover-color: #F7F7F7;
     --border-color:#AAAAAA;
-  
-    /*===== Fuente y tipografia =====*/
     --body-font: 'Cambria', sans-serif;
     --normal-font-size: .938rem;
     --small-font-size: .813rem;
-  
-    /*===== z index =====*/
     --z-fixed: 100;
-
     --page-background: #F7F7F7;
-  }
+}
+
+/* Global box-sizing */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
 
 body {
     margin-top: 3.5rem;
@@ -27,6 +25,8 @@ body {
     min-height: 100vh;
     flex-direction: column;
     align-items: center;
+    overflow-x: hidden; /* Previene scroll horizontal */
+    background: var(--page-background);
 }
 
 .title1{
@@ -41,17 +41,26 @@ h1 {
     margin-bottom: 20px;
 }
 
-form{
-    flex-direction: flex;
+main.container {
+    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    min-height: 80vh;
+    width: 100%;
+    padding: 0;
+}
+
+/* Centra el form dentro del main */
+form#plant-form {
+    margin: 0 auto;
+    width: 100%;
+    max-width: 700px;
     background-color: var(--hover-color);
     border: 1px solid var(--first-color);
-    padding: 5%;
+    padding: 2rem;
     border-radius: 15px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    max-width: 95%;
-    width: 95%;
 }
 
 label {
@@ -61,7 +70,6 @@ label {
     display: flex;
     justify-content: center;
     align-items: center;
-
 }
 
 /* Contenedor para centrar el select */
@@ -82,11 +90,9 @@ label {
 }
 
 #enviar {
-    width: 13%;
-    max-height: 1px;
-    padding: 3%;
-    margin-left: 5%;
-    margin-top: 5%;
+    width: 160px;
+    padding: 10px 0;
+    margin: 30px auto 0 auto;
     border: none;
     border-radius: 10px;
     background-color: var(--first-color);
@@ -98,46 +104,41 @@ label {
     align-items: center;
     justify-content: center;
     text-align: center;
-    align-self: center;
 }
 
 #inputZipShip, 
 #inputZipDest,
 #StatesShip, 
 #StatesDest {
-    padding: 3%;
-    width: 90%;
-    max-height: 1px;
-    margin: auto 5% auto 5%;
+    padding: 10px;
+    width: 100%;
+    margin: 0 0 1rem 0;
     border: 1px solid var(--border-color);
     border-radius: 5px;
     font-size: 1.2em;
     cursor: text;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    align-self: center;
+    display: block;
 }
 
 #Description {
-    padding: 3%;
-    width: 90%;
-    max-width: 90%;
-    min-height: 300px;
-    margin: auto 5% auto 5%;
+    padding: 10px;
+    width: 100%;
+    max-width: 100%;
+    min-height: 200px;
+    margin: 0 0 1rem 0;
     border: 1px solid var(--border-color);
     border-radius: 5px;
     font-size: 1.2em;
     cursor: text;
-    text-align: left;        /* Alinea el texto a la izquierda */
-    vertical-align: top;     /* Alinea el texto arriba (para textarea) */
-    resize: vertical;        /* Permite redimensionar verticalmente si lo deseas */
+    text-align: left;
+    vertical-align: top;
+    resize: vertical;
 }
 
 #home {
     display: flex;
     flex-direction: column;
-    align-items: center;  /* Ocupa toda la altura de la ventana */
+    align-items: center;
     width: 100%;
     box-sizing: border-box;
     max-width: 900px;
@@ -146,27 +147,20 @@ label {
     font-size: 20px;
 }
 
-
-
-
 .select2-search--dropdown .select2-search__field {
-   
-    width: 95%;
+    width: 100%;
     box-sizing: border-box;
-     padding: 1%;
+    padding: 1%;
     margin: 2%;
 }
-
-
 
 #MeasuresDiv {
     display: flex;
     flex-direction: row;
     align-items: center;
     gap: 10px;
-    max-width: 95%;
-    margin-left: 5%;
-    margin-right: 5%;
+    width: 100%;
+    margin: 0 0 1rem 0;
 }
 
 #MeasuresDiv select{
@@ -177,7 +171,7 @@ label {
 }
 
 #MeasuresDiv input, #Divisa {
-    flex: 1 1 290%;
+    flex: 1 1 85%;
     min-width: 0;
     min-height: 30px;
     width: 85%;
@@ -199,22 +193,12 @@ label {
     height: 35px;
     user-select: none;
     -webkit-user-select: none;
-    width: 90%;
-    margin-left: 5%;
-    margin-right: 5%;
-    margin-bottom: 5%;
-}
-
-.select2-container {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    display: inline-block;
-    vertical-align: middle;
+    width: 100%;
+    margin: 0 0 1rem 0;
 }
 
 h2{
-    margin-top: 20px;;
+    margin-top: 20px;
     font-size: 1.5em;
     text-align: center;
     margin-bottom: 20px;
@@ -225,12 +209,11 @@ h2{
     flex-direction: row;
     align-items: center;
     gap: 10px;
-    width: 90%;
-    margin: 0 auto;
+    width: 100%;
+    margin: 0 0 1rem 0;
     box-sizing: border-box;
 }
 
-/* Add styles for the child elements of SectCarrier to distribute space properly */
 #DivCarrier {
     flex: 1;
     min-width: 0;
@@ -245,7 +228,6 @@ h2{
     max-width: 60%;
 }
 
-/* Make sure select elements inside SectCarrier expand properly */
 #SectCarrier select,
 #SectCarrier #QuotedCostDiv,
 #SectCarrier .select2-container {
@@ -253,7 +235,6 @@ h2{
     max-width: 100% !important;
 }
 
-/* Make QuotedCostDiv responsive */
 #QuotedCostDiv {
     display: flex;
     flex-direction: row;
@@ -276,13 +257,11 @@ h2{
     flex-shrink: 0;
 }
 
-/* Add media query for smaller screens */
 @media (max-width: 768px) {
     #SectCarrier {
         flex-direction: column;
-        width: 90%;
+        width: 100%;
     }
-    
     #DivCarrier, #DivCosto {
         width: 100%;
         margin-bottom: 10px;
@@ -294,8 +273,7 @@ h2{
     flex-direction: row;
     align-items: center;
     gap: 10px;
-    margin-left: 5%;
-    margin-right: 5%;
+    margin: 0 0 1rem 0;
 }
 
 #QuotedCostDiv input, #ReferenceNumber  {
@@ -330,32 +308,28 @@ h2{
     flex-direction: row;
     align-items: center;
     gap: 10px;
-    width: 90%;
-    margin: 0 auto;
+    width: 100%;
+    margin: 0 0 1rem 0;
     box-sizing: border-box;
 }
 
-/* Add styles for the child elements of SectPlantas to distribute space properly */
 #DivPlanta, #DivCodes {
     flex: 1;
     min-width: 0;
     width: 100%;
 }
 
-/* Make sure select elements inside SectPlantas expand properly */
 #SectPlantas select,
 #SectPlantas .select2-container {
     width: 100% !important;
     max-width: 100% !important;
 }
 
-/* Add media query for smaller screens */
 @media (max-width: 768px) {
     #SectPlantas {
         flex-direction: column;
-        width: 90%;
+        width: 100%;
     }
-    
     #DivPlanta, #DivCodes {
         width: 100%;
         margin-bottom: 10px;
@@ -372,12 +346,11 @@ h2{
     flex-direction: row;
     align-items: center;
     gap: 10px;
-    width: 90%;
-    margin: 0 auto;
+    width: 100%;
+    margin: 0 0 1rem 0;
     box-sizing: border-box;
 }
 
-/* Style for child elements inside each section */
 #DivTransport, #DivInOut, 
 #DivArea, #DivInExt, 
 #DivCategoryCause, #DivProjectStatus,
@@ -388,7 +361,6 @@ h2{
     width: 100%;
 }
 
-/* Make sure select and input elements inside sections expand properly */
 #SectTransporte select,
 #SectTransporte .select2-container,
 #SectResponsability select,
@@ -406,7 +378,6 @@ h2{
     height: 35px !important; 
 }
 
-/* Add media query for smaller screens for all sections */
 @media (max-width: 768px) {
     #SectTransporte,
     #SectResponsability, 
@@ -414,9 +385,8 @@ h2{
     #SectShip,
     #SectDest {
         flex-direction: column;
-        width: 90%;
+        width: 100%;
     }
-    
     #DivTransport, #DivInOut, 
     #DivArea, #DivInExt, 
     #DivCategoryCause, #DivProjectStatus,
@@ -432,8 +402,8 @@ h2{
     flex-direction: row;
     align-items: center;
     gap: 10px;
-    width: 90%;
-    margin: 20px auto 20px auto; 
+    width: 100%;
+    margin: 20px 0; 
     box-sizing: border-box;
 }
 
@@ -443,15 +413,13 @@ h2{
     width: auto;
     flex: 1 1 0;
     justify-content: flex-start;
-    background-color: var(--page-background);
+    background-color: var (--page-background);
 }
 
-/* Aplica margin-top a todos los divs cuyo id comienza con 'Div' */
 div[id^="Sect"] {
     margin-top: 32px !important;
 }
 
-/* Mejora la alineación visual de los selects */
 .select2-selection--single {
     height: 38px !important;
     padding: 6px 12px;
@@ -463,24 +431,7 @@ div[id^="Sect"] {
     background: #fff;
 }
 
-/* Opcional: mejora el focus */
 .select2-container--default .select2-selection--single:focus {
     border-color: #80bdff;
     outline: 0;
-}
-
-/* Centra el main y su contenido */
-main.container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 80vh; /* Ajusta según tu preferencia */
-}
-
-/* Centra el form dentro del main */
-form#plant-form {
-    margin: 0 auto;
-    width: 100%;
-    max-width: 80%;
 }
