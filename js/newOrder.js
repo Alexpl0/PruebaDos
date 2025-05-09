@@ -164,6 +164,14 @@ async function submitForm(event) {
             formData.append('premium_freight_id', result.id); // El ID devuelto por el servidor
             formData.append('recoveryFile', recoveryFile.files[0]);
             
+            Swal.fire({
+                title: 'Subiendo archivo de recuperación...',
+                text: 'Por favor, espere.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading(); // Muestra un indicador de carga mientras se sube el archivo
+                }
+            });
             // Subir el archivo
             await uploadRecoveryFile(formData);
         }
