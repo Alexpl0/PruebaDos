@@ -15,7 +15,6 @@
 
 .form-control {
     flex: 0.95; /* 95% del espacio disponible */
-    height: 100%; /* Ocupa toda la altura del contenedor */
     border-right: none;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
