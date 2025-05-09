@@ -208,6 +208,14 @@ include_once 'dao/users/auth_check.php';
                         <option value="" disabled>No data found, jsonRecovery empty</option>
                     <?php endif; ?>
                 </select>
+                <script>
+                    // Script para mostrar la selección en la consola
+                    document.getElementById('Recovery').addEventListener('change', function() {
+                        const selectedValue = this.value;
+                        const selectedText = this.options[this.selectedIndex].text;
+                        console.log('Recovery seleccionado - ID:', selectedValue, 'Texto:', selectedText);
+                    });
+                </script>
                 
                 <!-- Nuevo campo para subir archivo PDF -->
                 <div id="recoveryFileContainer" class="mt-2" style="display: none;">
