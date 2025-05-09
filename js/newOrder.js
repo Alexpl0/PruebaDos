@@ -148,7 +148,7 @@ async function submitForm(event) {
 
     // Verificar si se necesita subir un archivo de recuperación
     const recoverySelect = document.getElementById('Recovery');
-    const noRecoveryValue = "1"; // Ajustar este valor según corresponda
+    const noRecoveryValue = "NO RECOVERY"; // Ajustar este valor según corresponda
     const recoveryFile = document.getElementById('recoveryFile');
     const needsFile = recoverySelect.value !== noRecoveryValue;
     
@@ -223,7 +223,7 @@ function sendFormDataAsync(payload) {
 
 // Función para subir el archivo de recuperación
 function uploadRecoveryFile(formData) {
-    return fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/uploadRecoveryFile.php', {
+    return fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoUploadRecovery.php', {
         method: 'POST',
         body: formData
     })
