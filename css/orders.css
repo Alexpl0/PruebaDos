@@ -196,11 +196,14 @@ main {
 
 #myModal .modal-buttons { /* Contenedor de botones "Save PDF", "Approve", "Reject" */
     display: flex;
-    flex-direction: row !important; 
-    gap: 10px; 
-    padding: 1rem; 
-    border-bottom: 1px solid #dee2e6; 
-    flex-shrink: 0; 
+    flex-direction: row !important;
+    gap: 10px;
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
+    flex-shrink: 0;
+    max-width: 39%;
+    font-size: small;
+    align-items: center;
 }
 
 /* Botones específicos del modal SVG */
