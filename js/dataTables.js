@@ -96,7 +96,7 @@ const dataTableOptions = {
             }
         },
         {
-            text: 'Individual SVG',
+            text: 'SVG',
             className: 'btn-info',
             action: async function(e, dt, node, config) {
                 try {
