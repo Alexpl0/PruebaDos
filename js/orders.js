@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', function () {
             card.innerHTML = `
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title">ID: ${order.id || 'N/A'}</h5> <!-- Muestra el ID de la orden -->
-                    <h6 class="card-subtitle mb-2 text-muted">CW: ${semana}</h6> <!-- Muestra el número de semana -->
+                    <h6 class="card-subtitle mb-2 fw-bold text-dark">CW: ${semana}</h6> <!-- Muestra el número de semana -->
                     <!-- Muestra la descripción (limitada a 3 líneas con ellipsis) -->
                     <p class="card-text flex-grow-1" style="overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">
                         ${order.description || 'No description'} 
