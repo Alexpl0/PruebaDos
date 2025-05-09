@@ -140,3 +140,6 @@
     border-radius: 5px;
     box-sizing: border-box;
 }
+#email{
+    background-color: transparent;
+}
