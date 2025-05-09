@@ -112,10 +112,10 @@ document.addEventListener('DOMContentLoaded', function () {
             // Obtiene el nombre del estado de la orden (en minúsculas y manejando nulos).
             const statusName = (order.status_name || '').toLowerCase();
             // Asigna un color de fondo a la tarjeta según el estado.
-            if (statusName === "aprobado") card.style.backgroundColor = "#A7CAC3"; // Verde claro
-            else if (statusName === "nuevo") card.style.backgroundColor = "#EAE8EB"; // Gris claro
-            else if (statusName === "revision") card.style.backgroundColor = "#F3D1AB"; // Naranja claro
-            else if (statusName === "rechazado") card.style.backgroundColor = "#E0A4AE"; // Rojo claro
+            if (statusName === "aprobado") card.style.backgroundColor = "#77BA1C"; // Verde claro
+            else if (statusName === "nuevo") card.style.backgroundColor = "#F5F5F5"; // Gris claro
+            else if (statusName === "revision") card.style.backgroundColor = "#F5F28B"; // Naranja claro
+            else if (statusName === "rechazado") card.style.backgroundColor = "#DD181F"; // Rojo claro
             else card.style.backgroundColor = "#FFFFFF"; // Color por defecto (blanco).
 
             // --- Mensaje de estado de aprobación pendiente ---
