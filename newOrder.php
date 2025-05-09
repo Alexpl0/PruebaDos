@@ -215,6 +215,31 @@ include_once 'dao/users/auth_check.php';
                         const selectedText = this.options[this.selectedIndex].text;
                         console.log('Recovery seleccionado - ID:', selectedValue, 'Texto:', selectedText);
                     });
+                    
+                    // Monitorear específicamente el contenedor de Select2
+                    $(document).ready(function() {
+                        $('#Recovery').on('select2:select', function(e) {
+                            const container = document.getElementById('select2-Recovery-container');
+                            console.log('Contenedor Select2 actualizado:', {
+                                contenidoHTML: container.innerHTML.trim(),
+                                contenidoTexto: container.textContent.trim(),
+                                título: container.getAttribute('title'),
+                                valorSelect: $('#Recovery').val(),
+                                textoSelect: $('#Recovery option:selected').text()
+                            });
+                            
+                            // Verificar el valor seleccionado para mostrar/ocultar el campo de archivo
+                            const noRecoveryText = "NO RECOVERY";
+                            if (container.textContent.trim() !== noRecoveryText) {
+                                $('#recoveryFileContainer').show();
+                                console.log('Mostrando campo para subir archivo PDF');
+                            } else {
+                                $('#recoveryFileContainer').hide();
+                                document.getElementById('recoveryFile').value = '';
+                                console.log('Ocultando campo para subir archivo PDF');
+                            }
+                        });
+                    });
                 </script>
                 
                 <!-- Nuevo campo para subir archivo PDF -->
