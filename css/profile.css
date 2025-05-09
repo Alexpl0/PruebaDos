@@ -90,13 +90,12 @@
     display: flex;
     align-items: center;
     width: 100%;
-    height: 38px;
 }
 
 .input-group input#current-password,
 .input-group input#new-password,
 .input-group input#confirm-password {
-    flex: 0 1 95%;
+    flex: 0 1 90%;
     width: 0;
     min-width: 0;
     height: 38px;
