@@ -532,8 +532,18 @@ document.addEventListener('DOMContentLoaded', function () {
     const permanentActions = document.getElementById('PermanentActions');
     
     if (immediateActions && permanentActions) {
+        // Add event listeners for input events
         immediateActions.addEventListener('input', updateDescription);
         permanentActions.addEventListener('input', updateDescription);
+        
+        // Add event listeners for blur events to show final validation state
+        immediateActions.addEventListener('blur', function() {
+            updateCharCounter(immediateActions, '#immediateCounter', 50);
+        });
+        
+        permanentActions.addEventListener('blur', function() {
+            updateCharCounter(permanentActions, '#permanentCounter', 50);
+        });
         
         // Initial update in case fields already have values
         updateDescription();
@@ -553,7 +563,77 @@ function updateDescription() {
     
     if (description && immediateActions && permanentActions) {
         description.value = immediateActions.value + '\n' + permanentActions.value;
+        
+        // Update character counters
+        updateCharCounter(immediateActions, '#immediateCounter', 50);
+        updateCharCounter(permanentActions, '#permanentCounter', 50);
     } else {
         console.error("One or more description fields not found");
     }
+}
+
+/**
+ * Updates character counters for textareas and validates minimum length
+ * @param {HTMLElement} textarea - The textarea element to validate
+ * @param {string} counterSelector - Selector for the counter element
+ * @param {number} minLength - Minimum required character length
+ */
+function updateCharCounter(textarea, counterSelector, minLength) {
+    if (!textarea || !counterSelector) return;
+    
+    // Get the counter element
+    const counterElement = document.querySelector(counterSelector);
+    if (!counterElement) return;
+    
+    // Get the current text length
+    const currentLength = textarea.value.length;
+    
+    // Get the character count span
+    const charCount = counterElement.querySelector('.char-count');
+    if (charCount) {
+        charCount.textContent = `${currentLength}/${minLength}`;
+    }
+    
+    // Get the message span
+    const message = counterElement.querySelector('span:first-child');
+    
+    // Update styles and message based on length
+    if (currentLength >= minLength) {
+        if (message) message.className = 'text-success';
+        if (message) message.textContent = 'Minimum length met';
+        counterElement.classList.remove('text-danger');
+        counterElement.classList.add('text-success');
+        textarea.classList.remove('is-invalid');
+        textarea.classList.add('is-valid');
+    } else {
+        const remaining = minLength - currentLength;
+        if (message) message.className = 'text-danger';
+        if (message) message.textContent = `${remaining} more characters required`;
+        counterElement.classList.remove('text-success');
+        counterElement.classList.add('text-danger');
+        textarea.classList.remove('is-valid');
+        textarea.classList.add('is-invalid');
+    }
+}
+
+// Modify the validateCompleteForm function to check for minimum length
+// Add this function to formValidation.js or add the check in the existing validation
+// This function should be called before form submission
+function validateTextareaMinLength() {
+    const immediateActions = document.getElementById('InmediateActions');
+    const permanentActions = document.getElementById('PermanentActions');
+    const minLength = 50;
+    let isValid = true;
+    
+    if (immediateActions && immediateActions.value.length < minLength) {
+        immediateActions.classList.add('is-invalid');
+        isValid = false;
+    }
+    
+    if (permanentActions && permanentActions.value.length < minLength) {
+        permanentActions.classList.add('is-invalid');
+        isValid = false;
+    }
+    
+    return isValid;
 }

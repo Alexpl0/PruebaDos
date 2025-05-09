@@ -231,6 +231,19 @@ function validateCompleteForm() {
     // y la lista de campos que están vacíos.
     const { formData, emptyFields } = collectFormData();
 
+    // Check textarea minimum length
+    const immediateActions = document.getElementById('InmediateActions');
+    const permanentActions = document.getElementById('PermanentActions');
+    const minLength = 50;
+    
+    if (immediateActions && immediateActions.value.length < minLength) {
+        emptyFields.push('Immediate Actions (minimum 50 characters)');
+    }
+    
+    if (permanentActions && permanentActions.value.length < minLength) {
+        emptyFields.push('Permanent Actions (minimum 50 characters)');
+    }
+
     // Si la lista 'emptyFields' está vacía, significa que todos los campos (según la lógica de 'collectFormData')
     // tienen un valor. En este caso, el formulario se considera válido en términos de completitud.
     if (emptyFields.length === 0) {

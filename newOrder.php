@@ -222,11 +222,17 @@ include_once 'dao/users/auth_check.php';
 
                 <textarea id="Description" style="display: none;" name="Description" class="form-control" placeholder="Description" required></textarea>
 
-                <label for="InmediateActions">InmediateActions</label>
-                <textarea id="InmediateActions" name="InmediateActions" class="form-control" placeholder="InmediateActions" required></textarea>
-            
-                <label for="PermanentActions">PermanentActions</label>
-                <textarea id="PermanentActions" name="PermanentActions" class="form-control" placeholder="PermanentActions" required></textarea>
+                <label for="InmediateActions">Immediate Actions</label>
+                <textarea id="InmediateActions" name="InmediateActions" class="form-control" placeholder="Immediate Actions" required minlength="50"></textarea>
+                <div id="immediateCounter" class="text-muted small mt-1 mb-3">
+                    <span class="text-danger">50 characters required</span> - <span class="char-count">0/50</span>
+                </div>
+
+                <label for="PermanentActions">Permanent Actions</label>
+                <textarea id="PermanentActions" name="PermanentActions" class="form-control" placeholder="Permanent Actions" required minlength="50"></textarea>
+                <div id="permanentCounter" class="text-muted small mt-1 mb-3">
+                    <span class="text-danger">50 characters required</span> - <span class="char-count">0/50</span>
+                </div>
             
             </div>
 
