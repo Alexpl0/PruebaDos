@@ -58,6 +58,17 @@ table.dataTable thead th {
     z-index: 11; /* Asegura que estén sobre las cabeceras de la tabla si ambas son sticky top:0 */
     padding-top: 10px; /* Espacio arriba de los botones */
     padding-bottom: 10px; /* Espacio debajo de los botones para que no se peguen al contenido siguiente */
+    display: flex;           /* Alinea los botones en fila */
+    flex-wrap: nowrap;       /* Evita que se vayan a otra línea */
+    gap: 10px;               /* Espacio entre botones */
+    justify-content: flex-start; /* Opcional: puedes usar center si prefieres */
+}
+
+.dt-buttons .btn, 
+.dt-buttons button, 
+.dt-buttons .dt-button {
+    white-space: nowrap;     /* Evita que el texto se divida en varias líneas */
+    min-width: 100px;        /* Opcional: ancho mínimo para uniformidad */
 }
 
 #modaldiv { /* Estilo para el .modal-dialog */
