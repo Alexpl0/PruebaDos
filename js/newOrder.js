@@ -526,4 +526,34 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    // Initialize Description field updater
+    const immediateActions = document.getElementById('InmediateActions');
+    const permanentActions = document.getElementById('PermanentActions');
+    
+    if (immediateActions && permanentActions) {
+        immediateActions.addEventListener('input', updateDescription);
+        permanentActions.addEventListener('input', updateDescription);
+        
+        // Initial update in case fields already have values
+        updateDescription();
+    } else {
+        console.error("Description text areas not found. Description updater could not be initialized.");
+    }
 });
+
+/**
+ * Updates the Description field by combining Immediate and Permanent Actions
+ * This function combines the values from the two visible text areas into a single hidden Description field
+ */
+function updateDescription() {
+    const description = document.getElementById('Description');
+    const immediateActions = document.getElementById('InmediateActions');
+    const permanentActions = document.getElementById('PermanentActions');
+    
+    if (description && immediateActions && permanentActions) {
+        description.value = immediateActions.value + '\n' + permanentActions.value;
+    } else {
+        console.error("One or more description fields not found");
+    }
+}

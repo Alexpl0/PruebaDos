@@ -217,7 +217,7 @@ include_once 'dao/users/auth_check.php';
                 </div>
             </div>
 
-            <h3>Description</h3>
+            <h3 style="justify-self: center;">Description</h3>
             <div id="SectDescription" class="mb-3">
 
                 <textarea id="Description" style="display: none;" name="Description" class="form-control" placeholder="Description" required></textarea>
@@ -229,9 +229,6 @@ include_once 'dao/users/auth_check.php';
                 <textarea id="PermanentActions" name="PermanentActions" class="form-control" placeholder="PermanentActions" required></textarea>
             
             </div>
-            <script>
-                Description.value = document.getElementById('InmediateActions').value + '\n' + document.getElementById('PermanentActions').value;
-            </script>
 
             <h2 class="mt-4">Ship From</h2>
             <div id="SectShip" class="mb-3">
