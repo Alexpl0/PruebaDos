@@ -238,7 +238,7 @@ include_once 'dao/users/auth_check.php';
                 </div>
             </div>
                 <div id="DivStatesShip" class="mb-2">
-                    <label for="StatesShip">States:</label>
+                    <label for="StatesShip">State:</label>
                     <input type="text" id="StatesShip" class="form-control" placeholder="States">
                 </div>
 
@@ -261,12 +261,12 @@ include_once 'dao/users/auth_check.php';
                 </div>
 
                 <div id="DivCityDest" class="mb-2">
-                    <label for="inputCityDest">City Dest</label>
+                    <label for="inputCityDest">City</label>
                     <input type="text" id="inputCityDest" class="form-control" placeholder="City Dest">
                 </div>
             </div>
                 <div id="DivStatesDest" class="mb-2">
-                    <label for="StatesDest">States:</label>
+                    <label for="StatesDest">State:</label>
                     <input type="text" id="StatesDest" class="form-control" placeholder="States">
                 </div>
 
