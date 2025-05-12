@@ -13,7 +13,7 @@ let range = 0;
 async function submitForm(event) {
     event.preventDefault();
 
-    // 1. Validar
+    // 1. Validar el formulario
     const validationResult = validateCompleteForm();
     if (!validationResult.isValid) {
         Swal.fire({
@@ -27,12 +27,46 @@ async function submitForm(event) {
 
     const formData = validationResult.formData;
 
-    // 2. Guardar nuevas compañías si aplica
-    const processResult = await processNewCompanies();
-    if (!processResult.success) return;
+    // 2. Procesar nuevas compañías si las hay
+    let originId = null;
+    let destinyId = null;
+    
+    // Verificar si hay nuevas compañías que guardar
+    const hasNewCompanies = ($('#CompanyShip').select2('data')[0] && $('#CompanyShip').select2('data')[0].isNew) || 
+                           ($('#inputCompanyNameDest').select2('data')[0] && $('#inputCompanyNameDest').select2('data')[0].isNew);
+    
+    if (hasNewCompanies) {
+        // Muestra indicador de carga
+        Swal.fire({
+            title: 'Processing new companies',
+            text: 'Please wait while we save the new company information',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+        
+        // Procesar nuevas compañías
+        const processResult = await processNewCompanies();
+        if (!processResult.success) {
+            return; // Terminar si falla el procesamiento de nuevas compañías
+        }
+        
+        // Usar los IDs de las nuevas compañías
+        if (processResult.newCompanyIds.origin_id) {
+            originId = processResult.newCompanyIds.origin_id;
+            console.log("Using new origin company ID:", originId);
+        }
+        
+        if (processResult.newCompanyIds.destiny_id) {
+            destinyId = processResult.newCompanyIds.destiny_id;
+            console.log("Using new destination company ID:", destinyId);
+        }
+        
+        Swal.close();
+    }
 
+    // 3. Obtener los IDs de compañía (nuevos o existentes)
     const companyValidation = validateCompanyIds();
-    if (!companyValidation.valid) {
+    if (!companyValidation.valid && !originId && !destinyId) {
         Swal.fire({
             icon: 'warning',
             title: 'Company Selection Required',
@@ -41,12 +75,16 @@ async function submitForm(event) {
         return;
     }
 
+    // Usar IDs de nuevas compañías o de la validación de compañías existentes
+    const finalOriginId = originId || companyValidation.originId;
+    const finalDestinyId = destinyId || companyValidation.destinyId;
+
     const quotedCost = parseFloat(formData['QuotedCost']);
     range = calculateAuthorizationRange(quotedCost);
 
-    // 3. Usar los nuevos IDs en el payload
+    // 4. Preparar el payload con los IDs correctos
     const payload = {
-        user_id: 1,
+        user_id: window.userID || 1,
         date: new Date().toISOString().slice(0, 19).replace('T', ' '),
         planta: formData['planta'],
         code_planta: formData['codeplanta'],
@@ -67,13 +105,14 @@ async function submitForm(event) {
         quoted_cost: quotedCost,
         reference: formData['Reference'],
         reference_number: formData['ReferenceNumber'],
-        origin_id: processResult.newCompanyIds.origin_id || companyValidation.originId,
-        destiny_id: processResult.newCompanyIds.destiny_id || companyValidation.destinyId,
+        origin_id: finalOriginId,
+        destiny_id: finalDestinyId,
         status_id: 1,
         required_auth_level: range,
         moneda: getSelectedCurrency()
     };
 
+    // 5. Validaciones finales
     if (!payload.origin_id || !payload.destiny_id) {
         Swal.fire({
             icon: 'warning',
@@ -93,33 +132,39 @@ async function submitForm(event) {
     }
 
     console.log("Final payload being sent:", payload);
-    console.log("Complete validated data for submission:", JSON.stringify(payload, null, 2));
     console.log("Origin ID Type:", typeof payload.origin_id, "Value:", payload.origin_id);
     console.log("Destination ID Type:", typeof payload.destiny_id, "Value:", payload.destiny_id);
 
+    // 6. Verificar si se necesita archivo de recuperación
     const recoverySelect = document.getElementById('Recovery');
     const noRecoveryValue = "NO RECOVERY";
     const recoveryFile = document.getElementById('recoveryFile');
     const needsFile = recoverySelect.value !== noRecoveryValue;
 
+    // 7. Enviar el formulario principal
     try {
+        Swal.fire({
+            title: 'Sending order data...',
+            text: 'Please wait.',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+        
         const result = await sendFormDataAsync(payload);
 
         if (result.success && needsFile && recoveryFile && recoveryFile.files && recoveryFile.files.length > 0) {
-            // Get the username from the global variable or use a default
+            // Obtener el nombre de usuario
             const userName = window.userName || 'anonymous_user';
             
             Swal.fire({
                 title: 'Uploading recovery file...',
                 text: 'Please wait.',
                 allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
+                didOpen: () => { Swal.showLoading(); }
             });
             
             try {
-                const uploadResult = await uploadRecoveryFile(result.id, userName, recoveryFile.files[0]);
+                const uploadResult = await uploadRecoveryFile(result.shipment_id, userName, recoveryFile.files[0]);
                 console.log("File upload result:", uploadResult);
             } catch (uploadError) {
                 console.error("File upload error:", uploadError);
@@ -128,14 +173,15 @@ async function submitForm(event) {
                     title: 'File Upload Issue',
                     text: 'The order was created but there was a problem uploading the recovery file: ' + uploadError.message
                 });
-                // Continue with success flow despite upload error
+                // Continuar con el flujo de éxito a pesar del error de carga
             }
         }
 
         Swal.fire({
             icon: 'success',
             title: 'Data Saved',
-            text: 'The premium freight order was created successfully.'
+            text: 'The premium freight order was created successfully.' + 
+                  (result.shipment_id ? ` Order ID: ${result.shipment_id}` : '')
         });
 
     } catch (error) {
@@ -146,8 +192,6 @@ async function submitForm(event) {
             text: error.message || 'An error occurred while processing your request.'
         });
     }
-
-    return;
 }
 
 // Function to send form data as a promise

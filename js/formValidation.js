@@ -132,76 +132,157 @@ function collectFormData() {
 // para guardarla en el backend.
 // Modifica la función processNewCompanies para usar los IDs de compañía devueltos.
 async function processNewCompanies() {
-    // Selecciona los elementos Select2 para la compañía de origen y destino usando jQuery.
+    // Selecciona los elementos Select2 para la compañía de origen y destino
     const companyShipElement = $('#CompanyShip');
     const companyDestElement = $('#inputCompanyNameDest');
-    // Obtiene los datos asociados con la selección actual en cada campo Select2.
-    // Select2 puede almacenar datos adicionales en cada opción, como 'isNew' para indicar si es una entrada nueva.
+    
+    // Obtiene los datos asociados con la selección actual en cada campo Select2
     const companyShipData = companyShipElement.select2('data')[0];
     const companyDestData = companyDestElement.select2('data')[0];
     
-    // Objeto para almacenar los IDs de las nuevas compañías que se guarden.
-    // Se inicializan en null y se actualizarán si se guarda una nueva compañía.
+    // Objeto para almacenar los IDs de las nuevas compañías que se guarden
     let newCompanyIds = {
         origin_id: null,
         destiny_id: null
     };
 
-    // Manejar la compañía de origen si es nueva.
-    // Verifica si hay datos para la compañía de origen y si la propiedad 'isNew' es verdadera.
+    // Manejar la compañía de origen si es nueva
     if (companyShipData && companyShipData.isNew) {
-        // Llama a la función 'saveNewCompany' para guardar la nueva compañía de origen.
-        // Se pasan el nombre de la nueva compañía (companyShipData.id, que en este contexto es el texto ingresado),
-        // la ciudad, el estado y el código postal asociados.
-        // El último argumento 'false' podría indicar que no es una compañía de destino (o alguna otra lógica específica de saveNewCompany).
-        const originResult = await saveNewCompany(
-            companyShipData.id, // Nombre de la nueva compañía de origen
-            $('#inputCityShip').val(), 
-            $('#StatesShip').val(), 
-            $('#inputZipShip').val(),
-            false // Indicador para saveNewCompany
-        );
+        console.log("Saving new origin company:", companyShipData.id);
         
-        // Si 'saveNewCompany' devuelve false, indica un error al guardar.
-        // Se retorna un objeto indicando que la operación no fue exitosa.
-        if (originResult === false) {
-            return { success: false }; // Termina la función y reporta el fallo.
+        // Obtener valores de los campos de la compañía de origen
+        const companyName = companyShipData.id;
+        const city = $('#inputCityShip').val();
+        const state = $('#StatesShip').val();
+        const zip = $('#inputZipShip').val();
+        
+        // Validación de campos requeridos
+        if (!companyName || !city || !state || !zip) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Incomplete Origin Company Data',
+                text: 'Please complete all origin company fields (Name, City, State and Zip Code).'
+            });
+            return { success: false };
         }
         
-        // Si el servidor (a través de 'saveNewCompany') devuelve un ID numérico,
-        // significa que la compañía se guardó exitosamente y este es su nuevo ID en la base de datos.
-        if (typeof originResult === 'number') {
-            newCompanyIds.origin_id = originResult; // Almacena el ID de la nueva compañía de origen.
+        try {
+            // Mostrar indicador de carga
+            Swal.fire({
+                title: 'Saving origin company...',
+                text: 'Please wait.',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+            
+            // Realizar la petición POST al servidor
+            const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/elements/daoAddLocation.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    company_name: companyName,
+                    city: city,
+                    state: state,
+                    zip: zip
+                })
+            });
+            
+            const result = await response.json();
+            if (result.status === 'success') {
+                console.log("Origin company saved successfully. ID:", result.company_id);
+                newCompanyIds.origin_id = parseInt(result.company_id);
+                
+                // Actualizar el Select2 con el nuevo ID
+                const newOption = new Option(companyName, result.company_id, true, true);
+                companyShipElement.append(newOption).trigger('change');
+                
+                // Cerrar el indicador de carga
+                Swal.close();
+            } else {
+                throw new Error(result.message || 'Error saving origin company');
+            }
+        } catch (error) {
+            console.error('Error saving new origin company:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Could not save the origin company: ' + error.message
+            });
+            return { success: false };
         }
     }
 
-    // Manejar la compañía de destino si es nueva.
-    // Lógica similar a la de la compañía de origen.
+    // Manejar la compañía de destino si es nueva
     if (companyDestData && companyDestData.isNew) {
-        // Llama a 'saveNewCompany' para la compañía de destino.
-        // El último argumento 'true' podría indicar que es una compañía de destino.
-        const destResult = await saveNewCompany(
-            companyDestData.id, // Nombre de la nueva compañía de destino
-            $('#inputCityDest').val(), 
-            $('#StatesDest').val(), 
-            $('#inputZipDest').val(),
-            true // Indicador para saveNewCompany
-        );
+        console.log("Saving new destination company:", companyDestData.id);
         
-        // Si falla el guardado de la compañía de destino.
-        if (destResult === false) {
-            return { success: false }; // Termina y reporta fallo.
+        // Obtener valores de los campos de la compañía de destino
+        const companyName = companyDestData.id;
+        const city = $('#inputCityDest').val();
+        const state = $('#StatesDest').val();
+        const zip = $('#inputZipDest').val();
+        
+        // Validación de campos requeridos
+        if (!companyName || !city || !state || !zip) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Incomplete Destination Company Data',
+                text: 'Please complete all destination company fields (Name, City, State and Zip Code).'
+            });
+            return { success: false };
         }
         
-        // Si se guardó exitosamente y se obtuvo un ID numérico.
-        if (typeof destResult === 'number') {
-            newCompanyIds.destiny_id = destResult; // Almacena el ID de la nueva compañía de destino.
+        try {
+            // Mostrar indicador de carga
+            Swal.fire({
+                title: 'Saving destination company...',
+                text: 'Please wait.',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+            
+            // Realizar la petición POST al servidor
+            const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/elements/daoAddLocation.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    company_name: companyName,
+                    city: city,
+                    state: state,
+                    zip: zip
+                })
+            });
+            
+            const result = await response.json();
+            if (result.status === 'success') {
+                console.log("Destination company saved successfully. ID:", result.company_id);
+                newCompanyIds.destiny_id = parseInt(result.company_id);
+                
+                // Actualizar el Select2 con el nuevo ID
+                const newOption = new Option(companyName, result.company_id, true, true);
+                companyDestElement.append(newOption).trigger('change');
+                
+                // Cerrar el indicador de carga
+                Swal.close();
+            } else {
+                throw new Error(result.message || 'Error saving destination company');
+            }
+        } catch (error) {
+            console.error('Error saving new destination company:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Could not save the destination company: ' + error.message
+            });
+            return { success: false };
         }
     }
 
-    // Devuelve un objeto indicando que el proceso fue exitoso
-    // y los IDs de las nuevas compañías que se hayan guardado.
-    // Si no se guardaron nuevas compañías, los IDs correspondientes seguirán siendo null.
+    // Retornar éxito y los nuevos IDs
     return { 
         success: true,
         newCompanyIds: newCompanyIds

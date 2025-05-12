@@ -233,11 +233,12 @@ async function saveNewCompany(companyName, city, state, zip) {
     }
 }
 
-//==========================================================================================
-// Intercepta el submit del formulario para manejar compañías nuevas en origen y destino.
-// Si alguna compañía es nueva, primero la guarda y luego reintenta el submit con el ID correcto.
+// Eliminar o comentar la sección de interceptar el submit del formulario
+// ya que ahora lo manejaremos completamente desde newOrder.js
+
+// Comentar o eliminar este bloque
+/*
 $('#myForm').on('submit', async function(e) {
-    // Obtiene la información seleccionada en ambos selectores
     const companyShipData = $('#CompanyShip').select2('data')[0];
     const companyDestData = $('#inputCompanyNameDest').select2('data')[0];
 
@@ -245,11 +246,9 @@ $('#myForm').on('submit', async function(e) {
     let newCompanyDestId = null;
     let needSubmit = false;
 
-    // Si alguna de las compañías es nueva, se detiene el submit para guardar primero la compañía
     if ((companyShipData && companyShipData.isNew) || (companyDestData && companyDestData.isNew)) {
         e.preventDefault();
 
-        // Si la compañía de origen es nueva, la guarda y actualiza el selector con el nuevo ID
         if (companyShipData && companyShipData.isNew) {
             const companyName = companyShipData.id;
             const city = $('#inputCityShip').val();
@@ -257,17 +256,14 @@ $('#myForm').on('submit', async function(e) {
             const zip = $('#inputZipShip').val();
             newCompanyShipId = await saveNewCompany(companyName, city, state, zip);
             if (newCompanyShipId) {
-                // Crea una nueva opción en el select con el ID retornado y la selecciona
                 const newOption = new Option(companyName, newCompanyShipId, true, true);
                 $('#CompanyShip').append(newOption).trigger('change');
                 needSubmit = true;
             } else {
-                // Si falla, no se debe enviar el formulario
                 needSubmit = false;
             }
         }
 
-        // Si la compañía de destino es nueva, la guarda y actualiza el selector con el nuevo ID
         if (companyDestData && companyDestData.isNew) {
             const companyName = companyDestData.id;
             const city = $('#inputCityDest').val();
@@ -275,21 +271,13 @@ $('#myForm').on('submit', async function(e) {
             const zip = $('#inputZipDest').val();
             newCompanyDestId = await saveNewCompany(companyName, city, state, zip);
             if (newCompanyDestId) {
-                // Crea una nueva opción en el select con el ID retornado y la selecciona
                 const newOption = new Option(companyName, newCompanyDestId, true, true);
                 $('#inputCompanyNameDest').append(newOption).trigger('change');
                 needSubmit = true;
             } else {
-                // Si falla, no se debe enviar el formulario
                 needSubmit = false;
             }
         }
-
-        // Si al menos una compañía nueva se guardó correctamente, reintenta el submit del formulario
-        if (needSubmit) {
-            // this.submit();  // <-- ¡NO HAGAS ESTO!
-        }
-        // Si alguna falla, el formulario no se envía y el usuario ve el mensaje de error
     }
-    // Si ninguna es nueva, el submit sigue su curso normal
 });
+*/
