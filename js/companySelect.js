@@ -11,119 +11,23 @@ function initializeCompanySelectors() {
 // Configura la búsqueda AJAX y la opción de agregar una nueva compañía si no se encuentra.
 function showCompanySelect() {
     // Establece los campos de dirección como de solo lectura inicialmente.
-    // El usuario no podrá editar estos campos hasta que seleccione una compañía o decida agregar una nueva.
-    $('#inputCityShip').prop('readonly', true); // Campo de ciudad de origen.
-    $('#StatesShip').prop('readonly', true); // Campo de estado de origen.
-    $('#inputZipShip').prop('readonly', true); // Campo de código postal de origen.
-    
+    $('#inputCityShip').prop('readonly', true);
+    $('#StatesShip').prop('readonly', true);
+    $('#inputZipShip').prop('readonly', true);
+
     // Inicializa Select2 en el elemento con ID 'CompanyShip'.
     $('#CompanyShip').select2({
-        placeholder: "Search company", // Texto que se muestra antes de escribir.
-        allowClear: true, // Permite borrar la selección actual.
-        minimumInputLength: 0, // Permite iniciar la búsqueda sin escribir caracteres (muestra todos al abrir).
-        ajax: { // Configuración para la búsqueda de datos vía AJAX.
-            url: 'https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php', // URL del script PHP que devuelve los datos de las compañías.
-            dataType: 'json', // Tipo de datos esperado del servidor.
-            delay: 250, // Retraso en milisegundos antes de realizar la petición AJAX después de que el usuario deja de escribir.
-            data: function (params) { // Función para construir los parámetros de la petición AJAX.
-                return { q: params.term || '' }; // Envía el término de búsqueda (params.term) o una cadena vacía si no hay término.
+        placeholder: "Search company",
+        allowClear: true,
+        minimumInputLength: 0,
+        ajax: {
+            url: 'https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php',
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return { q: params.term || '' };
             },
-            processResults: function (data, params) { // Función para procesar los resultados recibidos del servidor.
-                // Verifica si la respuesta del servidor tiene el formato esperado.
-                if (!data || !Array.isArray(data.data)) {
-                    console.error("Los datos del servidor no tienen el formato esperado o data.data falta o no es un array:", data);
-                    return { results: [] }; // Devuelve un array vacío si hay un problema.
-                }
-                // Mapea los datos recibidos al formato que Select2 espera.
-                const results = data.data.map(company => ({
-                    id: company.id, // El valor único para la opción.
-                    text: company.company_name, // El texto que se muestra en la opción.
-                    // Almacena datos adicionales de la compañía para usarlos después.
-                    city: company.city, 
-                    state: company.state,
-                    zip: company.zip
-                }));
-                
-                // Si hay un término de búsqueda y no se encontraron resultados,
-                // agrega una opción para crear una nueva compañía.
-                if (params.term && results.length === 0) {
-                    results.push({
-                        id: params.term, // El ID será el propio término de búsqueda (nombre de la nueva compañía).
-                        text: `Add new company: "${params.term}"`, // Texto para la opción de agregar.
-                        isNew: true // Propiedad personalizada para identificar esta opción como "nueva compañía".
-                    });
-                }
-                
-                return { results }; // Devuelve los resultados procesados a Select2.
-            },
-            cache: true, // Habilita el almacenamiento en caché de las respuestas AJAX para evitar peticiones repetidas.
-            error: function(jqXHR, textStatus, errorThrown) { // Función para manejar errores de la petición AJAX.
-                console.error("Error AJAX para CompanyShip:", textStatus, errorThrown, jqXHR.responseText);
-            }
-        }
-    }).on('select2:select', function(e) { // Evento que se dispara cuando se selecciona una opción.
-        const data = e.params.data; // Obtiene los datos de la opción seleccionada.
-        console.log("Company selected:", e.params.data);
-        if (data) {
-            if (data.isNew) { // Si la opción seleccionada es para agregar una nueva compañía.
-                const companyName = data.id; // El nombre de la compañía es el ID que se estableció.
-                
-                // Limpia los campos de dirección y los habilita para edición.
-                $('#inputCityShip').val('').prop('readonly', false);
-                $('#StatesShip').val('').prop('readonly', false);
-                $('#inputZipShip').val('').prop('readonly', false);
-                
-                // Opcional: enfoca el campo de ciudad para facilitar la entrada de datos.
-                $('#inputCityShip').focus();
-            } else { // Si se seleccionó una compañía existente.
-                // Autocompleta los campos de dirección con los datos de la compañía.
-                $('#inputCityShip').val(data.city);
-                $('#StatesShip').val(data.state);
-                $('#inputZipShip').val(data.zip);
-                
-                // Habilita los campos de dirección para que puedan ser editados si es necesario.
-                $('#inputCityShip').prop('readonly', false);
-                $('#StatesShip').prop('readonly', false); 
-                $('#inputZipShip').prop('readonly', false);
-            }
-        }
-        // If this is an existing company (not a new one)
-        if (!data.isNew && data.id) {
-            // Store the ID in a data attribute for later use
-            $(this).data('selected-id', parseInt(data.id, 10));
-            console.log("Selected origin company ID:", parseInt(data.id, 10));
-        }
-    }).on('select2:clear', function() { // Evento que se dispara cuando se borra la selección.
-        // Limpia los campos de dirección y los vuelve a poner como de solo lectura.
-        $('#inputCityShip').val('').prop('readonly', true);
-        $('#StatesShip').val('').prop('readonly', true);
-        $('#inputZipShip').val('').prop('readonly', true);
-    });
-    console.log("CompanyShip select initialized");
-}
-
-//==========================================================================================
-// Función para inicializar el widget Select2 para el campo de compañía de destino (inputCompanyNameDest).
-// Similar a showCompanySelect, pero para los campos de destino.
-function showCompanyDestSelect() {
-    // Establece los campos de dirección de destino como de solo lectura inicialmente.
-    $('#inputCityDest').prop('readonly', true);
-    $('#StatesDest').prop('readonly', true);
-    $('#inputZipDest').prop('readonly', true);
-    
-    // Inicializa Select2 en el elemento con ID 'inputCompanyNameDest'.
-    $('#inputCompanyNameDest').select2({
-        placeholder: "Search destination company", // Texto placeholder.
-        allowClear: true, // Permite borrar la selección.
-        minimumInputLength: 0, // Permite búsqueda sin escribir.
-        ajax: { // Configuración AJAX.
-            url: 'https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php', // Endpoint para datos de compañías.
-            dataType: 'json', // Tipo de datos esperado.
-            delay: 250, // Retraso para la petición.
-            data: function (params) { // Parámetros de la petición.
-                return { q: params.term || '' }; // Término de búsqueda.
-            },
-            processResults: function (data, params) { // Procesamiento de resultados.
+            processResults: function (data, params) {
                 if (!data || !Array.isArray(data.data)) {
                     console.error("Los datos del servidor no tienen el formato esperado o data.data falta o no es un array:", data);
                     return { results: [] };
@@ -131,117 +35,221 @@ function showCompanyDestSelect() {
                 const results = data.data.map(company => ({
                     id: company.id,
                     text: company.company_name,
-                    city: company.city, 
+                    city: company.city,
                     state: company.state,
                     zip: company.zip
                 }));
-                
-                if (params.term && results.length === 0) { // Opción para agregar nueva compañía.
+                if (params.term && results.length === 0) {
                     results.push({
                         id: params.term,
                         text: `Add new company: "${params.term}"`,
                         isNew: true
                     });
                 }
-                
                 return { results };
             },
-            cache: true, // Habilitar caché.
-            error: function(jqXHR, textStatus, errorThrown) { // Manejo de errores AJAX.
+            cache: true,
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error("Error AJAX para CompanyShip:", textStatus, errorThrown, jqXHR.responseText);
+            }
+        }
+    }).on('select2:select', function(e) {
+        const data = e.params.data;
+        if (data) {
+            if (data.isNew) {
+                $('#inputCityShip').val('').prop('readonly', false);
+                $('#StatesShip').val('').prop('readonly', false);
+                $('#inputZipShip').val('').prop('readonly', false);
+                $('#inputCityShip').focus();
+            } else {
+                $('#inputCityShip').val(data.city);
+                $('#StatesShip').val(data.state);
+                $('#inputZipShip').val(data.zip);
+                $('#inputCityShip').prop('readonly', false);
+                $('#StatesShip').prop('readonly', false);
+                $('#inputZipShip').prop('readonly', false);
+            }
+        }
+        if (!data.isNew && data.id) {
+            $(this).data('selected-id', parseInt(data.id, 10));
+        }
+    }).on('select2:clear', function() {
+        $('#inputCityShip').val('').prop('readonly', true);
+        $('#StatesShip').val('').prop('readonly', true);
+        $('#inputZipShip').val('').prop('readonly', true);
+    });
+}
+
+//==========================================================================================
+// Función para inicializar el widget Select2 para el campo de compañía de destino (inputCompanyNameDest).
+function showCompanyDestSelect() {
+    $('#inputCityDest').prop('readonly', true);
+    $('#StatesDest').prop('readonly', true);
+    $('#inputZipDest').prop('readonly', true);
+
+    $('#inputCompanyNameDest').select2({
+        placeholder: "Search destination company",
+        allowClear: true,
+        minimumInputLength: 0,
+        ajax: {
+            url: 'https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php',
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return { q: params.term || '' };
+            },
+            processResults: function (data, params) {
+                if (!data || !Array.isArray(data.data)) {
+                    console.error("Los datos del servidor no tienen el formato esperado o data.data falta o no es un array:", data);
+                    return { results: [] };
+                }
+                const results = data.data.map(company => ({
+                    id: company.id,
+                    text: company.company_name,
+                    city: company.city,
+                    state: company.state,
+                    zip: company.zip
+                }));
+                if (params.term && results.length === 0) {
+                    results.push({
+                        id: params.term,
+                        text: `Add new company: "${params.term}"`,
+                        isNew: true
+                    });
+                }
+                return { results };
+            },
+            cache: true,
+            error: function(jqXHR, textStatus, errorThrown) {
                 console.error("Error AJAX para CompanyDest:", textStatus, errorThrown, jqXHR.responseText);
             }
         }
-    }).on('select2:select', function(e) { // Evento al seleccionar una opción.
+    }).on('select2:select', function(e) {
         const data = e.params.data;
-        console.log("Company selected:", e.params.data);
         if (data) {
-            if (data.isNew) { // Si es una nueva compañía.
-                const companyName = data.id;
-                
-                // Limpiar y habilitar campos de dirección de destino.
+            if (data.isNew) {
                 $('#inputCityDest').val('').prop('readonly', false);
                 $('#StatesDest').val('').prop('readonly', false);
                 $('#inputZipDest').val('').prop('readonly', false);
-                
-                $('#inputCityDest').focus(); // Enfocar campo de ciudad de destino.
-            } else { // Si es una compañía existente.
-                // Autocompletar y habilitar campos de dirección de destino.
+                $('#inputCityDest').focus();
+            } else {
                 $('#inputCityDest').val(data.city);
                 $('#StatesDest').val(data.state);
                 $('#inputZipDest').val(data.zip);
-                
                 $('#inputCityDest').prop('readonly', false);
                 $('#StatesDest').prop('readonly', false);
                 $('#inputZipDest').prop('readonly', false);
             }
         }
-        // If this is an existing company (not a new one)
         if (!data.isNew && data.id) {
-            // Store the ID in a data attribute for later use
             $(this).data('selected-id', parseInt(data.id, 10));
-            console.log("Selected destination company ID:", parseInt(data.id, 10));
         }
-    }).on('select2:clear', function() { // Evento al borrar la selección.
-        // Limpiar y deshabilitar (solo lectura) campos de dirección de destino.
+    }).on('select2:clear', function() {
         $('#inputCityDest').val('').prop('readonly', true);
         $('#StatesDest').val('').prop('readonly', true);
         $('#inputZipDest').val('').prop('readonly', true);
     });
-    console.log("inputCompanyNameDest select initialized");
 }
 
 //==========================================================================================
 // Función asíncrona para guardar una nueva ubicación de compañía en la base de datos.
-// Recibe el nombre de la compañía, ciudad, estado, código postal y un booleano opcional para indicar si es destino.
-// Modify the saveNewCompany function to return the company ID from the server response
-async function saveNewCompany(companyName, city, state, zip, isDestination = false) {
-    // Valida que todos los campos necesarios tengan valor.
+async function saveNewCompany(companyName, city, state, zip) {
     if (!companyName || !city || !state || !zip) {
-        Swal.fire({ // Muestra una alerta si faltan datos.
+        Swal.fire({
             icon: 'warning',
             title: 'Incomplete Data',
             text: 'Please complete all company fields (Name, City, State and Zip Code).'
         });
-        return false; // Retorna falso indicando que no se guardó.
+        return false;
     }
-    
     try {
-        // Realiza una petición POST al script PHP para agregar la nueva ubicación.
         const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/elements/daoAddLocation.php', {
-            method: 'POST', // Método de la petición.
+            method: 'POST',
             headers: {
-                'Content-Type': 'application/json', // Indica que el cuerpo es JSON.
+                'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ // Cuerpo de la petición con los datos de la compañía.
+            body: JSON.stringify({
                 company_name: companyName,
                 city: city,
                 state: state,
                 zip: zip
             })
         });
-        
-        const result = await response.json(); // Parsea la respuesta del servidor como JSON.
-        
-        if (result.status === 'success') { // Si el servidor indica que la operación fue exitosa.
-            Swal.fire({ // Muestra una alerta de éxito.
+        const result = await response.json();
+        if (result.status === 'success') {
+            Swal.fire({
                 icon: 'success',
                 title: 'Company Saved',
                 text: `The company "${companyName}" has been added to the database.`
             });
-            
-            // Return the new company ID if provided by the server
             return result.company_id || true;
         } else {
-            // Si el servidor indica un error, lanza una excepción con el mensaje del servidor.
             throw new Error(result.message || 'Error saving company');
         }
-    } catch (error) { // Captura errores de la petición fetch o excepciones lanzadas.
+    } catch (error) {
         console.error('Error al guardar nueva compañía:', error);
-        Swal.fire({ // Muestra una alerta de error.
+        Swal.fire({
             icon: 'error',
             title: 'Error',
             text: 'Could not save the company: ' + error.message
         });
-        return false; // Retorna falso indicando que no se guardó.
+        return false;
     }
 }
+
+//==========================================================================================
+// Intercepta el submit del formulario para manejar compañías nuevas en origen y destino
+$('#myForm').on('submit', async function(e) {
+    // Detecta si la compañía de origen es nueva
+    const companyShipData = $('#CompanyShip').select2('data')[0];
+    // Detecta si la compañía de destino es nueva
+    const companyDestData = $('#inputCompanyNameDest').select2('data')[0];
+
+    let newCompanyShipId = null;
+    let newCompanyDestId = null;
+    let needSubmit = false;
+
+    // Si alguna es nueva, detenemos el submit
+    if ((companyShipData && companyShipData.isNew) || (companyDestData && companyDestData.isNew)) {
+        e.preventDefault();
+
+        // Guardar compañía de origen si es nueva
+        if (companyShipData && companyShipData.isNew) {
+            const companyName = companyShipData.id;
+            const city = $('#inputCityShip').val();
+            const state = $('#StatesShip').val();
+            const zip = $('#inputZipShip').val();
+            newCompanyShipId = await saveNewCompany(companyName, city, state, zip);
+            if (newCompanyShipId) {
+                const newOption = new Option(companyName, newCompanyShipId, true, true);
+                $('#CompanyShip').append(newOption).trigger('change');
+                needSubmit = true;
+            } else {
+                needSubmit = false;
+            }
+        }
+
+        // Guardar compañía de destino si es nueva
+        if (companyDestData && companyDestData.isNew) {
+            const companyName = companyDestData.id;
+            const city = $('#inputCityDest').val();
+            const state = $('#StatesDest').val();
+            const zip = $('#inputZipDest').val();
+            newCompanyDestId = await saveNewCompany(companyName, city, state, zip);
+            if (newCompanyDestId) {
+                const newOption = new Option(companyName, newCompanyDestId, true, true);
+                $('#inputCompanyNameDest').append(newOption).trigger('change');
+                needSubmit = true;
+            } else {
+                needSubmit = false;
+            }
+        }
+
+        // Si ambas compañías nuevas se guardaron correctamente, o solo una era nueva y se guardó, envía el formulario
+        if (needSubmit) {
+            this.submit();
+        }
+        // Si alguna falla, no se envía el formulario
+    }
+    // Si ninguna es nueva, el submit sigue normal
+});
