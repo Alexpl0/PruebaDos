@@ -6,6 +6,9 @@ import {
     generatePDF 
 } from './svgOrders.js';
 
+// Declara createCards en el ámbito global
+let createCards;
+
 document.addEventListener('DOMContentLoaded', function () {
     // Añade esta sección para verificar estilos
     console.log("Checking CSS for notification badge...");
@@ -93,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- Crear tarjetas visuales para cada orden ---
     // Genera y muestra las tarjetas de resumen para cada orden en la interfaz.
-    function createCards(orders) {
+    createCards = function(orders) {
         // Obtiene el contenedor principal donde se añadirán las tarjetas.
         const mainCards = document.getElementById("card");
         // Si el contenedor no existe, muestra un error y termina.
