@@ -287,7 +287,7 @@ $('#myForm').on('submit', async function(e) {
 
         // Si al menos una compañía nueva se guardó correctamente, reintenta el submit del formulario
         if (needSubmit) {
-            this.submit();
+            // this.submit();  // <-- ¡NO HAGAS ESTO!
         }
         // Si alguna falla, el formulario no se envía y el usuario ve el mensaje de error
     }
