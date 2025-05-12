@@ -297,6 +297,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     approveBtn.style.display = "none"; // Oculta el botón Aprobar.
                     rejectBtn.style.display = "none"; // Oculta el botón Rechazar.
                 }
+                // Call the function to update the container's class
+                updateModalButtonsContainer();
 
                 // Registra información relevante en la consola para depuración.
                 console.log('ID de Orden:', orderId);
@@ -851,3 +853,15 @@ function showEvidenceFileUploadForm(orderId) {
     });
 }
 
+// Add this function to your orders.js file
+function updateModalButtonsContainer() {
+    const buttonsContainer = document.querySelector('#myModal .modal-buttons');
+    const visibleButtons = Array.from(buttonsContainer.children)
+        .filter(btn => btn.style.display !== 'none').length;
+    
+    if (visibleButtons === 1) {
+        buttonsContainer.classList.add('single-button');
+    } else {
+        buttonsContainer.classList.remove('single-button');
+    }
+}

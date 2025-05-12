@@ -204,6 +204,16 @@ main {
     max-width: 39%;
     font-size: small;
     align-items: center;
+    justify-content: flex-start; /* Align to the left by default */
+    min-width: 140px; /* Minimum width to ensure buttons don't look too cramped */
+    width: auto; /* Let it grow based on content */
+}
+
+/* Apply a class when only one button is visible */
+#myModal .modal-buttons.single-button {
+    max-width: max-content; /* Only as wide as needed */
+    margin-right: auto; /* Push to the left */
+    justify-content: center; /* Center the single button */
 }
 
 /* Botones específicos del modal SVG */
