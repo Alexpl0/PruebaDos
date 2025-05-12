@@ -7,6 +7,36 @@ import {
 } from './svgOrders.js';
 
 document.addEventListener('DOMContentLoaded', function () {
+    // Añade esta sección para verificar estilos
+    console.log("Checking CSS for notification badge...");
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 24px;
+            height: 24px;
+            background-color: #ff4444;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+
+        .exclamation-icon {
+            font-style: normal;
+            font-weight: bold;
+            font-size: 14px;
+        }
+    `;
+    document.head.appendChild(styleElement);
+    console.log("Added notification badge styles dynamically");
+    
     // --- Calcular número de semana ISO 8601 ---
     // Recibe una cadena de fecha y devuelve el número de semana del año según la norma ISO 8601.
     function getWeekNumber(dateString) {
@@ -42,6 +72,15 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(data => {
             // Verifica si la respuesta contiene datos válidos.
             if (data && data.data) {
+                console.log("API response received:", data);
+                console.log("Sample order data:", data.data[0]);
+                // Log specific to recovery fields
+                const ordersWithRecovery = data.data.filter(order => order.recovery_file);
+                console.log("Orders with recovery files:", ordersWithRecovery.length);
+                if (ordersWithRecovery.length > 0) {
+                    console.log("Sample recovery order:", ordersWithRecovery[0]);
+                }
+                
                 // Si hay datos, llama a la función createCards para mostrar las órdenes.
                 createCards(data.data);
             } else {
@@ -93,6 +132,16 @@ document.addEventListener('DOMContentLoaded', function () {
             return getPriority(statusA) - getPriority(statusB);
         });
 
+        // Añade estos logs de depuración después de inicializar mainCards
+        console.log("Total orders to display:", orders.length);
+        
+        // Verifica si hay órdenes con recovery_file pero sin recovery_evidence
+        const ordersNeedingEvidence = orders.filter(order => order.recovery_file && !order.recovery_evidence);
+        console.log("Orders needing evidence:", ordersNeedingEvidence.length);
+        if (ordersNeedingEvidence.length > 0) {
+            console.log("Example order needing evidence:", ordersNeedingEvidence[0]);
+        }
+
         // Itera sobre cada objeto de orden en el array 'orders'.
         orders.forEach(order => {
             // Calcula el número de semana para la fecha de la orden.
@@ -121,6 +170,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Check if recovery file exists but evidence is missing
             const needsEvidence = order.recovery_file && !order.recovery_evidence;
+            console.log(`Order ${order.id}: recovery_file=${!!order.recovery_file}, recovery_evidence=${!!order.recovery_evidence}, needsEvidence=${needsEvidence}`);
 
             // --- Mensaje de estado de aprobación pendiente ---
             let falta = ''; // Variable para almacenar el mensaje de estado.
@@ -163,6 +213,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <i class="exclamation-icon">!</i>
                     </div>
                 `;
+                console.log(`Adding notification badge for order ${order.id}`);
             }
 
             // --- Estructura HTML de la tarjeta ---
@@ -272,12 +323,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Add event listeners to the notification badges
         document.querySelectorAll('.notification-badge').forEach(badge => {
+            console.log("Setting up click handler for badge on order:", badge.getAttribute('data-order-id'));
             badge.addEventListener('click', function(e) {
+                console.log("Badge clicked for order:", this.getAttribute('data-order-id'));
                 e.stopPropagation(); // Prevent triggering other click events
                 const orderId = this.getAttribute('data-order-id');
                 showEvidenceUploadModal(orderId);
             });
         });
+
+        // Después de añadir los event listeners a los badges, añade este log
+        const badgeCount = document.querySelectorAll('.notification-badge').length;
+        console.log(`Total notification badges added: ${badgeCount}`);
     }
 
     // --- Funcionalidad de búsqueda ---
