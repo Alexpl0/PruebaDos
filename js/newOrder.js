@@ -106,10 +106,9 @@ async function submitForm(event) {
         const result = await sendFormDataAsync(payload);
 
         if (result.success && needsFile && recoveryFile && recoveryFile.files && recoveryFile.files.length > 0) {
-            const formData = new FormData();
-            formData.append('premium_freight_id', result.id);
-            formData.append('recoveryFile', recoveryFile.files[0]);
-
+            // Get the username from the global variable or use a default
+            const userName = window.userName || 'anonymous_user';
+            
             Swal.fire({
                 title: 'Uploading recovery file...',
                 text: 'Please wait.',
@@ -118,7 +117,19 @@ async function submitForm(event) {
                     Swal.showLoading();
                 }
             });
-            await uploadRecoveryFile(formData);
+            
+            try {
+                const uploadResult = await uploadRecoveryFile(result.id, userName, recoveryFile.files[0]);
+                console.log("File upload result:", uploadResult);
+            } catch (uploadError) {
+                console.error("File upload error:", uploadError);
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'File Upload Issue',
+                    text: 'The order was created but there was a problem uploading the recovery file: ' + uploadError.message
+                });
+                // Continue with success flow despite upload error
+            }
         }
 
         Swal.fire({
@@ -170,26 +181,6 @@ function sendFormDataAsync(payload) {
         .catch(error => {
             reject(error);
         });
-    });
-}
-
-// Function to upload the recovery file
-function uploadRecoveryFile(formData) {
-    return fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoUploadRecovery.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`Error uploading file: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(result => {
-        if (!result.success) {
-            throw new Error(result.message || 'Error uploading recovery file');
-        }
-        return result;
     });
 }
 

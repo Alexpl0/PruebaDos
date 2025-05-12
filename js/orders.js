@@ -560,5 +560,29 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
     };
+
+    // En el evento submit del formulario de evidencia
+    document.getElementById('evidenceForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const premiumFreightId = document.getElementById('premiumFreightId').value;
+        const userName = document.getElementById('userName').value || 'user';
+        const evidenceFile = document.getElementById('evidenceFile').files[0];
+        
+        if (!evidenceFile) {
+            alert('Please select a file to upload');
+            return;
+        }
+        
+        try {
+            const result = await uploadEvidenceFile(premiumFreightId, userName, evidenceFile);
+            if (result.success) {
+                alert('Evidence file uploaded successfully');
+                // Actualizar la interfaz o redireccionar
+            }
+        } catch (error) {
+            alert('Error uploading evidence file: ' + error.message);
+        }
+    });
 }); // Fin del event listener DOMContentLoaded
 

@@ -231,6 +231,15 @@ try {
 
     $stmtApproval->close();
 
+    // Obtener el nombre del usuario creador
+    $sqlUser = "SELECT name as userName FROM User WHERE id = ?";
+    $stmtUser = $conex->prepare($sqlUser);
+    $stmtUser->bind_param("i", $userId);
+    $stmtUser->execute();
+    $stmtUser->bind_result($userName);
+    $stmtUser->fetch();
+    $stmtUser->close();
+
     // Confirmar la transacción si todo salió bien
     $conex->commit();
 
@@ -241,7 +250,8 @@ try {
     echo json_encode([
         "success" => true,
         "message" => "Premium freight order created successfully with approval record.",
-        "shipment_id" => $premiumFreightId
+        "shipment_id" => $premiumFreightId,
+        "user_name" => $userName
     ]);
 
 } catch (Exception $e) {

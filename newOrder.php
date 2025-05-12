@@ -380,6 +380,7 @@ include_once 'dao/users/auth_check.php';
     <script src="js/header.js"></script>
     <script src="js/formValidation.js"></script>
     <script src="js/currencyUtils.js"></script>
+    <script src="js/uploadFiles.js"></script>
     <script src="js/newOrder.js"></script>
     <script src="js/createPDF.js"></script>
 

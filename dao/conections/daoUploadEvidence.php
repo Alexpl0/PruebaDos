@@ -29,17 +29,17 @@ foreach ($requiredFields as $field) {
 }
 
 // Verificar si se subió un archivo
-if (!isset($_FILES['recoveryFile']) || $_FILES['recoveryFile']['error'] !== UPLOAD_ERR_OK) {
+if (!isset($_FILES['evidenceFile']) || $_FILES['evidenceFile']['error'] !== UPLOAD_ERR_OK) {
     http_response_code(400);
     echo json_encode([
         "success" => false,
-        "message" => "No file uploaded or upload error: " . ($_FILES['recoveryFile']['error'] ?? 'Unknown error')
+        "message" => "No file uploaded or upload error: " . ($_FILES['evidenceFile']['error'] ?? 'Unknown error')
     ]);
     exit;
 }
 
 // Validar tipo de archivo (debe ser PDF)
-$fileType = mime_content_type($_FILES['recoveryFile']['tmp_name']);
+$fileType = mime_content_type($_FILES['evidenceFile']['tmp_name']);
 if ($fileType !== 'application/pdf') {
     http_response_code(400);
     echo json_encode([
@@ -63,11 +63,11 @@ $safeUserName = preg_replace('/[^A-Za-z0-9_]/', '', str_replace(' ', '_', $userN
 
 // Generar nombre de archivo
 $timestamp = time();
-$filename = "RecoveryPF{$premiumFreightId}_{$safeUserName}_{$timestamp}.pdf";
+$filename = "EvidencePF{$premiumFreightId}_{$safeUserName}_{$timestamp}.pdf";
 $filePath = $uploadDir . $filename;
 
 // Mover el archivo subido al directorio destino
-if (!move_uploaded_file($_FILES['recoveryFile']['tmp_name'], $filePath)) {
+if (!move_uploaded_file($_FILES['evidenceFile']['tmp_name'], $filePath)) {
     http_response_code(500);
     echo json_encode([
         "success" => false,
@@ -81,8 +81,8 @@ try {
     $con = new LocalConector();
     $conex = $con->conectar();
     
-    // Guardar referencia al archivo en la base de datos (columna recovery_file)
-    $sql = "UPDATE PremiumFreight SET recovery_file = ? WHERE id = ?";
+    // Guardar referencia al archivo en la base de datos (columna recovery_evidence)
+    $sql = "UPDATE PremiumFreight SET recovery_evidence = ? WHERE id = ?";
     $stmt = $conex->prepare($sql);
     
     if (!$stmt) {
@@ -109,7 +109,7 @@ try {
     // Responder con éxito
     echo json_encode([
         "success" => true,
-        "message" => "Recovery file uploaded successfully",
+        "message" => "Evidence file uploaded successfully",
         "file_path" => $fileUrl
     ]);
     
