@@ -231,7 +231,9 @@ main {
 .save-pdf-button {
   background-color: #3B82F6;
 }
-
+#savePdfBtn{
+    max-width: 5%;
+}
 #approveBtn {
   background-color: #22c55e; /* verde */
 }
