@@ -1,17 +1,17 @@
 <?php
 include_once('../db/db.php');
 
-// Enable detailed error reporting for debugging
+// Habilitar reporte detallado de errores para depuración
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// Establecer cabeceras para JSON
+// Establecer cabecera para respuesta JSON
 header('Content-Type: application/json; charset=utf-8');
 
-// Verificar si es una solicitud POST
+// Verificar que la solicitud sea POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405); // Method Not Allowed
+    http_response_code(405); // Método no permitido
     echo json_encode([
         "success" => false,
         "message" => "Method not allowed. Use POST."
@@ -19,16 +19,16 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// Obtener datos JSON del cuerpo de la solicitud
+// Obtener el cuerpo de la solicitud y decodificar el JSON recibido
 $requestBody = file_get_contents('php://input');
 $data = json_decode($requestBody, true);
 
-// Log incoming data for debugging
+// Registrar los datos entrantes para depuración
 error_log("Incoming data: " . print_r($data, true));
 
-// Verificar si los datos se pudieron decodificar correctamente
+// Verificar que los datos se hayan decodificado correctamente
 if ($data === null) {
-    http_response_code(400); // Bad Request
+    http_response_code(400); // Solicitud incorrecta
     echo json_encode([
         "success" => false,
         "message" => "Invalid JSON data provided."
@@ -36,7 +36,7 @@ if ($data === null) {
     exit;
 }
 
-// Validar campos obligatorios
+// Definir los campos obligatorios que debe contener la solicitud
 $requiredFields = [
     'planta', 'code_planta', 'transport', 'in_out_bound', 'cost_euros',
     'description', 'area', 'int_ext', 'paid_by', 'category_cause',
@@ -45,6 +45,7 @@ $requiredFields = [
     'origin_id', 'destiny_id', 'moneda'
 ];
 
+// Verificar si falta algún campo obligatorio
 $missingFields = [];
 foreach ($requiredFields as $field) {
     if (!isset($data[$field]) || (is_string($data[$field]) && trim($data[$field]) === '')) {
@@ -53,7 +54,7 @@ foreach ($requiredFields as $field) {
 }
 
 if (!empty($missingFields)) {
-    http_response_code(400); // Bad Request
+    http_response_code(400); // Solicitud incorrecta
     echo json_encode([
         "success" => false,
         "message" => "Missing required fields: " . implode(', ', $missingFields)
@@ -75,19 +76,21 @@ foreach ($numericFields as $field) {
 }
 
 try {
+    // Crear conexión a la base de datos usando la clase LocalConector
     $con = new LocalConector();
     $conex = $con->conectar();
-    
+
     if (!$conex) {
         throw new Exception("Database connection failed");
     }
-    
+
+    // Establecer el charset para soportar caracteres especiales y emojis
     $conex->set_charset("utf8mb4");
 
-    // Iniciar transacción para asegurar que ambas inserciones se ejecuten juntas
+    // Iniciar una transacción para asegurar la integridad de los datos
     $conex->begin_transaction();
 
-    // Preparar la consulta SQL para PremiumFreight
+    // Preparar la consulta SQL para insertar en la tabla PremiumFreight
     $sql = "INSERT INTO PremiumFreight (
                 user_id, date, planta, code_planta, transport, in_out_bound,
                 cost_euros, description, area, int_ext, paid_by, category_cause,
@@ -108,29 +111,28 @@ try {
         throw new Exception("Error preparing statement: " . $conex->error);
     }
 
-    // Obtener valor del usuario (usar 1 como valor predeterminado si no está definido)
+    // Obtener valores de los campos, asegurando tipos y longitudes
     $userId = isset($data['user_id']) ? intval($data['user_id']) : 1;
-    
-    // Obtener valor del estado (usar 1 como valor predeterminado si no está definido)
     $statusId = isset($data['status_id']) ? intval($data['status_id']) : 1;
-    
-    // Obtener el nivel de autorización requerido
     $requiredAuthLevel = isset($data['required_auth_level']) ? intval($data['required_auth_level']) : 1;
-    
-    // Asegurar que los valores numéricos son del tipo correcto
+
+    // Convertir campos numéricos a su tipo correcto
     $costEuros = floatval($data['cost_euros']);
     $quotedCost = floatval($data['quoted_cost']);
     $weight = floatval($data['weight']);
     $originId = intval($data['origin_id']);
     $destinyId = intval($data['destiny_id']);
-    
-    // Asegurar que las cadenas no exceden los límites de la base de datos
-    $date = substr($data['date'], 0, 30);
+
+    // Limitar la longitud de los campos de texto según la estructura de la base de datos
+    $date = isset($data['date']) ? substr($data['date'], 0, 30) : date('Y-m-d H:i:s');
     $planta = substr($data['planta'], 0, 100);
     $codePlanta = substr($data['code_planta'], 0, 50);
     $transport = substr($data['transport'], 0, 50);
     $inOutBound = substr($data['in_out_bound'], 0, 50);
-    $description = substr($data['description'], 0, 500);
+
+    // *** IMPORTANTE: No limitar el campo description para permitir textos largos ***
+    $description = $data['description']; // LONGTEXT soporta hasta 4GB
+
     $area = substr($data['area'], 0, 100);
     $intExt = substr($data['int_ext'], 0, 50);
     $paidBy = substr($data['paid_by'], 0, 100);
@@ -144,7 +146,8 @@ try {
     $referenceNumber = substr($data['reference_number'], 0, 100);
     $moneda = substr($data['moneda'], 0, 10);
 
-    // Vincular parámetros con los tipos de datos correctos
+    // Vincular los parámetros a la consulta preparada
+    // Tipos: i = integer, d = double, s = string
     $bindResult = $stmt->bind_param(
         "issssssssssssssssssssiiiis",
         $userId,
@@ -174,68 +177,67 @@ try {
         $requiredAuthLevel,
         $moneda
     );
-    
+
     if (!$bindResult) {
         throw new Exception("Error binding parameters: " . $stmt->error);
     }
 
-    // Ejecutar la consulta para PremiumFreight
+    // Ejecutar la consulta para insertar en PremiumFreight
     if (!$stmt->execute()) {
         // Si hay error, revertir la transacción
         $conex->rollback();
         throw new Exception("Error executing statement: " . $stmt->error);
     }
-    
-    // Obtener el ID de la inserción de PremiumFreight
+
+    // Obtener el ID del registro recién insertado
     $premiumFreightId = $stmt->insert_id;
-    
+
     if (!$premiumFreightId) {
         $conex->rollback();
         throw new Exception("Failed to get last insert ID");
     }
-    
+
     $stmt->close();
-    
-    // Ahora insertar en la tabla PremiumFreightApprovals
+
+    // Insertar registro en la tabla de aprobaciones (PremiumFreightApprovals)
     $sqlApproval = "INSERT INTO PremiumFreightApprovals 
                     (premium_freight_id, user_id, approval_date, status_id, act_approv) 
                     VALUES (?, ?, NOW(), ?, 0)";
-                    
+
     $stmtApproval = $conex->prepare($sqlApproval);
-    
+
     if (!$stmtApproval) {
-        // Si hay error, revertir la transacción
         $conex->rollback();
         throw new Exception("Error preparing approval statement: " . $conex->error);
     }
-    
+
     // Vincular parámetros para la tabla de aprobaciones
     $bindApprovalResult = $stmtApproval->bind_param("iii", 
         $premiumFreightId, 
         $userId, 
         $statusId
     );
-    
+
     if (!$bindApprovalResult) {
         $conex->rollback();
         throw new Exception("Error binding approval parameters: " . $stmtApproval->error);
     }
-    
+
     // Ejecutar la inserción en la tabla de aprobaciones
     if (!$stmtApproval->execute()) {
-        // Si hay error, revertir la transacción
         $conex->rollback();
         throw new Exception("Error inserting approval record: " . $stmtApproval->error);
     }
-    
+
     $stmtApproval->close();
-    
-    // Si todo ha ido bien, confirmar la transacción
+
+    // Confirmar la transacción si todo salió bien
     $conex->commit();
-    
-    // Cerrar la conexión
+
+    // Cerrar la conexión a la base de datos
     $conex->close();
-    
+
+    // Responder con éxito y el ID del nuevo registro
     echo json_encode([
         "success" => true,
         "message" => "Premium freight order created successfully with approval record.",
@@ -243,22 +245,22 @@ try {
     ]);
 
 } catch (Exception $e) {
-    // Log more detailed information
+    // Registrar información detallada del error para depuración
     error_log("PremiumFreight insertion error: " . $e->getMessage());
     error_log("Error occurred in file: " . $e->getFile() . " on line " . $e->getLine());
     error_log("Stack trace: " . $e->getTraceAsString());
-    
-    // Log SQL info if applicable
+
+    // Registrar error SQL si aplica
     if (isset($stmt) && $stmt) {
         error_log("SQL Error: " . $stmt->error);
     }
-    
-    // In case of connection, revert transaction
+
+    // Revertir la transacción si la conexión está activa
     if (isset($conex) && $conex->connect_errno === 0) {
         $conex->rollback();
         $conex->close();
     }
-    
+
     http_response_code(500);
     echo json_encode([
         "success" => false,
