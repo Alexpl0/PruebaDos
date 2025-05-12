@@ -614,178 +614,180 @@ document.addEventListener('DOMContentLoaded', function () {
             alert('Error uploading evidence file: ' + error.message);
         }
     });
-
-    // Function to show the evidence upload notification modal
-    function showEvidenceUploadModal(orderId) {
-        const selectedOrder = window.allOrders.find(order => order.id === parseInt(orderId)) || {};
-        
-        // Create modal element
-        const modalDiv = document.createElement('div');
-        modalDiv.id = 'evidenceUploadModal';
-        modalDiv.className = 'evidence-upload-modal';
-        
-        modalDiv.innerHTML = `
-            <div class="evidence-modal-content">
-                <div class="evidence-modal-header">
-                    <h5 class="evidence-modal-title">Recovery Evidence Required</h5>
-                    <button type="button" class="evidence-close-button" id="closeEvidenceModal">&times;</button>
-                </div>
-                <div class="evidence-modal-body">
-                    <p>Order #${orderId} has a recovery file but no evidence uploaded yet. 
-                    Evidence of Recovery is yet to be uploaded.</p>
-                </div>
-                <div class="evidence-modal-footer">
-                    <button type="button" class="evidence-btn-secondary" id="cancelEvidenceBtn">Accept</button>
-                    <button type="button" class="evidence-btn-primary" id="showUploadFormBtn">Upload Evidence</button>
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(modalDiv);
-        
-        // Setup event listeners
-        document.getElementById('closeEvidenceModal').addEventListener('click', function() {
-            document.body.removeChild(modalDiv);
-        });
-        
-        document.getElementById('cancelEvidenceBtn').addEventListener('click', function() {
-            document.body.removeChild(modalDiv);
-        });
-        
-        document.getElementById('showUploadFormBtn').addEventListener('click', function() {
-            document.body.removeChild(modalDiv);
-            showEvidenceFileUploadForm(orderId);
-        });
-    }
-
-    // Function to show the file upload form modal
-    function showEvidenceFileUploadForm(orderId) {
-        const userName = window.userName || 'anonymous_user';
-        
-        // Create upload form modal
-        const uploadFormDiv = document.createElement('div');
-        uploadFormDiv.id = 'evidenceFileUploadModal';
-        uploadFormDiv.className = 'evidence-upload-modal';
-        
-        uploadFormDiv.innerHTML = `
-            <div class="evidence-modal-content">
-                <div class="evidence-modal-header">
-                    <h5 class="evidence-modal-title">Upload Recovery Evidence</h5>
-                    <button type="button" class="evidence-close-button" id="closeUploadFormModal">&times;</button>
-                </div>
-                <div class="evidence-modal-body">
-                    <form id="evidenceForm" class="evidence-form">
-                        <input type="hidden" id="premiumFreightId" name="premium_freight_id" value="${orderId}">
-                        <input type="hidden" id="userName" name="userName" value="${userName}">
-                        
-                        <div class="evidence-form-group">
-                            <label for="evidenceFile">Select PDF file for evidence:</label>
-                            <input type="file" id="evidenceFile" name="evidenceFile" accept=".pdf" class="form-control" required>
-                            <small class="form-text text-muted">Only PDF files are accepted.</small>
-                        </div>
-                        
-                        <div class="evidence-modal-footer">
-                            <button type="button" class="evidence-btn-secondary" id="cancelUploadBtn">Cancel</button>
-                            <button type="submit" class="evidence-btn-primary" id="submitEvidenceBtn">Upload</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(uploadFormDiv);
-        
-        // Setup event listeners
-        document.getElementById('closeUploadFormModal').addEventListener('click', function() {
-            document.body.removeChild(uploadFormDiv);
-        });
-        
-        document.getElementById('cancelUploadBtn').addEventListener('click', function() {
-            document.body.removeChild(uploadFormDiv);
-        });
-        
-        // Setup form submission
-        document.getElementById('evidenceForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const submitBtn = document.getElementById('submitEvidenceBtn');
-            const cancelBtn = document.getElementById('cancelUploadBtn');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Uploading...';
-            cancelBtn.disabled = true;
-            
-            const premiumFreightId = document.getElementById('premiumFreightId').value;
-            const userName = document.getElementById('userName').value || 'user';
-            const evidenceFile = document.getElementById('evidenceFile').files[0];
-            
-            if (!evidenceFile) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'No File Selected',
-                    text: 'Please select a PDF file to upload.'
-                });
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Upload';
-                cancelBtn.disabled = false;
-                return;
-            }
-            
-            try {
-                // Show loading indicator
-                Swal.fire({
-                    title: 'Uploading...',
-                    text: 'Please wait while we upload your evidence file.',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-                
-                const result = await uploadEvidenceFile(premiumFreightId, userName, evidenceFile);
-                
-                if (result.success) {
-                    // Close the modal
-                    document.body.removeChild(uploadFormDiv);
-                    
-                    // Update the order in the local data
-                    const orderIndex = window.allOrders.findIndex(order => order.id === parseInt(premiumFreightId));
-                    if (orderIndex !== -1) {
-                        window.allOrders[orderIndex].recovery_evidence = result.file_path;
-                        
-                        // Also update in originalOrders if it exists
-                        if (window.originalOrders) {
-                            const originalIndex = window.originalOrders.findIndex(order => order.id === parseInt(premiumFreightId));
-                            if (originalIndex !== -1) {
-                                window.originalOrders[originalIndex].recovery_evidence = result.file_path;
-                            }
-                        }
-                        
-                        // Refresh the cards display
-                        createCards(window.allOrders);
-                    }
-                    
-                    // Show success message
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Evidence Uploaded',
-                        text: 'The evidence file was uploaded successfully.'
-                    });
-                } else {
-                    throw new Error(result.message || 'Unknown error occurred');
-                }
-            } catch (error) {
-                console.error('Error uploading evidence file:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Upload Failed',
-                    text: 'Error uploading evidence file: ' + error.message
-                });
-                
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Upload';
-                cancelBtn.disabled = false;
-            }
-        });
-    }
 }); // Fin del event listener DOMContentLoaded
+
+// Add these functions to your orders.js file
+
+// Function to show the evidence upload notification modal
+function showEvidenceUploadModal(orderId) {
+    const selectedOrder = window.allOrders.find(order => order.id === parseInt(orderId)) || {};
+    
+    // Create modal element
+    const modalDiv = document.createElement('div');
+    modalDiv.id = 'evidenceUploadModal';
+    modalDiv.className = 'evidence-upload-modal';
+    
+    modalDiv.innerHTML = `
+        <div class="evidence-modal-content">
+            <div class="evidence-modal-header">
+                <h5 class="evidence-modal-title">Recovery Evidence Required</h5>
+                <button type="button" class="evidence-close-button" id="closeEvidenceModal">&times;</button>
+            </div>
+            <div class="evidence-modal-body">
+                <p>Order #${orderId} has a recovery file but no evidence uploaded yet. 
+                Evidence of Recovery is yet to be uploaded.</p>
+            </div>
+            <div class="evidence-modal-footer">
+                <button type="button" class="evidence-btn-secondary" id="cancelEvidenceBtn">Accept</button>
+                <button type="button" class="evidence-btn-primary" id="showUploadFormBtn">Upload Evidence</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modalDiv);
+    
+    // Setup event listeners
+    document.getElementById('closeEvidenceModal').addEventListener('click', function() {
+        document.body.removeChild(modalDiv);
+    });
+    
+    document.getElementById('cancelEvidenceBtn').addEventListener('click', function() {
+        document.body.removeChild(modalDiv);
+    });
+    
+    document.getElementById('showUploadFormBtn').addEventListener('click', function() {
+        document.body.removeChild(modalDiv);
+        showEvidenceFileUploadForm(orderId);
+    });
+}
+
+// Function to show the file upload form modal
+function showEvidenceFileUploadForm(orderId) {
+    const userName = window.userName || 'anonymous_user';
+    
+    // Create upload form modal
+    const uploadFormDiv = document.createElement('div');
+    uploadFormDiv.id = 'evidenceFileUploadModal';
+    uploadFormDiv.className = 'evidence-upload-modal';
+    
+    uploadFormDiv.innerHTML = `
+        <div class="evidence-modal-content">
+            <div class="evidence-modal-header">
+                <h5 class="evidence-modal-title">Upload Recovery Evidence</h5>
+                <button type="button" class="evidence-close-button" id="closeUploadFormModal">&times;</button>
+            </div>
+            <div class="evidence-modal-body">
+                <form id="evidenceForm" class="evidence-form">
+                    <input type="hidden" id="premiumFreightId" name="premium_freight_id" value="${orderId}">
+                    <input type="hidden" id="userName" name="userName" value="${userName}">
+                    
+                    <div class="evidence-form-group">
+                        <label for="evidenceFile">Select PDF file for evidence:</label>
+                        <input type="file" id="evidenceFile" name="evidenceFile" accept=".pdf" class="form-control" required>
+                        <small class="form-text text-muted">Only PDF files are accepted.</small>
+                    </div>
+                    
+                    <div class="evidence-modal-footer">
+                        <button type="button" class="evidence-btn-secondary" id="cancelUploadBtn">Cancel</button>
+                        <button type="submit" class="evidence-btn-primary" id="submitEvidenceBtn">Upload</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(uploadFormDiv);
+    
+    // Setup event listeners
+    document.getElementById('closeUploadFormModal').addEventListener('click', function() {
+        document.body.removeChild(uploadFormDiv);
+    });
+    
+    document.getElementById('cancelUploadBtn').addEventListener('click', function() {
+        document.body.removeChild(uploadFormDiv);
+    });
+    
+    // Setup form submission
+    document.getElementById('evidenceForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const submitBtn = document.getElementById('submitEvidenceBtn');
+        const cancelBtn = document.getElementById('cancelUploadBtn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Uploading...';
+        cancelBtn.disabled = true;
+        
+        const premiumFreightId = document.getElementById('premiumFreightId').value;
+        const userName = document.getElementById('userName').value || 'user';
+        const evidenceFile = document.getElementById('evidenceFile').files[0];
+        
+        if (!evidenceFile) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'No File Selected',
+                text: 'Please select a PDF file to upload.'
+            });
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Upload';
+            cancelBtn.disabled = false;
+            return;
+        }
+        
+        try {
+            // Show loading indicator
+            Swal.fire({
+                title: 'Uploading...',
+                text: 'Please wait while we upload your evidence file.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            const result = await uploadEvidenceFile(premiumFreightId, userName, evidenceFile);
+            
+            if (result.success) {
+                // Close the modal
+                document.body.removeChild(uploadFormDiv);
+                
+                // Update the order in the local data
+                const orderIndex = window.allOrders.findIndex(order => order.id === parseInt(premiumFreightId));
+                if (orderIndex !== -1) {
+                    window.allOrders[orderIndex].recovery_evidence = result.file_path;
+                    
+                    // Also update in originalOrders if it exists
+                    if (window.originalOrders) {
+                        const originalIndex = window.originalOrders.findIndex(order => order.id === parseInt(premiumFreightId));
+                        if (originalIndex !== -1) {
+                            window.originalOrders[originalIndex].recovery_evidence = result.file_path;
+                        }
+                    }
+                    
+                    // Refresh the cards display
+                    createCards(window.allOrders);
+                }
+                
+                // Show success message
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Evidence Uploaded',
+                    text: 'The evidence file was uploaded successfully.'
+                });
+            } else {
+                throw new Error(result.message || 'Unknown error occurred');
+            }
+        } catch (error) {
+            console.error('Error uploading evidence file:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Upload Failed',
+                text: 'Error uploading evidence file: ' + error.message
+            });
+            
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Upload';
+            cancelBtn.disabled = false;
+        }
+    });
+}
 
