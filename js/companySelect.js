@@ -2,15 +2,15 @@
 // Función para inicializar ambos selectores de compañía (origen y destino).
 // Llama a las funciones específicas para configurar cada selector.
 function initializeCompanySelectors() {
-    showCompanySelect(); // Inicializa el selector de compañía de origen.
-    showCompanyDestSelect(); // Inicializa el selector de compañía de destino.
+    showCompanySelect();      // Inicializa el selector de compañía de origen.
+    showCompanyDestSelect();  // Inicializa el selector de compañía de destino.
 }
 
 //==========================================================================================
-// Función para inicializar el widget Select2 para el campo de compañía de origen (CompanyShip).
+// Inicializa el widget Select2 para el campo de compañía de origen (CompanyShip).
 // Configura la búsqueda AJAX y la opción de agregar una nueva compañía si no se encuentra.
 function showCompanySelect() {
-    // Establece los campos de dirección como de solo lectura inicialmente.
+    // Los campos de dirección se ponen como solo lectura al inicio.
     $('#inputCityShip').prop('readonly', true);
     $('#StatesShip').prop('readonly', true);
     $('#inputZipShip').prop('readonly', true);
@@ -21,17 +21,20 @@ function showCompanySelect() {
         allowClear: true,
         minimumInputLength: 0,
         ajax: {
-            url: 'https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php',
+            url: 'https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php', // URL para buscar compañías
             dataType: 'json',
-            delay: 250,
+            delay: 250, // Espera antes de hacer la petición
             data: function (params) {
+                // Envía el término de búsqueda al servidor
                 return { q: params.term || '' };
             },
             processResults: function (data, params) {
+                // Procesa la respuesta del servidor y la adapta al formato que espera Select2
                 if (!data || !Array.isArray(data.data)) {
-                    console.error("Los datos del servidor no tienen el formato esperado o data.data falta o no es un array:", data);
+                    console.error("Server data format is incorrect or missing data.data array:", data);
                     return { results: [] };
                 }
+                // Mapea los resultados para Select2
                 const results = data.data.map(company => ({
                     id: company.id,
                     text: company.company_name,
@@ -39,6 +42,7 @@ function showCompanySelect() {
                     state: company.state,
                     zip: company.zip
                 }));
+                // Si no hay resultados y el usuario escribió algo, permite agregar una nueva compañía
                 if (params.term && results.length === 0) {
                     results.push({
                         id: params.term,
@@ -50,18 +54,23 @@ function showCompanySelect() {
             },
             cache: true,
             error: function(jqXHR, textStatus, errorThrown) {
-                console.error("Error AJAX para CompanyShip:", textStatus, errorThrown, jqXHR.responseText);
+                // Maneja errores de la petición AJAX
+                console.error("AJAX error for CompanyShip:", textStatus, errorThrown, jqXHR.responseText);
             }
         }
-    }).on('select2:select', function(e) {
+    })
+    // Evento cuando se selecciona una opción en el Select2
+    .on('select2:select', function(e) {
         const data = e.params.data;
         if (data) {
             if (data.isNew) {
+                // Si es una nueva compañía, habilita los campos para que el usuario los llene
                 $('#inputCityShip').val('').prop('readonly', false);
                 $('#StatesShip').val('').prop('readonly', false);
                 $('#inputZipShip').val('').prop('readonly', false);
                 $('#inputCityShip').focus();
             } else {
+                // Si es una compañía existente, llena los campos y los deja editables
                 $('#inputCityShip').val(data.city);
                 $('#StatesShip').val(data.state);
                 $('#inputZipShip').val(data.zip);
@@ -70,10 +79,14 @@ function showCompanySelect() {
                 $('#inputZipShip').prop('readonly', false);
             }
         }
+        // Guarda el ID seleccionado (si aplica)
         if (!data.isNew && data.id) {
             $(this).data('selected-id', parseInt(data.id, 10));
         }
-    }).on('select2:clear', function() {
+    })
+    // Evento cuando se limpia el Select2
+    .on('select2:clear', function() {
+        // Limpia y bloquea los campos de dirección
         $('#inputCityShip').val('').prop('readonly', true);
         $('#StatesShip').val('').prop('readonly', true);
         $('#inputZipShip').val('').prop('readonly', true);
@@ -81,28 +94,34 @@ function showCompanySelect() {
 }
 
 //==========================================================================================
-// Función para inicializar el widget Select2 para el campo de compañía de destino (inputCompanyNameDest).
+// Inicializa el widget Select2 para el campo de compañía de destino (inputCompanyNameDest).
+// Configura la búsqueda AJAX y la opción de agregar una nueva compañía si no se encuentra.
 function showCompanyDestSelect() {
+    // Los campos de dirección se ponen como solo lectura al inicio.
     $('#inputCityDest').prop('readonly', true);
     $('#StatesDest').prop('readonly', true);
     $('#inputZipDest').prop('readonly', true);
 
+    // Inicializa Select2 en el elemento con ID 'inputCompanyNameDest'.
     $('#inputCompanyNameDest').select2({
         placeholder: "Search destination company",
         allowClear: true,
         minimumInputLength: 0,
         ajax: {
-            url: 'https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php',
+            url: 'https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php', // URL para buscar compañías
             dataType: 'json',
             delay: 250,
             data: function (params) {
+                // Envía el término de búsqueda al servidor
                 return { q: params.term || '' };
             },
             processResults: function (data, params) {
+                // Procesa la respuesta del servidor y la adapta al formato que espera Select2
                 if (!data || !Array.isArray(data.data)) {
-                    console.error("Los datos del servidor no tienen el formato esperado o data.data falta o no es un array:", data);
+                    console.error("Server data format is incorrect or missing data.data array:", data);
                     return { results: [] };
                 }
+                // Mapea los resultados para Select2
                 const results = data.data.map(company => ({
                     id: company.id,
                     text: company.company_name,
@@ -110,6 +129,7 @@ function showCompanyDestSelect() {
                     state: company.state,
                     zip: company.zip
                 }));
+                // Si no hay resultados y el usuario escribió algo, permite agregar una nueva compañía
                 if (params.term && results.length === 0) {
                     results.push({
                         id: params.term,
@@ -121,18 +141,23 @@ function showCompanyDestSelect() {
             },
             cache: true,
             error: function(jqXHR, textStatus, errorThrown) {
-                console.error("Error AJAX para CompanyDest:", textStatus, errorThrown, jqXHR.responseText);
+                // Maneja errores de la petición AJAX
+                console.error("AJAX error for CompanyDest:", textStatus, errorThrown, jqXHR.responseText);
             }
         }
-    }).on('select2:select', function(e) {
+    })
+    // Evento cuando se selecciona una opción en el Select2
+    .on('select2:select', function(e) {
         const data = e.params.data;
         if (data) {
             if (data.isNew) {
+                // Si es una nueva compañía, habilita los campos para que el usuario los llene
                 $('#inputCityDest').val('').prop('readonly', false);
                 $('#StatesDest').val('').prop('readonly', false);
                 $('#inputZipDest').val('').prop('readonly', false);
                 $('#inputCityDest').focus();
             } else {
+                // Si es una compañía existente, llena los campos y los deja editables
                 $('#inputCityDest').val(data.city);
                 $('#StatesDest').val(data.state);
                 $('#inputZipDest').val(data.zip);
@@ -141,10 +166,14 @@ function showCompanyDestSelect() {
                 $('#inputZipDest').prop('readonly', false);
             }
         }
+        // Guarda el ID seleccionado (si aplica)
         if (!data.isNew && data.id) {
             $(this).data('selected-id', parseInt(data.id, 10));
         }
-    }).on('select2:clear', function() {
+    })
+    // Evento cuando se limpia el Select2
+    .on('select2:clear', function() {
+        // Limpia y bloquea los campos de dirección
         $('#inputCityDest').val('').prop('readonly', true);
         $('#StatesDest').val('').prop('readonly', true);
         $('#inputZipDest').val('').prop('readonly', true);
@@ -153,7 +182,10 @@ function showCompanyDestSelect() {
 
 //==========================================================================================
 // Función asíncrona para guardar una nueva ubicación de compañía en la base de datos.
+// Recibe los datos de la compañía y realiza una petición POST al servidor.
+// Si la operación es exitosa, retorna el ID de la nueva compañía.
 async function saveNewCompany(companyName, city, state, zip) {
+    // Valida que todos los campos estén llenos
     if (!companyName || !city || !state || !zip) {
         Swal.fire({
             icon: 'warning',
@@ -163,6 +195,7 @@ async function saveNewCompany(companyName, city, state, zip) {
         return false;
     }
     try {
+        // Realiza la petición POST al servidor para guardar la nueva compañía
         const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/elements/daoAddLocation.php', {
             method: 'POST',
             headers: {
@@ -177,6 +210,7 @@ async function saveNewCompany(companyName, city, state, zip) {
         });
         const result = await response.json();
         if (result.status === 'success') {
+            // Si la compañía se guardó correctamente, muestra mensaje y retorna el ID
             Swal.fire({
                 icon: 'success',
                 title: 'Company Saved',
@@ -184,10 +218,12 @@ async function saveNewCompany(companyName, city, state, zip) {
             });
             return result.company_id || true;
         } else {
+            // Si hubo un error en el servidor, lanza una excepción
             throw new Error(result.message || 'Error saving company');
         }
     } catch (error) {
-        console.error('Error al guardar nueva compañía:', error);
+        // Maneja errores de red o del servidor
+        console.error('Error saving new company:', error);
         Swal.fire({
             icon: 'error',
             title: 'Error',
@@ -198,22 +234,22 @@ async function saveNewCompany(companyName, city, state, zip) {
 }
 
 //==========================================================================================
-// Intercepta el submit del formulario para manejar compañías nuevas en origen y destino
+// Intercepta el submit del formulario para manejar compañías nuevas en origen y destino.
+// Si alguna compañía es nueva, primero la guarda y luego reintenta el submit con el ID correcto.
 $('#myForm').on('submit', async function(e) {
-    // Detecta si la compañía de origen es nueva
+    // Obtiene la información seleccionada en ambos selectores
     const companyShipData = $('#CompanyShip').select2('data')[0];
-    // Detecta si la compañía de destino es nueva
     const companyDestData = $('#inputCompanyNameDest').select2('data')[0];
 
     let newCompanyShipId = null;
     let newCompanyDestId = null;
     let needSubmit = false;
 
-    // Si alguna es nueva, detenemos el submit
+    // Si alguna de las compañías es nueva, se detiene el submit para guardar primero la compañía
     if ((companyShipData && companyShipData.isNew) || (companyDestData && companyDestData.isNew)) {
         e.preventDefault();
 
-        // Guardar compañía de origen si es nueva
+        // Si la compañía de origen es nueva, la guarda y actualiza el selector con el nuevo ID
         if (companyShipData && companyShipData.isNew) {
             const companyName = companyShipData.id;
             const city = $('#inputCityShip').val();
@@ -221,15 +257,17 @@ $('#myForm').on('submit', async function(e) {
             const zip = $('#inputZipShip').val();
             newCompanyShipId = await saveNewCompany(companyName, city, state, zip);
             if (newCompanyShipId) {
+                // Crea una nueva opción en el select con el ID retornado y la selecciona
                 const newOption = new Option(companyName, newCompanyShipId, true, true);
                 $('#CompanyShip').append(newOption).trigger('change');
                 needSubmit = true;
             } else {
+                // Si falla, no se debe enviar el formulario
                 needSubmit = false;
             }
         }
 
-        // Guardar compañía de destino si es nueva
+        // Si la compañía de destino es nueva, la guarda y actualiza el selector con el nuevo ID
         if (companyDestData && companyDestData.isNew) {
             const companyName = companyDestData.id;
             const city = $('#inputCityDest').val();
@@ -237,19 +275,21 @@ $('#myForm').on('submit', async function(e) {
             const zip = $('#inputZipDest').val();
             newCompanyDestId = await saveNewCompany(companyName, city, state, zip);
             if (newCompanyDestId) {
+                // Crea una nueva opción en el select con el ID retornado y la selecciona
                 const newOption = new Option(companyName, newCompanyDestId, true, true);
                 $('#inputCompanyNameDest').append(newOption).trigger('change');
                 needSubmit = true;
             } else {
+                // Si falla, no se debe enviar el formulario
                 needSubmit = false;
             }
         }
 
-        // Si ambas compañías nuevas se guardaron correctamente, o solo una era nueva y se guardó, envía el formulario
+        // Si al menos una compañía nueva se guardó correctamente, reintenta el submit del formulario
         if (needSubmit) {
             this.submit();
         }
-        // Si alguna falla, no se envía el formulario
+        // Si alguna falla, el formulario no se envía y el usuario ve el mensaje de error
     }
-    // Si ninguna es nueva, el submit sigue normal
+    // Si ninguna es nueva, el submit sigue su curso normal
 });
