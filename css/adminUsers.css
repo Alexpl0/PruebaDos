@@ -178,8 +178,8 @@
     border-color: #198754;
 }
 
-#email-row .form-control{
-    padding: 5%;
+#email-row .form-control select.form-select {
+    padding: 4%;
 }
 
 /* Password row specific styles */
