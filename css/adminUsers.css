@@ -178,7 +178,7 @@
     border-color: #198754;
 }
 
-#email-row .form-control select.form-select {
+#email-row .form-control, #user-role-level{
     padding: 4%;
 } 
 
