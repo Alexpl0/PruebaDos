@@ -47,12 +47,14 @@
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
+    padding: 0.2rem 0.4rem; /* Reduced padding for smaller buttons */
+    font-size: 0.8rem; /* Reduced font size for button text */
 }
 
-/* Ensure action buttons icons are aligned */
+/* Ensure action buttons icons are aligned and smaller */
 .action-buttons button .material-symbols-outlined {
-    vertical-align: middle; /* Or adjust with flex properties if needed */
-    /* font-size can be inherited or set specifically */
+    vertical-align: middle;
+    font-size: 1rem; /* Reduced icon size */
 }
 
 /* Enhanced Form styles */
@@ -273,13 +275,17 @@
 }
 
 /* DataTable button styling */
+.dt-buttons .dt-button { /* General styling for all DataTable buttons */
+    display: inline-flex;
+    align-items: center; /* Vertically center icon and text */
+    gap: 5px;
+}
+
 .dt-buttons .btn-primary {
     background-color: #0d6efd;
     color: white;
     border-color: #0d6efd;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px; /* This gap will apply between icon and text */
+    /* display: inline-flex; align-items: center; gap: 5px; are now in .dt-buttons .dt-button */
 }
 
 .dt-buttons .btn-primary:hover {
@@ -287,16 +293,33 @@
     border-color: #0a58ca;
 }
 
-/* Remove the ion-icon specific rule */
-/* .dt-buttons .btn-primary ion-icon {
-    font-size: 16px; 
-} */
+.dt-buttons .btn-success {
+    background-color: #198754; /* Green for Excel */
+    color: white;
+    border-color: #198754;
+}
+
+.dt-buttons .btn-success:hover {
+    background-color: #157347;
+    border-color: #146c43;
+}
+
+.dt-buttons .btn-danger {
+    background-color: #dc3545; /* Red for PDF */
+    color: white;
+    border-color: #dc3545;
+}
+
+.dt-buttons .btn-danger:hover {
+    background-color: #bb2d3b;
+    border-color: #b02a37;
+}
 
 /* Add general styling for icons in DataTable buttons if needed, 
    or rely on the specific .btn-primary, .btn-success, .btn-danger rules above */
 .dt-buttons .material-symbols-outlined {
     font-size: 18px; /* Default size for icons in DT buttons */
-    /* vertical-align: middle; /* Already handled by display:inline-flex and align-items:center on button */
+    /* vertical-align: middle; is handled by flex align-items:center on the button */
 }
 
 /* Responsive adjustment for mobile */
