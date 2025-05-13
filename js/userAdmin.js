@@ -6,7 +6,7 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     // Check if the user has admin privileges
-    if (window.authorizationLevel < 10) {
+    if (window.authorizationLevel < 1) {
         Swal.fire({
             icon: 'error',
             title: 'Access Denied',
