@@ -51,6 +51,22 @@ document.addEventListener('DOMContentLoaded', function() {
         dom: 'Bfrtip',
         buttons: [
             {
+                text: '<ion-icon name="person-add-outline"></ion-icon> Add User',
+                className: 'btn-primary',
+                action: function () {
+                    // Clear form
+                    document.getElementById('user-form').reset();
+                    document.getElementById('user-id').value = 'New';
+                    
+                    // Show the form
+                    document.getElementById('form-title').textContent = 'Add New User';
+                    document.getElementById('user-form-container').classList.remove('d-none');
+                    
+                    // Scroll to form
+                    document.getElementById('user-form-container').scrollIntoView({ behavior: 'smooth' });
+                }
+            },
+            {
                 extend: 'excel',
                 text: 'Excel',
                 className: 'btn-success',
