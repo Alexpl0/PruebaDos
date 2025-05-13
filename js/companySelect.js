@@ -136,6 +136,7 @@ function showCompanyDestSelect() {
                         text: `Add new company: "${params.term}"`,
                         isNew: true
                     });
+                    console.log("Istrue", results.isNew);
                 }
                 return { results };
             },
