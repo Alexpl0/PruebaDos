@@ -13,6 +13,13 @@ function hasNewCompaniesToSave() {
            ($('#inputCompanyNameDest').select2('data')[0] && $('#inputCompanyNameDest').select2('data')[0].isNew);
 }
 
+if ($('#CompanyShip').select2('data')[0] && $('#CompanyShip').select2('data')[0].isNew){
+    console.log("New origin company detected.");
+    console.log($('#CompanyShip').select2('data')[0]);
+    console.log($('#CompanyShip').select2('data')[0].isNew);
+    console.log ("Has new Company", hasNewCompaniesToSave());
+}
+
 /**
  * Procesa las nuevas compañías (origen y/o destino) guardándolas en la base de datos
  * @returns {Promise<Object>} - Objeto con estado de éxito y los IDs de las nuevas compañías

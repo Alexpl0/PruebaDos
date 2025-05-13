@@ -157,7 +157,6 @@ function showCompanyDestSelect() {
                 $('#StatesDest').val('').prop('readonly', false);
                 $('#inputZipDest').val('').prop('readonly', false);
                 $('#inputCityDest').focus();
-                console.log("isNew", data);
             } else {
                 // Si es una compañía existente, llena los campos y los deja editables
                 $('#inputCityDest').val(data.city);
