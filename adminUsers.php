@@ -110,7 +110,21 @@ include_once 'dao/users/auth_check.php';
                             <div class="col-md-6 mb-3">
                                 <label for="user-auth-level" class="form-label">Authorization Level</label>
                                 <input type="number" class="form-control" id="user-auth-level" min="0" max="10" required>
-                                <small class="form-text text-muted">0-3: Worker, 4-7: Manager, 8-10: Admin</small>
+                                <small class="form-text text-muted">0: Worker, 1-7: Admin</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="user-role-level" class="form-label">Role & Authorization Level</label>
+                                <select class="form-select" id="user-role-level" required>
+                                    <option value="0:Worker">0. Worker</option>
+                                    <option value="1:Plant Manager">1. Plant Manager</option>
+                                    <option value="2:Logistics Manager">2. Logistics Manager</option>
+                                    <option value="3:Controlling">3. Controlling</option>
+                                    <option value="4:Senior Manager Logistics Division">4. Senior Manager Logistics Division</option>
+                                    <option value="5:Manager OPS Division">5. Manager OPS Division</option>
+                                    <option value="6:Director Logistics">6. Director Logistics</option>
+                                    <option value="7:SR VP Regional">7. SR VP Regional</option>
+                                    <option value="8:Division Controlling Regional">8. Division Controlling Regional</option>
+                                </select>
                             </div>
                         </div>
                         <div class="d-flex justify-content-between">

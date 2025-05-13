@@ -31,6 +31,13 @@ document.addEventListener('DOMContentLoaded', function() {
             { data: 'role' },
             { data: 'password' },
             { data: 'authorization_level' },
+            { 
+                data: null, 
+                title: "Role & Auth Level",
+                render: function(data, type, row) {
+                    return row.authorization_level + '. ' + row.role;
+                }
+            },
             {
                 data: null,
                 sortable: false,
@@ -113,6 +120,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Scroll to form
         document.getElementById('user-form-container').scrollIntoView({ behavior: 'smooth' });
+        
+        // Populate combined role and auth level dropdown
+        populateUserForm(userData);
     });
 
     // Handle Delete User button click
@@ -189,12 +199,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const userId = document.getElementById('user-id').value;
         const isNewUser = userId === 'New';
         
+        // Get the selected role and authorization level
+        const roleLevelSelect = document.getElementById('user-role-level');
+        const selectedValue = roleLevelSelect.value;
+        const [authLevel, role] = selectedValue.split(':');
+        
         const userData = {
             name: document.getElementById('user-name').value,
             email: document.getElementById('user-email').value,
-            role: document.getElementById('user-role').value,
+            role: role,
             password: document.getElementById('user-password').value,
-            authorization_level: parseInt(document.getElementById('user-auth-level').value)
+            authorization_level: parseInt(authLevel)
         };
         
         // For update, add the ID
@@ -247,3 +262,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// When loading user data for editing
+function populateUserForm(userData) {
+    // Set the combined role and auth level dropdown
+    const roleLevel = userData.authorization_level + ':' + userData.role;
+    const roleLevelSelect = document.getElementById('user-role-level');
+    
+    // Find and select the matching option
+    for (let i = 0; i < roleLevelSelect.options.length; i++) {
+        if (roleLevelSelect.options[i].value.startsWith(userData.authorization_level + ':')) {
+            roleLevelSelect.selectedIndex = i;
+            break;
+        }
+    }
+}
