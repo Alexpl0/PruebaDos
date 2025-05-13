@@ -13,21 +13,7 @@ let range = 0;
 async function submitForm(event) {
     event.preventDefault();
 
-    // 1. Validar el formulario
-    const validationResult = validateCompleteForm();
-    if (!validationResult.isValid) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Missing Information',
-            html: validationResult.errorMessage.replace(/\n/g, '<br>'),
-            confirmButtonText: 'Complete Form'
-        });
-        return;
-    }
-
-    const formData = validationResult.formData;
-
-    // 2. Procesar nuevas compañías si las hay
+    // 1. Procesar nuevas compañías si las hay
     let originId = null;
     let destinyId = null;
     
@@ -65,6 +51,20 @@ async function submitForm(event) {
     else {
         console.log("No new companies to process.");
     }
+
+    // 2. Validar el formulario
+    const validationResult = validateCompleteForm();
+    if (!validationResult.isValid) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Missing Information',
+            html: validationResult.errorMessage.replace(/\n/g, '<br>'),
+            confirmButtonText: 'Complete Form'
+        });
+        return;
+    }
+
+    const formData = validationResult.formData;
 
     // 3. Obtener los IDs de compañía (nuevos o existentes)
     const companyValidation = validateCompanyIds();
@@ -157,6 +157,8 @@ async function submitForm(event) {
         if (result.success && needsFile && recoveryFile && recoveryFile.files && recoveryFile.files.length > 0) {
             // Obtener el nombre de usuario
             const userName = window.userName || 'anonymous_user';
+            const shipmentId = result.shipment_id || null;
+            console.log("Shipment ID:", shipmentId);
             
             Swal.fire({
                 title: 'Uploading recovery file...',

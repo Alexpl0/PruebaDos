@@ -36,7 +36,6 @@
 
         // Manejar la compañía de origen si es nueva
         if (companyShipData && companyShipData.isNew) {
-            console.log("New origin company detected:", companyShipData.isNew);
             const result = await saveNewOriginCompany(companyShipData, companyShipElement);
             if (!result.success) {
                 return { success: false };
