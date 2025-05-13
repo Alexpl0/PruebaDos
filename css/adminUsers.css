@@ -178,7 +178,7 @@
     border-color: #198754;
 }
 
-#email-row{
+#email-row .form-control{
     padding: 5%;
 }
 
