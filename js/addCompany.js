@@ -15,6 +15,10 @@
                ($('#inputCompanyNameDest').select2('data')[0] && $('#inputCompanyNameDest').select2('data')[0].isNew);
     };
 
+    if (window.hasNewCompaniesToSave()) {
+        console.log("New companies detected. Proceeding to save them.");
+    }
+
     /**
      * Procesa las nuevas compañías (origen y/o destino) guardándolas en la base de datos
      * @returns {Promise<Object>} - Objeto con estado de éxito y los IDs de las nuevas compañías
