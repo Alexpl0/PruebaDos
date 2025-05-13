@@ -86,7 +86,7 @@
 #user-form .form-control {
     border: 1px solid #ced4da;
     border-radius: 6px;
-    padding: 0.625rem 0.75rem;
+    padding: 6% 5%;
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
@@ -178,6 +178,32 @@
     border-color: #198754;
 }
 
+/* Password row specific styles */
+#password-row .input-group {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+}
+
+#password-row .form-control {
+    width: 90% !important;
+    flex: 0 0 90%;
+}
+
+#password-row .toggle-password {
+    width: 10% !important;
+    flex: 0 0 10%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+}
+
+#password-row .toggle-password ion-icon {
+    font-size: 1.2rem;
+    margin: 0 auto;
+}
+
 /* Responsive adjustment for mobile */
 @media (max-width: 768px) {
     .action-buttons {
@@ -191,6 +217,16 @@
     
     .card-body {
         padding: 1rem 0.75rem;
+    }
+
+    #password-row .form-control {
+        width: 85% !important;
+        flex: 0 0 85%;
+    }
+    
+    #password-row .toggle-password {
+        width: 15% !important;
+        flex: 0 0 15%;
     }
 }
 

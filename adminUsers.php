@@ -105,7 +105,7 @@ include_once 'dao/users/auth_check.php';
                                 </select>
                             </div>
                         </div>
-                        <div class="row">
+                        <div class="row" id="password-row">
                             <div class="col-md-6 mb-3">
                                 <label for="user-password" class="form-label">Password</label>
                                 <div class="input-group">
