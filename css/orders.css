@@ -482,3 +482,137 @@ main {
     justify-content: center;
     margin: 0 auto;
 }
+
+/* Modal overlay */
+.evidence-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    backdrop-filter: blur(3px);
+}
+
+.evidence-upload-modal {
+    background-color: white;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.evidence-modal-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.evidence-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.evidence-modal-title {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #212529;
+}
+
+.evidence-close-button {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6c757d;
+}
+
+.evidence-close-button:hover {
+    color: #212529;
+}
+
+.evidence-modal-body {
+    padding: 1rem;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.evidence-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 1rem;
+    border-top: 1px solid #e9ecef;
+    gap: 0.5rem;
+}
+
+.evidence-btn-primary, 
+.evidence-btn-secondary {
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.25rem;
+    font-size: 1rem;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s ease-in-out;
+}
+
+.evidence-btn-primary {
+    background-color: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+
+.evidence-btn-primary:hover {
+    background-color: #0b5ed7;
+}
+
+.evidence-btn-secondary {
+    background-color: #6c757d;
+    color: white;
+    border-color: #6c757d;
+}
+
+.evidence-btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+.evidence-form-group {
+    margin-bottom: 1rem;
+}
+
+.evidence-form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.evidence-form input[type="file"] {
+    padding: 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    width: 100%;
+    margin-top: 0.25rem;
+}
+
+.form-text {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}

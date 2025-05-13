@@ -700,6 +700,11 @@ document.addEventListener('DOMContentLoaded', function () {
 function showEvidenceUploadModal(orderId) {
     const selectedOrder = window.allOrders.find(order => order.id === parseInt(orderId)) || {};
     
+    // Create modal overlay (background)
+    const modalOverlay = document.createElement('div');
+    modalOverlay.id = 'evidenceModalOverlay';
+    modalOverlay.className = 'evidence-modal-overlay';
+    
     // Create modal element
     const modalDiv = document.createElement('div');
     modalDiv.id = 'evidenceUploadModal';
@@ -722,26 +727,49 @@ function showEvidenceUploadModal(orderId) {
         </div>
     `;
     
-    document.body.appendChild(modalDiv);
+    // Add the modal to the overlay, then add overlay to body
+    modalOverlay.appendChild(modalDiv);
+    document.body.appendChild(modalOverlay);
+    
+    // Function to close the modal
+    function closeEvidenceModal() {
+        document.body.removeChild(modalOverlay);
+    }
     
     // Setup event listeners
-    document.getElementById('closeEvidenceModal').addEventListener('click', function() {
-        document.body.removeChild(modalDiv);
-    });
-    
-    document.getElementById('cancelEvidenceBtn').addEventListener('click', function() {
-        document.body.removeChild(modalDiv);
-    });
+    document.getElementById('closeEvidenceModal').addEventListener('click', closeEvidenceModal);
+    document.getElementById('cancelEvidenceBtn').addEventListener('click', closeEvidenceModal);
     
     document.getElementById('showUploadFormBtn').addEventListener('click', function() {
-        document.body.removeChild(modalDiv);
+        document.body.removeChild(modalOverlay);
         showEvidenceFileUploadForm(orderId);
+    });
+    
+    // Close when clicking outside the modal
+    modalOverlay.addEventListener('click', function(event) {
+        if (event.target === modalOverlay) {
+            closeEvidenceModal();
+        }
+    });
+    
+    // Close when pressing Escape key
+    document.addEventListener('keydown', function escapeHandler(event) {
+        if (event.key === 'Escape') {
+            closeEvidenceModal();
+            // Remove this event listener once modal is closed
+            document.removeEventListener('keydown', escapeHandler);
+        }
     });
 }
 
 // Function to show the file upload form modal
 function showEvidenceFileUploadForm(orderId) {
     const userName = window.userName || 'anonymous_user';
+    
+    // Create overlay
+    const uploadOverlay = document.createElement('div');
+    uploadOverlay.id = 'evidenceUploadOverlay';
+    uploadOverlay.className = 'evidence-modal-overlay';
     
     // Create upload form modal
     const uploadFormDiv = document.createElement('div');
@@ -774,18 +802,36 @@ function showEvidenceFileUploadForm(orderId) {
         </div>
     `;
     
-    document.body.appendChild(uploadFormDiv);
+    // Add the modal to the overlay, then add overlay to body
+    uploadOverlay.appendChild(uploadFormDiv);
+    document.body.appendChild(uploadOverlay);
+    
+    // Function to close the modal
+    function closeUploadModal() {
+        document.body.removeChild(uploadOverlay);
+    }
     
     // Setup event listeners
-    document.getElementById('closeUploadFormModal').addEventListener('click', function() {
-        document.body.removeChild(uploadFormDiv);
+    document.getElementById('closeUploadFormModal').addEventListener('click', closeUploadModal);
+    document.getElementById('cancelUploadBtn').addEventListener('click', closeUploadModal);
+    
+    // Close when clicking outside the modal
+    uploadOverlay.addEventListener('click', function(event) {
+        if (event.target === uploadOverlay) {
+            closeUploadModal();
+        }
     });
     
-    document.getElementById('cancelUploadBtn').addEventListener('click', function() {
-        document.body.removeChild(uploadFormDiv);
+    // Close when pressing Escape key
+    document.addEventListener('keydown', function escapeHandler(event) {
+        if (event.key === 'Escape') {
+            closeUploadModal();
+            // Remove this event listener once modal is closed
+            document.removeEventListener('keydown', escapeHandler);
+        }
     });
     
-    // Setup form submission
+    // Setup form submission - keep the existing form handling code
     document.getElementById('evidenceForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         
@@ -826,7 +872,7 @@ function showEvidenceFileUploadForm(orderId) {
             
             if (result.success) {
                 // Close the modal
-                document.body.removeChild(uploadFormDiv);
+                document.body.removeChild(uploadOverlay);
                 
                 // Update the order in the local data
                 const orderIndex = window.allOrders.findIndex(order => order.id === parseInt(premiumFreightId));
