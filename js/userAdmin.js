@@ -31,13 +31,6 @@ document.addEventListener('DOMContentLoaded', function() {
             { data: 'role' },
             { data: 'password' },
             { data: 'authorization_level' },
-            { 
-                data: null, 
-                title: "Role & Auth Level",
-                render: function(data, type, row) {
-                    return row.authorization_level + '. ' + row.role;
-                }
-            },
             {
                 data: null,
                 sortable: false,
