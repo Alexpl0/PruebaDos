@@ -38,10 +38,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     return `
                         <div class="action-buttons">
                             <button class="btn btn-sm btn-primary edit-user" data-id="${row.id}">
-                                <ion-icon name="create-outline"></ion-icon> Edit
+                                <span class="material-symbols-outlined">edit</span> Edit
                             </button>
                             <button class="btn btn-sm btn-danger delete-user" data-id="${row.id}" ${row.id == window.userID ? 'disabled' : ''}>
-                                <ion-icon name="trash-outline"></ion-icon> Delete
+                                <span class="material-symbols-outlined">delete</span> Delete
                             </button>
                         </div>
                     `;
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
         dom: 'Bfrtip',
         buttons: [
             {
-                text: '<ion-icon name="person-add-outline"></ion-icon> Add User',
+                text: '<span class="material-symbols-outlined">person_add</span> Add User',
                 className: 'btn-primary',
                 action: function () {
                     // Clear form
@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             {
                 extend: 'excel',
-                text: 'Excel',
+                text: '<span class="material-symbols-outlined">description</span> Excel',
                 className: 'btn-success',
                 title: 'Users_Report',
                 exportOptions: {
@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             {
                 extend: 'pdf',
-                text: 'PDF',
+                text: '<span class="material-symbols-outlined">picture_as_pdf</span> PDF',
                 className: 'btn-danger',
                 title: 'Users Report',
                 exportOptions: {
@@ -106,8 +106,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const type = passwordInput.type === 'password' ? 'text' : 'password';
         passwordInput.type = type;
         
-        const icon = this.querySelector('ion-icon');
-        icon.setAttribute('name', type === 'password' ? 'eye-outline' : 'eye-off-outline');
+        const icon = this.querySelector('span.material-symbols-outlined');
+        icon.textContent = type === 'password' ? 'visibility' : 'visibility_off';
     });
 
     // Handle Edit User button click

@@ -49,6 +49,12 @@
     gap: 0.25rem;
 }
 
+/* Ensure action buttons icons are aligned */
+.action-buttons button .material-symbols-outlined {
+    vertical-align: middle; /* Or adjust with flex properties if needed */
+    /* font-size can be inherited or set specifically */
+}
+
 /* Enhanced Form styles */
 #user-form-container {
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
@@ -210,6 +216,12 @@
     margin: 0 auto;
 }
 
+#password-row .toggle-password .material-symbols-outlined {
+    font-size: 1.2rem;
+    margin: 0 auto; /* This should still work if the button is a flex container */
+    vertical-align: middle; /* Helps align icons with text */
+}
+
 /* Responsive adjustment for mobile */
 @media (max-width: 768px) {
     .action-buttons {
@@ -267,7 +279,7 @@
     border-color: #0d6efd;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 5px; /* This gap will apply between icon and text */
 }
 
 .dt-buttons .btn-primary:hover {
@@ -275,6 +287,23 @@
     border-color: #0a58ca;
 }
 
-.dt-buttons .btn-primary ion-icon {
-    font-size: 16px;
+/* Remove the ion-icon specific rule */
+/* .dt-buttons .btn-primary ion-icon {
+    font-size: 16px; 
+} */
+
+/* Add general styling for icons in DataTable buttons if needed, 
+   or rely on the specific .btn-primary, .btn-success, .btn-danger rules above */
+.dt-buttons .material-symbols-outlined {
+    font-size: 18px; /* Default size for icons in DT buttons */
+    /* vertical-align: middle; /* Already handled by display:inline-flex and align-items:center on button */
+}
+
+/* Responsive adjustment for mobile */
+.dt-buttons .btn-primary .material-symbols-outlined,
+.dt-buttons .btn-success .material-symbols-outlined,
+.dt-buttons .btn-danger .material-symbols-outlined {
+    font-size: 18px; /* Adjust size as needed */
+    vertical-align: middle; /* Align icon with button text */
+    margin-right: 5px; /* Add some space if icon is before text and no gap is used */
 }
