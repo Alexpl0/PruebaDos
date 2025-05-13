@@ -91,10 +91,6 @@ include_once 'dao/users/auth_check.php';
                                 <label for="user-email" class="form-label">Email</label>
                                 <input type="email" class="form-control" id="user-email" required>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="user-role" class="form-label">Role</label>
-                                <input type="text" class="form-control" id="user-role" required>
-                            </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -107,11 +103,7 @@ include_once 'dao/users/auth_check.php';
                                 </div>
                                 <small class="form-text text-muted">Leave unchanged to keep current password</small>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="user-auth-level" class="form-label">Authorization Level</label>
-                                <input type="number" class="form-control" id="user-auth-level" min="0" max="10" required>
-                                <small class="form-text text-muted">0: Worker, 1-7: Admin</small>
-                            </div>
+                            
                             <div class="col-md-6 mb-3">
                                 <label for="user-role-level" class="form-label">Role & Authorization Level</label>
                                 <select class="form-select" id="user-role-level" required>
