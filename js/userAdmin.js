@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('user-id').value = userData.id;
         document.getElementById('user-name').value = userData.name;
         document.getElementById('user-email').value = userData.email;
-        document.getElementById('user-password').value = ''; // Clear password field
+        document.getElementById('user-password').value = userData.password; // Changed to populate password
         
         // Show the form
         document.getElementById('form-title').textContent = 'Edit User';
