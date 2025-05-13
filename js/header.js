@@ -20,33 +20,6 @@ function createHeader(authLevel) {
         return `<li class="nav__item"><a href="${href}" class="nav__link ${isActive}">${text}</a></li>`;
     }
 
-    /**
-     * Helper function to create dropdown navigation menu
-     * @param {string} text - Dropdown button text
-     * @param {Array} items - Array of dropdown items with href and text properties
-     * @returns {string} HTML for dropdown menu
-     */
-    function navDropdown(text, items) {
-        const currentPageActive = items.some(item => item.href === currentPage) ? 'active' : '';
-        
-        // Create dropdown items links
-        const dropdownItems = items.map(item => {
-            const isActive = item.href === currentPage ? 'active' : '';
-            return `<a href="${item.href}" class="dropdown-item ${isActive}">${item.text}</a>`;
-        }).join('');
-        
-        return `
-            <li class="nav__item dropdown">
-                <a href="#" class="nav__link dropdown-toggle ${currentPageActive}" id="userManagementDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    ${text} <i class="fas fa-caret-down"></i>
-                </a>
-                <div class="dropdown-menu" aria-labelledby="userManagementDropdown">
-                    ${dropdownItems}
-                </div>
-            </li>
-        `;
-    }
-
     // Build navigation items based on authorization level
     let navItems = '';
     
@@ -60,13 +33,7 @@ function createHeader(authLevel) {
         navItems += navLink('profile.php', 'My Profile');
         navItems += navLink('newOrder.php', 'New Order');
         navItems += navLink('orders.php', 'Generated Orders');
-        
-        // User management dropdown menu
-        navItems += navDropdown('User Management', [
-            {href: 'register.php', text: 'Add User'},
-            {href: 'adminUsers.php', text: 'Admin User'}
-        ]);
-        
+        navItems += navLink('adminUsers.php', 'Admin User');
         navItems += navLink('google.com', 'Charts');
         navItems += navLink('#', 'Manual');
     }
@@ -127,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Setup navigation link active state
-    const navLinks = document.querySelectorAll('.nav__link:not(.dropdown-toggle)');   
+    const navLinks = document.querySelectorAll('.nav__link');   
     
     function linkAction() {
         navLinks.forEach(link => link.classList.remove('active'));
@@ -136,17 +103,4 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     navLinks.forEach(link => link.addEventListener('click', linkAction));
-    
-    // Handle mobile dropdown toggle
-    if (window.innerWidth <= 899) {
-        const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
-        
-        dropdownToggles.forEach(toggle => {
-            toggle.addEventListener('click', function(e) {
-                e.preventDefault();
-                const dropdownMenu = this.nextElementSibling;
-                dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
-            });
-        });
-    }
 });
