@@ -51,10 +51,36 @@
     font-size: 0.8rem; /* Reduced font size for button text */
 }
 
+.action-buttons button.icon-only-btn {
+    width: 32px;
+    height: 32px;
+    padding: 0 !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 4px;
+}
+
 /* Ensure action buttons icons are aligned and smaller */
 .action-buttons button .material-symbols-outlined {
     vertical-align: middle;
     font-size: 1rem; /* Reduced icon size */
+}
+
+.action-buttons button.icon-only-btn .material-symbols-outlined {
+    font-size: 18px;
+    margin: 0;
+}
+
+/* Button hover states for action buttons */
+.action-buttons .btn-primary.icon-only-btn:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+.action-buttons .btn-danger.icon-only-btn:hover {
+    background-color: #bb2d3b;
+    border-color: #b02a37;
 }
 
 /* Enhanced Form styles */
@@ -227,7 +253,8 @@
 /* Responsive adjustment for mobile */
 @media (max-width: 768px) {
     .action-buttons {
-        flex-direction: column;
+        flex-direction: row; /* Changed from column to keep buttons side by side */
+        justify-content: center;
         gap: 0.5rem;
     }
     
