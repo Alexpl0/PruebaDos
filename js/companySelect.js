@@ -49,7 +49,6 @@ function showCompanySelect() {
                         text: `Add new company: "${params.term}"`,
                         isNew: true
                     });
-                    console.log("Adding new company option:", results);
                 }
                 return { results };
             },
@@ -160,7 +159,7 @@ function showCompanyDestSelect() {
             } else {
                 // Si es una compañía existente, llena los campos y los deja editables
                 $('#inputCityDest').val(data.city);
-                $('#StatesDest').val(data.state);
+                $('#StatesDest').val(data.state); 
                 $('#inputZipDest').val(data.zip);
                 $('#inputCityDest').prop('readonly', false);
                 $('#StatesDest').prop('readonly', false);
