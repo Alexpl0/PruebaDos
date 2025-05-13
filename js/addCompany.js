@@ -15,10 +15,6 @@
                ($('#inputCompanyNameDest').select2('data')[0] && $('#inputCompanyNameDest').select2('data')[0].isNew);
     };
 
-    if (window.hasNewCompaniesToSave()) {
-        console.log("New companies detected. Proceeding to save them.");
-    }
-
     /**
      * Procesa las nuevas compañías (origen y/o destino) guardándolas en la base de datos
      * @returns {Promise<Object>} - Objeto con estado de éxito y los IDs de las nuevas compañías
@@ -40,6 +36,7 @@
 
         // Manejar la compañía de origen si es nueva
         if (companyShipData && companyShipData.isNew) {
+            console.log("New origin company detected:", companyShipData.isNew);
             const result = await saveNewOriginCompany(companyShipData, companyShipElement);
             if (!result.success) {
                 return { success: false };
