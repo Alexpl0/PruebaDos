@@ -30,8 +30,7 @@ try {
         
         $users = [];
         while ($row = $result->fetch_assoc()) {
-            // Don't send passwords to the frontend
-            $row['password'] = '••••••••'; 
+            // Send the actual password to the frontend for admin use
             $users[] = $row;
         }
         

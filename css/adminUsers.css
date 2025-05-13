@@ -25,6 +25,17 @@
     font-weight: 600;
 }
 
+/* Password display styling */
+#users-table td:nth-child(5) {
+    font-family: monospace;
+    background-color: #f8f9fa;
+    border-radius: 3px;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 /* Action buttons column */
 .action-buttons {
     display: flex;
