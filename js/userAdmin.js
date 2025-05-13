@@ -71,11 +71,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         return `
                             <div class="action-buttons">
                                 <button class="btn btn-sm btn-primary edit-user icon-only-btn" data-id="${row.id}" title="Edit User">
-                                    <span class="material-symbols-outlined"></span>
+                                    <span class="material-symbols-outlined">edit</span>
                                 </button>
                                 <button class="btn btn-sm btn-danger delete-user icon-only-btn" data-id="${row.id}" 
                                         ${row.id == window.userID ? 'disabled' : ''} title="Delete User">
-                                    <span class="material-symbols-outlined"></span>
+                                    <span class="material-symbols-outlined">delete</span>
                                 </button>
                             </div>
                         `;
