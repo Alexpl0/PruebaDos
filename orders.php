@@ -22,8 +22,14 @@ include_once 'dao/users/auth_check.php';
     <title>Orders</title>
     
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Add Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    
+    <!-- Keep IonIcons if needed elsewhere in the app -->
     <script type="module" src="https://unpkg.com/ionicons@7.2.2/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.2.2/dist/ionicons/ionicons.js"></script>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     
     <!-- Archivos CSS locales -->
@@ -35,14 +41,10 @@ include_once 'dao/users/auth_check.php';
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css">
-
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
     <div id="header-container"></div>
     
-
     <div id="mainOrders">
             <h1 id="title1">Generated Orders History</h1>
             <h1 id="title2"></h1>
@@ -52,16 +54,22 @@ include_once 'dao/users/auth_check.php';
        <div id="card"> 
         </div>
     </main>
+    
     <!-- Modal -->
     <div id="myModal" class="modal">
       <div class="modal-content">
         <span id="closeModal" class="close-button">&times;</span>
         <div class="modal-buttons">
-        <button id="savePdfBtn" class="save-pdf-button">Save PDF</button>
-        <button id="approveBtn">Approve</button>
-        <button id="rejectBtn">Reject</button>
-    </div>
-
+            <button id="savePdfBtn" class="save-pdf-button icon-only-btn" title="Save as PDF">
+                <span class="material-symbols-outlined">picture_as_pdf</span>
+            </button>
+            <button id="approveBtn" class="icon-only-btn" title="Approve Order">
+                <span class="material-symbols-outlined">check_circle</span>
+            </button>
+            <button id="rejectBtn" class="icon-only-btn" title="Reject Order">
+                <span class="material-symbols-outlined">cancel</span>
+            </button>
+        </div>
         <div id="svgPreview" class="svg-frame"></div>
       </div>
     </div>
