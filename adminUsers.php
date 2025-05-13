@@ -91,19 +91,6 @@ include_once 'dao/users/auth_check.php';
                                 <label for="user-email" class="form-label">Email</label>
                                 <input type="email" class="form-control" id="user-email" required>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="user-password" class="form-label">Password</label>
-                                <div class="input-group">
-                                    <input type="password" class="form-control" id="user-password" required>
-                                    <button class="btn btn-outline-secondary toggle-password" type="button">
-                                        <ion-icon name="eye-outline"></ion-icon>
-                                    </button>
-                                </div>
-                                <small class="form-text text-muted">Leave unchanged to keep current password</small>
-                            </div>
-                            
                             <div class="col-md-6 mb-3">
                                 <label for="user-role-level" class="form-label">Role & Authorization Level</label>
                                 <select class="form-select" id="user-role-level" required>
@@ -116,6 +103,18 @@ include_once 'dao/users/auth_check.php';
                                     <option value="6:SR VP Regional">6. SR VP Regional</option>
                                     <option value="7:Division Controlling Regional">7. Division Controlling Regional</option>
                                 </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="user-password" class="form-label">Password</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="user-password" required>
+                                    <button class="btn btn-outline-secondary toggle-password" type="button">
+                                        <ion-icon name="eye-outline"></ion-icon>
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted">Leave unchanged to keep current password</small>
                             </div>
                         </div>
                         <div class="d-flex justify-content-between">
