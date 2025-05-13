@@ -288,6 +288,42 @@ const getMonthName = (date) => {
 };
 
 /**
+ * Formats creator name to show first initial + last name
+ * @param {string} fullName - Full name of the creator
+ * @returns {string} Formatted name (initial + last name) or original value if can't be parsed
+ */
+const formatCreatorName = (fullName) => {
+    try {
+        if (!fullName || typeof fullName !== 'string') return fullName || '-';
+        
+        // Split the name into parts
+        const nameParts = fullName.trim().split(' ');
+        
+        // If only one part, return it as is
+        if (nameParts.length === 1) return fullName;
+        
+        // Get the first initial
+        const firstInitial = nameParts[0].charAt(0).toUpperCase();
+        
+        // Handle different cases based on number of name parts
+        if (nameParts.length === 2) {
+            // Simple case: first name + last name
+            return `${firstInitial}. ${nameParts[1]}`;
+        } else if (nameParts.length >= 3) {
+            // Complex case with multiple names
+            // Assume first part is first name, last part is last name
+            return `${firstInitial}. ${nameParts[nameParts.length - 1]}`;
+        }
+        
+        // Fallback (shouldn't reach here)
+        return fullName;
+    } catch (error) {
+        console.error('Error en formatCreatorName:', error, fullName);
+        return fullName || '-';
+    }
+};
+
+/**
  * Función para generar tabla histórico semanal
  * @param {number} semanasAnteriores - Número de semanas para retroceder desde la actual
  */
@@ -388,7 +424,7 @@ const generarHistoricoSemanal = async (semanasAnteriores = 0) => {
                                 <td>-</td>
                                 <td>-</td>
                                 <td>${item.reference_number || '-'}</td>
-                                <td>${item.creator_name || '-'}</td>
+                                <td>${formatCreatorName(item.creator_name)}</td>
                                 <td>${item.area || '-'}</td>
                                 <td>${item.description || '-'}</td>
                                 <td>${item.category_cause || '-'}</td>
@@ -423,7 +459,7 @@ const generarHistoricoSemanal = async (semanasAnteriores = 0) => {
                             <td>${issueCW}</td>
                             <td>${issueMonth}</td>
                             <td>${item.reference_number || '-'}</td>
-                            <td>${item.creator_name || '-'}</td>
+                            <td>${formatCreatorName(item.creator_name)}</td>
                             <td>${item.area || '-'}</td>
                             <td>${item.description || '-'}</td>
                             <td>${item.category_cause || '-'}</td>
@@ -550,7 +586,7 @@ const generarHistoricoTotal = async () => {
                             <td>-</td>
                             <td>-</td>
                             <td>${item.reference_number || '-'}</td>
-                            <td>${item.creator_name || '-'}</td>
+                            <td>${formatCreatorName(item.creator_name)}</td>
                             <td>${item.area || '-'}</td>
                             <td>${item.description || '-'}</td>
                             <td>${item.category_cause || '-'}</td>
@@ -584,7 +620,7 @@ const generarHistoricoTotal = async () => {
                         <td>${issueCW}</td>
                         <td>${issueMonth}</td>
                         <td>${item.reference_number || '-'}</td>
-                        <td>${item.creator_name || '-'}</td>
+                        <td>${formatCreatorName(item.creator_name)}</td>
                         <td>${item.area || '-'}</td>
                         <td>${item.description || '-'}</td>
                         <td>${item.category_cause || '-'}</td>
