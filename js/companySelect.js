@@ -49,6 +49,7 @@ function showCompanySelect() {
                         text: `Add new company: "${params.term}"`,
                         isNew: true
                     });
+                    console.log("Adding new company option:", results);
                 }
                 return { results };
             },
@@ -232,52 +233,3 @@ async function saveNewCompany(companyName, city, state, zip) {
         return false;
     }
 }
-
-// Eliminar o comentar la sección de interceptar el submit del formulario
-// ya que ahora lo manejaremos completamente desde newOrder.js
-
-// Comentar o eliminar este bloque
-/*
-$('#myForm').on('submit', async function(e) {
-    const companyShipData = $('#CompanyShip').select2('data')[0];
-    const companyDestData = $('#inputCompanyNameDest').select2('data')[0];
-
-    let newCompanyShipId = null;
-    let newCompanyDestId = null;
-    let needSubmit = false;
-
-    if ((companyShipData && companyShipData.isNew) || (companyDestData && companyDestData.isNew)) {
-        e.preventDefault();
-
-        if (companyShipData && companyShipData.isNew) {
-            const companyName = companyShipData.id;
-            const city = $('#inputCityShip').val();
-            const state = $('#StatesShip').val();
-            const zip = $('#inputZipShip').val();
-            newCompanyShipId = await saveNewCompany(companyName, city, state, zip);
-            if (newCompanyShipId) {
-                const newOption = new Option(companyName, newCompanyShipId, true, true);
-                $('#CompanyShip').append(newOption).trigger('change');
-                needSubmit = true;
-            } else {
-                needSubmit = false;
-            }
-        }
-
-        if (companyDestData && companyDestData.isNew) {
-            const companyName = companyDestData.id;
-            const city = $('#inputCityDest').val();
-            const state = $('#StatesDest').val();
-            const zip = $('#inputZipDest').val();
-            newCompanyDestId = await saveNewCompany(companyName, city, state, zip);
-            if (newCompanyDestId) {
-                const newOption = new Option(companyName, newCompanyDestId, true, true);
-                $('#inputCompanyNameDest').append(newOption).trigger('change');
-                needSubmit = true;
-            } else {
-                needSubmit = false;
-            }
-        }
-    }
-});
-*/

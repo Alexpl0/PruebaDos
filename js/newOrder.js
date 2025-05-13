@@ -31,9 +31,8 @@ async function submitForm(event) {
     let originId = null;
     let destinyId = null;
     
-    // Verificar si hay nuevas compañías que guardar
-    const hasNewCompanies = ($('#CompanyShip').select2('data')[0] && $('#CompanyShip').select2('data')[0].isNew) || 
-                           ($('#inputCompanyNameDest').select2('data')[0] && $('#inputCompanyNameDest').select2('data')[0].isNew);
+    // Verificar si hay nuevas compañías que guardar utilizando la función de addCompany.js
+    const hasNewCompanies = hasNewCompaniesToSave();
     
     if (hasNewCompanies) {
         // Muestra indicador de carga
@@ -62,6 +61,9 @@ async function submitForm(event) {
         }
         
         Swal.close();
+    }
+    else {
+        console.log("No new companies to process.");
     }
 
     // 3. Obtener los IDs de compañía (nuevos o existentes)
