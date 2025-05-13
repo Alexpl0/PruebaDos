@@ -86,7 +86,7 @@ include_once 'dao/users/auth_check.php';
                                 <input type="text" class="form-control" id="user-name" required>
                             </div>
                         </div>
-                        <div class="row">
+                        <div class="row" id="email-row">
                             <div class="col-md-6 mb-3">
                                 <label for="user-email" class="form-label">Email</label>
                                 <input type="email" class="form-control" id="user-email" required>

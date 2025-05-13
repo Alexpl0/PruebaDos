@@ -178,6 +178,10 @@
     border-color: #198754;
 }
 
+#email-row{
+    padding: 5%;
+}
+
 /* Password row specific styles */
 #password-row .input-group {
     display: flex;
@@ -188,6 +192,7 @@
 #password-row .form-control {
     width: 90% !important;
     flex: 0 0 90%;
+    padding: 2% 5%;
 }
 
 #password-row .toggle-password {
