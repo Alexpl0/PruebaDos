@@ -323,6 +323,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Oculta el modal si ocurre un error al cargar el SVG.
                     document.getElementById('myModal').style.display = 'none'; 
                 }
+
+                // Add this line after the modal is displayed
+                updateModalButtons();
             });
         });
 
@@ -676,6 +679,19 @@ document.addEventListener('DOMContentLoaded', function () {
             alert('Error uploading evidence file: ' + error.message);
         }
     });
+
+    // Replace current buttons in the modal with icon-only versions
+    document.querySelector('#myModal .modal-buttons').innerHTML = `
+        <button id="savePdfBtn" class="save-pdf-button icon-only-btn" title="Save as PDF">
+            <span class="material-symbols-outlined">picture_as_pdf</span>
+        </button>
+        <button id="approveBtn" class="icon-only-btn" title="Approve Order">
+            <span class="material-symbols-outlined">check_circle</span>
+        </button>
+        <button id="rejectBtn" class="icon-only-btn" title="Reject Order">
+            <span class="material-symbols-outlined">cancel</span>
+        </button>
+    `;
 }); // Fin del event listener DOMContentLoaded
 
 // Add these functions to your orders.js file
@@ -863,5 +879,38 @@ function updateModalButtonsContainer() {
         buttonsContainer.classList.add('single-button');
     } else {
         buttonsContainer.classList.remove('single-button');
+    }
+}
+
+// Function to update the modal buttons with icons
+function updateModalButtons() {
+    // Get references to the buttons
+    const savePdfBtn = document.getElementById('savePdfBtn');
+    const approveBtn = document.getElementById('approveBtn');
+    const rejectBtn = document.getElementById('rejectBtn');
+    
+    // Only update if they exist and don't already have icons
+    if (savePdfBtn && !savePdfBtn.classList.contains('icon-only-btn')) {
+        // Update Save PDF button
+        savePdfBtn.classList.add('icon-only-btn');
+        savePdfBtn.setAttribute('title', 'Save as PDF');
+        savePdfBtn.innerHTML = '<span class="material-symbols-outlined">picture_as_pdf</span>';
+        
+        // Update Approve button if visible
+        if (approveBtn) {
+            approveBtn.classList.add('icon-only-btn');
+            approveBtn.setAttribute('title', 'Approve Order');
+            approveBtn.innerHTML = '<span class="material-symbols-outlined">check_circle</span>';
+        }
+        
+        // Update Reject button if visible
+        if (rejectBtn) {
+            rejectBtn.classList.add('icon-only-btn');
+            rejectBtn.setAttribute('title', 'Reject Order');
+            rejectBtn.innerHTML = '<span class="material-symbols-outlined">cancel</span>';
+        }
+        
+        // Call the function to update container layout
+        updateModalButtonsContainer();
     }
 }

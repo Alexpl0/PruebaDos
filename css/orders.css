@@ -416,3 +416,64 @@ main {
     border-radius: 4px;
     cursor: pointer;
 }
+
+/* Icon-only buttons for modal actions */
+.save-pdf-button.icon-only-btn, 
+#approveBtn.icon-only-btn, 
+#rejectBtn.icon-only-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.2s ease;
+}
+
+.icon-only-btn .material-symbols-outlined {
+    font-size: 20px;
+}
+
+.save-pdf-button.icon-only-btn {
+    background-color: #3B82F6;
+}
+
+.save-pdf-button.icon-only-btn:hover {
+    background-color: #2563eb; /* Slightly darker blue */
+}
+
+#approveBtn.icon-only-btn {
+    background-color: #22c55e; /* green */
+}
+
+#approveBtn.icon-only-btn:hover {
+    background-color: #16a34a; /* Slightly darker green */
+}
+
+#rejectBtn.icon-only-btn {
+    background-color: #ef4444; /* red */
+}
+
+#rejectBtn.icon-only-btn:hover {
+    background-color: #dc2626; /* Slightly darker red */
+}
+
+/* Adjust modal-buttons container for icon buttons */
+#myModal .modal-buttons {
+    padding: 0.75rem;
+    gap: 12px;
+    max-width: max-content;
+}
+
+/* Add tooltip styling if not already present */
+[title] {
+    position: relative;
+    cursor: pointer;
+}
+
+/* Ensure single button is centered */
+#myModal .modal-buttons.single-button {
+    justify-content: center;
+    margin: 0 auto;
+}
