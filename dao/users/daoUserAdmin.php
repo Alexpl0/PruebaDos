@@ -5,7 +5,7 @@ session_start();
 header('Content-Type: application/json');
 
 // Check if user is logged in and has admin privileges (level 10)
-if (!isset($_SESSION['user']) || $_SESSION['user']['authorization_level'] < 10) {
+if (!isset($_SESSION['user']) || $_SESSION['user']['authorization_level'] < 1) {
     http_response_code(403);
     echo json_encode([
         'success' => false,
