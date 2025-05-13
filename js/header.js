@@ -64,7 +64,7 @@ function createHeader(authLevel) {
         // User management dropdown menu
         navItems += navDropdown('User Management', [
             {href: 'register.php', text: 'Add User'},
-            {href: 'admin_user.php', text: 'Admin User'}
+            {href: 'adminUsers.php', text: 'Admin User'}
         ]);
         
         navItems += navLink('google.com', 'Charts');
