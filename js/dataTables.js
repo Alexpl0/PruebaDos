@@ -288,7 +288,7 @@ const getMonthName = (date) => {
 };
 
 /**
- * Formats creator name to show first initial + last name
+ * Formats creator name to show first initial + specified last name
  * @param {string} fullName - Full name of the creator
  * @returns {string} Formatted name (initial + last name) or original value if can't be parsed
  */
@@ -302,7 +302,7 @@ const formatCreatorName = (fullName) => {
         // If only one part, return it as is
         if (nameParts.length === 1) return fullName;
         
-        // Get the first initial
+        // Get the first initial from the first word (always considered first name)
         const firstInitial = nameParts[0].charAt(0).toUpperCase();
         
         // Handle different cases based on number of name parts
@@ -310,9 +310,9 @@ const formatCreatorName = (fullName) => {
             // Simple case: first name + last name
             return `${firstInitial}. ${nameParts[1]}`;
         } else if (nameParts.length >= 3) {
-            // Complex case with multiple names
-            // Assume first part is first name, last part is last name
-            return `${firstInitial}. ${nameParts[nameParts.length - 1]}`;
+            // For 3+ words: first word is first name, third word is last name
+            // This works for both 3-word and 4-word names according to requirements
+            return `${firstInitial}. ${nameParts[2]}`;
         }
         
         // Fallback (shouldn't reach here)
