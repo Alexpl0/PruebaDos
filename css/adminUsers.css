@@ -1,0 +1,116 @@
+/* Styles for the User Administration page */
+
+#mainOrders {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+#btnAddUser {
+    min-width: 180px;
+    margin-top: 1rem;
+}
+
+/* Table styles */
+#users-table {
+    margin-top: 1rem;
+}
+
+#users-table thead {
+    background-color: #f8f9fa;
+}
+
+#users-table th {
+    font-weight: 600;
+}
+
+/* Action buttons column */
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.action-buttons button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Form styles */
+#user-form-container {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+#user-form-container.d-none {
+    display: none;
+}
+
+#form-title {
+    margin: 0;
+    color: #333;
+    font-size: 1.5rem;
+}
+
+.form-label {
+    font-weight: 500;
+}
+
+#user-id {
+    background-color: #f8f9fa;
+}
+
+.toggle-password {
+    cursor: pointer;
+}
+
+/* Form validation styles */
+.form-control:invalid {
+    border-color: #dc3545;
+}
+
+.form-control:valid {
+    border-color: #198754;
+}
+
+/* Responsive adjustment for mobile */
+@media (max-width: 768px) {
+    .action-buttons {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .action-buttons button {
+        width: 100%;
+    }
+    
+    .card-body {
+        padding: 1rem 0.75rem;
+    }
+}
+
+/* DataTable adjustments */
+.dataTables_filter input {
+    margin-left: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+}
+
+.dt-buttons {
+    margin-bottom: 1rem;
+}
+
+.dt-button {
+    background: #f8f9fa;
+    border: 1px solid #ced4da;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.25rem;
+    margin-right: 0.5rem;
+}
+
+.dt-button:hover {
+    background: #e9ecef;
+}
