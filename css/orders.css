@@ -35,6 +35,11 @@ body {
 main {
     padding: 5%;
 }
+/* === ESTILOS GENERALES PARA TARJETAS === */
+.card-body {
+    flex: 1 1 auto;
+    padding: 5% 5% 0% 5%;
+}
 
 .card {
     max-width: 260px !important;
