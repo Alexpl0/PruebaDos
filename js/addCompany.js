@@ -215,5 +215,5 @@
     }
 
     // Registra la inicialización en la consola
-    console.log("Company management functions initialized and ready.");
+    // console.log("Company management functions initialized and ready.");
 })();

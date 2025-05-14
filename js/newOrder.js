@@ -387,7 +387,7 @@ function handleRecoveryFileVisibility() {
             
             if (select2Container) {
                 const selectedText = select2Container.textContent.trim();
-                console.log('Recovery selected (Select2):', selectedText);
+                // console.log('Recovery selected (Select2):', selectedText);
                 
                 if (selectedText !== noRecoveryValue) {
                     fileContainer.style.display = 'block';
@@ -396,7 +396,7 @@ function handleRecoveryFileVisibility() {
                     fileContainer.style.display = 'none';
                     const fileInput = document.getElementById('recoveryFile');
                     if (fileInput) fileInput.value = '';
-                    console.log('Hiding recovery file upload field');
+                    // console.log('Hiding recovery file upload field');
                 }
                 return;
             }
@@ -404,7 +404,7 @@ function handleRecoveryFileVisibility() {
         
         const selectedOption = recoverySelect.options[recoverySelect.selectedIndex];
         const selectedText = selectedOption ? selectedOption.textContent.trim() : '';
-        console.log('Recovery selected (standard):', selectedText);
+        // console.log('Recovery selected (standard):', selectedText);
         
         if (selectedText !== noRecoveryValue) {
             fileContainer.style.display = 'block';
@@ -413,7 +413,7 @@ function handleRecoveryFileVisibility() {
             fileContainer.style.display = 'none';
             const fileInput = document.getElementById('recoveryFile');
             if (fileInput) fileInput.value = '';
-            console.log('Hiding recovery file upload field');
+            // console.log('Hiding recovery file upload field');
         }
         
     } catch (error) {
