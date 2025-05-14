@@ -329,15 +329,7 @@ include_once 'dao/users/auth_check.php';
                 <div id="DivCarrier" class="mb-2">
                     <label for="Carrier">Carrier:</label>
                     <select name="Carrier" id="Carrier" class="form-select">
-                        <?php if (!empty($jsonCarrier)): ?>
-                            <?php foreach ($jsonCarrier as $Carrier): ?>
-                                <option value="<?php echo htmlspecialchars($Carrier['ID']); ?>">
-                                    <?php echo htmlspecialchars($Carrier['PROVEEDOR']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <option value="" disabled>No data found, jsonCarrier empty</option>
-                        <?php endif; ?>
+                        <option value="" disabled selected>Select a carrier</option>
                     </select>
                 </div>
                 <div id="DivCosto" class="mb-2">
@@ -384,6 +376,8 @@ include_once 'dao/users/auth_check.php';
     <script src="js/uploadFiles.js"></script>
     <script src="js/newOrder.js"></script>
     <script src="js/createPDF.js"></script>
+    <script src="js/carrierSelect.js"></script>
+    <script src="js/addCarrier.js"></script>
 
     <script>
         $(document).ready(function() {

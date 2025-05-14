@@ -52,6 +52,38 @@ async function submitForm(event) {
         console.log("No new companies to process.");
     }
 
+    // Process new carrier if needed
+    let carrierId = null;
+    const hasNewCarrier = window.hasNewCarrierToSave && window.hasNewCarrierToSave();
+
+    if (hasNewCarrier) {
+        // Process the new carrier
+        const carrierResult = await processNewCarrier();
+        if (!carrierResult.success) {
+            return; // Exit if carrier processing fails
+        }
+        
+        // Use the ID of the new carrier
+        if (carrierResult.newCarrierId) {
+            carrierId = carrierResult.newCarrierId;
+            console.log("Using new carrier ID:", carrierId);
+        }
+    }
+
+    // Get existing carrier ID if needed
+    if (!carrierId) {
+        const carrierValidation = validateCarrierId();
+        if (!carrierValidation.valid) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Carrier Selection Required',
+                text: 'Please select a valid carrier.'
+            });
+            return;
+        }
+        carrierId = carrierValidation.carrierId;
+    }
+
     // 2. Validar el formulario
     const validationResult = validateCompleteForm();
     if (!validationResult.isValid) {
@@ -103,7 +135,7 @@ async function submitForm(event) {
         weight: formData['Weight'],
         measures: formData['Measures'],
         products: formData['Products'],
-        carrier: formData['Carrier'],
+        carrier: carrierId,
         quoted_cost: quotedCost,
         reference: formData['Reference'],
         reference_number: formData['ReferenceNumber'],
@@ -395,6 +427,7 @@ function handleRecoveryFileVisibility() {
 // This ensures that all HTML elements are available before attempting to interact with them using JavaScript.
 document.addEventListener('DOMContentLoaded', function () {
     initializeCompanySelectors();
+    initializeCarrierSelector();
     initializeCurrencySelectors();
 
     const btnSubmit = document.getElementById('enviar');
