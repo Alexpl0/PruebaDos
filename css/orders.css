@@ -364,9 +364,10 @@ main {
 
 .evidence-close-button {
     background: none;
-    border: none;
     font-size: 1.5rem;
     cursor: pointer;
+    color: #6c757d;
+    max-width: 10%;
 }
 
 .evidence-modal-body {
