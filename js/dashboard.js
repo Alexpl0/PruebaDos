@@ -60,11 +60,19 @@ async function loadDashboardData() {
         showLoading(true);
         
         // Obtener datos desde la API
+        console.log("Fetching data from API...");
         const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
         const result = await response.json();
+        console.log("Data received:", result);
         
         if (result.status === 'success' && Array.isArray(result.data)) {
             premiumFreightData = result.data;
+            console.log(`Loaded ${premiumFreightData.length} records`);
             
             // Inicializar filtros
             initializeFilters(premiumFreightData);
@@ -75,11 +83,12 @@ async function loadDashboardData() {
             // Ocultar indicador de carga
             showLoading(false);
         } else {
-            throw new Error('Formato de datos inválido');
+            console.error("Invalid data format:", result);
+            throw new Error('Formato de datos inválido: ' + JSON.stringify(result));
         }
     } catch (error) {
         console.error('Error al cargar datos:', error);
-        showErrorMessage('No se pudieron cargar los datos. Por favor intente nuevamente más tarde.');
+        showErrorMessage(`Error al cargar datos: ${error.message}`);
         showLoading(false);
     }
 }
@@ -130,6 +139,13 @@ function applyFilters() {
     const plantaValue = document.getElementById('plantaFilter').value;
     const statusValue = document.getElementById('statusFilter').value;
     
+    console.log("Applying filters:", { 
+        dateRange: `${startDate} to ${endDate}`, 
+        planta: plantaValue, 
+        status: statusValue 
+    });
+    console.log("Records before filtering:", premiumFreightData.length);
+    
     // Filtrar datos
     filteredData = premiumFreightData.filter(item => {
         // Filtro de fechas
@@ -142,9 +158,14 @@ function applyFilters() {
         // Filtro de status
         const statusMatch = !statusValue || item.status_name === statusValue;
         
+        // Para debug
+        if(!dateMatch) console.log(`Date filter rejected item with date ${itemDate}`);
+        
         // Combinar todos los filtros
         return dateMatch && plantaMatch && statusMatch;
     });
+    
+    console.log("Records after filtering:", filteredData.length);
     
     // Actualizar visualizaciones
     updateVisualizations();
@@ -1403,6 +1424,8 @@ function showLoading(show) {
     const loadingOverlay = document.getElementById('loadingOverlay');
     if (loadingOverlay) {
         loadingOverlay.style.display = show ? 'flex' : 'none';
+    } else {
+        console.warn('Loading overlay element not found');
     }
     
     // También deshabilitar los botones de filtro durante la carga
@@ -1425,8 +1448,20 @@ function showLoading(show) {
 
 // Función para mostrar mensaje de error
 function showErrorMessage(message) {
-    // Aquí podría usar SweetAlert2 o similar
-    alert(message);
+    console.error('ERROR:', message);
+    
+    // Check if SweetAlert2 is available
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: 'Error',
+            text: message,
+            icon: 'error',
+            confirmButtonText: 'Ok'
+        });
+    } else {
+        // Fallback to basic alert
+        alert(message);
+    }
 }
 
 // Añadir esta función y llamarla desde updateVisualizations()
