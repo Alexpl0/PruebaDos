@@ -2,7 +2,39 @@
 // Function to initialize the carrier selector
 function initializeCarrierSelector() {
     showCarrierSelect();
+    // Load all carriers initially
+    loadAllCarriers();
     console.log("Carrier selector initialized");
+}
+
+//==========================================================================================
+// Function to load all carriers when the page first loads
+function loadAllCarriers() {
+    // Make a fetch request to get all carriers
+    fetch('https://grammermx.com/Jesus/PruebaDos/dao/elements/daoCarriers.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success' && Array.isArray(data.data)) {
+                // Create options for each carrier
+                const options = data.data.map(carrier => {
+                    return new Option(carrier.name, carrier.id, false, false);
+                });
+                
+                // Add the options to the select
+                const carrierSelect = $('#Carrier');
+                carrierSelect.append(options);
+                
+                // Trigger change to update Select2
+                carrierSelect.trigger('change');
+                
+                console.log(`Loaded ${options.length} carriers initially`);
+            } else {
+                console.error("Failed to load initial carriers:", data);
+            }
+        })
+        .catch(error => {
+            console.error("Error fetching initial carriers:", error);
+        });
 }
 
 //==========================================================================================
@@ -13,7 +45,7 @@ function showCarrierSelect() {
     $('#Carrier').select2({
         placeholder: "Search carrier",
         allowClear: true,
-        minimumInputLength: 0,
+        minimumInputLength: 0, // Allow showing all options without typing
         ajax: {
             url: 'https://grammermx.com/Jesus/PruebaDos/dao/elements/daoCarriers.php', // URL to search for carriers
             dataType: 'json',
