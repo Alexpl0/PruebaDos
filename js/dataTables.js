@@ -324,6 +324,62 @@ const formatCreatorName = (fullName) => {
 };
 
 /**
+ * Inicializar o reinicializar las DataTables
+ * @param {string} tableType - Tipo de tabla a inicializar ('semanal', 'total', o 'both')
+ */
+const initDataTables = (tableType = 'both') => {
+    try {
+        // Configuración común con orden descendente por ID (primera columna)
+        const commonConfig = {
+            ...dataTableOptions,
+            scrollX: true,
+            scrollCollapse: true,
+            order: [[0, 'desc']] // Ordenar por ID (columna 0) en orden descendente
+        };
+        
+        // Inicializar DataTable para histórico semanal
+        if (tableType === 'semanal' || tableType === 'both') {
+            // Asegurarse de que la tabla existe en el DOM
+            const semanalTable = document.getElementById('datatable_historico_semanal');
+            if (!semanalTable) {
+                console.error('Tabla de histórico semanal no encontrada en el DOM');
+                return;
+            }
+            
+            // Destruir instancia anterior si existe
+            if (dataTableSemanalInitialized && $.fn.DataTable.isDataTable('#datatable_historico_semanal')) {
+                dataTableHistoricoSemanal.destroy();
+            }
+            
+            dataTableHistoricoSemanal = $("#datatable_historico_semanal").DataTable(commonConfig);
+            dataTableSemanalInitialized = true;
+            console.log("DataTable semanal inicializada correctamente");
+        }
+        
+        // Inicializar DataTable para histórico total
+        if (tableType === 'total' || tableType === 'both') {
+            // Asegurarse de que la tabla existe en el DOM
+            const totalTable = document.getElementById('datatable_historico_total');
+            if (!totalTable) {
+                console.error('Tabla de histórico total no encontrada en el DOM');
+                return;
+            }
+            
+            // Destruir instancia anterior si existe
+            if (dataTableTotalInitialized && $.fn.DataTable.isDataTable('#datatable_historico_total')) {
+                dataTableHistoricoTotal.destroy();
+            }
+            
+            dataTableHistoricoTotal = $("#datatable_historico_total").DataTable(commonConfig);
+            dataTableTotalInitialized = true;
+            console.log("DataTable total inicializada correctamente");
+        }
+    } catch (error) {
+        console.error("Error al inicializar DataTables:", error);
+    }
+};
+
+/**
  * Función para generar tabla histórico semanal
  * @param {number} semanasAnteriores - Número de semanas para retroceder desde la actual
  */
@@ -517,6 +573,12 @@ const generarHistoricoSemanal = async (semanasAnteriores = 0) => {
                 }
             });
         }
+        
+        // Inicializar o reinicializar la DataTable semanal DESPUÉS de agregar contenido
+        setTimeout(() => {
+            initDataTables('semanal');
+        }, 100);
+        
     } catch (ex) {
         console.error("Error en generarHistoricoSemanal:", ex);
         
@@ -651,6 +713,11 @@ const generarHistoricoTotal = async () => {
         tableBody_total.innerHTML = content;
         console.log("Contenido HTML generado para la tabla de histórico total");
         
+        // Inicializar o reinicializar la DataTable total DESPUÉS de agregar contenido
+        setTimeout(() => {
+            initDataTables('total');
+        }, 100);
+        
     } catch (ex) {
         console.error("Error en generarHistoricoTotal:", ex);
         
@@ -659,41 +726,6 @@ const generarHistoricoTotal = async () => {
         if (tableBody_total) {
             tableBody_total.innerHTML = '<tr><td colspan="25" class="text-center text-danger">Error al cargar los datos</td></tr>';
         }
-    }
-};
-
-/**
- * Inicializar o reinicializar las DataTables
- */
-const initDataTables = () => {
-    try {
-        // Destruir instancias anteriores si existen
-        if (dataTableSemanalInitialized && dataTableHistoricoSemanal) {
-            dataTableHistoricoSemanal.destroy();
-        }
-        if (dataTableTotalInitialized && dataTableHistoricoTotal) {
-            dataTableHistoricoTotal.destroy();
-        }
-        
-        // Inicializar DataTable para histórico semanal
-        dataTableHistoricoSemanal = $("#datatable_historico_semanal").DataTable({
-            ...dataTableOptions,
-            scrollX: true,
-            scrollCollapse: true
-        });
-        dataTableSemanalInitialized = true;
-        
-        // Inicializar DataTable para histórico total
-        dataTableHistoricoTotal = $("#datatable_historico_total").DataTable({
-            ...dataTableOptions,
-            scrollX: true,
-            scrollCollapse: true
-        });
-        dataTableTotalInitialized = true;
-        
-        console.log("DataTables inicializadas correctamente");
-    } catch (error) {
-        console.error("Error al inicializar DataTables:", error);
     }
 };
 
@@ -832,24 +864,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Guardar elemento con foco antes de abrir el modal
         lastFocusedElement = document.activeElement;
         
-        // Iniciar con la semana actual (0 semanas atrás)
-        await generarHistoricoSemanal(0);
-        
-        // Inicializar o actualizar DataTable
-        if (!dataTableSemanalInitialized) {
-            initDataTables();
-        } else {
-            dataTableHistoricoSemanal.destroy();
-            dataTableHistoricoSemanal = $("#datatable_historico_semanal").DataTable({
-                ...dataTableOptions,
-                scrollX: true,
-                scrollCollapse: true
-            });
-        }
-        
-        // Mostrar el modal
+        // Mostrar el modal primero para que esté en el DOM
         const modalElement = document.getElementById('modalHistoricoSemanal');
         const modalHistoricoSemanal = new bootstrap.Modal(modalElement);
+        modalHistoricoSemanal.show();
+        
+        // Luego cargar los datos (esto asegura que la tabla exista en el DOM)
+        await generarHistoricoSemanal(0);
         
         // Manejar eventos de accesibilidad
         modalElement.addEventListener('hidden.bs.modal', function () {
@@ -858,8 +879,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 lastFocusedElement.focus();
             }
         }, { once: true });
-        
-        modalHistoricoSemanal.show();
         
         // Establecer el foco en el primer elemento interactivo del modal
         setTimeout(() => {
@@ -874,23 +893,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Guardar elemento con foco antes de abrir el modal
         lastFocusedElement = document.activeElement;
         
-        await generarHistoricoTotal();
-        
-        // Inicializar o actualizar DataTable
-        if (!dataTableTotalInitialized) {
-            initDataTables();
-        } else {
-            dataTableHistoricoTotal.destroy();
-            dataTableHistoricoTotal = $("#datatable_historico_total").DataTable({
-                ...dataTableOptions,
-                scrollX: true,
-                scrollCollapse: true
-            });
-        }
-        
-        // Mostrar el modal
+        // Mostrar el modal primero para que esté en el DOM
         const modalElement = document.getElementById('modalHistoricoTotal');
         const modalHistoricoTotal = new bootstrap.Modal(modalElement);
+        modalHistoricoTotal.show();
+        
+        // Luego cargar los datos (esto asegura que la tabla exista en el DOM)
+        await generarHistoricoTotal();
         
         // Manejar eventos de accesibilidad
         modalElement.addEventListener('hidden.bs.modal', function () {
@@ -899,8 +908,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 lastFocusedElement.focus();
             }
         }, { once: true });
-        
-        modalHistoricoTotal.show();
         
         // Establecer el foco en el primer elemento interactivo del modal
         setTimeout(() => {
