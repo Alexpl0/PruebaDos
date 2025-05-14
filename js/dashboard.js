@@ -73,6 +73,7 @@ async function loadDashboardData() {
         if (result.status === 'success' && Array.isArray(result.data)) {
             premiumFreightData = result.data;
             console.log(`Loaded ${premiumFreightData.length} records`);
+            console.log("Loaded", premiumFreightData.length, "records");
             
             // Inicializar filtros
             initializeFilters(premiumFreightData);
@@ -166,6 +167,7 @@ function applyFilters() {
     });
     
     console.log("Records after filtering:", filteredData.length);
+    console.log("Filtered", filteredData.length, "records");
     
     // Actualizar visualizaciones
     updateVisualizations();

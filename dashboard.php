@@ -351,10 +351,12 @@ include_once 'dao/users/auth_check.php';
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3@7.4.4/dist/d3.min.js"></script>
     
-    <!-- Script principal del dashboard -->
-    <script src="js/dashboard.js"></script>
+
 
     <!-- Archivos JS locales -->
     <script src="js/header.js"></script>
+
+    <!-- Script principal del dashboard -->
+    <script src="js/dashboard.js"></script>
 </body>
 </html>
