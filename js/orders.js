@@ -62,12 +62,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('Modal buttons updated');
     
-    // Verify buttons exist and have event listeners
-    const approveBtn = document.getElementById('approveBtn');
-    const rejectBtn = document.getElementById('rejectBtn');
-    
-    console.log('Approve button exists:', !!approveBtn);
-    console.log('Reject button exists:', !!rejectBtn);
 
     // Close loading message
     Swal.close();

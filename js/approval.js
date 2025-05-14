@@ -220,6 +220,7 @@ export function setupApprovalEventListeners() {
     console.log('Setting up approval event listeners');
     const approveBtn = document.getElementById('approveBtn');
     const rejectBtn = document.getElementById('rejectBtn');
+
     
     if (!approveBtn) {
         console.error('Approve button not found in the DOM');
