@@ -33,7 +33,23 @@ const svgMap = {
     'CityDestValue': 'destiny_city',
     'StateDestValue': 'destiny_state',
     'ZIPDestValue': 'destiny_zip',
-    'WeightValue': (order) => `${order.weight || '0'} ${order.measures || ''}`,
+    'WeightValue': (order) => {
+        // Función para convertir texto de unidad a abreviatura
+        const getMeasureAbbreviation = (measure) => {
+            if (!measure) return '';
+            switch (measure.toUpperCase()) {
+                case 'KILOS':
+                    return 'KG';
+                case 'LIBRAS':
+                    return 'LB';
+                default:
+                    return measure; // Mantener el valor original si no coincide
+            }
+        };
+        
+        const measureAbbr = getMeasureAbbreviation(order.measures);
+        return `${order.weight || '0'} ${measureAbbr}`;
+    },
     'ProductValue': 'products',
     'CarrierNameValue': 'carrier',
     'QuotedCostValue': (order) => `$ ${order.quoted_cost || '0'} ${order.moneda || 'MXN'}`,
