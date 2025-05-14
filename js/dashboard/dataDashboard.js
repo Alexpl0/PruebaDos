@@ -1,6 +1,6 @@
 // Manejo de datos para el dashboard
 
-import { API_URL } from './config.js';
+import { API_URL } from './configDashboard.js';
 import { showLoading, showErrorMessage } from './utils.js';
 
 // Variables para almacenar los datos
