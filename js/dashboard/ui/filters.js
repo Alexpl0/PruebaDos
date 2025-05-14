@@ -2,7 +2,7 @@
 
 import { dateRangeConfig } from '../configDashboard.js';
 import { getRawData, applyFilters } from '../dataDashboard.js';
-import { updateAllVisualizations } from '../mainDashboard.js';
+import { updateAllVisualizations } from '../main.js';
 
 let daterangepicker;
 
