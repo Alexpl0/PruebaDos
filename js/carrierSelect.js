@@ -71,6 +71,8 @@ function showCarrierSelect() {
                     console.error("Server data format is incorrect or missing data.data array:", data);
                     return { results: [] };
                 }
+
+                console.log("Estamos en processResults")
                 
                 // Debug logging
                 console.log("Search term:", params.term);
