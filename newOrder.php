@@ -451,11 +451,11 @@ include_once 'dao/users/auth_check.php';
                 allowClear: true,
                 width: '100%'
             });
-            $('#Carrier').select2({
-                placeholder: 'Select Carrier',
-                allowClear: true,
-                width: '100%'
-            });
+            // $('#Carrier').select2({
+            //     placeholder: 'Select Carrier',
+            //     allowClear: true,
+            //     width: '100%'
+            // });
             $('#Measures').select2({
                 placeholder: 'Select Unit of Measure',
                 allowClear: true,

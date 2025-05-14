@@ -40,7 +40,6 @@ function loadAllCarriers() {
 // Initialize the Select2 widget for the carrier field
 // Configure AJAX search and the option to add a new carrier if not found
 function showCarrierSelect() {
-    console.log("Esramos en showCarrierSelect");
     // Check if the element exists
     const carrierElement = $('#Carrier');
     console.log("Carrier element exists:", carrierElement.length > 0);
@@ -63,6 +62,7 @@ function showCarrierSelect() {
                 // Send the search term to the server
                 return { q: params.term || '' };
             },
+
             processResults: function (data, params) {
                 // Process the server response and adapt it to the format Select2 expects
                 if (!data || !Array.isArray(data.data)) {
@@ -70,14 +70,6 @@ function showCarrierSelect() {
                     return { results: [] };
                 }
 
-                if(data.status !== 'success') {
-                    console.error("Server response status is not success:", data);
-                    return { results: [] };
-                }
-
-                if(data.data.length > 0) {
-                    console.log("Data received from server:", data.data);
-                }
                 
                 // Map results for Select2
                 const results = data.data.map(carrier => ({
