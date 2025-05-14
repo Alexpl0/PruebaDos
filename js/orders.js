@@ -272,7 +272,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
 
                 // Muestra el modal estableciendo su estilo 'display' a 'flex'.
-                document.getElementById('myModal').style.display = 'flex'; 
+                showModal(orderId);
                 // Busca la orden seleccionada en el array global 'allOrders'.
                 const selectedOrder = window.allOrders.find(order => order.id === parseInt(orderId)) || {}; // Usa un objeto vacío si no se encuentra.
 
@@ -321,7 +321,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         customClass: { container: 'swal-on-top' }
                     });
                     // Oculta el modal si ocurre un error al cargar el SVG.
-                    document.getElementById('myModal').style.display = 'none'; 
+                    hideModal(); 
                 }
 
                 // Add this line after the modal is displayed
@@ -371,7 +371,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Añade un event listener al botón de cerrar (X) del modal.
     document.getElementById('closeModal').onclick = function () {
         // Oculta el modal estableciendo su estilo 'display' a 'none'.
-        document.getElementById('myModal').style.display = 'none';
+        hideModal();
     };
 
     // Cierra el modal si se hace clic fuera de él (en el fondo oscuro).
@@ -379,7 +379,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const modal = document.getElementById('myModal');
         // Comprueba si el elemento clickeado es el propio modal (el fondo).
         if (event.target === modal) {
-            modal.style.display = 'none'; // Oculta el modal.
+            hideModal(); // Oculta el modal.
         }
     };
 
@@ -416,7 +416,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 customClass: { container: 'swal-on-top' }
             });
             // Cierra el modal después de guardar el PDF.
-            document.getElementById('myModal').style.display = 'none'; 
+            hideModal(); 
 
         } catch (error) {
             // Captura y maneja errores durante la generación del PDF.
@@ -524,7 +524,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 customClass: { container: 'swal-on-top' }
             });
             // Cierra el modal.
-            document.getElementById('myModal').style.display = 'none'; 
+            hideModal(); 
 
             // Refresca la vista de tarjetas para mostrar los datos actualizados.
             createCards(window.allOrders); // Vuelve a renderizar las tarjetas con los datos locales actualizados.
@@ -637,7 +637,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 customClass: { container: 'swal-on-top' }
             });
             // Cierra el modal.
-            document.getElementById('myModal').style.display = 'none'; 
+            hideModal(); 
 
             // Refresca la vista de tarjetas para mostrar el estado actualizado.
             createCards(window.allOrders);
@@ -959,4 +959,28 @@ function updateModalButtons() {
         // Call the function to update container layout
         updateModalButtonsContainer();
     }
+}
+
+// When showing the modal
+function showModal(orderId) {
+    const modal = document.getElementById('myModal');
+    modal.style.display = 'flex'; // Use flex instead of block
+    modal.classList.add('show');
+    
+    // Prevent body scrolling when modal is open
+    document.body.style.overflow = 'hidden';
+    
+    // ...rest of your modal show code...
+}
+
+// When hiding the modal
+function hideModal() {
+    const modal = document.getElementById('myModal');
+    modal.style.display = 'none';
+    modal.classList.remove('show');
+    
+    // Restore body scrolling
+    document.body.style.overflow = '';
+    
+    // ...rest of your modal hide code...
 }
