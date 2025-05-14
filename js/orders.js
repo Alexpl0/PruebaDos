@@ -10,11 +10,11 @@ import { updateModalButtons,
 } from './modals.js';
 import { setupApprovalEventListeners } from './approval.js';
 
-console.log('All modules imported successfully');
+// console.log('All modules imported successfully');
 
 // Document ready handler
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM content loaded');
+    // console.log('DOM content loaded');
     
     // Show loading message
     Swal.fire({
@@ -33,16 +33,16 @@ document.addEventListener('DOMContentLoaded', function() {
     loadOrderData();
     
     try {
-        console.log('Setting up event listeners...');
+        // console.log('Setting up event listeners...');
         // Set up event listeners
         setupModalEventListeners();
-        console.log('Modal event listeners set up successfully');
+        // console.log('Modal event listeners set up successfully');
         
         setupApprovalEventListeners();
         console.log('Approval event listeners set up successfully');
         
         setupSearch();
-        console.log('Search set up successfully');
+        // console.log('Search set up successfully');
     } catch (error) {
         console.error('Error setting up event listeners:', error);
     }
@@ -81,13 +81,13 @@ function loadOrderData() {
         .then(response => response.json())
         .then(data => {
             if (data && data.data) {
-                console.log("API response received:", data);
+                // console.log("API response received:", data);
                 
                 // Log recovery data for debugging
                 const ordersWithRecovery = data.data.filter(order => order.recovery_file);
-                console.log("Orders with recovery files:", ordersWithRecovery.length);
+                // console.log("Orders with recovery files:", ordersWithRecovery.length);
                 if (ordersWithRecovery.length > 0) {
-                    console.log("Sample recovery order:", ordersWithRecovery[0]);
+                    // console.log("Sample recovery order:", ordersWithRecovery[0]);
                 }
                 
                 // Create cards with the data
