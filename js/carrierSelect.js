@@ -49,8 +49,6 @@ function showCarrierSelect() {
         console.error("Cannot initialize Select2: #Carrier element not found in the DOM");
         return;
     }
-
-    console.log("Initializing Select2 for Carrier dropdown...");
     
     // Initialize Select2 on the element with ID 'Carrier'
     $('#Carrier').select2({
@@ -114,6 +112,10 @@ function showCarrierSelect() {
             $(this).data('selected-id', parseInt(data.id, 10));
         }
     });
+
+    if(!$('#Carrier').data('select2')) {
+        console.error("Select2 not initialized on #Carrier");
+    }
 }
 
 //==========================================================================================
