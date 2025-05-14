@@ -32,20 +32,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load order data from API
     loadOrderData();
     
-    try {
-        // console.log('Setting up event listeners...');
-        // Set up event listeners
-        setupModalEventListeners();
-        // console.log('Modal event listeners set up successfully');
-        
-        setupApprovalEventListeners();
-        console.log('Approval event listeners set up successfully');
-        
-        setupSearch();
-        // console.log('Search set up successfully');
-    } catch (error) {
-        console.error('Error setting up event listeners:', error);
-    }
     
     // Update modal buttons to icon-only version
     document.querySelector('#myModal .modal-buttons').innerHTML = `
@@ -60,7 +46,22 @@ document.addEventListener('DOMContentLoaded', function() {
         </button>
     `;
     
-    console.log('Modal buttons updated');
+    // console.log('Modal buttons updated');
+
+    try {
+        // console.log('Setting up event listeners...');
+        // Set up event listeners
+        setupModalEventListeners();
+        // console.log('Modal event listeners set up successfully');
+        
+        setupApprovalEventListeners();
+        console.log('Approval event listeners set up successfully');
+        
+        setupSearch();
+        // console.log('Search set up successfully');
+    } catch (error) {
+        console.error('Error setting up event listeners:', error);
+    }
     
 
     // Close loading message
