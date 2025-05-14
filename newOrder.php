@@ -431,31 +431,13 @@ include_once 'dao/users/auth_check.php';
                 allowClear: true,
                 width: '100%'
             });
-            // Elimina o comenta la siguiente inicialización para CompanyShip
-            /*
-            $('#CompanyShip').select2({
-                placeholder: 'Select Company Name',
-                allowClear: true
-            });
-            */
-            // $('#StatesShip').select2({
-            //     placeholder: 'Select States',
-            //     allowClear: true
-            // });
-            // $('#StatesDest').select2({
-            //     placeholder: 'Select States',
-            //     allowClear: true
-            // });
+
             $('#Products').select2({
                 placeholder: 'Select Products',
                 allowClear: true,
                 width: '100%'
             });
-            // $('#Carrier').select2({
-            //     placeholder: 'Select Carrier',
-            //     allowClear: true,
-            //     width: '100%'
-            // });
+
             $('#Measures').select2({
                 placeholder: 'Select Unit of Measure',
                 allowClear: true,

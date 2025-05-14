@@ -1,0 +1,81 @@
+/* Archivo: css/dashboard.css */
+
+/* Estilos generales del dashboard */
+.card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+    color: #4472C4;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+/* Estilos para los KPIs */
+.display-4 {
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+/* Estilos para los contenedores de gráficos */
+.chart-container {
+    min-height: 350px;
+    position: relative;
+}
+
+/* Estilos para el mapa */
+#mapOriginDestiny {
+    border-radius: 5px;
+}
+
+/* Estilos para las tarjetas de estadísticas */
+.stats-card {
+    font-size: 0.9rem;
+}
+
+.stats-card .title {
+    font-weight: 600;
+    color: #4472C4;
+}
+
+.stats-card .value {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+/* Estilos para tabs */
+.nav-tabs .nav-link {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link.active {
+    color: #4472C4;
+    font-weight: 600;
+}
+
+/* Estilos para el selector de rango de fechas */
+.daterangepicker {
+    font-family: inherit;
+}
+
+.daterangepicker .ranges li.active {
+    background-color: #4472C4;
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+    .card {
+        margin-bottom: 20px;
+    }
+    
+    .display-4 {
+        font-size: 2rem;
+    }
+}
