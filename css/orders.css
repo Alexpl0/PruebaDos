@@ -121,24 +121,29 @@ main {
   overflow: hidden; 
   outline: 0;
   background-color: rgba(0, 0, 0, 0.5); 
-  /* Usamos flex para centrar el .modal-content si no se usa .modal-dialog */
-  /* align-items: center; */ /* Bootstrap .modal-dialog lo maneja */
-  /* justify-content: center; */ /* Bootstrap .modal-dialog lo maneja */
+  /* Add these properties to center the modal properly */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .modal-content {
     position: relative;
     display: flex;
     flex-direction: column;
-    width: auto; /* Bootstrap .modal-dialog y clases como .modal-xl lo manejan */
-    margin: 1.75rem auto; /* Margen estándar de Bootstrap para centrar y espaciar */
+    width: auto; 
+    /* Remove this margin that could be causing the centering issue */
+    /* margin: 1.75rem auto; */
+    margin: 0; /* Reset margin */
     pointer-events: auto;
     background-color: #fff;
     background-clip: padding-box;
     border: 1px solid rgba(0,0,0,.2);
     border-radius: 0.3rem;
-    max-height: 90vh; /* Altura máxima para el contenido del modal */
-    overflow: hidden; /* El scroll debe estar en .modal-body */
+    max-height: 90vh;
+    overflow: hidden;
+    /* Optional: add max-width if you want to limit width */
+    max-width: 90vw;
 }
 
 .modal-content .modal-header {
@@ -192,11 +197,21 @@ main {
 }
 
 /* === ESTILOS ESPECÍFICOS PARA EL MODAL DEL SVG (#myModal) === */
-#myModal .modal-content { /* Asumiendo que #myModal es el div con clase .modal */
-    /* Si #myModal es el .modal-content directamente, entonces no necesitas anidar .modal-content */
+#myModal { /* Asumiendo que #myModal es el div con clase .modal */
+    display: none; /* Initially hidden */
+}
+
+#myModal.show {
+    display: flex; /* When shown, use flex to enable centering */
+    align-items: center;
+    justify-content: center;
+}
+
+#myModal .modal-content {
     width: 85%; 
-    max-width: 1200px; 
-    /* Hereda display:flex, flex-direction:column, max-height, overflow:hidden de .modal-content */
+    max-width: 1200px;
+    /* Remove any margin that might override the parent's centering */
+    margin: 0;
 }
 
 #myModal .modal-buttons { /* Contenedor de botones "Save PDF", "Approve", "Reject" */
