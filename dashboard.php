@@ -23,9 +23,11 @@ include_once 'dao/users/auth_check.php';
     <!-- Bibliotecas adicionales de visualización -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts@3.35.0/dist/apexcharts.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/d3-cloud@1.2.5/build/d3.layout.cloud.min.js"></script>
 </head>
 <body>
     <?php include('header.php'); ?>
+    <div id="header-container"></div>
     
     <main class="container-fluid my-4">
         <h1 class="mb-4 text-center">Premium Freight Analytics Dashboard</h1>
@@ -62,6 +64,23 @@ include_once 'dao/users/auth_check.php';
                 </div>
             </div>
         </div>
+
+        <!-- Añadir después de los filtros existentes -->
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <div class="btn-group float-end">
+                    <button id="exportCSV" class="btn btn-sm btn-outline-success">
+                        <i class="material-symbols-outlined">download</i> Exportar CSV
+                    </button>
+                    <button id="exportPDF" class="btn btn-sm btn-outline-danger">
+                        <i class="material-symbols-outlined">picture_as_pdf</i> Exportar PDF
+                    </button>
+                    <button id="printDashboard" class="btn btn-sm btn-outline-primary">
+                        <i class="material-symbols-outlined">print</i> Imprimir
+                    </button>
+                </div>
+            </div>
+        </div>
         
         <!-- KPIs principales -->
         <div class="row mb-4">
@@ -85,7 +104,7 @@ include_once 'dao/users/auth_check.php';
                 <div class="card bg-info text-white">
                     <div class="card-body">
                         <h5 class="card-title">% Aprobación</h5>
-                        <h2 id="kpiApprovalRate" class="display-4">0%</h2>
+                        <h2 id="kpiApprovalRate" class="display-4">0%</h5>
                     </div>
                 </div>
             </div>
@@ -94,6 +113,51 @@ include_once 'dao/users/auth_check.php';
                     <div class="card-body">
                         <h5 class="card-title">% Recovery</h5>
                         <h2 id="kpiRecoveryRate" class="display-4">0%</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Añadir después de la sección de KPIs principales -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">KPIs Detallados</h5>
+                        <div class="row" id="detailedKPIs">
+                            <div class="col-md-3 col-sm-6 mb-3">
+                                <div class="card stats-card border-primary">
+                                    <div class="card-body p-3">
+                                        <div class="title">Costo Promedio</div>
+                                        <div class="value" id="kpiAvgCost">€0</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-6 mb-3">
+                                <div class="card stats-card border-success">
+                                    <div class="card-body p-3">
+                                        <div class="title">Ratio Interno/Externo</div>
+                                        <div class="value" id="kpiIntExtRatio">0:0</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-6 mb-3">
+                                <div class="card stats-card border-info">
+                                    <div class="card-body p-3">
+                                        <div class="title">Tiempo Promedio de Aprobación</div>
+                                        <div class="value" id="kpiAvgApprovalTime">0 días</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-6 mb-3">
+                                <div class="card stats-card border-warning">
+                                    <div class="card-body p-3">
+                                        <div class="title">Peso Total</div>
+                                        <div class="value" id="kpiTotalWeight">0 kg</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -198,6 +262,18 @@ include_once 'dao/users/auth_check.php';
             </div>
         </div>
         
+        <!-- Añadir antes de la sección "Análisis detallado" -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Análisis de Texto: Causas y Descripciones</h5>
+                        <div id="wordCloudChart" style="height: 400px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Mapa de orígenes y destinos -->
         <div class="row mb-4">
             <div class="col-md-12">
@@ -210,6 +286,18 @@ include_once 'dao/users/auth_check.php';
             </div>
         </div>
         
+        <!-- Añadir después de alguna fila de gráficos existente -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Comparativa de Plantas</h5>
+                        <div id="plantComparisonChart" style="height: 450px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Análisis detallado -->
         <div class="row mb-4">
             <div class="col-md-12">
@@ -257,5 +345,8 @@ include_once 'dao/users/auth_check.php';
     
     <!-- Script principal del dashboard -->
     <script src="js/dashboard.js"></script>
+
+    <!-- Archivos JS locales -->
+    <script src="js/header.js"></script>
 </body>
 </html>
