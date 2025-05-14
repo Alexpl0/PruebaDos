@@ -1,371 +1,373 @@
-// Archivo: js/dashboard.js
-
-// Variables globales
-let premiumFreightData = [];
-let filteredData = [];
-let maps = {};
-let charts = {};
-
-// Inicializar el dashboard cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', function() {
-    // Inicializar el selector de rango de fechas
-    initializeDateRangePicker();
+<?phpchivo: js/dashboard.js
+session_start();
+$nivel = isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null;
+$name = isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null;
+$userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
+include_once 'dao/users/auth_check.php';
+?>t charts = {};
+<script>
+    window.authorizationLevel = <?php echo json_encode($nivel); ?>;
+    window.userName = <?php echo json_encode($name); ?>; {
+    window.userID = <?php echo json_encode($userID); ?>;
+    console.log("Auth Level: " + window.authorizationLevel);
+    console.log("UserName: " + window.userName);
+    console.log("UserID: " + window.userID);
+</script>ashboardData();
     
-    // Cargar datos iniciales
-    loadDashboardData();
-    
-    // Configurar el evento de actualización
-    document.getElementById('refreshData').addEventListener('click', function() {
-        loadDashboardData();
-    });
-});
-
-// Función para inicializar el selector de rango de fechas
-function initializeDateRangePicker() {
-    $('#dateRange').daterangepicker({
-        startDate: moment().subtract(3, 'month'),
-        endDate: moment(),
-        ranges: {
-           'Último Mes': [moment().subtract(1, 'month'), moment()],
-           'Últimos 3 Meses': [moment().subtract(3, 'month'), moment()],
+<!DOCTYPE html>ar el evento de actualización
+<html lang="en">ElementById('refreshData').addEventListener('click', function() {
+<head>  loadDashboardData();
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Freight Dashboard</title>
+    unción para inicializar el selector de rango de fechas
+    <!-- Bibliotecas CSS -->Picker() {
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/header.css">onth'), moment()],
+    <link rel="stylesheet" href="css/dashboard.css">'month'), moment()],
            'Último Año': [moment().subtract(1, 'year'), moment()],
-           'Todo el Tiempo': [moment().subtract(10, 'year'), moment()]
-        },
-        opens: 'left',
-        showDropdowns: true, // Permite seleccionar mes y año con dropdown
-        autoApply: false,
-        locale: {
-            format: 'DD/MM/YYYY',
-            applyLabel: 'Aplicar',
-            cancelLabel: 'Cancelar',
-            fromLabel: 'Desde',
-            toLabel: 'Hasta',
-            customRangeLabel: 'Rango Personalizado',
-            weekLabel: 'S',
-            daysOfWeek: ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'],
-            monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+    <!-- Bibliotecas adicionales de visualización -->year'), moment()]
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts@3.35.0/dist/apexcharts.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/d3-cloud@1.2.5/build/d3.layout.cloud.min.js"></script>
+</head> autoApply: false,
+<body>  locale: {
+    <div id="loadingOverlay" style="display:none;">
+        <div class="spinner-container">
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Cargando...</span>
+            </div>l: 'Hasta',
+            <div class="mt-2">Cargando datos...</div>
+        </div>ekLabel: 'S',
+    </div>  daysOfWeek: ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'],
+    <div id="header-container"></div>brero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
             firstDay: 1
-        }
-    });
-    
-    $('#dateRange').on('apply.daterangepicker', function(ev, picker) {
-        applyFilters();
-    });
-}
-
-// Función para cargar los datos del dashboard
-async function loadDashboardData() {
-    try {
-        // Mostrar indicador de carga
-        showLoading(true);
+    <main class="container-fluid my-4">
+        <h1 class="mb-4 text-center">Premium Freight Analytics Dashboard</h1>
         
-        // Obtener datos desde la API
-        console.log("Fetching data from API...");
-        const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php');
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        console.log("Data received:", result);
-        
-        if (result.status === 'success' && Array.isArray(result.data)) {
-            premiumFreightData = result.data;
-            console.log(`Loaded ${premiumFreightData.length} records`);
-            console.log("Loaded", premiumFreightData.length, "records");
+        <!-- Filtros globales -->erangepicker', function(ev, picker) {
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Filtros</h5>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label for="dateRange" class="form-label">Rango de Fechas</label>
+                                <input type="text" class="form-control" id="dateRange">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="plantaFilter" class="form-label">Planta</label>
+                                <select class="form-select" id="plantaFilter">o/conections/daoPremiumFreight.php');
+                                    <option value="">Todas</option>
+                                </select>
+                            </div>error! Status: ${response.status}`);
+                            <div class="col-md-3">
+                                <label for="statusFilter" class="form-label">Status</label>
+                                <select class="form-select" id="statusFilter">
+                                    <option value="">Todos</option>
+                                </select>
+                            </div>cess' && Array.isArray(result.data)) {
+                            <div class="col-md-3">
+                                <label for="refreshData" class="form-label">&nbsp;</label>
+                                <button id="refreshData" class="btn btn-primary form-control">Actualizar Datos</button>
+                            </div>
+                        </div>tros
+                    </div>ers(premiumFreightData);
+                </div>
+            </div>icar filtros iniciales
+        </div>plyFilters();
             
-            // Inicializar filtros
-            initializeFilters(premiumFreightData);
-            
-            // Aplicar filtros iniciales
-            applyFilters();
-            
-            // Ocultar indicador de carga
-            showLoading(false);
-        } else {
-            console.error("Invalid data format:", result);
-            throw new Error('Formato de datos inválido: ' + JSON.stringify(result));
-        }
-    } catch (error) {
-        console.error('Error al cargar datos:', error);
-        showErrorMessage(`Error al cargar datos: ${error.message}`);
-        showLoading(false);
-    }
-}
-
-// Función para inicializar los filtros
-function initializeFilters(data) {
-    // Filtro de plantas
-    const plantaFilter = document.getElementById('plantaFilter');
-    const plantas = [...new Set(data.map(item => item.planta))].filter(Boolean).sort();
-    
-    // Limpiar opciones existentes
-    while (plantaFilter.options.length > 1) {
-        plantaFilter.remove(1);
-    }
-    
-    // Agregar nuevas opciones
-    plantas.forEach(planta => {
-        const option = document.createElement('option');
-        option.value = planta;
-        option.textContent = planta;
-        plantaFilter.appendChild(option);
-    });
-    
-    // Filtro de status
-    const statusFilter = document.getElementById('statusFilter');
-    const statuses = [...new Set(data.map(item => item.status_name))].filter(Boolean).sort();
-    
-    // Limpiar opciones existentes
-    while (statusFilter.options.length > 1) {
-        statusFilter.remove(1);
-    }
-    
-    // Agregar nuevas opciones
-    statuses.forEach(status => {
-        const option = document.createElement('option');
-        option.value = status;
-        option.textContent = status.charAt(0).toUpperCase() + status.slice(1);
-        statusFilter.appendChild(option);
-    });
-}
-
-// Función para aplicar filtros
-function applyFilters() {
+        <!-- Añadir después de los filtros existentes -->
+        <div class="row mt-3">;
+            <div class="col-md-12">
+                <div class="btn-group float-end"> result);
+                    <button id="exportCSV" class="btn btn-sm btn-outline-success">);
+                        <i class="material-symbols-outlined">download</i> Exportar CSV
+                    </button>
+                    <button id="exportPDF" class="btn btn-sm btn-outline-danger">
+                        <i class="material-symbols-outlined">picture_as_pdf</i> Exportar PDF
+                    </button>
+                    <button id="printDashboard" class="btn btn-sm btn-outline-primary">
+                        <i class="material-symbols-outlined">print</i> Imprimir
+                    </button>
+                </div>lizar los filtros
+            </div>eFilters(data) {
+        </div>de plantas
+        t plantaFilter = document.getElementById('plantaFilter');
+        <!-- KPIs principales -->ata.map(item => item.planta))].filter(Boolean).sort();
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Envíos</h5>
+                        <h2 id="kpiTotalEnvios" class="display-4">0</h2>
+                    </div>ones
+                </div>anta => {
+            </div>on = document.createElement('option');
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Costo Total (€)</h5>
+                        <h2 id="kpiCostoTotal" class="display-4">0</h2>
+                    </div>
+                </div> = document.getElementById('statusFilter');
+            </div> = [...new Set(data.map(item => item.status_name))].filter(Boolean).sort();
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body"> {
+                        <h5 class="card-title">% Aprobación</h5>
+                        <h2 id="kpiApprovalRate" class="display-4">0%</h5>
+                    </div>
+                </div>opciones
+            </div>ch(status => {
+            <div class="col-md-3">eateElement('option');
+                <div class="card bg-warning text-dark">
+                    <div class="card-body">0).toUpperCase() + status.slice(1);
+                        <h5 class="card-title">% Recovery</h5>
+                        <h2 id="kpiRecoveryRate" class="display-4">0%</h2>
+                    </div>
+                </div>
+            </div>licar filtros
+        </div>Filters() {
     // Obtener valores de los filtros
-    const dateRange = $('#dateRange').data('daterangepicker');
-    const startDate = dateRange.startDate.format('YYYY-MM-DD');
-    const endDate = dateRange.endDate.format('YYYY-MM-DD');
-    const plantaValue = document.getElementById('plantaFilter').value;
-    const statusValue = document.getElementById('statusFilter').value;
-    
-    console.log("Applying filters:", { 
-        dateRange: `${startDate} to ${endDate}`, 
-        planta: plantaValue, 
-        status: statusValue 
-    });
-    console.log("Records before filtering:", premiumFreightData.length);
-    
-    // Filtrar datos
-    filteredData = premiumFreightData.filter(item => {
-        // Filtro de fechas
-        const itemDate = item.date ? item.date.substring(0, 10) : null;
-        const dateMatch = !itemDate || (itemDate >= startDate && itemDate <= endDate);
-        
-        // Filtro de planta
-        const plantaMatch = !plantaValue || item.planta === plantaValue;
-        
-        // Filtro de status
-        const statusMatch = !statusValue || item.status_name === statusValue;
-        
-        // Para debug
-        if(!dateMatch) console.log(`Date filter rejected item with date ${itemDate}`);
-        
-        // Combinar todos los filtros
-        return dateMatch && plantaMatch && statusMatch;
-    });
-    
-    console.log("Records after filtering:", filteredData.length);
-    console.log("Filtered", filteredData.length, "records");
-    
-    // Actualizar visualizaciones
-    updateVisualizations();
-}
-
-// Función para actualizar todas las visualizaciones
-function updateVisualizations() {
-    updateKPIs();
-    renderAreaDistributionChart();
-    renderPaidByChart();
-    renderCausesChart();
-    renderCostCategoriesChart();
-    renderApprovalTimeChart();
-    renderTransportChart();
-    renderRecoveryFilesChart();
-    renderProductsChart();
-    renderOriginDestinyMap();
-    renderTimeSeriesChart();
-    renderCorrelationChart();
-    renderForecastChart();
-    renderWordCloud();
-    renderPlantComparison();
-}
-
-// Función para actualizar los KPIs
-function updateKPIs() {
-    // Total de envíos
-    document.getElementById('kpiTotalEnvios').textContent = filteredData.length.toLocaleString();
-    
-    // Costo total en euros
-    const costoTotal = filteredData.reduce((sum, item) => sum + parseFloat(item.cost_euros || 0), 0);
-    document.getElementById('kpiCostoTotal').textContent = costoTotal.toLocaleString(undefined, {maximumFractionDigits: 0});
-    
-    // Tasa de aprobación
-    const aprobados = filteredData.filter(item => item.status_name === 'aprobado').length;
-    const apprRate = filteredData.length > 0 ? (aprobados / filteredData.length) * 100 : 0;
-    document.getElementById('kpiApprovalRate').textContent = apprRate.toFixed(1) + '%';
-    
-    // Tasa de recovery
-    const conRecovery = filteredData.filter(item => 
+        <!-- Añadir después de la sección de KPIs principales -->
+        <div class="row mb-4">e.startDate.format('YYYY-MM-DD');
+            <div class="col-md-12">te.format('YYYY-MM-DD');
+                <div class="card">etElementById('plantaFilter').value;
+                    <div class="card-body">ById('statusFilter').value;
+                        <h5 class="card-title">KPIs Detallados</h5>
+                        <div class="row" id="detailedKPIs">
+                            <div class="col-md-3 col-sm-6 mb-3">
+                                <div class="card stats-card border-primary">
+                                    <div class="card-body p-3">
+                                        <div class="title">Costo Promedio</div>
+                                        <div class="value" id="kpiAvgCost">€0</div>
+                                    </div>
+                                </div>
+                            </div>ata.filter(item => {
+                            <div class="col-md-3 col-sm-6 mb-3">
+                                <div class="card stats-card border-success">
+                                    <div class="card-body p-3">& itemDate <= endDate);
+                                        <div class="title">Ratio Interno/Externo</div>
+                                        <div class="value" id="kpiIntExtRatio">0:0</div>
+                                    </div>| item.planta === plantaValue;
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-6 mb-3"> statusValue;
+                                <div class="card stats-card border-info">
+                                    <div class="card-body p-3">
+                                        <div class="title">Tiempo Promedio de Aprobación</div>
+                                        <div class="value" id="kpiAvgApprovalTime">0 días</div>
+                                    </div>
+                                </div>h && statusMatch;
+                            </div>
+                            <div class="col-md-3 col-sm-6 mb-3">
+                                <div class="card stats-card border-warning">
+                                    <div class="card-body p-3">
+                                        <div class="title">Peso Total</div>
+                                        <div class="value" id="kpiTotalWeight">0 kg</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>as las visualizaciones
+                    </div>ons() {
+                </div>
+            </div>ributionChart();
+        </div>ByChart();
+        erCausesChart();
+        <!-- Primera fila de gráficos -->
+        <div class="row mb-4">
+            <!-- Gráfico 1: Distribución por Área -->
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Distribución por Área y Tipo</h5>
+                        <div id="chartAreaDistribution" style="height: 350px;"></div>
+                    </div>
+                </div>
+            </div>parison();
+            
+            <!-- Gráfico 2: Quién paga (Grammer vs Cliente) -->
+            <div class="col-md-6">s
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Responsable de Pago</h5>a.length.toLocaleString();
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div id="chartPaidBy" style="height: 350px;"></div>t_euros || 0), 0);
+                            </div>stoTotal').textContent = costoTotal.toLocaleString(undefined, {maximumFractionDigits: 0});
+                            <div class="col-md-4">
+                                <div id="paidByStats" class="mt-4"></div>
+                            </div>.filter(item => item.status_name === 'aprobado').length;
+                        </div>ata.length > 0 ? (aprobados / filteredData.length) * 100 : 0;
+                    </div>d('kpiApprovalRate').textContent = apprRate.toFixed(1) + '%';
+                </div>
+            </div>overy
+        </div>ecovery = filteredData.filter(item => 
         item.recovery && item.recovery !== 'NO RECOVERY'
-    ).length;
-    const recoveryRate = filteredData.length > 0 ? (conRecovery / filteredData.length) * 100 : 0;
-    document.getElementById('kpiRecoveryRate').textContent = recoveryRate.toFixed(1) + '%';
-    
-    // KPIs detallados
-    // Costo promedio
-    const costoPromedio = filteredData.length > 0 ? costoTotal / filteredData.length : 0;
-    document.getElementById('kpiAvgCost').textContent = '€' + costoPromedio.toLocaleString(undefined, {maximumFractionDigits: 2});
-    
-    // Ratio interno/externo
-    const internos = filteredData.filter(item => (item.int_ext || '').includes('INTERNAL')).length;
-    const externos = filteredData.filter(item => (item.int_ext || '').includes('EXTERNAL')).length;
-    document.getElementById('kpiIntExtRatio').textContent = `${internos}:${externos}`;
-    
-    // Tiempo promedio de aprobación
-    const itemsConAprobacion = filteredData.filter(item => item.date && item.approval_date);
-    let tiempoPromedio = 0;
-    
-    if (itemsConAprobacion.length > 0) {
-        const tiempoTotal = itemsConAprobacion.reduce((sum, item) => {
-            const createDate = new Date(item.date);
-            const approvalDate = new Date(item.approval_date);
+        <!-- Segunda fila de gráficos -->
+        <div class="row mb-4">redData.length > 0 ? (conRecovery / filteredData.length) * 100 : 0;
+            <!-- Gráfico 3: Principales causas -->tContent = recoveryRate.toFixed(1) + '%';
+            <div class="col-md-7">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Principales Causas</h5>redData.length : 0;
+                        <div id="chartCauses" style="height: 350px;"></div>.toLocaleString(undefined, {maximumFractionDigits: 2});
+                    </div>
+                </div>xterno
+            </div> = filteredData.filter(item => (item.int_ext || '').includes('INTERNAL')).length;
+            ternos = filteredData.filter(item => (item.int_ext || '').includes('EXTERNAL')).length;
+            <!-- Gráfico 4: Categorías de costos -->ntent = `${internos}:${externos}`;
+            <div class="col-md-5">
+                <div class="card h-100">
+                    <div class="card-body">.filter(item => item.date && item.approval_date);
+                        <h5 class="card-title">Categorías de Costos</h5>
+                        <div id="chartCostCategories" style="height: 350px;"></div>
+                    </div>.length > 0) {
+                </div>tal = itemsConAprobacion.reduce((sum, item) => {
+            </div>createDate = new Date(item.date);
+        </div>nst approvalDate = new Date(item.approval_date);
             const diffTime = Math.abs(approvalDate - createDate);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            return sum + diffDays;
-        }, 0);
-        
-        tiempoPromedio = tiempoTotal / itemsConAprobacion.length;
-    }
-    
-    document.getElementById('kpiAvgApprovalTime').textContent = tiempoPromedio.toFixed(1) + ' días';
-    
-    // Peso total
-    const pesoTotal = filteredData.reduce((sum, item) => sum + parseFloat(item.weight || 0), 0);
-    document.getElementById('kpiTotalWeight').textContent = pesoTotal.toLocaleString(undefined, {maximumFractionDigits: 0}) + ' kg';
-}
-
-// Función para generar el gráfico de distribución por área
-function renderAreaDistributionChart() {
-    // Procesar datos
-    const areaData = {};
-    
-    filteredData.forEach(item => {
-        const area = item.area || 'Sin especificar';
+        <!-- Tercera fila de gráficos -->ffTime / (1000 * 60 * 60 * 24));
+        <div class="row mb-4">ays;
+            <!-- Gráfico 5: Análisis de tiempos de aprobación -->
+            <div class="col-md-6">
+                <div class="card h-100">temsConAprobacion.length;
+                    <div class="card-body">
+                        <h5 class="card-title">Tiempo Promedio de Aprobación</h5>
+                        <div id="chartApprovalTime" style="height: 350px;"></div>Fixed(1) + ' días';
+                    </div>
+                </div>
+            </div>l = filteredData.reduce((sum, item) => sum + parseFloat(item.weight || 0), 0);
+            .getElementById('kpiTotalWeight').textContent = pesoTotal.toLocaleString(undefined, {maximumFractionDigits: 0}) + ' kg';
+            <!-- Gráfico 6: Transportes más utilizados -->
+            <div class="col-md-6">
+                <div class="card h-100">stribución por área
+                    <div class="card-body">
+                        <h5 class="card-title">Transportes Utilizados</h5>h, filteredData.slice(0, 2));
+                        <div id="chartTransport" style="height: 350px;"></div>
+                    </div>
+                </div>
+            </div>orEach(item => {
+        </div>area = item.area || 'Sin especificar';
         const intExt = item.int_ext || 'Sin especificar';
-        
-        if (!areaData[area]) {
-            areaData[area] = { INTERNAL: 0, EXTERNAL: 0, other: 0 };
-        }
-        
-        if (intExt.includes('INTERNAL')) {
-            areaData[area].INTERNAL++;
-        } else if (intExt.includes('EXTERNAL')) {
-            areaData[area].EXTERNAL++;
-        } else {
-            areaData[area].other++;
-        }
-    });
-    
-    // Preparar datos para ApexCharts
-    const areas = Object.keys(areaData);
-    const internal = areas.map(area => areaData[area].INTERNAL);
-    const external = areas.map(area => areaData[area].EXTERNAL);
-    const other = areas.map(area => areaData[area].other);
-    
-    // Crear o actualizar el gráfico
-    if (charts.areaDistribution) {
+        <!-- Cuarta fila de gráficos -->
+        <div class="row mb-4">
+            <!-- Gráfico 7: Análisis de archivos de recovery -->0 };
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Estado de Recovery Files</h5>
+                        <div id="chartRecoveryFiles" style="height: 300px;"></div>
+                    </div>.EXTERNAL++;
+                </div>
+            </div>ta[area].other++;
+            
+            <!-- Gráfico 8: Productos con más problemas -->
+            <div class="col-md-8">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Top 10 Productos con Más Incidencias</h5>
+                        <div id="chartProducts" style="height: 300px;"></div>
+                    </div>p(area => areaData[area].other);
+                </div>
+            </div>ualizar el gráfico
+        </div>.areaDistribution) {
         charts.areaDistribution.updateOptions({
-            xaxis: { categories: areas },
-            series: [
-                { name: 'Internal', data: internal },
-                { name: 'External', data: external },
-                { name: 'Otros', data: other }
-            ]
-        });
-    } else {
-        const options = {
-            chart: {
-                type: 'bar',
+        <!-- Añadir antes de la sección "Análisis detallado" -->
+        <div class="row mb-4">
+            <div class="col-md-12"> data: internal },
+                <div class="card">, data: external },
+                    <div class="card-body">r }
+                        <h5 class="card-title">Análisis de Texto: Causas y Descripciones</h5>
+                        <div id="wordCloudChart" style="height: 400px;"></div>
+                    </div>
+                </div>= {
+            </div> {
+        </div>  type: 'bar',
                 height: 350,
-                stacked: true,
-                toolbar: { show: true }
-            },
-            plotOptions: {
-                bar: {
-                    horizontal: false,
-                    columnWidth: '55%',
-                    endingShape: 'rounded'
-                },
-            },
-            dataLabels: { enabled: false },
+        <!-- Mapa de orígenes y destinos -->
+        <div class="row mb-4">w: true }
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Mapa de Orígenes y Destinos</h5>
+                        <div id="mapOriginDestiny" style="height: 500px;"></div>
+                    </div>Shape: 'rounded'
+                </div>
+            </div>
+        </div>taLabels: { enabled: false },
             stroke: { show: true, width: 2, colors: ['transparent'] },
-            xaxis: { categories: areas },
-            yaxis: {
-                title: { text: 'Cantidad de envíos' }
+        <!-- Añadir después de alguna fila de gráficos existente -->
+        <div class="row mb-4">
+            <div class="col-md-12">tidad de envíos' }
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Comparativa de Plantas</h5>
+                        <div id="plantComparisonChart" style="height: 450px;"></div>
+                    </div>ter: function (val) {
+                </div>  return val + " envíos"
+            </div>  }
+        </div>  }
             },
-            fill: { opacity: 1 },
-            tooltip: {
-                y: {
-                    formatter: function (val) {
-                        return val + " envíos"
-                    }
-                }
-            },
-            colors: ['#4472C4', '#ED7D31', '#A5A5A5'],
-            series: [
-                { name: 'Internal', data: internal },
-                { name: 'External', data: external },
-                { name: 'Otros', data: other }
-            ]
-        };
-        
-        charts.areaDistribution = new ApexCharts(document.getElementById('chartAreaDistribution'), options);
-        charts.areaDistribution.render();
-    }
-}
-
-// Función para generar el gráfico de quién paga (Grammer vs Cliente)
-function renderPaidByChart() {
-    // Procesar datos
-    const paidByData = {};
-    
-    filteredData.forEach(item => {
-        const paidBy = item.paid_by || 'Sin especificar';
-        if (!paidByData[paidBy]) {
-            paidByData[paidBy] = 1;
-        } else {
-            paidByData[paidBy]++;
-        }
-    });
-    
-    // Preparar datos para ApexCharts
-    const labels = Object.keys(paidByData);
-    const series = Object.values(paidByData);
-    
-    // Crear o actualizar el gráfico
-    if (charts.paidBy) {
+        <!-- Análisis detallado -->D7D31', '#A5A5A5'],
+        <div class="row mb-4">
+            <div class="col-md-12"> data: internal },
+                <div class="card">, data: external },
+                    <div class="card-header">}
+                        <ul class="nav nav-tabs card-header-tabs" id="analysisTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="trends-tab" data-bs-toggle="tab" data-bs-target="#trends" type="button" role="tab" aria-controls="trends" aria-selected="true">Tendencias Temporales</button>
+                            </li> new ApexCharts(document.getElementById('chartAreaDistribution'), options);
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="correlations-tab" data-bs-toggle="tab" data-bs-target="#correlations" type="button" role="tab" aria-controls="correlations" aria-selected="false">Correlaciones</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="forecast-tab" data-bs-toggle="tab" data-bs-target="#forecast" type="button" role="tab" aria-controls="forecast" aria-selected="false">Pronósticos</button>
+                            </li>
+                        </ul>erPaidByChart:", filteredData.length, filteredData.slice(0, 2));
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-content" id="analysisTabsContent">
+                            <div class="tab-pane fade show active" id="trends" role="tabpanel" aria-labelledby="trends-tab">
+                                <div id="chartTimeSeries" style="height: 400px;"></div>
+                            </div>
+                            <div class="tab-pane fade" id="correlations" role="tabpanel" aria-labelledby="correlations-tab">
+                                <div id="chartCorrelation" style="height: 400px;"></div>
+                            </div>
+                            <div class="tab-pane fade" id="forecast" role="tabpanel" aria-labelledby="forecast-tab">
+                                <div id="chartForecast" style="height: 400px;"></div>
+                            </div>
+                        </div>xCharts
+                    </div>keys(paidByData);
+                </div>ect.values(paidByData);
+            </div>
+        </div> actualizar el gráfico
+    </main>rts.paidBy) {
         charts.paidBy.updateOptions({
-            labels: labels,
-            series: series
-        });
-    } else {
-        const options = {
-            chart: {
-                type: 'pie',
-                height: 350
-            },
+    <!-- Bibliotecas JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.35.0/dist/apexcharts.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.4.4/dist/d3.min.js"></script>
             labels: labels,
             series: series,
             colors: ['#4472C4', '#ED7D31', '#A5A5A5', '#FFC000', '#5B9BD5'],
-            legend: {
-                position: 'bottom'
+    <!-- Archivos JS locales -->
+    <script src="js/header.js"></script>
             },
-            responsive: [{
-                breakpoint: 480,
-                options: {
-                    chart: {
+    <!-- Script principal del dashboard (versión modular) -->
+    <script type="module" src="js/dashboard.js"></script>
+</body>         options: {
+</html>             chart: {
                         width: 200
                     },
                     legend: {
@@ -411,6 +413,7 @@ function renderPaidByChart() {
 
 // Función para generar el gráfico de principales causas
 function renderCausesChart() {
+    console.log("[DEBUG] renderCausesChart:", filteredData.length, filteredData.slice(0, 2));
     // Procesar datos
     const causesData = {};
     
@@ -563,6 +566,7 @@ function renderCausesChart() {
 
 // Función para generar el gráfico de categorías de costos
 function renderCostCategoriesChart() {
+    console.log("[DEBUG] renderCostCategoriesChart:", filteredData.length, filteredData.slice(0, 2));
     // Calcular las categorías de costo según las reglas proporcionadas
     const costCategories = {
         "≤ €1,500": 0,
@@ -644,6 +648,7 @@ function renderCostCategoriesChart() {
 
 // Función para generar el gráfico de tiempo promedio de aprobación
 function renderApprovalTimeChart() {
+    console.log("[DEBUG] renderApprovalTimeChart:", filteredData.length, filteredData.slice(0, 2));
     // Procesar datos de tiempo de aprobación
     const approvalTimeData = [];
     
@@ -732,6 +737,7 @@ function renderApprovalTimeChart() {
 
 // Función para generar el gráfico de transportes más utilizados
 function renderTransportChart() {
+    console.log("[DEBUG] renderTransportChart:", filteredData.length, filteredData.slice(0, 2));
     // Procesar datos
     const transportData = {};
     const costByTransport = {};
@@ -848,6 +854,7 @@ function renderTransportChart() {
 
 // Función para generar el gráfico de estado de recovery files
 function renderRecoveryFilesChart() {
+    console.log("[DEBUG] renderRecoveryFilesChart:", filteredData.length, filteredData.slice(0, 2));
     // Contar registros con recovery file y evidence
     const withRecoveryFile = filteredData.filter(item => item.recovery_file).length;
     const withEvidence = filteredData.filter(item => item.recovery_evidence).length;
@@ -907,6 +914,7 @@ function renderRecoveryFilesChart() {
 
 // Función para generar el gráfico de productos con más incidencias
 function renderProductsChart() {
+    console.log("[DEBUG] renderProductsChart:", filteredData.length, filteredData.slice(0, 2));
     // Procesar datos
     const productsData = {};
     
@@ -971,6 +979,7 @@ function renderProductsChart() {
 // Reemplazar la función renderOriginDestinyMap con esta versión mejorada
 
 async function renderOriginDestinyMap() {
+    console.log("[DEBUG] renderOriginDestinyMap:", filteredData.length, filteredData.slice(0, 2));
     // Crear el mapa si no existe
     if (!maps.originDestiny) {
         maps.originDestiny = L.map('mapOriginDestiny').setView([25, 0], 2);
@@ -1070,6 +1079,7 @@ async function geocodeLocation(city, state, country) {
 
 // Función para generar el gráfico de series temporales
 function renderTimeSeriesChart() {
+    console.log("[DEBUG] renderTimeSeriesChart:", filteredData.length, filteredData.slice(0, 2));
     // Procesar datos por fecha
     const dateData = {};
     
@@ -1208,6 +1218,7 @@ function renderTimeSeriesChart() {
 
 // Función para generar el gráfico de correlación
 function renderCorrelationChart() {
+    console.log("[DEBUG] renderCorrelationChart:", filteredData.length, filteredData.slice(0, 2));
     // Procesar datos para correlación entre peso y costo
     const scatterData = [];
     
@@ -1291,6 +1302,7 @@ function renderCorrelationChart() {
 
 // Función para generar el gráfico de pronóstico
 function renderForecastChart() {
+    console.log("[DEBUG] renderForecastChart:", filteredData.length, filteredData.slice(0, 2));
     // Procesar datos históricos por mes
     const monthlyData = {};
     
@@ -1469,6 +1481,7 @@ function showErrorMessage(message) {
 // Añadir esta función y llamarla desde updateVisualizations()
 
 function renderWordCloud() {
+    console.log("[DEBUG] renderWordCloud:", filteredData.length, filteredData.slice(0, 2));
     // Extraer descripciones y causas
     const textData = filteredData.map(item => 
         (item.description || '') + ' ' + (item.root_cause || '') + ' ' + (item.category_cause || '')
@@ -1537,6 +1550,7 @@ function renderWordCloud() {
 // Añadir esta función y llamarla desde updateVisualizations()
 
 function renderPlantComparison() {
+    console.log("[DEBUG] renderPlantComparison:", filteredData.length, filteredData.slice(0, 2));
     // Obtener las 5 plantas con más registros
     const plantCounts = {};
     
@@ -1788,3 +1802,4 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+</copilot-edited-file>

@@ -364,7 +364,7 @@ include_once 'dao/users/auth_check.php';
     <!-- Archivos JS locales -->
     <script src="js/header.js"></script>
 
-    <!-- Script principal del dashboard -->
-    <script src="js/dashboard.js"></script>
+    <!-- Script principal del dashboard (versión modular) -->
+    <script type="module" src="js/dashboard.js"></script>
 </body>
 </html>
