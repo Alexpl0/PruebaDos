@@ -33,7 +33,7 @@ const svgMap = {
     'CityDestValue': 'destiny_city',
     'StateDestValue': 'destiny_state',
     'ZIPDestValue': 'destiny_zip',
-    'WeightValue': 'weight',
+    'WeightValue': (order) => `${order.weight || '0'} ${order.measures || ''}`,
     'ProductValue': 'products',
     'CarrierNameValue': 'carrier',
     'QuotedCostValue': (order) => `$ ${order.quoted_cost || '0'} ${order.moneda || 'MXN'}`,

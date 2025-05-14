@@ -297,7 +297,7 @@ include_once 'dao/users/auth_check.php';
                     <select name="Measures" id="Measures" class="form-select">
                         <?php if (!empty($jsonMeasures)): ?>
                             <?php foreach ($jsonMeasures as $Measures): ?>
-                                <option value="<?php echo htmlspecialchars($Measures['ID']); ?>">
+                                <option value="<?php echo htmlspecialchars($Measures['UM']); ?>">
                                     <?php echo htmlspecialchars($Measures['UM']); ?>
                                 </option>
                             <?php endforeach; ?>
