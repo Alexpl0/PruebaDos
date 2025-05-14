@@ -1,8 +1,8 @@
 // Manejo de filtros de la interfaz de usuario
 
-import { dateRangeConfig } from '../config.js';
-import { getRawData, applyFilters } from '../data.js';
-import { updateAllVisualizations } from '../main.js';
+import { dateRangeConfig } from '../configDashboard.js';
+import { getRawData, applyFilters } from '../dataDashboard.js';
+import { updateAllVisualizations } from '../mainDashboard.js';
 
 let daterangepicker;
 

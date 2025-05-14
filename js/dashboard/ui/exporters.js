@@ -1,6 +1,6 @@
 // Funciones para exportar datos del dashboard
 
-import { getFilteredData } from '../data.js';
+import { getFilteredData } from '../dataDashboard.js';
 
 /**
  * Exporta los datos filtrados a CSV

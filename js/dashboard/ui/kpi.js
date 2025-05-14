@@ -1,7 +1,7 @@
 // Actualización de KPIs en la interfaz de usuario
 
-import { getFilteredData } from '../data.js';
-import { formatNumber } from '../utils.js';
+import { getFilteredData } from '../dataDashboard.js';
+import { formatNumber } from '../utilsDashboard.js';
 
 /**
  * Actualiza todos los KPIs con los datos filtrados
