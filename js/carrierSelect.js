@@ -27,7 +27,6 @@ function loadAllCarriers() {
                 // Trigger change to update Select2
                 carrierSelect.trigger('change');
                 
-                console.log(`Loaded ${options.length} carriers initially`);
             } else {
                 console.error("Failed to load initial carriers:", data);
             }
@@ -41,6 +40,7 @@ function loadAllCarriers() {
 // Initialize the Select2 widget for the carrier field
 // Configure AJAX search and the option to add a new carrier if not found
 function showCarrierSelect() {
+    console.log("Esramos en showCarrierSelect");
     // Check if the element exists
     const carrierElement = $('#Carrier');
     console.log("Carrier element exists:", carrierElement.length > 0);
