@@ -5,6 +5,15 @@ $name = isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null;
 $userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
 include_once 'dao/users/auth_check.php';
 ?>
+<script>
+    window.authorizationLevel = <?php echo json_encode($nivel); ?>;
+    window.userName = <?php echo json_encode($name); ?>;
+    window.userID = <?php echo json_encode($userID); ?>;
+    console.log("Auth Level: " + window.authorizationLevel);
+    console.log("UserName: " + window.userName);
+    console.log("UserID: " + window.userID);
+</script>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -26,7 +35,6 @@ include_once 'dao/users/auth_check.php';
     <script src="https://cdn.jsdelivr.net/npm/d3-cloud@1.2.5/build/d3.layout.cloud.min.js"></script>
 </head>
 <body>
-    <?php include('header.php'); ?>
     <div id="header-container"></div>
     
     <main class="container-fluid my-4">
