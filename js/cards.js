@@ -15,7 +15,7 @@ export function createCards(orders) {
     // Get the container for the cards
     const mainCards = document.getElementById("card");
     if (!mainCards) {
-        console.error("Element with ID 'card' not found.");
+        // console.error("Element with ID 'card' not found.");
         return;
     }
     
@@ -45,9 +45,9 @@ export function createCards(orders) {
     });
 
     // Debug logging
-    console.log("Total orders to display:", orders.length);
+    // console.log("Total orders to display:", orders.length);
     const ordersNeedingEvidence = orders.filter(order => order.recovery_file && !order.recovery_evidence);
-    console.log("Orders needing evidence:", ordersNeedingEvidence.length);
+    // console.log("Orders needing evidence:", ordersNeedingEvidence.length);
 
     // Create card for each order
     orders.forEach(order => {
@@ -197,7 +197,7 @@ function attachCardEventListeners() {
         });
     });
     
-    console.log(`Event listeners attached to ${document.querySelectorAll('.ver-btn').length} view buttons and ${document.querySelectorAll('.notification-badge').length} notification badges`);
+    // console.log(`Event listeners attached to ${document.querySelectorAll('.ver-btn').length} view buttons and ${document.querySelectorAll('.notification-badge').length} notification badges`);
 }
 
 /**

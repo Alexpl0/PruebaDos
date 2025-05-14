@@ -5,14 +5,17 @@
 
 import { addNotificationStyles } from './utils.js';
 import { createCards, setupSearch } from './cards.js';
-import { 
-    updateModalButtons, 
+import { updateModalButtons, 
     setupModalEventListeners 
 } from './modals.js';
 import { setupApprovalEventListeners } from './approval.js';
 
+console.log('All modules imported successfully');
+
 // Document ready handler
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM content loaded');
+    
     // Show loading message
     Swal.fire({
         title: 'Loading Application',
@@ -29,10 +32,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load order data from API
     loadOrderData();
     
-    // Set up event listeners
-    setupModalEventListeners();
-    setupApprovalEventListeners();
-    setupSearch();
+    try {
+        console.log('Setting up event listeners...');
+        // Set up event listeners
+        setupModalEventListeners();
+        console.log('Modal event listeners set up successfully');
+        
+        setupApprovalEventListeners();
+        console.log('Approval event listeners set up successfully');
+        
+        setupSearch();
+        console.log('Search set up successfully');
+    } catch (error) {
+        console.error('Error setting up event listeners:', error);
+    }
     
     // Update modal buttons to icon-only version
     document.querySelector('#myModal .modal-buttons').innerHTML = `
@@ -46,6 +59,15 @@ document.addEventListener('DOMContentLoaded', function() {
             <span class="material-symbols-outlined">cancel</span>
         </button>
     `;
+    
+    console.log('Modal buttons updated');
+    
+    // Verify buttons exist and have event listeners
+    const approveBtn = document.getElementById('approveBtn');
+    const rejectBtn = document.getElementById('rejectBtn');
+    
+    console.log('Approve button exists:', !!approveBtn);
+    console.log('Reject button exists:', !!rejectBtn);
 
     // Close loading message
     Swal.close();

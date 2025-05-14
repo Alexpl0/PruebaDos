@@ -6,12 +6,17 @@
 import { hideModal } from './modals.js';
 import { createCards } from './cards.js';
 
+console.log('Approval module loaded');
+
 /**
  * Handles approve button click
  */
 export async function handleApprove() {
+    console.log('Approve button clicked');
     const selectedOrderId = sessionStorage.getItem('selectedOrderId');
+    console.log('Selected order ID:', selectedOrderId);
     const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
+    console.log('Selected order details:', selectedOrder);
     
     try {
         Swal.fire({
@@ -106,8 +111,11 @@ export async function handleApprove() {
  * Handles reject button click
  */
 export async function handleReject() {
+    console.log('Reject button clicked');
     const selectedOrderId = sessionStorage.getItem('selectedOrderId');
+    console.log('Selected order ID:', selectedOrderId);
     const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
+    console.log('Selected order details:', selectedOrder);
     
     try {
         // Ask for confirmation
@@ -209,6 +217,29 @@ export async function handleReject() {
  * Sets up approval/rejection button listeners
  */
 export function setupApprovalEventListeners() {
-    document.getElementById('approveBtn').onclick = handleApprove;
-    document.getElementById('rejectBtn').onclick = handleReject;
+    console.log('Setting up approval event listeners');
+    const approveBtn = document.getElementById('approveBtn');
+    const rejectBtn = document.getElementById('rejectBtn');
+    
+    if (!approveBtn) {
+        console.error('Approve button not found in the DOM');
+    } else {
+        console.log('Approve button found, attaching event listener');
+        approveBtn.onclick = handleApprove;
+    }
+    
+    if (!rejectBtn) {
+        console.error('Reject button not found in the DOM');
+    } else {
+        console.log('Reject button found, attaching event listener');
+        rejectBtn.onclick = handleReject;
+    }
+    
+    // Check if event listeners were attached
+    if (approveBtn) {
+        console.log('Approve button has onclick handler:', !!approveBtn.onclick);
+    }
+    if (rejectBtn) {
+        console.log('Reject button has onclick handler:', !!rejectBtn.onclick);
+    }
 }
