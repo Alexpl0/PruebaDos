@@ -70,11 +70,14 @@ function showCarrierSelect() {
                     return { results: [] };
                 }
 
-                console.log("Estamos en processResults")
-                
-                // Debug logging
-                console.log("Search term:", params.term);
-                console.log("API response data:", data.data);
+                if(data.status !== 'success') {
+                    console.error("Server response status is not success:", data);
+                    return { results: [] };
+                }
+
+                if(data.data.length > 0) {
+                    console.log("Data received from server:", data.data);
+                }
                 
                 // Map results for Select2
                 const results = data.data.map(carrier => ({
