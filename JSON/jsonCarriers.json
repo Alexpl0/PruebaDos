@@ -1,0 +1,113 @@
+{
+    "status": "success",
+    "data": [
+        {
+            "id": 1,
+            "name": "Dachser"
+        },
+        {
+            "id": 2,
+            "name": "Geodis"
+        },
+        {
+            "id": 3,
+            "name": "Ryder"
+        },
+        {
+            "id": 4,
+            "name": "FedEx"
+        },
+        {
+            "id": 5,
+            "name": "CT Logistics"
+        },
+        {
+            "id": 6,
+            "name": "Buckland (cliente 90169)"
+        },
+        {
+            "id": 7,
+            "name": "Vector"
+        },
+        {
+            "id": 8,
+            "name": "Europartners - XPD"
+        },
+        {
+            "id": 9,
+            "name": "UPS"
+        },
+        {
+            "id": 10,
+            "name": "Xtrapack"
+        },
+        {
+            "id": 11,
+            "name": "Majoba"
+        },
+        {
+            "id": 12,
+            "name": "TPB"
+        },
+        {
+            "id": 13,
+            "name": "Julsa"
+        },
+        {
+            "id": 14,
+            "name": "ARD"
+        },
+        {
+            "id": 15,
+            "name": "Gutierrez"
+        },
+        {
+            "id": 16,
+            "name": "Senator"
+        },
+        {
+            "id": 17,
+            "name": "Mendoza"
+        },
+        {
+            "id": 18,
+            "name": "Agentes Aduanales"
+        },
+        {
+            "id": 19,
+            "name": "OMNI Logistics"
+        },
+        {
+            "id": 20,
+            "name": "Palos Garza"
+        },
+        {
+            "id": 21,
+            "name": "Röhling"
+        },
+        {
+            "id": 22,
+            "name": "Savino del Bene"
+        },
+        {
+            "id": 23,
+            "name": "DSV"
+        },
+        {
+            "id": 24,
+            "name": "DB Schenker"
+        },
+        {
+            "id": 25,
+            "name": "La Silla"
+        },
+        {
+            "id": 26,
+            "name": "Vortex"
+        },
+        {
+            "id": 27,
+            "name": "Hellmann Worldwide Logistics"
+        }
+    ]
+}
