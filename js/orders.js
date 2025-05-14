@@ -960,27 +960,3 @@ function updateModalButtons() {
         updateModalButtonsContainer();
     }
 }
-
-// When showing the modal
-function showModal(orderId) {
-    const modal = document.getElementById('myModal');
-    modal.style.display = 'flex'; // Use flex instead of block
-    modal.classList.add('show');
-    
-    // Prevent body scrolling when modal is open
-    document.body.style.overflow = 'hidden';
-    
-    // ...rest of your modal show code...
-}
-
-// When hiding the modal
-function hideModal() {
-    const modal = document.getElementById('myModal');
-    modal.style.display = 'none';
-    modal.classList.remove('show');
-    
-    // Restore body scrolling
-    document.body.style.overflow = '';
-    
-    // ...rest of your modal hide code...
-}
