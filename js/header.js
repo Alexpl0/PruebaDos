@@ -34,7 +34,7 @@ function createHeader(authLevel) {
         navItems += navLink('newOrder.php', 'New Order');
         navItems += navLink('orders.php', 'Generated Orders');
         navItems += navLink('adminUsers.php', 'Admin User');
-        navItems += navLink('google.com', 'Charts');
+        navItems += navLink('dashboard.php', 'Charts');
         navItems += navLink('#', 'Manual');
     }
 
