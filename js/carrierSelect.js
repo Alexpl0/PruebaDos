@@ -60,19 +60,30 @@ function showCarrierSelect() {
                     console.error("Server data format is incorrect or missing data.data array:", data);
                     return { results: [] };
                 }
+                
+                // Debug logging
+                console.log("Search term:", params.term);
+                console.log("API response data:", data.data);
+                
                 // Map results for Select2
                 const results = data.data.map(carrier => ({
                     id: carrier.id,
                     text: carrier.name
                 }));
+                
+                console.log("Results length before check:", results.length);
+                
                 // If there are no results and the user typed something, allow adding a new carrier
                 if (params.term && results.length === 0) {
+                    console.log("Adding 'Add new carrier' option for:", params.term);
                     results.push({
                         id: params.term,
                         text: `Add new carrier: "${params.term}"`,
                         isNew: true
                     });
                 }
+                
+                console.log("Final results:", results);
                 return { results };
             },
             cache: true,
