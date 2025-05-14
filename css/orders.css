@@ -341,15 +341,12 @@ main {
     display: flex;
     justify-content: center;
     align-items: center;
-}
-
-.evidence-modal-content {
-    background-color: white;
-    padding: 20px;
+    background-color: transparent;
     border-radius: 8px;
     max-width: 500px;
     width: 90%;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    animation: modalFadeIn 0.3s ease-out;
 }
 
 .evidence-modal-header {

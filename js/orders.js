@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // console.log('Modal event listeners set up successfully');
         
         setupApprovalEventListeners();
-        console.log('Approval event listeners set up successfully');
+        // console.log('Approval event listeners set up successfully');
         
         setupSearch();
         // console.log('Search set up successfully');
