@@ -41,6 +41,8 @@ function loadAllCarriers() {
 // Initialize the Select2 widget for the carrier field
 // Configure AJAX search and the option to add a new carrier if not found
 function showCarrierSelect() {
+    console.log("Initializing Select2 for Carrier field");
+    
     // Initialize Select2 on the element with ID 'Carrier'
     $('#Carrier').select2({
         placeholder: "Search carrier",
