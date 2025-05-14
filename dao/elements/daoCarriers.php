@@ -42,3 +42,5 @@ try {
     echo json_encode(["status" => "error", "message" => $e->getMessage(), "data" => []], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 }
 ?>
+
+// https://grammermx.com/Jesus/PruebaDos/dao/elements/daoCarriers.php

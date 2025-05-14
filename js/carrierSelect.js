@@ -32,6 +32,7 @@ function showCarrierSelect() {
                     id: carrier.id,
                     text: carrier.name
                 }));
+                console.log("Carrier search results:", results);
                 // If there are no results and the user typed something, allow adding a new carrier
                 if (params.term && results.length === 0) {
                     results.push({
