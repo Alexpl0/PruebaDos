@@ -2,7 +2,7 @@
 
 import { getFilteredData } from '../dataDashboard.js';
 import { maps } from '../configDashboard.js';
-import { geocodeLocation } from '../utils.js';
+import { geocodeLocation } from '../utilsDashboard.js';
 
 /**
  * Genera o actualiza el mapa de orígenes y destinos

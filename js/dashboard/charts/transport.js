@@ -2,7 +2,7 @@
 
 import { getFilteredData } from '../dataDashboard.js';
 import { charts, chartColors } from '../configDashboard.js';
-import { formatNumber } from '../utils.js';
+import { formatNumber } from '../utilsDashboard.js';
 
 /**
  * Genera o actualiza el gráfico de transportes
