@@ -332,21 +332,21 @@ main {
 .evidence-upload-modal {
     display: none;
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
     z-index: 1000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: transparent;
+    /* Remover propiedades que están causando conflicto */
+    top: auto;
+    left: auto;
+    height: auto; /* Ajustar a contenido */
+    background-color: white;
     border-radius: 8px;
-    max-width: 500px;
-    width: 90%;
+    width: auto; /* Cambiado de 90% a auto para ajustarse al contenido */
+    max-width: 500px; /* Mantiene un ancho máximo para pantallas grandes */
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     animation: modalFadeIn 0.3s ease-out;
+    margin: auto; /* Centrado automático */
+    position: relative; /* Asegura que el posicionamiento sea relativo al contenedor */
+    display: flex; /* Usar flexbox para el contenido */
+    flex-direction: column; /* Organizar el contenido en columna */
 }
 
 .evidence-modal-header {
@@ -495,15 +495,6 @@ main {
     backdrop-filter: blur(3px);
 }
 
-.evidence-upload-modal {
-    background-color: white;
-    border-radius: 8px;
-    max-width: 500px;
-    width: 90%;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    animation: modalFadeIn 0.3s ease-out;
-}
-
 @keyframes modalFadeIn {
     from {
         opacity: 0;
@@ -518,6 +509,7 @@ main {
 .evidence-modal-content {
     display: flex;
     flex-direction: column;
+    width: 100%; /* Asegura que el contenido ocupe todo el ancho disponible */
 }
 
 .evidence-modal-header {
@@ -612,4 +604,13 @@ main {
     color: #6c757d;
     font-size: 0.875rem;
     margin-top: 0.25rem;
+}
+
+/* Corregir el comportamiento en pantallas más pequeñas */
+@media (max-width: 576px) {
+    .evidence-upload-modal {
+        width: 95%; /* En pantallas pequeñas, usar un poco más de ancho */
+        max-height: 90vh; /* Limitar altura en pantallas pequeñas */
+        overflow-y: auto; /* Permitir scroll si el contenido es muy alto */
+    }
 }
