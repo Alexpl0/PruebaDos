@@ -35,6 +35,14 @@ include_once 'dao/users/auth_check.php';
     <script src="https://cdn.jsdelivr.net/npm/d3-cloud@1.2.5/build/d3.layout.cloud.min.js"></script>
 </head>
 <body>
+    <div id="loadingOverlay" style="display:none;">
+        <div class="spinner-container">
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <div class="mt-2">Cargando datos...</div>
+        </div>
+    </div>
     <div id="header-container"></div>
     
     <main class="container-fluid my-4">
