@@ -95,12 +95,40 @@ export function renderApprovalTimeChart() {
         avgByStatus[status] = avgByStatus[status] / countByStatus[status];
     }
     
-    // PASO 4: PREPARACIÓN DE DATOS PARA EL GRÁFICO
-    // Extrae los nombres de los estados (categorías para el eje Y del gráfico)
-    const categories = Object.keys(avgByStatus);     
-    // Extrae los valores promedio (datos para las barras del gráfico)
-    const seriesData = Object.values(avgByStatus);   
+    // PASO 3.5: TRADUCCIÓN Y ORDENAMIENTO DE ESTADOS
+    // Mapeo de estados en español a inglés
+    const statusTranslation = {
+        'nuevo': 'New',
+        'revision': 'In Review',
+        'aprobado': 'Approved',
+        'rechazado': 'Rejected'
+    };
     
+    // Definir el orden deseado para los estados
+    const statusOrder = ['New', 'In Review', 'Approved', 'Rejected'];
+    
+    // Crear un nuevo objeto para los valores promedio con las traducciones
+    const translatedAvgByStatus = {};
+    for (const status in avgByStatus) {
+        // Traducir la clave del estado
+        const translatedStatus = statusTranslation[status] || status;
+        translatedAvgByStatus[translatedStatus] = avgByStatus[status];
+    }
+    
+    // PASO 4: PREPARACIÓN DE DATOS PARA EL GRÁFICO CON ESTADOS ORDENADOS
+    // Prepare arrays for categories and data in the specified order
+    const categories = [];
+    const seriesData = [];
+    
+    // Recorrer los estados en el orden especificado
+    statusOrder.forEach(status => {
+        // Solo incluir si existe el estado en nuestros datos
+        if (translatedAvgByStatus[status] !== undefined) {
+            categories.push(status);
+            seriesData.push(translatedAvgByStatus[status]);
+        }
+    });
+
     // PASO 5: ACTUALIZACIÓN O CREACIÓN DEL GRÁFICO
     // Comprueba si el gráfico ya existe (para actualizarlo) o si hay que crearlo desde cero
     if (charts.approvalTime) {
