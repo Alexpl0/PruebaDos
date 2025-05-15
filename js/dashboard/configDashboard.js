@@ -37,16 +37,16 @@ export const dateRangeConfig = {
         // Último mes: desde hace 1 mes hasta hoy
         // moment() obtiene la fecha actual
         // subtract(1, 'month') retrocede 1 mes desde esa fecha
-        'Último Mes': [moment().subtract(1, 'month'), moment()],
+        'Last Month': [moment().subtract(1, 'month'), moment()],
         
         // Últimos 3 meses: desde hace 3 meses hasta hoy
-        'Últimos 3 Meses': [moment().subtract(3, 'month'), moment()],
+        'Last 3 Months': [moment().subtract(3, 'month'), moment()],
         
         // Último año: desde hace 1 año hasta hoy
-        'Último Año': [moment().subtract(1, 'year'), moment()],
+        'Last Year': [moment().subtract(1, 'year'), moment()],
         
         // Todo el tiempo: abarca 10 años hacia atrás (suficiente para cubrir todos los datos históricos)
-        'Todo el Tiempo': [moment().subtract(10, 'year'), moment()]
+        'All Time': [moment().subtract(10, 'year'), moment()]
     },
     
     // Rango seleccionado por defecto al cargar el dashboard por primera vez
@@ -64,20 +64,20 @@ export const dateRangeConfig = {
         format: 'DD/MM/YYYY',
         
         // Etiquetas para los botones y controles del selector
-        applyLabel: 'Aplicar',      // Botón para aplicar el rango seleccionado
-        cancelLabel: 'Cancelar',    // Botón para cancelar la selección
-        fromLabel: 'Desde',         // Etiqueta para la fecha de inicio
-        toLabel: 'Hasta',           // Etiqueta para la fecha de fin
-        customRangeLabel: 'Rango Personalizado',  // Etiqueta para selección manual
-        weekLabel: 'S',             // Abreviatura de "Semana"
+        applyLabel: 'Apply',      // Botón para aplicar el rango seleccionado
+        cancelLabel: 'Cancel',    // Botón para cancelar la selección
+        fromLabel: 'From',         // Etiqueta para la fecha de inicio
+        toLabel: 'To',           // Etiqueta para la fecha de fin
+        customRangeLabel: 'Custom Range',  // Etiqueta para selección manual
+        weekLabel: 'W',             // Abreviatura de "Semana"
         
         // Nombres abreviados de los días de la semana en español
-        daysOfWeek: ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'],
+        daysOfWeek: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
         
         // Nombres completos de los meses en español
         monthNames: [
-            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
         ],
         
         // Primer día de la semana: 1 = lunes (estándar europeo)
@@ -145,17 +145,17 @@ export const dataTablesConfig = {
     
     // Configuración del idioma (español)
     language: {
-        search: "Buscar:",
-        lengthMenu: "Mostrar _MENU_ registros por página",
-        zeroRecords: "No se encontraron resultados",
-        info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
-        infoEmpty: "Mostrando 0 a 0 de 0 registros",
-        infoFiltered: "(filtrado de _MAX_ registros totales)",
+        search: "Search:",
+        lengthMenu: "Show _MENU_ entries per page",
+        zeroRecords: "No matching records found",
+        info: "Showing _START_ to _END_ of _TOTAL_ entries",
+        infoEmpty: "Showing 0 to 0 of 0 entries",
+        infoFiltered: "(filtered from _MAX_ total entries)",
         paginate: {
-            first: "Primero",
-            last: "Último",
-            next: "Siguiente",
-            previous: "Anterior"
+            first: "First",
+            last: "Last",
+            next: "Next",
+            previous: "Previous"
         }
     },
     

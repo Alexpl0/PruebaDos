@@ -118,27 +118,27 @@ export function renderTimeSeriesChart() {
                         axisTicks: { show: true },
                         axisBorder: { show: true, color: chartColors.primary },
                         labels: { style: { colors: chartColors.primary } },
-                        title: { text: "Cantidad de Envíos", style: { color: chartColors.primary } },
+                        title: { text: "Number of Shipments", style: { color: chartColors.primary } },
                         tooltip: { enabled: true },
                         min: 0  // Valor mínimo 0 para evitar errores
                     },
                     {
                         // Configuración del segundo eje Y (costo total)
-                        seriesName: 'Costo Total (€)',
+                        seriesName: 'Total Cost (€)',
                         opposite: true,
                         axisTicks: { show: true },
                         axisBorder: { show: true, color: chartColors.secondary },
                         labels: { style: { colors: chartColors.secondary } },
-                        title: { text: "Costo Total (€)", style: { color: chartColors.secondary } },
+                        title: { text: "Total Cost (€)", style: { color: chartColors.secondary } },
                         min: 0  // Valor mínimo 0 para evitar errores
                     }
                 ],
                 
                 // Vacía las series de datos
                 series: [
-                    { name: 'Envíos Internos', data: [] },
-                    { name: 'Envíos Externos', data: [] },
-                    { name: 'Costo Total (€)', data: [] }
+                    { name: 'Internal Shipments', data: [] },
+                    { name: 'External Shipments', data: [] },
+                    { name: 'Total Cost (€)', data: [] }
                 ]
             });
         }
@@ -181,16 +181,16 @@ export function renderTimeSeriesChart() {
             // Actualiza las series de datos con los nuevos valores
             series: [
                 {
-                    name: 'Envíos Internos',
+                    name: 'Internal Shipments',
                     // Asegura que no haya valores undefined o null que podrían causar errores
                     data: internalData.map(value => value === undefined ? 0 : value)
                 },
                 {
-                    name: 'Envíos Externos',
+                    name: 'External Shipments',
                     data: externalData.map(value => value === undefined ? 0 : value)
                 },
                 {
-                    name: 'Costo Total (€)',
+                    name: 'Total Cost (€)',
                     data: costData.map(value => value === undefined ? 0 : value)
                 }
             ]
@@ -220,7 +220,7 @@ export function renderTimeSeriesChart() {
             },
             // Título principal del gráfico
             title: {
-                text: 'Tendencia de Envíos y Costos',
+                text: 'Shipments and Costs Trend',
                 align: 'center'             // Centrado horizontalmente
             },
             // Configuración de la cuadrícula de fondo
@@ -255,7 +255,7 @@ export function renderTimeSeriesChart() {
                         }
                     },
                     title: {
-                        text: "Cantidad de Envíos",  // Título descriptivo del eje
+                        text: "Number of Shipments",  // Título descriptivo del eje
                         style: {
                             color: chartColors.primary,  // Color del título
                         }
@@ -267,7 +267,7 @@ export function renderTimeSeriesChart() {
                 },
                 {
                     // Segundo eje Y (derecha) - Para el costo total
-                    seriesName: 'Costo Total (€)',  // Nombre de la serie asociada
+                    seriesName: 'Total Cost (€)',  // Nombre de la serie asociada
                     opposite: true,          // Ubicado en el lado opuesto (derecha)
                     axisTicks: {
                         show: true,          // Muestra las marcas del eje
@@ -282,7 +282,7 @@ export function renderTimeSeriesChart() {
                         }
                     },
                     title: {
-                        text: "Costo Total (€)",  // Título descriptivo del eje
+                        text: "Total Cost (€)",  // Título descriptivo del eje
                         style: {
                             color: chartColors.secondary,  // Color del título
                         }
@@ -299,8 +299,8 @@ export function renderTimeSeriesChart() {
                         // Formateador para la primera serie (envíos internos)
                         formatter: function (y) {
                             if (typeof y !== "undefined") {
-                                // Muestra el valor sin decimales y añade la unidad "envíos"
-                                return y.toFixed(0) + " envíos";
+                                // Muestra el valor sin decimales y añade la unidad "shipments"
+                                return y.toFixed(0) + " shipments";
                             }
                             return y;
                         }
@@ -309,8 +309,8 @@ export function renderTimeSeriesChart() {
                         // Formateador para la segunda serie (envíos externos)
                         formatter: function (y) {
                             if (typeof y !== "undefined") {
-                                // Muestra el valor sin decimales y añade la unidad "envíos"
-                                return y.toFixed(0) + " envíos";
+                                // Muestra el valor sin decimales y añade la unidad "shipments"
+                                return y.toFixed(0) + " shipments";
                             }
                             return y;
                         }
@@ -332,17 +332,17 @@ export function renderTimeSeriesChart() {
             // Series de datos para el gráfico
             series: [
                 {
-                    name: 'Envíos Internos',  // Nombre descriptivo para la leyenda
+                    name: 'Internal Shipments',  // Nombre descriptivo para la leyenda
                     type: 'column',           // Tipo de visualización: columnas/barras
                     data: internalData         // Datos de envíos internos por mes
                 },
                 {
-                    name: 'Envíos Externos',  // Nombre descriptivo para la leyenda
+                    name: 'External Shipments',  // Nombre descriptivo para la leyenda
                     type: 'column',           // Tipo de visualización: columnas/barras
                     data: externalData         // Datos de envíos externos por mes
                 },
                 {
-                    name: 'Costo Total (€)',  // Nombre descriptivo para la leyenda
+                    name: 'Total Cost (€)',  // Nombre descriptivo para la leyenda
                     type: 'line',             // Tipo de visualización: línea
                     data: costData             // Datos de costo total por mes
                 }
@@ -407,8 +407,8 @@ export function renderCorrelationChart() {
                     x: weight,                          // Valor para el eje X (peso)
                     y: cost,                            // Valor para el eje Y (costo)
                     id: item.id,                        // ID del registro para referencia
-                    transport: item.transport || 'Sin especificar',  // Tipo de transporte
-                    description: item.description || 'Sin descripción'  // Descripción del envío
+                    transport: item.transport || 'Unspecified',  // Tipo de transporte
+                    description: item.description || 'No description'  // Descripción del envío
                 });
             }
         }
@@ -493,20 +493,20 @@ export function renderCorrelationChart() {
             // Configuración del eje X (peso)
             xaxis: {
                 title: {
-                    text: 'Peso (kg)'  // Título descriptivo del eje
+                    text: 'Weight (kg)'  // Título descriptivo del eje
                 },
                 tickAmount: 10,      // Cantidad aproximada de marcas en el eje
             },
             // Configuración del eje Y (costo)
             yaxis: {
                 title: {
-                    text: 'Costo (€)'  // Título descriptivo del eje
+                    text: 'Cost (€)'  // Título descriptivo del eje
                 },
                 tickAmount: 10       // Cantidad aproximada de marcas en el eje
             },
             // Título principal del gráfico
             title: {
-                text: 'Correlación entre Peso y Costo',
+                text: 'Correlation between Weight and Cost',
                 align: 'left'        // Alineado a la izquierda
             },
             // Configuración personalizada de tooltips
@@ -518,9 +518,9 @@ export function renderCorrelationChart() {
                     // Retorna HTML personalizado para el tooltip
                     return `<div class="p-2">
                         <b>ID:</b> ${data.id}<br>
-                        <b>Transporte:</b> ${w.config.series[seriesIndex].name}<br>
-                        <b>Peso:</b> ${data.x} kg<br>
-                        <b>Costo:</b> €${data.y.toLocaleString(undefined, {maximumFractionDigits: 2})}<br>
+                        <b>Transport:</b> ${w.config.series[seriesIndex].name}<br>
+                        <b>Weight:</b> ${data.x} kg<br>
+                        <b>Cost:</b> €${data.y.toLocaleString(undefined, {maximumFractionDigits: 2})}<br>
                         <small>${data.description}</small>
                     </div>`;
                 }

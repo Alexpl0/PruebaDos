@@ -47,9 +47,9 @@ export function renderAreaDistributionChart() {
     filteredData.forEach(item => {
         // PASO 1.1: EXTRACCIÓN DE PROPIEDADES RELEVANTES
         // Obtiene el área del ítem, usando 'Sin especificar' como valor predeterminado si es null/undefined
-        const area = item.area || 'Sin especificar';
+        const area = item.area || 'Unspecified';
         // Obtiene el tipo de envío (interno/externo), usando 'Sin especificar' como valor predeterminado
-        const intExt = item.int_ext || 'Sin especificar';
+        const intExt = item.int_ext || 'Unspecified';
         
         // PASO 1.2: INICIALIZACIÓN DE CONTADORES POR ÁREA
         // Si es la primera vez que encontramos esta área, crea su estructura de contadores
@@ -76,6 +76,13 @@ export function renderAreaDistributionChart() {
     // Extrae los nombres de todas las áreas encontradas (serán las categorías del eje X)
     const areas = Object.keys(areaData);
     
+    // Traduce los nombres de áreas que están en español
+    const translatedAreas = areas.map(area => {
+        if (area === 'Sin especificar') return 'Unspecified';
+        // Puedes añadir más traducciones específicas si es necesario
+        return area;
+    });
+    
     // PASO 2.1: EXTRACCIÓN DE DATOS PARA CADA SERIE
     // Crea arrays con los conteos para cada tipo de envío, manteniendo el orden de las áreas
     // Array con la cantidad de envíos internos por cada área
@@ -91,11 +98,11 @@ export function renderAreaDistributionChart() {
         // PASO 3.1: ACTUALIZACIÓN DEL GRÁFICO EXISTENTE
         // Si el gráfico ya existe, solo actualiza las categorías y los datos de las series
         charts.areaDistribution.updateOptions({
-            xaxis: { categories: areas },          // Actualiza las categorías (áreas) en el eje X
+            xaxis: { categories: translatedAreas }, // Actualiza las categorías (áreas) en el eje X
             series: [
                 { name: 'Internal', data: internal }, // Actualiza la serie de envíos internos
                 { name: 'External', data: external }, // Actualiza la serie de envíos externos
-                { name: 'Otros', data: other }        // Actualiza la serie de otros envíos
+                { name: 'Other', data: other }        // Actualiza la serie de otros envíos
             ]
         });
     } else {
@@ -127,12 +134,12 @@ export function renderAreaDistributionChart() {
             },
             // Configuración del eje X (horizontal)
             xaxis: { 
-                categories: areas        // Nombres de las áreas como categorías
+                categories: translatedAreas // Nombres de las áreas como categorías
             },
             // Configuración del eje Y (vertical)
             yaxis: {
                 title: { 
-                    text: 'Cantidad de envíos'  // Título descriptivo del eje Y
+                    text: 'Number of Shipments'  // Título descriptivo del eje Y
                 }
             },
             // Configuración de opacidad del relleno
@@ -143,8 +150,8 @@ export function renderAreaDistributionChart() {
             tooltip: {
                 y: {
                     formatter: function (val) {
-                        // Formatea el valor mostrado en el tooltip añadiendo la unidad "envíos"
-                        return val + " envíos";
+                        // Formatea el valor mostrado en el tooltip añadiendo la unidad "shipments"
+                        return val + " shipments";
                     }
                 }
             },
@@ -158,7 +165,7 @@ export function renderAreaDistributionChart() {
             series: [
                 { name: 'Internal', data: internal }, // Serie para envíos internos
                 { name: 'External', data: external }, // Serie para envíos externos
-                { name: 'Otros', data: other }        // Serie para otros envíos
+                { name: 'Other', data: other }        // Serie para otros envíos
             ]
         };
         

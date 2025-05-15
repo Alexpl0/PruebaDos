@@ -180,7 +180,7 @@ export function renderPaidByChart() {
     filteredData.forEach(item => {
         // Extrae el pagador del ítem, usando 'Sin especificar' como valor predeterminado
         // si el campo está vacío, es null o undefined
-        const paidBy = item.paid_by || 'Sin especificar';
+        const paidBy = item.paid_by || 'Unspecified';
         
         // Si es la primera vez que encontramos este pagador, inicializa su contador en 1
         if (!paidByData[paidBy]) {
@@ -194,8 +194,21 @@ export function renderPaidByChart() {
     // PASO 2: PREPARACIÓN DE DATOS PARA EL GRÁFICO
     // Extrae las etiquetas (nombres de los pagadores) y los valores (contadores)
     // para pasarlos al gráfico en el formato requerido por ApexCharts
-    const labels = Object.keys(paidByData);      // Array con los nombres de los pagadores
-    const series = Object.values(paidByData);    // Array con los contadores correspondientes
+    
+    // Traducción de las claves al inglés
+    const translatedPaidByData = {};
+    for (const [key, value] of Object.entries(paidByData)) {
+        let translatedKey = key;
+        if (key === 'Sin especificar') translatedKey = 'Unspecified';
+        if (key === 'Cliente') translatedKey = 'Customer';
+        if (key === 'Proveedor') translatedKey = 'Supplier';
+        if (key === 'Interno') translatedKey = 'Internal';
+        
+        translatedPaidByData[translatedKey] = value;
+    }
+    
+    const labels = Object.keys(translatedPaidByData);      // Array con los nombres de los pagadores
+    const series = Object.values(translatedPaidByData);    // Array con los contadores correspondientes
     
     // PASO 3: ACTUALIZACIÓN O CREACIÓN DEL GRÁFICO
     // Comprueba si el gráfico ya existe (para actualizarlo) o si hay que crearlo desde cero
@@ -267,7 +280,14 @@ export function renderPaidByChart() {
         // Itera sobre cada elemento para acumular los costos
         filteredData.forEach(item => {
             // Extrae el pagador y el costo del ítem, con valores predeterminados
-            const paidBy = item.paid_by || 'Sin especificar';
+            let paidBy = item.paid_by || 'Unspecified';
+            
+            // Traducir los valores al inglés
+            if (paidBy === 'Sin especificar') paidBy = 'Unspecified';
+            if (paidBy === 'Cliente') paidBy = 'Customer';
+            if (paidBy === 'Proveedor') paidBy = 'Supplier';
+            if (paidBy === 'Interno') paidBy = 'Internal';
+            
             const cost = parseFloat(item.cost_euros || 0);
             
             // Si es la primera vez que encontramos este pagador, inicializa su acumulador

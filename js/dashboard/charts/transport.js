@@ -55,9 +55,9 @@ export function renderTransportChart() {
     
     // Itera sobre cada elemento de datos para contabilizar transportes y acumular costos
     filteredData.forEach(item => {
-        // Extrae el tipo de transporte, usando 'Sin especificar' como valor predeterminado
+        // Extrae el tipo de transporte, usando 'Unspecified' como valor predeterminado
         // si el campo está vacío, es null o undefined
-        const transport = item.transport || 'Sin especificar';
+        const transport = item.transport || 'Unspecified';
         
         // Extrae el costo, convirtiéndolo a número (o 0 si no existe)
         const cost = parseFloat(item.cost_euros || 0);
@@ -104,8 +104,8 @@ export function renderTransportChart() {
         charts.transport.updateOptions({
             xaxis: { categories: categories },      // Actualiza tipos de transporte en el eje X
             series: [
-                { name: 'Cantidad', data: countData },             // Actualiza datos de cantidad
-                { name: 'Costo Promedio (€)', data: avgCostData }  // Actualiza datos de costo promedio
+                { name: 'Quantity', data: countData },             // Actualiza datos de cantidad
+                { name: 'Average Cost (€)', data: avgCostData }  // Actualiza datos de costo promedio
             ]
         });
     } else {
@@ -144,14 +144,14 @@ export function renderTransportChart() {
                 {
                     // Primer eje Y (izquierda) - Para la cantidad de envíos
                     title: {
-                        text: 'Cantidad'      // Título descriptivo del eje
+                        text: 'Quantity'      // Título descriptivo del eje
                     }
                 },
                 {
                     // Segundo eje Y (derecha) - Para el costo promedio
                     opposite: true,           // Ubicado en el lado opuesto (derecha)
                     title: {
-                        text: 'Costo Promedio (€)'  // Título descriptivo del eje
+                        text: 'Average Cost (€)'  // Título descriptivo del eje
                     }
                 }
             ],
@@ -164,8 +164,8 @@ export function renderTransportChart() {
                         // Formateador para la primera serie (cantidad de envíos)
                         formatter: function (y) {
                             if (typeof y !== "undefined") {
-                                // Muestra el valor sin decimales y añade la unidad "envíos"
-                                return y.toFixed(0) + " envíos";
+                                // Muestra el valor sin decimales y añade la unidad "shipments"
+                                return y.toFixed(0) + " shipments";
                             }
                             return y;
                         }
@@ -188,11 +188,11 @@ export function renderTransportChart() {
             // Series de datos para el gráfico
             series: [
                 {
-                    name: 'Cantidad',            // Nombre descriptivo para la leyenda
+                    name: 'Quantity',            // Nombre descriptivo para la leyenda
                     data: countData              // Datos de cantidad por tipo de transporte
                 },
                 {
-                    name: 'Costo Promedio (€)',  // Nombre descriptivo para la leyenda
+                    name: 'Average Cost (€)',  // Nombre descriptivo para la leyenda
                     data: avgCostData            // Datos de costo promedio por tipo de transporte
                 }
             ]

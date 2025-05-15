@@ -52,7 +52,7 @@ export function renderWordCloud() {
         .filter(word => 
             word.length > 3 &&            // Filtrado de palabras cortas (probablemente no significativas)
             // Exclusión de palabras comunes (stopwords) que no aportan significado relevante
-            !['this', 'that', 'then', 'than', 'with', 'para', 'from'].includes(word)
+            !['this', 'that', 'then', 'than', 'with', 'from', 'para', 'what', 'when', 'where', 'which'].includes(word)
         );
     
     // PASO 3: CÁLCULO DE FRECUENCIAS

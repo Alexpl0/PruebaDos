@@ -52,7 +52,21 @@ export function initializeDateRangePicker() {
         // No aplica el rango automáticamente al seleccionar, requiere clic en "Aplicar"
         autoApply: false,
         // Configuración regional (idioma, formato de fecha, nombres de meses, etc.)
-        locale: dateRangeConfig.locale
+        locale: {
+            applyLabel: 'Apply',
+            cancelLabel: 'Cancel',
+            fromLabel: 'From',
+            toLabel: 'To',
+            customRangeLabel: 'Custom Range',
+            weekLabel: 'W',
+            daysOfWeek: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+            monthNames: [
+                'January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'
+            ],
+            firstDay: 1,
+            format: 'DD/MM/YYYY'
+        }
     });
     
     // Guarda una referencia al objeto daterangepicker para acceder a sus métodos más adelante
@@ -96,6 +110,11 @@ export function initializeFilters(data) {
         plantaFilter.remove(1); // Elimina siempre la segunda opción hasta que solo quede la primera
     }
     
+    // Actualiza el texto de la primera opción para que esté en inglés
+    if (plantaFilter.options.length > 0) {
+        plantaFilter.options[0].textContent = "All Plants";
+    }
+    
     // Itera sobre cada planta única encontrada para crear y añadir las opciones al select
     plantas.forEach(planta => {
         // Crea un nuevo elemento option para el menú desplegable
@@ -121,16 +140,40 @@ export function initializeFilters(data) {
         statusFilter.remove(1);
     }
     
+    // Actualiza el texto de la primera opción para que esté en inglés
+    if (statusFilter.options.length > 0) {
+        statusFilter.options[0].textContent = "All Statuses";
+    }
+    
     // Itera sobre cada estado único para crear y añadir las opciones al select
     statuses.forEach(status => {
         // Crea un nuevo elemento option
         const option = document.createElement('option');
         // Establece el valor interno
         option.value = status;
-        // Establece el texto visible, capitalizando la primera letra para mejor presentación:
-        // 1. charAt(0).toUpperCase() - Convierte a mayúscula el primer carácter
-        // 2. status.slice(1) - Toma el resto de la cadena (todos los caracteres excepto el primero)
-        option.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+        
+        // Traduce los estados comunes al inglés si existen en español
+        let displayText = status;
+        const statusTranslations = {
+            'pendiente': 'Pending',
+            'aprobado': 'Approved',
+            'rechazado': 'Rejected',
+            'en proceso': 'In Progress',
+            'completado': 'Completed',
+            'cancelado': 'Cancelled'
+        };
+        
+        // Busca si hay una traducción disponible para este estado
+        const lowerStatus = status.toLowerCase();
+        if (statusTranslations[lowerStatus]) {
+            displayText = statusTranslations[lowerStatus];
+        } else {
+            // Si no hay traducción, capitaliza la primera letra
+            displayText = status.charAt(0).toUpperCase() + status.slice(1);
+        }
+        
+        // Establece el texto visible
+        option.textContent = displayText;
         // Añade la opción al select
         statusFilter.appendChild(option);
     });

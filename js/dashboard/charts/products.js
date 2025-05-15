@@ -46,9 +46,9 @@ export function renderProductsChart() {
     
     // Itera sobre cada elemento de datos para contabilizar los productos
     filteredData.forEach(item => {
-        // Extrae el producto del ítem, usando 'Sin especificar' como valor predeterminado
+        // Extrae el producto del ítem, usando 'Unspecified' como valor predeterminado
         // si el campo está vacío, es null o undefined
-        const product = item.product || 'Sin especificar';
+        const product = item.product || 'Unspecified';
         
         // Si es la primera vez que encontramos este producto, inicializa su contador en 1
         if (!productsData[product]) {
@@ -71,7 +71,10 @@ export function renderProductsChart() {
     // PASO 3: PREPARACIÓN DE DATOS PARA EL GRÁFICO
     // Extrae los nombres de productos (para las categorías del eje X)
     // El símbolo _ indica que ignoramos el segundo elemento del par (la frecuencia)
-    const categories = topProducts.map(([product, _]) => product);
+    const categories = topProducts.map(([product, _]) => {
+        // Traducir 'Sin especificar' a 'Unspecified' si existe
+        return product === 'Sin especificar' ? 'Unspecified' : product;
+    });
     
     // Extrae los valores de frecuencia (para las barras)
     // El símbolo _ indica que ignoramos el primer elemento del par (el nombre del producto)
@@ -115,7 +118,7 @@ export function renderProductsChart() {
             colors: chartColors.palette,
             // Series de datos para el gráfico
             series: [{
-                name: 'Incidencias',      // Nombre descriptivo para la leyenda y tooltips
+                name: 'Incidents',        // Nombre descriptivo para la leyenda y tooltips
                 data: data                // Datos de frecuencia para cada producto
             }]
         };

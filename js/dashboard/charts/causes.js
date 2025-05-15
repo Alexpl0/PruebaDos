@@ -50,7 +50,7 @@ export function renderCausesChart() {
     filteredData.forEach(item => {
         // Extrae la causa del ítem, usando 'Sin especificar' como valor predeterminado
         // si el campo está vacío, es null o undefined
-        const cause = item.category_cause || 'Sin especificar';
+        const cause = item.category_cause || 'Unspecified';
         
         // Si es la primera vez que encontramos esta causa, inicializa su contador en 1
         if (!causesData[cause]) {
@@ -86,8 +86,13 @@ export function renderCausesChart() {
     // PASO 4: PROCESAMIENTO DE CADA CAUSA PARA EL GRÁFICO
     // Itera sobre las causas ordenadas para preparar los datos del gráfico
     sortedCauses.forEach(([cause, count]) => {
-        // Añade el nombre de la causa al array de categorías
-        categories.push(cause);
+        // Traduce la causa si está en español
+        let translatedCause = cause;
+        if (cause === 'Sin especificar') translatedCause = 'Unspecified';
+        // Puedes añadir más traducciones específicas aquí si es necesario
+        
+        // Añade el nombre de la causa traducido al array de categorías
+        categories.push(translatedCause);
         
         // Añade la frecuencia de esta causa al array de conteos
         counts.push(count);
@@ -108,8 +113,8 @@ export function renderCausesChart() {
         charts.causes.updateOptions({
             xaxis: { categories: categories },       // Actualiza las categorías (causas)
             series: [
-                { name: 'Cantidad', data: counts },             // Actualiza la serie de barras (frecuencias)
-                { name: 'Acumulativo %', data: cumulativePercentage }  // Actualiza la serie de línea (% acumulativo)
+                { name: 'Count', data: counts },             // Actualiza la serie de barras (frecuencias)
+                { name: 'Cumulative %', data: cumulativePercentage }  // Actualiza la serie de línea (% acumulativo)
             ]
         });
     } else {
@@ -136,7 +141,7 @@ export function renderCausesChart() {
             },
             // Título principal del gráfico
             title: {
-                text: 'Análisis de Pareto: Principales Causas',
+                text: 'Pareto Analysis: Main Causes',
                 align: 'center'          // Centrado horizontalmente
             },
             // Configuración de etiquetas de datos
@@ -168,7 +173,7 @@ export function renderCausesChart() {
                 {
                     // Primer eje Y (izquierda) - Para la frecuencia de causas
                     title: {
-                        text: 'Cantidad',  // Título descriptivo del eje
+                        text: 'Count',  // Título descriptivo del eje
                     },
                     min: 0                 // Valor mínimo del eje (siempre desde cero)
                 },
@@ -176,7 +181,7 @@ export function renderCausesChart() {
                     // Segundo eje Y (derecha) - Para el porcentaje acumulativo
                     opposite: true,        // Ubicado en el lado opuesto (derecha)
                     title: {
-                        text: 'Porcentaje Acumulativo'  // Título descriptivo
+                        text: 'Cumulative Percentage'  // Título descriptivo
                     },
                     min: 0,                // Valor mínimo: 0%
                     max: 100,              // Valor máximo: 100%
@@ -197,8 +202,8 @@ export function renderCausesChart() {
                         // Formateador para la primera serie (frecuencia)
                         formatter: function (y) {
                             if (typeof y !== "undefined") {
-                                // Muestra el valor sin decimales y añade la unidad "incidencias"
-                                return y.toFixed(0) + " incidencias";
+                                // Muestra el valor sin decimales y añade la unidad "incidents"
+                                return y.toFixed(0) + " incidents";
                             }
                             return y;
                         }
@@ -225,12 +230,12 @@ export function renderCausesChart() {
             // Definición de las series de datos a visualizar
             series: [
                 {
-                    name: 'Cantidad',         // Nombre descriptivo para la leyenda
+                    name: 'Count',         // Nombre descriptivo para la leyenda
                     type: 'column',           // Tipo de visualización: columnas/barras
                     data: counts              // Datos de frecuencia para cada causa
                 },
                 {
-                    name: 'Acumulativo %',    // Nombre descriptivo para la leyenda
+                    name: 'Cumulative %',    // Nombre descriptivo para la leyenda
                     type: 'line',             // Tipo de visualización: línea
                     data: cumulativePercentage // Datos de porcentaje acumulativo
                 }

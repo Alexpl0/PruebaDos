@@ -57,7 +57,11 @@ export function updateKPIs() {
     // PASO 4: CÁLCULO Y ACTUALIZACIÓN DE KPI DE TASA DE APROBACIÓN
     // Primero contamos cuántos registros tienen estado "aprobado"
     // filter crea un nuevo array solo con los elementos que cumplen la condición
-    const aprobados = filteredData.filter(item => item.status_name === 'aprobado').length;
+    const aprobados = filteredData.filter(item => 
+        item.status_name === 'aprobado' || 
+        item.status_name === 'approved' || 
+        item.status_name?.toLowerCase() === 'approved'
+    ).length;
     // Calculamos el porcentaje: (aprobados/total)*100
     // Si no hay datos (para evitar división por cero), el resultado es 0
     const apprRate = filteredData.length > 0 ? (aprobados / filteredData.length) * 100 : 0;
@@ -113,7 +117,7 @@ function updateDetailedKPIs(data, costoTotal) {
     // (requiere cálculos de diferencia entre fechas)
     const tiempoPromedio = calcularTiempoPromedioAprobacion(data);
     // Actualizamos el elemento HTML con el valor formateado a un decimal y la unidad "días"
-    document.getElementById('kpiAvgApprovalTime').textContent = tiempoPromedio.toFixed(1) + ' días';
+    document.getElementById('kpiAvgApprovalTime').textContent = tiempoPromedio.toFixed(1) + ' days';
     
     // PASO 4: CÁLCULO Y ACTUALIZACIÓN DE PESO TOTAL DE ENVÍOS
     // Sumamos el campo weight de todos los registros (similar al cálculo de costo total)

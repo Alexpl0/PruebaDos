@@ -175,28 +175,28 @@ export function renderForecastChart() {
                             color: '#fff',                 // Color del texto (blanco)
                             background: '#775DD0'          // Color de fondo (púrpura)
                         },
-                        text: 'Pronóstico'                 // Texto de la etiqueta
+                        text: 'Forecast'                   // Texto de la etiqueta
                     }
                 }]
             },
             // Actualiza las series de datos (históricos y pronóstico)
             series: [
                 {
-                    name: 'Envíos (Histórico)',
+                    name: 'Shipments (Historical)',
                     data: historicalCount                  // Datos históricos de envíos
                 },
                 {
-                    name: 'Envíos (Pronóstico)',
+                    name: 'Shipments (Forecast)',
                     // Añade valores null para alinear con la posición correcta en el eje X
                     // y luego añade los valores de pronóstico
                     data: Array(historicalCount.length).fill(null).concat(forecastCount)
                 },
                 {
-                    name: 'Costo (Histórico)',
+                    name: 'Cost (Historical)',
                     data: historicalCost                   // Datos históricos de costos
                 },
                 {
-                    name: 'Costo (Pronóstico)',
+                    name: 'Cost (Forecast)',
                     // Añade valores null para alinear con la posición correcta en el eje X
                     // y luego añade los valores de pronóstico
                     data: Array(historicalCost.length).fill(null).concat(forecastCost)
@@ -246,7 +246,7 @@ export function renderForecastChart() {
                 {
                     // Primer eje Y (izquierda) - Para la cantidad de envíos
                     title: {
-                        text: 'Cantidad de Envíos'  // Título del eje
+                        text: 'Number of Shipments'  // Título del eje
                     },
                     min: 0                          // Valor mínimo (siempre desde cero)
                 },
@@ -254,7 +254,7 @@ export function renderForecastChart() {
                     // Segundo eje Y (derecha) - Para los costos
                     opposite: true,                 // Ubicado en el lado opuesto (derecha)
                     title: {
-                        text: 'Costo (€)'           // Título del eje
+                        text: 'Cost (€)'           // Título del eje
                     },
                     min: 0                          // Valor mínimo (siempre desde cero)
                 }
@@ -280,30 +280,30 @@ export function renderForecastChart() {
                             color: '#fff',                 // Color del texto (blanco)
                             background: '#775DD0'          // Color de fondo (púrpura)
                         },
-                        text: 'Pronóstico'                 // Texto de la etiqueta
+                        text: 'Forecast'                   // Texto de la etiqueta
                     }
                 }]
             },
             // Series de datos para el gráfico
             series: [
                 {
-                    name: 'Envíos (Histórico)',    // Nombre para la leyenda
+                    name: 'Shipments (Historical)',    // Nombre para la leyenda
                     type: 'line',                  // Tipo de visualización
                     data: historicalCount          // Datos históricos de cantidad de envíos
                 },
                 {
-                    name: 'Envíos (Pronóstico)',   // Nombre para la leyenda
+                    name: 'Shipments (Forecast)',   // Nombre para la leyenda
                     type: 'line',                  // Tipo de visualización
                     // Array de null para alinear + datos de pronóstico
                     data: Array(historicalCount.length).fill(null).concat(forecastCount)
                 },
                 {
-                    name: 'Costo (Histórico)',     // Nombre para la leyenda
+                    name: 'Cost (Historical)',     // Nombre para la leyenda
                     type: 'line',                  // Tipo de visualización
                     data: historicalCost           // Datos históricos de costos
                 },
                 {
-                    name: 'Costo (Pronóstico)',    // Nombre para la leyenda
+                    name: 'Cost (Forecast)',    // Nombre para la leyenda
                     type: 'line',                  // Tipo de visualización
                     // Array de null para alinear + datos de pronóstico
                     data: Array(historicalCost.length).fill(null).concat(forecastCost)

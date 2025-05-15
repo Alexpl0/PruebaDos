@@ -49,7 +49,7 @@ export function renderPlantComparison() {
     filteredData.forEach(item => {
         // Extrae el nombre de la planta, usando 'Sin especificar' como valor predeterminado
         // si el campo está vacío, es null o undefined
-        const planta = item.planta || 'Sin especificar';
+        const planta = item.planta || 'Unspecified';
         
         // Si es la primera vez que encontramos esta planta, inicializa su contador en 1
         if (!plantCounts[planta]) {
@@ -73,12 +73,12 @@ export function renderPlantComparison() {
     // Cada objeto contiene: nombre descriptivo y función para calcular su valor
     const metrics = [
         { 
-            name: "Registros", 
+            name: "Records", 
             // Métrica simple: cantidad total de registros para esta planta
             getValue: (data) => data.length 
         },
         { 
-            name: "Costo Promedio (€)", 
+            name: "Average Cost (€)", 
             // Métrica calculada: promedio de costos de todos los envíos de la planta
             getValue: (data) => {
                 // Suma todos los costos (convirtiendo a número y usando 0 si no hay valor)
@@ -88,7 +88,7 @@ export function renderPlantComparison() {
             }
         },
         { 
-            name: "% Interno", 
+            name: "% Internal", 
             // Métrica calculada: porcentaje de envíos internos sobre el total
             getValue: (data) => {
                 // Cuenta cuántos registros tienen 'INTERNAL' en el campo int_ext
@@ -98,7 +98,7 @@ export function renderPlantComparison() {
             }
         },
         { 
-            name: "Tiempo Aprobación (días)", 
+            name: "Approval Time (days)", 
             // Métrica calculada: tiempo promedio entre creación y aprobación
             getValue: (data) => {
                 // Filtra solo los registros que tienen ambas fechas (creación y aprobación)
@@ -125,7 +125,7 @@ export function renderPlantComparison() {
             }
         },
         { 
-            name: "Peso Promedio (kg)", 
+            name: "Average Weight (kg)", 
             // Métrica calculada: peso promedio de los envíos de la planta
             getValue: (data) => {
                 // Suma todos los pesos (convirtiendo a número y usando 0 si no hay valor)
@@ -145,7 +145,7 @@ export function renderPlantComparison() {
         
         // Para algunas métricas donde un valor bajo es mejor (como tiempo o costo),
         // se invierte la escala de normalización para que la visualización sea consistente
-        if (metricName === "Tiempo Aprobación (días)" || metricName === "Costo Promedio (€)") {
+        if (metricName === "Approval Time (days)" || metricName === "Average Cost (€)") {
             // La fórmula (1 - valor/max) * 100 invierte la escala:
             // - El valor mínimo se convierte en 100%
             // - El valor máximo se convierte en 0%
@@ -259,13 +259,13 @@ export function renderPlantComparison() {
                     const rawValue = series[seriesIndex].values[dataPointIndex].rawValue;
                     
                     // Formatea el valor según el tipo de métrica
-                    if (metric.name === "Costo Promedio (€)") {
+                    if (metric.name === "Average Cost (€)") {
                         return `€${rawValue.toFixed(2)}`;  // Formato monetario con 2 decimales
-                    } else if (metric.name === "% Interno") {
+                    } else if (metric.name === "% Internal") {
                         return `${rawValue.toFixed(1)}%`;  // Formato porcentaje con 1 decimal
-                    } else if (metric.name === "Tiempo Aprobación (días)") {
-                        return `${rawValue.toFixed(1)} días`;  // Formato días con 1 decimal
-                    } else if (metric.name === "Peso Promedio (kg)") {
+                    } else if (metric.name === "Approval Time (days)") {
+                        return `${rawValue.toFixed(1)} days`;  // Formato días con 1 decimal
+                    } else if (metric.name === "Average Weight (kg)") {
                         return `${rawValue.toFixed(1)} kg`;  // Formato peso con 1 decimal
                     } else {
                         // Para otras métricas, formato numérico con separadores de miles

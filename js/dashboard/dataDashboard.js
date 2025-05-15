@@ -93,17 +93,17 @@ export async function loadDashboardData() {
             
             // Lanza un error descriptivo incluyendo los datos recibidos
             // JSON.stringify convierte el objeto a texto para mostrarlo
-            throw new Error('Formato de datos inválido: ' + JSON.stringify(result));
+            throw new Error('Invalid data format: ' + JSON.stringify(result));
         }
     } catch (error) {
         // PASO 9: MANEJO DE ERRORES
         // Captura cualquier error que haya ocurrido durante el proceso
         
         // Registra el error en la consola para depuración
-        console.error('Error al cargar datos:', error);
+        console.error('Error loading data:', error);
         
         // Muestra un mensaje de error al usuario en la interfaz
-        showErrorMessage(`Error al cargar datos: ${error.message}`);
+        showErrorMessage(`Error loading data: ${error.message}`);
         
         // Oculta el indicador de carga en caso de error
         showLoading(false);

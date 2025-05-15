@@ -217,7 +217,7 @@ export async function renderOriginDestinyMap() {
             // Crea el marcador en las coordenadas especificadas con el icono personalizado
             L.marker([location.lat, location.lng], { icon: icon })
                 .addTo(maps.originDestiny)       // Añade el marcador al mapa
-                .bindPopup(`<b>${name}</b><br>Envíos: ${location.count}`);  // Configura el popup informativo
+                .bindPopup(`<b>${name}</b><br>Shipments: ${location.count}`);  // Configura el popup informativo
         }
     });
     
@@ -240,7 +240,7 @@ export async function renderOriginDestinyMap() {
                 dashArray: route.transport.toLowerCase().includes('air') ? '5, 5' : null
             }).addTo(maps.originDestiny)  // Añade la línea al mapa
               // Configura el popup informativo con detalles de la ruta
-              .bindPopup(`<b>${route.origin}</b> → <b>${route.destination}</b><br>Transporte: ${route.transport}<br>Envíos: ${route.count}`);
+              .bindPopup(`<b>${route.origin}</b> → <b>${route.destination}</b><br>Transport: ${route.transport}<br>Shipments: ${route.count}`);
         }
     });
     

@@ -65,20 +65,20 @@ export function renderRecoveryFilesChart() {
     const data = [
         // PASO 2.1: REGISTROS CON SOLO RECOVERY FILE (SIN EVIDENCIA)
         // Para calcular esto, restamos del total con recovery_file los que tienen ambos
-        { name: 'Solo Recovery File', value: withRecoveryFile - withBoth },
+        { name: 'Recovery File Only', value: withRecoveryFile - withBoth },
         
         // PASO 2.2: REGISTROS CON SOLO EVIDENCE (SIN RECOVERY FILE)
         // Similar al anterior, restamos del total con evidence los que tienen ambos
-        { name: 'Solo Evidence', value: withEvidence - withBoth },
+        { name: 'Evidence Only', value: withEvidence - withBoth },
         
         // PASO 2.3: REGISTROS CON AMBOS DOCUMENTOS
         // Este valor ya lo tenemos calculado directamente
-        { name: 'Recovery File y Evidence', value: withBoth },
+        { name: 'Recovery File and Evidence', value: withBoth },
         
         // PASO 2.4: REGISTROS SIN NINGÚN DOCUMENTO
         // Para calcular esto, al total le restamos los que tienen recovery_file o evidence,
         // pero sumamos los que tienen ambos (porque los habríamos restado dos veces)
-        { name: 'Sin Recovery ni Evidence', value: total - withRecoveryFile - withEvidence + withBoth }
+        { name: 'No Documentation', value: total - withRecoveryFile - withEvidence + withBoth }
     ];
     
     // PASO 3: FILTRADO DE CATEGORÍAS CON VALOR CERO

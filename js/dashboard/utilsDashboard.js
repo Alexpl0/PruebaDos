@@ -36,7 +36,7 @@ export function showLoading(show) {
     } else {
         // Si el elemento no existe en el DOM, registra una advertencia en la consola
         // Esto ayuda a diagnosticar problemas de implementación en la interfaz
-        console.warn('Elemento de superposición de carga no encontrado en el DOM');
+        console.warn('Loading overlay element not found in DOM');
     }
     
     // PASO 2: DESHABILITACIÓN DE CONTROLES DURANTE LA CARGA
@@ -144,7 +144,7 @@ export async function geocodeLocation(city, state, country) {
     } catch (error) {
         // PASO 5: MANEJO DE ERRORES
         // Si ocurre cualquier error durante el proceso, lo registra en consola
-        console.error("Error de geocodificación:", error);
+        console.error("Geocoding error:", error);
         
         // Y retorna null para indicar que la operación falló
         return null;

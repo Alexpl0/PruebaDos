@@ -33,21 +33,21 @@ export function exportToCSV() {
     // Estos encabezados describen el contenido de cada columna para facilitar la interpretación
     const headers = [
         'ID',                // Identificador único del registro
-        'Planta',            // Planta de origen asociada al envío
-        'Fecha',             // Fecha en que se registró el envío
-        'Área',              // Área o departamento responsable
-        'Tipo',              // Clasificación interna/externa
-        'Descripción',       // Detalle textual del envío
-        'Causa',             // Motivo que originó la necesidad del envío premium
-        'Costo (€)',         // Costo en euros
-        'Transporte',        // Medio de transporte utilizado
-        'Origen',            // Empresa/entidad de origen
-        'Ciudad Origen',     // Ciudad desde donde parte el envío
-        'Destino',           // Empresa/entidad de destino
-        'Ciudad Destino',    // Ciudad donde llega el envío
-        'Peso (kg)',         // Peso en kilogramos
+        'Plant',             // Planta de origen asociada al envío
+        'Date',              // Fecha en que se registró el envío
+        'Area',              // Área o departamento responsable
+        'Type',              // Clasificación interna/externa
+        'Description',       // Detalle textual del envío
+        'Cause',             // Motivo que originó la necesidad del envío premium
+        'Cost (€)',          // Costo en euros
+        'Transport',         // Medio de transporte utilizado
+        'Origin',            // Empresa/entidad de origen
+        'Origin City',       // Ciudad desde donde parte el envío
+        'Destination',       // Empresa/entidad de destino
+        'Destination City',  // Ciudad donde llega el envío
+        'Weight (kg)',       // Peso en kilogramos
         'Status',            // Estado actual del proceso
-        'Aprobador',         // Persona que aprobó el envío
+        'Approver',          // Persona que aprobó el envío
         'Recovery'           // Información sobre archivo de recuperación
     ];
     
@@ -190,7 +190,7 @@ export function initializeExportButtons() {
         exportPDFBtn.addEventListener('click', function() {
             // Muestra una alerta indicando que la funcionalidad está en desarrollo
             // Esto es un placeholder hasta que se implemente la exportación a PDF
-            alert('Funcionalidad de exportación a PDF en desarrollo');
+            alert('PDF export functionality in development');
             
             // TO-DO: Implementar exportación a PDF utilizando una biblioteca como jsPDF
             // Esto podría incluir:
