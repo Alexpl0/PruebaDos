@@ -17,6 +17,21 @@
     margin-bottom: 20px;
 }
 
+/* Estilos específicos para las cards dentro de la sección de filtros */
+#filterscards .card-title {
+    color: white;
+}
+
+/* También puedes personalizar más elementos dentro de las cards de filtros si lo deseas */
+#filterscards .card {
+    background-color: #4472C4; /* Color de fondo que combine con el tema */
+}
+
+#filterscards label {
+    color: white;
+}
+
+/* Resto de los estilos originales */
 /* Estilos para los KPIs */
 .display-4 {
     font-size: 2.5rem;
