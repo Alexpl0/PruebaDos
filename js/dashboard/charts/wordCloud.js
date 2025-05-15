@@ -1,79 +1,140 @@
-// Nube de palabras
+/**
+ * MÓDULO DE VISUALIZACIÓN DE NUBE DE PALABRAS
+ * 
+ * Este módulo genera una visualización gráfica que muestra las palabras más frecuentes
+ * encontradas en los textos de descripción y causas de los datos filtrados.
+ * Las palabras más frecuentes aparecen con un tamaño mayor, creando así una
+ * representación visual de los términos más relevantes.
+ * 
+ * Utiliza la biblioteca D3.js y su extensión de layout de nube de palabras (d3.layout.cloud)
+ * para generar una visualización interactiva y estéticamente atractiva.
+ */
 
+// Importación de la función que proporciona acceso a los datos filtrados según los criterios
+// establecidos en el dashboard. Esta función nos permite trabajar siempre con el conjunto
+// de datos actualizado según las selecciones del usuario.
 import { getFilteredData } from '../dataDashboard.js';
 
 /**
- * Genera o actualiza la nube de palabras
+ * Función principal que genera o actualiza la visualización de nube de palabras
+ * 
+ * El proceso completo incluye:
+ * 1. Extracción de texto de los datos filtrados
+ * 2. Procesamiento del texto para identificar palabras significativas
+ * 3. Cálculo de frecuencias de las palabras
+ * 4. Generación de la visualización utilizando D3.js
  */
 export function renderWordCloud() {
+    // Registro en consola para seguimiento y depuración del proceso
+    // Muestra la cantidad de elementos que han pasado los filtros actuales
     console.log("[DEBUG] renderWordCloud:", getFilteredData().length);
+    
+    // Obtiene la colección actual de datos filtrados que se utilizarán para generar la nube
     const filteredData = getFilteredData();
     
-    // Extraer texto de las descripciones y causas
+    // PASO 1: EXTRACCIÓN DE TEXTO
+    // Combina el texto de múltiples campos relevantes (descripción, causa raíz, categoría de causa)
+    // para cada elemento de datos filtrado, y luego une todos los textos con espacios
     const textData = filteredData.map(item => 
+        // Se usa una cadena vacía como valor predeterminado si algún campo es undefined
+        // Esto evita errores por valores nulos o indefinidos
         (item.description || '') + ' ' + (item.root_cause || '') + ' ' + (item.category_cause || '')
     ).join(' ');
     
-    // Procesar el texto para extraer palabras
-    const words = textData.toLowerCase()
-        .replace(/[^\w\s]/gi, '')
-        .split(/\s+/)
-        .filter(word => word.length > 3 && !['this', 'that', 'then', 'than', 'with', 'para', 'from'].includes(word));
+    // PASO 2: PROCESAMIENTO DEL TEXTO
+    // Transforma el texto combinado para extraer palabras significativas mediante:
+    const words = textData.toLowerCase()  // Conversión a minúsculas para comparación sin distinción de mayúsculas
+        .replace(/[^\w\s]/gi, '')        // Eliminación de todos los caracteres no alfanuméricos y no espacios
+                                          // usando una expresión regular: ^ (negación), \w (alfanuméricos), 
+                                          // \s (espacios), g (global), i (insensible a mayúsculas/minúsculas)
+        .split(/\s+/)                     // División en un array de palabras basado en espacios en blanco (\s+)
+                                          // El + asegura que múltiples espacios se traten como uno solo
+        .filter(word => 
+            word.length > 3 &&            // Filtrado de palabras cortas (probablemente no significativas)
+            // Exclusión de palabras comunes (stopwords) que no aportan significado relevante
+            !['this', 'that', 'then', 'than', 'with', 'para', 'from'].includes(word)
+        );
     
-    // Contar frecuencia de palabras
+    // PASO 3: CÁLCULO DE FRECUENCIAS
+    // Calcula la frecuencia de cada palabra utilizando un objeto como contador
     const wordCounts = {};
     words.forEach(word => {
+        // Si la palabra no está en el objeto de conteo, inicialízala con 1
         if (!wordCounts[word]) {
             wordCounts[word] = 1;
         } else {
+            // Si ya existe, incrementa su contador en 1
             wordCounts[word]++;
         }
     });
     
-    // Preparar datos para la nube de palabras
-    const wordCloudData = Object.entries(wordCounts)
-        .filter(([_, count]) => count > 1)
-        .map(([text, size]) => ({ text, size }))
-        .sort((a, b) => b.size - a.size)
-        .slice(0, 100);
+    // PASO 4: PREPARACIÓN DE DATOS PARA LA VISUALIZACIÓN
+    const wordCloudData = Object.entries(wordCounts)   // Convierte el objeto de conteo a un array de pares [palabra, frecuencia]
+        .filter(([_, count]) => count > 1)            // Filtra para incluir solo palabras que aparecen más de una vez
+                                                       // El _ indica que no usamos el primer valor en esta función de filtrado
+        .map(([text, size]) => ({ text, size }))      // Transforma cada par a un objeto con propiedades text y size
+                                                       // Esto crea la estructura de datos requerida por d3.layout.cloud
+        .sort((a, b) => b.size - a.size)              // Ordena de mayor a menor frecuencia
+        .slice(0, 100);                               // Limita a las 100 palabras más frecuentes para evitar sobrecarga
     
-    // Verificar que existe el contenedor para la nube de palabras
+    // PASO 5: VERIFICACIÓN DEL CONTENEDOR HTML
+    // Obtiene una referencia al elemento HTML donde se renderizará la nube de palabras
     const wordCloudContainer = document.getElementById('wordCloudChart');
+    
+    // Si el contenedor no existe en el DOM, salimos de la función para evitar errores
     if (!wordCloudContainer) return;
     
-    // Limpiar el contenedor
+    // PASO 6: PREPARACIÓN DEL CONTENEDOR
+    // Limpia cualquier contenido previo del contenedor para evitar duplicaciones
     wordCloudContainer.innerHTML = '';
     
-    // Dimensiones del contenedor
-    const width = wordCloudContainer.offsetWidth;
-    const height = wordCloudContainer.offsetHeight;
+    // PASO 7: OBTENCIÓN DE DIMENSIONES
+    // Captura las dimensiones actuales del contenedor para crear una visualización responsiva
+    const width = wordCloudContainer.offsetWidth;    // Ancho en píxeles
+    const height = wordCloudContainer.offsetHeight;  // Alto en píxeles
     
-    // Configurar el layout de la nube de palabras
+    // PASO 8: CONFIGURACIÓN DEL LAYOUT D3 PARA LA NUBE DE PALABRAS
+    // Crea y configura el generador de layout de nube de palabras
     const layout = d3.layout.cloud()
-        .size([width, height])
-        .words(wordCloudData)
-        .padding(5)
-        .rotate(() => Math.random() > 0.5 ? 0 : 90)
-        .font("Impact")
-        .fontSize(d => Math.min(50, 5 + d.size * 2))
-        .on("end", draw);
+        .size([width, height])                       // Establece las dimensiones totales de la nube
+        .words(wordCloudData)                        // Proporciona los datos de palabras y frecuencias
+        .padding(5)                                  // Espacio mínimo entre palabras (en píxeles)
+        .rotate(() => Math.random() > 0.5 ? 0 : 90)  // Rotación aleatoria: horizontal o vertical (90 grados)
+                                                      // Aproximadamente la mitad de palabras en cada orientación
+        .font("Impact")                              // Tipo de letra para todas las palabras
+        .fontSize(d => Math.min(50, 5 + d.size * 2)) // Función para calcular el tamaño de letra basado en frecuencia
+                                                      // Con un mínimo de 5px y un máximo de 50px
+        .on("end", draw);                            // Función callback para ejecutar al terminar el cálculo del layout
     
+    // PASO 9: INICIAR EL CÁLCULO DEL LAYOUT
+    // Ejecuta el algoritmo que posiciona las palabras evitando superposiciones
     layout.start();
     
+    /**
+     * PASO 10: FUNCIÓN DE DIBUJADO
+     * Esta función callback se ejecuta cuando el layout ha terminado de calcular
+     * las posiciones de todas las palabras. Utiliza D3.js para crear los elementos
+     * SVG y renderizar cada palabra en su posición calculada.
+     * 
+     * @param {Array} words - Array de objetos palabra con propiedades calculadas (x, y, rotate, etc.)
+     */
     function draw(words) {
+        // Selecciona el contenedor y añade un elemento SVG que ocupará todo el espacio disponible
         d3.select("#wordCloudChart").append("svg")
-            .attr("width", layout.size()[0])
-            .attr("height", layout.size()[1])
-            .append("g")
-            .attr("transform", `translate(${layout.size()[0] / 2},${layout.size()[1] / 2})`)
-            .selectAll("text")
-            .data(words)
-            .enter().append("text")
-            .style("font-size", d => `${d.size}px`)
-            .style("font-family", "Impact")
-            .style("fill", d => d3.interpolateRainbow(Math.random()))
-            .attr("text-anchor", "middle")
-            .attr("transform", d => `translate(${d.x},${d.y}) rotate(${d.rotate})`)
-            .text(d => d.text);
+            .attr("width", layout.size()[0])         // Ancho del SVG igual al layout
+            .attr("height", layout.size()[1])        // Alto del SVG igual al layout
+            .append("g")                             // Añade un grupo SVG para contener los textos
+            .attr("transform", `translate(${layout.size()[0] / 2},${layout.size()[1] / 2})`)  // Centra el grupo en el SVG
+            .selectAll("text")                       // Prepara la selección para los elementos de texto
+            .data(words)                             // Asocia los datos de palabras a elementos
+            .enter().append("text")                  // Por cada palabra, crea un elemento text
+            .style("font-size", d => `${d.size}px`)  // Establece el tamaño de fuente según frecuencia
+            .style("font-family", "Impact")          // Establece la fuente
+            .style("fill", d => d3.interpolateRainbow(Math.random()))  // Color aleatorio del espectro arcoíris
+                                                                        // usando la función de interpolación de D3
+            .attr("text-anchor", "middle")           // Alineación del texto (centrado)
+            .attr("transform", d => `translate(${d.x},${d.y}) rotate(${d.rotate})`)  // Posicionamiento y rotación
+                                                                                     // según cálculos del layout
+            .text(d => d.text);                      // Establece el texto visible con el valor de la palabra
     }
 }

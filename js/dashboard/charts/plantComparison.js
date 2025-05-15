@@ -1,196 +1,301 @@
-// Gráfico de comparación de plantas
+/**
+ * MÓDULO DE COMPARACIÓN ENTRE PLANTAS
+ * 
+ * Este módulo implementa un gráfico de radar (también conocido como "gráfico de araña" o "diagrama polar")
+ * que permite comparar el rendimiento de las principales plantas de la compañía
+ * según diferentes métricas clave: volumen de envíos, costos, tipos de envío, etc.
+ * 
+ * La visualización facilita identificar rápidamente fortalezas y debilidades relativas
+ * entre plantas, mostrando un perfil completo de cada una en una única representación.
+ */
 
-// Importa la función para obtener los datos filtrados y la configuración de los gráficos
+// Importación de la función que proporciona acceso a los datos filtrados según los criterios
+// establecidos en el dashboard. Esta función nos permite trabajar siempre con el conjunto
+// de datos actualizado según las selecciones del usuario.
 import { getFilteredData } from '../dataDashboard.js';
+
+// Importación de objetos de configuración global para los gráficos:
+// - charts: objeto que almacena referencias a todos los gráficos del dashboard
+// - chartColors: paleta de colores predefinida para mantener consistencia visual
 import { charts, chartColors } from '../configDashboard.js';
 
 /**
- * Genera o actualiza el gráfico de comparación de plantas
+ * Función principal que genera o actualiza el gráfico de comparación entre plantas
+ * 
+ * Este gráfico muestra un radar comparativo de las 5 plantas con mayor número de envíos,
+ * evaluándolas según múltiples métricas que se normalizan para facilitar la comparación.
+ * 
+ * El proceso completo incluye:
+ * 1. Obtención y filtrado de datos según criterios actuales del dashboard
+ * 2. Identificación de las 5 plantas con mayor volumen de envíos
+ * 3. Cálculo de diversas métricas para cada planta (costo, tiempo, % de internos, etc.)
+ * 4. Normalización de métricas para poder compararlas en una misma escala (0-100%)
+ * 5. Generación del gráfico radar mostrando el perfil completo de cada planta
  */
 export function renderPlantComparison() {
-    // Muestra en consola la cantidad de datos filtrados
+    // Registro en consola para seguimiento y depuración del proceso
+    // Muestra la cantidad de elementos que han pasado los filtros actuales
     console.log("[DEBUG] renderPlantComparison:", getFilteredData().length);
-    // Obtiene los datos filtrados según los filtros activos
+    
+    // Obtiene la colección actual de datos filtrados según criterios del dashboard
     const filteredData = getFilteredData();
     
-    // Agrupa los datos por planta (clave: nombre de planta, valor: cantidad de registros)
+    // PASO 1: IDENTIFICACIÓN DE PLANTAS Y SU FRECUENCIA
+    // Objeto para almacenar el conteo de registros por cada planta
+    // La estructura será: {nombrePlanta: cantidadRegistros}
     const plantCounts = {};
+    
+    // Itera sobre cada elemento de datos para contabilizar las plantas
     filteredData.forEach(item => {
-        const planta = item.planta || 'Sin especificar'; // Si no hay planta, usa 'Sin especificar'
+        // Extrae el nombre de la planta, usando 'Sin especificar' como valor predeterminado
+        // si el campo está vacío, es null o undefined
+        const planta = item.planta || 'Sin especificar';
+        
+        // Si es la primera vez que encontramos esta planta, inicializa su contador en 1
         if (!plantCounts[planta]) {
             plantCounts[planta] = 1;
         } else {
+            // Si ya existía en nuestro objeto, incrementa su contador
             plantCounts[planta]++;
         }
     });
     
-    // Obtiene las 5 plantas con más registros
+    // PASO 2: SELECCIÓN DE LAS PLANTAS MÁS RELEVANTES
+    // Transforma el objeto de conteo en array de pares [planta, cantidad],
+    // los ordena de mayor a menor y selecciona las 5 plantas con más registros
     const topPlantas = Object.entries(plantCounts)
-        .sort((a, b) => b[1] - a[1]) // Ordena de mayor a menor por cantidad
-        .slice(0, 5)                  // Toma solo las primeras 5
-        .map(([planta]) => planta);   // Extrae solo el nombre de la planta
+        .sort((a, b) => b[1] - a[1])    // Ordena descendente por cantidad (segunda posición del par)
+        .slice(0, 5)                     // Limita a las 5 primeras plantas
+        .map(([planta]) => planta);      // Extrae solo los nombres de planta (para simplicidad)
     
-    // Define las métricas a comparar en el radar
+    // PASO 3: DEFINICIÓN DE MÉTRICAS A EVALUAR
+    // Array de objetos que define cada métrica y cómo calcularla
+    // Cada objeto contiene: nombre descriptivo y función para calcular su valor
     const metrics = [
         { 
             name: "Registros", 
-            getValue: (data) => data.length // Número de registros por planta
+            // Métrica simple: cantidad total de registros para esta planta
+            getValue: (data) => data.length 
         },
         { 
             name: "Costo Promedio (€)", 
+            // Métrica calculada: promedio de costos de todos los envíos de la planta
             getValue: (data) => {
-                // Calcula el costo promedio de los registros de la planta
+                // Suma todos los costos (convirtiendo a número y usando 0 si no hay valor)
                 const total = data.reduce((sum, item) => sum + parseFloat(item.cost_euros || 0), 0);
+                // Divide por el número de registros (o retorna 0 si no hay registros)
                 return data.length > 0 ? total / data.length : 0;
             }
         },
         { 
             name: "% Interno", 
+            // Métrica calculada: porcentaje de envíos internos sobre el total
             getValue: (data) => {
-                // Porcentaje de envíos internos
+                // Cuenta cuántos registros tienen 'INTERNAL' en el campo int_ext
                 const internos = data.filter(item => (item.int_ext || '').includes('INTERNAL')).length;
+                // Calcula el porcentaje (o retorna 0 si no hay registros)
                 return data.length > 0 ? (internos / data.length) * 100 : 0;
             }
         },
         { 
             name: "Tiempo Aprobación (días)", 
+            // Métrica calculada: tiempo promedio entre creación y aprobación
             getValue: (data) => {
-                // Calcula el tiempo promedio de aprobación en días
+                // Filtra solo los registros que tienen ambas fechas (creación y aprobación)
                 const itemsConAprobacion = data.filter(item => item.date && item.approval_date);
+                // Si no hay registros con ambas fechas, retorna 0
                 if (itemsConAprobacion.length === 0) return 0;
+                
+                // Calcula la suma total de días entre fechas
                 const tiempoTotal = itemsConAprobacion.reduce((sum, item) => {
+                    // Convierte strings de fecha a objetos Date de JavaScript
                     const createDate = new Date(item.date);
                     const approvalDate = new Date(item.approval_date);
+                    
+                    // Calcula la diferencia en milisegundos y la convierte a días
                     const diffTime = Math.abs(approvalDate - createDate);
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    // Acumula en el sumador
                     return sum + diffDays;
                 }, 0);
+                
+                // Retorna el promedio (suma total dividida por cantidad de registros)
                 return tiempoTotal / itemsConAprobacion.length;
             }
         },
         { 
             name: "Peso Promedio (kg)", 
+            // Métrica calculada: peso promedio de los envíos de la planta
             getValue: (data) => {
-                // Calcula el peso promedio de los registros de la planta
+                // Suma todos los pesos (convirtiendo a número y usando 0 si no hay valor)
                 const total = data.reduce((sum, item) => sum + parseFloat(item.weight || 0), 0);
+                // Divide por el número de registros (o retorna 0 si no hay registros)
                 return data.length > 0 ? total / data.length : 0;
             }
         }
     ];
     
-    // Función para normalizar los valores de cada métrica (0-100%)
+    // PASO 4: FUNCIÓN DE NORMALIZACIÓN DE VALORES
+    // Esta función convierte los valores diversos de cada métrica a una escala común (0-100%)
+    // permitiendo comparar métricas que de otro modo serían incomparables por sus unidades
     const normalizeValue = (value, metricName, allValues) => {
+        // Encuentra el valor máximo para esta métrica entre todas las plantas
         const max = Math.max(...allValues);
-        // Para algunas métricas donde menos es mejor, se invierte la escala
+        
+        // Para algunas métricas donde un valor bajo es mejor (como tiempo o costo),
+        // se invierte la escala de normalización para que la visualización sea consistente
         if (metricName === "Tiempo Aprobación (días)" || metricName === "Costo Promedio (€)") {
+            // La fórmula (1 - valor/max) * 100 invierte la escala:
+            // - El valor mínimo se convierte en 100%
+            // - El valor máximo se convierte en 0%
             return max ? (1 - (value / max)) * 100 : 0;
         }
+        
+        // Para métricas donde un valor alto es mejor (como número de registros),
+        // normaliza directamente como porcentaje del máximo
         return max ? (value / max) * 100 : 0;
     };
     
-    // Calcula los valores de cada métrica para cada planta seleccionada
+    // PASO 5: CÁLCULO DE VALORES DE MÉTRICAS POR PLANTA
+    // Crea una estructura que almacenará toda la información de cada planta
+    // para facilitar el procesamiento posterior
     const series = topPlantas.map(planta => {
+        // Filtra los datos para obtener solo los registros de esta planta
         const plantaData = filteredData.filter(item => item.planta === planta);
+        
+        // Retorna un objeto con la información de la planta
         return {
-            planta: planta,
-            data: plantaData,
-            values: [] // Aquí se guardarán los valores normalizados de cada métrica
+            planta: planta,              // Nombre de la planta
+            data: plantaData,            // Datos completos de esa planta
+            values: []                   // Array que se llenará con los valores de cada métrica
         };
     });
     
-    // Para cada métrica, calcula y normaliza el valor para cada planta
+    // PASO 6: PROCESAMIENTO DE CADA MÉTRICA
+    // Itera sobre cada métrica definida para calcular sus valores en todas las plantas
     metrics.forEach(metric => {
-        // Obtiene los valores crudos de la métrica para todas las plantas
+        // Calcula los valores brutos de esta métrica para todas las plantas
+        // Esto crea un array con un valor por cada planta (en el mismo orden)
         const rawValues = series.map(s => metric.getValue(s.data));
-        // Normaliza y guarda el valor en el array de cada planta
+        
+        // Para cada planta, calcular valor normalizado y guardarlo
         series.forEach((s, i) => {
+            // Obtiene el valor bruto calculado para esta planta
             const rawValue = rawValues[i];
+            
+            // Normaliza el valor entre 0-100% para que sea comparable con otras métricas
             const normalizedValue = normalizeValue(rawValue, metric.name, rawValues);
+            
+            // Añade la información completa de esta métrica al array de valores de la planta
             s.values.push({
-                metric: metric.name,
-                rawValue: rawValue,
-                normalizedValue: normalizedValue
+                metric: metric.name,                // Nombre de la métrica
+                rawValue: rawValue,                 // Valor original calculado (con sus unidades)
+                normalizedValue: normalizedValue    // Valor normalizado (0-100%) para el gráfico
             });
         });
     });
     
-    // Prepara los datos para ApexCharts (solo los valores normalizados)
+    // PASO 7: PREPARACIÓN DE DATOS PARA APEXCHARTS
+    // Transforma la estructura de datos al formato específico requerido por ApexCharts
     const apexSeries = series.map(s => ({
-        name: s.planta,
-        data: s.values.map(v => v.normalizedValue)
+        name: s.planta,                             // Nombre de la planta para la leyenda
+        data: s.values.map(v => v.normalizedValue)  // Array de valores normalizados para esta planta
     }));
     
-    // Opciones de configuración para el gráfico radar
+    // PASO 8: CONFIGURACIÓN DEL GRÁFICO RADAR
+    // Define todas las opciones de configuración para el gráfico de ApexCharts
     const apexOptions = {
+        // Configuración general del gráfico
         chart: {
-            height: 450,
-            type: 'radar',
+            height: 450,                // Altura en píxeles
+            type: 'radar',              // Tipo de gráfico: radar (también llamado "araña")
             toolbar: {
-                show: true
+                show: true              // Muestra la barra de herramientas para interacción
             },
             dropShadow: {
-                enabled: true,
-                blur: 1,
-                left: 1,
-                top: 1
+                enabled: true,          // Añade sombra para mejor visualización
+                blur: 1,                // Desenfoque de la sombra
+                left: 1,                // Desplazamiento horizontal
+                top: 1                  // Desplazamiento vertical
             }
         },
-        series: apexSeries, // Series de datos normalizados por planta
-        labels: metrics.map(m => m.name), // Nombres de las métricas en el radar
+        // Series de datos (cada planta es una serie con sus valores normalizados)
+        series: apexSeries,
+        // Etiquetas para cada eje del radar (nombres de las métricas)
+        labels: metrics.map(m => m.name),
+        // Configuración específica para gráficos tipo radar
         plotOptions: {
             radar: {
-                size: 140,
+                size: 140,              // Tamaño del radar
                 polygons: {
-                    strokeWidth: 1,
-                    strokeColor: '#e9e9e9',
+                    strokeWidth: 1,     // Grosor de las líneas de la cuadrícula
+                    strokeColor: '#e9e9e9',  // Color de las líneas
+                    // Configuración del relleno del polígono base
                     fill: {
-                        colors: ['#f8f8f8', '#fff']
+                        colors: ['#f8f8f8', '#fff']  // Colores alternos para mejor visibilidad
                     }
                 }
             }
         },
-        colors: chartColors.palette.slice(0, 5), // Colores para cada planta
+        // Colores para cada planta (toma los primeros 5 de la paleta predefinida)
+        colors: chartColors.palette.slice(0, 5),
+        // Configuración de los marcadores (puntos en las líneas)
         markers: {
-            size: 4,
-            colors: ['#fff'],
-            strokeColors: chartColors.palette.slice(0, 5),
-            strokeWidth: 2
+            size: 4,                    // Tamaño en píxeles
+            colors: ['#fff'],           // Color de relleno (blanco)
+            strokeColors: chartColors.palette.slice(0, 5),  // Borde del color de la serie
+            strokeWidth: 2              // Grosor del borde
         },
+        // Configuración de tooltip (información emergente al pasar el cursor)
         tooltip: {
             y: {
-                // Personaliza el tooltip para mostrar el valor real de cada métrica
+                // Función personalizada para mostrar los valores originales (no normalizados)
+                // en el formato adecuado según la métrica (€, %, días, etc.)
                 formatter: function(val, { seriesIndex, dataPointIndex }) {
+                    // Obtiene la definición de la métrica actual
                     const metric = metrics[dataPointIndex];
+                    // Obtiene el valor original (no normalizado) para esta planta y métrica
                     const rawValue = series[seriesIndex].values[dataPointIndex].rawValue;
+                    
+                    // Formatea el valor según el tipo de métrica
                     if (metric.name === "Costo Promedio (€)") {
-                        return `€${rawValue.toFixed(2)}`;
+                        return `€${rawValue.toFixed(2)}`;  // Formato monetario con 2 decimales
                     } else if (metric.name === "% Interno") {
-                        return `${rawValue.toFixed(1)}%`;
+                        return `${rawValue.toFixed(1)}%`;  // Formato porcentaje con 1 decimal
                     } else if (metric.name === "Tiempo Aprobación (días)") {
-                        return `${rawValue.toFixed(1)} días`;
+                        return `${rawValue.toFixed(1)} días`;  // Formato días con 1 decimal
                     } else if (metric.name === "Peso Promedio (kg)") {
-                        return `${rawValue.toFixed(1)} kg`;
+                        return `${rawValue.toFixed(1)} kg`;  // Formato peso con 1 decimal
                     } else {
+                        // Para otras métricas, formato numérico con separadores de miles
                         return rawValue.toLocaleString();
                     }
                 }
             }
         },
+        // Configuración del eje Y (valores normalizados)
         yaxis: {
-            tickAmount: 5,
+            tickAmount: 5,              // Número de líneas de cuadrícula concéntricas
             labels: {
                 formatter: function(val) {
+                    // Formato entero para los valores normalizados (0-100)
                     return val.toFixed(0);
                 }
             }
         }
     };
     
-    // Crea o actualiza el gráfico radar en el DOM
+    // PASO 9: ACTUALIZACIÓN O CREACIÓN DEL GRÁFICO
+    // Comprueba si el gráfico ya existe (para actualizarlo) o si hay que crearlo desde cero
     if (charts.plantComparison) {
+        // Si el gráfico ya existe, actualiza sus opciones con los nuevos datos
         charts.plantComparison.updateOptions(apexOptions);
     } else {
+        // Si no existe, crea una nueva instancia de ApexCharts con las opciones configuradas
+        // y la asocia al elemento HTML con id 'plantComparisonChart'
         charts.plantComparison = new ApexCharts(document.getElementById('plantComparisonChart'), apexOptions);
+        // Ejecuta el renderizado para mostrar el gráfico en la página
         charts.plantComparison.render();
     }
 }
