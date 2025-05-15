@@ -22,6 +22,10 @@
     color: white;
 }
 
+#filterscards .card-body {
+    color: white;
+}
+
 /* También puedes personalizar más elementos dentro de las cards de filtros si lo deseas */
 #filterscards .card {
     background-color: #4472C4; /* Color de fondo que combine con el tema */
