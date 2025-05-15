@@ -41,7 +41,7 @@ export function updateAllVisualizations() {
     renderRecoveryFilesChart();
     renderProductsChart();
     renderOriginDestinyMap();
-    // renderTimeSeriesChart(); // <-- Comenta esta línea
+    renderTimeSeriesChart(); // <-- Comenta esta línea
     renderCorrelationChart();
     renderForecastChart();
     renderWordCloud();
