@@ -42,6 +42,23 @@ export function renderTimeSeriesChart() {
     // Ordenar los datos por fecha
     const sortedMonths = Object.keys(monthlyData).sort();
     
+    // If no data is available, return early to prevent chart errors
+    if (sortedMonths.length === 0) {
+        console.log("No time series data available to render chart");
+        
+        // If chart already exists, destroy it to prevent errors
+        if (charts.timeSeries) {
+            charts.timeSeries.updateOptions({
+                series: [
+                    { name: 'Envíos Internos', data: [] },
+                    { name: 'Envíos Externos', data: [] },
+                    { name: 'Costo Total (€)', data: [] }
+                ]
+            });
+        }
+        return;
+    }
+    
     const categories = sortedMonths.map(ym => {
         const [year, month] = ym.split('-');
         return `${month}/${year}`;
