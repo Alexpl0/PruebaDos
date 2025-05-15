@@ -177,7 +177,8 @@ export function renderTimeSeriesChart() {
                     },
                     tooltip: {
                         enabled: true
-                    }
+                    },
+                    min: 0  // Add this line to prevent the error
                 },
                 {
                     seriesName: 'Costo Total (€)',
@@ -200,6 +201,7 @@ export function renderTimeSeriesChart() {
                             color: chartColors.secondary,
                         }
                     },
+                    min: 0  // Add this line to prevent the error
                 },
             ],
             tooltip: {
