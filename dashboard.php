@@ -52,7 +52,7 @@ include_once 'dao/users/auth_check.php';
         <h1 class="mb-4 text-center">Premium Freight Analytics Dashboard</h1>
         
         <!-- Filtros globales --> 
-        <div class="row mb-4" id="filterscards">
+        <div class="row mb-4">
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-body">
@@ -102,7 +102,7 @@ include_once 'dao/users/auth_check.php';
         </div>
         
         <!-- KPIs principales -->
-        <div class="row mb-4">
+        <div class="row mb-4" id="filterscards">
             <div class="col-md-3">
                 <div class="card bg-primary text-white">
                     <div class="card-body">
