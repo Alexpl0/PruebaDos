@@ -97,6 +97,8 @@ export async function renderOriginDestinyMap() {
         const originKey = `${item.origin_company_name || 'Unknown'} (${item.origin_city}, ${item.origin_state || 'Unknown'})`;
         const destKey = `${item.destiny_company_name || 'Unknown'} (${item.destiny_city}, ${item.destiny_state || 'Unknown'})`;
         
+        console.log("[DEBUG] Processing:", originKey, destKey);
+        
         // PASO 4.3: PROCESAMIENTO DE LA UBICACIÓN DE ORIGEN
         // Verifica si esta ubicación de origen ya ha sido procesada
         if (!locations.has(originKey)) {
