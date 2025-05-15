@@ -252,6 +252,19 @@ export function renderCorrelationChart() {
         }
     });
     
+    // Check if there is any valid data to render
+    if (scatterData.length === 0) {
+        console.log("No correlation data available to render chart");
+        
+        // If chart already exists, update with empty data
+        if (charts.correlation) {
+            charts.correlation.updateOptions({
+                series: []
+            });
+        }
+        return;
+    }
+    
     // Agrupar por tipo de transporte
     const transportTypes = [...new Set(scatterData.map(item => item.transport))];
     
@@ -268,6 +281,17 @@ export function renderCorrelationChart() {
             })
         };
     });
+    
+    // Additional check for empty series after grouping
+    if (seriesData.length === 0 || seriesData.every(series => series.data.length === 0)) {
+        console.log("No correlation data available after grouping");
+        if (charts.correlation) {
+            charts.correlation.updateOptions({
+                series: []
+            });
+        }
+        return;
+    }
     
     // Crear o actualizar el gráfico
     if (charts.correlation) {
