@@ -108,15 +108,15 @@ export function renderTimeSeriesChart() {
             series: [
                 {
                     name: 'Envíos Internos',
-                    data: internalData
+                    data: internalData.map(value => value === undefined ? 0 : value)
                 },
                 {
                     name: 'Envíos Externos',
-                    data: externalData
+                    data: externalData.map(value => value === undefined ? 0 : value)
                 },
                 {
                     name: 'Costo Total (€)',
-                    data: costData
+                    data: costData.map(value => value === undefined ? 0 : value)
                 }
             ]
         });
