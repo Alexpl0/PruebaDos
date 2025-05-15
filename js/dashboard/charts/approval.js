@@ -1,5 +1,6 @@
 // Gráficos relacionados con aprobaciones
 
+// Importa la función para obtener los datos filtrados y la configuración de los gráficos
 import { getFilteredData } from '../dataDashboard.js';
 import { charts, chartColors } from '../configDashboard.js';
 
@@ -7,23 +8,27 @@ import { charts, chartColors } from '../configDashboard.js';
  * Genera o actualiza el gráfico de tiempo promedio de aprobación
  */
 export function renderApprovalTimeChart() {
+    // Muestra en consola la cantidad de datos filtrados
     console.log("[DEBUG] renderApprovalTimeChart:", getFilteredData().length);
+    // Obtiene los datos filtrados según los filtros activos
     const filteredData = getFilteredData();
     
-    // Procesar datos de tiempo de aprobación
+    // Array para almacenar los datos de tiempo de aprobación por registro
     const approvalTimeData = [];
     
+    // Procesa cada registro filtrado
     filteredData.forEach(item => {
-        // Solo procesar items con fecha de creación y aprobación
+        // Solo considera registros con fecha de creación, fecha de aprobación y estado válido
         if (item.date && item.approval_date && item.status_name && 
             (item.status_name === 'aprobado' || item.status_name === 'rechazado')) {
-            const createDate = new Date(item.date);
-            const approvalDate = new Date(item.approval_date);
+            const createDate = new Date(item.date);           // Fecha de creación
+            const approvalDate = new Date(item.approval_date); // Fecha de aprobación/rechazo
             
-            // Calcular diferencia en días
+            // Calcula la diferencia en días entre creación y aprobación
             const diffTime = Math.abs(approvalDate - createDate);
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             
+            // Guarda el resultado en el array
             approvalTimeData.push({
                 id: item.id,
                 days: diffDays,
@@ -32,10 +37,11 @@ export function renderApprovalTimeChart() {
         }
     });
     
-    // Calcular promedio por status
+    // Objetos para acumular suma y conteo de días por estado
     const avgByStatus = {};
     const countByStatus = {};
     
+    // Acumula los días y cuenta por cada estado
     approvalTimeData.forEach(item => {
         if (!avgByStatus[item.status]) {
             avgByStatus[item.status] = item.days;
@@ -46,22 +52,23 @@ export function renderApprovalTimeChart() {
         }
     });
     
-    // Calcular promedio final
+    // Calcula el promedio final de días por estado
     for (const status in avgByStatus) {
         avgByStatus[status] = avgByStatus[status] / countByStatus[status];
     }
     
-    // Preparar datos para ApexCharts
-    const categories = Object.keys(avgByStatus);
-    const seriesData = Object.values(avgByStatus);
+    // Prepara los datos para ApexCharts
+    const categories = Object.keys(avgByStatus);      // Estados (aprobado, rechazado)
+    const seriesData = Object.values(avgByStatus);    // Promedios de días por estado
     
-    // Crear o actualizar el gráfico
+    // Si el gráfico ya existe, lo actualiza con los nuevos datos
     if (charts.approvalTime) {
         charts.approvalTime.updateOptions({
             xaxis: { categories: categories },
             series: [{ data: seriesData }]
         });
     } else {
+        // Si no existe, crea el gráfico con las opciones iniciales
         const options = {
             chart: {
                 type: 'bar',
@@ -92,6 +99,7 @@ export function renderApprovalTimeChart() {
             }]
         };
         
+        // Crea el gráfico y lo renderiza en el elemento con id 'chartApprovalTime'
         charts.approvalTime = new ApexCharts(document.getElementById('chartApprovalTime'), options);
         charts.approvalTime.render();
     }

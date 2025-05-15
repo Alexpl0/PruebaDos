@@ -19,7 +19,7 @@ import { renderForecastChart } from './charts/forecast.js';
 import { renderOriginDestinyMap } from './charts/map.js';
 import { renderProductsChart } from './charts/products.js';
 import { renderRecoveryFilesChart } from './charts/recovery.js';
-import { renderTimeSeriesChart, renderCorrelationChart } from './charts/timeSeries.js';
+import { renderTimeSeriesChart } from './charts/timeSeries.js';
 import { renderTransportChart } from './charts/transport.js';
 import { renderWordCloud } from './charts/wordCloud.js';
 import { renderPlantComparison } from './charts/plantComparison.js';
