@@ -100,162 +100,162 @@ export function renderTimeSeriesChart() {
     const externalData = sortedMonths.map(ym => monthlyData[ym].externalCount);
     
     // Si el gráfico ya existe, actualiza sus datos
-    if (charts.timeSeries) {
-        charts.timeSeries.updateOptions({
-            xaxis: {
-                categories: categories
-            },
-            series: [
-                {
-                    name: 'Envíos Internos',
-                    data: internalData
-                },
-                {
-                    name: 'Envíos Externos',
-                    data: externalData
-                },
-                {
-                    name: 'Costo Total (€)',
-                    data: costData
-                }
-            ]
-        });
-    } else {
-        // Si no existe, crea el gráfico con las opciones iniciales
-        const options = {
-            chart: {
-                height: 400,
-                type: 'line',
-                stacked: false,
-                toolbar: {
-                    show: true
-                }
-            },
-            dataLabels: {
-                enabled: false
-            },
-            stroke: {
-                width: [1, 1, 4],
-                curve: 'smooth'
-            },
-            title: {
-                text: 'Tendencia de Envíos y Costos',
-                align: 'center'
-            },
-            grid: {
-                row: {
-                    colors: ['#f3f3f3', 'transparent'],
-                    opacity: 0.5
-                },
-            },
-            xaxis: {
-                categories: categories,
-                labels: {
-                    rotate: -45,
-                    rotateAlways: true
-                }
-            },
-            yaxis: [
-                {
-                    axisTicks: {
-                        show: true,
-                    },
-                    axisBorder: {
-                        show: true,
-                        color: chartColors.primary
-                    },
-                    labels: {
-                        style: {
-                            colors: chartColors.primary,
-                        }
-                    },
-                    title: {
-                        text: "Cantidad de Envíos",
-                        style: {
-                            color: chartColors.primary,
-                        }
-                    },
-                    tooltip: {
-                        enabled: true
-                    }
-                },
-                {
-                    seriesName: 'Costo Total (€)',
-                    opposite: true,
-                    axisTicks: {
-                        show: true,
-                    },
-                    axisBorder: {
-                        show: true,
-                        color: chartColors.secondary
-                    },
-                    labels: {
-                        style: {
-                            colors: chartColors.secondary,
-                        }
-                    },
-                    title: {
-                        text: "Costo Total (€)",
-                        style: {
-                            color: chartColors.secondary,
-                        }
-                    },
-                },
-            ],
-            tooltip: {
-                shared: true,
-                intersect: false,
-                y: [
-                    {
-                        formatter: function (y) {
-                            if (typeof y !== "undefined") {
-                                return y.toFixed(0) + " envíos";
-                            }
-                            return y;
-                        }
-                    },
-                    {
-                        formatter: function (y) {
-                            if (typeof y !== "undefined") {
-                                return y.toFixed(0) + " envíos";
-                            }
-                            return y;
-                        }
-                    },
-                    {
-                        formatter: function (y) {
-                            if (typeof y !== "undefined") {
-                                return "€" + y.toLocaleString(undefined, {maximumFractionDigits: 0});
-                            }
-                            return y;
-                        }
-                    }
-                ]
-            },
-            colors: ['#4472C4', '#A5A5A5', '#ED7D31'],
-            series: [
-                {
-                    name: 'Envíos Internos',
-                    type: 'column',
-                    data: internalData
-                },
-                {
-                    name: 'Envíos Externos',
-                    type: 'column',
-                    data: externalData
-                },
-                {
-                    name: 'Costo Total (€)',
-                    type: 'line',
-                    data: costData
-                }
-            ]
-        };
+    // if (charts.timeSeries) {
+    //     charts.timeSeries.updateOptions({
+    //         xaxis: {
+    //             categories: categories
+    //         },
+    //         series: [
+    //             {
+    //                 name: 'Envíos Internos',
+    //                 data: internalData
+    //             },
+    //             {
+    //                 name: 'Envíos Externos',
+    //                 data: externalData
+    //             },
+    //             {
+    //                 name: 'Costo Total (€)',
+    //                 data: costData
+    //             }
+    //         ]
+    //     });
+    // } else {
+    //     // Si no existe, crea el gráfico con las opciones iniciales
+    //     const options = {
+    //         chart: {
+    //             height: 400,
+    //             type: 'line',
+    //             stacked: false,
+    //             toolbar: {
+    //                 show: true
+    //             }
+    //         },
+    //         dataLabels: {
+    //             enabled: false
+    //         },
+    //         stroke: {
+    //             width: [1, 1, 4],
+    //             curve: 'smooth'
+    //         },
+    //         title: {
+    //             text: 'Tendencia de Envíos y Costos',
+    //             align: 'center'
+    //         },
+    //         grid: {
+    //             row: {
+    //                 colors: ['#f3f3f3', 'transparent'],
+    //                 opacity: 0.5
+    //             },
+    //         },
+    //         xaxis: {
+    //             categories: categories,
+    //             labels: {
+    //                 rotate: -45,
+    //                 rotateAlways: true
+    //             }
+    //         },
+    //         yaxis: [
+    //             {
+    //                 axisTicks: {
+    //                     show: true,
+    //                 },
+    //                 axisBorder: {
+    //                     show: true,
+    //                     color: chartColors.primary
+    //                 },
+    //                 labels: {
+    //                     style: {
+    //                         colors: chartColors.primary,
+    //                     }
+    //                 },
+    //                 title: {
+    //                     text: "Cantidad de Envíos",
+    //                     style: {
+    //                         color: chartColors.primary,
+    //                     }
+    //                 },
+    //                 tooltip: {
+    //                     enabled: true
+    //                 }
+    //             },
+    //             {
+    //                 seriesName: 'Costo Total (€)',
+    //                 opposite: true,
+    //                 axisTicks: {
+    //                     show: true,
+    //                 },
+    //                 axisBorder: {
+    //                     show: true,
+    //                     color: chartColors.secondary
+    //                 },
+    //                 labels: {
+    //                     style: {
+    //                         colors: chartColors.secondary,
+    //                     }
+    //                 },
+    //                 title: {
+    //                     text: "Costo Total (€)",
+    //                     style: {
+    //                         color: chartColors.secondary,
+    //                     }
+    //                 },
+    //             },
+    //         ],
+    //         tooltip: {
+    //             shared: true,
+    //             intersect: false,
+    //             y: [
+    //                 {
+    //                     formatter: function (y) {
+    //                         if (typeof y !== "undefined") {
+    //                             return y.toFixed(0) + " envíos";
+    //                         }
+    //                         return y;
+    //                     }
+    //                 },
+    //                 {
+    //                     formatter: function (y) {
+    //                         if (typeof y !== "undefined") {
+    //                             return y.toFixed(0) + " envíos";
+    //                         }
+    //                         return y;
+    //                     }
+    //                 },
+    //                 {
+    //                     formatter: function (y) {
+    //                         if (typeof y !== "undefined") {
+    //                             return "€" + y.toLocaleString(undefined, {maximumFractionDigits: 0});
+    //                         }
+    //                         return y;
+    //                     }
+    //                 }
+    //             ]
+    //         },
+    //         colors: ['#4472C4', '#A5A5A5', '#ED7D31'],
+    //         series: [
+    //             {
+    //                 name: 'Envíos Internos',
+    //                 type: 'column',
+    //                 data: internalData
+    //             },
+    //             {
+    //                 name: 'Envíos Externos',
+    //                 type: 'column',
+    //                 data: externalData
+    //             },
+    //             {
+    //                 name: 'Costo Total (€)',
+    //                 type: 'line',
+    //                 data: costData
+    //             }
+    //         ]
+    //     };
         
-        // Crea el gráfico y lo renderiza en el elemento con id 'chartTimeSeries'
-        charts.timeSeries = new ApexCharts(document.getElementById('chartTimeSeries'), options);
-        charts.timeSeries.render();
-    }
+    //     // Crea el gráfico y lo renderiza en el elemento con id 'chartTimeSeries'
+    //     charts.timeSeries = new ApexCharts(document.getElementById('chartTimeSeries'), options);
+    //     charts.timeSeries.render();
+    // }
 }
 
 /**
