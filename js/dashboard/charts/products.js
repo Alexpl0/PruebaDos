@@ -48,7 +48,7 @@ export function renderProductsChart() {
     filteredData.forEach(item => {
         // Extrae el producto del ítem, usando 'Unspecified' como valor predeterminado
         // si el campo está vacío, es null o undefined
-        const product = item.product || 'Unspecified';
+        const product = item.products || 'Unspecified';
         
         // Si es la primera vez que encontramos este producto, inicializa su contador en 1
         if (!productsData[product]) {
