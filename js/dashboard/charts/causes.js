@@ -21,6 +21,9 @@ import { getFilteredData } from '../dataDashboard.js';
 // - chartColors: paleta de colores predefinida para mantener consistencia visual
 import { charts, chartColors } from '../configDashboard.js';
 
+// Importación de la función para formatear números de manera consistente
+import { formatNumber } from '../utilsDashboard.js';
+
 /**
  * Función principal que genera o actualiza el gráfico de análisis de Pareto para las causas
  * 
@@ -175,7 +178,12 @@ export function renderCausesChart() {
                     title: {
                         text: 'Count',  // Título descriptivo del eje
                     },
-                    min: 0                 // Valor mínimo del eje (siempre desde cero)
+                    min: 0,                // Valor mínimo del eje (siempre desde cero)
+                    labels: {
+                        formatter: function(value) {
+                            return formatNumber(value, 0); // Formato sin decimales para conteos
+                        }
+                    }
                 },
                 {
                     // Segundo eje Y (derecha) - Para el porcentaje acumulativo
