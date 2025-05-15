@@ -166,14 +166,14 @@ export function renderApprovalTimeChart() {
             xaxis: {
                 categories: categories,     // Categorías a mostrar (estados)
                 title: {
-                    text: 'Tiempo promedio (días)'  // Título descriptivo del eje
+                    text: 'Average Time (Days)'  // Título descriptivo del eje
                 }
             },
             // Color de las barras, usando el color primario definido en la configuración global
             colors: [chartColors.primary],
             // Datos de la serie que se mostrará en el gráfico
             series: [{
-                name: 'Días promedio',      // Nombre de la serie (aparece en tooltips y leyenda)
+                name: 'Average Days',      // Nombre de la serie (aparece en tooltips y leyenda)
                 data: seriesData            // Datos numéricos (promedios calculados)
             }]
         };
