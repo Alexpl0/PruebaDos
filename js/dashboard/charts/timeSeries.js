@@ -45,10 +45,28 @@ export function renderTimeSeriesChart() {
     // If no data is available, return early to prevent chart errors
     if (sortedMonths.length === 0) {
         console.log("No time series data available to render chart");
-        
-        // If chart already exists, destroy it to prevent errors
         if (charts.timeSeries) {
             charts.timeSeries.updateOptions({
+                xaxis: { categories: [] },
+                yaxis: [
+                    {
+                        axisTicks: { show: true },
+                        axisBorder: { show: true, color: chartColors.primary },
+                        labels: { style: { colors: chartColors.primary } },
+                        title: { text: "Cantidad de Envíos", style: { color: chartColors.primary } },
+                        tooltip: { enabled: true },
+                        min: 0
+                    },
+                    {
+                        seriesName: 'Costo Total (€)',
+                        opposite: true,
+                        axisTicks: { show: true },
+                        axisBorder: { show: true, color: chartColors.secondary },
+                        labels: { style: { colors: chartColors.secondary } },
+                        title: { text: "Costo Total (€)", style: { color: chartColors.secondary } },
+                        min: 0
+                    }
+                ],
                 series: [
                     { name: 'Envíos Internos', data: [] },
                     { name: 'Envíos Externos', data: [] },
