@@ -47,7 +47,7 @@ export function renderApprovalTimeChart() {
         // - Fecha de aprobación/rechazo (approval_date)
         // - Estado final válido (aprobado o rechazado)
         if (item.date && item.approval_date && item.status_name && 
-            (item.status_name === 'approved' || item.status_name === 'rejected')) {
+            (item.status_name === 'aprobado' || item.status_name === 'rechazado' || item.status_name === 'revision' ||item.status_name === 'nuevo' )) {
             
             // PASO 1.2: CONVERSIÓN DE FECHAS
             // Convierte los strings de fecha a objetos Date para poder realizar cálculos
