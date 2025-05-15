@@ -94,7 +94,9 @@ export function renderTransportChart() {
     const countData = Object.values(transportData);
     
     // Extrae los valores de costo promedio para la segunda serie
-    const avgCostData = Object.values(avgCostByTransport);
+    const avgCostData = Object.values(avgCostByTransport).map(cost => 
+        parseFloat(cost.toFixed(2)) // Asegura redondeo a 2 decimales
+    );
     
     // PASO 4: ACTUALIZACIÓN O CREACIÓN DEL GRÁFICO
     // Comprueba si el gráfico ya existe (para actualizarlo) o si hay que crearlo desde cero
@@ -145,6 +147,11 @@ export function renderTransportChart() {
                     // Primer eje Y (izquierda) - Para la cantidad de envíos
                     title: {
                         text: 'Quantity'      // Título descriptivo del eje
+                    },
+                    labels: {
+                        formatter: function(value) {
+                            return formatNumber(value, 0); // Sin decimales para cantidades
+                        }
                     }
                 },
                 {
@@ -152,6 +159,11 @@ export function renderTransportChart() {
                     opposite: true,           // Ubicado en el lado opuesto (derecha)
                     title: {
                         text: 'Average Cost (€)'  // Título descriptivo del eje
+                    },
+                    labels: {
+                        formatter: function(value) {
+                            return formatNumber(value, 2); // Con 2 decimales para costos
+                        }
                     }
                 }
             ],
