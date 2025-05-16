@@ -98,6 +98,8 @@ export function renderTimeSeriesChart() {
     // Extrae las claves (año-mes) y las ordena cronológicamente
     // Esto garantiza que los datos se visualicen en la secuencia temporal correcta
     const sortedMonths = Object.keys(monthlyData).sort();
+
+    console.log("[DEBUG] sortedMonths:", sortedMonths);
     
     // PASO 3: VALIDACIÓN DE DATOS MÍNIMOS
     // Si no hay datos, limpia el gráfico y finaliza la función
@@ -221,7 +223,7 @@ export function renderTimeSeriesChart() {
             // Título principal del gráfico
             title: {
                 text: 'Shipments and Costs Trend',
-                align: 'left'             // Centrado horizontalmente
+                align: 'center'             // Centrado horizontalmente
             },
             // Configuración de la cuadrícula de fondo
             grid: {
