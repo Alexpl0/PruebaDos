@@ -77,7 +77,7 @@ include_once 'dao/users/auth_check.php';
                         <label for="new-password" class="form-label">New Password</label>
                         <div class="input-group">
                             <input type="password" id="new-password">
-                            <button class="btn btn-outline-secondary toggle-password" type="button" data-target="new-password">
+                            <button type="button" class="toggle-password" data-target="current-password">
                                 <span class="material-symbols-outlined">visibility_off</span>
                             </button>
                         </div>
@@ -87,7 +87,7 @@ include_once 'dao/users/auth_check.php';
                         <label for="confirm-password" class="form-label">Confirm New Password</label>
                         <div class="input-group">
                             <input type="password" id="confirm-password">
-                            <button class="btn btn-outline-secondary toggle-password" type="button" data-target="confirm-password">
+                            <button type="button" class="toggle-password" data-target="current-password">
                                 <span class="material-symbols-outlined">visibility_off</span>
                             </button>
                         </div>
