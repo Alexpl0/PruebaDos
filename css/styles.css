@@ -3,7 +3,7 @@
 
 /* Sobreescribe las variables de Bootstrap */
 :root {
-    --bs-body-font-family: 'Merriweather', serif;
+    --bs-body-font-family: 'Merriweather', serif !important;
 }
 
 /*===== VARIABLES CSS =====*/
@@ -18,38 +18,77 @@
     --hover-color: #F7F7F7;
   
     /*===== Fuente y tipografia =====*/
-    --body-font: 'Merriweather', serif;
-    --normal-font-size: 1rem;
-    --small-font-size: .8rem;
+    --body-font: 'Merriweather', serif !important;
+    --normal-font-size: 1rem !important;
+    --small-font-size: .8rem !important;
   
     /*===== z index =====*/
     --z-fixed: 100;
 
     /*===== font size =====*/
-    --font-size: 15px;
-  }
+    --font-size: 15px !important;
+}
 
+/* También asegúrate de que la aplicación base del tamaño de fuente use !important */
 body {
     margin: 5%;
     margin-bottom: 0px;
     padding: 5% 10%;
     padding-bottom: 0px;
     background-color: var(--white-color) !important;
-    font-size: var(--font-size);
-    font-family: var(--body-font) !important; /* Añadido con !important para forzar su uso */
+    font-size: var(--font-size) !important;
+    font-family: var(--body-font) !important;
 }
 
+/* Asegura que todos los elementos hereden la fuente correcta */
 * {
-    font-family: var(--body-font);
+    font-family: var(--body-font) !important;
 }
 
-.title1{
-    font-size: 2em;
+/* Aplicación consistente de tamaños de fuente */
+body, p, div, span, a, button, input, select, textarea {
+    font-family: var(--body-font) !important;
+    font-size: var(--font-size) !important;
+}
+
+h1, .h1 {
+    font-size: calc(var(--font-size) * 2) !important;
+    font-family: var(--body-font) !important;
+}
+
+h2, .h2 {
+    font-size: calc(var(--font-size) * 1.75) !important;
+    font-family: var(--body-font) !important;
+}
+
+h3, .h3 {
+    font-size: calc(var(--font-size) * 1.5) !important;
+    font-family: var(--body-font) !important;
+}
+
+h4, .h4 {
+    font-size: calc(var(--font-size) * 1.25) !important;
+    font-family: var(--body-font) !important;
+}
+
+h5, .h5, h6, .h6 {
+    font-size: calc(var(--font-size) * 1.1) !important;
+    font-family: var(--body-font) !important;
+}
+
+.small, small {
+    font-size: var(--small-font-size) !important;
+    font-family: var(--body-font) !important;
+}
+
+/* Fuerza los tamaños específicos de fuente donde se usan */
+.title1 {
+    font-size: 2em !important;
     text-align: center;
 }
 
 h1 {
-    font-size: 2em;
+    font-size: 2em !important;
     text-align: center;
     margin-bottom: 20px;
 }
@@ -126,7 +165,7 @@ form button, form input[type="submit"] {
     color: white;
     border: none;
     border-radius: 5px;
-    font-size: 1em;
+    font-size: 1em !important;
     cursor: pointer;
     width: 100%;
 }

@@ -1,10 +1,11 @@
 /*===== GOOGLE FONTS =====*/
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap");
+/* No importamos Google Fonts aquí para evitar duplicados - Se usa la importación de styles.css */
 
+/*===== VARIABLES DE TAMAÑO PARA PANTALLAS GRANDES =====*/
 @media screen and (min-width: 900px) {
   :root {
-    --normal-font-size: 1rem;
-    --small-font-size: .875rem;
+    --normal-font-size: 1rem !important;
+    --small-font-size: .8rem !important;
   }
 }
 
@@ -12,13 +13,14 @@
 *, ::before, ::after {
   -webkit-box-sizing: border-box;
           box-sizing: border-box;
+  font-family: var(--body-font) !important;
 }
 
-/* Modify the body style */
+/* Estilos base del body para el header */
 body {
   margin: 0;
-  padding-top: calc(var(--header-height) + 1rem); /* Add padding to account for fixed header */
-  font-family: var(--body-font);
+  padding-top: calc(var(--header-height) + 1rem); /* Espacio para el header fijo */
+  font-family: var(--body-font) !important;
   font-weight: 500;
 }
 
@@ -30,25 +32,25 @@ ul {
 
 a {
   text-decoration: none;
+  font-family: var(--body-font) !important;
+  font-size: var(--font-size) !important;
 }
 
 img {
   max-width: 100%;
-  height: 100%;
+  height: auto;
 }
 
 .bd-grid {
   max-width: 1024px;
-  display: -ms-grid;
   display: grid;
-  -ms-grid-columns: 100%;
-      grid-template-columns: 100%;
+  grid-template-columns: 100%;
   margin-left: 1.5rem;
   margin-right: 1.5rem;
 }
 
 /*===== HEADER =====*/
-/* Keep the header fixed */
+/* Header fijo en la parte superior */
 .header {
   width: 100%;
   height: var(--header-height);
@@ -65,15 +67,19 @@ img {
 
 .header__logo {
   color: var(--white-color);
+  font-family: var(--body-font) !important;
+  font-size: var(--font-size) !important;
 }
 
+/* Ícono de toggle del menú */
 .header__toggle {
-  font-size: 1.5rem !important;
+  font-size: var(--normal-font-size) !important;
   color: var(--white-color);
   cursor: pointer;
 }
 
-/*===== NAV =====*/
+/*===== NAVEGACIÓN =====*/
+/* Versión móvil del menú */
 @media screen and (max-width: 899px) {
   .nav {
     position: fixed;
@@ -85,35 +91,31 @@ img {
     height: 100vh;
     padding: 1.5rem 0;
     z-index: var(--z-fixed);
-    -webkit-transition: .5s;
     transition: .5s;
   }
 }
 
 .nav__content {
   height: 100%;
-  -ms-grid-rows: max-content 1fr max-content;
-      grid-template-rows: max-content 1fr max-content;
+  grid-template-rows: max-content 1fr max-content;
   row-gap: 2rem;
 }
 
+/* Botón para cerrar el menú móvil */
 .nav__close {
   position: absolute;
   right: 1.5rem;
-  font-size: 1.3rem !important;
+  font-size: var(--normal-font-size) !important;
   padding: .25rem;
   background-color: var(--dark-color-alt);
   border-radius: 50%;
   cursor: pointer;
 }
 
+/* Imagen del perfil de usuario */
 .nav__img {
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-pack: center;
-      -ms-flex-pack: center;
-          justify-content: center;
+  justify-content: center;
   padding-top: .25rem;
   margin-bottom: .8rem;
   width: 56px;
@@ -125,21 +127,23 @@ img {
 
 .nav__img img {
   width: 46px;
+  height: auto;
 }
 
 .nav__name {
   display: block;
   color: var(--white-color);
+  font-family: var(--body-font) !important;
+  font-size: var(--font-size) !important;
 }
 
 .nav__profesion {
   font-size: var(--small-font-size) !important;
+  font-family: var(--body-font) !important;
 }
 
 .nav__menu {
-  -ms-flex-item-align: center;
-      -ms-grid-row-align: center;
-      align-self: center;
+  align-self: center;
 }
 
 .nav__item {
@@ -148,6 +152,8 @@ img {
 
 .nav__link {
   color: var(--white-color);
+  font-family: var(--body-font) !important;
+  font-size: var(--font-size) !important;
 }
 
 .nav__social {
@@ -155,7 +161,7 @@ img {
 }
 
 .nav__social-icon {
-  font-size: 1.2rem !important;
+  font-size: var(--normal-font-size) !important;
   color: var(--white-color);
   margin-right: 1rem;
 }
@@ -164,17 +170,17 @@ img {
   color: var(--dark-color);
 }
 
-/*Aparecer menu*/
+/* Clase para mostrar el menú móvil */
 .show {
   left: 0;
 }
 
-/*Active menu*/
+/* Estilo para enlaces activos */
 .active {
   color: white;
 }
 
-/* ===== DROPDOWN MENU STYLES ===== */
+/*===== DROPDOWN MENU STYLES =====*/
 .dropdown {
   position: relative;
 }
@@ -185,7 +191,7 @@ img {
 
 .dropdown-toggle i {
   margin-left: 0.25rem;
-  font-size: 0.75rem !important;
+  font-size: var(--small-font-size) !important;
 }
 
 .dropdown-menu {
@@ -204,6 +210,8 @@ img {
   text-decoration: none;
   display: block;
   transition: background-color 0.3s;
+  font-family: var(--body-font) !important;
+  font-size: var(--font-size) !important;
 }
 
 .dropdown-item:hover {
@@ -220,72 +228,73 @@ img {
 }
 
 /*===== MEDIA QUERIES =====*/
-/* Update the media query to match */
+/* Estilos para pantallas grandes */
 @media screen and (min-width: 900px) {
   body {
-    padding-top: calc(var(--header-height) + 1rem); /* Keep consistent padding for larger screens */
+    padding-top: calc(var(--header-height) + 1rem);
   }
+  
   .header {
     height: calc(var(--header-height) + 1rem);
   }
-  .header__logo, .header__toggle {
+  
+  .header__logo, 
+  .header__toggle {
     display: none;
   }
+  
   .nav {
     width: 100%;
   }
+  
   .nav__content {
-    -ms-grid-columns: max-content max-content max-content;
-        grid-template-columns: max-content max-content max-content;
-        grid-template-columns: repeat(3, max-content);
-    -ms-grid-rows: 1fr;
-        grid-template-rows: 1fr;
-    -webkit-column-gap: 1rem;
-            column-gap: 1rem;
-    -webkit-box-pack: justify;
-        -ms-flex-pack: justify;
-            justify-content: space-between;
+    grid-template-columns: repeat(3, max-content);
+    grid-template-rows: 1fr;
+    column-gap: 1rem;
+    justify-content: space-between;
   }
-  .nav__close, .nav__profesion {
+  
+  .nav__close, 
+  .nav__profesion {
     display: none;
   }
+  
   .nav__perfil {
-    display: -webkit-box;
-    display: -ms-flexbox;
     display: flex;
-    -webkit-box-align: center;
-        -ms-flex-align: center;
-            align-items: center;
+    align-items: center;
   }
+  
   .nav__img {
     width: 32px;
     height: 32px;
     margin-right: .5rem;
     margin-bottom: 0;
-    -webkit-box-align: center;
-        -ms-flex-align: center;
-            align-items: center;
+    align-items: center;
   }
+  
   .nav__img img {
     width: 26px;
   }
+  
   .nav__list {
-    display: -webkit-box;
-    display: -ms-flexbox;
     display: flex;
   }
+  
   .nav__item {
     margin: 0 .25rem;
   }
+  
   .nav__link {
     padding: .5rem .8rem;
     border-radius: .25rem;
   }
+  
   .nav__link:hover {
     font-style: italic;
     text-decoration: underline;
     color: white;
   }
+  
   .active {
     background-color: #a2a2a2;
     color: var(--white-color);
@@ -310,8 +319,8 @@ img {
   }
 }
 
+/* Estilos específicos para dropdown en móvil */
 @media screen and (max-width: 899px) {
-  /* Dropdown styles for mobile */
   .dropdown-menu {
     position: static;
     box-shadow: none;
@@ -326,12 +335,5 @@ img {
   
   .nav__item.dropdown {
     margin-bottom: 0;
-  }
-}
-
-@media screen and (min-width: 1024px) {
-  .bd-grid {
-    margin-left: auto;
-    margin-right: auto;
   }
 }
