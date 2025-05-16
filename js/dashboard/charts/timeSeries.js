@@ -221,7 +221,7 @@ export function renderTimeSeriesChart() {
             // Título principal del gráfico
             title: {
                 text: 'Shipments and Costs Trend',
-                align: 'center'             // Centrado horizontalmente
+                align: 'left'             // Centrado horizontalmente
             },
             // Configuración de la cuadrícula de fondo
             grid: {
