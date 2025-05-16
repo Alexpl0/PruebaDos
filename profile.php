@@ -42,7 +42,7 @@ include_once 'dao/users/auth_check.php';
         <div class="profile-container">
             <div class="profile-header">
                 <div class="avatar-container">
-                    <span class="material-symbols-outlined avatar-icon" style="font-size: 4rem; color: #888;">account_circle</span>
+                    <span class="material-symbols-outlined avatar-icon" style="font-size: 4rem; color: #fff;">account_circle</span>
                 </div>
                 <div class="user-info">
                     <h2><?php echo htmlspecialchars($user['name']); ?></h2>
