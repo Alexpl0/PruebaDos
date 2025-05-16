@@ -170,10 +170,10 @@ export function renderTimeSeriesChart() {
     const externalData = sortedMonths.map(ym => monthlyData[ym].externalCount);
 
     console.log("[DEBUG] Categories:", categories);
-    console.log("[DEBUG] Internal Data:", internalData);
-    console.log("[DEBUG] External Data:", externalData);
-    console.log("[DEBUG] Cost Data:", costData);
-    
+    console.log("[DEBUG] Internal Shipments:", internalData);
+    console.log("[DEBUG] External Shipments:", externalData);
+    console.log("[DEBUG] Total Cost:", costData);
+
     
     // PASO 5: ACTUALIZACIÓN O CREACIÓN DEL GRÁFICO
     // Comprueba si el gráfico ya existe (para actualizarlo) o si hay que crearlo desde cero
@@ -209,11 +209,18 @@ export function renderTimeSeriesChart() {
             // Configuración general del gráfico
             chart: {
                 type: 'line',               // Tipo base (se sobrescribirá para la serie de columnas)
-                height: 400,                // Altura en píxeles
+                height: 350,                // Altura en píxeles
                 stacked: false,             // Las series no se apilan (son independientes)
                 toolbar: {
                     show: true              // Muestra la barra de herramientas para interacción
                 }
+            },
+            // Configuración específica para las barras
+            plotOptions: {
+                bar: {
+                    columnWidth: '70%',       // Ancho de las columnas (70% del espacio disponible)
+                    endingShape: 'rounded'    // Forma redondeada al final de las barras
+                },
             },
             // Configuración de etiquetas de datos (desactivadas para evitar sobrecarga visual)
             dataLabels: {
@@ -248,19 +255,6 @@ export function renderTimeSeriesChart() {
             // Configuración de los ejes Y (verticales)
             yaxis: [
                 {
-                    // Primer eje Y (izquierda) - Para la cantidad de envíos
-                    axisTicks: {
-                        show: true,          // Muestra las marcas del eje
-                    },
-                    axisBorder: {
-                        show: true,          // Muestra el borde del eje
-                        color: chartColors.primary  // Color del borde (del tema)
-                    },
-                    labels: {
-                        style: {
-                            colors: chartColors.primary,  // Color de las etiquetas numéricas
-                        }
-                    },
                     title: {
                         text: "Number of Shipments",  // Título descriptivo del eje
                         style: {
@@ -268,13 +262,38 @@ export function renderTimeSeriesChart() {
                         }
                     },
                     tooltip: {
-                        enabled: true         // Habilita tooltips para este eje
+                         enabled: true         // Habilita tooltips para este eje
                     },
-                    min: 0                    // Valor mínimo 0 para evitar errores
-                },
+                    min: 0,                // Valor mínimo del eje (siempre desde cero)
+                    labels: {
+                             formatter: function(value) {
+                            return formatNumber(value, 0); // Formato sin decimales para conteos
+                                }
+                            }
+                }
+                //     // Primer eje Y (izquierda) - Para la cantidad de envíos
+                //     axisTicks: {
+                //         show: true,          // Muestra las marcas del eje
+                //     },
+                //     axisBorder: {
+                //         show: true,          // Muestra el borde del eje
+                //         color: chartColors.primary  // Color del borde (del tema)
+                //     },
+                //     labels: {
+                //         style: {
+                //             colors: chartColors.primary,  // Color de las etiquetas numéricas
+                //         }
+                //     },
+                    
+                //     tooltip: {
+                //         enabled: true         // Habilita tooltips para este eje
+                //     },
+                //     min: 0                    // Valor mínimo 0 para evitar errores
+                // }
+                ,
                 {
                     // Segundo eje Y (derecha) - Para el costo total
-                    seriesName: 'Total Cost (€)',  // Nombre de la serie asociada
+                    // seriesName: 'Total Cost (€)',  // Nombre de la serie asociada
                     opposite: true,          // Ubicado en el lado opuesto (derecha)
                     axisTicks: {
                         show: true,          // Muestra las marcas del eje
