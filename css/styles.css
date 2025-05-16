@@ -22,14 +22,14 @@
   
     /*===== Fuente y tipografia =====*/
     --body-font: 'Merriweather', serif !important;
-    --normal-font-size: 1rem !important;
-    --small-font-size: .8rem !important;
+    --normal-font-size: 1rem ;
+    --small-font-size: .8rem ;
   
     /*===== z index =====*/
     --z-fixed: 100;
 
     /*===== font size =====*/
-    --font-size: 15px !important;
+    --font-size: 15px ;
 }
 
 /* También asegúrate de que la aplicación base del tamaño de fuente use !important */
