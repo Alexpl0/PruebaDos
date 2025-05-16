@@ -132,7 +132,7 @@ export function renderTimeSeriesChart() {
                         axisTicks: { show: true },
                         axisBorder: { show: true, color: chartColors.secondary },
                         labels: { style: { colors: chartColors.secondary } },
-                        title: { text: "Total Cost (€)", style: { color: chartColors.info } },
+                        title: { text: "Total Cost (€)", style: { color: chartColors.secondary } },
                         min: 0  // Valor mínimo 0 para evitar errores
                     }
                 ],
@@ -357,7 +357,7 @@ export function renderTimeSeriesChart() {
                 ]
             },
             // Colores para cada serie (azul para internos, gris para externos, naranja para costo)
-            colors: ['#4472C4', '#A5A5A5', '#ED7D31'],
+            colors: ['#4472C4', '#FFFFFF', '#ED7D31'],
             // Series de datos para el gráfico
             series: [
                 {
