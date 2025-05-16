@@ -27,7 +27,7 @@
 
 /* Password display styling */
 #users-table td:nth-child(5) {
-    font-family: monospace;
+    font-family: var(--body-font);
     background-color: #f8f9fa;
     border-radius: 3px;
     max-width: 150px;

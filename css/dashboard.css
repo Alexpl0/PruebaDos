@@ -81,7 +81,7 @@
 
 /* Estilos para el selector de rango de fechas */
 .daterangepicker {
-    font-family: inherit;
+    font-family: var(--body-font);
 }
 
 .daterangepicker .ranges li.active {
