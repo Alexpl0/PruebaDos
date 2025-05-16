@@ -98,8 +98,6 @@ export function renderTimeSeriesChart() {
     // Extrae las claves (año-mes) y las ordena cronológicamente
     // Esto garantiza que los datos se visualicen en la secuencia temporal correcta
     const sortedMonths = Object.keys(monthlyData).sort();
-
-    console.log("[DEBUG] sortedMonths:", sortedMonths);
     
     // PASO 3: VALIDACIÓN DE DATOS MÍNIMOS
     // Si no hay datos, limpia el gráfico y finaliza la función
@@ -156,6 +154,8 @@ export function renderTimeSeriesChart() {
         // Retorna en formato 'MM/YYYY' para mejor legibilidad
         return `${month}/${year}`;
     });
+
+    console.log("[DEBUG] renderTimeSeriesChart categories:", categories);
     
     // PASO 4.1: EXTRACCIÓN DE DATOS PARA CADA SERIE
     // Extrae los datos de cantidades totales por mes (para posible uso futuro)
