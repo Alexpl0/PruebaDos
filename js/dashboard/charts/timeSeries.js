@@ -132,7 +132,7 @@ export function renderTimeSeriesChart() {
                         axisTicks: { show: true },
                         axisBorder: { show: true, color: chartColors.secondary },
                         labels: { style: { colors: chartColors.secondary } },
-                        title: { text: "Total Cost (€)", style: { color: chartColors.secondary } },
+                        title: { text: "Total Cost (€)", style: { color: chartColors.info } },
                         min: 0  // Valor mínimo 0 para evitar errores
                     }
                 ],
