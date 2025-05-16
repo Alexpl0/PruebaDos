@@ -67,7 +67,7 @@ include_once 'dao/users/auth_check.php';
                         <label for="current-password" class="form-label">Current Password</label>
                         <div class="input-group">
                             <input type="password" id="current-password">
-                            <button class="btn btn-password-icon toggle-password" type="button" data-target="current-password">
+                            <button type="button" class="toggle-password" data-target="current-password">
                                 <span class="material-symbols-outlined">visibility_off</span>
                             </button>
                         </div>
