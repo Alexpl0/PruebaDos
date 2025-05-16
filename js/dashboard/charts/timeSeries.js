@@ -168,6 +168,12 @@ export function renderTimeSeriesChart() {
     
     // Extrae los datos de envíos externos por mes
     const externalData = sortedMonths.map(ym => monthlyData[ym].externalCount);
+
+    console.log("[DEBUG] Categories:", categories);
+    console.log("[DEBUG] Internal Data:", internalData);
+    console.log("[DEBUG] External Data:", externalData);
+    console.log("[DEBUG] Cost Data:", costData);
+    
     
     // PASO 5: ACTUALIZACIÓN O CREACIÓN DEL GRÁFICO
     // Comprueba si el gráfico ya existe (para actualizarlo) o si hay que crearlo desde cero
