@@ -4,13 +4,13 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', function() {
             const targetId = this.getAttribute('data-target');
             const input = document.getElementById(targetId);
-            
+            const icon = this.querySelector('.material-symbols-outlined');
             if (input.type === 'password') {
                 input.type = 'text';
-                this.querySelector('ion-icon').setAttribute('name', 'eye-outline');
+                if (icon) icon.textContent = 'visibility';
             } else {
                 input.type = 'password';
-                this.querySelector('ion-icon').setAttribute('name', 'eye-off-outline');
+                if (icon) icon.textContent = 'visibility_off';
             }
         });
     });

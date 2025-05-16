@@ -20,9 +20,7 @@ include_once 'dao/users/auth_check.php';
 <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
     <title>Admin Users</title>
-    
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
- 
+     
     <!-- ================== CSS DE TERCEROS ================== -->
     
     <!-- Google Material Symbols (iconos) -->
