@@ -25,7 +25,6 @@ include_once 'dao/users/auth_check.php';
     <!-- Google Material Symbols (iconos) -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     
-
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -68,8 +67,8 @@ include_once 'dao/users/auth_check.php';
                         <label for="current-password" class="form-label">Current Password</label>
                         <div class="input-group">
                             <input type="password" id="current-password">
-                            <button class="btn btn-outline-secondary toggle-password" type="button" data-target="current-password">
-                                <ion-icon name="eye-off-outline"></ion-icon>
+                            <button type="button" class="toggle-password" data-target="current-password">
+                                <span class="material-symbols-outlined">visibility_off</span>
                             </button>
                         </div>
                     </div>
@@ -79,7 +78,7 @@ include_once 'dao/users/auth_check.php';
                         <div class="input-group">
                             <input type="password" id="new-password">
                             <button class="btn btn-outline-secondary toggle-password" type="button" data-target="new-password">
-                                <ion-icon name="eye-off-outline"></ion-icon>
+                                <span class="material-symbols-outlined">visibility_off</span>
                             </button>
                         </div>
                     </div>
@@ -89,7 +88,7 @@ include_once 'dao/users/auth_check.php';
                         <div class="input-group">
                             <input type="password" id="confirm-password">
                             <button class="btn btn-outline-secondary toggle-password" type="button" data-target="confirm-password">
-                                <ion-icon name="eye-off-outline"></ion-icon>
+                                <span class="material-symbols-outlined">visibility_off</span>
                             </button>
                         </div>
                     </div>
