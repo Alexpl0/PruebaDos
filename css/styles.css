@@ -1,3 +1,6 @@
+/* Importación de Google Fonts - Merriweather */
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap');
+
 /*===== VARIABLES CSS =====*/
 :root {
     --header-height: 3rem;
@@ -10,7 +13,7 @@
     --hover-color: #F7F7F7;
   
     /*===== Fuente y tipografia =====*/
-    --body-font: 'Cambria', sans-serif;
+    --body-font: 'Merriweather', serif;
     --normal-font-size: .938rem;
     --small-font-size: .813rem;
   
