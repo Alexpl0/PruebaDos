@@ -201,8 +201,8 @@ export function renderTimeSeriesChart() {
         const options = {
             // Configuración general del gráfico
             chart: {
-                height: 400,                // Altura en píxeles
                 type: 'line',               // Tipo base (se sobrescribirá para la serie de columnas)
+                height: 400,                // Altura en píxeles
                 stacked: false,             // Las series no se apilan (son independientes)
                 toolbar: {
                     show: true              // Muestra la barra de herramientas para interacción
