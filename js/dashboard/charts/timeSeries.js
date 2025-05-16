@@ -243,7 +243,7 @@ export function renderTimeSeriesChart() {
             // Configuración de la cuadrícula de fondo
             grid: {
                 row: {
-                    colors: ['#f3f3f3', 'transparent'],  // Alterna colores de fila para mejor lectura
+                    colors: ['#FFFFFF', 'transparent'],  // Alterna colores de fila para mejor lectura
                     opacity: 0.5                         // Semitransparencia
                 },
             },
@@ -357,7 +357,7 @@ export function renderTimeSeriesChart() {
                 ]
             },
             // Colores para cada serie (azul para internos, gris para externos, naranja para costo)
-            colors: ['#4472C4', '#FFFFFF', '#ED7D31'],
+            colors: ['#4472C4', '#A5A5A5', '#ED7D31'],
             // Series de datos para el gráfico
             series: [
                 {
