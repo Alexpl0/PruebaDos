@@ -40,7 +40,7 @@ import { formatNumber } from '../utilsDashboard.js';
 export function renderCausesChart() {
     // Registro en consola para seguimiento y depuración del proceso
     // Muestra la cantidad de elementos que han pasado los filtros actuales
-    console.log("[DEBUG] renderCausesChart:", getFilteredData().length);
+    // console.log("[DEBUG] renderCausesChart:", getFilteredData().length);
     
     // Obtiene la colección actual de datos filtrados según criterios del dashboard
     const filteredData = getFilteredData();

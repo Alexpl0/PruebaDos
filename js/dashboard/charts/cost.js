@@ -38,7 +38,7 @@ import { formatNumber } from '../utilsDashboard.js';
 export function renderCostCategoriesChart() {
     // Registro en consola para seguimiento y depuración del proceso
     // Muestra la cantidad de elementos que han pasado los filtros actuales
-    console.log("[DEBUG] renderCostCategoriesChart:", getFilteredData().length);
+    // console.log("[DEBUG] renderCostCategoriesChart:", getFilteredData().length);
     
     // Obtiene la colección actual de datos filtrados según criterios del dashboard
     const filteredData = getFilteredData();
@@ -167,7 +167,7 @@ export function renderCostCategoriesChart() {
 export function renderPaidByChart() {
     // Registro en consola para seguimiento y depuración del proceso
     // Muestra la cantidad de elementos que han pasado los filtros actuales
-    console.log("[DEBUG] renderPaidByChart:", getFilteredData().length);
+    // console.log("[DEBUG] renderPaidByChart:", getFilteredData().length);
     
     // Obtiene la colección actual de datos filtrados según criterios del dashboard
     const filteredData = getFilteredData();

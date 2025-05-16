@@ -34,7 +34,7 @@ import { charts, chartColors } from '../configDashboard.js';
 export function renderProductsChart() {
     // Registro en consola para seguimiento y depuración del proceso
     // Muestra la cantidad de elementos que han pasado los filtros actuales
-    console.log("[DEBUG] renderProductsChart:", getFilteredData().length);
+    // console.log("[DEBUG] renderProductsChart:", getFilteredData().length);
     
     // Obtiene la colección actual de datos filtrados según criterios del dashboard
     const filteredData = getFilteredData();

@@ -155,7 +155,6 @@ export function renderTimeSeriesChart() {
         return `${month}/${year}`;
     });
 
-    console.log("[DEBUG] renderTimeSeriesChart categories:", categories);
     
     // PASO 4.1: EXTRACCIÓN DE DATOS PARA CADA SERIE
     // Extrae los datos de cantidades totales por mes (para posible uso futuro)

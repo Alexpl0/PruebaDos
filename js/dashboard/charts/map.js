@@ -39,7 +39,7 @@ import { geocodeLocation } from '../utilsDashboard.js';
 export async function renderOriginDestinyMap() {
     // Registro en consola para seguimiento y depuración del proceso
     // Muestra la cantidad de elementos que han pasado los filtros actuales
-    console.log("[DEBUG] renderOriginDestinyMap:", getFilteredData().length);
+    // console.log("[DEBUG] renderOriginDestinyMap:", getFilteredData().length);
     
     // Obtiene la colección actual de datos filtrados según criterios del dashboard
     const filteredData = getFilteredData();
@@ -97,7 +97,7 @@ export async function renderOriginDestinyMap() {
         const originKey = `${item.origin_company_name || 'Unknown'} (${item.origin_city}, ${item.origin_state || 'Unknown'})`;
         const destKey = `${item.destiny_company_name || 'Unknown'} (${item.destiny_city}, ${item.destiny_state || 'Unknown'})`;
         
-        console.log("[DEBUG] Processing:", originKey, destKey);
+        // console.log("[DEBUG] Processing:", originKey, destKey);
         
         // PASO 4.3: PROCESAMIENTO DE LA UBICACIÓN DE ORIGEN
         // Verifica si esta ubicación de origen ya ha sido procesada
