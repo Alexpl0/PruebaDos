@@ -47,10 +47,10 @@ function createHeader(authLevel) {
     const headerHTML = `
     <header class="header">
         <a href="#" class="header__logo">GRAMMER</a>
-        <ion-icon name="menu-outline" class="header__toggle" id="nav-toggle"></ion-icon>
+        <span class="material-symbols-outlined header__toggle" id="nav-toggle">menu</span>
         <nav class="nav" id="nav-menu">
             <div class="nav__content bd-grid">
-                <ion-icon name="close-outline" class="nav__close" id="nav-close"></ion-icon>
+                <span class="material-symbols-outlined nav__close" id="nav-close">close</span>
                 <div class="nav__perfil">
                     <div class="nav__img">
                         <img src="assets/logo/logo.png" alt="logoGRAMMER">
