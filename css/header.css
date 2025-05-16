@@ -19,7 +19,6 @@ body {
   margin: 0;
   padding-top: calc(var(--header-height) + 1rem); /* Add padding to account for fixed header */
   font-family: var(--body-font);
-  font-size: var(--normal-font-size);
   font-weight: 500;
 }
 
@@ -69,7 +68,7 @@ img {
 }
 
 .header__toggle {
-  font-size: 1.5rem;
+  font-size: 1.5rem !important;
   color: var(--white-color);
   cursor: pointer;
 }
@@ -101,7 +100,7 @@ img {
 .nav__close {
   position: absolute;
   right: 1.5rem;
-  font-size: 1.3rem;
+  font-size: 1.3rem !important;
   padding: .25rem;
   background-color: var(--dark-color-alt);
   border-radius: 50%;
@@ -134,7 +133,7 @@ img {
 }
 
 .nav__profesion {
-  font-size: var(--small-font-size);
+  font-size: var(--small-font-size) !important;
 }
 
 .nav__menu {
@@ -156,7 +155,7 @@ img {
 }
 
 .nav__social-icon {
-  font-size: 1.2rem;
+  font-size: 1.2rem !important;
   color: var(--white-color);
   margin-right: 1rem;
 }
@@ -186,7 +185,7 @@ img {
 
 .dropdown-toggle i {
   margin-left: 0.25rem;
-  font-size: 0.75rem;
+  font-size: 0.75rem !important;
 }
 
 .dropdown-menu {

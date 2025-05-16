@@ -14,8 +14,8 @@
   
     /*===== Fuente y tipografia =====*/
     --body-font: 'Merriweather', serif;
-    --normal-font-size: .938rem;
-    --small-font-size: .813rem;
+    --normal-font-size: 1rem;
+    --small-font-size: .8rem;
   
     /*===== z index =====*/
     --z-fixed: 100;

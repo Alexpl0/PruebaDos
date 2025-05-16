@@ -48,7 +48,7 @@
     align-items: center;
     gap: 0.25rem;
     padding: 0.2rem 0.4rem; /* Reduced padding for smaller buttons */
-    font-size: 0.8rem; /* Reduced font size for button text */
+    font-size:var(--small-font-size); /* Reduced font size for button text */
 }
 
 .action-buttons button.icon-only-btn {
