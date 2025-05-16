@@ -1,6 +1,11 @@
 /* Importación de Google Fonts - Merriweather */
 @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap');
 
+/* Sobreescribe las variables de Bootstrap */
+:root {
+    --bs-body-font-family: 'Merriweather', serif;
+}
+
 /*===== VARIABLES CSS =====*/
 :root {
     --header-height: 3rem;
@@ -31,6 +36,11 @@ body {
     padding-bottom: 0px;
     background-color: var(--white-color) !important;
     font-size: var(--font-size);
+    font-family: var(--body-font) !important; /* Añadido con !important para forzar su uso */
+}
+
+* {
+    font-family: var(--body-font);
 }
 
 .title1{
