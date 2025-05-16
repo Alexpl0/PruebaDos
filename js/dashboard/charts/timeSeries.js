@@ -222,7 +222,16 @@ export function renderTimeSeriesChart() {
             plotOptions: {
                 bar: {
                     columnWidth: '70%',       // Ancho de las columnas (70% del espacio disponible)
-                    endingShape: 'rounded'    // Forma redondeada al final de las barras
+                    endingShape: 'rounded',   // Forma redondeada al final de las barras
+                    distributed: false,       // Ensures uniform distribution
+                    dataLabels: {
+                        position: 'center',   // Consistent label positioning
+                    },
+                    barHeight: '100%',        // Full height utilization
+                    colors: {
+                        ranges: []            // No special color ranges
+                    },
+                    horizontal: false         // Vertical bars
                 },
             },
             // Configuración de etiquetas de datos (desactivadas para evitar sobrecarga visual)
