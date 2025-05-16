@@ -317,6 +317,10 @@ img {
     font-style: italic;
     text-decoration: underline;
   }
+  
+  #nav-close, #nav-toggle {
+    display: none !important;
+  }
 }
 
 /* Estilos específicos para dropdown en móvil */
