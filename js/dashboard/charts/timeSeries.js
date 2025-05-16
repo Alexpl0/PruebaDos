@@ -19,6 +19,9 @@ import { getFilteredData } from '../dataDashboard.js';
 // - chartColors: paleta de colores predefinida para mantener consistencia visual
 import { charts, chartColors } from '../configDashboard.js';
 
+// Importación de funciones utilitarias
+import { formatNumber } from '../utilsDashboard.js';
+
 /**
  * Función principal que genera o actualiza el gráfico de series temporales
  * 
