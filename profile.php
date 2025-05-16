@@ -22,7 +22,6 @@ include_once 'dao/users/auth_check.php';
     <title>My Profile - Premium Freight</title>
 
     <!-- ================== SCRIPTS DE TERCEROS ================== -->
-
     <!-- Google Material Symbols (iconos) -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     
