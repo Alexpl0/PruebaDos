@@ -42,7 +42,7 @@ include_once 'dao/users/auth_check.php';
         <div class="profile-container">
             <div class="profile-header">
                 <div class="avatar-container">
-                    <ion-icon name="person-circle-outline" class="avatar-icon"></ion-icon>
+                    <span class="material-symbols-outlined avatar-icon" style="font-size: 4rem;">account_circle</span>
                 </div>
                 <div class="user-info">
                     <h2><?php echo htmlspecialchars($user['name']); ?></h2>
@@ -78,7 +78,7 @@ include_once 'dao/users/auth_check.php';
                         <div class="input-group">
                             <input type="password" id="new-password">
                             <button class="btn btn-outline-secondary toggle-password" type="button" data-target="new-password">
-                                <ion-icon name="eye-off-outline"></ion-icon>
+                                <span class="material-symbols-outlined">visibility_off</span>
                             </button>
                         </div>
                     </div>
@@ -88,7 +88,7 @@ include_once 'dao/users/auth_check.php';
                         <div class="input-group">
                             <input type="password" id="confirm-password">
                             <button class="btn btn-outline-secondary toggle-password" type="button" data-target="confirm-password">
-                                <ion-icon name="eye-off-outline"></ion-icon>
+                                <span class="material-symbols-outlined">visibility_off</span>
                             </button>
                         </div>
                     </div>
