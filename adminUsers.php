@@ -56,72 +56,60 @@ include_once 'dao/users/auth_check.php';
 </head>
 <body>
     <div id="header-container"></div>
-    
-    <div id="mainOrders">
-        <h1 id="title1">User Administration</h1>
-        <button id="btnAddUser" class="btn btn-primary mb-4">Add New User</button>
-    </div>
 
     <main id="main"> 
         <div class="container">
-            <!-- Users DataTable -->
-            <div class="table-responsive">
-                <table id="users-table" class="table table-striped table-bordered" style="width:100%">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Password</th>
-                            <th>Auth Level</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Data will be loaded here by DataTables -->
-                    </tbody>
-                </table>
+            <h1 class="mb-4">User Administration</h1>
+            
+            <!-- Users Table -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <table id="users-table" class="display" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Password</th>
+                                <th>Auth Level</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
-            <!-- Edit User Form -->
+            <!-- User Form -->
             <div id="user-form-container" class="card mt-4 mb-4 d-none">
-                <div class="card-header">
-                    <h3 id="form-title">Edit User</h3>
-                </div>
                 <div class="card-body">
+                    <h2 id="form-title">Add New User</h2>
                     <form id="user-form">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="user-id" class="form-label">ID</label>
-                                <input type="text" class="form-control" id="user-id" readonly>
-                            </div>
-                            <div class="col-md-6 mb-3">
+                        <input type="hidden" id="user-id" value="New">
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
                                 <label for="user-name" class="form-label">Name</label>
                                 <input type="text" class="form-control" id="user-name" required>
                             </div>
-                        </div>
-                        <div class="row" id="email-row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="user-email" class="form-label">Email</label>
                                 <input type="email" class="form-control" id="user-email" required>
                             </div>
-                            <div class="col-md-6 mb-3">
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
                                 <label for="user-role-level" class="form-label">Role & Authorization Level</label>
                                 <select class="form-select" id="user-role-level" required>
-                                    <option value="0:Worker">0. Worker</option>
-                                    <option value="1:Logistics Manager">1. Logistics Manager</option>
-                                    <option value="2:Controlling">2. Controlling</option>
-                                    <option value="3:Plant Manager">3. Plant Manager</option>   
-                                    <option value="4:Senior Manager Logistics Division">4. Senior Manager Logistics Division</option>
-                                    <option value="5:Manager OPS Division">5. Manager OPS Division</option>
-                                    <option value="6:SR VP Regional">6. SR VP Regional</option>
-                                    <option value="7:Division Controlling Regional">7. Division Controlling Regional</option>
+                                    <option value="0:User">User (Level 0)</option>
+                                    <option value="1:Admin">Admin (Level 1)</option>
+                                    <option value="2:SuperAdmin">Super Admin (Level 2)</option>
                                 </select>
                             </div>
-                        </div>
-                        <div class="row" id="password-row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="user-password" class="form-label">Password</label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="user-password" required>
@@ -129,12 +117,12 @@ include_once 'dao/users/auth_check.php';
                                         <i class="fas fa-eye"></i>
                                     </button>
                                 </div>
-                                <small class="form-text text-muted">Leave unchanged to keep current password</small>
                             </div>
                         </div>
+                        
                         <div class="d-flex justify-content-between">
                             <button type="button" id="cancel-form" class="btn btn-secondary">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                            <button type="submit" class="btn btn-primary">Save User</button>
                         </div>
                     </form>
                 </div>

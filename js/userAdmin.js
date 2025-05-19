@@ -4,6 +4,9 @@
  * This file handles the DataTable initialization and CRUD operations for users.
  */
 
+// Global variable to store the DataTable instance
+let usersTable;
+
 // This function should be globally accessible
 function initializeDataTable() {
     // Check if DataTable already exists and destroy it first
@@ -12,7 +15,7 @@ function initializeDataTable() {
     }
     
     // Initialize DataTable
-    const usersTable = $('#users-table').DataTable({
+    usersTable = $('#users-table').DataTable({
         ajax: {
             url: 'https://grammermx.com/Jesus/PruebaDos/dao/users/daoUserAdmin.php',
             dataSrc: 'data',
@@ -308,15 +311,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Check if Material Icons are loaded
-    document.fonts.ready.then(() => {
-        // Initialize DataTable once fonts are loaded
-        initializeDataTable();
-    }).catch(error => {
-        console.error('Error loading fonts:', error);
-        // Initialize DataTable anyway after a timeout if fonts fail
-        setTimeout(initializeDataTable, 1000);
-    });
+    // Initialize DataTable directly - no need to wait for fonts
+    setTimeout(initializeDataTable, 100);
 });
 
 // When loading user data for editing
