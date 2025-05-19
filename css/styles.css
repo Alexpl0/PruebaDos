@@ -43,13 +43,8 @@ body {
     font-family: var(--body-font) !important;
 }
 
-/* Asegura que todos los elementos hereden la fuente correcta */
-* {
-    font-family: var(--body-font) !important;
-}
-
 /* Aplicación consistente de tamaños de fuente */
-body, p, div, span, a, button, input, select, textarea {
+body, p, a, button, input, select, textarea {
     font-family: var(--body-font) !important;
     font-size: var(--font-size) !important;
 }
@@ -244,4 +239,10 @@ footer{
     color: black;
     text-align: center;
     width: 100%;
+}
+
+/* Protege los estilos de Select2 */
+.select2-container * {
+    font-family: inherit !important;
+    font-size: inherit !important;
 }
