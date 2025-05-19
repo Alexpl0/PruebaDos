@@ -463,11 +463,11 @@ html, body {
 /* Controlar el ancho máximo de los contenedores */
 .container, main.container {
   width: 100%;
-  max-width: 100%;
-  margin: 0 auto;
-  padding-left: 15px;
-  padding-right: 15px;
+  max-width: 100vw;
   box-sizing: border-box;
+  margin: 0 auto;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 /* Asegurar que los elementos dentro del formulario no se desborden */
