@@ -13,7 +13,7 @@
 *, ::before, ::after {
   -webkit-box-sizing: border-box;
           box-sizing: border-box;
-  font-family: var(--body-font) !important;
+  font-family: var(--body-font);
 }
 
 .icono {
