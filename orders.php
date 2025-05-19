@@ -81,9 +81,7 @@ include_once 'dao/users/auth_check.php';
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-    <script src="js/header.js"></script>
-    <script src="js/uploadFiles.js"></script>
-    <script src="js/orders.js" type="module"></script>
+
 
     <!-- jQuery y Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -100,5 +98,8 @@ include_once 'dao/users/auth_check.php';
 
     <!-- Nuestro script personalizado -->
     <script src="js/dataTables.js"></script>
+    <script src="js/header.js"></script>
+    <script src="js/uploadFiles.js"></script>
+    <script src="js/orders.js" type="module"></script>
 </body>
 </html>
