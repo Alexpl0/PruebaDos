@@ -22,6 +22,14 @@ import { maps } from '../configDashboard.js';
 // en coordenadas geográficas (latitud y longitud) mediante servicios externos.
 import { geocodeLocation } from '../utilsDashboard.js';
 
+// Import the DataTables configuration
+import { dataTablesConfig } from '../configDashboard.js';
+
+// Add a reference to store the routes DataTable instance
+let routesTable = null;
+// Store selected route for highlighting
+let highlightedRoute = null;
+
 /**
  * Función principal que genera o actualiza el mapa de orígenes y destinos
  * 
@@ -191,17 +199,36 @@ export async function renderOriginDestinyMap() {
         }
     });
     
-    // PASO 5: ESPERA A QUE TERMINEN TODAS LAS GEOCODIFICACIONES
+    // PASO 5.5: PREPARAR DATOS PARA LA TABLA DE RUTAS
+    // Consolidar rutas duplicadas sumando sus contadores
+    const consolidatedRoutes = [];
+    const routeIndex = {};
+    
+    routes.forEach(route => {
+        const routeKey = `${route.origin}|${route.destination}|${route.transport}`;
+        
+        if (routeIndex[routeKey] === undefined) {
+            // Primera vez que vemos esta ruta exacta
+            route.id = consolidatedRoutes.length; // Add an ID for reference
+            routeIndex[routeKey] = consolidatedRoutes.length;
+            consolidatedRoutes.push(route);
+        } else {
+            // Ya existe, incrementamos su contador
+            consolidatedRoutes[routeIndex[routeKey]].count += route.count;
+        }
+    });
+
+    // PASO 6: ESPERA A QUE TERMINEN TODAS LAS GEOCODIFICACIONES
     // Utiliza Promise.allSettled para esperar que todas las promesas se resuelvan o rechacen
     // Sin detener el proceso si alguna falla (a diferencia de Promise.all)
     await Promise.allSettled(geocodePromises);
     
-    // PASO 6: CREACIÓN DE MARCADORES EN EL MAPA
+    // PASO 7: CREACIÓN DE MARCADORES EN EL MAPA
     // Itera por todas las ubicaciones para crear marcadores visuales
     locations.forEach((location, name) => {
         // Solo crea marcadores para ubicaciones con coordenadas válidas
         if (location.lat && location.lng) {
-            // PASO 6.1: CONFIGURACIÓN DE APARIENCIA DEL MARCADOR
+            // PASO 7.1: CONFIGURACIÓN DE APARIENCIA DEL MARCADOR
             // Color diferente según sea origen (azul) o destino (rojo)
             const markerColor = location.isOrigin ? 'blue' : 'red';
             
@@ -215,7 +242,7 @@ export async function renderOriginDestinyMap() {
                 iconAnchor: [15, 15]             // Punto del icono que se alinea con la coordenada
             });
             
-            // PASO 6.2: CREACIÓN DEL MARCADOR EN EL MAPA
+            // PASO 7.2: CREACIÓN DEL MARCADOR EN EL MAPA
             // Crea el marcador en las coordenadas especificadas con el icono personalizado
             L.marker([location.lat, location.lng], { icon: icon })
                 .addTo(maps.originDestiny)       // Añade el marcador al mapa
@@ -223,7 +250,7 @@ export async function renderOriginDestinyMap() {
         }
     });
     
-    // PASO 7: CREACIÓN DE LÍNEAS DE RUTA EN EL MAPA
+    // PASO 8: CREACIÓN DE LÍNEAS DE RUTA EN EL MAPA
     // Itera por todas las rutas para dibujar líneas entre orígenes y destinos
     routes.forEach(route => {
         // Obtiene las coordenadas de la ubicación de origen y destino
@@ -232,7 +259,7 @@ export async function renderOriginDestinyMap() {
         
         // Verifica que ambas ubicaciones tengan coordenadas válidas
         if (originLoc && destLoc && originLoc.lat && originLoc.lng && destLoc.lat && destLoc.lng) {
-            // PASO 7.1: CREACIÓN DE LA LÍNEA DE RUTA
+            // PASO 8.1: CREACIÓN DE LA LÍNEA DE RUTA
             // Crea una línea (polyline) entre las coordenadas de origen y destino
             L.polyline([[originLoc.lat, originLoc.lng], [destLoc.lat, destLoc.lng]], {
                 color: getTransportColor(route.transport),  // Color según el tipo de transporte
@@ -246,7 +273,10 @@ export async function renderOriginDestinyMap() {
         }
     });
     
-    // PASO 8: AJUSTE AUTOMÁTICO DE LA VISTA DEL MAPA
+    // PASO 9: CREAR O ACTUALIZAR LA TABLA DE RUTAS
+    createRoutesTable(consolidatedRoutes, maps.originDestiny, locations);
+    
+    // PASO 10: AJUSTE AUTOMÁTICO DE LA VISTA DEL MAPA
     // Ajusta la vista para que todas las ubicaciones sean visibles simultáneamente
     if (locations.size > 0) {
         // Extrae todas las coordenadas válidas de las ubicaciones
@@ -287,4 +317,210 @@ function getTransportColor(transport) {
     } else {
         return '#78909C'; // Gris para tipos de transporte desconocidos o no especificados
     }
+}
+
+/**
+ * Función para crear o actualizar la tabla interactiva de rutas
+ * 
+ * Esta función genera una tabla de datos con todas las rutas de envío,
+ * permitiendo filtrar, ordenar y seleccionar rutas específicas para
+ * destacarlas en el mapa.
+ * 
+ * @param {Array} routes - Array de objetos ruta con origen, destino, tipo de transporte y contador
+ * @param {Object} map - Instancia del mapa Leaflet donde se visualizan las rutas
+ * @param {Map} locations - Mapa con las ubicaciones y sus coordenadas
+ */
+function createRoutesTable(routes, map, locations) {
+    // Prepara los datos para la tabla en el formato esperado por DataTables
+    const tableData = routes.map(route => {
+        return [
+            route.origin,                        // Columna 1: Origen
+            route.destination,                   // Columna 2: Destino
+            route.transport || 'Unspecified',    // Columna 3: Tipo de transporte
+            route.count,                         // Columna 4: Número de envíos
+            route.id                             // Columna 5 (oculta): ID interno para referencia
+        ];
+    });
+    
+    // Si ya existe una instancia de la tabla, la destruimos para recrearla
+    if (routesTable !== null) {
+        routesTable.destroy();
+        document.querySelector('#routesTable tbody').innerHTML = '';
+    }
+    
+    // Crea la nueva instancia de DataTable con configuración personalizada
+    routesTable = $('#routesTable').DataTable({
+        ...dataTablesConfig,           // Configuración básica importada
+        data: tableData,               // Datos para la tabla
+        pageLength: 5,                 // Entradas por página (más compacto)
+        order: [[3, 'desc']],          // Ordenar por cantidad de envíos (descendente)
+        columnDefs: [
+            {
+                // Oculta la columna de ID
+                targets: 4,
+                visible: false
+            }
+        ],
+        language: {
+            search: "Search routes:",
+            lengthMenu: "Show _MENU_ routes",
+            info: "Showing _START_ to _END_ of _TOTAL_ routes",
+            infoEmpty: "No routes available",
+            emptyTable: "No route data available"
+        }
+    });
+    
+    // Agregar el evento de clic en las filas de la tabla
+    $('#routesTable tbody').on('click', 'tr', function() {
+        const rowData = routesTable.row(this).data();
+        const routeId = rowData[4]; // ID de la ruta (columna oculta)
+        
+        // Toggle clase de selección visual
+        if ($(this).hasClass('selected')) {
+            $(this).removeClass('selected');
+            highlightedRoute = null;
+            // Restaurar visualización normal del mapa
+            resetMapHighlight(map);
+        } else {
+            // Deseleccionar cualquier otra fila previamente seleccionada
+            $('#routesTable tbody tr.selected').removeClass('selected');
+            $(this).addClass('selected');
+            
+            // Guarda el ID de la ruta seleccionada
+            highlightedRoute = routeId;
+            
+            // Busca la ruta correspondiente
+            const selectedRoute = routes.find(r => r.id === routeId);
+            if (!selectedRoute) return;
+            
+            // Destaca la ruta en el mapa
+            highlightRouteOnMap(selectedRoute, map, locations);
+            
+            // Actualiza el filtro global para otros gráficos
+            applyRouteFilterToDashboard(selectedRoute);
+        }
+    });
+}
+
+/**
+ * Destaca una ruta específica en el mapa y centra la vista
+ * 
+ * @param {Object} route - Objeto con información de la ruta seleccionada
+ * @param {Object} map - Instancia del mapa Leaflet
+ * @param {Map} locations - Mapa con las ubicaciones y sus coordenadas
+ */
+function highlightRouteOnMap(route, map, locations) {
+    // Primero, reestablece cualquier resaltado anterior
+    resetMapHighlight(map);
+    
+    // Obtiene las ubicaciones de origen y destino
+    const originLoc = locations.get(route.origin);
+    const destLoc = locations.get(route.destination);
+    
+    // Verifica que ambas coordenadas existan
+    if (originLoc && destLoc && originLoc.lat && originLoc.lng && 
+        destLoc.lat && destLoc.lng) {
+        
+        // Crea una línea destacada entre origen y destino
+        const highlightLine = L.polyline(
+            [[originLoc.lat, originLoc.lng], [destLoc.lat, destLoc.lng]],
+            {
+                color: '#FF4500',      // Naranja brillante para destacar
+                weight: 6,             // Grosor aumentado
+                opacity: 0.9,          // Alta opacidad para visibilidad
+                dashArray: '10, 10',   // Línea punteada para destacar
+                className: 'route-highlight' // Clase CSS para posible animación
+            }
+        ).addTo(map);
+        
+        // Guarda referencia a la línea destacada en el mapa para eliminarla después
+        map.highlightedLayer = highlightLine;
+        
+        // Centra el mapa en la ruta
+        const bounds = L.latLngBounds(
+            [originLoc.lat, originLoc.lng],
+            [destLoc.lat, destLoc.lng]
+        );
+        map.fitBounds(bounds, { padding: [50, 50] });
+        
+        // Crea marcadores destacados para origen y destino
+        const originMarker = L.circleMarker([originLoc.lat, originLoc.lng], {
+            color: '#000',
+            fillColor: '#3388FF',
+            fillOpacity: 1,
+            radius: 8,
+            weight: 3
+        }).addTo(map).bindPopup(`<b>${route.origin}</b><br>Origin`).openPopup();
+        
+        const destMarker = L.circleMarker([destLoc.lat, destLoc.lng], {
+            color: '#000',
+            fillColor: '#FF3333',
+            fillOpacity: 1,
+            radius: 8,
+            weight: 3
+        }).addTo(map).bindPopup(`<b>${route.destination}</b><br>Destination`);
+        
+        // Guarda referencia a los marcadores
+        map.highlightedMarkers = [originMarker, destMarker];
+    }
+}
+
+/**
+ * Elimina los elementos de resaltado del mapa
+ * 
+ * @param {Object} map - Instancia del mapa Leaflet
+ */
+function resetMapHighlight(map) {
+    // Elimina la línea destacada si existe
+    if (map.highlightedLayer) {
+        map.removeLayer(map.highlightedLayer);
+        map.highlightedLayer = null;
+    }
+    
+    // Elimina los marcadores destacados si existen
+    if (map.highlightedMarkers && map.highlightedMarkers.length) {
+        map.highlightedMarkers.forEach(marker => map.removeLayer(marker));
+        map.highlightedMarkers = [];
+    }
+}
+
+/**
+ * Aplica un filtro adicional al dashboard basado en la ruta seleccionada
+ * 
+ * @param {Object} route - Objeto con información de la ruta seleccionada
+ */
+function applyRouteFilterToDashboard(route) {
+    // Esta función puede implementarse para integrarse con el sistema
+    // de filtros global del dashboard
+    
+    // Por ejemplo, podría emitir un evento personalizado que otros módulos escuchen:
+    const routeFilterEvent = new CustomEvent('route:selected', { 
+        detail: {
+            origin: route.origin,
+            destination: route.destination,
+            transport: route.transport
+        }
+    });
+    document.dispatchEvent(routeFilterEvent);
+    
+    // O si hay un sistema de filtros ya implementado, podría llamarlo directamente
+    // Ejemplo: applyFilter('route', { origin: route.origin, destination: route.destination });
+    
+    // Para mayor integración, se podría añadir un botón en la UI para limpiar este filtro
+}
+
+// Agrega un event listener para limpiar el filtro cuando se actualice el mapa
+export function clearRouteHighlight() {
+    // Elimina la selección visual en la tabla
+    if (routesTable) {
+        $('#routesTable tbody tr.selected').removeClass('selected');
+    }
+    
+    // Restaura el mapa si existe
+    if (maps.originDestiny) {
+        resetMapHighlight(maps.originDestiny);
+    }
+    
+    // Limpia la variable de ruta seleccionada
+    highlightedRoute = null;
 }

@@ -125,3 +125,31 @@
 #chartTimeSeries {
     background-color: white;
 }
+
+/* Highlight for selected rows in routes table */
+#routesTable tbody tr.selected {
+    background-color: #e0f7fa !important;
+    font-weight: bold;
+    border-left: 4px solid #0277bd;
+}
+
+/* Animation for highlighted route on map */
+.route-highlight {
+    animation: dash 3s linear infinite;
+}
+
+@keyframes dash {
+    to {
+        stroke-dashoffset: 40;
+    }
+}
+
+/* Make the table more compact but readable */
+#routesTable {
+    font-size: 0.9rem;
+}
+
+#routesTableContainer {
+    max-height: 300px;
+    overflow-y: auto;
+}

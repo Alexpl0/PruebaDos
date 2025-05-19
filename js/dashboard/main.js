@@ -31,6 +31,9 @@ import { updateKPIs } from './ui/kpi.js';
 // Importación de funciones para gestionar la exportación de datos (CSV, PDF, etc.)
 import { initializeExportButtons } from './ui/exporters.js';
 
+// Import the clearRouteHighlight function
+import { clearRouteHighlight } from './charts/map.js';
+
 // Importaciones de TODOS los módulos de visualización específicos:
 // Cada módulo se encarga de renderizar un tipo específico de gráfico o visualización
 import { renderAreaDistributionChart } from './charts/areaDistribution.js';  // Distribución por áreas
@@ -172,3 +175,13 @@ async function initializeDashboard() {
 // Este evento escucha cuando el DOM ha sido completamente cargado
 // y entonces inicia el proceso de inicialización del dashboard
 document.addEventListener('DOMContentLoaded', initializeDashboard);
+
+// Find where filters are applied and add:
+function applyFilters() {
+    // Existing filter code...
+    
+    // Clear any route highlights when filters change
+    clearRouteHighlight();
+    
+    // Rest of existing filter application code...
+}

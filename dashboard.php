@@ -310,7 +310,22 @@ include_once 'dao/users/auth_check.php';
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">Origins and Destinations Map</h5>
-                        <div id="mapOriginDestiny" style="height: 500px;"></div>
+                        <div id="mapOriginDestiny"></div>
+                        <div id="routesTableContainer" class="mt-3">
+                            <table id="routesTable" class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Origin</th>
+                                        <th>Destination</th>
+                                        <th>Transport</th>
+                                        <th>Shipments</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Data rows will be inserted here by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
