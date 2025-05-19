@@ -54,6 +54,7 @@ include_once 'dao/users/auth_check.php';
 
     <main class="container my-4">
         <h1 class="mb-3">SPECIAL FREIGHT AUTHORIZATION</h1>
+        <i class="fa-solid fa-user"></i>
         <h2 class="mb-4">Transport Order</h2>
         <form id="plant-form">
             <div id="SectPlantas" class="mb-3">
