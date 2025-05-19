@@ -91,3 +91,46 @@ table.dataTable thead th {
        el z-index se encargará de que los botones estén encima. La tabla comenzará
        visualmente debajo de los botones. */
 }
+
+/* Font Awesome icon styling for DataTables */
+.fa, .fas, .far, .fal, .fab {
+    vertical-align: middle;
+}
+
+/* Icon styles for DataTable buttons */
+.dt-buttons .btn i,
+.dt-buttons button i, 
+.dt-buttons .dt-button i {
+    margin-right: 5px;
+    font-size: 1rem;
+}
+
+/* Icon-only buttons */
+.icon-only-btn i {
+    font-size: 18px;
+    margin: 0;
+}
+
+/* Button colors with Font Awesome icons */
+.btn-success i {
+    color: white;
+}
+
+.btn-danger i {
+    color: white;
+}
+
+.btn-info i {
+    color: white;
+}
+
+.btn-primary i {
+    color: white;
+}
+
+/* Ensure Font Awesome icons maintain proper alignment in buttons */
+button i {
+    line-height: 1;
+    position: relative;
+    top: -1px;
+}

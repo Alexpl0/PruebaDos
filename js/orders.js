@@ -36,13 +36,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update modal buttons to icon-only version
     document.querySelector('#myModal .modal-buttons').innerHTML = `
         <button id="savePdfBtn" class="save-pdf-button icon-only-btn" title="Save as PDF">
-            <span class="material-symbols-outlined">picture_as_pdf</span>
+            <i class="fas fa-file-pdf"></i>
         </button>
         <button id="approveBtn" class="icon-only-btn" title="Approve Order">
-            <span class="material-symbols-outlined">check_circle</span>
+            <i class="fas fa-check-circle"></i>
         </button>
         <button id="rejectBtn" class="icon-only-btn" title="Reject Order">
-            <span class="material-symbols-outlined">cancel</span>
+            <i class="fas fa-times-circle"></i>
         </button>
     `;
     

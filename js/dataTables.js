@@ -38,7 +38,7 @@ const dataTableOptions = {
     buttons: [
         {
             extend: 'excel',
-            text: 'Excel',
+            text: '<i class="fas fa-file-excel"></i> Excel',
             className: 'btn-success',
             title: 'Premium_Freight_Report',
             filename: 'Premium_Freight_Report',
@@ -48,7 +48,7 @@ const dataTableOptions = {
         },
         {
             extend: 'pdf',
-            text: 'PDF',
+            text: '<i class="fas fa-file-pdf"></i> PDF',
             className: 'btn-danger',
             orientation: 'landscape',
             pageSize: 'LEGAL',
@@ -96,7 +96,7 @@ const dataTableOptions = {
             }
         },
         {
-            text: 'SVG',
+            text: '<i class="fas fa-code"></i> SVG',
             className: 'btn-info',
             action: async function(e, dt, node, config) {
                 try {

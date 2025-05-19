@@ -342,18 +342,40 @@ img {
   }
 }
 
-.material-symbols-outlined {
-    font-family: 'Material Symbols Outlined' !important;
-    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+/* Replace Material Icons with Font Awesome styling */
+.header__toggle i,
+.nav__close i,
+.nav__link i {
+    font-size: 1.5rem;
+    line-height: 1;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Font Awesome icon general styling */
+.fa, .fas, .far, .fal, .fab {
     font-style: normal;
-    font-weight: normal;
-    font-size: 1.5rem; /* Ajusta el tamaño según tu diseño */
+    font-weight: 900;
     line-height: 1;
     letter-spacing: normal;
     text-transform: none;
     display: inline-block;
     white-space: nowrap;
     direction: ltr;
-    -webkit-font-feature-settings: 'liga';
     -webkit-font-smoothing: antialiased;
+}
+
+/* Mobile menu icon */
+.header__toggle .fa-bars {
+    font-size: 1.5rem;
+}
+
+/* Close icon */
+.nav__close .fa-times {
+    font-size: 1.2rem;
+}
+
+/* Remove Material Icons styles that are no longer needed */
+.material-symbols-outlined {
+    display: none;
 }
