@@ -51,6 +51,21 @@ include_once 'dao/users/auth_check.php';
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/newOrder.css">
     
+    <!-- Google Fonts -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap" as="style">
+
+    <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    .icono {
+      font-size: 24px;
+      margin-right: 10px;
+      color: #333;
+    }
+  </style>
 </head>
 <body>
     <div id="header-container"></div>
