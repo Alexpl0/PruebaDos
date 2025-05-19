@@ -27,7 +27,7 @@ import { getFilteredData } from '../dataDashboard.js';
 export function renderWordCloud() {
     // Registro en consola para seguimiento y depuración del proceso
     // Muestra la cantidad de elementos que han pasado los filtros actuales
-    // console.log("[DEBUG] renderWordCloud:", getFilteredData().length);
+    console.log("[DEBUG] renderWordCloud:", getFilteredData().length);
     
     // Obtiene la colección actual de datos filtrados que se utilizarán para generar la nube
     const filteredData = getFilteredData();
