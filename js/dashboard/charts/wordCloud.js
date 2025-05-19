@@ -133,10 +133,16 @@ export function renderWordCloud() {
      * @param {Array} words - Array de objetos palabra con propiedades calculadas (x, y, rotate, etc.)
      */
     function draw(words) {
-        const svg = d3.select("#wordCloudChart").append("svg")
+        // Limpia primero el contenedor (por si había un SVG previo)
+        d3.select("#wordCloudChart").html("");
+        
+        // Crea el SVG y guarda una referencia al elemento svg principal
+        const svgRoot = d3.select("#wordCloudChart").append("svg")
             .attr("width", layout.size()[0])
-            .attr("height", layout.size()[1])
-            .append("g")
+            .attr("height", layout.size()[1]);
+            
+        // Crea el grupo y los textos
+        const textsGroup = svgRoot.append("g")
             .attr("transform", `translate(${layout.size()[0] / 2},${layout.size()[1] / 2})`)
             .selectAll("text")
             .data(words)
@@ -148,7 +154,16 @@ export function renderWordCloud() {
             .attr("transform", d => `translate(${d.x},${d.y}) rotate(${d.rotate})`)
             .text(d => d.text);
 
-        // Guarda la referencia al SVG en charts.cloud
-        charts.cloud = svg;
+        // Guarda un objeto con referencias y métodos útiles
+        charts.cloud = {
+            svg: svgRoot,
+            container: document.getElementById('wordCloudChart'),
+            layout: layout,
+            update: function(newData) {
+                // Aquí podrías implementar la lógica para actualizar la nube
+                // sin tener que recrearla por completo
+                renderWordCloud(); // Por ahora simplemente re-renderizamos
+            }
+        };
     }
 }
