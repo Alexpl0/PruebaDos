@@ -47,7 +47,7 @@ function createHeader(authLevel) {
     const headerHTML = `
     <header class="header">
         <a href="#" class="header__logo">GRAMMER</a>
-        <i class="fas fa-bars" style="color: white !important;"></i>
+        <i class="fas fa-bars" style="color: white !important; z-index: 200;"></i>
         <nav class="nav" id="nav-menu">
             <div class="nav__content bd-grid">
                 <i class="fas fa-times nav__close" id="nav-close"></i>
