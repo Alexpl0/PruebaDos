@@ -240,9 +240,3 @@ footer{
     text-align: center;
     width: 100%;
 }
-
-/* Protege los estilos de Select2 */
-.select2-container * {
-    font-family: inherit !important;
-    font-size: inherit !important;
-}
