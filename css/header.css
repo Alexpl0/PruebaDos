@@ -1,6 +1,12 @@
 /*===== GOOGLE FONTS =====*/
 /* No importamos Google Fonts aquí para evitar duplicados - Se usa la importación de styles.css */
 
+/*===== VARIABLES CSS =====*/
+:root {
+  --header-height: 3rem;
+  --z-fixed: 100;
+}
+
 /*===== VARIABLES DE TAMAÑO PARA PANTALLAS GRANDES =====*/
 @media screen and (min-width: 1000px) {
   :root {
@@ -11,20 +17,9 @@
 
 /*===== BASE =====*/
 *, ::before, ::after {
-  -webkit-box-sizing: border-box;
-          box-sizing: border-box;
+  box-sizing: border-box;
   /* font-family: var(--body-font); */
 }
-
-/* Icon styling for Font Awesome icons */
-.icono {
-  font-family: Arial, sans-serif;
-  padding: 20px;
-  font-size: 24px;
-  margin-right: 10px;
-  color: white !important;
-}
-
 
 /* Estilos base del body para el header */
 body {
@@ -53,6 +48,7 @@ img {
   height: auto;
 }
 
+/*===== LAYOUT =====*/
 .bd-grid {
   max-width: 1024px;
   display: grid;
@@ -86,8 +82,10 @@ img {
 /* Ícono de toggle del menú */
 .header__toggle {
   font-size: var(--normal-font-size) !important;
-  color: var(--white-color);
+  color: var(--white-color) !important;
   cursor: pointer;
+  display: block;
+  z-index: 1000;
 }
 
 /*===== NAVEGACIÓN =====*/
@@ -104,6 +102,36 @@ img {
     padding: 1.5rem 0;
     z-index: var(--z-fixed);
     transition: .5s;
+  }
+  
+  /* Mejora la zona de toque del botón hamburguesa para móviles */
+  .header__toggle {
+    padding: 10px;
+    margin-right: -10px;
+  }
+  
+  /* Asegura que los botones de navegación móvil sean visibles */
+  #nav-toggle, .header__toggle {
+    display: block !important;
+    z-index: 1000;
+    color: white !important;
+  }
+  
+  #nav-close {
+    display: block !important;
+    z-index: 1001;
+  }
+  
+  /* Mantén el ícono visible y con buen tamaño */
+  .header__toggle .fa-bars,
+  .fa-bars {
+    font-size: 1.5rem !important;
+    color: white !important;
+    visibility: visible !important;
+  }
+  
+  .show {
+    left: 0 !important;
   }
 }
 
@@ -122,6 +150,7 @@ img {
   background-color: var(--dark-color-alt);
   border-radius: 50%;
   cursor: pointer;
+  color: white !important;
 }
 
 /* Imagen del perfil de usuario */
@@ -330,6 +359,7 @@ img {
     text-decoration: underline;
   }
   
+  /* Solo oculta los controles de navegación móvil en escritorio */
   #nav-close, #nav-toggle {
     display: none !important;
   }
@@ -354,66 +384,52 @@ img {
   }
 }
 
-/* Replace Material Icons with Font Awesome styling */
+/* Icon styling for Font Awesome icons */
+.icono {
+  font-family: Arial, sans-serif;
+  font-size: 24px;
+  margin-right: 10px;
+  color: white !important;
+}
+
+/* Font Awesome icon styling */
+.fa, .fas, .far, .fal, .fab {
+  font-style: normal;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  color: white !important;
+}
+
+/* Icon sizes and visibility */
 .header__toggle i,
 .nav__close i,
 .nav__link i {
-    font-size: 1.5rem;
-    line-height: 1;
-    display: inline-block;
-    vertical-align: middle;
-}
-
-/* Font Awesome icon general styling */
-.fa, .fas, .far, .fal, .fab {
-    font-style: normal;
-    font-weight: 900;
-    line-height: 1;
-    letter-spacing: normal;
-    text-transform: none;
-    display: inline-block;
-    white-space: nowrap;
-    direction: ltr;
-    -webkit-font-smoothing: antialiased;
+  font-size: 1.5rem;
+  line-height: 1;
+  display: inline-block;
+  vertical-align: middle;
+  color: white !important;
 }
 
 /* Mobile menu icon */
 .header__toggle .fa-bars {
-    font-size: 1.5rem;
+  font-size: 1.5rem;
+  color: white !important;
 }
 
 /* Close icon */
 .nav__close .fa-times {
-    font-size: 1.2rem;
-}
-
-/* Remove Material Icons styles that are no longer needed */
-.material-symbols-outlined {
-    display: none;
-}
-
-/* Aumenta la especificidad para la clase icono */
-body .icono,
-html .icono,
-.header .icono,
-.nav .icono {
+  font-size: 1.2rem;
   color: white !important;
 }
 
-/* Asegúrate que los iconos FA siempre sean blancos */
-.nav__link i,
-.header__toggle i,
-.nav__close i,
-.nav__social-icon,
-.icono.fa,
-.icono.fas,
-.icono.far,
-.icono.fal,
-.icono.fab {
-  color: white !important;
-}
-
-/* Agrega esto al final de tu archivo CSS */
+/* Specific icons */
 .fa-bars,
 .fa-times,
 .fa-home,
@@ -424,14 +440,19 @@ html .icono,
   color: white !important;
 }
 
-/* Para todos los iconos dentro del header y navegación */
+/* All icons in header and nav */
 .header i,
 .nav i {
   color: white !important;
 }
 
-/* Añade esta clase a tu CSS */
+/* White icon utility class */
 .icon-white {
   color: white !important;
+}
+
+/* Remove Material Icons styles */
+.material-symbols-outlined {
+  display: none;
 }
 

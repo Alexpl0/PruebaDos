@@ -47,7 +47,7 @@ function createHeader(authLevel) {
     const headerHTML = `
     <header class="header">
         <a href="#" class="header__logo">GRAMMER</a>
-        <i class="fas fa-bars" style="color: white !important" id="nav-toggle"></i>
+        <i class="fas fa-bars header__toggle" id="nav-toggle" style="color: white !important; z-index: 1000;"></i>
         <nav class="nav" id="nav-menu">
             <div class="nav__content bd-grid">
                 <i class="fas fa-times nav__close" id="nav-close"></i>
@@ -80,27 +80,38 @@ document.addEventListener('DOMContentLoaded', function() {
     // Create header with user's authorization level
     createHeader(window.authorizationLevel || 0);
 
-    // Setup mobile menu toggle
-    const navMenu = document.getElementById('nav-menu'),
-          toggleMenu = document.getElementById('nav-toggle'),
-          closeMenu = document.getElementById('nav-close');
-
-    if (toggleMenu && navMenu) {
-        toggleMenu.addEventListener('click', () => navMenu.classList.toggle('show'));
-    }
-    
-    if (closeMenu && navMenu) {
-        closeMenu.addEventListener('click', () => navMenu.classList.remove('show'));
-    }
-
-    // Setup navigation link active state
-    const navLinks = document.querySelectorAll('.nav__link');   
-    
-    function linkAction() {
-        navLinks.forEach(link => link.classList.remove('active'));
-        this.classList.add('active');
-        navMenu.classList.remove('show');
-    }
-    
-    navLinks.forEach(link => link.addEventListener('click', linkAction));
+    // Usa setTimeout para asegurarte de que los elementos estén en el DOM
+    setTimeout(function() {
+        // Setup mobile menu toggle
+        const navMenu = document.getElementById('nav-menu');
+        const toggleMenu = document.getElementById('nav-toggle');
+        const closeMenu = document.getElementById('nav-close');
+        
+        console.log('Elementos de navegación:', {navMenu, toggleMenu, closeMenu});
+        
+        if (toggleMenu && navMenu) {
+            toggleMenu.addEventListener('click', () => {
+                console.log('Toggle menu clicked');
+                navMenu.classList.toggle('show');
+            });
+        }
+        
+        if (closeMenu && navMenu) {
+            closeMenu.addEventListener('click', () => {
+                console.log('Close menu clicked');
+                navMenu.classList.remove('show');
+            });
+        }
+        
+        // Setup navigation link active state
+        const navLinks = document.querySelectorAll('.nav__link');   
+        
+        function linkAction() {
+            navLinks.forEach(link => link.classList.remove('active'));
+            this.classList.add('active');
+            navMenu.classList.remove('show');
+        }
+        
+        navLinks.forEach(link => link.addEventListener('click', linkAction));
+    }, 100); // Un pequeño retraso para asegurar que el DOM está listo
 });
