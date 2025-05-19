@@ -79,18 +79,20 @@ export function renderWordCloud() {
         .slice(0, 100);                               // Limita a las 100 palabras más frecuentes para evitar sobrecarga
     
     // PASO 5: VERIFICACIÓN DEL CONTENEDOR HTML
-    // Obtiene una referencia al elemento HTML donde se renderizará la nube de palabras
     const wordCloudContainer = document.getElementById('wordCloudChart');
-    
-    // Si el contenedor no existe en el DOM, salimos de la función para evitar errores
     if (!wordCloudContainer) return;
-    
-    if (charts && charts.cloud) {
-        // If you're updating an existing chart, handle that here
-        // For example: charts.cloud.update(wordCloudData);
-        // return;  // Exit early if chart was updated
+
+    // --- SOLUCIÓN: Asegura que charts siempre sea un objeto ---
+    if (typeof charts !== 'object' || charts === null) {
+        console.warn('[WordCloud] El objeto charts no está inicializado.');
+        return;
     }
-    
+
+    // Si quieres usar charts.cloud para guardar una referencia, inicialízalo si no existe
+    if (!charts.cloud) {
+        charts.cloud = {}; // O puedes guardar aquí la instancia de la nube si lo necesitas
+    }
+
     // PASO 6: PREPARACIÓN DEL CONTENEDOR
     // Limpia cualquier contenido previo del contenedor para evitar duplicaciones
     wordCloudContainer.innerHTML = '';
