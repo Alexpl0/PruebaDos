@@ -392,3 +392,46 @@ img {
     display: none;
 }
 
+/* Aumenta la especificidad para la clase icono */
+body .icono,
+html .icono,
+.header .icono,
+.nav .icono {
+  color: white !important;
+}
+
+/* Asegúrate que los iconos FA siempre sean blancos */
+.nav__link i,
+.header__toggle i,
+.nav__close i,
+.nav__social-icon,
+.icono.fa,
+.icono.fas,
+.icono.far,
+.icono.fal,
+.icono.fab {
+  color: white !important;
+}
+
+/* Agrega esto al final de tu archivo CSS */
+.fa-bars,
+.fa-times,
+.fa-home,
+.fa-user,
+.fa-cog,
+.fa-sign-out-alt,
+.fa-chevron-down {
+  color: white !important;
+}
+
+/* Para todos los iconos dentro del header y navegación */
+.header i,
+.nav i {
+  color: white !important;
+}
+
+/* Añade esta clase a tu CSS */
+.icon-white {
+  color: white !important;
+}
+
