@@ -452,12 +452,63 @@ form .mb-3 {
     min-height: 85px; /* Reserva espacio vertical */
 }
 
-/* Ensure the hamburger icon is visible */
-.header__toggle,
-.header__toggle i,
-.fa-bars {
-    display: block !important;
-    visibility: visible !important;
-    color: white !important;
-    z-index: 1010 !important;
+/* Agregar al final del archivo newOrder.css */
+
+/* Prevenir desbordamiento horizontal */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Controlar el ancho máximo de los contenedores */
+.container {
+  max-width: 100%;
+  padding-left: 15px;
+  padding-right: 15px;
+  box-sizing: border-box;
+}
+
+/* Asegurar que los elementos dentro del formulario no se desborden */
+#plant-form {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Controlar elementos que pueden causar desbordamiento */
+.input-group, 
+.d-flex,
+select,
+input,
+textarea {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Ajustar Select2 para evitar que se extienda demasiado */
+.select2-container {
+  width: 100% !important;
+  max-width: 100%;
+}
+
+/* Corregir el desbordamiento en dispositivos móviles */
+@media (max-width: 768px) {
+  #MeasuresDiv,
+  #QuotedCostDiv,
+  #ReferenceDiv {
+    flex-wrap: wrap;
+  }
+  
+  #MeasuresDiv > *,
+  #QuotedCostDiv > *,
+  #ReferenceDiv > * {
+    flex: 0 0 100%;
+    margin-right: 0 !important;
+    margin-bottom: 0.5rem;
+  }
+  
+  #Divisa {
+    display: flex;
+    justify-content: flex-start;
+    gap: 0.5rem;
+  }
 }
