@@ -14,6 +14,7 @@
 // establecidos en el dashboard. Esta función nos permite trabajar siempre con el conjunto
 // de datos actualizado según las selecciones del usuario.
 import { getFilteredData } from '../dataDashboard.js';
+import { charts } from '../configDashboard.js';
 
 /**
  * Función principal que genera o actualiza la visualización de nube de palabras
@@ -83,6 +84,12 @@ export function renderWordCloud() {
     
     // Si el contenedor no existe en el DOM, salimos de la función para evitar errores
     if (!wordCloudContainer) return;
+    
+    if (charts && charts.cloud) {
+        // If you're updating an existing chart, handle that here
+        // For example: charts.cloud.update(wordCloudData);
+        // return;  // Exit early if chart was updated
+    }
     
     // PASO 6: PREPARACIÓN DEL CONTENEDOR
     // Limpia cualquier contenido previo del contenedor para evitar duplicaciones
