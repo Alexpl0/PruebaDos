@@ -133,6 +133,17 @@ img {
   .show {
     left: 0 !important;
   }
+  
+  /* Nueva regla para ocultar el botón toggle cuando el menú está visible */
+  .nav.show + .header__toggle,
+  body:has(.nav.show) .header__toggle {
+    display: none !important;
+  }
+  
+  /* Alternativa usando una clase específica */
+  .hide-toggle {
+    display: none !important;
+  }
 }
 
 .nav__content {
@@ -454,5 +465,10 @@ img {
 /* Remove Material Icons styles */
 .material-symbols-outlined {
   display: none;
+}
+
+/* Añade esta clase al final del archivo, antes del cierre */
+.hide-toggle {
+  display: none !important;
 }
 

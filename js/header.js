@@ -93,6 +93,11 @@ document.addEventListener('DOMContentLoaded', function() {
             toggleMenu.addEventListener('click', () => {
                 console.log('Toggle menu clicked');
                 navMenu.classList.toggle('show');
+                
+                // Ocultar el botón hamburguesa cuando se muestra el menú
+                if (navMenu.classList.contains('show')) {
+                    toggleMenu.style.display = 'none';
+                }
             });
         }
         
@@ -100,6 +105,11 @@ document.addEventListener('DOMContentLoaded', function() {
             closeMenu.addEventListener('click', () => {
                 console.log('Close menu clicked');
                 navMenu.classList.remove('show');
+                
+                // Volver a mostrar el botón hamburguesa cuando se cierra el menú
+                if (toggleMenu) {
+                    toggleMenu.style.display = 'block';
+                }
             });
         }
         
@@ -110,6 +120,11 @@ document.addEventListener('DOMContentLoaded', function() {
             navLinks.forEach(link => link.classList.remove('active'));
             this.classList.add('active');
             navMenu.classList.remove('show');
+            
+            // Volver a mostrar el botón hamburguesa cuando se hace clic en un enlace
+            if (toggleMenu) {
+                toggleMenu.style.display = 'block';
+            }
         }
         
         navLinks.forEach(link => link.addEventListener('click', linkAction));
