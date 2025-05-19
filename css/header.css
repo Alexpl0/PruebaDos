@@ -13,7 +13,7 @@
 *, ::before, ::after {
   -webkit-box-sizing: border-box;
           box-sizing: border-box;
-  font-family: var(--body-font);
+  /* font-family: var(--body-font); */
 }
 
 
@@ -381,4 +381,13 @@ img {
 /* Remove Material Icons styles that are no longer needed */
 .material-symbols-outlined {
     display: none;
+}
+
+/* Icon styling for Font Awesome icons */
+.icono {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  font-size: 24px;
+  margin-right: 10px;
+  color: #333;
 }
