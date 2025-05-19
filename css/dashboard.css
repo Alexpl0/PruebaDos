@@ -51,6 +51,8 @@
 /* Estilos para el mapa */
 #mapOriginDestiny {
     border-radius: 5px;
+    height: 400px;
+    width: 100%;
 }
 
 /* Estilos para las tarjetas de estadísticas */
