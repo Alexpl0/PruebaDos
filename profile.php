@@ -42,7 +42,7 @@ include_once 'dao/users/auth_check.php';
         <div class="profile-container">
             <div class="profile-header">
                 <div class="avatar-container">
-                    <span class="material-symbols-outlined avatar-icon" style="font-size: 4rem; color: #fff;">account_circle</span>
+                    <i class="fas fa-user-circle avatar-icon"></i>
                 </div>
                 <div class="user-info">
                     <h2><?php echo htmlspecialchars($user['name']); ?></h2>
@@ -68,7 +68,7 @@ include_once 'dao/users/auth_check.php';
                         <div class="input-group">
                             <input type="password" id="current-password">
                             <button type="button" class="toggle-password" data-target="current-password">
-                                <span class="material-symbols-outlined">visibility_off</span>
+                                <i class="fas fa-eye-slash"></i>
                             </button>
                         </div>
                     </div>
@@ -77,8 +77,8 @@ include_once 'dao/users/auth_check.php';
                         <label for="new-password" class="form-label">New Password</label>
                         <div class="input-group">
                             <input type="password" id="new-password">
-                            <button type="button" class="toggle-password" data-target="current-password">
-                                <span class="material-symbols-outlined">visibility_off</span>
+                            <button type="button" class="toggle-password" data-target="new-password">
+                                <i class="fas fa-eye-slash"></i>
                             </button>
                         </div>
                     </div>
@@ -87,8 +87,8 @@ include_once 'dao/users/auth_check.php';
                         <label for="confirm-password" class="form-label">Confirm New Password</label>
                         <div class="input-group">
                             <input type="password" id="confirm-password">
-                            <button type="button" class="toggle-password" data-target="current-password">
-                                <span class="material-symbols-outlined">visibility_off</span>
+                            <button type="button" class="toggle-password" data-target="confirm-password">
+                                <i class="fas fa-eye-slash"></i>
                             </button>
                         </div>
                     </div>

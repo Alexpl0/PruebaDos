@@ -4,13 +4,20 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', function() {
             const targetId = this.getAttribute('data-target');
             const input = document.getElementById(targetId);
-            const icon = this.querySelector('.material-symbols-outlined');
+            const icon = this.querySelector('i');
+            
             if (input.type === 'password') {
                 input.type = 'text';
-                if (icon) icon.textContent = 'visibility';
+                if (icon) {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
             } else {
                 input.type = 'password';
-                if (icon) icon.textContent = 'visibility_off';
+                if (icon) {
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                }
             }
         });
     });
