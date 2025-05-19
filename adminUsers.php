@@ -21,28 +21,38 @@ include_once 'dao/users/auth_check.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
     <title>Admin Users</title>
      
-    <!-- ================== CSS DE TERCEROS ================== -->
+    <!-- jQuery first to ensure availability for other scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     
-    <!-- Google Material Symbols (iconos) -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
+    <!-- Ion Icons  -->
+    <script type="module" src="https://unpkg.com/ionicons@7.2.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.2.2/dist/ionicons/ionicons.js"></script>
     
-    <!-- Bootstrap 5 -->
+    <!-- Font Awesome -->
+    <script src="https://kit.fontawesome.com/9da5a4eac6.js" crossorigin="anonymous"></script>
+    
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- SweetAlert2 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css">
 
-    <!-- ================== CSS LOCAL ================== -->
+    <!-- Local CSS files -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/dataTables.css">
     <link rel="stylesheet" href="css/adminUsers.css">
-
 </head>
 <body>
     <div id="header-container"></div>
@@ -116,7 +126,7 @@ include_once 'dao/users/auth_check.php';
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="user-password" required>
                                     <button class="btn btn-outline-secondary toggle-password" type="button">
-                                        <span class="material-symbols-outlined">visibility</span>
+                                        <i class="fas fa-eye"></i>
                                     </button>
                                 </div>
                                 <small class="form-text text-muted">Leave unchanged to keep current password</small>

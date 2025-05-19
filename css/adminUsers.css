@@ -411,3 +411,88 @@
     margin-right: 5px; /* Add some space if icon is before text and no gap is used */
 }
 
+/* General icon-only button base class */
+.icon-only-btn {
+    width: 38px;
+    height: 38px;
+    padding: 0 !important;
+    border-radius: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+/* Material icons inside icon-only buttons */
+.icon-only-btn .material-symbols-outlined {
+    font-size: 20px;
+    margin: 0;
+    line-height: 1;
+}
+
+/* Hover effect for icon-only buttons */
+.icon-only-btn:hover {
+    transform: translateY(-1px);
+}
+
+/* Responsive adjustment for mobile */
+@media (max-width: 768px) {
+    .icon-only-btn {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .icon-only-btn .material-symbols-outlined {
+        font-size: 18px;
+    }
+}
+
+/* Replace Material Icons styling with Font Awesome */
+.fa, .fas, .far, .fal, .fab {
+    font-size: 1.2rem;
+    line-height: 1;
+    vertical-align: middle;
+}
+
+.icon-only-btn .fa, 
+.icon-only-btn .fas, 
+.icon-only-btn .far, 
+.icon-only-btn .fal, 
+.icon-only-btn .fab {
+    font-size: 18px;
+    margin: 0;
+}
+
+.action-buttons button .fa,
+.action-buttons button .fas,
+.action-buttons button .far,
+.action-buttons button .fal,
+.action-buttons button .fab {
+    font-size: 1rem;
+}
+
+.action-buttons button.icon-only-btn .fa,
+.action-buttons button.icon-only-btn .fas,
+.action-buttons button.icon-only-btn .far,
+.action-buttons button.icon-only-btn .fal,
+.action-buttons button.icon-only-btn .fab {
+    font-size: 18px;
+}
+
+.dt-buttons .fa,
+.dt-buttons .fas,
+.dt-buttons .far,
+.dt-buttons .fal,
+.dt-buttons .fab {
+    font-size: 18px;
+}
+
+.dt-buttons .icon-only-btn .fa,
+.dt-buttons .icon-only-btn .fas,
+.dt-buttons .icon-only-btn .far,
+.dt-buttons .icon-only-btn .fal,
+.dt-buttons .icon-only-btn .fab {
+    font-size: 20px;
+    margin: 0;
+}
+
