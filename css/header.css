@@ -27,7 +27,7 @@
 body {
   margin: 0;
   padding-top: calc(var(--header-height) + 1rem); /* Espacio para el header fijo */
-  font-family: var(--body-font) !important;
+  font-family: var(--body-font);
   font-weight: 500;
 }
 
