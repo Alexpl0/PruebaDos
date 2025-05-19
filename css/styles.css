@@ -37,10 +37,28 @@ body {
 }
 
 /* Aplicación de fuentes pero SIN AFECTAR a Select2 */
-p, a, button:not(.select2-selection__choice__remove), 
-div:not(.select2-container):not(.select2-dropdown):not(.select2-search):not(.select2-selection),
+p, a, button:not(.select2-selection__choice__remove):not(.select2-selection__choice), 
+div:not([class^="select2"]):not([class*=" select2-"]),
 textarea {
     font-family: var(--body-font);
+}
+
+/* Select2 específico - permite que Select2 use su propio estilo */
+.select2-container,
+.select2-dropdown,
+.select2-results,
+.select2-selection {
+    font-family: inherit; /* Hereda la fuente del padre en vez de forzar Merriweather */
+}
+
+/* Fix para los dropdowns de Select2 */
+.select2-container--open .select2-dropdown {
+    z-index: 9999 !important; /* Asegura que el dropdown esté por encima de otros elementos */
+    font-family: inherit;
+}
+
+.select2-selection__rendered {
+    font-family: inherit;
 }
 
 h1, .h1 {
@@ -71,11 +89,6 @@ h5, .h5, h6, .h6 {
 .small, small {
     font-size: var(--small-font-size);
     font-family: var(--body-font);
-}
-
-/* Fix para los dropdowns de Select2 */
-.select2-container--open .select2-dropdown {
-    z-index: 9999; /* Asegura que el dropdown esté por encima de otros elementos */
 }
 
 /* Mantén tus otros estilos personalizados que no afecten a Select2 */

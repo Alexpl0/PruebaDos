@@ -368,9 +368,8 @@ include_once 'dao/users/auth_check.php';
     </footer>
 
     <!-- Scripts -->
-    <!-- <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="js/companySelect.js"></script>
-    <script src="js/header.js"></script>
     <script src="js/formValidation.js"></script>
     <script src="js/currencyUtils.js"></script>
     <script src="js/addCompany.js"></script>
@@ -379,6 +378,8 @@ include_once 'dao/users/auth_check.php';
     <script src="js/createPDF.js"></script>
     <script src="js/carrierSelect.js"></script>
     <script src="js/addCarrier.js"></script>
+
+    <script src="js/header.js"></script>
 
     <script>
         $(document).ready(function() {
