@@ -6,6 +6,11 @@
 
 // This function should be globally accessible
 function initializeDataTable() {
+    // Check if DataTable already exists and destroy it first
+    if ($.fn.DataTable.isDataTable('#users-table')) {
+        $('#users-table').DataTable().destroy();
+    }
+    
     // Initialize DataTable
     const usersTable = $('#users-table').DataTable({
         ajax: {
