@@ -47,7 +47,7 @@ function createHeader(authLevel) {
     const headerHTML = `
     <header class="header">
         <a href="#" class="header__logo">GRAMMER</a>
-        <i class="fas fa-bars header__toggle" id="nav-toggle" style="color: white !important"></i>
+        <i class="fas fa-bars header__toggle" id="nav-toggle" style="color: white !important; z-index: 1000;"></i>
         <nav class="nav" id="nav-menu">
             <div class="nav__content bd-grid">
                 <i class="fas fa-times nav__close" id="nav-close"></i>
@@ -95,9 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 navMenu.classList.toggle('show');
                 
                 // Ocultar el botón hamburguesa cuando se muestra el menú
-                if (navMenu.classList.contains('show')) {
-                    toggleMenu.style.display = 'none';
-                }
+                toggleMenu.classList.add('hide-toggle');
             });
         }
         
@@ -108,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Volver a mostrar el botón hamburguesa cuando se cierra el menú
                 if (toggleMenu) {
-                    toggleMenu.style.display = 'block';
+                    toggleMenu.classList.remove('hide-toggle');
                 }
             });
         }
@@ -123,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Volver a mostrar el botón hamburguesa cuando se hace clic en un enlace
             if (toggleMenu) {
-                toggleMenu.style.display = 'block';
+                toggleMenu.classList.remove('hide-toggle');
             }
         }
         
