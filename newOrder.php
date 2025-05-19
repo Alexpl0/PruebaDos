@@ -387,24 +387,5 @@ include_once 'dao/users/auth_check.php';
     <script src="js/addCarrier.js"></script>
 
     <script src="js/header.js"></script>
-
-    <script>
-        $(document).ready(function() {
-            // Primero cargamos el header
-            $("#header-container").load("header.html", function() {
-                // Después de cargar el header, inicializamos Select2
-                $('select').not('#CompanyShip, #inputCompanyNameDest, #Carrier').select2({
-                    width: '100%'
-                });
-                
-                // Finalmente mostramos el formulario
-                setTimeout(() => {
-                    const form = $('#plant-form');
-                    form.css('transition', 'opacity 0.3s');
-                    form.css('opacity', '1');
-                }, 500);
-            });
-        });
-    </script>
 </body>
 </html>
