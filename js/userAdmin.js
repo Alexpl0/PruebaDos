@@ -71,11 +71,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         return `
                             <div class="action-buttons">
                                 <button class="btn btn-sm btn-primary edit-user icon-only-btn" data-id="${row.id}" title="Edit User">
-                                    <span class="material-symbols-outlined">edit</span>
+                                    <i class="fas fa-edit"></i>
                                 </button>
                                 <button class="btn btn-sm btn-danger delete-user icon-only-btn" data-id="${row.id}" 
                                         ${row.id == window.userID ? 'disabled' : ''} title="Delete User">
-                                    <span class="material-symbols-outlined">delete</span>
+                                    <i class="fas fa-trash"></i>
                                 </button>
                             </div>
                         `;
@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
             dom: 'Bfrtip',
             buttons: [
                 {
-                    text: '<span class="material-symbols-outlined">person_add</span>',
+                    text: '<i class="fas fa-user-plus"></i>',
                     className: 'btn-primary icon-only-btn',
                     titleAttr: 'Add New User', // This adds the tooltip
                     action: function () {
@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 {
                     extend: 'excel',
-                    text: '<span class="material-symbols-outlined">description</span>',
+                    text: '<i class="fas fa-file-excel"></i>',
                     className: 'btn-success icon-only-btn',
                     titleAttr: 'Export to Excel', // This adds the tooltip
                     title: 'Users_Report',
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 {
                     extend: 'pdf',
-                    text: '<span class="material-symbols-outlined">picture_as_pdf</span>',
+                    text: '<i class="fas fa-file-pdf"></i>',
                     className: 'btn-danger icon-only-btn',
                     titleAttr: 'Export to PDF', // This adds the tooltip
                     title: 'Users Report',
@@ -143,8 +143,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const type = passwordInput.type === 'password' ? 'text' : 'password';
             passwordInput.type = type;
             
-            const icon = this.querySelector('span.material-symbols-outlined');
-            icon.textContent = type === 'password' ? 'visibility' : 'visibility_off';
+            const icon = this.querySelector('i');
+            if (type === 'password') {
+                icon.className = 'fas fa-eye';
+            } else {
+                icon.className = 'fas fa-eye-slash';
+            }
         });
 
         // Handle Edit User button click

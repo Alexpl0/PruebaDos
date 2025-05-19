@@ -169,5 +169,16 @@ include_once 'dao/users/auth_check.php';
 
     <!-- Archivos JS locales -->
     <script src="js/header.js"></script>
+    <script>
+        // Check if Material Icons are loaded
+        document.fonts.ready.then(() => {
+            // Initialize DataTable once fonts are loaded
+            initializeDataTable();
+        }).catch(error => {
+            console.error('Error loading fonts:', error);
+            // Initialize DataTable anyway after a timeout if fonts fail
+            setTimeout(initializeDataTable, 100);
+        });
+    </script>
 </body>
 </html>
