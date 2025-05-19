@@ -133,22 +133,22 @@ export function renderWordCloud() {
      * @param {Array} words - Array de objetos palabra con propiedades calculadas (x, y, rotate, etc.)
      */
     function draw(words) {
-        // Selecciona el contenedor y añade un elemento SVG que ocupará todo el espacio disponible
-        d3.select("#wordCloudChart").append("svg")
-            .attr("width", layout.size()[0])         // Ancho del SVG igual al layout
-            .attr("height", layout.size()[1])        // Alto del SVG igual al layout
-            .append("g")                             // Añade un grupo SVG para contener los textos
-            .attr("transform", `translate(${layout.size()[0] / 2},${layout.size()[1] / 2})`)  // Centra el grupo en el SVG
-            .selectAll("text")                       // Prepara la selección para los elementos de texto
-            .data(words)                             // Asocia los datos de palabras a elementos
-            .enter().append("text")                  // Por cada palabra, crea un elemento text
-            .style("font-size", d => `${d.size}px`)  // Establece el tamaño de fuente según frecuencia
-            .style("font-family", "Impact")          // Establece la fuente
-            .style("fill", d => d3.interpolateRainbow(Math.random()))  // Color aleatorio del espectro arcoíris
-                                                                        // usando la función de interpolación de D3
-            .attr("text-anchor", "middle")           // Alineación del texto (centrado)
-            .attr("transform", d => `translate(${d.x},${d.y}) rotate(${d.rotate})`)  // Posicionamiento y rotación
-                                                                                     // según cálculos del layout
-            .text(d => d.text);                      // Establece el texto visible con el valor de la palabra
+        const svg = d3.select("#wordCloudChart").append("svg")
+            .attr("width", layout.size()[0])
+            .attr("height", layout.size()[1])
+            .append("g")
+            .attr("transform", `translate(${layout.size()[0] / 2},${layout.size()[1] / 2})`)
+            .selectAll("text")
+            .data(words)
+            .enter().append("text")
+            .style("font-size", d => `${d.size}px`)
+            .style("font-family", "Impact")
+            .style("fill", d => d3.interpolateRainbow(Math.random()))
+            .attr("text-anchor", "middle")
+            .attr("transform", d => `translate(${d.x},${d.y}) rotate(${d.rotate})`)
+            .text(d => d.text);
+
+        // Guarda la referencia al SVG en charts.cloud
+        charts.cloud = svg;
     }
 }
