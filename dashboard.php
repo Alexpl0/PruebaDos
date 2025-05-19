@@ -9,10 +9,10 @@ include_once 'dao/users/auth_check.php';
     window.authorizationLevel = <?php echo json_encode($nivel); ?>;
     window.userName = <?php echo json_encode($name); ?>;
     window.userID = <?php echo json_encode($userID); ?>;
-    console.log("Auth Level: " + window.authorizationLevel);
-    console.log("UserName: " + window.userName);
-    console.log("UserID: " + window.userID);
-</script>
+//     console.log("Auth Level: " + window.authorizationLevel);
+//     console.log("UserName: " + window.userName);
+//     console.log("UserID: " + window.userID);
+ </script>
 
 <!DOCTYPE html>
 <html lang="en">

@@ -47,7 +47,7 @@ export async function loadDashboardData() {
         
         // PASO 2: PETICIÓN A LA API
         // Registro en consola para seguimiento y depuración
-        console.log("Fetching data from API...");
+        // console.log("Fetching data from API...");
         
         // Realiza la petición HTTP utilizando la API Fetch de JavaScript
         // await espera a que la petición se complete antes de continuar
@@ -66,7 +66,7 @@ export async function loadDashboardData() {
         const result = await response.json();
         
         // Registro en consola del resultado obtenido para depuración
-        console.log("Data received:", result);
+        // console.log("Data received:", result);
         
         // PASO 5: VALIDACIÓN DE LA ESTRUCTURA DE DATOS
         // Verifica que la respuesta tenga el formato esperado:
@@ -78,7 +78,7 @@ export async function loadDashboardData() {
             premiumFreightData = result.data;
             
             // Registro en consola de la cantidad de registros recibidos
-            console.log(`Loaded ${premiumFreightData.length} records`);
+            // console.log(`Loaded ${premiumFreightData.length} records`);
             
             // PASO 7: FINALIZACIÓN DE LA CARGA
             // Oculta el indicador de carga ya que los datos se han cargado exitosamente
@@ -133,10 +133,10 @@ export function applyFilters(filters) {
     
     // PASO 2: REGISTRO DE FILTROS APLICADOS
     // Registra en consola los filtros que se van a aplicar (para depuración)
-    console.log("Applying filters:", { 
-        dateRange: `${startDate} to ${endDate}`, 
-        planta, status 
-    });
+    // console.log("Applying filters:", { 
+    //     dateRange: `${startDate} to ${endDate}`, 
+    //     planta, status 
+    // });
     
     // PASO 3: APLICACIÓN DE FILTROS
     // Filtra el array de datos originales aplicando todos los criterios simultáneamente
@@ -172,7 +172,7 @@ export function applyFilters(filters) {
     
     // PASO 4: REGISTRO DEL RESULTADO
     // Registra en consola cuántos registros pasaron los filtros (para depuración)
-    console.log("Records after filtering:", filteredData.length);
+    // console.log("Records after filtering:", filteredData.length);
     
     // PASO 5: RETORNO DEL RESULTADO
     // Devuelve el conjunto de datos filtrados (aunque también está disponible
