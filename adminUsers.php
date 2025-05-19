@@ -169,15 +169,5 @@ include_once 'dao/users/auth_check.php';
 
     <!-- Archivos JS locales -->
     <script src="js/header.js"></script>
-    <script>
-        // Initialize DataTable directly (no need to wait for Material Icons)
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof initializeDataTable === 'function') {
-                initializeDataTable();
-            } else {
-                console.error('initializeDataTable function not found');
-            }
-        });
-    </script>
 </body>
 </html>
