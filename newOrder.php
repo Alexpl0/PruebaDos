@@ -390,20 +390,20 @@ include_once 'dao/users/auth_check.php';
 
     <script>
         $(document).ready(function() {
-            // Oculta el formulario al inicio
-            const form = $('#plant-form');
-            form.css('opacity', '0');
-            
-            // Inicializa select2 para todos los selects EXCEPTO los específicos
-            $('select').not('#CompanyShip, #inputCompanyNameDest, #Carrier').select2({
-                width: '100%'
+            // Primero cargamos el header
+            $("#header-container").load("header.html", function() {
+                // Después de cargar el header, inicializamos Select2
+                $('select').not('#CompanyShip, #inputCompanyNameDest, #Carrier').select2({
+                    width: '100%'
+                });
+                
+                // Finalmente mostramos el formulario
+                setTimeout(() => {
+                    const form = $('#plant-form');
+                    form.css('transition', 'opacity 0.3s');
+                    form.css('opacity', '1');
+                }, 500);
             });
-            
-            // Muestra el formulario una vez que todo está inicializado
-            setTimeout(() => {
-                form.css('transition', 'opacity 0.3s');
-                form.css('opacity', '1');
-            }, 500); // Aumentado de 300 a 500ms para dar más tiempo a cargar
         });
     </script>
 </body>
