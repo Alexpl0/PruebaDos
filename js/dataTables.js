@@ -9,6 +9,9 @@ let dataTableHistoricoTotal;
 let dataTableSemanalInitialized = false;
 let dataTableTotalInitialized = false;
 
+// Global variable to track initialization state
+let dataTableInitialized = false;
+
 /**
  * Opciones comunes para ambas DataTables
  */
@@ -728,6 +731,36 @@ const generarHistoricoTotal = async () => {
         }
     }
 };
+
+/**
+ * Función para inicializar la DataTable para usuarios
+ */
+function initializeDataTable() {
+    // If already initialized, don't initialize again
+    if (dataTableInitialized) {
+        console.log('DataTable already initialized');
+        return;
+    }
+    
+    // Check if DataTable already exists and destroy it first
+    if ($.fn.DataTable.isDataTable('#users-table')) {
+        $('#users-table').DataTable().destroy();
+    }
+    
+    // Now initialize the DataTable
+    const usersTable = $('#users-table').DataTable({
+        ajax: {
+            url: 'https://grammermx.com/Jesus/PruebaDos/dao/users/daoUserAdmin.php',
+            dataSrc: 'data',
+            // rest of your configuration
+        },
+        // rest of your DataTable options
+    });
+
+    dataTableInitialized = true;
+    
+    // Rest of your initialization code
+}
 
 /**
  * Event listeners y preparación inicial
