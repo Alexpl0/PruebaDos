@@ -16,6 +16,15 @@
   /* font-family: var(--body-font); */
 }
 
+/* Icon styling for Font Awesome icons */
+.icono {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  font-size: 24px;
+  margin-right: 10px;
+  color: white !important;
+}
+
 
 /* Estilos base del body para el header */
 body {
@@ -383,11 +392,3 @@ img {
     display: none;
 }
 
-/* Icon styling for Font Awesome icons */
-.icono {
-  font-family: Arial, sans-serif;
-  padding: 20px;
-  font-size: 24px;
-  margin-right: 10px;
-  color: white;
-}
