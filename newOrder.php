@@ -45,10 +45,10 @@ include_once 'dao/users/auth_check.php';
     <!-- Select2 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     
-    <!-- Local CSS files
-    <link rel="stylesheet" href="css/styles.css">
+    Local CSS files
+    <!-- <link rel="stylesheet" href="css/styles.css"> -->
     <link rel="stylesheet" href="css/header.css">
-    <link rel="stylesheet" href="css/newOrder.css"> -->
+    <link rel="stylesheet" href="css/newOrder.css">
     
 </head>
 <body>
