@@ -108,6 +108,16 @@ export function renderWordCloud() {
     const height = wordCloudContainer.offsetHeight;  // Alto en píxeles
     
     // PASO 8: CONFIGURACIÓN DEL LAYOUT D3 PARA LA NUBE DE PALABRAS
+    // Verifica que d3.layout.cloud esté disponible
+    if (typeof d3.layout === 'undefined' || typeof d3.layout.cloud === 'undefined') {
+        console.error("Error: d3.layout.cloud no está disponible. Asegúrate de incluir la librería d3-cloud.");
+        // Fallback para evitar errores
+        charts.cloud = {
+            update: () => console.warn("Cloud chart not available")
+        };
+        return;
+    }
+
     // Crea y configura el generador de layout de nube de palabras
     const layout = d3.layout.cloud()
         .size([width, height])                       // Establece las dimensiones totales de la nube
