@@ -26,6 +26,10 @@ import { charts } from '../configDashboard.js';
  * 4. Generación de la visualización utilizando D3.js
  */
 export function renderWordCloud() {
+    console.log("[DEBUG] charts importado:", charts);
+    if (typeof charts !== 'object' || charts === null) {
+        throw new Error("charts no está inicializado correctamente");
+    }
     // Registro en consola para seguimiento y depuración del proceso
     // Muestra la cantidad de elementos que han pasado los filtros actuales
     console.log("[DEBUG] renderWordCloud:", getFilteredData().length);
