@@ -4,7 +4,7 @@
  */
 
 function createHeader(authLevel) {
-    console.log('Authorization Level:', authLevel);
+    // console.log('Authorization Level:', authLevel);
     
     // Detect current page
     const currentPage = window.location.pathname.split('/').pop();
