@@ -389,8 +389,8 @@ include_once 'dao/users/auth_check.php';
             const form = $('#plant-form');
             form.css('opacity', '0');
             
-            // Inicializa todos los select2
-            $('select').select2({
+            // Inicializa select2 para todos los selects EXCEPTO los específicos
+            $('select').not('#CompanyShip, #inputCompanyNameDest, #Carrier').select2({
                 width: '100%'
             });
             
@@ -398,7 +398,7 @@ include_once 'dao/users/auth_check.php';
             setTimeout(() => {
                 form.css('transition', 'opacity 0.3s');
                 form.css('opacity', '1');
-            }, 300);
+            }, 500); // Aumentado de 300 a 500ms para dar más tiempo a cargar
         });
     </script>
 </body>
