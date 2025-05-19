@@ -209,10 +209,15 @@ function initializeDataTable() {
         document.getElementById('user-form-container').scrollIntoView({ behavior: 'smooth' });
     });
 
-    // Handle Cancel button click
-    document.getElementById('cancel-form').addEventListener('click', function() {
-        document.getElementById('user-form-container').classList.add('d-none');
-    });
+    // Handle Cancel button click - moved outside initializeDataTable function
+    const cancelButton = document.getElementById('cancel-form');
+    if (cancelButton) {
+        cancelButton.addEventListener('click', function() {
+            document.getElementById('user-form-container').classList.add('d-none');
+        });
+    } else {
+        console.error('Cancel button not found in the DOM');
+    }
 
     // Handle Form Submit
     document.getElementById('user-form').addEventListener('submit', function(e) {
@@ -313,6 +318,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize DataTable directly - no need to wait for fonts
     setTimeout(initializeDataTable, 100);
+    
+    // Handle Cancel button click - moved outside initializeDataTable function
+    const cancelButton = document.getElementById('cancel-form');
+    if (cancelButton) {
+        cancelButton.addEventListener('click', function() {
+            document.getElementById('user-form-container').classList.add('d-none');
+        });
+    } else {
+        console.error('Cancel button not found in the DOM');
+    }
 });
 
 // When loading user data for editing
