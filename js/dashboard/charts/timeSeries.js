@@ -42,7 +42,7 @@ import { formatNumber } from '../utilsDashboard.js';
 export function renderTimeSeriesChart() {
     // Registro en consola para seguimiento y depuración del proceso
     // Muestra la cantidad de elementos que han pasado los filtros actuales
-    console.log("[DEBUG] renderTimeSeriesChart:", getFilteredData().length);
+    // console.log("[DEBUG] renderTimeSeriesChart:", getFilteredData().length);
     
     // Obtiene la colección actual de datos filtrados según criterios del dashboard
     const filteredData = getFilteredData();
@@ -106,7 +106,7 @@ export function renderTimeSeriesChart() {
     // Si no hay datos, limpia el gráfico y finaliza la función
     if (sortedMonths.length === 0) {
         // Registra en consola la ausencia de datos
-        console.log("No time series data available to render chart");
+        // console.log("No time series data available to render chart");
         
         // Si el gráfico ya existe, lo actualiza con valores vacíos
         if (charts.timeSeries) {
@@ -172,10 +172,10 @@ export function renderTimeSeriesChart() {
     // Extrae los datos de envíos externos por mes
     const externalData = sortedMonths.map(ym => monthlyData[ym].externalCount);
 
-    console.log("[DEBUG] Categories:", categories);
-    console.log("[DEBUG] Internal Shipments:", internalData);
-    console.log("[DEBUG] External Shipments:", externalData);
-    console.log("[DEBUG] Total Cost:", costData);
+    // console.log("[DEBUG] Categories:", categories);
+    // console.log("[DEBUG] Internal Shipments:", internalData);
+    // console.log("[DEBUG] External Shipments:", externalData);
+    // console.log("[DEBUG] Total Cost:", costData);
 
     
     // PASO 5: ACTUALIZACIÓN O CREACIÓN DEL GRÁFICO
@@ -416,7 +416,7 @@ export function renderTimeSeriesChart() {
 export function renderCorrelationChart() {
     // Registro en consola para seguimiento y depuración del proceso
     // Muestra la cantidad de elementos que han pasado los filtros actuales
-    console.log("[DEBUG] renderCorrelationChart:", getFilteredData().length);
+    // console.log("[DEBUG] renderCorrelationChart:", getFilteredData().length);
     
     // Obtiene la colección actual de datos filtrados según criterios del dashboard
     const filteredData = getFilteredData();
@@ -456,7 +456,7 @@ export function renderCorrelationChart() {
     // Si no hay datos válidos, limpia el gráfico y finaliza la función
     if (scatterData.length === 0) {
         // Registra en consola la ausencia de datos
-        console.log("No correlation data available to render chart");
+        // console.log("No correlation data available to render chart");
         
         // Si el gráfico ya existe, lo actualiza con series vacías
         if (charts.correlation) {
@@ -495,7 +495,7 @@ export function renderCorrelationChart() {
     // Verifica que después de agrupar exista al menos una serie con datos
     if (seriesData.length === 0 || seriesData.every(series => series.data.length === 0)) {
         // Registra en consola si no hay datos después de agrupar
-        console.log("No correlation data available after grouping");
+        // console.log("No correlation data available after grouping");
         
         // Si el gráfico ya existe, actualiza con series vacías
         if (charts.correlation) {

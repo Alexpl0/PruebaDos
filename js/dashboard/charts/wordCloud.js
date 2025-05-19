@@ -96,6 +96,7 @@ export function renderWordCloud() {
     // PASO 6: PREPARACIÓN DEL CONTENEDOR
     // Limpia cualquier contenido previo del contenedor para evitar duplicaciones
     wordCloudContainer.innerHTML = '';
+    console.log("[DEBUG] wordCloudContainer:", wordCloudContainer);
     
     // PASO 7: OBTENCIÓN DE DIMENSIONES
     // Captura las dimensiones actuales del contenedor para crear una visualización responsiva
