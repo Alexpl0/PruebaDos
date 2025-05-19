@@ -47,10 +47,10 @@ function createHeader(authLevel) {
     const headerHTML = `
     <header class="header">
         <a href="#" class="header__logo">GRAMMER</a>
-        <i class="fas fa-bars header__toggle" id="nav-toggle" style="color: white !important; z-index: 1000;"></i>
+        <i class="fas fa-bars header__toggle" id="nav-toggle" style="color: white !important"></i>
         <nav class="nav" id="nav-menu">
             <div class="nav__content bd-grid">
-                <i class="fas fa-times nav__close" id="nav-close"></i>
+                <i class="fas fa-times nav__close" id="nav-close" style="color: white !important; z-index: 1100;"></i>
                 <div class="nav__perfil">
                     <div class="nav__img">
                         <img src="assets/logo/logo.png" alt="logoGRAMMER">
@@ -89,25 +89,34 @@ document.addEventListener('DOMContentLoaded', function() {
         
         console.log('Elementos de navegación:', {navMenu, toggleMenu, closeMenu});
         
+        // Modifica el addEventListener del toggleMenu
         if (toggleMenu && navMenu) {
             toggleMenu.addEventListener('click', () => {
                 console.log('Toggle menu clicked');
                 navMenu.classList.toggle('show');
                 
-                // Ocultar el botón hamburguesa cuando se muestra el menú
-                toggleMenu.classList.add('hide-toggle');
+                // Ocultar inmediatamente el botón hamburguesa
+                toggleMenu.style.display = 'none'; // Ocultación inmediata
+                toggleMenu.classList.add('hide-toggle'); // Clase CSS para mantenerlo oculto
+                
+                // Añadir clase al body para posible control adicional
+                document.body.classList.add('menu-open');
             });
         }
         
+        // Modifica el addEventListener del closeMenu
         if (closeMenu && navMenu) {
             closeMenu.addEventListener('click', () => {
                 console.log('Close menu clicked');
                 navMenu.classList.remove('show');
                 
-                // Volver a mostrar el botón hamburguesa cuando se cierra el menú
-                if (toggleMenu) {
+                // Volver a mostrar el botón hamburguesa con un ligero retraso
+                setTimeout(() => {
+                    // Retraso pequeño para evitar parpadeos
+                    toggleMenu.style.display = 'block';
                     toggleMenu.classList.remove('hide-toggle');
-                }
+                    document.body.classList.remove('menu-open');
+                }, 300); // 300ms es el tiempo aproximado de la transición del menú
             });
         }
         

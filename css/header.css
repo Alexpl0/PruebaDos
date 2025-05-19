@@ -144,6 +144,32 @@ img {
   .hide-toggle {
     display: none !important;
   }
+  
+  /* Asegúrate que el botón y la X nunca se solapen */
+  body.menu-open .header__toggle {
+    display: none !important;
+    pointer-events: none;
+    opacity: 0;
+  }
+  
+  /* Mejora la transición visual */
+  .header__toggle {
+    transition: opacity 0.2s ease-out;
+  }
+  
+  /* Mejora la visibilidad de la X de cierre */
+  .nav__close {
+    position: absolute;
+    right: 1.5rem;
+    top: 1.5rem;
+    font-size: 1.5rem !important;
+    padding: .25rem;
+    background-color: var(--dark-color-alt);
+    border-radius: 50%;
+    cursor: pointer;
+    color: white !important;
+    z-index: 1100; /* Asegura que esté por encima de todo */
+  }
 }
 
 .nav__content {
