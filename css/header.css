@@ -2,7 +2,7 @@
 /* No importamos Google Fonts aquí para evitar duplicados - Se usa la importación de styles.css */
 
 /*===== VARIABLES DE TAMAÑO PARA PANTALLAS GRANDES =====*/
-@media screen and (min-width: 900px) {
+@media screen and (min-width: 1000px) {
   :root {
     --normal-font-size: 1rem !important;
     --small-font-size: .8rem !important;
@@ -83,7 +83,7 @@ img {
 
 /*===== NAVEGACIÓN =====*/
 /* Versión móvil del menú */
-@media screen and (max-width: 899px) {
+@media screen and (max-width: 999px) {
   .nav {
     position: fixed;
     top: 0;
@@ -232,7 +232,7 @@ img {
 
 /*===== MEDIA QUERIES =====*/
 /* Estilos para pantallas grandes */
-@media screen and (min-width: 900px) {
+@media screen and (min-width: 1000px) {
   body {
     padding-top: calc(var(--header-height) + 1rem);
   }
