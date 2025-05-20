@@ -46,7 +46,7 @@
 
 .input-group .toggle-password i {
     font-size: 1.2rem;
-    color: black; /* Añade color negro al icono */
+    color: #000000 !important; /* Fuerza el color negro */
 }
 
 /* Ajuste para pantallas pequeñas */
