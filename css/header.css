@@ -198,25 +198,40 @@ img {
   padding-top: 1rem;
 }
 
-/* Contenedor de imagen del logo - Versión móvil */
+/* Contenedor de imagen del logo - Versión circular perfecta */
 .nav__img {
+  /* Dimensiones iguales para crear un círculo perfecto */
+  width: 56px;
+  height: 56px;
+  
+  /* Centrado del contenido */
   display: flex;
   justify-content: center;
   align-items: center;
-  width: calc(var(--header-height) - 0.5rem); /* Casi del tamaño del header */
-  height: calc(var(--header-height) - 0.5rem); /* Mantiene proporción circular */
-  background-color: transparent; /* Fondo transparente */
-  border-radius: 50%; /* Totalmente circular */
+  
+  /* Fondo blanco y borde circular */
+  background-color: white;
+  border-radius: 50%;
+  
+  /* Elimina desbordamiento y añade margen inferior */
   overflow: hidden;
   margin-bottom: 0.8rem;
+  
+  /* Opcional: borde sutil para definir mejor el círculo */
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-/* Imagen del logo - Versión móvil */
+/* Imagen del logo - Ajuste para mantener proporción circular */
 .nav__img img {
-  width: 100%; /* Ocupa todo el ancho del contenedor */
-  height: 100%; /* Ocupa toda la altura del contenedor */
-  object-fit: contain; /* Conserva la proporción de la imagen */
-  padding: 0.15rem; /* Pequeño padding para evitar que toque los bordes */
+  /* Tamaño controlado para mantener proporción */
+  width: 75%; /* Reducido para dejar margen blanco alrededor */
+  height: auto; /* La altura se ajusta automáticamente para mantener proporción */
+  
+  /* object-fit asegura que la imagen se escale correctamente */
+  object-fit: contain;
+  
+  /* Elimina espacios en blanco no deseados */
+  display: block;
 }
 
 /* Nombre de la aplicación/sitio */
@@ -335,20 +350,20 @@ img {
     margin-right: 2rem;
   }
   
-  /* Ajustes de imagen de perfil para desktop */
+  /* Ajustes de imagen de perfil para desktop - mantiene círculo perfecto */
   .nav__img {
-    width: calc(var(--header-height) - 0.5rem) !important; /* Casi del tamaño del header */
-    height: calc(var(--header-height) - 0.5rem) !important; /* Mantiene proporción circular */
-    background-color: white; /* Fondo transparente */
+    width: 40px; /* Tamaño más pequeño para desktop */
+    height: 40px; /* Mismo valor que el ancho para mantener círculo perfecto */
     margin-right: 0.8rem;
     margin-bottom: 0;
+    
+    /* Mantiene el fondo blanco */
+    background-color: white;
   }
   
   .nav__img img {
-    width: 100%; /* Ocupa todo el ancho del contenedor */
-    height: 100%; /* Ocupa toda la altura del contenedor */
-    object-fit: contain; /* Conserva la proporción de la imagen */
-    padding: 0.15rem; /* Pequeño padding para evitar que toque los bordes */
+    width: 75%; /* Consistente con la versión móvil */
+    height: auto;
   }
   
   /* Menú central en desktop */
