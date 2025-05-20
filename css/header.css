@@ -198,7 +198,7 @@ img {
   padding-top: 1rem;
 }
 
-/* Contenedor de imagen del logo - Versión circular perfecta */
+/* Contenedor de imagen del logo - Versión circular perfecta (Estilos base para móvil) */
 .nav__img {
   /* Dimensiones iguales para crear un círculo perfecto */
   width: 56px;
@@ -210,8 +210,8 @@ img {
   align-items: center;
   
   /* Fondo blanco y borde circular */
-  background-color: white;
-  border-radius: 50%;
+  background-color: white; /* Asegura el fondo blanco */
+  border-radius: 50%;    /* Círculo perfecto */
   
   /* Elimina desbordamiento y añade margen inferior */
   overflow: hidden;
@@ -221,16 +221,12 @@ img {
   border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-/* Imagen del logo - Ajuste para mantener proporción circular */
+/* Imagen del logo - Ajuste para mantener proporción circular (Estilos base para móvil) */
 .nav__img img {
-  /* Tamaño controlado para mantener proporción */
-  width: 75%; /* Reducido para dejar margen blanco alrededor */
-  height: auto; /* La altura se ajusta automáticamente para mantener proporción */
-  
-  /* object-fit asegura que la imagen se escale correctamente */
-  object-fit: contain;
-  
-  /* Elimina espacios en blanco no deseados */
+  /* Tamaño controlado para mantener proporción y dejar un "marco" blanco */
+  width: 75%; 
+  height: 75%; /* Usar porcentaje también en altura para mantener el aspecto dentro del círculo */
+  object-fit: contain; /* Asegura que la imagen se escale correctamente sin recortarse */
   display: block;
 }
 
@@ -344,39 +340,41 @@ img {
   
   /* Perfil en horizontal */
   .nav__perfil {
+    display: flex; /* Asegura que es un contenedor flex */
     flex-direction: row;
+    align-items: center; /* Alinea verticalmente los items (logo y texto) */
     text-align: left;
     padding-top: 0;
-    margin-right: 2rem;
-    align-items: center; /* Asegura alineación vertical */
+    margin-right: 2rem; /* Espacio a la derecha del perfil */
   }
   
-  /* Ajustes mejorados para el logo circular en desktop */
+  /* Ajustes para el logo circular en DESKTOP */
   .nav__img {
-    /* Dimensiones proporcionales al header */
-    width: calc(var(--header-height) - 0.5rem);
-    height: calc(var(--header-height) - 0.5rem);
+    /* Dimensiones para desktop, deben ser iguales para un círculo */
+    width: 40px;  /* Ajusta este valor según el diseño deseado para desktop */
+    height: 40px; /* Mismo valor que el width */
     
-    /* Mantiene todas las propiedades clave del círculo */
-    border-radius: 50%;
+    /* Propiedades clave para el círculo y fondo blanco (heredadas o reconfirmadas) */
     background-color: white;
+    border-radius: 50%;
     border: 1px solid rgba(0, 0, 0, 0.1);
+    overflow: hidden; /* Importante para que la imagen no se salga del círculo */
     
-    /* Mejoras visuales para desktop */
-    margin-right: 1rem;
-    margin-bottom: 0;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+    /* Ajustes de layout para desktop */
+    margin-right: 0.8rem; /* Espacio entre el logo y el texto del perfil */
+    margin-bottom: 0;     /* Resetea el margen inferior de la vista móvil */
     
-    /* Asegura que se mantenga el centrado del logo */
+    /* Asegura el centrado de la imagen interna */
     display: flex;
     justify-content: center;
     align-items: center;
   }
   
+  /* Imagen del logo en DESKTOP */
   .nav__img img {
-    /* Tamaño optimizado dentro del círculo */
-    width: 75%;
-    height: 75%;
+    /* Mantiene la proporción y el "marco" blanco */
+    width: 75%; 
+    height: 75%; 
     object-fit: contain;
     display: block;
   }
