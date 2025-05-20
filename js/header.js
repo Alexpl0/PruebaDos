@@ -27,9 +27,6 @@ function createHeader(authLevel) {
         // Determina si este enlace debe marcarse como activo
         const isActive = href === currentPage ? 'active' : '';
         
-        // Genera el HTML del icono si se proporcionó una clase
-        const iconHTML = iconClass ? `<i class="${iconClass} nav__link-icon"></i>` : '';
-        
         // Retorna el HTML completo del enlace
         return `<li class="nav__item"><a href="${href}" class="nav__link ${isActive}">${iconHTML} ${text}</a></li>`;
     }
