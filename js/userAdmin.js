@@ -324,14 +324,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize DataTable after a short delay (for UI smoothness)
     setTimeout(initializeDataTable, 100);
     
-    // Set up Cancel button handler outside DataTable initialization
-    const cancelButton = document.getElementById('cancel-form');
-    if (cancelButton) {
-        cancelButton.addEventListener('click', function() {
-            document.getElementById('user-form-container').classList.add('d-none');
-        });
-    } // Si no existe, no hagas nada, el error ya no se lanza
-
     // Password visibility toggle for the user form
     document.querySelector('.toggle-password').addEventListener('click', function() {
         const passwordInput = document.getElementById('user-password');
