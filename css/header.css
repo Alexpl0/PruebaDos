@@ -37,7 +37,7 @@
 body {
   margin: var(--header-height) 0 0 0; /* Espacio para el header fijo */
   font-family: var(--body-font);
-  font-size: var(--normal-font-size);
+  font-size: 5px;
   font-weight: 500;
   transition: margin 0.3s; /* Transición suave para cambios en el espacio del header */
 }
@@ -351,8 +351,8 @@ img {
   /* Ajustes para el logo circular en DESKTOP */
   .nav__img {
     /* Dimensiones para desktop, deben ser iguales para un círculo */
-    width: 40px;  /* Ajusta este valor según el diseño deseado para desktop */
-    height: 40px; /* Mismo valor que el width */
+    width: 65px !important;
+    height: 42px !important;
     
     /* Propiedades clave para el círculo y fondo blanco (heredadas o reconfirmadas) */
     background-color: white;
