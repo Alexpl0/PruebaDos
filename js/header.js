@@ -1,67 +1,64 @@
 /**
- * Premium Freight - Componente de Header
- * Genera el encabezado de navegación dinámicamente según el nivel de autorización del usuario
- * y gestiona las interacciones del menú móvil.
+ * Premium Freight - Header Component
+ * Generates the navigation header dynamically based on user authorization level
  */
 
 function createHeader(authLevel) {
-    // Detecta la página actual
-    const currentPage = window.location.pathname.split('/').pop() || 'index.php';
+    // console.log('Authorization Level:', authLevel);
+    
+    // Detect current page
+    const currentPage = window.location.pathname.split('/').pop();
 
     /**
-     * Función para crear enlaces de navegación con iconos
-     * @param {string} href - URL del enlace
-     * @param {string} text - Texto del enlace
-     * @param {string} iconClass - Clase de FontAwesome para el icono
-     * @returns {string} HTML para el ítem de navegación
+     * Helper function to create standard navigation links
+     * @param {string} href - Link URL
+     * @param {string} text - Link text
+     * @returns {string} HTML for nav item
      */
-    function navLink(href, text, iconClass = '') {
+    function navLink(href, text) {
         const isActive = href === currentPage ? 'active' : '';
-        const iconHTML = iconClass ? `<i class="${iconClass} nav__link-icon"></i>` : '';
-        return `<li class="nav__item"><a href="${href}" class="nav__link ${isActive}">${iconHTML} ${text}</a></li>`;
+        return `<li class="nav__item"><a href="${href}" class="nav__link ${isActive}">${text}</a></li>`;
     }
 
-    // Construye los elementos de navegación según el nivel de autorización
+    // Build navigation items based on authorization level
     let navItems = '';
     
-    if (authLevel === 0) { // Usuario regular
-        navItems += navLink('profile.php', 'My Profile', 'fas fa-user');
-        navItems += navLink('newOrder.php', 'New Order', 'fas fa-plus-circle');
-        navItems += navLink('#', 'Manual', 'fas fa-book');
-    } else { // Usuario administrador
-        navItems += navLink('profile.php', 'My Profile', 'fas fa-user-shield');
-        navItems += navLink('newOrder.php', 'New Order', 'fas fa-plus-circle');
-        navItems += navLink('orders.php', 'Generated Orders', 'fas fa-list-alt');
-        navItems += navLink('adminUsers.php', 'Admin User', 'fas fa-users-cog');
-        navItems += navLink('dashboard.php', 'Charts', 'fas fa-chart-bar');
-        navItems += navLink('#', 'Manual', 'fas fa-book');
+    if (authLevel === 0) {
+        // Regular user navigation
+        navItems += navLink('profile.php', 'My Profile');
+        navItems += navLink('newOrder.php', 'New Order');
+        navItems += navLink('#', 'Manual');
+    } else {
+        // Admin navigation
+        navItems += navLink('profile.php', 'My Profile');
+        navItems += navLink('newOrder.php', 'New Order');
+        navItems += navLink('orders.php', 'Generated Orders');
+        navItems += navLink('adminUsers.php', 'Admin User');
+        navItems += navLink('dashboard.php', 'Charts');
+        navItems += navLink('#', 'Manual');
     }
 
-    // Añade enlace de cierre de sesión si el usuario está conectado
+    // Add logout link if user is logged in
     if (window.userName) {
-        navItems += navLink('dao/users/logout.php', 'Log Out', 'fas fa-sign-out-alt');
+        navItems += navLink('dao/users/logout.php', 'Log Out');
     }
 
-    // Construye el HTML del header
+    // Construct the header HTML
     const headerHTML = `
     <header class="header">
-        <a href="index.php" class="header__logo">GRAMMER</a>
-        <i class="fas fa-bars header__toggle" id="nav-toggle"></i>
-        
+        <a href="#" class="header__logo">GRAMMER</a>
+        <i class="fas fa-bars header__toggle" id="nav-toggle" style="color: white !important"></i>
         <nav class="nav" id="nav-menu">
-            <div class="nav__content">
-                <i class="fas fa-times nav__close" id="nav-close"></i>
-                
+            <div class="nav__content bd-grid">
+                <i class="fas fa-times nav__close" id="nav-close" style="color: white !important; z-index: 1100;"></i>
                 <div class="nav__perfil">
                     <div class="nav__img">
-                        <img src="assets/logo/logo.png" alt="Grammer Logo">
+                        <img src="assets/logo/logo.png" alt="logoGRAMMER">
                     </div>
                     <div>
                         <a href="#" class="nav__name">SPECIAL FREIGHT</a>
-                        ${window.userName ? `<span class="nav__user-name">${window.userName}</span>` : ''}
                     </div>
                 </div> 
-                
                 <div class="nav__menu">
                     <ul class="nav__list">
                         ${navItems}
@@ -72,74 +69,71 @@ function createHeader(authLevel) {
     </header>
     `;
 
-    // Inserta el header en el DOM
+    // Insert header into the DOM
     document.getElementById('header-container').innerHTML = headerHTML;
 }
 
 /**
- * Inicializa la funcionalidad del header cuando el DOM está cargado
+ * Initialize header functionality once DOM is loaded
  */
 document.addEventListener('DOMContentLoaded', function() {
-    // Crea el header con el nivel de autorización del usuario
+    // Create header with user's authorization level
     createHeader(window.authorizationLevel || 0);
 
-    // Espera a que todos los elementos estén disponibles en el DOM
+    // Usa setTimeout para asegurarte de que los elementos estén en el DOM
     setTimeout(function() {
-        // Elementos del DOM para la interacción con el menú
+        // Setup mobile menu toggle
         const navMenu = document.getElementById('nav-menu');
         const toggleMenu = document.getElementById('nav-toggle');
         const closeMenu = document.getElementById('nav-close');
-        const navLinks = document.querySelectorAll('.nav__link');
         
-        /**
-         * Abre el menú móvil
-         */
-        function openMobileMenu() {
-            if (navMenu && toggleMenu) {
-                navMenu.classList.add('show');
-                toggleMenu.classList.add('hide-toggle');
+        console.log('Elementos de navegación:', {navMenu, toggleMenu, closeMenu});
+        
+        // Modifica el addEventListener del toggleMenu
+        if (toggleMenu && navMenu) {
+            toggleMenu.addEventListener('click', () => {
+                console.log('Toggle menu clicked');
+                navMenu.classList.toggle('show');
+                
+                // Ocultar inmediatamente el botón hamburguesa
+                toggleMenu.style.display = 'none'; // Ocultación inmediata
+                toggleMenu.classList.add('hide-toggle'); // Clase CSS para mantenerlo oculto
+                
+                // Añadir clase al body para posible control adicional
                 document.body.classList.add('menu-open');
-            }
+            });
         }
         
-        /**
-         * Cierra el menú móvil
-         */
-        function closeMobileMenu() {
-            if (navMenu && toggleMenu) {
+        // Modifica el addEventListener del closeMenu
+        if (closeMenu && navMenu) {
+            closeMenu.addEventListener('click', () => {
+                console.log('Close menu clicked');
                 navMenu.classList.remove('show');
                 
-                // Retrasa mostrar el botón hamburguesa para evitar parpadeos
+                // Volver a mostrar el botón hamburguesa con un ligero retraso
                 setTimeout(() => {
-                    if (!navMenu.classList.contains('show')) {
-                        toggleMenu.classList.remove('hide-toggle');
-                    }
+                    // Retraso pequeño para evitar parpadeos
+                    toggleMenu.style.display = 'block';
+                    toggleMenu.classList.remove('hide-toggle');
                     document.body.classList.remove('menu-open');
-                }, 300); // Coincide con la duración de la transición CSS
+                }, 300); // 300ms es el tiempo aproximado de la transición del menú
+            });
+        }
+        
+        // Setup navigation link active state
+        const navLinks = document.querySelectorAll('.nav__link');   
+        
+        function linkAction() {
+            navLinks.forEach(link => link.classList.remove('active'));
+            this.classList.add('active');
+            navMenu.classList.remove('show');
+            
+            // Volver a mostrar el botón hamburguesa cuando se hace clic en un enlace
+            if (toggleMenu) {
+                toggleMenu.classList.remove('hide-toggle');
             }
         }
         
-        // Agrega eventos a los botones de menú
-        if (toggleMenu) {
-            toggleMenu.addEventListener('click', openMobileMenu);
-        }
-        
-        if (closeMenu) {
-            closeMenu.addEventListener('click', closeMobileMenu);
-        }
-        
-        // Configura eventos para los enlaces de navegación
-        navLinks.forEach(link => {
-            link.addEventListener('click', function() {
-                // Establece el estado activo
-                navLinks.forEach(l => l.classList.remove('active'));
-                this.classList.add('active');
-                
-                // Cierra el menú móvil si está abierto
-                if (navMenu && navMenu.classList.contains('show')) {
-                    closeMobileMenu();
-                }
-            });
-        });
-    }, 100); // Pequeño retraso para asegurar que el DOM está listo
+        navLinks.forEach(link => link.addEventListener('click', linkAction));
+    }, 100); // Un pequeño retraso para asegurar que el DOM está listo
 });
