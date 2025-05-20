@@ -221,17 +221,29 @@ img {
 }
 
 .nav__menu {
-  align-self: center;
+  align-self: center; /* Mantiene la alineación vertical del bloque del menú */
+  width: 100%; /* Asegura que el contenedor del menú ocupe todo el ancho disponible */
+}
+
+.nav__list {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centra los elementos <li> horizontalmente */
+  width: 100%; /* Asegura que la lista ocupe todo el ancho */
 }
 
 .nav__item {
-  margin: 2.5rem 0;
+  margin: 1.5rem 0; /* Puedes ajustar el margen vertical si es necesario */
+  /* width: 100%; // Opcional: si quieres que el fondo del item activo ocupe todo el ancho centrado */
 }
 
 .nav__link {
   color: var(--white-color);
   font-family: var(--body-font) !important;
   font-size: var(--font-size) !important;
+  padding: 0.5rem 1rem; /* Añade padding para mejor interacción */
+  display: block; /* Hace que el enlace ocupe el ancho de su contenedor <li> */
+  text-align: center; /* Centra el texto del enlace */
 }
 
 .nav__social {
@@ -330,6 +342,14 @@ img {
     grid-template-rows: 1fr;
     column-gap: 1rem;
     justify-content: space-between;
+    align-items: center; /* Añadido para alinear verticalmente los items del grid (perfil, menu, social) */
+  }
+  
+  .nav__menu { /* Contenedor de ul.nav__list en la vista de escritorio */
+    display: flex;
+    justify-content: center; /* Centra horizontalmente ul.nav__list dentro de nav__menu */
+    align-items: center; /* Centra verticalmente ul.nav__list (opcional, pero bueno para consistencia) */
+    /* flex-grow: 1; */ /* Opcional: si quieres que nav__menu intente ocupar más espacio. Probar sin esto primero. */
   }
   
   .nav__close, 
@@ -355,7 +375,8 @@ img {
   }
   
   .nav__list {
-    display: flex;
+    display: flex; /* Mantiene los elementos <li> en una fila */
+    /* No se necesitan cambios aquí para centrar el bloque, ya que .nav__menu se encarga de ello */
   }
   
   .nav__item {
