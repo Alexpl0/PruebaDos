@@ -337,8 +337,8 @@ img {
   
   /* Ajustes de imagen de perfil para desktop */
   .nav__img {
-    width: calc(var(--header-height) - 0.5rem); /* Casi del tamaño del header */
-    height: calc(var(--header-height) - 0.5rem); /* Mantiene proporción circular */
+    width: calc(var(--header-height) - 0.5rem) !important; /* Casi del tamaño del header */
+    height: calc(var(--header-height) - 0.5rem) !important; /* Mantiene proporción circular */
     background-color: white; /* Fondo transparente */
     margin-right: 0.8rem;
     margin-bottom: 0;
