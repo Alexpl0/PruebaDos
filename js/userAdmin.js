@@ -215,9 +215,8 @@ function initializeDataTable() {
         cancelButton.addEventListener('click', function() {
             document.getElementById('user-form-container').classList.add('d-none');
         });
-    } else {
-        console.error('Cancel button not found in the DOM');
-    }
+    } // Si no existe, no hagas nada, el error ya no se lanza
+
 
         // Handle User Form submission for creating or updating a user
     $('#submitbtn').on('click', function(e) {
@@ -331,9 +330,7 @@ document.addEventListener('DOMContentLoaded', function() {
         cancelButton.addEventListener('click', function() {
             document.getElementById('user-form-container').classList.add('d-none');
         });
-    } else {
-        console.error('Cancel button not found in the DOM');
-    }
+    } // Si no existe, no hagas nada, el error ya no se lanza
 
     // Password visibility toggle for the user form
     document.querySelector('.toggle-password').addEventListener('click', function() {
