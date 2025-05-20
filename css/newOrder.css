@@ -4,15 +4,14 @@
 }
 
 body {
-    max-width: 100vw;
-    overflow-x: hidden;
-    margin-top: 3.5rem;
+    /* max-width: 100vw; */ /* Comenta o elimina esta línea */
+    /* min-width: 99vw; */  /* Comenta o elimina esta línea */
+    width: 100%; /* Asegura que el body use el 100% del ancho del html */
+    overflow-x: hidden; /* Mantén esto */
+    margin-top: var(--header-height); /* Usa la variable de header.css para consistencia */
     padding: 0;
-    flex-direction: column;
-    align-items: center;
-    overflow-x: hidden; /* Previene scroll horizontal */
     background: var(--page-background);
-    min-width: 99vw;
+    /* flex-direction y align-items no son necesarios aquí si body no es un contenedor flex directo */
 }
 
 main{
@@ -34,13 +33,20 @@ h1 {
 }
 
 main.container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 80vh;
     width: 100%;
-    padding: 0;
+    /* min-width: 100vw; */ /* Comenta o elimina */
+    /* max-width: 100vw; */ /* Comenta o elimina */
+    max-width: 1024px; /* O el max-width que desees para tu contenido principal, Bootstrap .container lo maneja */
+    margin-left: auto;
+    margin-right: auto;
+    /* Bootstrap .container ya tiene padding, si lo necesitas, mantenlo o ajústalo.
+       Si usas la clase .container de Bootstrap, no necesitas redefinir padding aquí
+       a menos que quieras sobrescribirlo.
+       Por ejemplo, para mantener el padding de Bootstrap:
+    */
+    padding-left: 15px; /* Valor típico de Bootstrap */
+    padding-right: 15px;/* Valor típico de Bootstrap */
+    overflow-x: hidden; /* Puede ser útil si elementos dentro de main desbordan */
 }
 
 /* Centra el form dentro del main */
@@ -465,11 +471,12 @@ form .mb-3 {
 /* Controlar el ancho máximo de los contenedores */
 .container, main.container {
   width: 100%;
-  max-width: 100vw;
+  /* max-width: 100vw; */ /* Cambia esto. Si usas .container de Bootstrap, él maneja el max-width */
+  max-width: 1024px; /* Ejemplo, o deja que Bootstrap lo controle */
   box-sizing: border-box;
   margin: 0 auto;
-  padding-left: 10px;
-  padding-right: 10px;
+  /* padding-left: 10px; */ /* Si usas .container de Bootstrap, ya tiene padding */
+  /* padding-right: 10px; */
 }
 
 /* Asegurar que los elementos dentro del formulario no se desborden */
