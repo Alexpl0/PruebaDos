@@ -35,7 +35,7 @@
 
 /* Configuración del body para compensar el header fijo */
 body {
-  min-width: 100vh;
+  min-width: 100vw;
   margin: var(--header-height) 0 0 0; /* Espacio para el header fijo */
   font-family: var(--body-font);
   font-size: 15px;
