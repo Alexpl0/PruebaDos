@@ -10,13 +10,15 @@
 /*===== VARIABLES DE TAMAÑO PARA PANTALLAS GRANDES =====*/
 @media screen and (min-width: 1000px) {
   :root {
-    --header-height: 3.5rem;
+    --normal-font-size: 1rem !important;
+    --small-font-size: .8rem !important;
   }
 }
 
 /*===== BASE =====*/
 *, ::before, ::after {
   box-sizing: border-box;
+  /* font-family: var(--body-font); */
 }
 
 /* Estilos base del body para el header */
@@ -26,6 +28,8 @@ body {
   font-family: var(--body-font);
   font-weight: 500;
 }
+
+
 
 ul {
   margin: 0;
@@ -65,15 +69,6 @@ img {
   background-color: var(--first-color);
   z-index: var(--z-fixed);
   display: flex;
-  justify-content: center; /* Centrar todo el contenido horizontalmente */
-  align-items: center;
-}
-
-/* Contenedor para el logo y toggle */
-.header__container {
-  width: 100%;
-  max-width: 1024px; /* Limitar el ancho máximo */
-  display: flex;
   justify-content: space-between;
   align-items: center;
 }
@@ -100,41 +95,43 @@ img {
     position: fixed;
     top: 0;
     left: -100%;
-    width: 70%;
-    height: 100vh;
-    padding: 1.5rem;
     background-color: var(--dark-color);
-    transition: .5s;
+    color: var(--white-color);
+    width: 100%;
+    height: 100vh;
+    padding: 1.5rem 0;
     z-index: var(--z-fixed);
+    transition: .5s;
   }
   
   /* Mejora la zona de toque del botón hamburguesa para móviles */
   .header__toggle {
-    padding: 0.5rem;
-    margin: -0.5rem;
+    padding: 10px;
+    margin-right: -10px;
   }
   
   /* Asegura que los botones de navegación móvil sean visibles */
   #nav-toggle, .header__toggle {
     display: block !important;
+    z-index: 1000;
+    color: white !important;
   }
   
   #nav-close {
-    display: flex !important;
-    justify-content: center;
-    align-items: center;
-    width: 1.8rem;
-    height: 1.8rem;
+    display: block !important;
+    z-index: 1001;
   }
   
   /* Mantén el ícono visible y con buen tamaño */
   .header__toggle .fa-bars,
   .fa-bars {
     font-size: 1.5rem !important;
+    color: white !important;
+    visibility: visible !important;
   }
   
   .show {
-    left: 0;
+    left: 0 !important;
   }
   
   /* Nueva regla para ocultar el botón toggle cuando el menú está visible */
@@ -151,17 +148,27 @@ img {
   /* Asegúrate que el botón y la X nunca se solapen */
   body.menu-open .header__toggle {
     display: none !important;
+    pointer-events: none;
+    opacity: 0;
   }
   
   /* Mejora la transición visual */
   .header__toggle {
-    transition: opacity 0.3s ease;
+    transition: opacity 0.2s ease-out;
   }
   
   /* Mejora la visibilidad de la X de cierre */
   .nav__close {
-    color: white !important;
+    position: absolute;
+    right: 1.5rem;
+    top: 1.5rem;
     font-size: 1.5rem !important;
+    padding: .25rem;
+    background-color: var(--dark-color-alt);
+    border-radius: 50%;
+    cursor: pointer;
+    color: white !important;
+    z-index: 1100; /* Asegura que esté por encima de todo */
   }
 }
 
@@ -319,8 +326,6 @@ img {
   }
   
   .nav__content {
-    width: 100%;
-    max-width: 1024px;
     grid-template-columns: repeat(3, max-content);
     grid-template-rows: 1fr;
     column-gap: 1rem;
@@ -342,7 +347,7 @@ img {
     height: 32px;
     margin-right: .5rem;
     margin-bottom: 0;
-    background-color: transparent;
+    align-items: center;
   }
   
   .nav__img img {
@@ -354,28 +359,46 @@ img {
   }
   
   .nav__item {
-    margin: 0 1.5rem;
+    margin: 0 .25rem;
   }
   
   .nav__link {
-    color: var(--white-color);
-    transition: color .3s;
+    padding: .5rem .8rem;
+    border-radius: .25rem;
   }
   
   .nav__link:hover {
-    color: var(--white-color);
+    font-style: italic;
+    text-decoration: underline;
+    color: white;
   }
   
   .active {
+    background-color: #a2a2a2;
     color: var(--white-color);
-    position: relative;
   }
   
   /* Dropdown styles for desktop */
   .dropdown-menu {
-    position: absolute;
+    background-color: var(--first-color);
     top: 100%;
     left: 0;
+    margin-top: 0.25rem;
+  }
+  
+  .dropdown-item {
+    padding: 0.5rem 0.8rem;
+  }
+  
+  .dropdown-item:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    font-style: italic;
+    text-decoration: underline;
+  }
+  
+  /* Solo oculta los controles de navegación móvil en escritorio */
+  #nav-close, #nav-toggle {
+    display: none !important;
   }
 }
 
@@ -383,36 +406,63 @@ img {
 @media screen and (max-width: 899px) {
   .dropdown-menu {
     position: static;
-    margin-top: 1rem;
-    margin-left: 1rem;
     box-shadow: none;
+    padding-left: 2rem;
+    background-color: transparent;
+    margin-top: 0.5rem;
+  }
+  
+  .dropdown-item {
+    padding: 0.75rem 1rem;
+  }
+  
+  .nav__item.dropdown {
+    margin-bottom: 0;
   }
 }
 
 /* Icon styling for Font Awesome icons */
 .icono {
-  margin-right: 0.5rem;
+  font-family: Arial, sans-serif;
+  font-size: 24px;
+  margin-right: 10px;
+  color: white !important;
 }
 
 /* Font Awesome icon styling */
 .fa, .fas, .far, .fal, .fab {
-  vertical-align: middle;
+  font-style: normal;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  color: white !important;
 }
 
 /* Icon sizes and visibility */
 .header__toggle i,
 .nav__close i,
 .nav__link i {
-  font-size: 1.2rem !important;
+  font-size: 1.5rem;
+  line-height: 1;
+  display: inline-block;
+  vertical-align: middle;
+  color: white !important;
 }
 
 /* Mobile menu icon */
 .header__toggle .fa-bars {
+  font-size: 1.5rem;
   color: white !important;
 }
 
 /* Close icon */
 .nav__close .fa-times {
+  font-size: 1.2rem;
   color: white !important;
 }
 
@@ -424,18 +474,23 @@ img {
 .fa-cog,
 .fa-sign-out-alt,
 .fa-chevron-down {
-  display: inline-block;
+  color: white !important;
 }
 
 /* All icons in header and nav */
 .header i,
 .nav i {
-  vertical-align: middle;
+  color: white !important;
 }
 
 /* White icon utility class */
 .icon-white {
   color: white !important;
+}
+
+/* Remove Material Icons styles */
+.material-symbols-outlined {
+  display: none;
 }
 
 /* Añade esta clase al final del archivo, antes del cierre */
