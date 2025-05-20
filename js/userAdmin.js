@@ -221,7 +221,7 @@ function initializeDataTable() {
 
 
     // Handle User Form submission for creating or updating a user
-    document.getElementById('user-form').addEventListener('submit', function(e) {
+    $('#user-form').on('submit', function(e) {
         e.preventDefault();
         
         console.log('Form submitted');

@@ -157,10 +157,12 @@ include_once 'dao/users/auth_check.php';
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
 
-    <!-- Custom script for user administration -->
-    <script src="js/userAdmin.js"></script>
 
     <!-- Archivos JS locales -->
     <script src="js/header.js"></script>
+
+    <!-- Custom script for user administration -->
+    <script src="js/userAdmin.js"></script>
+
 </body>
 </html>
