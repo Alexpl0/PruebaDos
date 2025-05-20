@@ -198,24 +198,25 @@ img {
   padding-top: 1rem;
 }
 
-/* Contenedor de imagen del logo */
+/* Contenedor de imagen del logo - Versión móvil */
 .nav__img {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 56px;
-  height: 56px;
-  background-color: white;
-  border-radius: 50%;
+  width: calc(var(--header-height) - 0.5rem); /* Casi del tamaño del header */
+  height: calc(var(--header-height) - 0.5rem); /* Mantiene proporción circular */
+  background-color: transparent; /* Fondo transparente */
+  border-radius: 50%; /* Totalmente circular */
   overflow: hidden;
   margin-bottom: 0.8rem;
 }
 
-/* Imagen del logo */
+/* Imagen del logo - Versión móvil */
 .nav__img img {
-  width: 46px;
-  height: auto;
-  object-fit: contain;
+  width: 100%; /* Ocupa todo el ancho del contenedor */
+  height: 100%; /* Ocupa toda la altura del contenedor */
+  object-fit: contain; /* Conserva la proporción de la imagen */
+  padding: 0.15rem; /* Pequeño padding para evitar que toque los bordes */
 }
 
 /* Nombre de la aplicación/sitio */
@@ -336,14 +337,18 @@ img {
   
   /* Ajustes de imagen de perfil para desktop */
   .nav__img {
-    width: 32px;
-    height: 32px;
-    margin-right: 0.5rem;
+    width: calc(var(--header-height) - 0.5rem); /* Casi del tamaño del header */
+    height: calc(var(--header-height) - 0.5rem); /* Mantiene proporción circular */
+    background-color: transparent; /* Fondo transparente */
+    margin-right: 0.8rem;
     margin-bottom: 0;
   }
   
   .nav__img img {
-    width: 26px;
+    width: 100%; /* Ocupa todo el ancho del contenedor */
+    height: 100%; /* Ocupa toda la altura del contenedor */
+    object-fit: contain; /* Conserva la proporción de la imagen */
+    padding: 0.15rem; /* Pequeño padding para evitar que toque los bordes */
   }
   
   /* Menú central en desktop */
