@@ -1,15 +1,23 @@
 /*===== GOOGLE FONTS =====*/
 /* No importamos Google Fonts aquí para evitar duplicados - Se usa la importación de styles.css */
 
-/*===== VARIABLES CSS =====*/
+/*============================================================================
+ * VARIABLES CSS Y CONFIGURACIÓN BASE
+ * Estas variables definen los parámetros básicos del componente header
+ *============================================================================*/
 :root {
-  --header-height: 3rem;
-  --z-fixed: 100;
+  --header-height: 3rem; /* Altura base del header */
+  --z-fixed: 100; /* Índice z para elementos fijos como el header */
   
-  /* Las variables de color y tipografía se toman de styles.css */
+  /* Las variables de color y tipografía se toman de styles.css:
+   * --first-color: #034C8C (Color principal/header)
+   * --dark-color: #034C8C (Color menú lateral)
+   * --dark-color-alt: #282B3A (Color elementos alternos)
+   * --white-color: #FFFFFF (Color textos e iconos)
+   */
 }
 
-/*===== VARIABLES DE TAMAÑO PARA PANTALLAS GRANDES =====*/
+/*===== CONFIGURACIÓN PARA PANTALLAS GRANDES =====*/
 @media screen and (min-width: 768px) {
   :root {
     --normal-font-size: 1rem;
@@ -17,46 +25,60 @@
   }
 }
 
-/*===== BASE =====*/
+/*============================================================================
+ * ESTILOS BASE
+ * Normalización y configuración básica para elementos HTML
+ *============================================================================*/
 *, ::before, ::after {
-  box-sizing: border-box;
+  box-sizing: border-box; /* Modelo de caja estándar para todos los elementos */
 }
 
-/* Estilos base del body para el header */
+/* Configuración del body para compensar el header fijo */
 body {
-  margin: var(--header-height) 0 0 0;
+  margin: var(--header-height) 0 0 0; /* Espacio para el header fijo */
   font-family: var(--body-font);
   font-size: var(--normal-font-size);
   font-weight: 500;
+  transition: margin 0.3s; /* Transición suave para cambios en el espacio del header */
 }
 
+/* Reseteo de listas */
 ul {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+/* Configuración base de enlaces */
 a {
   text-decoration: none;
   color: var(--white-color);
 }
 
+/* Configuración base de imágenes */
 img {
   max-width: 100%;
   height: auto;
   display: block;
 }
 
-/*===== LAYOUT =====*/
+/*============================================================================
+ * LAYOUT PRINCIPAL
+ * Configuración del grid y contenedores principales
+ *============================================================================*/
 .bd-grid {
-  max-width: 1024px;
+  max-width: 1024px; /* Ancho máximo del contenido */
   display: grid;
   grid-template-columns: 100%;
-  margin-left: 1.5rem;
-  margin-right: 1.5rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 1.5rem; /* Padding horizontal consistente */
 }
 
-/*===== HEADER =====*/
+/*============================================================================
+ * HEADER - ESTILOS COMUNES
+ * Estos estilos se aplican al header independientemente del tamaño de pantalla
+ *============================================================================*/
 .header {
   width: 100%;
   height: var(--header-height);
@@ -64,260 +86,338 @@ img {
   top: 0;
   left: 0;
   padding: 0 1.5rem;
-  background-color: var(--first-color); /* Usa el color principal de styles.css */
+  background-color: var(--first-color);
   z-index: var(--z-fixed);
   display: flex;
-  justify-content: space-between;
+  justify-content: space-between; /* Logo a la izquierda, toggle a la derecha */
   align-items: center;
 }
 
+/* Logo del header - visible solo en móvil */
 .header__logo {
   color: var(--white-color);
   font-family: var(--body-font);
   font-size: var(--normal-font-size);
+  font-weight: bold;
 }
 
+/* Botón hamburguesa - visible solo en móvil */
 .header__toggle {
   font-size: 1.5rem;
   color: var(--white-color);
   cursor: pointer;
 }
 
-/*===== NAVEGACIÓN =====*/
-/* Versión móvil del menú */
-@media screen and (max-width: 768px) {
+/*============================================================================
+ * NAVEGACIÓN - VERSIÓN MÓVIL (POR DEFECTO)
+ * Menú lateral que se desliza desde la izquierda
+ *============================================================================*/
+@media screen and (max-width: 999px) { /* Móvil y tablets */
   .nav {
     position: fixed;
     top: 0;
-    left: -100%;
-    background-color: var(--dark-color); /* Usa el color oscuro de styles.css */
+    left: -100%; /* Inicialmente fuera de la pantalla */
+    background-color: var(--dark-color);
     color: var(--white-color);
-    width: 100%;
+    width: 80%; /* Ancho del menú lateral */
+    max-width: 400px; /* Ancho máximo para tablets */
     height: 100vh;
     padding: 1.5rem 0;
     z-index: var(--z-fixed);
-    transition: .5s;
+    transition: left 0.5s ease; /* Transición suave al abrir/cerrar */
+    overflow-y: auto; /* Scroll si el contenido es demasiado alto */
   }
   
+  /* Clase que muestra el menú lateral */
   .nav.show {
     left: 0;
   }
+  
+  /* Mejora la zona de toque del botón hamburguesa */
+  .header__toggle {
+    padding: 0.5rem;
+    margin: -0.5rem;
+  }
+  
+  /* Asegura que los botones de navegación móvil sean visibles */
+  #nav-toggle, .header__toggle {
+    display: block;
+  }
+  
+  /* Aumento del tamaño del botón de cierre para mejor usabilidad */
+  #nav-close {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 2rem;
+    height: 2rem;
+  }
+  
+  /* Clase para ocultar el botón toggle cuando el menú está abierto */
+  .hide-toggle {
+    display: none !important;
+  }
+  
+  /* Evita el scroll del body cuando el menú está abierto */
+  body.menu-open {
+    overflow: hidden;
+  }
 }
 
+/* Contenedor principal del menú de navegación */
 .nav__content {
   height: 100%;
-  grid-template-rows: max-content 1fr max-content;
+  display: grid;
+  grid-template-rows: max-content 1fr max-content; /* Perfil, menú, social (opcional) */
   row-gap: 2rem;
+  padding: 0 1.5rem; /* Padding interior consistente */
 }
 
+/* Botón para cerrar el menú móvil */
 .nav__close {
   position: absolute;
   right: 1.5rem;
+  top: 1rem;
   font-size: 1.3rem;
-  padding: .25rem;
-  background-color: var(--dark-color-alt); /* Usa el color alternativo oscuro */
+  padding: 0.25rem;
+  background-color: var(--dark-color-alt);
   border-radius: 50%;
   cursor: pointer;
   color: var(--white-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
+/* Sección de perfil/logo en el menú */
+.nav__perfil {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-top: 1rem;
+}
+
+/* Contenedor de imagen del logo */
 .nav__img {
   display: flex;
   justify-content: center;
-  padding-top: .25rem;
-  margin-bottom: .8rem;
+  align-items: center;
   width: 56px;
   height: 56px;
   background-color: white;
   border-radius: 50%;
   overflow: hidden;
+  margin-bottom: 0.8rem;
 }
 
+/* Imagen del logo */
 .nav__img img {
   width: 46px;
+  height: auto;
+  object-fit: contain;
 }
 
+/* Nombre de la aplicación/sitio */
 .nav__name {
   display: block;
   color: var(--white-color);
-  font-family: var(--body-font);
+  font-weight: 500;
+  margin-bottom: 0.25rem;
 }
 
+/* Nombre del usuario o rol */
 .nav__profesion {
   font-size: var(--small-font-size);
   color: var(--white-color);
   opacity: 0.8;
 }
 
+/* Contenedor de la lista de navegación */
 .nav__menu {
-  align-self: center;
+  align-self: flex-start; /* Alineación al inicio para menú móvil */
+  width: 100%;
 }
 
+/* Lista de navegación - vertical en móvil por defecto */
+.nav__list {
+  display: flex;
+  flex-direction: column; /* Verticalmente apilados en móvil */
+  align-items: flex-start; /* Alineados a la izquierda en móvil */
+  width: 100%;
+}
+
+/* Elementos individuales de navegación */
 .nav__item {
-  margin: 2.5rem 0;
+  width: 100%;
+  margin: 0.5rem 0; /* Espaciado vertical reducido para elementos más juntos */
 }
 
+/* Enlaces de navegación */
 .nav__link {
+  display: flex;
+  align-items: center;
   color: var(--white-color);
-  font-family: var(--body-font);
+  padding: 0.75rem 1rem;
+  border-radius: 0.25rem;
+  transition: all 0.3s ease;
+  width: 100%;
 }
 
-.nav__social {
-  padding-top: .5rem;
+/* Iconos dentro de los enlaces */
+.nav__link-icon {
+  margin-right: 0.75rem;
+  font-size: 1.1rem;
 }
 
-.nav__social-icon {
-  font-size: 1.2rem;
+/* Estilo hover para enlaces */
+.nav__link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Clase para enlaces activos */
+.nav__link.active {
+  background-color: var(--dark-color-alt);
   color: var(--white-color);
-  margin-right: 1rem;
 }
 
-.nav__social-icon:hover {
-  color: var(--first-color);
-}
-
-/* Clase para mostrar el menú móvil */
-.show {
-  left: 0;
-}
-
-/* Estilo para enlaces activos */
-.active {
-  color: var(--first-color);
-}
-
-/*===== MEDIA QUERIES =====*/
-@media screen and (min-width: 768px) {
+/*============================================================================
+ * NAVEGACIÓN - VERSIÓN DESKTOP
+ * Header horizontal con navegación centrada
+ *============================================================================*/
+@media screen and (min-width: 1000px) {
   body {
-    margin: 0;
+    margin: calc(var(--header-height) + 1rem) 0 0 0; /* Más espacio para el header más alto */
   }
   
   .header {
-    height: calc(var(--header-height) + 1rem);
+    height: calc(var(--header-height) + 1rem); /* Header más alto en desktop */
+    padding: 0;
+    justify-content: center; /* Centra el contenido del header */
   }
   
+  /* Oculta elementos exclusivos de la versión móvil */
   .header__logo, 
-  .header__toggle {
-    display: none;
+  .header__toggle,
+  .nav__close {
+    display: none !important; /* Important para asegurar que no aparezcan */
   }
   
+  /* Navegación en toda la anchura, integrada en el header */
   .nav {
     width: 100%;
-    background-color: var(--first-color);
+    height: 100%;
+    position: static; /* Ya no es fixed, forma parte del flujo normal */
+    background-color: transparent; /* Fondo transparente para integrarse con el header */
+    padding: 0;
+    overflow: visible;
   }
   
+  /* Contenedor de navegación como una fila */
   .nav__content {
-    grid-template-columns: repeat(3, max-content);
-    grid-template-rows: 1fr;
-    column-gap: 1rem;
-    justify-content: space-between;
-  }
-  
-  .nav__close, 
-  .nav__profesion {
-    display: none;
-  }
-  
-  .nav__perfil {
-    display: flex;
+    height: 100%;
+    display: flex; /* Cambia a flexbox para mejor control en horizontal */
+    flex-direction: row;
     align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    max-width: 1024px;
+    margin: 0 auto; /* Centrado horizontal */
+    row-gap: 0;
   }
   
+  /* Perfil en horizontal */
+  .nav__perfil {
+    flex-direction: row;
+    text-align: left;
+    padding-top: 0;
+    margin-right: 2rem;
+  }
+  
+  /* Ajustes de imagen de perfil para desktop */
   .nav__img {
     width: 32px;
     height: 32px;
-    margin-right: .5rem;
+    margin-right: 0.5rem;
     margin-bottom: 0;
-    align-items: center;
   }
   
   .nav__img img {
     width: 26px;
   }
   
-  .nav__list {
+  /* Menú central en desktop */
+  .nav__menu {
+    flex: 1; /* Toma el espacio disponible */
     display: flex;
-    justify-content: center;
-    width: 100%;
+    justify-content: center; /* Centrado horizontal */
+    align-items: center;
+    align-self: center; /* Centrado vertical */
   }
   
+  /* Lista horizontal en desktop */
+  .nav__list {
+    flex-direction: row; /* Elementos en fila horizontal */
+    justify-content: center; /* Centrados horizontalmente */
+    align-items: center;
+  }
+  
+  /* Elementos de navegación más compactos horizontalmente */
   .nav__item {
-    margin: 0 .25rem;
+    width: auto; /* Solo el ancho necesario */
+    margin: 0 0.5rem; /* Margen horizontal */
   }
   
+  /* Enlaces adaptados para desktop */
   .nav__link {
-    padding: .5rem .8rem;
-    border-radius: .25rem;
-    transition: 0.3s;
+    padding: 0.5rem 0.8rem;
+    text-align: center;
+    border-radius: 0.25rem;
   }
   
+  /* Hover más sutil para desktop */
   .nav__link:hover {
     color: var(--white-color);
     background-color: rgba(255, 255, 255, 0.2);
   }
   
-  .active {
+  /* Estilo activo para desktop */
+  .nav__link.active {
     background-color: var(--dark-color);
     color: var(--white-color);
   }
-}
-
-@media screen and (min-width: 1024px) {
-  .bd-grid {
-    margin-left: auto;
-    margin-right: auto;
-  }
   
-  /* Centra los enlaces de navegación */
-  .nav__menu {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-  }
-  
-  .nav__list {
-    justify-content: center;
+  /* Oculta elementos innecesarios en desktop */
+  .nav__profesion {
+    display: none;
   }
 }
 
-/* Estilos para menú móvil */
-@media screen and (max-width: 767px) {
-  .nav__list {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    width: 100%;
-  }
-  
-  .nav__item {
-    width: 100%;
-  }
-  
-  .nav__link {
-    display: block;
-    width: 100%;
-    padding: 0.75rem 1.5rem;
-  }
-  
-  .active {
-    color: var(--white-color);
-    background-color: var(--dark-color-alt);
-  }
-}
-
-/* Estilo para iconos de Font Awesome */
+/*============================================================================
+ * ESTILOS PARA ICONOS Y UTILIDADES
+ * Configuraciones adicionales para mejorar la apariencia
+ *============================================================================*/
+/* Iconos Font Awesome */
 .fa, .fas, .far, .fal, .fab {
   font-style: normal;
   display: inline-block;
-  color: var(--white-color);
+  color: inherit;
+  line-height: 1;
 }
 
-/* Animación sutil para enlaces */
-.nav__link {
-  transition: all 0.3s ease;
-}
-
-/* Clase para ocultar el botón toggle */
+/* Utilidad para ocultar elementos */
 .hide-toggle {
   display: none !important;
+}
+
+/* Previene scroll cuando el menú está abierto */
+body.menu-open {
+  overflow: hidden;
+}
+
+/* Estilos para iconos específicos */
+.header__toggle i,
+.nav__close i {
+  font-size: 1.2rem !important;
+  color: var(--white-color) !important;
 }
