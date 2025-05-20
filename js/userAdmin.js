@@ -219,8 +219,7 @@ function initializeDataTable() {
         console.error('Cancel button not found in the DOM');
     }
 
-
-    // Handle User Form submission for creating or updating a user
+        // Handle User Form submission for creating or updating a user
     $('#user-form').on('submit', function(e) {
         e.preventDefault();
         
