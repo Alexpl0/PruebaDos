@@ -227,7 +227,7 @@ img {
 
 .nav__list {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center; /* Centra los elementos <li> horizontalmente */
   width: 100%; /* Asegura que la lista ocupe todo el ancho */
 }
