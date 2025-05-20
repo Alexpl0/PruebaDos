@@ -4,6 +4,7 @@
  * This file handles the DataTable initialization and CRUD operations for users.
  */
 
+//=====================================================================================================
 // Global variable to store the DataTable instance
 let usersTable;
 
@@ -121,21 +122,7 @@ function initializeDataTable() {
         }
     });
 
-    // Password visibility toggle for the user form
-    document.querySelector('.toggle-password').addEventListener('click', function() {
-        const passwordInput = document.getElementById('user-password');
-        const type = passwordInput.type === 'password' ? 'text' : 'password';
-        passwordInput.type = type;
-        
-        // Change the icon depending on visibility
-        const icon = this.querySelector('i');
-        if (type === 'password') {
-            icon.className = 'fas fa-eye';
-        } else {
-            icon.className = 'fas fa-eye-slash';
-        }
-    });
-
+    //=====================================================================================================
     // Handle Edit User button click in the table
     $('#users-table').on('click', '.edit-user', function() {
         const userId = $(this).data('id');
@@ -157,6 +144,7 @@ function initializeDataTable() {
         // Set the correct role and authorization level in the dropdown
         populateUserForm(userData);
     });
+
 
     // Handle Delete User button click in the table
     $('#users-table').on('click', '.delete-user', function() {
@@ -206,6 +194,7 @@ function initializeDataTable() {
         });
     });
 
+
     // Handle Add User button click (outside DataTable buttons)
     document.getElementById('btnAddUser').addEventListener('click', function() {
         // Clear the form for a new user
@@ -230,10 +219,13 @@ function initializeDataTable() {
         console.error('Cancel button not found in the DOM');
     }
 
+
     // Handle User Form submission for creating or updating a user
     document.getElementById('user-form').addEventListener('submit', function(e) {
         e.preventDefault();
         
+        console.log('Form submitted');
+
         // Gather form data
         const userId = document.getElementById('user-id').value;
         const isNewUser = userId === 'New';
@@ -343,6 +335,21 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         console.error('Cancel button not found in the DOM');
     }
+
+    // Password visibility toggle for the user form
+    document.querySelector('.toggle-password').addEventListener('click', function() {
+        const passwordInput = document.getElementById('user-password');
+        const type = passwordInput.type === 'password' ? 'text' : 'password';
+        passwordInput.type = type;
+        
+        // Change the icon depending on visibility
+        const icon = this.querySelector('i');
+        if (type === 'password') {
+            icon.className = 'fas fa-eye';
+        } else {
+            icon.className = 'fas fa-eye-slash';
+        }
+    });
 });
 
 /**
