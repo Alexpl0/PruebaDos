@@ -36,8 +36,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
         passwordInput.setAttribute('type', type);
         
-        // Toggle the icon
-        const iconName = type === 'password' ? 'eye-outline' : 'eye-off-outline';
-        this.innerHTML = `<ion-icon name="${iconName}"></ion-icon>`;
+        // Toggle the icon - cambio a FontAwesome
+        const iconClass = type === 'password' ? 'fa-eye' : 'fa-eye-slash';
+        this.innerHTML = `<i class="fas ${iconClass}"></i>`;
     });
+    
+    // Inicializar con el icono FontAwesome
+    togglePassword.innerHTML = '<i class="fas fa-eye"></i>';
 });

@@ -22,10 +22,6 @@ include_once 'dao/users/auth_check.php';
     
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <!-- Bootstrap Icons -->
-    <script type="module" src="https://unpkg.com/ionicons@7.2.2/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@7.2.2/dist/ionicons/ionicons.js"></script>
     
     <!-- Archivos CSS locales -->
     <link rel="stylesheet" href="css/styles.css">
@@ -60,7 +56,7 @@ include_once 'dao/users/auth_check.php';
                             <div class="input-group">
                                 <input type="password" class="form-control" id="password" name="password" required>
                                 <button class="btn btn-outline-secondary toggle-password" type="button">
-                                    <ion-icon name="eye-outline"></ion-icon>
+                                    <i class="fas fa-eye"></i>
                                 </button>
                             </div>
                         </div>
