@@ -72,3 +72,9 @@
     font-family: monospace; /* Mantiene la misma fuente que cuando es tipo password */
     letter-spacing: 0.1em; /* Mantiene el mismo espaciado */
 }
+
+#name{
+    width: 100%; /* Asegura que siempre ocupe el espacio disponible */
+    box-sizing: border-box;
+    min-height: 38px;
+}
