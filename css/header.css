@@ -4,17 +4,17 @@
 /*===== VARIABLES CSS =====*/
 :root {
   --header-height: 3rem;
-  --nav-width: 250px; /* Width of the mobile slide-out menu */
-  --first-color: #333; /* Example, adjust to your theme */
-  --dark-color: #222;   /* Example, adjust to your theme */
-  --dark-color-alt: #111; /* Example, adjust to your theme */
+  --nav-width: 250px; /* Ancho del menú lateral móvil */
+  --first-color: #333;
+  --dark-color: #222;
+  --dark-color-alt: #111;
   --white-color: #FFF;
-  --body-font: 'Arial', sans-serif; /* Example, ensure this is defined */
-  --font-size: 1rem; /* Example, ensure this is defined */
-  --normal-font-size: 1rem; /* Example, ensure this is defined */
-  --small-font-size: 0.875rem; /* Example, ensure this is defined */
-  --z-fixed: 1000; /* Consistent z-index for header components */
-  --z-overlay: 999; /* For potential overlays */
+  --body-font: 'Arial', sans-serif;
+  --font-size: 1rem;
+  --normal-font-size: 1rem;
+  --small-font-size: 0.875rem;
+  --z-fixed: 1000;
+  --z-overlay: 999;
 }
 
 /*===== BASE =====*/
@@ -25,10 +25,10 @@
 }
 
 body {
-  margin: var(--header-height) 0 0 0; /* Adjust top margin for fixed header */
+  margin: var(--header-height) 0 0 0; /* Espacio para el header fijo */
   font-family: var(--body-font);
   font-weight: 500;
-  /* transition for body when menu opens, if needed for push effect (not implemented here) */
+  transition: margin 0.3s; /* Transición suave cuando cambia el tamaño del header */
 }
 
 ul {
@@ -39,9 +39,9 @@ ul {
 
 a {
   text-decoration: none;
-  color: var(--white-color); /* Default link color in nav */
-  font-family: var(--body-font) !important; /* Overriding for consistency */
-  font-size: var(--font-size) !important;   /* Overriding for consistency */
+  color: var(--white-color);
+  font-family: var(--body-font) !important;
+  font-size: var(--font-size) !important;
 }
 
 img {
@@ -51,12 +51,12 @@ img {
 }
 
 /*===== LAYOUT =====*/
-.bd-grid { /* Used by nav__content */
+.bd-grid {
   max-width: 1024px;
   display: grid;
-  margin-left: auto; /* Centering .bd-grid if it's narrower than viewport */
+  margin-left: auto;
   margin-right: auto;
-  padding-left: 1.5rem; /* Gutters */
+  padding-left: 1.5rem;
   padding-right: 1.5rem;
 }
 
@@ -69,7 +69,7 @@ img {
   left: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between; /* Logo left, toggle right on mobile */
+  justify-content: space-between; /* Logo a la izquierda, toggle a la derecha en móvil */
   padding: 0 1.5rem;
   background-color: var(--first-color);
   z-index: var(--z-fixed);
@@ -78,42 +78,44 @@ img {
 
 .header__logo {
   color: var(--white-color);
+  font-weight: bold;
+  font-size: 1.2rem !important;
 }
 
-.header__toggle { /* Mobile menu hamburger icon */
+.header__toggle {
   font-size: 1.5rem;
-  color: var(--white-color) !important; /* Ensure visibility */
+  color: var(--white-color) !important;
   cursor: pointer;
 }
 
-/*===== NAVIGATION (Mobile - Default) =====*/
+/*===== NAVEGACIÓN MÓVIL (por defecto) =====*/
 .nav {
   position: fixed;
   top: 0;
-  left: -100%; /* Initially hidden off-screen */
-  width: var(--nav-width); /* Width of the slide-out menu */
+  left: -100%; /* Inicialmente oculto fuera de la pantalla */
+  width: var(--nav-width);
   height: 100vh;
-  padding: 1.5rem 0; /* Vertical padding, no horizontal as items will have it */
+  padding: 1.5rem 0;
   background-color: var(--dark-color);
   color: var(--white-color);
-  z-index: var(--z-fixed); /* Same as header, managed by show/hide */
+  z-index: var(--z-fixed);
   transition: left 0.4s ease-in-out;
-  overflow-y: auto; /* Scroll if content exceeds height */
+  overflow-y: auto; /* Scroll si el contenido excede la altura */
 }
 
 .nav.show {
-  left: 0; /* Slides in from the left */
+  left: 0; /* Se desliza desde la izquierda */
 }
 
-.nav__content { /* Container within .nav */
+.nav__content {
   height: 100%;
   display: flex;
   flex-direction: column;
-  row-gap: 2rem; /* Space between profile, menu, social */
-  padding: 0 1.5rem; /* Inner padding for content */
+  row-gap: 2rem; /* Espacio entre perfil, menú y social */
+  padding: 0 1.5rem; /* Padding interior para el contenido */
 }
 
-.nav__close { /* Mobile menu close icon */
+.nav__close {
   position: absolute;
   top: 1rem;
   right: 1.5rem;
@@ -123,8 +125,8 @@ img {
   background-color: var(--dark-color-alt);
   border-radius: 50%;
   padding: 0.25rem;
-  line-height: 1; /* Ensure icon is centered in padding */
-  display: flex; /* For centering icon if needed */
+  line-height: 1;
+  display: flex;
   align-items: center;
   justify-content: center;
 }
@@ -132,18 +134,18 @@ img {
 .nav__perfil {
   display: flex;
   flex-direction: column;
-  align-items: center; /* Center profile items */
+  align-items: center;
   text-align: center;
-  padding-top: 1rem; /* Space from top or close button */
+  padding-top: 1rem;
 }
 
 .nav__img {
-  width: 70px; /* Adjusted size for mobile menu */
+  width: 70px;
   height: 70px;
   border-radius: 50%;
   overflow: hidden;
   margin-bottom: 0.5rem;
-  background-color: var(--white-color); /* If image is transparent */
+  background-color: var(--white-color);
 }
 
 .nav__img img {
@@ -152,97 +154,110 @@ img {
   object-fit: cover;
 }
 
-.nav__name { /* Text under profile image */
+.nav__name {
   display: block;
   color: var(--white-color);
   margin-top: 0.5rem;
 }
 
-/* .nav__profesion would be similar to .nav__name if used */
-
-.nav__menu {
-  flex-grow: 1; /* Allows menu to take available space if profile/social are fixed height */
+.nav__user-name {
+  display: block;
+  color: var(--white-color);
+  font-size: var(--small-font-size) !important;
+  opacity: 0.8;
 }
 
-.nav__list { /* Mobile: Column, left-aligned */
+.nav__menu {
+  flex-grow: 1; /* Permite que el menú ocupe el espacio disponible */
+}
+
+.nav__list {
   display: flex;
   flex-direction: column;
-  align-items: flex-start; /* Links align to the left */
+  align-items: flex-start; /* Enlaces alineados a la izquierda en móvil */
 }
 
 .nav__item {
-  width: 100%; /* Each item takes full width of .nav__list */
+  width: 100%; /* Cada ítem toma todo el ancho del .nav__list */
+  margin: 0.5rem 0; /* Espaciado vertical entre ítems */
 }
 
 .nav__link {
-  display: block; /* Make link take full width of .nav__item */
-  padding: 0.75rem 0; /* Vertical padding, horizontal padding handled by .nav__content or specific alignment */
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.75rem 0.5rem;
   color: var(--white-color);
-  text-align: left; /* Text aligns left */
+  text-align: left; /* Texto alineado a la izquierda en móvil */
   transition: background-color 0.3s, color 0.3s;
+  border-radius: 0.25rem;
+}
+
+.nav__link-icon {
+  margin-right: 0.75rem;
+  font-size: 1.1rem;
 }
 
 .nav__link:hover,
 .nav__link.active {
-  background-color: var(--dark-color-alt); /* Highlight for hover/active */
-  color: var(--first-color); /* Example: change text color on active/hover */
+  background-color: var(--dark-color-alt);
+  color: var(--white-color);
 }
 
-/* Hide mobile-specific elements on larger screens by default in the media query */
-/* .header__toggle, .nav__close will be handled in the media query */
-
-/*===== DESKTOP NAVIGATION (min-width: 1000px) =====*/
+/*===== NAVEGACIÓN DESKTOP =====*/
 @media screen and (min-width: 1000px) {
   body {
-    margin-top: calc(var(--header-height) + 1rem); /* Adjust if header height changes */
+    margin-top: calc(var(--header-height) + 1rem);
   }
 
   .header {
-    justify-content: center; /* Center the .nav element within .header */
-    padding: 0; /* Reset padding if .nav handles its own max-width and centering */
+    justify-content: center;
+    padding: 0;
+    height: calc(var(--header-height) + 1rem);
   }
 
   .header__logo,
   .header__toggle {
-    display: none; /* Hide mobile logo and toggle */
+    display: none; /* Oculta el logo y toggle en desktop */
   }
 
-  .nav { /* Reset mobile .nav styles for desktop */
+  .nav {
     position: static;
-    width: 100%; /* Nav takes full width to center its content */
+    width: 100%;
     height: var(--header-height);
     left: auto;
-    background-color: transparent; /* Inherits from .header or transparent */
+    background-color: transparent;
     padding: 0;
     transition: none;
     overflow-y: visible;
+    display: flex;
+    justify-content: center; /* Centra el contenido horizontalmente */
   }
 
-  .nav__content { /* Centers content and arranges profile | menu | social */
-    max-width: 1024px; /* Max width of the navigation content */
-    margin: 0 auto; /* Center .nav__content */
-    padding: 0 1.5rem; /* Gutters */
+  .nav__content {
+    max-width: 1024px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
     height: 100%;
-    display: grid;
-    grid-template-columns: max-content auto; /* Profile left, Menu takes rest and centers */
-    /* If you have a .nav__social on the right: grid-template-columns: max-content auto max-content; */
+    flex-direction: row; /* Cambia a fila para desktop */
+    row-gap: 0;
     align-items: center;
-    column-gap: 2rem; /* Space between profile and menu */
-    row-gap: 0; /* Reset mobile row-gap */
+    justify-content: space-between;
   }
 
   .nav__close {
-    display: none; /* Hide mobile close button */
+    display: none;
   }
 
-  .nav__perfil { /* Desktop profile section */
-    flex-direction: row; /* Image and name side-by-side */
+  .nav__perfil {
+    flex-direction: row;
     align-items: center;
     text-align: left;
     padding-top: 0;
+    margin-right: 2rem;
   }
 
-  .nav__img { /* Smaller profile image for desktop */
+  .nav__img {
     width: 32px;
     height: 32px;
     margin-right: 0.5rem;
@@ -251,71 +266,66 @@ img {
 
   .nav__name {
     margin-top: 0;
-    font-size: var(--small-font-size) !important; /* Adjust size for desktop */
+    font-size: var(--small-font-size) !important;
   }
 
-  .nav__menu { /* Desktop: centers the .nav__list */
+  .nav__user-name {
+    font-size: var(--small-font-size) !important;
+  }
+
+  .nav__menu {
+    flex-grow: 0;
     display: flex;
-    justify-content: center; /* Center .nav__list horizontally */
+    justify-content: center;
     align-items: center;
-    height: 100%;
-    flex-grow: 0; /* Reset mobile flex-grow */
+    flex: 1; /* Toma el espacio restante */
   }
 
-  .nav__list { /* Desktop: Row, items centered within .nav__menu */
-    flex-direction: row;
+  .nav__list {
+    flex-direction: row; /* Items en fila para desktop */
     align-items: center;
-    width: auto; /* List takes width of its items */
+    justify-content: center; /* Centra los items horizontalmente */
+    width: 100%; /* Permite que la lista ocupe el ancho disponible para centrar */
   }
 
   .nav__item {
-    width: auto; /* Item takes width of its content */
-    margin: 0 0.5rem; /* Horizontal spacing between items */
+    width: auto; /* Item toma el ancho de su contenido */
+    margin: 0 0.75rem; /* Espaciado horizontal entre items */
   }
 
   .nav__link {
-    padding: 0.5rem 1rem; /* Padding for desktop links */
-    text-align: center;
-    border-radius: 0.25rem; /* Optional: rounded corners for links */
+    padding: 0.5rem 1rem;
+    text-align: center; /* Texto centrado en desktop */
+    border-radius: 0.25rem;
   }
 
   .nav__link:hover,
   .nav__link.active {
-    background-color: var(--dark-color-alt); /* Or a different highlight for desktop */
-    color: var(--white-color);
+    background-color: rgba(255, 255, 255, 0.2); /* Destacado sutil para desktop */
   }
 
-  /* Dropdown styles for desktop */
-  .dropdown-menu {
-    background-color: var(--first-color); /* Match header or nav background */
-    top: 100%; /* Position below the nav item */
-    left: 0;
-    margin-top: 0.25rem; /* Small gap */
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  .nav__link-icon {
+    margin-right: 0.5rem;
   }
 }
 
-/* Dropdown Menu Styles (shared, with overrides for mobile if needed) */
+/* Estilos para Dropdown (si se necesitan) */
 .dropdown {
   position: relative;
 }
 
-.dropdown-toggle::after { /* If using Bootstrap's JS for dropdowns, hide default arrow */
-  display: none;
-}
-
 .dropdown-menu {
-  display: none; /* Hidden by default */
+  display: none;
   position: absolute;
-  background-color: var(--dark-color); /* Default for mobile dropdown */
+  background-color: var(--dark-color);
   min-width: 180px;
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-  z-index: calc(var(--z-fixed) + 1); /* Above other nav items */
+  z-index: calc(var(--z-fixed) + 1);
   border-radius: 0.25rem;
-  padding: 0.5rem 0; /* Vertical padding for the menu itself */
+  padding: 0.5rem 0;
 }
 
-.nav__item.dropdown:hover .dropdown-menu { /* Show on hover - CSS only */
+.dropdown:hover .dropdown-menu {
   display: block;
 }
 
@@ -325,51 +335,46 @@ img {
   text-decoration: none;
   display: block;
   transition: background-color 0.3s;
-  font-family: var(--body-font) !important;
-  font-size: var(--font-size) !important;
 }
 
 .dropdown-item:hover {
   background-color: var(--dark-color-alt);
 }
 
-/* Specific dropdown adjustments for mobile if .nav__item:hover doesn't work well */
+/* Adaptaciones específicas para dropdown en móvil */
 @media screen and (max-width: 999px) {
-  .nav__item.dropdown .dropdown-menu { /* Mobile dropdown might need different positioning */
-    position: static; /* Or relative, to flow in the column */
+  .dropdown .dropdown-menu {
+    position: static;
     box-shadow: none;
-    background-color: transparent; /* Blend with nav background */
-    padding-left: 1rem; /* Indent mobile dropdown items */
+    background-color: transparent;
+    padding-left: 1rem;
     margin-top: 0.25rem;
     border: none;
   }
-  .nav__item.dropdown .dropdown-item {
-    padding: 0.5rem 0; /* Adjust padding for mobile dropdown items */
-  }
-  .nav__item.dropdown .dropdown-item:hover {
-    background-color: var(--dark-color); /* Different hover for mobile dropdown */
+  
+  .dropdown .dropdown-item {
+    padding: 0.5rem 0;
   }
 }
 
-
-/* Font Awesome Icons - General Styling */
-.fas, .far, .fal, .fab { /* Base classes for Font Awesome */
+/* Estilos para iconos */
+.fas, .far, .fal, .fab {
   display: inline-block;
   font-style: normal;
   font-variant: normal;
   text-rendering: auto;
   -webkit-font-smoothing: antialiased;
-  color: inherit; /* Inherit color by default, override specifically */
-  line-height: 1; /* Ensure consistent line height */
+  color: inherit;
+  line-height: 1;
 }
 
-/* Utility for hiding toggle button via JS */
+/* Utilidad para ocultar botón toggle */
 .hide-toggle {
   display: none !important;
 }
 
-/* Body class when menu is open (for potential body scroll lock or overlay) */
+/* Clase para body cuando el menú está abierto */
 body.menu-open {
-  /* overflow: hidden; */ /* Example: prevent body scroll when mobile menu is open */
+  overflow: hidden; /* Evita scroll cuando el menú móvil está abierto */
 }
 
