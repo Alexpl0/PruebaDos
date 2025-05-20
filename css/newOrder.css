@@ -523,3 +523,10 @@ textarea {
     gap: 0.5rem;
   }
 }
+
+* {
+  outline: 1px dashed red !important;
+  /* Alternativamente, puedes usar border:
+  /* border: 1px solid red !important; */
+  /* box-sizing: border-box !important; */ /* Asegúrate de que esto ya esté globalmente aplicado */
+}
