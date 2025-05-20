@@ -220,20 +220,20 @@ function initializeDataTable() {
     }
 
         // Handle User Form submission for creating or updating a user
-    $('#user-form').on('submit', function(e) {
+    $('#submitbtn').on('click', function(e) {
         e.preventDefault();
-        
+
         console.log('Form submitted');
 
         // Gather form data
         const userId = document.getElementById('user-id').value;
         const isNewUser = userId === 'New';
-        
+
         // Get the selected role and authorization level from the dropdown
         const roleLevelSelect = document.getElementById('user-role-level');
         const selectedValue = roleLevelSelect.value;
         const [authLevel, role] = selectedValue.split(':');
-        
+
         // Build the user data object to send to the server
         const userData = {
             name: document.getElementById('user-name').value,
@@ -242,12 +242,12 @@ function initializeDataTable() {
             password: document.getElementById('user-password').value,
             authorization_level: parseInt(authLevel)
         };
-        
+
         // If updating, include the user ID
         if (!isNewUser) {
             userData.id = parseInt(userId);
         }
-        
+
         // Show loading indicator while saving
         Swal.fire({
             title: isNewUser ? 'Creating User' : 'Updating User',

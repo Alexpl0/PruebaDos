@@ -127,7 +127,7 @@ include_once 'dao/users/auth_check.php';
                         
                         <div class="d-flex justify-content-between">
                             <button type="button" id="cancel-form" class="btn btn-secondary">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Save User</button>
+                            <button type="submit" class="btn btn-primary" id="submitbtn">Save User</button>
                         </div>
                     </form>
                 </div>
