@@ -5,13 +5,15 @@ session_start();
 $allowed_pages_level0 = [
     '/index.php',
     '/newOrder.php',
-    '/profile.php'
+    '/profile.php',
+    '/register.php'
 ];
 
 // Lista de páginas restringidas para usuarios con authorization_level 0
 $restricted_pages_level0 = [
     '/orders.php',
-    '/register.php'
+    '/adminUsers.php',
+    '/dashboard.php'
 ];
 
 // Obtener la ruta actual

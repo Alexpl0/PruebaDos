@@ -1,17 +1,11 @@
 document.getElementById('register-form').addEventListener('submit', function(e) {
     e.preventDefault();
 
-    const authLevelValue = document.getElementById('authorization_level').value.trim();
-    
     const data = {
         name: document.getElementById('name').value.trim(),
         email: document.getElementById('email').value.trim(),
-        password: document.getElementById('password').value.trim(),
-        role: document.getElementById('role').value.trim(),
-        authorization_level: authLevelValue === '' ? '' : parseInt(authLevelValue, 10)
+        password: document.getElementById('password').value.trim()
     };
-
-    console.log(JSON.stringify(data)); // Log the data to the console for debugging
 
     fetch('https://grammermx.com/Jesus/PruebaDos/dao/users/daoSingin.php', {
         method: 'POST',

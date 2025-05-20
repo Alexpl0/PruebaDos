@@ -64,14 +64,6 @@ include_once 'dao/users/auth_check.php';
                                 </button>
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="role" class="form-label">Role</label>
-                            <input type="text" class="form-control" id="role" name="role" placeholder="Manager, Senior, etc." required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="authorization_level" class="form-label">Authorization Level</label>
-                            <input type="number" class="form-control" id="authorization_level" name="authorization_level" min="0" max="10" placeholder="0 for Worker" required>
-                        </div>
                         <button type="submit" class="btn btn-primary">Register</button>
                     </form>
                 </div>
