@@ -104,9 +104,14 @@ include_once 'dao/users/auth_check.php';
                             <div class="col-md-6">
                                 <label for="user-role-level" class="form-label">Role & Authorization Level</label>
                                 <select class="form-select" id="user-role-level" required>
-                                    <option value="0:User">User (Level 0)</option>
-                                    <option value="1:Admin">Admin (Level 1)</option>
-                                    <option value="2:SuperAdmin">Super Admin (Level 2)</option>
+                                    <option value="0:Worker">Worker</option>
+                                    <option value="1:Logistics Manager">Logistics Manager</option>
+                                    <option value="2:Controlling">Controlling</option>
+                                    <option value="3:Plant Manager">Plant Manager</option>
+                                    <option value="4:Senior Manager Logistics Division">Senior Manager Logistics Division</option>
+                                    <option value="5:Manager OPS Division">Manager OPS Division</option>
+                                    <option value="6:SR VP Regional">SR VP Regional</option>
+                                    <option value="7:Division Controlling Regional">Division Controlling Regional</option>
                                 </select>
                             </div>
                             <div class="col-md-6">

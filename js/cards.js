@@ -150,7 +150,7 @@ function getApprovalStatusMessage(order) {
             case 1: message = 'Pending: Controlling'; break;
             case 2: message = 'Pending: Plant Manager'; break;
             case 3: message = 'Pending: Senior Logistics Manager'; break;
-            case 4: message = 'Pending: Senior Division Logistics Manager'; break;
+            case 4: message = 'Pending: Manager OPS Division'; break;
             case 5: message = 'Pending: SR VP Regional'; break;
             case 6: message = 'Pending: Regional Division Controlling'; break;
             default: message = `Pending: Level ${approvalStatus + 1}`;
