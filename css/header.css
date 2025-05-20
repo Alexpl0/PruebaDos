@@ -5,31 +5,30 @@
 :root {
   --header-height: 3rem;
   --z-fixed: 100;
+  
+  /* Las variables de color y tipografía se toman de styles.css */
 }
- 
+
 /*===== VARIABLES DE TAMAÑO PARA PANTALLAS GRANDES =====*/
-@media screen and (min-width: 1000px) {
+@media screen and (min-width: 768px) {
   :root {
-    --normal-font-size: 1rem !important;
-    --small-font-size: .8rem !important;
+    --normal-font-size: 1rem;
+    --small-font-size: .875rem;
   }
 }
 
 /*===== BASE =====*/
 *, ::before, ::after {
   box-sizing: border-box;
-  /* font-family: var(--body-font); */
 }
 
 /* Estilos base del body para el header */
 body {
-  margin: 0;
-  padding-top: calc(var(--header-height) + 1rem); /* Espacio para el header fijo */
+  margin: var(--header-height) 0 0 0;
   font-family: var(--body-font);
+  font-size: var(--normal-font-size);
   font-weight: 500;
 }
-
-
 
 ul {
   margin: 0;
@@ -39,13 +38,13 @@ ul {
 
 a {
   text-decoration: none;
-  font-family: var(--body-font) !important;
-  font-size: var(--font-size) !important;
+  color: var(--white-color);
 }
 
 img {
   max-width: 100%;
   height: auto;
+  display: block;
 }
 
 /*===== LAYOUT =====*/
@@ -58,7 +57,6 @@ img {
 }
 
 /*===== HEADER =====*/
-/* Header fijo en la parte superior */
 .header {
   width: 100%;
   height: var(--header-height);
@@ -66,7 +64,7 @@ img {
   top: 0;
   left: 0;
   padding: 0 1.5rem;
-  background-color: var(--first-color);
+  background-color: var(--first-color); /* Usa el color principal de styles.css */
   z-index: var(--z-fixed);
   display: flex;
   justify-content: space-between;
@@ -75,27 +73,24 @@ img {
 
 .header__logo {
   color: var(--white-color);
-  font-family: var(--body-font) !important;
-  font-size: var(--font-size) !important;
+  font-family: var(--body-font);
+  font-size: var(--normal-font-size);
 }
 
-/* Ícono de toggle del menú */
 .header__toggle {
-  font-size: var(--normal-font-size) !important;
-  color: var(--white-color) !important;
+  font-size: 1.5rem;
+  color: var(--white-color);
   cursor: pointer;
-  display: block;
-  z-index: 1000;
 }
 
 /*===== NAVEGACIÓN =====*/
 /* Versión móvil del menú */
-@media screen and (max-width: 999px) {
+@media screen and (max-width: 768px) {
   .nav {
     position: fixed;
     top: 0;
     left: -100%;
-    background-color: var(--dark-color);
+    background-color: var(--dark-color); /* Usa el color oscuro de styles.css */
     color: var(--white-color);
     width: 100%;
     height: 100vh;
@@ -104,71 +99,8 @@ img {
     transition: .5s;
   }
   
-  /* Mejora la zona de toque del botón hamburguesa para móviles */
-  .header__toggle {
-    padding: 10px;
-    margin-right: -10px;
-  }
-  
-  /* Asegura que los botones de navegación móvil sean visibles */
-  #nav-toggle, .header__toggle {
-    display: block !important;
-    z-index: 1000;
-    color: white !important;
-  }
-  
-  #nav-close {
-    display: block !important;
-    z-index: 1001;
-  }
-  
-  /* Mantén el ícono visible y con buen tamaño */
-  .header__toggle .fa-bars,
-  .fa-bars {
-    font-size: 1.5rem !important;
-    color: white !important;
-    visibility: visible !important;
-  }
-  
-  .show {
-    left: 0 !important;
-  }
-  
-  /* Nueva regla para ocultar el botón toggle cuando el menú está visible */
-  .nav.show + .header__toggle,
-  body:has(.nav.show) .header__toggle {
-    display: none !important;
-  }
-  
-  /* Alternativa usando una clase específica */
-  .hide-toggle {
-    display: none !important;
-  }
-  
-  /* Asegúrate que el botón y la X nunca se solapen */
-  body.menu-open .header__toggle {
-    display: none !important;
-    pointer-events: none;
-    opacity: 0;
-  }
-  
-  /* Mejora la transición visual */
-  .header__toggle {
-    transition: opacity 0.2s ease-out;
-  }
-  
-  /* Mejora la visibilidad de la X de cierre */
-  .nav__close {
-    position: absolute;
-    right: 1.5rem;
-    top: 1.5rem;
-    font-size: 1.5rem !important;
-    padding: .25rem;
-    background-color: var(--dark-color-alt);
-    border-radius: 50%;
-    cursor: pointer;
-    color: white !important;
-    z-index: 1100; /* Asegura que esté por encima de todo */
+  .nav.show {
+    left: 0;
   }
 }
 
@@ -178,19 +110,17 @@ img {
   row-gap: 2rem;
 }
 
-/* Botón para cerrar el menú móvil */
 .nav__close {
   position: absolute;
   right: 1.5rem;
-  font-size: var(--normal-font-size) !important;
+  font-size: 1.3rem;
   padding: .25rem;
-  background-color: var(--dark-color-alt);
+  background-color: var(--dark-color-alt); /* Usa el color alternativo oscuro */
   border-radius: 50%;
   cursor: pointer;
-  color: white !important;
+  color: var(--white-color);
 }
 
-/* Imagen del perfil de usuario */
 .nav__img {
   display: flex;
   justify-content: center;
@@ -205,45 +135,31 @@ img {
 
 .nav__img img {
   width: 46px;
-  height: auto;
 }
 
 .nav__name {
   display: block;
   color: var(--white-color);
-  font-family: var(--body-font) !important;
-  font-size: var(--font-size) !important;
+  font-family: var(--body-font);
 }
 
 .nav__profesion {
-  font-size: var(--small-font-size) !important;
-  font-family: var(--body-font) !important;
+  font-size: var(--small-font-size);
+  color: var(--white-color);
+  opacity: 0.8;
 }
 
 .nav__menu {
-  align-self: center; /* Mantiene la alineación vertical del bloque del menú */
-  width: 100%; /* Asegura que el contenedor del menú ocupe todo el ancho disponible */
-}
-
-.nav__list {
-  display: flex;
-  flex-direction: row;
-  align-items: center; /* Centra los elementos <li> horizontalmente */
-  width: 100%; /* Asegura que la lista ocupe todo el ancho */
+  align-self: center;
 }
 
 .nav__item {
-  margin: 1.5rem 0; /* Puedes ajustar el margen vertical si es necesario */
-  /* width: 100%; // Opcional: si quieres que el fondo del item activo ocupe todo el ancho centrado */
+  margin: 2.5rem 0;
 }
 
 .nav__link {
   color: var(--white-color);
-  font-family: var(--body-font) !important;
-  font-size: var(--font-size) !important;
-  padding: 0.5rem 1rem; /* Añade padding para mejor interacción */
-  display: block; /* Hace que el enlace ocupe el ancho de su contenedor <li> */
-  text-align: center; /* Centra el texto del enlace */
+  font-family: var(--body-font);
 }
 
 .nav__social {
@@ -251,13 +167,13 @@ img {
 }
 
 .nav__social-icon {
-  font-size: var(--normal-font-size) !important;
+  font-size: 1.2rem;
   color: var(--white-color);
   margin-right: 1rem;
 }
 
 .nav__social-icon:hover {
-  color: var(--dark-color);
+  color: var(--first-color);
 }
 
 /* Clase para mostrar el menú móvil */
@@ -267,61 +183,13 @@ img {
 
 /* Estilo para enlaces activos */
 .active {
-  color: white;
-}
-
-/*===== DROPDOWN MENU STYLES =====*/
-.dropdown {
-  position: relative;
-}
-
-.dropdown-toggle::after {
-  display: none; /* Ocultar flecha predeterminada */
-}
-
-.dropdown-toggle i {
-  margin-left: 0.25rem;
-  font-size: var(--small-font-size) !important;
-}
-
-.dropdown-menu {
-  display: none;
-  position: absolute;
-  background-color: var(--dark-color);
-  min-width: 160px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-  z-index: var(--z-fixed);
-  border-radius: 0.25rem;
-}
-
-.dropdown-item {
-  color: var(--white-color);
-  padding: 0.5rem 1rem;
-  text-decoration: none;
-  display: block;
-  transition: background-color 0.3s;
-  font-family: var(--body-font) !important;
-  font-size: var(--font-size) !important;
-}
-
-.dropdown-item:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.dropdown-item.active {
-  background-color: var(--first-color);
-  color: var(--white-color);
-}
-
-.dropdown:hover .dropdown-menu {
-  display: block;
+  color: var(--first-color);
 }
 
 /*===== MEDIA QUERIES =====*/
-/* Estilos para pantallas grandes */
-@media screen and (min-width: 1000px) {
+@media screen and (min-width: 768px) {
   body {
-    padding-top: calc(var(--header-height) + 1rem);
+    margin: 0;
   }
   
   .header {
@@ -335,6 +203,7 @@ img {
   
   .nav {
     width: 100%;
+    background-color: var(--first-color);
   }
   
   .nav__content {
@@ -342,14 +211,6 @@ img {
     grid-template-rows: 1fr;
     column-gap: 1rem;
     justify-content: space-between;
-    align-items: center; /* Añadido para alinear verticalmente los items del grid (perfil, menu, social) */
-  }
-  
-  .nav__menu { /* Contenedor de ul.nav__list en la vista de escritorio */
-    display: flex;
-    justify-content: center; /* Centra horizontalmente ul.nav__list dentro de nav__menu */
-    align-items: center; /* Centra verticalmente ul.nav__list (opcional, pero bueno para consistencia) */
-    /* flex-grow: 1; */ /* Opcional: si quieres que nav__menu intente ocupar más espacio. Probar sin esto primero. */
   }
   
   .nav__close, 
@@ -375,8 +236,9 @@ img {
   }
   
   .nav__list {
-    display: flex; /* Mantiene los elementos <li> en una fila */
-    /* No se necesitan cambios aquí para centrar el bloque, ya que .nav__menu se encarga de ello */
+    display: flex;
+    justify-content: center;
+    width: 100%;
   }
   
   .nav__item {
@@ -386,135 +248,76 @@ img {
   .nav__link {
     padding: .5rem .8rem;
     border-radius: .25rem;
+    transition: 0.3s;
   }
   
   .nav__link:hover {
-    font-style: italic;
-    text-decoration: underline;
-    color: white;
+    color: var(--white-color);
+    background-color: rgba(255, 255, 255, 0.2);
   }
   
   .active {
-    background-color: #a2a2a2;
+    background-color: var(--dark-color);
     color: var(--white-color);
   }
-  
-  /* Dropdown styles for desktop */
-  .dropdown-menu {
-    background-color: var(--first-color);
-    top: 100%;
-    left: 0;
-    margin-top: 0.25rem;
+}
+
+@media screen and (min-width: 1024px) {
+  .bd-grid {
+    margin-left: auto;
+    margin-right: auto;
   }
   
-  .dropdown-item {
-    padding: 0.5rem 0.8rem;
+  /* Centra los enlaces de navegación */
+  .nav__menu {
+    display: flex;
+    justify-content: center;
+    width: 100%;
   }
   
-  .dropdown-item:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-    font-style: italic;
-    text-decoration: underline;
-  }
-  
-  /* Solo oculta los controles de navegación móvil en escritorio */
-  #nav-close, #nav-toggle {
-    display: none !important;
+  .nav__list {
+    justify-content: center;
   }
 }
 
-/* Estilos específicos para dropdown en móvil */
-@media screen and (max-width: 899px) {
-  .dropdown-menu {
-    position: static;
-    box-shadow: none;
-    padding-left: 2rem;
-    background-color: transparent;
-    margin-top: 0.5rem;
+/* Estilos para menú móvil */
+@media screen and (max-width: 767px) {
+  .nav__list {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
   }
   
-  .dropdown-item {
-    padding: 0.75rem 1rem;
+  .nav__item {
+    width: 100%;
   }
   
-  .nav__item.dropdown {
-    margin-bottom: 0;
+  .nav__link {
+    display: block;
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+  }
+  
+  .active {
+    color: var(--white-color);
+    background-color: var(--dark-color-alt);
   }
 }
 
-/* Icon styling for Font Awesome icons */
-.icono {
-  font-family: Arial, sans-serif;
-  font-size: 24px;
-  margin-right: 10px;
-  color: white !important;
-}
-
-/* Font Awesome icon styling */
+/* Estilo para iconos de Font Awesome */
 .fa, .fas, .far, .fal, .fab {
   font-style: normal;
-  font-weight: 900;
-  line-height: 1;
-  letter-spacing: normal;
-  text-transform: none;
   display: inline-block;
-  white-space: nowrap;
-  direction: ltr;
-  -webkit-font-smoothing: antialiased;
-  color: white !important;
+  color: var(--white-color);
 }
 
-/* Icon sizes and visibility */
-.header__toggle i,
-.nav__close i,
-.nav__link i {
-  font-size: 1.5rem;
-  line-height: 1;
-  display: inline-block;
-  vertical-align: middle;
-  color: white !important;
+/* Animación sutil para enlaces */
+.nav__link {
+  transition: all 0.3s ease;
 }
 
-/* Mobile menu icon */
-.header__toggle .fa-bars {
-  font-size: 1.5rem;
-  color: white !important;
-}
-
-/* Close icon */
-.nav__close .fa-times {
-  font-size: 1.2rem;
-  color: white !important;
-}
-
-/* Specific icons */
-.fa-bars,
-.fa-times,
-.fa-home,
-.fa-user,
-.fa-cog,
-.fa-sign-out-alt,
-.fa-chevron-down {
-  color: white !important;
-}
-
-/* All icons in header and nav */
-.header i,
-.nav i {
-  color: white !important;
-}
-
-/* White icon utility class */
-.icon-white {
-  color: white !important;
-}
-
-/* Remove Material Icons styles */
-.material-symbols-outlined {
-  display: none;
-}
-
-/* Añade esta clase al final del archivo, antes del cierre */
+/* Clase para ocultar el botón toggle */
 .hide-toggle {
   display: none !important;
 }
