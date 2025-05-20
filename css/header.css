@@ -6,7 +6,7 @@
   --header-height: 3rem;
   --z-fixed: 100;
 }
-
+ 
 /*===== VARIABLES DE TAMAÑO PARA PANTALLAS GRANDES =====*/
 @media screen and (min-width: 1000px) {
   :root {
