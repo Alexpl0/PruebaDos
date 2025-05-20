@@ -62,11 +62,9 @@
 
 /* Input de contraseña con tamaño fijo */
 #password {
-    transition: none; /* Desactiva cualquier transición que pueda estar causando el cambio */
-    font-family: monospace; /* Fuente monoespaciada para anchura consistente entre caracteres */
-    letter-spacing: 0.1em; /* Espaciado adicional entre caracteres para mejor legibilidad */
     width: 100%; /* Asegura que siempre ocupe el espacio disponible */
     box-sizing: border-box;
+    min-height: 38px;
 }
 
 /* Sobrescribe el estilo predeterminado cuando se muestra como texto */
