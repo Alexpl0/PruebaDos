@@ -4,6 +4,8 @@
  */
 
 function createHeader(authLevel) {
+    // console.log('Authorization Level:', authLevel);
+    
     // Detect current page
     const currentPage = window.location.pathname.split('/').pop();
 
@@ -41,13 +43,11 @@ function createHeader(authLevel) {
         navItems += navLink('dao/users/logout.php', 'Log Out');
     }
 
-    // Construct the header HTML with contenedor centralizado
+    // Construct the header HTML
     const headerHTML = `
     <header class="header">
-        <div class="header__container">
-            <a href="#" class="header__logo">GRAMMER</a>
-            <i class="fas fa-bars header__toggle" id="nav-toggle" style="color: white !important"></i>
-        </div>
+        <a href="#" class="header__logo">GRAMMER</a>
+        <i class="fas fa-bars header__toggle" id="nav-toggle" style="color: white !important"></i>
         <nav class="nav" id="nav-menu">
             <div class="nav__content bd-grid">
                 <i class="fas fa-times nav__close" id="nav-close" style="color: white !important; z-index: 1100;"></i>
@@ -80,42 +80,47 @@ document.addEventListener('DOMContentLoaded', function() {
     // Create header with user's authorization level
     createHeader(window.authorizationLevel || 0);
 
-    // Esperar a que todos los elementos estén disponibles en el DOM
+    // Usa setTimeout para asegurarte de que los elementos estén en el DOM
     setTimeout(function() {
         // Setup mobile menu toggle
         const navMenu = document.getElementById('nav-menu');
         const toggleMenu = document.getElementById('nav-toggle');
         const closeMenu = document.getElementById('nav-close');
         
-        // Manejar el toggle del menú móvil
+        console.log('Elementos de navegación:', {navMenu, toggleMenu, closeMenu});
+        
+        // Modifica el addEventListener del toggleMenu
         if (toggleMenu && navMenu) {
             toggleMenu.addEventListener('click', () => {
+                console.log('Toggle menu clicked');
                 navMenu.classList.toggle('show');
                 
                 // Ocultar inmediatamente el botón hamburguesa
-                toggleMenu.style.display = 'none'; 
-                toggleMenu.classList.add('hide-toggle');
+                toggleMenu.style.display = 'none'; // Ocultación inmediata
+                toggleMenu.classList.add('hide-toggle'); // Clase CSS para mantenerlo oculto
                 
-                // Añadir clase al body para control adicional
+                // Añadir clase al body para posible control adicional
                 document.body.classList.add('menu-open');
             });
         }
         
-        // Manejar el cierre del menú móvil
+        // Modifica el addEventListener del closeMenu
         if (closeMenu && navMenu) {
             closeMenu.addEventListener('click', () => {
+                console.log('Close menu clicked');
                 navMenu.classList.remove('show');
                 
                 // Volver a mostrar el botón hamburguesa con un ligero retraso
                 setTimeout(() => {
+                    // Retraso pequeño para evitar parpadeos
                     toggleMenu.style.display = 'block';
                     toggleMenu.classList.remove('hide-toggle');
                     document.body.classList.remove('menu-open');
-                }, 300); // 300ms para coincidir con la transición del menú
+                }, 300); // 300ms es el tiempo aproximado de la transición del menú
             });
         }
         
-        // Configurar el estado activo de los enlaces de navegación
+        // Setup navigation link active state
         const navLinks = document.querySelectorAll('.nav__link');   
         
         function linkAction() {
@@ -125,11 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Volver a mostrar el botón hamburguesa cuando se hace clic en un enlace
             if (toggleMenu) {
-                setTimeout(() => {
-                    toggleMenu.style.display = 'block';
-                    toggleMenu.classList.remove('hide-toggle');
-                    document.body.classList.remove('menu-open');
-                }, 300);
+                toggleMenu.classList.remove('hide-toggle');
             }
         }
         
