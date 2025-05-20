@@ -3,10 +3,8 @@ session_start();
 
 // Lista de páginas permitidas para usuarios con authorization_level 0
 $allowed_pages_level0 = [
-    '/index.php',
     '/newOrder.php',
-    '/profile.php',
-    '/register.php'
+    '/profile.php'
 ];
 
 // Lista de páginas restringidas para usuarios con authorization_level 0
