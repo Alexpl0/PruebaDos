@@ -22,8 +22,9 @@ $base_name = basename($current_page);
 
 // Comprobar si el usuario ha iniciado sesión
 if (!isset($_SESSION['user'])) {
-    // No ha iniciado sesión, redirigir al login (excepto si ya está en index.php)
-    if (basename($current_page) != 'index.php') {
+    // Páginas públicas permitidas sin sesión
+    $public_pages = ['index.php', 'register.php', 'recovery.php'];
+    if (!in_array($base_name, $public_pages)) {
         header('Location: index.php');
         exit;
     }
