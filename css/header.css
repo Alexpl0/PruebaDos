@@ -348,22 +348,37 @@ img {
     text-align: left;
     padding-top: 0;
     margin-right: 2rem;
+    align-items: center; /* Asegura alineación vertical */
   }
   
-  /* Ajustes de imagen de perfil para desktop - mantiene círculo perfecto */
+  /* Ajustes mejorados para el logo circular en desktop */
   .nav__img {
-    width: 40px; /* Tamaño más pequeño para desktop */
-    height: 40px; /* Mismo valor que el ancho para mantener círculo perfecto */
-    margin-right: 0.8rem;
-    margin-bottom: 0;
+    /* Dimensiones proporcionales al header */
+    width: calc(var(--header-height) - 0.5rem);
+    height: calc(var(--header-height) - 0.5rem);
     
-    /* Mantiene el fondo blanco */
+    /* Mantiene todas las propiedades clave del círculo */
+    border-radius: 50%;
     background-color: white;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    
+    /* Mejoras visuales para desktop */
+    margin-right: 1rem;
+    margin-bottom: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+    
+    /* Asegura que se mantenga el centrado del logo */
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
   
   .nav__img img {
-    width: 75%; /* Consistente con la versión móvil */
-    height: auto;
+    /* Tamaño optimizado dentro del círculo */
+    width: 75%;
+    height: 75%;
+    object-fit: contain;
+    display: block;
   }
   
   /* Menú central en desktop */
