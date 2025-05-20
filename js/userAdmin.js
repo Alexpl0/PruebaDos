@@ -2,6 +2,15 @@
 /**
  * User Administration - JavaScript functionality
  * This file handles the DataTable initialization and CRUD operations for users.
+ * 
+ * Features:
+ * - User listing with DataTable
+ * - Add, Edit, Delete user operations
+ * - Form validation and AJAX submission
+ * - Export to Excel and PDF
+ * 
+ * @author Premium Freight Team
+ * @version 1.0.0
  */
 
 //=====================================================================================================
@@ -21,8 +30,8 @@ function initializeDataTable() {
     // Initialize the DataTable with configuration for AJAX, columns, buttons, and language
     usersTable = $('#users-table').DataTable({
         ajax: {
-            url: 'https://grammermx.com/Jesus/PruebaDos/dao/users/daoUserAdmin.php', // Endpoint to fetch user data
-            dataSrc: 'data', // The property in the response that contains the user array
+            url: 'https://grammermx.com/Jesus/PruebaDos/dao/users/daoUserAdmin.php', 
+            dataSrc: 'data', 
             complete: function() {
                 // Close loading indicator when data is loaded
                 Swal.close();
@@ -38,12 +47,12 @@ function initializeDataTable() {
             }
         },
         columns: [
-            { data: 'id' },           // User ID
-            { data: 'name' },         // User Name
-            { data: 'email' },        // User Email
-            { data: 'role' },         // User Role
-            { data: 'password' },     // User Password (should be hashed or hidden in production)
-            { data: 'authorization_level' }, // User Authorization Level
+            { data: 'id' },           
+            { data: 'name' },        
+            { data: 'email' },        
+            { data: 'role' },        
+            { data: 'password' },     
+            { data: 'authorization_level' }, 
             {
                 data: null,
                 sortable: false,
@@ -72,15 +81,15 @@ function initializeDataTable() {
                 titleAttr: 'Add New User', // Tooltip
                 action: function () {
                     // Clear the form and set it for a new user
-                    document.getElementById('user-form').reset();
-                    document.getElementById('user-id').value = 'New';
+                    $('#user-form').trigger('reset');
+                    $('#user-id').val('New');
                     
                     // Show the user form
-                    document.getElementById('form-title').textContent = 'Add New User';
-                    document.getElementById('user-form-container').classList.remove('d-none');
+                    $('#form-title').text('Add New User');
+                    $('#user-form-container').removeClass('d-none');
                     
                     // Scroll to the form for better UX
-                    document.getElementById('user-form-container').scrollIntoView({ behavior: 'smooth' });
+                    $('#user-form-container')[0].scrollIntoView({ behavior: 'smooth' });
                 }
             },
             {
@@ -109,7 +118,6 @@ function initializeDataTable() {
         order: [[0, 'desc']], // Default sort by ID descending
         responsive: true,     // Enable responsive table
         language: {
-            // Customization for DataTable language
             search: "Search:",
             lengthMenu: "Show _MENU_ entries per page",
             info: "Showing _START_ to _END_ of _TOTAL_ entries",
@@ -129,22 +137,21 @@ function initializeDataTable() {
         const userData = usersTable.row($(this).closest('tr')).data();
         
         // Fill the form with the selected user's data
-        document.getElementById('user-id').value = userData.id;
-        document.getElementById('user-name').value = userData.name;
-        document.getElementById('user-email').value = userData.email;
-        document.getElementById('user-password').value = userData.password; // Populate password field
+        $('#user-id').val(userData.id);
+        $('#user-name').val(userData.name);
+        $('#user-email').val(userData.email);
+        $('#user-password').val(userData.password);
         
         // Show the form for editing
-        document.getElementById('form-title').textContent = 'Edit User';
-        document.getElementById('user-form-container').classList.remove('d-none');
+        $('#form-title').text('Edit User');
+        $('#user-form-container').removeClass('d-none');
         
         // Scroll to the form
-        document.getElementById('user-form-container').scrollIntoView({ behavior: 'smooth' });
+        $('#user-form-container')[0].scrollIntoView({ behavior: 'smooth' });
         
         // Set the correct role and authorization level in the dropdown
         populateUserForm(userData);
     });
-
 
     // Handle Delete User button click in the table
     $('#users-table').on('click', '.delete-user', function() {
@@ -194,51 +201,27 @@ function initializeDataTable() {
         });
     });
 
-
-    // Handle Add User button click (outside DataTable buttons)
-    document.getElementById('btnAddUser').addEventListener('click', function() {
-        // Clear the form for a new user
-        document.getElementById('user-form').reset();
-        document.getElementById('user-id').value = 'New';
-        
-        // Show the form
-        document.getElementById('form-title').textContent = 'Add New User';
-        document.getElementById('user-form-container').classList.remove('d-none');
-        
-        // Scroll to the form
-        document.getElementById('user-form-container').scrollIntoView({ behavior: 'smooth' });
-    });
-
-    // Handle Cancel button click to hide the user form
-    const cancelButton = document.getElementById('cancel-form');
-    if (cancelButton) {
-        cancelButton.addEventListener('click', function() {
-            document.getElementById('user-form-container').classList.add('d-none');
-        });
-    } // Si no existe, no hagas nada, el error ya no se lanza
-
-
-        // Handle User Form submission for creating or updating a user
+    // Handle User Form submission for creating or updating a user
     $('#submitbtn').on('click', function(e) {
         e.preventDefault();
 
         console.log('Form submitted');
 
         // Gather form data
-        const userId = document.getElementById('user-id').value;
+        const userId = $('#user-id').val();
         const isNewUser = userId === 'New';
 
         // Get the selected role and authorization level from the dropdown
-        const roleLevelSelect = document.getElementById('user-role-level');
+        const roleLevelSelect = $('#user-role-level')[0];
         const selectedValue = roleLevelSelect.value;
         const [authLevel, role] = selectedValue.split(':');
 
         // Build the user data object to send to the server
         const userData = {
-            name: document.getElementById('user-name').value,
-            email: document.getElementById('user-email').value,
+            name: $('#user-name').val(),
+            email: $('#user-email').val(),
             role: role,
-            password: document.getElementById('user-password').value,
+            password: $('#user-password').val(),
             authorization_level: parseInt(authLevel)
         };
 
@@ -275,7 +258,7 @@ function initializeDataTable() {
                 });
                 
                 // Hide the form after success
-                document.getElementById('user-form-container').classList.add('d-none');
+                $('#user-form-container').addClass('d-none');
                 
                 // Refresh the table to show changes
                 usersTable.ajax.reload();
@@ -294,10 +277,30 @@ function initializeDataTable() {
 }
 
 /**
- * DOM Ready handler
- * Checks for admin privileges and initializes the DataTable and event handlers.
+ * Helper function to populate the user form with data for editing.
+ * @param {Object} userData - The user data object from the DataTable row.
  */
-document.addEventListener('DOMContentLoaded', function() {
+function populateUserForm(userData) {
+    // Set the combined role and auth level dropdown to match the user's current values
+    const roleLevel = userData.authorization_level + ':' + userData.role;
+    const roleLevelSelect = $('#user-role-level')[0];
+    
+    // Find and select the matching option in the dropdown
+    for (let i = 0; i < roleLevelSelect.options.length; i++) {
+        if (roleLevelSelect.options[i].value.startsWith(userData.authorization_level + ':')) {
+            roleLevelSelect.selectedIndex = i;
+            break;
+        }
+    }
+}
+
+/**
+ * Initializes the page when DOM is ready
+ * - Checks authorization level
+ * - Sets up event handlers
+ * - Initializes DataTable
+ */
+$(document).ready(function() {
     // Check if the user has admin privileges (authorizationLevel >= 1)
     if (window.authorizationLevel < 1) {
         Swal.fire({
@@ -324,41 +327,37 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize DataTable after a short delay (for UI smoothness)
     setTimeout(initializeDataTable, 100);
     
+    // Set up event handlers using jQuery for better compatibility
+    
+    // Add User button (outside of DataTable)
+    // Check if button exists before binding
+    if ($('#btnAddUser').length) {
+        $('#btnAddUser').on('click', function() {
+            $('#user-form').trigger('reset');
+            $('#user-id').val('New');
+            $('#form-title').text('Add New User');
+            $('#user-form-container').removeClass('d-none');
+            $('#user-form-container')[0].scrollIntoView({ behavior: 'smooth' });
+        });
+    }
+    
     // Password visibility toggle for the user form
-    document.querySelector('.toggle-password').addEventListener('click', function() {
-        const passwordInput = document.getElementById('user-password');
+    $(document).on('click', '.toggle-password', function() {
+        const passwordInput = $('#user-password')[0];
         const type = passwordInput.type === 'password' ? 'text' : 'password';
         passwordInput.type = type;
         
         // Change the icon depending on visibility
-        const icon = this.querySelector('i');
+        const icon = $(this).find('i');
         if (type === 'password') {
-            icon.className = 'fas fa-eye';
+            icon.removeClass('fa-eye-slash').addClass('fa-eye');
         } else {
-            icon.className = 'fas fa-eye-slash';
+            icon.removeClass('fa-eye').addClass('fa-eye-slash');
         }
     });
-});
-
-/**
- * Helper function to populate the user form with data for editing.
- * @param {Object} userData - The user data object from the DataTable row.
- */
-function populateUserForm(userData) {
-    // Set the combined role and auth level dropdown to match the user's current values
-    const roleLevel = userData.authorization_level + ':' + userData.role;
-    const roleLevelSelect = document.getElementById('user-role-level');
     
-    // Find and select the matching option in the dropdown
-    for (let i = 0; i < roleLevelSelect.options.length; i++) {
-        if (roleLevelSelect.options[i].value.startsWith(userData.authorization_level + ':')) {
-            roleLevelSelect.selectedIndex = i;
-            break;
-        }
-    }
-}
-
-// Handle Cancel button click to hide the user form
-$(document).on('click', '#cancel-form', function() {
-    $('#user-form-container').addClass('d-none');
+    // Cancel button for the form
+    $(document).on('click', '#cancel-form', function() {
+        $('#user-form-container').addClass('d-none');
+    });
 });
