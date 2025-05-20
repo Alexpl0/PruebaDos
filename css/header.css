@@ -29,18 +29,23 @@
  * ESTILOS BASE
  * Normalización y configuración básica para elementos HTML
  *============================================================================*/
+html {
+  overflow-x: hidden; /* Previene el desbordamiento horizontal en el nivel más alto */
+}
+
 *, ::before, ::after {
   box-sizing: border-box; /* Modelo de caja estándar para todos los elementos */
 }
 
 /* Configuración del body para compensar el header fijo */
 body {
-  min-width: 100vw;
   margin: var(--header-height) 0 0 0; /* Espacio para el header fijo */
   font-family: var(--body-font);
-  font-size: 15px;
+  font-size: var(--normal-font-size); /* Usar la variable CSS */
   font-weight: 500;
   transition: margin 0.3s; /* Transición suave para cambios en el espacio del header */
+  overflow-x: hidden; /* Previene el desbordamiento horizontal también en el body */
+  width: 100%;        /* Asegura que el body ocupe solo el ancho del viewport */
 }
 
 /* Reseteo de listas */
