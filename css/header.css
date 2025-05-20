@@ -86,7 +86,7 @@ img {
  * Estos estilos se aplican al header independientemente del tamaño de pantalla
  *============================================================================*/
 .header {
-  /* width: 100vw; */
+  width: 100vw;
   height: var(--header-height);
   position: fixed;
   top: 0;
