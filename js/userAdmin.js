@@ -365,3 +365,8 @@ function populateUserForm(userData) {
         }
     }
 }
+
+// Handle Cancel button click to hide the user form
+$(document).on('click', '#cancel-form', function() {
+    $('#user-form-container').addClass('d-none');
+});
