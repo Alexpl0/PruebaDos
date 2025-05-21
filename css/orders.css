@@ -261,7 +261,7 @@ main {
 
 /* Asegurar que SweetAlert aparezca por encima del modal */
 .swal-on-top {
-    z-index: 1060 !important; /* Bootstrap modals van hasta ~1055 */
+    z-index: 9999 !important; /* Bootstrap modals van hasta ~1055 */
 }
 
 /* Puedes poner esto en tu archivo CSS */
