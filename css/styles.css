@@ -148,8 +148,7 @@ textarea {
     margin-bottom: 20px;
     border: 1px solid #ccc;
     border-radius: 5px;
-    box-sizing: border-box;
-    max-height: 5%;
+    box-sizing: border-box
 }
 
 
