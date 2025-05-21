@@ -117,6 +117,7 @@ function initializeDataTable() {
         ],
         order: [[0, 'desc']], // Default sort by ID descending
         responsive: true,     // Enable responsive table
+        scrollX: true,        // Enable horizontal scrolling
         language: {
             search: "Search:",
             lengthMenu: "Show _MENU_ entries per page",

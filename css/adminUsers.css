@@ -342,6 +342,12 @@
     border-color: #b02a37;
 }
 
+/* Add this to your adminUsers.css file */
+.dataTables_wrapper {
+    overflow-x: auto;
+    width: 100%;
+}
+
 /* Add general styling for icons in DataTable buttons if needed, 
    or rely on the specific .btn-primary, .btn-success, .btn-danger rules above */
 .dt-buttons .material-symbols-outlined {
