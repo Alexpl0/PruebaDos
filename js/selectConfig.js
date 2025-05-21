@@ -1,10 +1,22 @@
 /**
  * selectConfig.js
+ * -------------------------------------------
  * Configura todos los elementos select del formulario como componentes Select2
  * con funcionalidad de búsqueda en tiempo real.
+ * 
+ * Características principales:
+ * - Convierte selects estándar en componentes Select2 interactivos
+ * - Implementa búsqueda con resaltado visual durante la selección
+ * - Elimina el resaltado al mostrar la opción seleccionada
+ * - Maneja casos especiales para ciertos elementos del formulario
+ * - Integra con la validación del formulario
  */
 
 document.addEventListener('DOMContentLoaded', function() {
+    //==========================================================================
+    // CONFIGURACIÓN GLOBAL Y UTILIDADES
+    //==========================================================================
+    
     // Configuración global para todos los selects
     $.fn.select2.defaults.set('language', {
         noResults: function() {
@@ -14,15 +26,72 @@ document.addEventListener('DOMContentLoaded', function() {
             return "Searching...";
         }
     });
+    
+    // Función auxiliar para escapar caracteres especiales en términos de búsqueda
+    // Por si $.escapeSelector no está disponible en versiones antiguas de jQuery
+    const escapeRegExp = function(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    };
 
-    // Inicializar Select2 en todos los select, excepto aquellos que necesitan configuración especial
-    // Esta función convierte los selects estándar en componentes select2 interactivos
+    //==========================================================================
+    // FUNCIONES DE FORMATEO
+    //==========================================================================
+    
+    /**
+     * Formatea opciones durante la búsqueda, CON resaltado visual
+     * @param {Object} option - Opción del select a formatear
+     * @return {String|HTMLElement} - Texto formateado con resaltado
+     */
+    function formatSearchResult(option) {
+        if (!option.id || !option.text) return option.text; // Manejo de opciones inválidas
+        
+        const term = $('.select2-search__field').val() || '';
+        if (!term.trim()) return option.text;
+        
+        try {
+            // Resaltar el término de búsqueda con fondo amarillo
+            const safeSearchTerm = escapeRegExp(term);
+            const regex = new RegExp('(' + safeSearchTerm + ')', 'gi');
+            return option.text.replace(regex, '<span class="select2-match">$1</span>');
+        } catch (e) {
+            console.warn('Error al formatear resultado de búsqueda:', e);
+            return option.text; // Si hay error, devolver texto sin formato
+        }
+    }
+
+    /**
+     * Formatea la opción seleccionada, SIN resaltado visual
+     * @param {Object} option - Opción seleccionada a formatear
+     * @return {String} - Texto limpio sin resaltado
+     */
+    function formatSelection(option) {
+        if (!option.id) return option.text;
+        
+        // Asegurar que se devuelve texto puro sin ningún resaltado
+        try {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = option.text || '';
+            return tempDiv.textContent || tempDiv.innerText || option.text;
+        } catch (e) {
+            console.warn('Error al formatear selección:', e);
+            return option.text; // Si hay error, devolver texto original
+        }
+    }
+
+    //==========================================================================
+    // INICIALIZACIÓN DE SELECT2
+    //==========================================================================
+    
+    /**
+     * Inicializa Select2 en todos los selects estándar
+     * Excluye los que tienen configuración especial
+     */
     function initializeSelect2() {
         // Selects estándar (excluyendo los que ya tienen configuración especial)
         $('select').not('#CompanyShip, #inputCompanyNameDest').each(function() {
             const $select = $(this);
             
-            // Verificar si ya está inicializado para evitar duplicación
+            // Solo inicializar si no está ya inicializado
             if (!$select.hasClass('select2-hidden-accessible')) {
                 $select.select2({
                     width: '100%',
@@ -30,99 +99,95 @@ document.addEventListener('DOMContentLoaded', function() {
                     allowClear: false,
                     minimumResultsForSearch: 5, // Solo muestra búsqueda si hay más de 5 opciones
                     dropdownParent: $select.parent(),
-                    // Función para formatear opciones durante la búsqueda - CON resaltado
                     templateResult: formatSearchResult,
-                    // Función para formatear la selección - SIN resaltado
                     templateSelection: formatSelection
                 });
                 
-                // Después de inicialización, disparar evento para cualquier lógica dependiente
+                // Evento para notificar que se ha inicializado
                 $select.trigger('select2:initialized');
             }
         });
     }
 
-    // Función para formatear opciones durante la búsqueda (CON resaltado)
-    function formatSearchResult(option) {
-        if (!option.id) return option.text; // No aplicar a placeholder
-        
-        const term = $('.select2-search__field').val() || '';
-        if (!term) return option.text;
-        
-        // Resaltar el término de búsqueda con fondo amarillo
-        const regex = new RegExp('(' + $.escapeSelector(term) + ')', 'gi');
-        return option.text.replace(regex, '<span class="select2-match">$1</span>');
-    }
-
-    // Función para formatear la opción seleccionada (SIN resaltado)
-    function formatSelection(option) {
-        if (!option.id) return option.text;
-        
-        // Devolver texto puro sin ningún resaltado
-        // Si hay HTML en option.text, extraer solo el texto
-        const text = option.text || '';
-        // Eliminar cualquier etiqueta HTML (span, etc.)
-        return $('<div>').html(text).text();
-    }
-
-    // Inicializar Select2 en todos los selects
-    initializeSelect2();
-
-    // Evento para manejar dinamismo cuando se agregan/cargan opciones
-    $(document).on('optionsLoaded', 'select', function() {
-        const $select = $(this);
-        
-        // Re-inicializar select2 si ya estaba usando select2
-        if ($select.hasClass('select2-hidden-accessible')) {
-            $select.select2('destroy');
-        }
-        
-        // Inicializar nuevamente con opciones actualizadas
-        $select.select2({
-            width: '100%',
-            placeholder: $select.find('option:selected').text() || 'Select an option',
-            allowClear: false,
-            minimumResultsForSearch: 5,
-            dropdownParent: $select.parent(),
-            templateResult: formatSearchResult,
-            templateSelection: formatSelection
-        });
-    });
-
-    // Manejar caso especial para Reference y Measures
+    /**
+     * Inicializa selects con configuración especial
+     * (Reference, Measures, etc.)
+     */
     function initializeSpecialSelects() {
-        // Referencia
-        $('#Reference').select2({
-            width: '100%',
-            minimumResultsForSearch: Infinity, // Deshabilita búsqueda por ser pocos elementos
-            dropdownParent: $('#Reference').parent(),
-            templateResult: formatSearchResult,
-            templateSelection: formatSelection
-        });
+        // Referencia - Select con tamaño personalizado
+        if ($('#Reference').length && !$('#Reference').hasClass('select2-hidden-accessible')) {
+            $('#Reference').select2({
+                width: '100%',
+                minimumResultsForSearch: Infinity, // Deshabilita búsqueda por ser pocos elementos
+                dropdownParent: $('#Reference').parent(),
+                templateResult: formatSearchResult,
+                templateSelection: formatSelection
+            });
+        }
 
-        // Medidas
-        $('#Measures').select2({
-            width: '100%',
-            minimumResultsForSearch: Infinity, // Deshabilita búsqueda por ser pocos elementos
-            dropdownParent: $('#Measures').parent(),
-            templateResult: formatSearchResult,
-            templateSelection: formatSelection
-        });
+        // Medidas - Select con tamaño personalizado
+        if ($('#Measures').length && !$('#Measures').hasClass('select2-hidden-accessible')) {
+            $('#Measures').select2({
+                width: '100%',
+                minimumResultsForSearch: Infinity, // Deshabilita búsqueda por ser pocos elementos
+                dropdownParent: $('#Measures').parent(),
+                templateResult: formatSearchResult,
+                templateSelection: formatSelection
+            });
+        }
     }
 
-    // Inicializar selects especiales
-    initializeSpecialSelects();
+    //==========================================================================
+    // MANEJO DE EVENTOS Y ACTUALIZACIONES DINÁMICAS
+    //==========================================================================
     
-    // Manejar validación con Select2
+    /**
+     * Configura los eventos para validación y comportamiento de Select2
+     */
+    function setupSelect2Events() {
+        // Actualización dinámica cuando se agregan/cargan opciones
+        $(document).on('optionsLoaded', 'select', function() {
+            const $select = $(this);
+            
+            // Reinicializar si ya estaba usando select2
+            if ($select.hasClass('select2-hidden-accessible')) {
+                $select.select2('destroy');
+            }
+            
+            // Inicializar nuevamente con opciones actualizadas
+            $select.select2({
+                width: '100%',
+                placeholder: $select.find('option:selected').text() || 'Select an option',
+                allowClear: false,
+                minimumResultsForSearch: 5,
+                dropdownParent: $select.parent(),
+                templateResult: formatSearchResult,
+                templateSelection: formatSelection
+            });
+        });
+
+        // Manejo especial para Recovery que debe activar visibilidad de otros campos
+        if ($('#Recovery').length) {
+            $('#Recovery').on('select2:select', function(e) {
+                if (typeof handleRecoveryFileVisibility === 'function') {
+                    handleRecoveryFileVisibility();
+                }
+            });
+        }
+    }
+
+    /**
+     * Configura la validación para componentes Select2
+     */
     function setupSelect2Validation() {
         // Validación al seleccionar
         $(document).on('select2:select', 'select', function() {
             const $select = $(this);
             
-            // Removemos clases de validación
+            // Actualizar clases de validación
             $select.removeClass('is-invalid').addClass('is-valid');
             
-            // Si es un campo requerido
+            // Verificar si está vacío y es requerido
             if ($select.prop('required')) {
                 const value = $select.val();
                 if (!value || value === '') {
@@ -132,20 +197,42 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Configurar validación
-    setupSelect2Validation();
-
-    // Integración con Recovery para mostrar/ocultar campo de archivo
-    $('#Recovery').on('select2:select', function(e) {
-        // Llamada a la función existente para manejar visibilidad del campo de archivo
-        if (typeof handleRecoveryFileVisibility === 'function') {
-            handleRecoveryFileVisibility();
+    //==========================================================================
+    // INICIALIZACIÓN PRINCIPAL
+    //==========================================================================
+    
+    // Inicializar todos los componentes Select2
+    function initializeAll() {
+        try {
+            // Paso 1: Inicializar selects estándar
+            initializeSelect2();
+            
+            // Paso 2: Inicializar selects especiales
+            initializeSpecialSelects();
+            
+            // Paso 3: Configurar eventos y validación
+            setupSelect2Events();
+            setupSelect2Validation();
+            
+            console.log('Select2 initialized successfully');
+        } catch (error) {
+            console.error('Error initializing Select2:', error);
         }
-    });
+    }
+    
+    // Ejecutar inicialización
+    initializeAll();
 
-    // Función para reinicializar select2 después de cambios dinámicos
+    //==========================================================================
+    // API PÚBLICA
+    //==========================================================================
+    
+    /**
+     * Expone método para reinicializar Select2 después de cambios dinámicos en el DOM
+     * Esta función puede ser llamada desde cualquier parte de la aplicación
+     */
     window.reinitializeSelect2 = function() {
-        initializeSelect2();
-        initializeSpecialSelects();
+        console.log('Reinitializing Select2 components...');
+        initializeAll();
     };
 });
