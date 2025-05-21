@@ -194,12 +194,12 @@
 
 #Divisa button.active {
     background-color: var(--first-color);
-    color: var(--first-color);
+    color: black;
     border-color: var(--first-color);
 }
 
 #Divisa button:hover {
-    border-color: var(--first-color);
+    border-color: yellow;
 }
 
 /* SectReference - reference type with number input */
