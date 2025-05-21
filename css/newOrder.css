@@ -50,11 +50,12 @@
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
-/* Common styles for all inputs */
+/* Common styles for all inputs - UPDATED to match select height exactly */
 #plant-form input[type="text"],
-#plant-form input[type="number"] {
+#plant-form input[type="number"],
+#plant-form input[type="file"] {
     width: 100%;
-    height: 38px;
+    height: 38px !important;
     padding: 0.375rem 0.75rem;
     border: 1px solid #ced4da;
     border-radius: 0.25rem;
@@ -98,27 +99,83 @@
     margin-bottom: 1rem;
 }
 
-/* Character counter styling */
+/* UPDATED: Character counter styling with better spacing */
 #immediateCounter,
 #permanentCounter {
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     font-size: 0.85rem;
 }
 
-/* MeasuresDiv - Input and Select side by side */
+/* FIXED: Ensure PermanentActions label appears properly after immediateCounter */
+#SectDescription label[for="PermanentActions"] {
+    display: block;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* UPDATED: MeasuresDiv layout with labels above inputs/selects */
 #MeasuresDiv {
-    display: flex;
-    align-items: flex-end;
-    gap: 0.5rem;
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 0.5rem 1rem;
+    align-items: start;
+}
+
+#MeasuresDiv label[for="Weight"] {
+    grid-column: 1;
+    grid-row: 1;
+    margin-bottom: 0.5rem;
 }
 
 #Weight {
-    flex: 3; /* Makes input wider */
+    grid-column: 1;
+    grid-row: 2;
+}
+
+#MeasuresDiv label[for="Measures"] {
+    grid-column: 2;
+    grid-row: 1;
+    margin-bottom: 0.5rem;
 }
 
 #Measures {
-    flex: 1; /* Makes select narrower */
-    min-width: 80px; /* Ensures minimum width */
+    grid-column: 2;
+    grid-row: 2;
+    min-width: 80px;
+}
+
+/* UPDATED: SectReference layout to align elements vertically */
+#SectReference {
+    display: flex;
+    flex-direction: column;
+}
+
+#SectReference label {
+    margin-bottom: 0.5rem;
+}
+
+#SectReference select,
+#SectReference input {
+    width: 100% !important;
+    height: 38px !important;
+    margin-bottom: 0.5rem;
+}
+
+/* NEW: Container for Reference select and input */
+#SectReference .reference-container {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+#Reference {
+    flex: 1;
+    min-width: 80px;
+}
+
+#ReferenceNumber {
+    flex: 3;
 }
 
 /* QuotedCostDiv - Input above buttons */
@@ -152,22 +209,6 @@
     background-color: var(--first-color);
     color: white;
     border-color: var(--first-color);
-}
-
-/* ReferenceDiv - Select and input in row */
-#ReferenceDiv {
-    display: flex;
-    align-items: flex-end;
-    gap: 0.5rem;
-}
-
-#Reference {
-    flex: 1;
-    min-width: 80px; /* Ensures minimum width */
-}
-
-#ReferenceNumber {
-    flex: 3; /* Makes input wider */
 }
 
 /* Recovery file upload container */
@@ -251,12 +292,25 @@
     width: 100% !important;
 }
 
-/* Single selection dropdown */
+/* IMPROVED: Single selection dropdown - especially for company selects */
 .select2-container--default .select2-selection--single {
     height: 38px !important;
     display: flex;
     align-items: center;
     border: 1px solid #ced4da;
+}
+
+/* SPECIFIC: Styles for Select2 company dropdowns */
+#CompanyShip + .select2-container,
+#inputCompanyNameDest + .select2-container {
+    width: 100% !important;
+}
+
+#CompanyShip + .select2-container .select2-selection--single,
+#inputCompanyNameDest + .select2-container .select2-selection--single {
+    height: 38px !important;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
 }
 
 .select2-container--default .select2-selection--single .select2-selection__arrow {
@@ -303,9 +357,13 @@
     }
     
     /* Special handling for inline groups */
-    #MeasuresDiv,
-    #ReferenceDiv {
-        flex-wrap: nowrap;
+    #MeasuresDiv {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    #MeasuresDiv label {
+        margin-top: 0.5rem;
     }
     
     #plant-form {
@@ -320,15 +378,8 @@
 
 @media (max-width: 576px) {
     /* Further adjustments for very small screens */
-    #MeasuresDiv,
-    #ReferenceDiv {
+    #SectReference .reference-container {
         flex-direction: column;
-    }
-    
-    #MeasuresDiv > *,
-    #ReferenceDiv > * {
-        width: 100%;
-        flex: 1 1 100%;
     }
     
     #Divisa {

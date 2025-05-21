@@ -274,7 +274,7 @@ include_once 'dao/users/auth_check.php';
                 <!--=================================================================================================================-->
                 <div id="DivCompanyShip" class="mb-2">
                     <label for="CompanyShip">Company Name</label>
-                    <select name="CompanyShip" id="CompanyShip" class="form-select">
+                    <select id="CompanyShip" name="CompanyShip"  class="form-select">
                         <option value="" disabled selected>Select a company</option>
                     </select>
                 </div>
@@ -304,7 +304,7 @@ include_once 'dao/users/auth_check.php';
                 <!--=================================================================================================================-->
                 <div id="DivCompanyDest" class="mb-2">
                     <label for="inputCompanyNameDest">Company Name</label>
-                    <select name="inputCompanyNameDest" id="inputCompanyNameDest" class="form-select">
+                    <select id="inputCompanyNameDest" name="inputCompanyNameDest"  class="form-select">
                         <option value="" disabled selected>Select a company</option>
                     </select>
                 </div>
@@ -390,10 +390,9 @@ include_once 'dao/users/auth_check.php';
                 <!--=================================================================================================================-->
                 <div id="SectReference" class="mb-3">
                     <!--=================================================================================================================-->
-                    <div id="ReferenceDiv" class="d-flex">
                     <label for="Reference">Reference</label>
-                        <!--=================================================================================================================-->
-                        <select id="Reference" name="Reference" class="form-select me-2">
+                    <div class="reference-container">
+                        <select id="Reference" name="Reference" class="form-select">
                             <option value="" disabled selected>Select a Reference</option>
                             <option value="45">45</option>
                             <option value="3">3</option>
@@ -401,7 +400,7 @@ include_once 'dao/users/auth_check.php';
                             <option value="Order">Order</option>
                         </select>
                         <!--=================================================================================================================-->
-                        <input id="ReferenceNumber" type="number"  name="ReferenceNumber" class="form-control" placeholder="Reference Number" required>
+                        <input id="ReferenceNumber" type="number" name="ReferenceNumber" class="form-control" placeholder="Reference Number" required>
                     </div>
                     <!--=================================================================================================================-->
                 </div>
