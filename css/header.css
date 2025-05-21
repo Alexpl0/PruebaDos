@@ -147,8 +147,9 @@ img {
   
   /* Asegura que los botones de navegación móvil sean visibles */
   #nav-toggle, .header__toggle {
-    display: block;
-  }
+        display: block;
+        color: white;
+    }
   
   /* Aumento del tamaño del botón de cierre para mejor usabilidad */
   #nav-close {
