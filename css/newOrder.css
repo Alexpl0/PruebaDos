@@ -367,11 +367,7 @@
 
 /* Fix for clearable button (x) in Select2 */
 .select2-container--default .select2-selection--single .select2-selection__clear {
-    cursor: pointer;
-    font-weight: bold;
-    margin-right: 20px;
-    float: right;
-    font-size: 16px;
+    display: none;
 }
 
 /* Ensure proper spacing for the text in the dropdown */
