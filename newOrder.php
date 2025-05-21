@@ -62,7 +62,7 @@ include_once 'dao/users/auth_check.php';
     <main class="container my-4">
         <h1 class="mb-3">SPECIAL FREIGHT AUTHORIZATION</h1>
 
-        <h2 class="mb-4">Transport Order</h2>
+        <h2 class="mb-4" style="justify-self: center; text-align: center;">Transport Order</h2>
         <form id="plant-form">
             <!--=================================================================================================================-->
             <div id="SectPlantas" class="mb-3"> <!-- Contiene Requesting Plant y Plant Code -->
