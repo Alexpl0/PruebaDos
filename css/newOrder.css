@@ -193,9 +193,10 @@
 }
 
 #Divisa button.active {
-    background-color: magenta;
-    color: var(--first-color);
-    border-color: blue;
+    background-color: var(--first-color);
+    color: white;
+    border-color: black;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
 }
 
 #Divisa button:hover {
