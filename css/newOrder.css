@@ -419,15 +419,15 @@
 }
 
 /* ====================================
-   SELECT2 ESTILOS PERSONALIZADOS
+   SELECT2 ESTILOS
    ==================================== */
 
-/* Estilo general para contenedores Select2 */
+/* Contenedor principal */
 .select2-container {
     width: 100% !important;
 }
 
-/* Estilo para el dropdown de selección individual */
+/* Estilo del campo de selección */
 .select2-container--default .select2-selection--single {
     height: 38px !important;
     display: flex;
@@ -437,7 +437,7 @@
     background-color: #fff;
 }
 
-/* Posicionamiento de la flecha del dropdown */
+/* Flecha del dropdown */
 .select2-container--default .select2-selection--single .select2-selection__arrow {
     height: 36px;
     position: absolute;
@@ -446,7 +446,6 @@
     width: 20px;
 }
 
-/* Asegurar que la flecha sea visible */
 .select2-container--default .select2-selection--single .select2-selection__arrow b {
     border-color: #888 transparent transparent transparent;
     border-style: solid;
@@ -460,7 +459,7 @@
     width: 0;
 }
 
-/* Estilo para el texto seleccionado */
+/* Texto seleccionado */
 .select2-container--default .select2-selection--single .select2-selection__rendered {
     line-height: 36px;
     color: #212529;
@@ -469,59 +468,49 @@
     background-color: transparent;
 }
 
-/* Estilos para el dropdown y resultados */
+/* Dropdown y resultados */
 .select2-dropdown {
     border-color: var(--first-color);
     border-radius: 0.25rem;
     z-index: 9999;
 }
 
-/* Estilo para el campo de búsqueda */
+/* Campo de búsqueda */
 .select2-search--dropdown .select2-search__field {
     padding: 0.5rem;
     border-radius: 0.25rem;
     border: 1px solid #ced4da;
 }
 
-/* Estilo para las opciones */
+/* Opciones en el dropdown */
 .select2-results__option {
     padding: 0.5rem 0.75rem;
 }
 
-/* Opción resaltada al pasar el mouse */
 .select2-results__option--highlighted[aria-selected] {
     background-color: var(--first-color);
     color: white;
 }
 
-/* Opción actualmente seleccionada */
 .select2-results__option[aria-selected=true] {
     background-color: rgba(3, 76, 140, 0.1);
 }
 
-/* Resaltado de términos de búsqueda - sin background color */
-.select2-match {
-    background-color: transparent; /* Elimina el fondo */
-    color: var(--first-color);     /* Usa el color principal */
-    font-weight: bold;             /* Mantiene el texto en negrita */
-}
-
-/* Resaltado de términos durante la búsqueda */
+/* Resaltado de términos - versión correcta */
 .select2-results__option .select2-match {
-    background-color: #ffed8a;     /* Fondo amarillo claro durante la búsqueda */
-    color: #000;                    /* Texto oscuro para contraste */
-    font-weight: bold;              /* Texto en negrita */
-    border-radius: 2px;             /* Bordes redondeados */
-    padding: 0 2px;                 /* Un poco de padding */
+    background-color: #ffed8a;
+    color: #000;
+    font-weight: bold;
+    border-radius: 2px;
+    padding: 0 2px;
 }
 
-/* Estilo para el texto ya seleccionado (en el select) */
-.select2-selection__rendered .select2-match,
-.select2-selection__choice .select2-match {
-    background-color: transparent;  /* Sin fondo */
-    color: inherit;                 /* Color normal de texto */
-    font-weight: normal;            /* Sin negrita */
-    text-decoration: none;          /* Sin subrayado */
+/* Texto ya seleccionado */
+.select2-selection__rendered .select2-match {
+    background-color: transparent;
+    color: inherit;
+    font-weight: normal;
+    text-decoration: none;
 }
 
 /* Estados de validación */
@@ -533,26 +522,7 @@
     border-color: #198754;
 }
 
-/* Estilos responsive */
-@media (max-width: 768px) {
-    .select2-container {
-        width: 100% !important;
-    }
-    
-    /* Selects en MeasuresDiv y Reference */
-    #MeasuresDiv .select2-container,
-    .reference-container .select2-container {
-        margin-bottom: 0.5rem;
-    }
-}
-
-/* Manejar select2 dentro de componentes especiales */
-#MeasuresDiv .select2-container,
-.reference-container .select2-container {
-    flex: 1;
-}
-
-/* Casos especiales para Reference y Measures */
+/* Casos especiales */
 #Reference + .select2-container {
     min-width: 100px;
     max-width: 150px;
@@ -561,6 +531,17 @@
 #Measures + .select2-container {
     min-width: 80px;
     max-width: 120px;
+}
+
+/* Hover y focus */
+.select2-container--default .select2-selection--single:hover {
+    border-color: var(--first-color);
+}
+
+.select2-container--default.select2-container--focus .select2-selection--single,
+.select2-container--default.select2-container--open .select2-selection--single {
+    border-color: var(--first-color);
+    box-shadow: 0 0 0 0.25rem rgba(3, 76, 140, 0.25);
 }
 
 /* ====================================

@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
     /**
      * Formatea opciones durante la búsqueda, CON resaltado visual
      * @param {Object} option - Opción del select a formatear
-     * @return {String|HTMLElement} - Texto formateado con resaltado
+     * @return {jQuery|HTMLElement} - Elemento con resaltado aplicado
      */
     function formatSearchResult(option) {
         if (!option.id || !option.text) return option.text; // Manejo de opciones inválidas
@@ -49,10 +49,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!term.trim()) return option.text;
         
         try {
-            // Resaltar el término de búsqueda con fondo amarillo
+            // Crear un elemento jQuery para poder insertar HTML de forma segura
+            const $result = $('<span></span>');
             const safeSearchTerm = escapeRegExp(term);
             const regex = new RegExp('(' + safeSearchTerm + ')', 'gi');
-            return option.text.replace(regex, '<span class="select2-match">$1</span>');
+            
+            // Usar html() en lugar de text() para interpretar las etiquetas HTML
+            $result.html(option.text.replace(regex, '<span class="select2-match">$1</span>'));
+            
+            return $result;
         } catch (e) {
             console.warn('Error al formatear resultado de búsqueda:', e);
             return option.text; // Si hay error, devolver texto sin formato
