@@ -28,10 +28,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     width: '100%',
                     placeholder: $select.find('option:selected').text() || 'Select an option',
                     allowClear: false,
-                    minimumResultsForSearch: 5, // Solo muestra la caja de búsqueda si hay más de 5 opciones
-                    dropdownParent: $select.parent(), // Asegura manejo correcto de z-index
-                    templateResult: formatOption,
-                    templateSelection: formatOption
+                    minimumResultsForSearch: 5, // Solo muestra búsqueda si hay más de 5 opciones
+                    dropdownParent: $select.parent(),
+                    // Función para formatear opciones durante la búsqueda - CON resaltado
+                    templateResult: formatSearchResult,
+                    // Función para formatear la selección - SIN resaltado
+                    templateSelection: formatSelection
                 });
                 
                 // Después de inicialización, disparar evento para cualquier lógica dependiente
@@ -40,18 +42,27 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Función para formatear opciones con resaltado de términos de búsqueda
-    function formatOption(option) {
-        if (!option.id) return option.text;
+    // Función para formatear opciones durante la búsqueda (CON resaltado)
+    function formatSearchResult(option) {
+        if (!option.id) return option.text; // No aplicar a placeholder
         
         const term = $('.select2-search__field').val() || '';
         if (!term) return option.text;
         
-        // Resaltar el término de búsqueda
-        const regex = new RegExp('(' + term + ')', 'gi');
-        const highlighted = option.text.replace(regex, '<span class="select2-match">$1</span>');
+        // Resaltar el término de búsqueda con fondo amarillo
+        const regex = new RegExp('(' + $.escapeSelector(term) + ')', 'gi');
+        return option.text.replace(regex, '<span class="select2-match">$1</span>');
+    }
+
+    // Función para formatear la opción seleccionada (SIN resaltado)
+    function formatSelection(option) {
+        if (!option.id) return option.text;
         
-        return $('<span>' + highlighted + '</span>');
+        // Devolver texto puro sin ningún resaltado
+        // Si hay HTML en option.text, extraer solo el texto
+        const text = option.text || '';
+        // Eliminar cualquier etiqueta HTML (span, etc.)
+        return $('<div>').html(text).text();
     }
 
     // Inicializar Select2 en todos los selects
@@ -72,7 +83,9 @@ document.addEventListener('DOMContentLoaded', function() {
             placeholder: $select.find('option:selected').text() || 'Select an option',
             allowClear: false,
             minimumResultsForSearch: 5,
-            dropdownParent: $select.parent()
+            dropdownParent: $select.parent(),
+            templateResult: formatSearchResult,
+            templateSelection: formatSelection
         });
     });
 
@@ -82,20 +95,24 @@ document.addEventListener('DOMContentLoaded', function() {
         $('#Reference').select2({
             width: '100%',
             minimumResultsForSearch: Infinity, // Deshabilita búsqueda por ser pocos elementos
-            dropdownParent: $('#Reference').parent()
+            dropdownParent: $('#Reference').parent(),
+            templateResult: formatSearchResult,
+            templateSelection: formatSelection
         });
 
         // Medidas
         $('#Measures').select2({
             width: '100%',
             minimumResultsForSearch: Infinity, // Deshabilita búsqueda por ser pocos elementos
-            dropdownParent: $('#Measures').parent()
+            dropdownParent: $('#Measures').parent(),
+            templateResult: formatSearchResult,
+            templateSelection: formatSelection
         });
     }
 
     // Inicializar selects especiales
     initializeSpecialSelects();
-
+    
     // Manejar validación con Select2
     function setupSelect2Validation() {
         // Validación al seleccionar

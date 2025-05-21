@@ -499,12 +499,22 @@
     background-color: rgba(3, 76, 140, 0.1);
 }
 
-/* Resaltado de términos de búsqueda - sin background color */
-.select2-match {
-    background-color: transparent; /* Elimina el fondo */
-    color: var(--first-color);     /* Usa el color principal */
-    font-weight: bold;             /* Mantiene el texto en negrita */
-    text-decoration: underline;    /* Agrega subrayado para mejor visibilidad */
+/* Resaltado de términos durante la búsqueda */
+.select2-results__option .select2-match {
+    background-color: #ffed8a;     /* Fondo amarillo claro durante la búsqueda */
+    color: #000;                    /* Texto oscuro para contraste */
+    font-weight: bold;              /* Texto en negrita */
+    border-radius: 2px;             /* Bordes redondeados */
+    padding: 0 2px;                 /* Un poco de padding */
+}
+
+/* Estilo para el texto ya seleccionado (en el select) */
+.select2-selection__rendered .select2-match,
+.select2-selection__choice .select2-match {
+    background-color: transparent;  /* Sin fondo */
+    color: inherit;                 /* Color normal de texto */
+    font-weight: normal;            /* Sin negrita */
+    text-decoration: none;          /* Sin subrayado */
 }
 
 /* Estados de validación */
