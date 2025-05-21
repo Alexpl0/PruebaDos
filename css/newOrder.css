@@ -194,7 +194,7 @@
 
 #Divisa button.active {
     background-color: var(--first-color);
-    color: white;
+    color: var(--first-color);
     border-color: var(--first-color);
 }
 
@@ -219,8 +219,7 @@
 }
 
 #Reference {
-    width: 30%;
-    min-width: 100px;
+    max-width: 30%;
     flex-shrink: 0;
 }
 
