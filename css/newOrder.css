@@ -499,6 +499,13 @@
     background-color: rgba(3, 76, 140, 0.1);
 }
 
+/* Resaltado de términos de búsqueda - sin background color */
+.select2-match {
+    background-color: transparent; /* Elimina el fondo */
+    color: var(--first-color);     /* Usa el color principal */
+    font-weight: bold;             /* Mantiene el texto en negrita */
+}
+
 /* Resaltado de términos durante la búsqueda */
 .select2-results__option .select2-match {
     background-color: #ffed8a;     /* Fondo amarillo claro durante la búsqueda */
