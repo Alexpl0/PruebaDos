@@ -95,7 +95,7 @@ try {
                 user_id, date, planta, code_planta, transport, in_out_bound,
                 cost_euros, description, area, int_ext, paid_by, category_cause,
                 project_status, recovery, weight, measures, products,
-                carrier, quoted_cost, reference, reference_number,
+                carrier_id, quoted_cost, reference, reference_number,
                 origin_id, destiny_id, status_id, required_auth_level, moneda
             ) VALUES (
                 ?, ?, ?, ?, ?, ?,
@@ -278,4 +278,6 @@ try {
         "details" => "Check server logs for more information"
     ]);
 }
+
+// https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPFpost.php
 ?>
