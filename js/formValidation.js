@@ -387,3 +387,79 @@ function validateCompleteForm() {
     // Se retorna un objeto indicando que el formulario no es válido, junto con el mensaje de error.
     return { isValid: false, errorMessage };
 }
+
+/**
+ * Funciones auxiliares para manejar validación con Select2
+ * Estas funciones extienden la validación existente para trabajar con Select2
+ */
+
+// Función para validar elementos Select2
+function validateSelect2Element(selectElement) {
+    const $select = $(selectElement);
+    const value = $select.val();
+    
+    if (!value || value === '') {
+        // Aplicar clases de error al elemento select y su contenedor Select2
+        $select.addClass('is-invalid');
+        $select.next('.select2-container').addClass('select2-container--error');
+        return false;
+    } else {
+        // Aplicar clases de validación exitosa
+        $select.removeClass('is-invalid').addClass('is-valid');
+        $select.next('.select2-container').removeClass('select2-container--error');
+        return true;
+    }
+}
+
+// Sobrescribir collectFormData para manejar Select2 correctamente
+// Esta versión conserva toda la lógica original pero agrega soporte para Select2
+const originalCollectFormData = collectFormData;
+collectFormData = function() {
+    // Primero llamamos a la implementación original
+    const result = originalCollectFormData();
+    
+    // Ahora agregamos lógica adicional para Select2
+    const formData = result.formData;
+    const emptyFields = result.emptyFields;
+    
+    // Validar todos los elementos select2 que puedan estar vacíos
+    $('select.is-invalid').each(function() {
+        const id = $(this).attr('id');
+        if (id && !emptyFields.includes(id)) {
+            emptyFields.push(id);
+        }
+    });
+    
+    // Asegurar que los valores de Select2 se capturen correctamente
+    $('select').each(function() {
+        const id = $(this).attr('id');
+        if (id && $(this).hasClass('select2-hidden-accessible')) {
+            // Para selects que necesitan el texto mostrado en lugar del valor
+            const textFields = [
+                'planta', 'codeplanta', 'transport', 'InOutBound', 'Area', 'IntExt', 'PaidBy',
+                'CategoryCause', 'ProjectStatus', 'Recovery', 'Carrier',
+                'StatesShip', 'StatesDest'
+            ];
+            
+            if (textFields.includes(id)) {
+                // Capturar el texto visible seleccionado
+                const selectedText = $(this).find('option:selected').text().trim();
+                formData[id] = selectedText;
+            }
+        }
+    });
+    
+    return { formData, emptyFields };
+};
+
+// Extender validateCompleteForm para validar elementos Select2
+const originalValidateCompleteForm = validateCompleteForm;
+validateCompleteForm = function() {
+    // Validar todos los selects con Select2
+    $('select[required]').each(function() {
+        validateSelect2Element(this);
+    });
+    
+    // Luego llamar a la implementación original
+    return originalValidateCompleteForm();
+};

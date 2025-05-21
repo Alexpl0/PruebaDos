@@ -424,6 +424,7 @@ include_once 'dao/users/auth_check.php';
     <script src="js/createPDF.js"></script>
     <script src="js/carrierSelect.js"></script>
     <script src="js/addCarrier.js"></script>
+    <script src="js/selectConfig.js"></script>  
 
     <script src="js/header.js"></script>
 </body>

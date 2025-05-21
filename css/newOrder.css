@@ -249,7 +249,7 @@
 /* Section headings */
 #plant-form h2 {
     width: 100%;
-    text-align: center;
+    text-align: left;
     color: var(--dark-color);
     margin: 2rem 0 1rem;
     font-weight: 600;
@@ -328,6 +328,7 @@
     align-items: center;
     border: 1px solid #ced4da;
     border-radius: 0.25rem;
+    background-color: #fff;
 }
 
 /* Special handling for CompanyShip and inputCompanyNameDest Select2 elements */
@@ -415,6 +416,132 @@
 .select2-container--default.select2-container--open .select2-selection--single {
     border-color: var(--first-color);
     box-shadow: 0 0 0 0.25rem rgba(3, 76, 140, 0.25);
+}
+
+/* ====================================
+   SELECT2 ESTILOS PERSONALIZADOS
+   ==================================== */
+
+/* Estilo general para contenedores Select2 */
+.select2-container {
+    width: 100% !important;
+}
+
+/* Estilo para el dropdown de selección individual */
+.select2-container--default .select2-selection--single {
+    height: 38px !important;
+    display: flex;
+    align-items: center;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    background-color: #fff;
+}
+
+/* Posicionamiento de la flecha del dropdown */
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px;
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    width: 20px;
+}
+
+/* Asegurar que la flecha sea visible */
+.select2-container--default .select2-selection--single .select2-selection__arrow b {
+    border-color: #888 transparent transparent transparent;
+    border-style: solid;
+    border-width: 5px 4px 0 4px;
+    height: 0;
+    left: 50%;
+    margin-left: -4px;
+    margin-top: -2px;
+    position: absolute;
+    top: 50%;
+    width: 0;
+}
+
+/* Estilo para el texto seleccionado */
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 36px;
+    color: #212529;
+    padding-left: 0.75rem;
+    padding-right: 20px;
+}
+
+/* Estilos para el dropdown y resultados */
+.select2-dropdown {
+    border-color: var(--first-color);
+    border-radius: 0.25rem;
+    z-index: 9999;
+}
+
+/* Estilo para el campo de búsqueda */
+.select2-search--dropdown .select2-search__field {
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    border: 1px solid #ced4da;
+}
+
+/* Estilo para las opciones */
+.select2-results__option {
+    padding: 0.5rem 0.75rem;
+}
+
+/* Opción resaltada al pasar el mouse */
+.select2-results__option--highlighted[aria-selected] {
+    background-color: var(--first-color);
+    color: white;
+}
+
+/* Opción actualmente seleccionada */
+.select2-results__option[aria-selected=true] {
+    background-color: rgba(3, 76, 140, 0.1);
+}
+
+/* Resaltado de términos de búsqueda */
+.select2-match {
+    background-color: #ffed8a;
+    padding: 0 2px;
+    font-weight: bold;
+}
+
+/* Estados de validación */
+.is-invalid + .select2-container .select2-selection--single {
+    border-color: #dc3545;
+}
+
+.is-valid + .select2-container .select2-selection--single {
+    border-color: #198754;
+}
+
+/* Estilos responsive */
+@media (max-width: 768px) {
+    .select2-container {
+        width: 100% !important;
+    }
+    
+    /* Selects en MeasuresDiv y Reference */
+    #MeasuresDiv .select2-container,
+    .reference-container .select2-container {
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Manejar select2 dentro de componentes especiales */
+#MeasuresDiv .select2-container,
+.reference-container .select2-container {
+    flex: 1;
+}
+
+/* Casos especiales para Reference y Measures */
+#Reference + .select2-container {
+    min-width: 100px;
+    max-width: 150px;
+}
+
+#Measures + .select2-container {
+    min-width: 80px;
+    max-width: 120px;
 }
 
 /* ====================================
