@@ -56,8 +56,8 @@ include_once 'dao/users/auth_check.php';
                                 <button id="btnLogin" class="btn btn-primary" onclick="loginUsuario()">Iniciar Sesión</button>
                             </div>
                         </div>
-                        <p class="text-center">¿No tienes cuenta? <a href="register.php">Registrate</a></p>
-                        <p class="text-center">¿Olvidaste tu contraseña? <a href="recovery.php">Recuperar</a></p>
+                        <p class="text-center">¿No tienes cuenta? <a href="register.php" style="color: var(--first-color)">Registrate</a></p>
+                        <p class="text-center">¿Olvidaste tu contraseña? <a href="recovery.php" style="color: var(--first-color)">Recuperar</a></p>
                     </div>
                 </div>
             </div>
