@@ -2,19 +2,26 @@
    GLOBAL FORM STYLES
    ==================================== */
 #plant-form {
-    max-width: 1024px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
-    background-color: var(--hover-color);
+    background-color: #f9f9f9;
     border: 1px solid var(--first-color);
     border-radius: 15px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Common styles for section containers */
-#plant-form > div[id^="Sect"],
-#plant-form > div[id="ShipTo"],
-#plant-form > div[id="DestTo"] {
+/* Section containers with standardized flex layout */
+#SectPlantas,
+#SectTransporte,
+#SectResponsability,
+#SectCause,
+#SectShip,
+#ShipTo,
+#SectDest,
+#DestTo,
+#SectMeasures,
+#SectCarrier {
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
@@ -22,67 +29,87 @@
     width: 100%;
 }
 
-/* Common styles for section child divs */
-#plant-form > div > div {
+/* Standard child div layout within sections */
+#SectPlantas > div,
+#SectTransporte > div,
+#SectResponsability > div,
+#SectCause > div,
+#SectShip > div,
+#ShipTo > div,
+#SectDest > div,
+#DestTo > div,
+#SectCarrier > div,
+#SectMeasures > div:not(#MeasuresDiv) {
     flex: 1 1 calc(33.333% - 1rem);
-    min-width: 200px; /* Minimum width before wrapping */
+    min-width: 250px; /* Minimum width before wrapping */
 }
 
-/* Label styles - positioned above inputs/selects */
+/* Label styling - consistent across all form elements */
 #plant-form label {
     display: block;
     text-align: left;
     margin-bottom: 0.5rem;
     font-weight: 600;
     color: var(--dark-color);
-    font-size: 0.95rem;
 }
 
-/* Common styles for all selects */
-#plant-form select,
-#plant-form .select2-container .select2-selection--single {
-    width: 100% !important;
-    height: 38px !important;
+/* Common styling for all select elements */
+#plant-form select {
+    width: 100%;
+    height: 38px;
     padding: 0.375rem 0.75rem;
     border: 1px solid #ced4da;
     border-radius: 0.25rem;
     font-size: 1rem;
+    background-color: #fff;
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
-/* Common styles for all inputs - UPDATED to match select height exactly */
+/* Common styling for all input elements - matching select height */
 #plant-form input[type="text"],
 #plant-form input[type="number"],
 #plant-form input[type="file"] {
     width: 100%;
-    height: 38px !important;
+    height: 38px;
     padding: 0.375rem 0.75rem;
     border: 1px solid #ced4da;
     border-radius: 0.25rem;
     font-size: 1rem;
+    background-color: #fff;
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
-/* Hover and focus states */
-#plant-form select:hover,
-#plant-form input:hover,
-#plant-form .select2-container--default .select2-selection--single:hover {
+/* Focus states for inputs and selects */
+#plant-form select:focus,
+#plant-form input:focus {
     border-color: var(--first-color);
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(3, 76, 140, 0.25);
 }
 
-#plant-form select:focus,
-#plant-form input:focus,
-#plant-form .select2-container--default.select2-container--focus .select2-selection--single {
+/* Hover states for inputs and selects */
+#plant-form select:hover,
+#plant-form input:hover {
     border-color: var(--first-color);
-    box-shadow: 0 0 0 0.2rem rgba(3, 76, 140, 0.25);
-    outline: 0;
 }
 
 /* ====================================
-   SECTION SPECIFIC STYLES
+   SECTION-SPECIFIC STYLES
    ==================================== */
 
-/* Description section - text areas */
+/* Description section */
+#SectDescription {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+#SectDescription h3 {
+    text-align: center;
+    margin-bottom: 1rem;
+    color: var(--dark-color);
+}
+
 #SectDescription textarea {
     height: 70px;
     width: 100%;
@@ -90,42 +117,42 @@
     border: 1px solid #ced4da;
     border-radius: 0.25rem;
     resize: vertical;
-    min-height: 70px;
+    font-family: var(--body-font);
+    margin-bottom: 0.5rem;
 }
 
-#SectDescription h3 {
-    width: 100%;
-    text-align: center;
-    margin-bottom: 1rem;
-}
-
-/* UPDATED: Character counter styling with better spacing */
+/* Fixed - Character counters spacing */
 #immediateCounter,
 #permanentCounter {
     margin-bottom: 1.5rem;
     font-size: 0.85rem;
 }
 
-/* FIXED: Ensure PermanentActions label appears properly after immediateCounter */
+/* Fixed - Ensure proper spacing between counter and next label */
 #SectDescription label[for="PermanentActions"] {
     display: block;
     margin-top: 0.5rem;
-    margin-bottom: 0.5rem;
 }
 
-/* UPDATED: MeasuresDiv layout with labels above inputs/selects */
+/* MeasuresDiv - special case with side-by-side elements */
 #MeasuresDiv {
     display: grid;
     grid-template-columns: 3fr 1fr;
     grid-template-rows: auto auto;
-    gap: 0.5rem 1rem;
-    align-items: start;
+    column-gap: 1rem;
+    flex: 1 1 calc(50% - 1rem);
+    min-width: 300px;
 }
 
+/* Position labels in MeasuresDiv */
 #MeasuresDiv label[for="Weight"] {
     grid-column: 1;
     grid-row: 1;
-    margin-bottom: 0.5rem;
+}
+
+#MeasuresDiv label[for="Measures"] {
+    grid-column: 2;
+    grid-row: 1;
 }
 
 #Weight {
@@ -133,66 +160,26 @@
     grid-row: 2;
 }
 
-#MeasuresDiv label[for="Measures"] {
-    grid-column: 2;
-    grid-row: 1;
-    margin-bottom: 0.5rem;
-}
-
 #Measures {
     grid-column: 2;
     grid-row: 2;
-    min-width: 80px;
 }
 
-/* UPDATED: SectReference layout to align elements vertically */
-#SectReference {
-    display: flex;
-    flex-direction: column;
-}
-
-#SectReference label {
-    margin-bottom: 0.5rem;
-}
-
-#SectReference select,
-#SectReference input {
-    width: 100% !important;
-    height: 38px !important;
-    margin-bottom: 0.5rem;
-}
-
-/* NEW: Container for Reference select and input */
-#SectReference .reference-container {
-    display: flex;
-    gap: 0.5rem;
-    width: 100%;
-}
-
-#Reference {
-    flex: 1;
-    min-width: 80px;
-}
-
-#ReferenceNumber {
-    flex: 3;
-}
-
-/* QuotedCostDiv - Input above buttons */
-#DivCosto {
-    display: flex;
-    flex-direction: column;
-}
-
+/* DivCosto - quoted cost with currency buttons */
 #QuotedCostDiv {
+    display: flex;
+    flex-direction: column;
     width: 100%;
+}
+
+#QuotedCost {
+    width: 100%;
+    margin-bottom: 0.5rem;
 }
 
 #Divisa {
     display: flex;
-    flex-direction: row;
     gap: 0.5rem;
-    margin-top: 0.5rem;
 }
 
 #Divisa button {
@@ -202,19 +189,71 @@
     border-radius: 0.25rem;
     background-color: #f8f9fa;
     transition: all 0.2s ease;
+    font-size: 0.9rem;
 }
 
-#Divisa button.active,
-#Divisa button:hover {
+#Divisa button.active {
     background-color: var(--first-color);
     color: white;
     border-color: var(--first-color);
+}
+
+#Divisa button:hover {
+    border-color: var(--first-color);
+}
+
+/* SectReference - reference type with number input */
+#SectReference {
+    display: flex;
+    flex-direction: column;
+}
+
+#SectReference label {
+    margin-bottom: 0.5rem;
+}
+
+.reference-container {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+#Reference {
+    width: 30%;
+    min-width: 100px;
+    flex-shrink: 0;
+}
+
+#ReferenceNumber {
+    width: 70%;
+    flex-grow: 1;
 }
 
 /* Recovery file upload container */
 #recoveryFileContainer {
     width: 100%;
     margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: #f0f7ff;
+    border: 1px dashed var(--first-color);
+    border-radius: 0.5rem;
+}
+
+#recoveryFileContainer small {
+    display: block;
+    margin-top: 0.5rem;
+    color: #666;
+}
+
+/* Section headings */
+#plant-form h2 {
+    width: 100%;
+    text-align: center;
+    color: var(--dark-color);
+    margin: 2rem 0 1rem;
+    font-weight: 600;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.5rem;
 }
 
 /* Submit button styling */
@@ -242,17 +281,6 @@
     transform: translateY(0);
 }
 
-/* Section headings */
-#plant-form h2 {
-    width: 100%;
-    text-align: center;
-    color: var(--dark-color);
-    margin: 2rem 0 1rem;
-    font-weight: 600;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 0.5rem;
-}
-
 /* ====================================
    FORM VALIDATION STYLES
    ==================================== */
@@ -266,7 +294,7 @@
     border-color: #dc3545;
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
     background-repeat: no-repeat;
-    background-position: right 0.75rem center;
+    background-position: right 0.75rem top 0.75rem;
     background-size: 1rem;
 }
 
@@ -279,7 +307,7 @@
     border-color: #198754;
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
     background-repeat: no-repeat;
-    background-position: right 0.75rem center;
+    background-position: right 0.75rem top 0.75rem;
     background-size: 1rem;
 }
 
@@ -292,15 +320,16 @@
     width: 100% !important;
 }
 
-/* IMPROVED: Single selection dropdown - especially for company selects */
+/* Specifically target the Select2 elements that replace standard selects */
 .select2-container--default .select2-selection--single {
     height: 38px !important;
     display: flex;
     align-items: center;
     border: 1px solid #ced4da;
+    border-radius: 0.25rem;
 }
 
-/* SPECIFIC: Styles for Select2 company dropdowns */
+/* Special handling for CompanyShip and inputCompanyNameDest Select2 elements */
 #CompanyShip + .select2-container,
 #inputCompanyNameDest + .select2-container {
     width: 100% !important;
@@ -313,30 +342,56 @@
     border-radius: 0.25rem;
 }
 
+/* Consistent styling for Select2 dropdown arrow */
 .select2-container--default .select2-selection--single .select2-selection__arrow {
     height: 36px;
 }
 
+/* Consistent styling for Select2 selection text */
 .select2-container--default .select2-selection--single .select2-selection__rendered {
     line-height: 36px;
     color: #212529;
+    padding-left: 0.75rem;
 }
 
+/* Dropdown styling improvements */
 .select2-dropdown {
     border-color: var(--first-color);
+    border-radius: 0.25rem;
+    overflow: hidden;
 }
 
 .select2-container--open .select2-dropdown {
     z-index: 9999;
 }
 
+/* Search field styling */
 .select2-search--dropdown .select2-search__field {
     padding: 0.5rem;
     border-radius: 0.25rem;
+    border: 1px solid #ced4da;
+}
+
+/* Results styling */
+.select2-results__option {
+    padding: 0.5rem 0.75rem;
 }
 
 .select2-results__option--highlighted[aria-selected] {
     background-color: var(--first-color);
+    color: white;
+}
+
+/* Select2 hover states */
+.select2-container--default .select2-selection--single:hover {
+    border-color: var(--first-color);
+}
+
+/* Select2 focus states */
+.select2-container--default.select2-container--focus .select2-selection--single,
+.select2-container--default.select2-container--open .select2-selection--single {
+    border-color: var(--first-color);
+    box-shadow: 0 0 0 0.25rem rgba(3, 76, 140, 0.25);
 }
 
 /* ====================================
@@ -345,48 +400,65 @@
 
 @media (max-width: 992px) {
     /* Adjust columns for medium screens */
-    #plant-form > div > div {
+    #SectPlantas > div,
+    #SectTransporte > div,
+    #SectResponsability > div,
+    #SectCause > div,
+    #SectShip > div,
+    #ShipTo > div,
+    #SectDest > div,
+    #DestTo > div,
+    #SectCarrier > div,
+    #SectMeasures > div:not(#MeasuresDiv) {
+        flex: 1 1 calc(50% - 1rem);
+    }
+    
+    #MeasuresDiv {
         flex: 1 1 calc(50% - 1rem);
     }
 }
 
 @media (max-width: 768px) {
     /* Stack elements vertically on smaller screens */
-    #plant-form > div > div {
+    #SectPlantas > div,
+    #SectTransporte > div,
+    #SectResponsability > div,
+    #SectCause > div,
+    #SectShip > div,
+    #ShipTo > div,
+    #SectDest > div,
+    #DestTo > div,
+    #SectCarrier > div,
+    #SectMeasures > div:not(#MeasuresDiv) {
         flex: 1 1 100%;
     }
     
-    /* Special handling for inline groups */
     #MeasuresDiv {
-        display: flex;
-        flex-direction: column;
-    }
-    
-    #MeasuresDiv label {
-        margin-top: 0.5rem;
+        flex: 1 1 100%;
     }
     
     #plant-form {
         padding: 1.5rem;
     }
-    
-    /* Make sure buttons in Divisa stay in a row */
-    #Divisa {
-        flex-direction: row;
-    }
 }
 
 @media (max-width: 576px) {
     /* Further adjustments for very small screens */
-    #SectReference .reference-container {
+    .reference-container {
         flex-direction: column;
     }
     
-    #Divisa {
-        justify-content: space-between;
+    #Reference, 
+    #ReferenceNumber {
+        width: 100%;
     }
     
     #plant-form {
         padding: 1rem;
+    }
+    
+    /* Keep MeasuresDiv in grid layout but reduce gap */
+    #MeasuresDiv {
+        column-gap: 0.5rem;
     }
 }
