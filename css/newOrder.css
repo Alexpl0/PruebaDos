@@ -498,11 +498,12 @@
     background-color: rgba(3, 76, 140, 0.1);
 }
 
-/* Resaltado de términos de búsqueda */
+/* Resaltado de términos de búsqueda - sin background color */
 .select2-match {
-    background-color: #ffed8a;
-    padding: 0 2px;
-    font-weight: bold;
+    background-color: transparent; /* Elimina el fondo */
+    color: var(--first-color);     /* Usa el color principal */
+    font-weight: bold;             /* Mantiene el texto en negrita */
+    text-decoration: underline;    /* Agrega subrayado para mejor visibilidad */
 }
 
 /* Estados de validación */
