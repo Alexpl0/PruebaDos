@@ -508,9 +508,9 @@
 /* Texto ya seleccionado */
 .select2-selection__rendered .select2-match {
     background-color: transparent;
-    color: inherit;
+    color: var(--first-color);
     font-weight: normal;
-    text-decoration: none;
+    text-decoration: underline;
 }
 
 /* Estados de validación */
