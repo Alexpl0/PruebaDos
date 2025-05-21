@@ -373,7 +373,7 @@ async function uploadEvidenceFile(orderId, userName, file) {
     formData.append('userName', userName);
     formData.append('evidenceFile', file);
     
-    const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/uploadEvidence.php', {
+    const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoUploadEvidence.php', {
         method: 'POST',
         body: formData
     });
