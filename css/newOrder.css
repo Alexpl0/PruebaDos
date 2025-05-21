@@ -195,7 +195,7 @@
 #Divisa button.active {
     background-color: magenta;
     color: var(--first-color);
-    border-color: var(--first-color);
+    border-color: blue;
 }
 
 #Divisa button:hover {
