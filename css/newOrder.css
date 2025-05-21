@@ -1,532 +1,341 @@
-/* Global box-sizing */
-*, *::before, *::after {
-    box-sizing: border-box;
-}
-
-body {
-    /* max-width: 100vw; */ /* Comenta o elimina esta línea */
-    /* min-width: 99vw; */  /* Comenta o elimina esta línea */
-    width: 100%; /* Asegura que el body use el 100% del ancho del html */
-    overflow-x: hidden; /* Mantén esto */
-    margin-top: var(--header-height); /* Usa la variable de header.css para consistencia */
-    padding: 0;
-    background: var(--page-background);
-    /* flex-direction y align-items no son necesarios aquí si body no es un contenedor flex directo */
-}
-
-main{
-    min-width: 100vw;
-    overflow-x: hidden; /* Previene scroll horizontal */
-    max-width: 100vw;
-}
-
-.title1{
-    font-size: 2em;
-    text-align: center;
-}
-
-h1 {
-    margin-top: 3.5rem;
-    font-size: 2em;
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-main.container {
-    width: 100%;
-    /* min-width: 100vw; */ /* Comenta o elimina */
-    /* max-width: 100vw; */ /* Comenta o elimina */
-    max-width: 1024px; /* O el max-width que desees para tu contenido principal, Bootstrap .container lo maneja */
-    margin-left: auto;
-    margin-right: auto;
-    /* Bootstrap .container ya tiene padding, si lo necesitas, mantenlo o ajústalo.
-       Si usas la clase .container de Bootstrap, no necesitas redefinir padding aquí
-       a menos que quieras sobrescribirlo.
-       Por ejemplo, para mantener el padding de Bootstrap:
-    */
-    padding-left: 15px; /* Valor típico de Bootstrap */
-    padding-right: 15px;/* Valor típico de Bootstrap */
-    overflow-x: hidden; /* Puede ser útil si elementos dentro de main desbordan */
-}
-
-/* Centra el form dentro del main */
-form#plant-form {
+/* ====================================
+   GLOBAL FORM STYLES
+   ==================================== */
+#plant-form {
+    max-width: 1024px;
     margin: 0 auto;
-    width: 100%;
-    max-width: 700px;
+    padding: 2rem;
     background-color: var(--hover-color);
     border: 1px solid var(--first-color);
-    padding: 2rem;
     border-radius: 15px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-label {
-    margin-top: 2%;
-    font-size: 1.2em;
-    margin-bottom: 10px;
+/* Common styles for section containers */
+#plant-form > div[id^="Sect"],
+#plant-form > div[id="ShipTo"],
+#plant-form > div[id="DestTo"] {
     display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-/* Contenedor para centrar el select */
-.select-container {
-    text-align: center;
-    margin: 0 auto;
-    display: flex;
-    justify-content: center;
-}
-
-/* Para los select2 */
-.select2-container {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    display: inline-block;
-    vertical-align: middle;
-}
-
-#enviar {
-    width: 160px;
-    padding: 10px 0;
-    margin: 30px auto 0 auto;
-    border: none;
-    border-radius: 10px;
-    background-color: var(--first-color);
-    color: var(--white-color);
-    font-size: 1.2em;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-}
-
-#inputZipShip, 
-#inputZipDest,
-#StatesShip, 
-#StatesDest {
-    padding: 10px;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
     width: 100%;
-    margin: 0 0 1rem 0;
-    border: 1px solid var(--border-color);
-    border-radius: 5px;
-    font-size: 1.2em;
-    cursor: text;
+}
+
+/* Common styles for section child divs */
+#plant-form > div > div {
+    flex: 1 1 calc(33.333% - 1rem);
+    min-width: 200px; /* Minimum width before wrapping */
+}
+
+/* Label styles - positioned above inputs/selects */
+#plant-form label {
     display: block;
-}
-
-#Description {
-    padding: 10px;
-    width: 100%;
-    max-width: 100%;
-    min-height: 200px;
-    margin: 0 0 1rem 0;
-    border: 1px solid var(--border-color);
-    border-radius: 5px;
-    font-size: 1.2em;
-    cursor: text;
     text-align: left;
-    vertical-align: top;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--dark-color);
+    font-size: 0.95rem;
+}
+
+/* Common styles for all selects */
+#plant-form select,
+#plant-form .select2-container .select2-selection--single {
+    width: 100% !important;
+    height: 38px !important;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    font-size: 1rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+/* Common styles for all inputs */
+#plant-form input[type="text"],
+#plant-form input[type="number"] {
+    width: 100%;
+    height: 38px;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    font-size: 1rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+/* Hover and focus states */
+#plant-form select:hover,
+#plant-form input:hover,
+#plant-form .select2-container--default .select2-selection--single:hover {
+    border-color: var(--first-color);
+}
+
+#plant-form select:focus,
+#plant-form input:focus,
+#plant-form .select2-container--default.select2-container--focus .select2-selection--single {
+    border-color: var(--first-color);
+    box-shadow: 0 0 0 0.2rem rgba(3, 76, 140, 0.25);
+    outline: 0;
+}
+
+/* ====================================
+   SECTION SPECIFIC STYLES
+   ==================================== */
+
+/* Description section - text areas */
+#SectDescription textarea {
+    height: 70px;
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
     resize: vertical;
+    min-height: 70px;
 }
 
-#home {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+#SectDescription h3 {
     width: 100%;
-    box-sizing: border-box;
-    max-width: 900px;
-    margin-top: 20px;
-    margin-bottom: 2rem;
-    font-size: 20px;
+    text-align: center;
+    margin-bottom: 1rem;
 }
 
-.select2-search--dropdown .select2-search__field {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 1%;
-    margin: 2%;
+/* Character counter styling */
+#immediateCounter,
+#permanentCounter {
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
 }
 
+/* MeasuresDiv - Input and Select side by side */
 #MeasuresDiv {
     display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    margin: 0 0 1rem 0;
+    align-items: flex-end;
+    gap: 0.5rem;
 }
 
-#MeasuresDiv select{
-    flex: 0 0 15%;
-    min-width: 0;
-    min-height: 30px;
-    width: 15%;
+#Weight {
+    flex: 3; /* Makes input wider */
 }
 
-#MeasuresDiv input, #Divisa {
-    flex: 1 1 85%;
-    min-width: 0;
-    min-height: 30px;
-    width: 85%;
+#Measures {
+    flex: 1; /* Makes select narrower */
+    min-width: 80px; /* Ensures minimum width */
 }
 
-.select2-container .select2-selection--single, #CompanyShip {
-    box-sizing: border-box;
-    cursor: pointer;
-    display: block;
-    height: 35px;
-    user-select: none;
-    -webkit-user-select: none;
-}
-
-#PaidBy {
-    box-sizing: border-box;
-    cursor: pointer;
-    display: block;
-    height: 35px;
-    user-select: none;
-    -webkit-user-select: none;
-    width: 100%;
-    margin: 0 0 1rem 0;
-}
-
-h2{
-    margin-top: 20px;
-    font-size: 1.5em;
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-#SectCarrier{
+/* QuotedCostDiv - Input above buttons */
+#DivCosto {
     display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    margin: 0 0 1rem 0;
-    box-sizing: border-box;
-}
-
-#DivCarrier {
-    flex: 1;
-    min-width: 0;
-    width: 100%;
-    max-width: 40%;
-}
-
-#DivCosto{
-    flex: 1;
-    min-width: 0;
-    width: 100%;
-    max-width: 60%;
-}
-
-#SectCarrier select,
-#SectCarrier #QuotedCostDiv,
-#SectCarrier .select2-container {
-    width: 100% !important;
-    max-width: 100% !important;
+    flex-direction: column;
 }
 
 #QuotedCostDiv {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
     width: 100%;
-    margin: 0;
-}
-
-#QuotedCostDiv input {
-    flex: 1;
-    min-width: 0;
-    min-height: 30px;
 }
 
 #Divisa {
     display: flex;
     flex-direction: row;
-    gap: 5px;
-    flex-shrink: 0;
-}
-
-@media (max-width: 768px) {
-    #SectCarrier {
-        flex-direction: column;
-        width: 100%;
-    }
-    #DivCarrier, #DivCosto {
-        width: 100%;
-        margin-bottom: 10px;
-    }
-}
-
-#QuotedCostDiv, #ReferenceDiv{
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
-    margin: 0 0 1rem 0;
-}
-
-#QuotedCostDiv input, #ReferenceNumber  {
-    flex: 1;
-    min-width: 60%;
-    min-height: 30px;
-}
-
-#Divisa, #Reference {
-    display: flex;
-    flex-direction: row;
-    gap: 5px;
-    max-width: 40%;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
 }
 
 #Divisa button {
-    padding: 5px 10px;
-    background-color: var(--hover-color);
-    border: 1px solid var(--border-color);
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-#Divisa button:hover, 
-#Divisa button.active {
-    background-color: var(--first-color);
-    color: var(--white-color);
-}
-
-#SectPlantas {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    margin: 0 0 1rem 0;
-    box-sizing: border-box;
-}
-
-#DivPlanta, #DivCodes {
     flex: 1;
-    min-width: 0;
-    width: 100%;
-}
-
-#SectPlantas select,
-#SectPlantas .select2-container {
-    width: 100% !important;
-    max-width: 100% !important;
-}
-
-@media (max-width: 768px) {
-    #SectPlantas {
-        flex-direction: column;
-        width: 100%;
-    }
-    #DivPlanta, #DivCodes {
-        width: 100%;
-        margin-bottom: 10px;
-    }
-}
-
-/* Common styles for all sections to display elements in a single row */
-#SectTransporte,
-#SectResponsability,
-#SectCause,
-#SectShip,
-#SectDest {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    margin: 0 0 1rem 0;
-    box-sizing: border-box;
-}
-
-#DivTransport, #DivInOut, 
-#DivArea, #DivInExt, 
-#DivCategoryCause, #DivProjectStatus,
-#DivCompanyShip, #DivCityShip,
-#DivCompanyDest, #DivCityDest {
-    flex: 1;
-    min-width: 0;
-    width: 100%;
-}
-
-#SectTransporte select,
-#SectTransporte .select2-container,
-#SectResponsability select,
-#SectResponsability .select2-container,
-#SectCause select,
-#SectCause .select2-container,
-#SectShip input,
-#SectDest input,
-#inputCityDest,
-#inputCityShip,
-#inputCompanyNameDest,
-#inputCompanyNameShip {
-    width: 100% !important;
-    max-width: 100% !important;
-    height: 35px !important; 
-}
-
-@media (max-width: 768px) {
-    #SectTransporte,
-    #SectResponsability, 
-    #SectCause,
-    #SectShip,
-    #SectDest {
-        flex-direction: column;
-        width: 100%;
-    }
-    #DivTransport, #DivInOut, 
-    #DivArea, #DivInExt, 
-    #DivCategoryCause, #DivProjectStatus,
-    #DivCompanyShip, #DivCityShip,
-    #DivCompanyDest, #DivCityDest {
-        width: 100%;
-        margin-bottom: 10px;
-    }
-}
-
-#SectEuros {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    margin: 20px 0; 
-    box-sizing: border-box;
-}
-
-#SectEuros label,
-#SectEuros input {
-    margin: 0;
-    width: auto;
-    flex: 1 1 0;
-    justify-content: flex-start;
-    background-color: var (--page-background);
-}
-
-div[id^="Sect"] {
-    margin-top: 32px !important;
-}
-
-.select2-selection--single {
-    height: 38px !important;
-    padding: 6px 12px;
-    border-radius: 5px;
+    height: 38px;
     border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    background-color: #f8f9fa;
+    transition: all 0.2s ease;
+}
+
+#Divisa button.active,
+#Divisa button:hover {
+    background-color: var(--first-color);
+    color: white;
+    border-color: var(--first-color);
+}
+
+/* ReferenceDiv - Select and input in row */
+#ReferenceDiv {
     display: flex;
-    align-items: center;
-    font-size: 1em;
-    background: #fff;
+    align-items: flex-end;
+    gap: 0.5rem;
 }
 
-.select2-container--default .select2-selection--single {
-    height: 38px !important; /* Altura fija */
-    /* Asegura que la altura se respete con padding interno en vez de crecer */
-    box-sizing: border-box !important;
+#Reference {
+    flex: 1;
+    min-width: 80px; /* Ensures minimum width */
 }
 
-.select2-container--default .select2-selection--single:focus {
-    border-color: #80bdff;
-    outline: 0;
+#ReferenceNumber {
+    flex: 3; /* Makes input wider */
 }
 
-.char-count {
-    font-weight: bold;
+/* Recovery file upload container */
+#recoveryFileContainer {
+    width: 100%;
+    margin-bottom: 1.5rem;
 }
 
-textarea.is-invalid {
+/* Submit button styling */
+#enviar {
+    display: block;
+    width: 200px;
+    margin: 2rem auto 1rem;
+    padding: 0.75rem 1.5rem;
+    background-color: var(--first-color);
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+#enviar:hover {
+    background-color: #023b6e; /* Slightly darker */
+    transform: translateY(-2px);
+}
+
+#enviar:active {
+    transform: translateY(0);
+}
+
+/* Section headings */
+#plant-form h2 {
+    width: 100%;
+    text-align: center;
+    color: var(--dark-color);
+    margin: 2rem 0 1rem;
+    font-weight: 600;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.5rem;
+}
+
+/* ====================================
+   FORM VALIDATION STYLES
+   ==================================== */
+
+/* Invalid fields */
+#plant-form .is-invalid {
     border-color: #dc3545;
-    padding-right: calc(1.5em + 0.75rem);
+}
+
+#plant-form textarea.is-invalid {
+    border-color: #dc3545;
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
     background-repeat: no-repeat;
-    background-position: right calc(0.375em + 0.1875rem) center;
-    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    background-position: right 0.75rem center;
+    background-size: 1rem;
 }
 
-textarea.is-valid {
+/* Valid fields */
+#plant-form .is-valid {
     border-color: #198754;
-    padding-right: calc(1.5em + 0.75rem);
+}
+
+#plant-form textarea.is-valid {
+    border-color: #198754;
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
     background-repeat: no-repeat;
-    background-position: right calc(0.375em + 0.1875rem) center;
-    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    background-position: right 0.75rem center;
+    background-size: 1rem;
 }
 
-form .mb-3 {
-    min-height: 85px; /* Reserva espacio vertical */
-}
+/* ====================================
+   SELECT2 COMPATIBILITY STYLES
+   ==================================== */
 
-/* Agregar al final del archivo newOrder.css */
-
-/* Controlar el ancho máximo de los contenedores */
-.container, main.container {
-  width: 100%;
-  /* max-width: 100vw; */ /* Cambia esto. Si usas .container de Bootstrap, él maneja el max-width */
-  max-width: 1024px; /* Ejemplo, o deja que Bootstrap lo controle */
-  box-sizing: border-box;
-  margin: 0 auto;
-  /* padding-left: 10px; */ /* Si usas .container de Bootstrap, ya tiene padding */
-  /* padding-right: 10px; */
-}
-
-/* Asegurar que los elementos dentro del formulario no se desborden */
-#plant-form {
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-/* Controlar elementos que pueden causar desbordamiento */
-.input-group, 
-.d-flex,
-select,
-input,
-textarea {
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-/* Ajustar Select2 para evitar que se extienda demasiado */
+/* General Select2 container */
 .select2-container {
-  width: 100% !important;
-  max-width: 100%;
+    width: 100% !important;
 }
 
-/* Corregir el desbordamiento en dispositivos móviles */
-@media (max-width: 768px) {
-  #MeasuresDiv,
-  #QuotedCostDiv,
-  #ReferenceDiv {
-    flex-wrap: wrap;
-  }
-  
-  #MeasuresDiv > *,
-  #QuotedCostDiv > *,
-  #ReferenceDiv > * {
-    flex: 0 0 100%;
-    margin-right: 0 !important;
-    margin-bottom: 0.5rem;
-  }
-  
-  #Divisa {
+/* Single selection dropdown */
+.select2-container--default .select2-selection--single {
+    height: 38px !important;
     display: flex;
-    justify-content: flex-start;
-    gap: 0.5rem;
-  }
+    align-items: center;
+    border: 1px solid #ced4da;
 }
 
-* {
-  outline: 1px dashed red !important;
-  /* Alternativamente, puedes usar border:
-  /* border: 1px solid red !important; */
-  /* box-sizing: border-box !important; */ /* Asegúrate de que esto ya esté globalmente aplicado */
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 36px;
+    color: #212529;
+}
+
+.select2-dropdown {
+    border-color: var(--first-color);
+}
+
+.select2-container--open .select2-dropdown {
+    z-index: 9999;
+}
+
+.select2-search--dropdown .select2-search__field {
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+}
+
+.select2-results__option--highlighted[aria-selected] {
+    background-color: var(--first-color);
+}
+
+/* ====================================
+   RESPONSIVE ADJUSTMENTS
+   ==================================== */
+
+@media (max-width: 992px) {
+    /* Adjust columns for medium screens */
+    #plant-form > div > div {
+        flex: 1 1 calc(50% - 1rem);
+    }
+}
+
+@media (max-width: 768px) {
+    /* Stack elements vertically on smaller screens */
+    #plant-form > div > div {
+        flex: 1 1 100%;
+    }
+    
+    /* Special handling for inline groups */
+    #MeasuresDiv,
+    #ReferenceDiv {
+        flex-wrap: nowrap;
+    }
+    
+    #plant-form {
+        padding: 1.5rem;
+    }
+    
+    /* Make sure buttons in Divisa stay in a row */
+    #Divisa {
+        flex-direction: row;
+    }
+}
+
+@media (max-width: 576px) {
+    /* Further adjustments for very small screens */
+    #MeasuresDiv,
+    #ReferenceDiv {
+        flex-direction: column;
+    }
+    
+    #MeasuresDiv > *,
+    #ReferenceDiv > * {
+        width: 100%;
+        flex: 1 1 100%;
+    }
+    
+    #Divisa {
+        justify-content: space-between;
+    }
+    
+    #plant-form {
+        padding: 1rem;
+    }
 }
