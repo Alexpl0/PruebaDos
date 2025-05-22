@@ -433,12 +433,12 @@ img {
   
   /* Ajusta el tamaño del logo según el tipo de menú */
   .reduced-menu .nav__img {
-        width: 6vw !important;
+        width: 4vw !important;
         height: calc(6vw * 0.95) !important; /* Mantener proporciones */
     }
     
     .full-menu .nav__img {
-        width: 4vw !important;
+        width: 6vw !important;
         height: 47px !important;
     }
 }
