@@ -57,9 +57,12 @@ function createHeader(authLevel) {
         navItems += navLink('dao/users/logout.php', 'Log Out', 'fas fa-sign-out-alt');
     }
 
+    // Determine menu type class based on authorization level
+    const menuTypeClass = authLevel === 0 ? 'reduced-menu' : 'full-menu';
+    
     // Construye el HTML completo del header con navegación responsiva
     const headerHTML = `
-    <header class="header">
+    <header class="header ${menuTypeClass}">
         <!-- Logo y toggle solo visibles en móvil -->
         <a href="index.php" class="header__logo">GRAMMER</a>
         <i class="fas fa-bars header__toggle" id="nav-toggle"></i>
