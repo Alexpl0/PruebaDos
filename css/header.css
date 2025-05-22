@@ -358,9 +358,8 @@ img {
   /* Ajustes para el logo circular en DESKTOP */
   .nav__img {
     /* Dimensiones para desktop, deben ser iguales para un círculo */
-        width: 6vw !important;
-        height: 6vh !important;
-    
+        width: 4vw !important;
+        height: 47px !important;
     /* Propiedades clave para el círculo y fondo blanco (heredadas o reconfirmadas) */
     background-color: white;
     border-radius: 50%;
