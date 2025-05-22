@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * Obtiene el ID de la Orden seleccionada
+ * En la Tabla de Premium Freight Aprroval actualiza el historico de la orden
+ * Menciona quién la aprobo, cuando y bajo qué nivel 
+ * Actualiza el act_approcv que es donde se lleva el control de los pasos para aprovar
+ * Va conforme al nivel de aprovación de los usuarios y el nivel de aprovación requerido según el costo
+ * En caso de ser rechazado se cambia el status a 99
+ */
+/**
+ * Hace validaciones de seguridad como que el nivel de usuario sea el correcto
+ * Además de que el usuario tenga acceso a la orden
+ * Si no se cumplen estas condiciones no se permite la aprobación
+ * */
+
 session_start();
 include_once('../db/db.php');
 

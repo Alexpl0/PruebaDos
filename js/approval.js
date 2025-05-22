@@ -1,10 +1,7 @@
-/**
- * Premium Freight - Approval Functionality
- * Handles order approval and rejection logic
- */
-
 import { hideModal } from './modals.js';
 import { createCards } from './cards.js';
+import { sendApprovalNotification } from './mailer.js';
+
 /**
  * Handles approve button click
  */
@@ -31,6 +28,7 @@ export async function handleApprove() {
             userLevel: window.authorizationLevel,
             userID: window.userID,
             authDate: new Date().toISOString().slice(0, 19).replace('T', ' ')
+
         };
 
         // Determine text status ID
@@ -88,6 +86,21 @@ export async function handleApprove() {
         
         hideModal();
         createCards(window.allOrders);
+
+        // Send notification to next approver
+        try {
+            await sendApprovalNotification(selectedOrder.id);
+            console.log('Notification email sent to next approver');
+        } catch (error) {
+            console.error('Failed to send notification email:', error);
+        }
+
+        // Aqui pondremos el trigger para el mailer
+        // Debe Obtener el newStatusId +1 para saber a quien enviarlo
+        // Se debe enviar a la siguiente persona en la cadena de autorizacion
+        // Para saber quien es la siguiente persona debemos consultar la tabla Users 
+        // y obtener el authorization_level
+        // y el id del usuario que tiene ese nivel
 
     } catch (error) {
         console.error('Error approving order:', error);
@@ -202,6 +215,80 @@ export async function handleReject() {
             customClass: { container: 'swal-on-top' }
         });
     }
+}
+
+/**
+ * Sends a status notification to the order creator
+ * @param {number} orderId - The Premium Freight order ID
+ * @param {string} status - The order status ('approved' or 'rejected')
+ * @param {object} rejectorInfo - Optional information about the rejector
+ * @returns {Promise} - Promise resolving to the result of the operation
+ */
+function sendStatusNotification(orderId, status, rejectorInfo = null) {
+    return new Promise((resolve, reject) => {
+        fetch('https://grammermx.com/Jesus/PruebaDos/mailer/PFmailStatus.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                orderId: orderId,
+                status: status,
+                rejectorInfo: rejectorInfo
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                resolve(data);
+            } else {
+                reject(new Error(data.message || 'Failed to send status notification'));
+            }
+        })
+        .catch(error => {
+            reject(error);
+        });
+    });
+}
+
+/**
+ * Sends a recovery check notification to a user
+ * @param {number} userId - The user ID (optional)
+ * @param {number} orderId - The Premium Freight order ID (optional)
+ * @returns {Promise} - Promise resolving to the result of the operation
+ */
+function sendRecoveryCheckNotification(userId = null, orderId = null) {
+    const requestData = {};
+    
+    if (userId) requestData.userId = userId;
+    if (orderId) requestData.orderId = orderId;
+    
+    return new Promise((resolve, reject) => {
+        fetch('https://grammermx.com/Jesus/PruebaDos/mailer/PFmailRecoveryNotification.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                resolve(data);
+            } else {
+                reject(new Error(data.message || 'Failed to send recovery check notification'));
+            }
+        })
+        .catch(error => {
+            reject(error);
+        });
+    });
 }
 
 /**

@@ -1,5 +1,10 @@
 <?php
 
+// Este archivo lo que hace es cambiar el Status que nos dice si la orden fue aprobada o no,
+// el estado de la orden en texto; Nuevo, Aprobado, Rechazado, etc.
+// Esto lo hace cambiando el status_id de la tabla PremiumFreight
+// para así llamar a la Tabla Status y de ahí obtener el texto, si es nuevo, Aprovado, Rechazado, etc.
+
 header('Content-Type: application/json');
 include_once('../db/db.php');
 

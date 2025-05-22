@@ -90,7 +90,7 @@ main {
 .modal {
   display: none; 
   position: fixed; 
-  z-index: 60; 
+  /* z-index: 60;  */
   left: 0;
   top: 0;
   width: 100%;
