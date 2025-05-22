@@ -15,7 +15,7 @@ header('Content-Type: application/json');
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode([
         'success' => false,
-        'message' => 'Method not allowed. Use POST.'
+        'message' => 'Método no permitido. Utilice POST.'
     ]);
     exit;
 }
@@ -28,7 +28,7 @@ $data = json_decode($input, true);
 if (!$data || !isset($data['orderId']) || !isset($data['status'])) {
     echo json_encode([
         'success' => false,
-        'message' => 'Missing required parameters: orderId and status'
+        'message' => 'Faltan parámetros requeridos: orderId y status'
     ]);
     exit;
 }
@@ -41,7 +41,7 @@ $rejectorInfo = isset($data['rejectorInfo']) ? $data['rejectorInfo'] : null;
 if ($status !== 'approved' && $status !== 'rejected') {
     echo json_encode([
         'success' => false,
-        'message' => 'Invalid status. Must be "approved" or "rejected".'
+        'message' => 'Estado inválido. Debe ser "approved" o "rejected".'
     ]);
     exit;
 }
@@ -54,12 +54,12 @@ $result = $mailer->sendStatusNotification($orderId, $status, $rejectorInfo);
 if ($result) {
     echo json_encode([
         'success' => true,
-        'message' => 'Status notification sent successfully'
+        'message' => 'Notificación de estado enviada correctamente'
     ]);
 } else {
     echo json_encode([
         'success' => false,
-        'message' => 'Failed to send status notification'
+        'message' => 'Error al enviar la notificación de estado'
     ]);
 }
 ?>

@@ -15,7 +15,7 @@ header('Content-Type: application/json');
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode([
         'success' => false,
-        'message' => 'Method not allowed. Use POST.'
+        'message' => 'Método no permitido. Utilice POST.'
     ]);
     exit;
 }
@@ -37,7 +37,7 @@ if (isset($data['userId'])) {
     if (empty($pendingOrders)) {
         echo json_encode([
             'success' => false,
-            'message' => 'No orders found needing recovery evidence for this user.'
+            'message' => 'No se encontraron órdenes que necesiten evidencia de recovery para este usuario.'
         ]);
         exit;
     }
@@ -47,7 +47,7 @@ if (isset($data['userId'])) {
     if (!$user) {
         echo json_encode([
             'success' => false,
-            'message' => 'User not found.'
+            'message' => 'Usuario no encontrado.'
         ]);
         exit;
     }
@@ -57,7 +57,7 @@ if (isset($data['userId'])) {
     
     echo json_encode([
         'success' => $result,
-        'message' => $result ? 'Recovery check email sent successfully.' : 'Failed to send recovery check email.'
+        'message' => $result ? 'Correo de verificación de recovery enviado correctamente.' : 'Error al enviar correo de verificación de recovery.'
     ]);
 } 
 // Si se proporciona un ID de orden específico, enviar solo para esa orden
@@ -70,7 +70,7 @@ else if (isset($data['orderId'])) {
     if (!$order || empty($order['recovery_file']) || !empty($order['recovery_evidence'])) {
         echo json_encode([
             'success' => false,
-            'message' => 'Order not found or does not need recovery evidence.'
+            'message' => 'Orden no encontrada o no necesita evidencia de recovery.'
         ]);
         exit;
     }
@@ -82,7 +82,7 @@ else if (isset($data['orderId'])) {
     if (!$user) {
         echo json_encode([
             'success' => false,
-            'message' => 'User not found for this order.'
+            'message' => 'Usuario no encontrado para esta orden.'
         ]);
         exit;
     }
@@ -92,7 +92,7 @@ else if (isset($data['orderId'])) {
     
     echo json_encode([
         'success' => $result,
-        'message' => $result ? 'Recovery check email sent successfully.' : 'Failed to send recovery check email.'
+        'message' => $result ? 'Correo de verificación de recovery enviado correctamente.' : 'Error al enviar correo de verificación de recovery.'
     ]);
 } 
 // Si no se proporcionan parámetros específicos, enviar a todos los usuarios con órdenes pendientes
@@ -101,7 +101,7 @@ else {
     
     echo json_encode([
         'success' => ($result['success'] > 0),
-        'message' => "Recovery check emails sent: {$result['success']} successful, " . count($result['errors']) . " failed.",
+        'message' => "Correos de verificación de recovery enviados: {$result['success']} exitosos, " . count($result['errors']) . " fallidos.",
         'details' => $result
     ]);
 }

@@ -9,31 +9,35 @@
 
 require_once 'PFmailer.php';
 
-// Verificar que sea viernes 
+// Verificar que sea viernes o si se fuerza la ejecución
 $today = date('w');
 $hour = date('G');
-
-// Ejecutar solo los viernes (día 5) o si se fuerza la ejecución
 $isForced = (isset($argv[1]) && $argv[1] === '--force');
 
 if (($today == 5 && $hour >= 12) || $isForced) {
+    // Inicializar el mailer y enviar los correos
     $mailer = new PFMailer();
     $result = $mailer->sendRecoveryCheckEmails();
     
-    // Registrar resultados
-    $logMessage = date('Y-m-d H:i:s') . " - Recovery check emails sent: " . 
+    // Registrar resultados en el log
+    $logMessage = date('Y-m-d H:i:s') . " - Correos de verificación de recovery enviados: " . 
                  "Total: {$result['totalSent']}, " .
-                 "Success: {$result['success']}, " .
-                 "Errors: " . count($result['errors']) . "\n";
+                 "Éxito: {$result['success']}, " .
+                 "Errores: " . count($result['errors']) . "\n";
     
+    // Añadir detalles de errores si existen
     if (!empty($result['errors'])) {
-        $logMessage .= "Error details:\n" . implode("\n", $result['errors']) . "\n";
+        $logMessage .= "Detalles de errores:\n" . implode("\n", $result['errors']) . "\n";
     }
     
+    // Guardar en archivo de log
+    if (!is_dir(__DIR__ . '/logs')) {
+        mkdir(__DIR__ . '/logs', 0755, true);
+    }
     file_put_contents(__DIR__ . '/logs/recovery_check.log', $logMessage, FILE_APPEND);
     
     echo $logMessage;
 } else {
-    echo "Not running: It's not Friday afternoon or --force option was not used.";
+    echo "No ejecutando: No es viernes por la tarde o no se usó la opción --force.";
 }
 ?>

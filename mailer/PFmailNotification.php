@@ -15,7 +15,7 @@ header('Content-Type: application/json');
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode([
         'success' => false,
-        'message' => 'Method not allowed. Use POST.'
+        'message' => 'Método no permitido. Utilice POST.'
     ]);
     exit;
 }
@@ -28,7 +28,7 @@ $data = json_decode($input, true);
 if (!$data || !isset($data['orderId'])) {
     echo json_encode([
         'success' => false,
-        'message' => 'Missing required parameter: orderId'
+        'message' => 'Falta el parámetro requerido: orderId'
     ]);
     exit;
 }
@@ -43,12 +43,12 @@ $result = $mailer->sendApprovalNotification($orderId);
 if ($result) {
     echo json_encode([
         'success' => true,
-        'message' => 'Notification sent successfully'
+        'message' => 'Notificación enviada correctamente'
     ]);
 } else {
     echo json_encode([
         'success' => false,
-        'message' => 'Failed to send notification'
+        'message' => 'Error al enviar la notificación'
     ]);
 }
 ?>

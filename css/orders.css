@@ -162,7 +162,7 @@ main {
   background-color: transparent;
   border: 0;
   padding: 1rem; /* Área de click más grande */
-  z-index: 10; 
+  /* z-index: 10;  */
 }
 .close-button:hover {
   opacity: .75;

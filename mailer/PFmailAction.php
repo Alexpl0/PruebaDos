@@ -13,7 +13,7 @@ http_response_code(200);
 
 // Importar la clase necesaria para procesamiento
 require_once 'PFmailer.php';
-// Se asume que la clase PFMailAction está definida en otro archivo incluido en el sistema
+require_once 'PFMailAction.class.php'; // Asegúrate de crear esta clase
 
 // Inicializar variables para seguimiento de errores
 $error = false;
@@ -42,7 +42,6 @@ if (!$error) {
 if (!$error) {
     try {
         // Inicializar el manejador de acciones
-        // Se asume que la clase PFMailAction implementa el método processAction
         $handler = new PFMailAction();
 
         // Procesar la acción y obtener el resultado

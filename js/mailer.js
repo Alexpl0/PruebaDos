@@ -1,18 +1,26 @@
 /**
- * Sends a notification email to the next approver in line
- * @param {number} orderId - The Premium Freight order ID
- * @returns {Promise} - Promise resolving to the result of the email sending operation
+ * Módulo de notificaciones por correo electrónico para el sistema Premium Freight
+ * 
+ * Este módulo contiene funciones para enviar distintos tipos de notificaciones
+ * por correo electrónico a los usuarios del sistema, como notificaciones de aprobación,
+ * cambios de estado, etc.
+ */
+
+/**
+ * Envía una notificación por correo electrónico al siguiente aprobador en línea
+ * @param {number} orderId - El ID de la orden de Premium Freight
+ * @returns {Promise} - Promesa que se resuelve al resultado de la operación de envío del correo
  */
 function sendApprovalNotification(orderId) {
     return new Promise((resolve, reject) => {
         fetch('https://grammermx.com/Jesus/PruebaDos/mailer/PFmailNotification.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orderId: orderId })
+            body: JSON.stringify({ orderId })
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                throw new Error('La respuesta de la red no fue satisfactoria');
             }
             return response.json();
         })
@@ -20,37 +28,139 @@ function sendApprovalNotification(orderId) {
             if (data.success) {
                 resolve(data);
             } else {
-                reject(new Error(data.message || 'Failed to send notification'));
+                reject(new Error(data.message || 'Error al enviar la notificación'));
             }
         })
         .catch(error => {
+            console.error('Error en sendApprovalNotification:', error);
             reject(error);
         });
     });
 }
 
-function sendNotification(idOrder, newStatusId){
+/**
+ * Envía una notificación al siguiente nivel de aprobación
+ * @param {number} idOrder - El ID de la orden de Premium Freight
+ * @param {number} newStatusId - El ID del estado actual de la orden
+ * @returns {Promise} - Promesa que se resuelve al resultado de la operación de envío
+ */
+function sendNotification(idOrder, newStatusId) {
+    // Calculamos el siguiente nivel de aprobación
     const nextStatusId = newStatusId + 1;
-
-    const data ={
+    
+    // Preparamos los datos para la API
+    const data = {
         orderId: idOrder,
         statusId: nextStatusId
-    }
+    };
 
-    try {
-        const response = fetch('https://grammermx.com/jesus/pruebados/dao/conections/daoSendNotification.php', {
+    // Retornamos una promesa para manejar la respuesta de forma asíncrona
+    return new Promise((resolve, reject) => {
+        fetch('https://grammermx.com/jesus/pruebados/dao/conections/daoSendNotification.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orderId: selectedOrder.id, statusId: nextStatusId })
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en la respuesta del servidor');
+            }
+            return response.json();
+        })
+        .then(result => {
+            if (result.success) {
+                resolve(result);
+            } else {
+                reject(new Error(result.message || 'Error al enviar la notificación'));
+            }
+        })
+        .catch(error => {
+            console.error('Error al enviar la notificación:', error);
+            reject(error);
         });
-
-        const result = response.json();
-        if (!result.success) {
-            throw new Error(result.message || 'Error sending notification.');
-        }
-    }
-    catch (error) {
-        console.error('Error sending notification:', error);
-    }
-   
+    });
 }
+
+/**
+ * Envía una notificación de estado final (aprobado o rechazado) al creador de la orden
+ * @param {number} orderId - El ID de la orden de Premium Freight
+ * @param {string} status - El estado de la orden ('approved' o 'rejected')
+ * @param {Object} [rejectorInfo=null] - Información opcional sobre quién rechazó la orden
+ * @returns {Promise} - Promesa que se resuelve al resultado de la operación de envío
+ */
+function sendStatusNotification(orderId, status, rejectorInfo = null) {
+    return new Promise((resolve, reject) => {
+        fetch('https://grammermx.com/Jesus/PruebaDos/mailer/PFmailStatus.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                orderId: orderId,
+                status: status,
+                rejectorInfo: rejectorInfo
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('La respuesta de la red no fue satisfactoria');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                resolve(data);
+            } else {
+                reject(new Error(data.message || 'Error al enviar la notificación de estado'));
+            }
+        })
+        .catch(error => {
+            console.error('Error en sendStatusNotification:', error);
+            reject(error);
+        });
+    });
+}
+
+/**
+ * Envía una notificación de revisión de recuperación a un usuario o para una orden específica
+ * @param {number} [userId=null] - El ID del usuario (opcional)
+ * @param {number} [orderId=null] - El ID de la orden (opcional)
+ * @returns {Promise} - Promesa que se resuelve al resultado de la operación de envío
+ */
+function sendRecoveryCheckNotification(userId = null, orderId = null) {
+    const requestData = {};
+    
+    if (userId) requestData.userId = userId;
+    if (orderId) requestData.orderId = orderId;
+    
+    return new Promise((resolve, reject) => {
+        fetch('https://grammermx.com/Jesus/PruebaDos/mailer/PFmailRecoveryNotification.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('La respuesta de la red no fue satisfactoria');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                resolve(data);
+            } else {
+                reject(new Error(data.message || 'Error al enviar la notificación de revisión de recuperación'));
+            }
+        })
+        .catch(error => {
+            console.error('Error en sendRecoveryCheckNotification:', error);
+            reject(error);
+        });
+    });
+}
+
+// Exportamos las funciones para usarlas en otros módulos
+export { 
+    sendApprovalNotification, 
+    sendNotification,
+    sendStatusNotification,
+    sendRecoveryCheckNotification 
+};
