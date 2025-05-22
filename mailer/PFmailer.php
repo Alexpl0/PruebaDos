@@ -5,7 +5,7 @@
  * This script handles sending email notifications when a new premium freight order
  * requires approval. It uses PHPMailer to send HTML-formatted emails to approvers.
  * 
- * @author GitHub Copilot
+ * @author Alejandro Perez
  * @version 1.0
  * @date May 9, 2025
  */
