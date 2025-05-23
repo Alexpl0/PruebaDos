@@ -10,7 +10,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 // Importar la configuración global para acceder a la constante URL
-require_once __DIR__ . 'config.php';
+require_once __DIR__ . '/config.php';
 
 require '../Phpmailer/Exception.php';
 require '../Phpmailer/PHPMailer.php';

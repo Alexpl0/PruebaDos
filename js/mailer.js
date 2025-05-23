@@ -12,22 +12,56 @@
  * @returns {Promise} - Promesa que se resuelve al resultado de la operación de envío del correo
  */
 function sendApprovalNotification(orderId) {
+    // Validar el ID de orden
+    if (!orderId) {
+        console.error('sendApprovalNotification: ID de orden no proporcionado');
+        return Promise.reject(new Error('ID de orden no proporcionado'));
+    }
+
+    // Convertir a número para asegurar formato correcto
+    const numericOrderId = Number(orderId);
+    console.log(`Enviando notificación para orden #${numericOrderId}`);
+
     return new Promise((resolve, reject) => {
-        fetch(URLM + 'PFmailNotification.php', {
+        // Agregar diagnóstico con URL completa
+        const endpoint = URLM + 'PFmailNotification.php';
+        console.log(`Haciendo petición a: ${endpoint}`);
+
+        // Payload para debuggeo extendido
+        const payload = { 
+            orderId: numericOrderId,
+            timestamp: new Date().toISOString(), 
+            client: navigator.userAgent 
+        };
+        console.log('Enviando payload:', payload);
+
+        fetch(endpoint, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orderId })
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload)
         })
         .then(response => {
+            console.log(`Respuesta recibida: ${response.status} ${response.statusText}`);
+            
             if (!response.ok) {
-                throw new Error('La respuesta de la red no fue satisfactoria');
+                // Capturar detalles del error HTTP para diagnóstico
+                return response.text().then(text => {
+                    console.error(`Error del servidor (${response.status}):`, text);
+                    throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
+                });
             }
             return response.json();
         })
         .then(data => {
+            console.log('Respuesta procesada:', data);
             if (data.success) {
+                console.log('Notificación enviada correctamente');
                 resolve(data);
             } else {
+                console.warn('El servidor respondió con error:', data.message);
                 reject(new Error(data.message || 'Error al enviar la notificación'));
             }
         })
