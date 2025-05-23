@@ -21,10 +21,10 @@ function email(){
         $mail->Port = 465;
         $mail->SMTPAuth = true;
         $mail->Username = 'premium_freight@grammermx.com';
-        $mail->Password = 'FreightSystem2025';
+        $mail->Password = 'FreightSystem2025.';
         $mail->SMTPSecure = 'ssl';
 
-        $mail->setFrom('pruebasjesus@grammermx.com', 'Avisos Premium Freight');
+        $mail->setFrom('premium_freight@grammermx.com', 'Avisos Premium Freight');
 
             $mail->addAddress('Jesus.Perez@grammer.com', 'IT');
 
