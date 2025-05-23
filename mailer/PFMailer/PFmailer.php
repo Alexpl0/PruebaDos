@@ -30,6 +30,8 @@ class PFMailer {
         
         // Inicializar PHPMailer
         $this->mail = new PHPMailer(true);
+
+        $this->mail->SMTPDebug = 0;
         $this->mail->isSMTP();
         $this->mail->Host = 'smtp.hostinger.com'; // Ajustar según el servidor SMTP utilizado
         $this->mail->Port = 465;

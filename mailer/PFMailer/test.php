@@ -28,7 +28,7 @@ function email(){
 
             $mail->addAddress('Jesus.Perez@grammer.com', 'IT');
 
-        $mail->Subject = 'Bono de salida.';
+        $mail->Subject = 'Prueba PF';
         $mail->isHTML(true);
         $mail->Body = $contenido;
         
