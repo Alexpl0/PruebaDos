@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once 'config.php'; // Include config.php to get URL constant
 // Ahora puedes usar $_SESSION['user']
 include_once 'dao/users/auth_check.php';
 ?>
@@ -7,6 +8,8 @@ include_once 'dao/users/auth_check.php';
     window.authorizationLevel = <?php echo json_encode(isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null); ?>;
     window.userName = <?php echo json_encode(isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null); ?>;
     window.userID = <?php echo json_encode(isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null); ?>;
+    // Definimos la variable global de JavaScript con la URL base desde PHP
+    const URL = '<?php echo URL; ?>'; 
 </script>
 
 <!DOCTYPE html>
@@ -20,12 +23,10 @@ include_once 'dao/users/auth_check.php';
     
     <!-- Enlace al CDN de Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  
     
     <!-- Archivos CSS locales -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
-
 </head>
 <body>
     <div id="header-container"></div>
@@ -52,10 +53,10 @@ include_once 'dao/users/auth_check.php';
             </div>
         </div>
     </div>
+    
     <footer class="text-center py-3">
         <p>© 2025 Grammer. All rights reserved.</p>
     </footer>
-
 
     <!-- Archivos JS locales -->
     <script src="js/header.js"></script>

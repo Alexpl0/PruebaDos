@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once 'config.php'; // Include config.php to get URL constant
 // Now you can use $_SESSION['user']
 include_once 'dao/users/auth_check.php';
 ?>
@@ -7,7 +8,9 @@ include_once 'dao/users/auth_check.php';
     window.authorizationLevel = <?php echo json_encode(isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null); ?>;
     window.userName = <?php echo json_encode(isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null); ?>;
     window.userID = <?php echo json_encode(isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null); ?>;
-</script></head>
+    // Definimos la variable global de JavaScript con la URL base desde PHP
+    const URL = '<?php echo URL; ?>'; 
+</script>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -58,6 +61,12 @@ include_once 'dao/users/auth_check.php';
                                 <button class="btn btn-outline-secondary toggle-password" type="button">
                                     <i class="fas fa-eye"></i>
                                 </button>
+                            </div>
+                            <div id="passwordStrength" class="form-text mt-2">
+                                <div class="progress">
+                                    <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <small class="text-muted">Password should be at least 8 characters with letters and numbers</small>
                             </div>
                         </div>
                         <button type="submit" class="btn btn-primary">Register</button>

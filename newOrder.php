@@ -1,4 +1,5 @@
 <?php
+require_once 'config.php'; // Include config.php to get URL constant
 require_once __DIR__ . '/dao/elements/daoPlantas.php';
 require_once __DIR__ . '/dao/elements/daoCodePlants.php';
 require_once __DIR__ . '/dao/elements/daoTransport.php';
@@ -20,6 +21,8 @@ include_once 'dao/users/auth_check.php';
     window.authorizationLevel = <?php echo json_encode(isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null); ?>;
     window.userName = <?php echo json_encode(isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null); ?>;
     window.userID = <?php echo json_encode(isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null); ?>;
+    // Definimos la variable global de JavaScript con la URL base desde PHP
+    const URL = '<?php echo URL; ?>'; 
 </script>
 
 <!DOCTYPE html>
@@ -53,8 +56,7 @@ include_once 'dao/users/auth_check.php';
 
     <!-- Google Fonts -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap" as="style">
-
-
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div id="header-container"></div>
@@ -415,6 +417,7 @@ include_once 'dao/users/auth_check.php';
     </footer>
 
     <!-- Scripts -->
+    <script src="js/header.js"></script>
     <script src="js/companySelect.js"></script>
     <script src="js/formValidation.js"></script>
     <script src="js/currencyUtils.js"></script>
@@ -425,7 +428,5 @@ include_once 'dao/users/auth_check.php';
     <script src="js/carrierSelect.js"></script>
     <script src="js/addCarrier.js"></script>
     <script src="js/selectConfig.js"></script>  
-
-    <script src="js/header.js"></script>
 </body>
 </html>

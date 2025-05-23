@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once 'config.php'; // Include config.php to get URL constant
 // Check if user is logged in
 if (!isset($_SESSION['user'])) {
     header('Location: index.php');
@@ -12,6 +13,8 @@ include_once 'dao/users/auth_check.php';
     window.authorizationLevel = <?php echo json_encode(isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null); ?>;
     window.userName = <?php echo json_encode(isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null); ?>;
     window.userID = <?php echo json_encode(isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null); ?>;
+    // Definimos la variable global de JavaScript con la URL base desde PHP
+    const URL = '<?php echo URL; ?>'; 
 </script>
 
 <!DOCTYPE html>
@@ -30,6 +33,7 @@ include_once 'dao/users/auth_check.php';
 
     <!-- SweetAlert2 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- ================== CSS LOCAL ================== -->
     <link rel="stylesheet" href="css/styles.css">
@@ -55,19 +59,19 @@ include_once 'dao/users/auth_check.php';
                 <form id="profile-form">
                     <div class="mb-3">
                         <label for="email" class="form-label">Email Address</label>
-                        <input type="email" id="email" value="<?php echo htmlspecialchars($user['email']); ?>" readonly>
+                        <input type="email" id="email" value="<?php echo htmlspecialchars($user['email']); ?>" readonly class="form-control">
                     </div>
                     
                     <div class="mb-3">
                         <label for="username" class="form-label">Name</label>
-                        <input type="text" id="username" value="<?php echo htmlspecialchars($user['name']); ?>">
+                        <input type="text" id="username" value="<?php echo htmlspecialchars($user['name']); ?>" class="form-control">
                     </div>
                     
                     <div class="mb-3">
                         <label for="current-password" class="form-label">Current Password</label>
                         <div class="input-group">
-                            <input type="password" id="current-password">
-                            <button type="button" class="toggle-password" data-target="current-password">
+                            <input type="password" id="current-password" class="form-control">
+                            <button type="button" class="btn btn-outline-secondary toggle-password" data-target="current-password">
                                 <i class="fas fa-eye-slash"></i>
                             </button>
                         </div>
@@ -76,8 +80,8 @@ include_once 'dao/users/auth_check.php';
                     <div class="mb-3">
                         <label for="new-password" class="form-label">New Password</label>
                         <div class="input-group">
-                            <input type="password" id="new-password">
-                            <button type="button" class="toggle-password" data-target="new-password">
+                            <input type="password" id="new-password" class="form-control">
+                            <button type="button" class="btn btn-outline-secondary toggle-password" data-target="new-password">
                                 <i class="fas fa-eye-slash"></i>
                             </button>
                         </div>
@@ -86,8 +90,8 @@ include_once 'dao/users/auth_check.php';
                     <div class="mb-3">
                         <label for="confirm-password" class="form-label">Confirm New Password</label>
                         <div class="input-group">
-                            <input type="password" id="confirm-password">
-                            <button type="button" class="toggle-password" data-target="confirm-password">
+                            <input type="password" id="confirm-password" class="form-control">
+                            <button type="button" class="btn btn-outline-secondary toggle-password" data-target="confirm-password">
                                 <i class="fas fa-eye-slash"></i>
                             </button>
                         </div>
@@ -123,6 +127,7 @@ include_once 'dao/users/auth_check.php';
 
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/header.js"></script>
     <script src="js/profile.js"></script>
 </body>

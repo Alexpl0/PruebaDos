@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once 'config.php'; // Include config.php to get URL constant
 $nivel = isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null;
 $name = isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null;
 $userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
@@ -9,10 +10,9 @@ include_once 'dao/users/auth_check.php';
     window.authorizationLevel = <?php echo json_encode($nivel); ?>;
     window.userName = <?php echo json_encode($name); ?>;
     window.userID = <?php echo json_encode($userID); ?>;
-//     console.log("Auth Level: " + window.authorizationLevel);
-//     console.log("UserName: " + window.userName);
-//     console.log("UserID: " + window.userID);
- </script>
+    // Definimos la variable global de JavaScript con la URL base desde PHP
+    const URL = '<?php echo URL; ?>'; 
+</script>
 
 <!DOCTYPE html>
 <html lang="en">

@@ -1,23 +1,34 @@
 <?php
+/**
+ * User Administration Panel for Premium Freight System
+ * 
+ * This page allows administrators to manage users, including:
+ * - Viewing all users in a datatable
+ * - Adding new users
+ * - Editing existing users
+ * - Deleting users
+ */
+
+// Initialize session and authentication
 session_start();
 $nivel = isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null;
 $name = isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null;
 $userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
+
+// Include authentication check and config
 include_once 'dao/users/auth_check.php';
 require_once 'config.php';
 ?>
-<script>
-    window.authorizationLevel = <?php echo json_encode($nivel); ?>;
-    window.userName = <?php echo json_encode($name); ?>;
-    window.userID = <?php echo json_encode($userID); ?>;
-</script>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="User administration panel for Premium Freight management system">
     <title>User Administration | Premium Freight</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -25,12 +36,10 @@ require_once 'config.php';
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
-    <!-- DataTables -->
+    <!-- DataTables with Buttons -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    
-    <!-- DataTables Buttons -->
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
@@ -50,17 +59,25 @@ require_once 'config.php';
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/adminUsers.css">
+
+    <!-- Pass PHP user data to JavaScript -->
+    <script>
+        window.authorizationLevel = <?php echo json_encode($nivel); ?>;
+        window.userName = <?php echo json_encode($name); ?>;
+        window.userID = <?php echo json_encode($userID); ?>;
+    </script>
 </head>
 <body>
+    <!-- Header will be loaded dynamically -->
     <div id="header-container"></div>
     
     <main id="main" class="container mt-4"> 
         <h1 class="my-4">User Administration</h1>
         
         <!-- Users Table -->
-        <div class="card mb-4">
+        <div class="card mb-4 shadow-sm">
             <div class="card-body">
-                <table id="users-table" class="display" style="width:100%">
+                <table id="users-table" class="display table table-striped table-hover" style="width:100%">
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -80,9 +97,9 @@ require_once 'config.php';
         </div>
 
         <!-- User Form -->
-        <div id="user-form-container" class="card mt-4 mb-4 d-none">
+        <div id="user-form-container" class="card mt-4 mb-4 d-none shadow-sm">
             <div class="card-body">
-                <h2 id="form-title">Add New User</h2>
+                <h2 id="form-title" class="mb-3">Add New User</h2>
                 <form id="user-form">
                     <input type="hidden" id="user-id" value="New">
                     
@@ -97,7 +114,7 @@ require_once 'config.php';
                         </div>
                     </div>
                     
-                    <div class="row mb-3">
+                    <div class="row mb-4">
                         <div class="col-md-6">
                             <label for="user-role-level" class="form-label">Role & Authorization Level</label>
                             <select class="form-select" id="user-role-level" required>
@@ -115,10 +132,11 @@ require_once 'config.php';
                             <label for="user-password" class="form-label">Password</label>
                             <div class="input-group">
                                 <input type="password" class="form-control" id="user-password" required>
-                                <button class="btn btn-outline-secondary toggle-password" type="button">
+                                <button class="btn btn-outline-secondary toggle-password" type="button" aria-label="Toggle password visibility">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </div>
+                            <div class="form-text">Password should be at least 8 characters long.</div>
                         </div>
                     </div>
                     
@@ -131,8 +149,8 @@ require_once 'config.php';
         </div>
     </main>
 
-    <footer class="text-center py-3">
-        <p>© 2025 Grammer. All rights reserved.</p>
+    <footer class="text-center py-3 mt-4 bg-light">
+        <p class="mb-0">© 2025 Grammer. All rights reserved.</p>
     </footer>
 
     <script>
