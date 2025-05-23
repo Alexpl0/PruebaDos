@@ -9,7 +9,7 @@
  */
 
 // Importar la configuración global
-require_once __DIR__ . '/../config.php';
+require_once __DIR__ . 'config.php';
 
 // Establecer códigos de respuesta HTTP apropiados
 http_response_code(200);
