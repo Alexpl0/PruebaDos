@@ -12,10 +12,10 @@
  * @returns {Promise} - Promesa que se resuelve al resultado de la operación de envío del correo
  */
 function sendApprovalNotification(orderId) {
-    // Validar el ID de orden
-    if (!orderId) {
-        console.error('sendApprovalNotification: ID de orden no proporcionado');
-        return Promise.reject(new Error('ID de orden no proporcionado'));
+    // Validar que tenemos un orderId válido
+    if (!orderId || isNaN(Number(orderId))) {
+        console.error('sendApprovalNotification: Invalid orderId provided:', orderId);
+        return Promise.reject(new Error('ID de orden inválido o no proporcionado'));
     }
 
     // Convertir a número para asegurar formato correcto
@@ -23,18 +23,18 @@ function sendApprovalNotification(orderId) {
     console.log(`Enviando notificación para orden #${numericOrderId}`);
 
     return new Promise((resolve, reject) => {
-        // Agregar diagnóstico con URL completa
+        // Endpoint de la API con diagnóstico adicional
         const endpoint = URLM + 'PFmailNotification.php';
         console.log(`Haciendo petición a: ${endpoint}`);
-
-        // Payload para debuggeo extendido
+        
+        // Payload para el servidor
         const payload = { 
             orderId: numericOrderId,
-            timestamp: new Date().toISOString(), 
-            client: navigator.userAgent 
+            timestamp: new Date().toISOString(),
+            client: navigator.userAgent
         };
         console.log('Enviando payload:', payload);
-
+        
         fetch(endpoint, {
             method: 'POST',
             headers: { 
@@ -44,12 +44,22 @@ function sendApprovalNotification(orderId) {
             body: JSON.stringify(payload)
         })
         .then(response => {
+            // Registrar información de la respuesta para diagnóstico
             console.log(`Respuesta recibida: ${response.status} ${response.statusText}`);
             
             if (!response.ok) {
-                // Capturar detalles del error HTTP para diagnóstico
+                // Intentar obtener detalles del error desde la respuesta
                 return response.text().then(text => {
-                    console.error(`Error del servidor (${response.status}):`, text);
+                    console.error('Detalles del error:', text);
+                    try {
+                        // Intentar parsear como JSON por si el servidor devuelve mensaje estructurado
+                        const errorData = JSON.parse(text);
+                        if (errorData && errorData.message) {
+                            throw new Error(errorData.message);
+                        }
+                    } catch (e) {
+                        // Si no es JSON, usar el texto completo
+                    }
                     throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
                 });
             }
