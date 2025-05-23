@@ -1,3 +1,9 @@
+/**
+ * formValidation.js
+ * Este módulo contiene funciones para validación y procesamiento de formularios
+ * de Premium Freight en la plataforma GRAMMER
+ */
+
 //==========================================================================================
 // Función para recolectar y validar los datos del formulario.
 // Esta función itera sobre una lista predefinida de IDs de campos del formulario,
@@ -176,7 +182,7 @@ async function processNewCompanies() {
             });
             
             // Realizar la petición POST al servidor
-            const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/elements/daoAddLocation.php', {
+            const response = await fetch(URL + 'dao/elements/daoAddLocation.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -244,7 +250,7 @@ async function processNewCompanies() {
             });
             
             // Realizar la petición POST al servidor
-            const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/elements/daoAddLocation.php', {
+            const response = await fetch(URL + 'dao/elements/daoAddLocation.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -463,3 +469,13 @@ validateCompleteForm = function() {
     // Luego llamar a la implementación original
     return originalValidateCompleteForm();
 };
+
+/**
+ * Verificación de disponibilidad de la variable URL
+ * En caso de que el script se cargue antes que la variable esté definida
+ */
+if (typeof URL === 'undefined') {
+    console.warn('URL global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
+    // Fallback a URL hardcodeada solo como último recurso
+    window.URL = window.URL || 'https://grammermx.com/Jesus/PruebaDos/';
+}

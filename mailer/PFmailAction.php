@@ -8,10 +8,13 @@
  * ejecuta la acción correspondiente sobre la orden.
  */
 
+// Importar la configuración global
+require_once __DIR__ . '/../config.php';
+
 // Establecer códigos de respuesta HTTP apropiados
 http_response_code(200);
 
-// Importar la clase necesaria para procesamiento
+// Importar las clases necesarias para procesamiento
 require_once 'PFmailer.php';
 require_once 'PFMailAction.class.php'; // Asegúrate de crear esta clase
 
@@ -69,6 +72,9 @@ if (!$error) {
  * @param string $message Mensaje a mostrar al usuario
  */
 function showSuccess($message) {
+    // Usar la constante URL global definida en config.php
+    global $URL;
+    
     echo "<!DOCTYPE html>
     <html lang='es'>
     <head>
@@ -135,10 +141,10 @@ function showSuccess($message) {
     </head>
     <body>
         <div class='container'>
-            <img src='https://grammermx.com/Jesus/PruebaDos/PremiumFreight.svg' alt='Premium Freight Logo' class='logo'>
+            <img src='" . URL . "PremiumFreight.svg' alt='Premium Freight Logo' class='logo'>
             <div class='success'>¡Acción Exitosa!</div>
             <div class='message'>$message</div>
-            <a href='https://grammermx.com/Jesus/PruebaDos/orders.php' class='btn'>Ver Órdenes</a>
+            <a href='" . URL . "orders.php' class='btn'>Ver Órdenes</a>
         </div>
     </body>
     </html>";
@@ -151,6 +157,8 @@ function showSuccess($message) {
  * @param string $message Mensaje de error a mostrar al usuario
  */
 function showError($message) {
+    // Usar la constante URL global definida en config.php
+    
     echo "<!DOCTYPE html>
     <html lang='es'>
     <head>
@@ -217,10 +225,10 @@ function showError($message) {
     </head>
     <body>
         <div class='container'>
-            <img src='https://grammermx.com/Jesus/PruebaDos/PremiumFreight.svg' alt='Premium Freight Logo' class='logo'>
+            <img src='" . URL . "PremiumFreight.svg' alt='Premium Freight Logo' class='logo'>
             <div class='error'>Error</div>
             <div class='message'>$message</div>
-            <a href='https://grammermx.com/Jesus/PruebaDos/orders.php' class='btn'>Ver Órdenes</a>
+            <a href='" . URL . "orders.php' class='btn'>Ver Órdenes</a>
         </div>
     </body>
     </html>";

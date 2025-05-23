@@ -13,7 +13,7 @@
  */
 function sendApprovalNotification(orderId) {
     return new Promise((resolve, reject) => {
-        fetch('https://grammermx.com/Jesus/PruebaDos/mailer/PFmailNotification.php', {
+        fetch(URL + 'mailer/PFmailNotification.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ orderId })
@@ -56,7 +56,7 @@ function sendNotification(idOrder, newStatusId) {
 
     // Retornamos una promesa para manejar la respuesta de forma asíncrona
     return new Promise((resolve, reject) => {
-        fetch('https://grammermx.com/jesus/pruebados/dao/conections/daoSendNotification.php', {
+        fetch(URL + 'dao/conections/daoSendNotification.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
@@ -90,7 +90,7 @@ function sendNotification(idOrder, newStatusId) {
  */
 function sendStatusNotification(orderId, status, rejectorInfo = null) {
     return new Promise((resolve, reject) => {
-        fetch('https://grammermx.com/Jesus/PruebaDos/mailer/PFmailStatus.php', {
+        fetch(URL + 'mailer/PFmailStatus.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -132,7 +132,7 @@ function sendRecoveryCheckNotification(userId = null, orderId = null) {
     if (orderId) requestData.orderId = orderId;
     
     return new Promise((resolve, reject) => {
-        fetch('https://grammermx.com/Jesus/PruebaDos/mailer/PFmailRecoveryNotification.php', {
+        fetch(URL + 'mailer/PFmailRecoveryNotification.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(requestData)
@@ -155,6 +155,16 @@ function sendRecoveryCheckNotification(userId = null, orderId = null) {
             reject(error);
         });
     });
+}
+
+/**
+ * Verificación de disponibilidad de la variable URL
+ * En caso de que el script se cargue antes que la variable esté definida
+ */
+if (typeof URL === 'undefined') {
+    console.warn('URL global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
+    // Fallback a URL hardcodeada solo como último recurso
+    window.URL = window.URL || 'https://grammermx.com/Jesus/PruebaDos/';
 }
 
 // Exportamos las funciones para usarlas en otros módulos

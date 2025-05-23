@@ -112,7 +112,8 @@
      * @returns {Promise<Object>} - Server response
      */
     async function saveCarrierToServer(carrierName) {
-        const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/elements/daoAddCarrier.php', {
+        // Usando la variable global URL definida en el archivo PHP
+        const response = await fetch(URL + 'dao/elements/daoAddCarrier.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -123,6 +124,16 @@
         });
         
         return await response.json();
+    }
+
+    /**
+     * Verificación de disponibilidad de la variable URL
+     * En caso de que el script se cargue antes que la variable esté definida
+     */
+    if (typeof URL === 'undefined') {
+        console.warn('URL global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
+        // Fallback to hard-coded URL only as last resort
+        window.URL = window.URL || 'https://grammermx.com/Jesus/PruebaDos/';
     }
 
     // Log initialization to console

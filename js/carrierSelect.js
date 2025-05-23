@@ -1,3 +1,9 @@
+/**
+ * carrierSelect.js
+ * Módulo para la gestión y selección de transportistas (carriers)
+ * Incluye funciones para inicializar el selector, cargar transportistas y validar selecciones
+ */
+
 //==========================================================================================
 // Function to initialize the carrier selector
 function initializeCarrierSelector() {
@@ -11,8 +17,13 @@ function initializeCarrierSelector() {
 // Function to load all carriers when the page first loads
 function loadAllCarriers() {
     // Make a fetch request to get all carriers
-    fetch('https://grammermx.com/Jesus/PruebaDos/dao/elements/daoCarriers.php')
-        .then(response => response.json())
+    fetch(URL + 'dao/elements/daoCarriers.php')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Network response was not ok: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.status === 'success' && Array.isArray(data.data)) {
                 // Create options for each carrier
@@ -55,7 +66,7 @@ function showCarrierSelect() {
         allowClear: true,
         minimumInputLength: 0, // Allow showing all options without typing
         ajax: {
-            url: 'https://grammermx.com/Jesus/PruebaDos/dao/elements/daoCarriers.php', // URL to search for carriers
+            url: URL + 'dao/elements/daoCarriers.php', // URL to search for carriers
             dataType: 'json',
             delay: 250, // Wait before making the request
             data: function (params) {
@@ -126,4 +137,13 @@ function validateCarrierId() {
         valid: Boolean(carrierId),
         carrierId: carrierId
     };
+}
+
+//==========================================================================================
+// Verificación de disponibilidad de la variable URL
+// En caso de que el script se cargue antes que la variable esté definida
+if (typeof URL === 'undefined') {
+    console.warn('URL global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
+    // Fallback a URL hardcodeada solo como último recurso
+    window.URL = window.URL || 'https://grammermx.com/Jesus/PruebaDos/';
 }

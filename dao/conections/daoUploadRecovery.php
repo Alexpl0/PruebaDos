@@ -1,4 +1,5 @@
 <?php
+include_once('../../config.php'); // Incluir la constante URL
 include_once('../db/db.php');
 session_start();
 
@@ -89,8 +90,8 @@ try {
         throw new Exception("Error preparing statement: " . $conex->error);
     }
     
-    // Ruta completa para almacenar en la base de datos
-    $fileUrl = "https://grammermx.com/Jesus/PruebaDos/assets/files/recovery/{$filename}";
+    // Usar la constante URL definida en config.php
+    $fileUrl = URL . "assets/files/recovery/{$filename}";
     
     $stmt->bind_param("si", $fileUrl, $premiumFreightId);
     

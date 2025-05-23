@@ -121,7 +121,16 @@ export const chartColors = {
 // Esta constante almacena la dirección al endpoint del backend que proporciona
 // los datos para el dashboard. Centralizar esta URL facilita cambiarla en caso
 // de que el backend se mueva a otro servidor o cambie su estructura.
-export const API_URL = 'https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php';
+export let API_URL;
+
+// Intenta usar la variable global URL (definida en la página PHP)
+// Si no está disponible, usa un valor por defecto
+if (typeof URL !== 'undefined') {
+    API_URL = URL + 'dao/conections/daoPremiumFreight.php';
+} else {
+    console.warn('URL global variable is not defined. Using fallback URL.');
+    API_URL = 'https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php';
+}
 
 /**
  * Configuración de opciones para la biblioteca DataTables
@@ -185,3 +194,16 @@ export const kpiThresholds = {
         warning: 5    // Tiempos entre 2 y 5 días muestran advertencia, >5 es malo
     }
 };
+
+/**
+ * Función auxiliar para construir URLs completas
+ * Concatena la URL base con una ruta relativa
+ * @param {string} relativePath - Ruta relativa a añadir a la URL base
+ * @returns {string} URL completa
+ */
+export function buildUrl(relativePath) {
+    if (typeof URL !== 'undefined') {
+        return URL + relativePath;
+    }
+    return 'https://grammermx.com/Jesus/PruebaDos/' + relativePath;
+}

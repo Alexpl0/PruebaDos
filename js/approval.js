@@ -58,7 +58,7 @@ export async function handleApprove() {
         };
 
         // Actualizar nivel de aprobación en la base de datos
-        const responseApproval = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoStatusUpdate.php', {
+        const responseApproval = await fetch(URL + 'dao/conections/daoStatusUpdate.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updateData)
@@ -71,7 +71,7 @@ export async function handleApprove() {
         }
 
         // Actualizar texto de estado en la base de datos
-        const responseStatusText = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoStatusText.php', {
+        const responseStatusText = await fetch(URL + 'dao/conections/daoStatusText.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updateStatusText)
@@ -187,7 +187,7 @@ export async function handleReject() {
         };
 
         // Actualizar nivel de aprobación en la base de datos
-        const responseApproval = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoStatusUpdate.php', {
+        const responseApproval = await fetch(URL + 'dao/conections/daoStatusUpdate.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updateData)
@@ -200,7 +200,7 @@ export async function handleReject() {
         }
 
         // Actualizar texto de estado en la base de datos
-        const responseStatusText = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoStatusText.php', {
+        const responseStatusText = await fetch(URL + 'dao/conections/daoStatusText.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updateStatusText)
@@ -278,4 +278,14 @@ export function setupApprovalEventListeners() {
     } else {
         rejectBtn.onclick = handleReject;
     }
+}
+
+/**
+ * Verificación de disponibilidad de la variable URL
+ * En caso de que el script se cargue antes que la variable esté definida
+ */
+if (typeof URL === 'undefined') {
+    console.warn('URL global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
+    // Fallback a URL hardcodeada solo como último recurso
+    window.URL = window.URL || 'https://grammermx.com/Jesus/PruebaDos/';
 }

@@ -135,7 +135,7 @@ const dataTableOptions = {
 
                     const { loadAndPopulateSVG, generatePDF } = await import('./svgOrders.js');
                     const ids = exportData.map(row => row[0]);
-                    const ordersResponse = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php');
+                    const ordersResponse = await fetch(URL + 'dao/conections/daoPremiumFreight.php');
                     const ordersData = await ordersResponse.json();
                     const allOrders = ordersData.data || [];
                     const visibleOrders = allOrders.filter(order => ids.includes(String(order.id)));
@@ -189,7 +189,7 @@ const dataTableOptions = {
  */
 const cargarDatosPremiumFreight = async () => {
     try {
-        const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php');
+        const response = await fetch(URL + 'dao/conections/daoPremiumFreight.php');
         const data = await response.json();
         return data;
     } catch (error) {
@@ -750,7 +750,7 @@ function initializeDataTable() {
     // Now initialize the DataTable
     const usersTable = $('#users-table').DataTable({
         ajax: {
-            url: 'https://grammermx.com/Jesus/PruebaDos/dao/users/daoUserAdmin.php',
+            url: URL + 'dao/users/daoUserAdmin.php',
             dataSrc: 'data',
             // rest of your configuration
         },
@@ -951,3 +951,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         }, 300);
     });
 });
+
+/**
+ * Verificación de disponibilidad de la variable URL
+ * En caso de que el script se cargue antes que la variable esté definida
+ */
+if (typeof URL === 'undefined') {
+    console.warn('URL global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
+    // Fallback a URL hardcodeada solo como último recurso
+    window.URL = window.URL || 'https://grammermx.com/Jesus/PruebaDos/';
+}

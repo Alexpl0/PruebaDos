@@ -9,6 +9,9 @@
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+// Importar la configuración global para acceder a la constante URL
+require_once __DIR__ . '/../config.php';
+
 require 'PHPMailer/src/Exception.php';
 require 'PHPMailer/src/PHPMailer.php';
 require 'PHPMailer/src/SMTP.php';
@@ -17,24 +20,31 @@ require_once '../dao/db/db.php';
 class PFMailer {
     private $mail;
     private $db;
+    private $baseUrl;
 
     /**
      * Constructor - inicializa PHPMailer y la conexión a la base de datos
      */
     public function __construct() {
+        // Inicializar la URL base desde la constante global
+        $this->baseUrl = URL;
+        
         // Inicializar PHPMailer
         $this->mail = new PHPMailer(true);
         $this->mail->isSMTP();
-        $this->mail->Host = 'smtp.gmail.com'; // Ajustar según el servidor SMTP utilizado
+        $this->mail->Host = 'smtp.hostinger.com'; // Ajustar según el servidor SMTP utilizado
         $this->mail->SMTPAuth = true;
         $this->mail->Username = 'premium_freight@grammermx.com'; // Cambiar por el correo real
         $this->mail->Password = 'FreightSystem2025..'; // Cambiar por la contraseña real
         $this->mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $this->mail->Port = 587;
+        $this->mail->Port = 465;
         $this->mail->setFrom('premium_freight@grammermx.com', 'Premium Freight System');
         $this->mail->isHTML(true);
         $this->mail->CharSet = 'UTF-8';
-
+        
+        // Añadir BCC para todas las comunicaciones del sistema
+        $this->mail->addBCC('extern.jesus.perez@grammer.com', 'Jesús Pérez');
+        
         // Inicializar conexión a la base de datos
         $con = new LocalConector();
         $this->db = $con->conectar();
@@ -163,17 +173,16 @@ class PFMailer {
                     $rejectAllToken = $this->generateBulkActionToken($user['id'], 'reject', $orderIds);
 
                     // Generar URL para acciones en bloque
-                    $baseUrl = "https://grammermx.com/Jesus/PruebaDos";
-                    $approveAllUrl = "$baseUrl/mailer/PFmailBulkAction.php?action=approve&token=$approveAllToken";
-                    $rejectAllUrl = "$baseUrl/mailer/PFmailBulkAction.php?action=reject&token=$rejectAllToken";
+                    $approveAllUrl = $this->baseUrl . "mailer/PFmailBulkAction.php?action=approve&token=$approveAllToken";
+                    $rejectAllUrl = $this->baseUrl . "mailer/PFmailBulkAction.php?action=reject&token=$rejectAllToken";
 
                     // Crear el contenido del correo
                     $tableRows = '';
                     foreach ($pendingOrders as $order) {
                         $approveToken = $this->generateActionToken($order['id'], $user['id'], 'approve');
                         $rejectToken = $this->generateActionToken($order['id'], $user['id'], 'reject');
-                        $approveUrl = "$baseUrl/mailer/PFmailAction.php?action=approve&token=$approveToken";
-                        $rejectUrl = "$baseUrl/mailer/PFmailAction.php?action=reject&token=$rejectToken";
+                        $approveUrl = $this->baseUrl . "mailer/PFmailAction.php?action=approve&token=$approveToken";
+                        $rejectUrl = $this->baseUrl . "mailer/PFmailAction.php?action=reject&token=$rejectToken";
                         $costEuros = number_format($order['cost_euros'], 2);
 
                         $tableRows .= "
@@ -236,7 +245,7 @@ class PFMailer {
                                     <a href='$approveAllUrl' class='btn btn-approve'>Aprobar Todas</a>
                                     <a href='$rejectAllUrl' class='btn btn-reject'>Rechazar Todas</a>
                                 </div>
-                                <p>También puedes ver todas tus órdenes pendientes <a href='$baseUrl/orders.php'>en el sistema</a>.</p>
+                                <p>También puedes ver todas tus órdenes pendientes <a href='{$this->baseUrl}orders.php'>en el sistema</a>.</p>
                             </div>
                             <div class='footer'>
                                 <p>Este es un mensaje automático del Sistema de Premium Freight. Por favor, no respondas a este correo.</p>
@@ -330,8 +339,7 @@ class PFMailer {
      * @return string - HTML del cuerpo del correo
      */
     private function createStatusNotificationEmailBody($orderData, $status, $rejectorInfo = null) {
-        $baseUrl = "https://grammermx.com/Jesus/PruebaDos";
-        $viewOrderUrl = "$baseUrl/orders.php?highlight=" . $orderData['id'];
+        $viewOrderUrl = $this->baseUrl . "orders.php?highlight=" . $orderData['id'];
         $costEuros = number_format($orderData['cost_euros'], 2);
         $svgContent = $this->generateOrderSVG($orderData);
 
@@ -373,7 +381,7 @@ class PFMailer {
         <body>
             <div class='container'>
                 <div class='header'>
-                    <img src='https://grammermx.com/Jesus/PruebaDos/PremiumFreight.svg' alt='Premium Freight Logo' style='max-width: 200px;'>
+                    <img src='{$this->baseUrl}PremiumFreight.svg' alt='Premium Freight Logo' style='max-width: 200px;'>
                     <h2>Notificación de Estado de Orden</h2>
                 </div>
                 <div class='content'>
@@ -448,10 +456,9 @@ class PFMailer {
      * @return string - HTML del cuerpo del correo
      */
     private function createApprovalEmailBody($orderData, $approvalToken, $rejectToken) {
-        $baseUrl = "https://grammermx.com/Jesus/PruebaDos";
-        $approveUrl = "$baseUrl/mailer/PFmailAction.php?action=approve&token=$approvalToken";
-        $rejectUrl = "$baseUrl/mailer/PFmailAction.php?action=reject&token=$rejectToken";
-        $viewOrderUrl = "$baseUrl/orders.php?highlight=" . $orderData['id'];
+        $approveUrl = $this->baseUrl . "mailer/PFmailAction.php?action=approve&token=$approvalToken";
+        $rejectUrl = $this->baseUrl . "mailer/PFmailAction.php?action=reject&token=$rejectToken";
+        $viewOrderUrl = $this->baseUrl . "orders.php?highlight=" . $orderData['id'];
         $costEuros = number_format($orderData['cost_euros'], 2);
         $svgContent = $this->generateOrderSVG($orderData);
 
@@ -473,7 +480,7 @@ class PFMailer {
         <body>
             <div class='container'>
                 <div class='header'>
-                    <img src='https://grammermx.com/Jesus/PruebaDos/PremiumFreight.svg' alt='Premium Freight Logo' style='max-width: 200px;'>
+                    <img src='{$this->baseUrl}PremiumFreight.svg' alt='Premium Freight Logo' style='max-width: 200px;'>
                     <h2>Solicitud de Aprobación de Orden</h2>
                 </div>
                 <div class='content'>
@@ -510,7 +517,7 @@ class PFMailer {
      */
     private function generateOrderSVG($orderData) {
         // Aquí puedes generar un SVG personalizado según los datos de la orden
-        return "<div style='text-align:center;'><img src='https://grammermx.com/Jesus/PruebaDos/PremiumFreight.svg' alt='Order Diagram' style='max-width:100%;'></div>";
+        return "<div style='text-align:center;'><img src='{$this->baseUrl}PremiumFreight.svg' alt='Order Diagram' style='max-width:100%;'></div>";
     }
 
     /**
@@ -627,8 +634,7 @@ class PFMailer {
      * @return string - HTML del cuerpo del correo
      */
     private function createRecoveryCheckEmailBody($orders, $user) {
-        $baseUrl = "https://grammermx.com/Jesus/PruebaDos";
-        $evidenceUrlBase = "$baseUrl/evidence.php?order=";
+        $evidenceUrlBase = $this->baseUrl . "evidence.php?order=";
         $tableRows = '';
         foreach ($orders as $order) {
             $evidenceUrl = $evidenceUrlBase . $order['id'];
@@ -640,7 +646,7 @@ class PFMailer {
                     <td><a href='{$evidenceUrl}'>Subir Evidencia</a></td>
                 </tr>";
         }
-        $allOrdersUrl = "$baseUrl/orders.php?filter=recovery";
+        $allOrdersUrl = $this->baseUrl . "orders.php?filter=recovery";
         $html = "
         <html>
         <head>

@@ -18,6 +18,9 @@ export function showModal(orderId) {
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
     
+    // Store selected order ID in session storage
+    sessionStorage.setItem('selectedOrderId', orderId);
+    
     // Find the selected order
     const selectedOrder = window.allOrders.find(order => order.id === parseInt(orderId)) || {};
     
@@ -373,7 +376,7 @@ async function uploadEvidenceFile(orderId, userName, file) {
     formData.append('userName', userName);
     formData.append('evidenceFile', file);
     
-    const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoUploadEvidence.php', {
+    const response = await fetch(URL + 'dao/conections/daoUploadEvidence.php', {
         method: 'POST',
         body: formData
     });
@@ -449,4 +452,14 @@ export function setupModalEventListeners() {
     
     // Save PDF button
     document.getElementById('savePdfBtn').onclick = handleSavePDF;
+}
+
+/**
+ * Verificación de disponibilidad de la variable URL
+ * En caso de que el script se cargue antes que la variable esté definida
+ */
+if (typeof URL === 'undefined') {
+    console.warn('URL global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
+    // Fallback a URL hardcodeada solo como último recurso
+    window.URL = window.URL || 'https://grammermx.com/Jesus/PruebaDos/';
 }

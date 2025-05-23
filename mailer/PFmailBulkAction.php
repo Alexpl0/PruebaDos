@@ -6,8 +6,12 @@
  * desde los enlaces en los correos electrónicos semanales.
  */
 
+// Importar la configuración global para usar la constante URL
+require_once __DIR__ . '/../config.php';
+
+// Importar las clases necesarias para el procesamiento
 require_once 'PFmailer.php';
-require_once 'PFMailAction.class.php'; // Asegúrate de crear esta clase
+require_once 'PFMailAction.class.php';
 
 // Verificar si se recibieron los parámetros necesarios
 if (!isset($_GET['action']) || !isset($_GET['token'])) {
@@ -49,6 +53,9 @@ try {
  * @param array|null $details Detalles adicionales del proceso
  */
 function showSuccess($message, $details = null) {
+    // Acceder a la constante URL global
+    global $URL;
+    
     $detailsHtml = '';
     if ($details) {
         $detailsHtml .= "<p>Se procesaron {$details['total']} órdenes: {$details['successful']} exitosas, {$details['failed']} fallidas.</p>";
@@ -119,11 +126,11 @@ function showSuccess($message, $details = null) {
     </head>
     <body>
         <div class='container'>
-            <img src='https://grammermx.com/Jesus/PruebaDos/PremiumFreight.svg' alt='Premium Freight Logo' class='logo'>
+            <img src='" . URL . "PremiumFreight.svg' alt='Premium Freight Logo' class='logo'>
             <div class='success'>✓ ¡Éxito!</div>
             <div class='message'>$message</div>
             <div class='details'>$detailsHtml</div>
-            <a href='https://grammermx.com/Jesus/PruebaDos/orders.php' class='btn'>Ver Órdenes</a>
+            <a href='" . URL . "orders.php' class='btn'>Ver Órdenes</a>
         </div>
     </body>
     </html>";
@@ -137,6 +144,9 @@ function showSuccess($message, $details = null) {
  * @param array|null $details Detalles adicionales del error
  */
 function showError($message, $details = null) {
+    // Acceder a la constante URL global
+    global $URL;
+    
     $detailsHtml = '';
     if ($details) {
         if (!empty($details['errors'])) {
@@ -205,11 +215,11 @@ function showError($message, $details = null) {
     </head>
     <body>
         <div class='container'>
-            <img src='https://grammermx.com/Jesus/PruebaDos/PremiumFreight.svg' alt='Premium Freight Logo' class='logo'>
+            <img src='" . URL . "PremiumFreight.svg' alt='Premium Freight Logo' class='logo'>
             <div class='error'>✗ Error</div>
             <div class='message'>$message</div>
             <div class='details'>$detailsHtml</div>
-            <a href='https://grammermx.com/Jesus/PruebaDos/orders.php' class='btn'>Ver Órdenes</a>
+            <a href='" . URL . "orders.php' class='btn'>Ver Órdenes</a>
         </div>
     </body>
     </html>";

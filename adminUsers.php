@@ -4,6 +4,7 @@ $nivel = isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['au
 $name = isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null;
 $userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
 include_once 'dao/users/auth_check.php';
+require_once 'config.php';
 ?>
 <script>
     window.authorizationLevel = <?php echo json_encode($nivel); ?>;
@@ -133,6 +134,11 @@ include_once 'dao/users/auth_check.php';
     <footer class="text-center py-3">
         <p>© 2025 Grammer. All rights reserved.</p>
     </footer>
+
+    <script>
+        // Definimos la variable global de JavaScript con la URL base desde PHP
+        const URL = '<?php echo URL; ?>'; 
+    </script>
 
     <!-- Scripts -->
     <script src="js/header.js"></script>

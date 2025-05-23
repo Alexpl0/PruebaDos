@@ -1,9 +1,16 @@
+/**
+ * companySelect.js
+ * Este archivo maneja la inicialización y funcionalidad de los selectores de compañías
+ * para el origen y destino, incluyendo la capacidad de buscar y crear nuevas compañías.
+ */
+
 //==========================================================================================
 // Función para inicializar ambos selectores de compañía (origen y destino).
 // Llama a las funciones específicas para configurar cada selector.
 function initializeCompanySelectors() {
     showCompanySelect();      // Inicializa el selector de compañía de origen.
     showCompanyDestSelect();  // Inicializa el selector de compañía de destino.
+    console.log("Company selectors initialized");
 }
 
 //==========================================================================================
@@ -21,7 +28,7 @@ function showCompanySelect() {
         allowClear: true,
         minimumInputLength: 0,
         ajax: {
-            url: 'https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php', // URL para buscar compañías
+            url: URL + 'dao/elements/daoLocation.php', // URL para buscar compañías
             dataType: 'json',
             delay: 250, // Espera antes de hacer la petición
             data: function (params) {
@@ -108,7 +115,7 @@ function showCompanyDestSelect() {
         allowClear: true,
         minimumInputLength: 0,
         ajax: {
-            url: 'https://grammermx.com/Jesus/PruebaDos/dao/elements/daoLocation.php', // URL para buscar compañías
+            url: URL + 'dao/elements/daoLocation.php', // URL para buscar compañías
             dataType: 'json',
             delay: 250,
             data: function (params) {
@@ -136,7 +143,6 @@ function showCompanyDestSelect() {
                         text: `Add new company: "${params.term}"`,
                         isNew: true
                     });
-                    console.log("Istrue", results.isNew);
                 }
                 return { results };
             },
@@ -197,7 +203,7 @@ async function saveNewCompany(companyName, city, state, zip) {
     }
     try {
         // Realiza la petición POST al servidor para guardar la nueva compañía
-        const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/elements/daoAddLocation.php', {
+        const response = await fetch(URL + 'dao/elements/daoAddLocation.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -233,3 +239,15 @@ async function saveNewCompany(companyName, city, state, zip) {
         return false;
     }
 }
+
+//==========================================================================================
+// Verificación de disponibilidad de la variable URL
+// En caso de que el script se cargue antes que la variable esté definida
+if (typeof URL === 'undefined') {
+    console.warn('URL global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
+    // Fallback a URL hardcodeada solo como último recurso
+    window.URL = window.URL || 'https://grammermx.com/Jesus/PruebaDos/';
+}
+
+// Registra la inicialización en la consola
+console.log("Company selection module loaded successfully");

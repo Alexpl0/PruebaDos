@@ -1,3 +1,11 @@
+/**
+ * Premium Freight - New Order Management
+ * 
+ * Este módulo maneja la creación de nuevas órdenes de Premium Freight,
+ * incluyendo la validación de formularios, el procesamiento de datos,
+ * y el envío de información al servidor.
+ */
+
 //==========================================================================================
 // Global variables
 // 'range' stores the authorization level required for the order.
@@ -233,7 +241,7 @@ async function submitForm(event) {
 // Function to send form data as a promise
 function sendFormDataAsync(payload) {
     return new Promise((resolve, reject) => {
-        fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPFpost.php', {
+        fetch(URL + 'dao/conections/daoPFpost.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -265,50 +273,27 @@ function sendFormDataAsync(payload) {
 }
 
 //==========================================================================================
-// Function to send form data (payload) to the backend via an HTTP request.
-function sendFormData(payload) {
-    fetch('https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPFpost.php', {
+// Function to upload a recovery file
+async function uploadRecoveryFile(orderId, userName, file) {
+    if (!orderId || !file) {
+        throw new Error('Missing required parameters for file upload');
+    }
+
+    const formData = new FormData();
+    formData.append('premium_freight_id', orderId);
+    formData.append('userName', userName);
+    formData.append('recoveryFile', file);
+    
+    const response = await fetch(URL + 'dao/conections/daoUploadRecovery.php', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify(payload)
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.json().then(err => {
-                throw new Error(err.message || `Server responded with status: ${response.status}`);
-            }).catch(() => {
-                throw new Error(`Server responded with status: ${response.status}`);
-            });
-        }
-        return response.json();
-    })
-    .then(result => {
-        console.log("Backend response:", result);
-        if (result.success) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Data Saved',
-                text: 'The premium freight order and approval record were created successfully.'
-            });
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error Saving Data',
-                text: result.message || 'Could not save the information. Please verify the details.'
-            });
-        }
-    })
-    .catch(error => {
-        console.error('Fetch Error:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Request Error',
-            text: error.message || 'An error occurred while communicating with the server.'
-        });
+        body: formData
     });
+    
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
 }
 
 //==========================================================================================
@@ -575,4 +560,14 @@ function validateTextareaMinLength() {
     }
     
     return isValid;
+}
+
+/**
+ * Verificación de disponibilidad de la variable URL
+ * En caso de que el script se cargue antes que la variable esté definida
+ */
+if (typeof URL === 'undefined') {
+    console.warn('URL global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
+    // Fallback a URL hardcodeada solo como último recurso
+    window.URL = window.URL || 'https://grammermx.com/Jesus/PruebaDos/';
 }

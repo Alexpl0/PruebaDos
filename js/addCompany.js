@@ -198,7 +198,8 @@
      * @returns {Promise<Object>} - Respuesta del servidor
      */
     async function saveCompanyToServer(companyName, city, state, zip) {
-        const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/elements/daoAddLocation.php', {
+        // Usando la variable global URL definida en el archivo PHP
+        const response = await fetch(URL + 'dao/elements/daoAddLocation.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -214,6 +215,16 @@
         return await response.json();
     }
 
+    /**
+     * Verificación de disponibilidad de la variable URL
+     * En caso de que el script se cargue antes que la variable esté definida
+     */
+    if (typeof URL === 'undefined') {
+        console.warn('URL global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
+        // Fallback a URL hardcodeada solo como último recurso
+        window.URL = window.URL || 'https://grammermx.com/Jesus/PruebaDos/';
+    }
+
     // Registra la inicialización en la consola
-    // console.log("Company management functions initialized and ready.");
+    console.log("Company management functions initialized and ready.");
 })();
