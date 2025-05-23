@@ -8,9 +8,9 @@
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-require 'Phpmailer/Exception.php';
-require 'Phpmailer/PHPMailer.php';
-require 'Phpmailer/SMTP.php';
+require '../Phpmailer/Exception.php';
+require '../Phpmailer/PHPMailer.php';
+require '../Phpmailer/SMTP.php';
 require_once 'PFDB.php';
 
 // Importar la configuración global para acceder a la constante URL
