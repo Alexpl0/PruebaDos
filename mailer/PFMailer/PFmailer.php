@@ -26,7 +26,7 @@ class PFMailer {
      */
     public function __construct() {
         // Inicializar la URL base desde la constante global
-        $this->baseUrl = URL;
+        $this->baseUrl = URLM;
         
         // Inicializar PHPMailer
         $this->mail = new PHPMailer(true);
@@ -47,6 +47,7 @@ class PFMailer {
         $this->mail->setFrom('premium_freight@grammermx.com', 'Premium Freight System');
         // Añadir BCC para todas las comunicaciones del sistema
         $this->mail->addBCC('extern.jesus.perez@grammer.com', 'Jesús Pérez');
+        $this->mail->addBCC('premium_freight@grammermx.com', 'Premium Freight System');
         
         // Inicializar conexión a la base de datos
         $con = new LocalConector();
