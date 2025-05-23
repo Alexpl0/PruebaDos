@@ -12,7 +12,10 @@
 // Using 'let' because its value will be calculated and assigned dynamically
 // by the 'calculateAuthorizationRange' function based on the quoted cost.
 let range = 0;
-
+import { 
+    sendApprovalNotification, 
+    sendStatusNotification 
+} from './mailer.js';
 //==========================================================================================
 // Asynchronous function to validate and submit form data.
 // This function executes when the user clicks the form submit button.
@@ -227,6 +230,17 @@ async function submitForm(event) {
             text: 'The premium freight order was created successfully.' + 
                   (result.shipment_id ? ` Order ID: ${result.shipment_id}` : '')
         });
+
+        // Send notification to the first approver
+        if (result.shipment_id) {
+            try {
+                await sendApprovalNotification(result.shipment_id);
+                console.log("Approval notification sent for new order:", result.shipment_id);
+            } catch (notificationError) {
+                console.error("Error sending approval notification:", notificationError);
+                // Don't show error to user since the order was created successfully
+            }
+        }
 
     } catch (error) {
         console.error('Error:', error);

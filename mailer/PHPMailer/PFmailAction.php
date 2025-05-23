@@ -9,14 +9,14 @@
  */
 
 // Importar la configuración global
-require_once __DIR__ . 'config.php';
+require_once __DIR__ . '/../config.php';
 
 // Establecer códigos de respuesta HTTP apropiados
 http_response_code(200);
 
 // Importar las clases necesarias para procesamiento
 require_once 'PFmailer.php';
-require_once 'PFMailAction.class.php'; // Asegúrate de crear esta clase
+require_once 'PFMailAction'; // Asegúrate de crear esta clase
 
 // Inicializar variables para seguimiento de errores
 $error = false;

@@ -13,7 +13,7 @@
  */
 function sendApprovalNotification(orderId) {
     return new Promise((resolve, reject) => {
-        fetch(URL + 'mailer/PFmailNotification.php', {
+        fetch(URLM + 'mailer/PFmailNotification.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ orderId })
@@ -56,7 +56,7 @@ function sendNotification(idOrder, newStatusId) {
 
     // Retornamos una promesa para manejar la respuesta de forma asíncrona
     return new Promise((resolve, reject) => {
-        fetch(URL + 'dao/conections/daoSendNotification.php', {
+        fetch(URLM + 'dao/conections/daoSendNotification.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
@@ -90,7 +90,7 @@ function sendNotification(idOrder, newStatusId) {
  */
 function sendStatusNotification(orderId, status, rejectorInfo = null) {
     return new Promise((resolve, reject) => {
-        fetch(URL + 'mailer/PFmailStatus.php', {
+        fetch(URLM + 'mailer/PFmailStatus.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -132,7 +132,7 @@ function sendRecoveryCheckNotification(userId = null, orderId = null) {
     if (orderId) requestData.orderId = orderId;
     
     return new Promise((resolve, reject) => {
-        fetch(URL + 'mailer/PFmailRecoveryNotification.php', {
+        fetch(URLM + 'mailer/PFmailRecoveryNotification.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(requestData)
@@ -158,13 +158,13 @@ function sendRecoveryCheckNotification(userId = null, orderId = null) {
 }
 
 /**
- * Verificación de disponibilidad de la variable URL
+ * Verificación de disponibilidad de la variable URLM
  * En caso de que el script se cargue antes que la variable esté definida
  */
-if (typeof URL === 'undefined') {
+if (typeof URLM === 'undefined') {
     console.warn('URL global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
-    // Fallback a URL hardcodeada solo como último recurso
-    window.URL = window.URL || 'https://grammermx.com/Jesus/PruebaDos/';
+    // Fallback a URLM hardcodeada solo como último recurso
+    window.URLM = 'https://grammermx.com/Mailer/PHPMailer/';
 }
 
 // Exportamos las funciones para usarlas en otros módulos
