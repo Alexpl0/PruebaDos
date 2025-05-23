@@ -5,17 +5,16 @@
  * Este archivo contiene las funciones necesarias para enviar distintos tipos de 
  * notificaciones por correo electrónico relacionadas con las órdenes de Premium Freight.
  */
-
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+require 'Phpmailer/Exception.php';
+require 'Phpmailer/PHPMailer.php';
+require 'Phpmailer/SMTP.php';
+require_once 'PFDB.php';
+
 // Importar la configuración global para acceder a la constante URL
 require_once __DIR__ . '/config.php';
-
-require '../Phpmailer/Exception.php';
-require '../Phpmailer/PHPMailer.php';
-require '../Phpmailer/SMTP.php';
-require_once 'PFDB.php';
 
 class PFMailer {
     private $mail;
@@ -33,15 +32,17 @@ class PFMailer {
         $this->mail = new PHPMailer(true);
         $this->mail->isSMTP();
         $this->mail->Host = 'smtp.hostinger.com'; // Ajustar según el servidor SMTP utilizado
+        $this->mail->Port = 465;
         $this->mail->SMTPAuth = true;
         $this->mail->Username = 'premium_freight@grammermx.com'; // Cambiar por el correo real
         $this->mail->Password = 'FreightSystem2025.'; // Cambiar por la contraseña real
-        $this->mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $this->mail->Port = 465;
-        $this->mail->setFrom('premium_freight@grammermx.com', 'Premium Freight System');
+        $this->mail->SMTPSecure = 'ssl';
+        
+        
         $this->mail->isHTML(true);
         $this->mail->CharSet = 'UTF-8';
         
+        $this->mail->setFrom('premium_freight@grammermx.com', 'Premium Freight System');
         // Añadir BCC para todas las comunicaciones del sistema
         $this->mail->addBCC('extern.jesus.perez@grammer.com', 'Jesús Pérez');
         
