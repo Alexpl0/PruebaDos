@@ -13,7 +13,7 @@
  */
 function sendApprovalNotification(orderId) {
     return new Promise((resolve, reject) => {
-        fetch(URLM + 'mailer/PFmailNotification.php', {
+        fetch(URLM + 'PFmailNotification.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ orderId })
@@ -90,7 +90,7 @@ function sendNotification(idOrder, newStatusId) {
  */
 function sendStatusNotification(orderId, status, rejectorInfo = null) {
     return new Promise((resolve, reject) => {
-        fetch(URLM + 'mailer/PFmailStatus.php', {
+        fetch(URLM + 'PFmailStatus.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -132,7 +132,7 @@ function sendRecoveryCheckNotification(userId = null, orderId = null) {
     if (orderId) requestData.orderId = orderId;
     
     return new Promise((resolve, reject) => {
-        fetch(URLM + 'mailer/PFmailRecoveryNotification.php', {
+        fetch(URLM + 'PFmailRecoveryNotification.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(requestData)
@@ -164,7 +164,7 @@ function sendRecoveryCheckNotification(userId = null, orderId = null) {
 if (typeof URLM === 'undefined') {
     console.warn('URL global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
     // Fallback a URLM hardcodeada solo como último recurso
-    window.URLM = 'https://grammermx.com/Mailer/PHPMailer/';
+    window.URLM = 'https://grammermx.com/PHP';
 }
 
 // Exportamos las funciones para usarlas en otros módulos
