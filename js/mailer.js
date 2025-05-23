@@ -164,7 +164,7 @@ function sendRecoveryCheckNotification(userId = null, orderId = null) {
 if (typeof URLM === 'undefined') {
     console.warn('URL global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
     // Fallback a URLM hardcodeada solo como último recurso
-    window.URLM = 'https://grammermx.com/PHP';
+    window.URLM = 'https://grammermx.com/Mailer/PFMailer/';
 }
 
 // Exportamos las funciones para usarlas en otros módulos
