@@ -1,5 +1,5 @@
 <?php
-include_once('../db/db.php');
+include_once('../db/PFDB.php');
 
 // Establecer cabeceras para JSON
 header('Content-Type: application/json; charset=utf-8');

@@ -15,7 +15,7 @@ require_once __DIR__ . '/../config.php';
 require 'PHPMailer/src/Exception.php';
 require 'PHPMailer/src/PHPMailer.php';
 require 'PHPMailer/src/SMTP.php';
-require_once '../dao/db/db.php';
+require_once '../dao/db/PFDB.php';
 
 class PFMailer {
     private $mail;

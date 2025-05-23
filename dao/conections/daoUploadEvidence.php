@@ -1,6 +1,6 @@
 <?php
 include_once('../../config.php'); // Incluir la constante URL
-include_once('../db/db.php');
+include_once('../db/PFDB.php');
 session_start();
 
 // Establecer cabeceras para JSON

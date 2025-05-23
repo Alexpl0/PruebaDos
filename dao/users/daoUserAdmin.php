@@ -1,5 +1,5 @@
 <?php
-include_once('../db/db.php');
+include_once('../db/PFDB.php');
 session_start();
 
 header('Content-Type: application/json');

@@ -6,7 +6,7 @@
 // para así llamar a la Tabla Status y de ahí obtener el texto, si es nuevo, Aprovado, Rechazado, etc.
 
 header('Content-Type: application/json');
-include_once('../db/db.php');
+include_once('../db/PFDB.php');
 
 // Recibe el JSON enviado por POST
 $input = file_get_contents('php://input');
