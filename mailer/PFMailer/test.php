@@ -20,8 +20,8 @@ function email(){
         $mail->Host = 'smtp.hostinger.com';
         $mail->Port = 465;
         $mail->SMTPAuth = true;
-        $mail->Username = 'pruebasjesus@grammermx.com';
-        $mail->Password = 'Alexcoc.2001';
+        $mail->Username = 'premium_freight@grammermx.com';
+        $mail->Password = 'FreightSystem2025';
         $mail->SMTPSecure = 'ssl';
 
         $mail->setFrom('pruebasjesus@grammermx.com', 'Avisos Premium Freight');
