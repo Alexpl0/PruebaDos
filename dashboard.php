@@ -104,13 +104,13 @@ include_once 'dao/users/auth_check.php';
             <div class="col-md-12">
                 <div class="btn-group float-end">
                     <button id="exportCSV" class="btn btn-sm btn-outline-success">
-                        <i class="material-symbols-outlined">download</i> Export CSV
+                        <i class="fa-solid fa-file-csv"></i> Export CSV
                     </button>
                     <button id="exportPDF" class="btn btn-sm btn-outline-danger">
-                        <i class="material-symbols-outlined">picture_as_pdf</i> Export PDF
+                        <i class="fa-solid fa-file-pdf"></i> Export PDF
                     </button>
                     <button id="printDashboard" class="btn btn-sm btn-outline-primary">
-                        <i class="material-symbols-outlined">print</i> Print
+                        <i class="fa-solid fa-print"></i> Print
                     </button>
                 </div>
             </div>
