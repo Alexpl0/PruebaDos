@@ -35,7 +35,7 @@ class PFMailer {
         $this->mail->Host = 'smtp.hostinger.com'; // Ajustar según el servidor SMTP utilizado
         $this->mail->SMTPAuth = true;
         $this->mail->Username = 'premium_freight@grammermx.com'; // Cambiar por el correo real
-        $this->mail->Password = 'FreightSystem2025..'; // Cambiar por la contraseña real
+        $this->mail->Password = 'FreightSystem2025.'; // Cambiar por la contraseña real
         $this->mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $this->mail->Port = 465;
         $this->mail->setFrom('premium_freight@grammermx.com', 'Premium Freight System');
