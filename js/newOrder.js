@@ -215,6 +215,22 @@ async function submitForm(event) {
                 }
             }
             
+            // Enviar notificación de aprobación al siguiente aprobador
+            try {
+                console.log("Enviando notificación al siguiente aprobador para la orden:", orderId);
+                
+                // Importar dinámicamente el módulo mailer
+                const mailerModule = await import('./mailer.js');
+                
+                // Llamar a la función de envío de notificación
+                await mailerModule.sendApprovalNotification(orderId);
+                
+                console.log("Notificación enviada exitosamente");
+            } catch (notificationError) {
+                console.error("Error al enviar notificación:", notificationError);
+                // No mostramos error al usuario ya que la orden ya se creó correctamente
+            }
+
             Swal.fire({
                 icon: 'success',
                 title: 'Success!',

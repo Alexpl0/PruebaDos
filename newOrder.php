@@ -23,6 +23,8 @@ include_once 'dao/users/auth_check.php';
     window.userID = <?php echo json_encode(isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null); ?>;
     // Definimos la variable global de JavaScript con la URL base desde PHP
     const URL = '<?php echo URL; ?>'; 
+    // Definimos la URL del mailer
+    const URLM = '<?php echo (defined('MAILER_URL') ? MAILER_URL : 'https://grammermx.com/Mailer/PFMailer/'); ?>';
 </script>
 
 <!DOCTYPE html>
