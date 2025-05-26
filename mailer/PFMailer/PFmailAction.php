@@ -106,7 +106,7 @@ class PFMailAction {
             file_put_contents($logFile, date('Y-m-d H:i:s') . " - Aprobando orden #$orderId por usuario #$userId\n", FILE_APPEND);
             
             // Primero, obtener el valor actual de act_approv y el nivel requerido
-            $getCurrentSql = "SELECT PFA.act_approv, PF.required_auth_level 
+            $getCurrentSql = "SELECT PFA.act_approv, PF.required_auth_level, PF.status_id
                               FROM PremiumFreightApprovals PFA 
                               JOIN PremiumFreight PF ON PFA.premium_freight_id = PF.id
                               WHERE PFA.premium_freight_id = ?";
@@ -132,6 +132,7 @@ class PFMailAction {
                 $currentData = $currentResult->fetch_assoc();
                 $currentApproval = (int)$currentData['act_approv'];
                 $requiredLevel = (int)$currentData['required_auth_level'];
+                $currentStatus = (int)$currentData['status_id'];
                 
                 // Verificar si ya está en el nivel máximo
                 if ($currentApproval >= $requiredLevel) {
@@ -168,14 +169,31 @@ class PFMailAction {
                 // Verificar si con esta aprobación alcanzó el nivel requerido
                 $fullyApproved = ($newApprovalLevel >= $requiredLevel);
                 
+                // CAMBIO: Actualizar el status_id en PremiumFreight según el nivel de aprobación
+                $newStatusId = 1; // En proceso por defecto
+                
                 if ($fullyApproved) {
-                    // Si está completamente aprobado, actualizar el status_id en PremiumFreight
-                    $fullySql = "UPDATE PremiumFreight SET status_id = 3 WHERE id = ?"; // 3 = aprobado
-                    $fullyStmt = $this->db->prepare($fullySql);
-                    $fullyStmt->bind_param("i", $orderId);
-                    $fullyStmt->execute();
+                    $newStatusId = 3; // Completamente aprobado
+                    file_put_contents($logFile, "Orden alcanzó nivel completo de aprobación. Status actualizado a 'aprobado' (3)\n", FILE_APPEND);
+                } else {
+                    file_put_contents($logFile, "Orden en proceso de aprobación. Status actualizado a 'en proceso' (1)\n", FILE_APPEND);
+                }
+                
+                // Solo actualizar si el estado ha cambiado
+                if ($currentStatus != $newStatusId) {
+                    $statusSql = "UPDATE PremiumFreight SET status_id = ? WHERE id = ?";
+                    $statusStmt = $this->db->prepare($statusSql);
+                    $statusStmt->bind_param("ii", $newStatusId, $orderId);
                     
-                    file_put_contents($logFile, "Orden alcanzó nivel completo de aprobación. Status actualizado a 'aprobado'\n", FILE_APPEND);
+                    if (!$statusStmt->execute()) {
+                        file_put_contents($logFile, "Error actualizando status_id en PremiumFreight: " . $statusStmt->error . "\n", FILE_APPEND);
+                        throw new Exception("Error al actualizar status_id en PremiumFreight: " . $statusStmt->error);
+                    }
+                    
+                    $statusAffectedRows = $statusStmt->affected_rows;
+                    file_put_contents($logFile, "Status actualizado a $newStatusId. Filas afectadas: $statusAffectedRows\n", FILE_APPEND);
+                } else {
+                    file_put_contents($logFile, "No se actualizó el status_id ya que ya tiene el valor correcto: $currentStatus\n", FILE_APPEND);
                 }
             } else {
                 // No existe el registro, crear uno nuevo con nivel 1
@@ -190,9 +208,21 @@ class PFMailAction {
                 }
                 
                 file_put_contents($logFile, "Creado nuevo registro de aprobación con nivel 1\n", FILE_APPEND);
+                
+                // También actualizar el estado en PremiumFreight a "en proceso" (1)
+                $statusSql = "UPDATE PremiumFreight SET status_id = 1 WHERE id = ?";
+                $statusStmt = $this->db->prepare($statusSql);
+                $statusStmt->bind_param("i", $orderId);
+                
+                if (!$statusStmt->execute()) {
+                    file_put_contents($logFile, "Error actualizando status_id inicial en PremiumFreight: " . $statusStmt->error . "\n", FILE_APPEND);
+                    throw new Exception("Error al actualizar status_id inicial en PremiumFreight: " . $statusStmt->error);
+                }
+                
+                file_put_contents($logFile, "Status inicial actualizado a 'en proceso' (1)\n", FILE_APPEND);
             }
             
-            // Verificar si está completamente aprobada
+            // Verificar si está completamente aprobada para enviar notificaciones
             $isFullyApproved = false;
             
             if ($currentResult->num_rows > 0) {
