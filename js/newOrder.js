@@ -153,8 +153,8 @@ async function submitForm(event) {
     }
 
     console.log("Final payload being sent:", payload);
-    console.log("Origin ID Type:", typeof payload.origin_id, "Value:", payload.origin_id);
-    console.log("Destination ID Type:", typeof payload.destiny_id, "Value:", payload.destiny_id);
+    // console.log("Origin ID Type:", typeof payload.origin_id, "Value:", payload.origin_id);
+    // console.log("Destination ID Type:", typeof payload.destiny_id, "Value:", payload.destiny_id);
 
     // 6. Verificar si se necesita archivo de recuperación
     const recoverySelect = document.getElementById('Recovery');
@@ -550,5 +550,5 @@ function getSelectedCurrency() {
  */
 if (typeof URL === 'undefined') {
     console.warn("URL variable not defined. Using default base URL.");
-    window.URL = './';
+    window.URL = 'https://grammermx.com/Jesus/PruebaDos/';
 }
