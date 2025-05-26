@@ -1,10 +1,8 @@
 <?php
-/**
- * PFmailer.php - Sistema de notificaciones por email para Premium Freight
- * 
- * Este archivo contiene las funciones necesarias para enviar distintos tipos de 
- * notificaciones por correo electrónico relacionadas con las órdenes de Premium Freight.
- */
+// Primero cargar la configuración para tener acceso a las constantes
+require_once __DIR__ . '/config.php';
+
+// Después cargar el resto de dependencias
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -13,9 +11,8 @@ require '../Phpmailer/PHPMailer.php';
 require '../Phpmailer/SMTP.php';
 require_once 'PFDB.php';
 
-// Importar la configuración global para acceder a la constante URL
-require_once __DIR__ . '/config.php';
-
+// Las definiciones condicionales de URLM y URLPF deberían estar después
+// del require de config.php pero como precaución las dejamos
 if (!defined('URLM')) {
     define('URLM', 'https://grammermx.com/Mailer/PFMailer/');
 }

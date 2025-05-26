@@ -69,7 +69,7 @@ try {
                  WHERE order_id = ? AND type = 'approval_request' 
                  AND sent_at > DATE_SUB(NOW(), INTERVAL 5 MINUTE)";
     $mailer = new PFMailer();
-    $db = $mailer->getDatabase(); // Suponiendo que hay un método getter para la DB
+    $db = $mailer->getDatabase();
     $checkStmt = $db->prepare($checkSql);
     $checkStmt->bind_param("i", $orderId);
     $checkStmt->execute();
