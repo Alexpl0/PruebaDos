@@ -170,13 +170,13 @@ class PFMailAction {
                 $fullyApproved = ($newApprovalLevel >= $requiredLevel);
                 
                 // CAMBIO: Actualizar el status_id en PremiumFreight según el nivel de aprobación
-                $newStatusId = 1; // En proceso por defecto
+                $newStatusId = 2; // En proceso por defecto
                 
                 if ($fullyApproved) {
                     $newStatusId = 3; // Completamente aprobado
                     file_put_contents($logFile, "Orden alcanzó nivel completo de aprobación. Status actualizado a 'aprobado' (3)\n", FILE_APPEND);
                 } else {
-                    file_put_contents($logFile, "Orden en proceso de aprobación. Status actualizado a 'en proceso' (1)\n", FILE_APPEND);
+                    file_put_contents($logFile, "Orden en proceso de aprobación. Status actualizado a 'en proceso' (2)\n", FILE_APPEND);
                 }
                 
                 // Solo actualizar si el estado ha cambiado
@@ -209,8 +209,8 @@ class PFMailAction {
                 
                 file_put_contents($logFile, "Creado nuevo registro de aprobación con nivel 1\n", FILE_APPEND);
                 
-                // También actualizar el estado en PremiumFreight a "en proceso" (1)
-                $statusSql = "UPDATE PremiumFreight SET status_id = 1 WHERE id = ?";
+                // También actualizar el estado en PremiumFreight a "en proceso" (2)
+                $statusSql = "UPDATE PremiumFreight SET status_id = 2 WHERE id = ?";
                 $statusStmt = $this->db->prepare($statusSql);
                 $statusStmt->bind_param("i", $orderId);
                 
