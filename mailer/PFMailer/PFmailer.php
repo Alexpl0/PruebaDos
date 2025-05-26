@@ -722,5 +722,14 @@ class PFMailer {
         ";
         return $html;
     }
+
+    /**
+     * Devuelve la conexión a la base de datos
+     * 
+     * @return mysqli - Objeto de conexión a la base de datos
+     */
+    public function getDatabase() {
+        return $this->db;
+    }
 }
 ?>
