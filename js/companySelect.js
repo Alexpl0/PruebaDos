@@ -8,15 +8,34 @@
 // Función para inicializar ambos selectores de compañía (origen y destino).
 // Llama a las funciones específicas para configurar cada selector.
 function initializeCompanySelectors() {
-    showCompanySelect();      // Inicializa el selector de compañía de origen.
-    showCompanyDestSelect();  // Inicializa el selector de compañía de destino.
-    console.log("Company selectors initialized");
+    console.log("Inicializando selectores de compañía");
+    
+    // Primero verifica si los elementos existen
+    const originSelector = document.getElementById('CompanyShip');
+    const destSelector = document.getElementById('inputCompanyNameDest');
+    
+    if (!originSelector) {
+        console.error("Elemento CompanyShip no encontrado en el DOM");
+    }
+    
+    if (!destSelector) {
+        console.error("Elemento inputCompanyNameDest no encontrado en el DOM");
+    }
+    
+    // Luego inicializa
+    if (originSelector) showCompanySelect();
+    if (destSelector) showCompanyDestSelect();
+    
+    console.log("Inicialización de selectores de compañía completada");
 }
 
 //==========================================================================================
 // Inicializa el widget Select2 para el campo de compañía de origen (CompanyShip).
 // Configura la búsqueda AJAX y la opción de agregar una nueva compañía si no se encuentra.
 function showCompanySelect() {
+    console.log("Inicializando selector de compañía de origen con URL:", URL);
+    console.log("Endpoint completo:", URL + 'dao/elements/daoLocation.php');
+
     // Los campos de dirección se ponen como solo lectura al inicio.
     $('#inputCityShip').prop('readonly', true);
     $('#StatesShip').prop('readonly', true);
@@ -32,13 +51,16 @@ function showCompanySelect() {
             dataType: 'json',
             delay: 250, // Espera antes de hacer la petición
             data: function (params) {
+                console.log("Enviando solicitud de búsqueda con parámetro:", params.term || '');
                 // Envía el término de búsqueda al servidor
                 return { q: params.term || '' };
             },
             processResults: function (data, params) {
-                // Procesa la respuesta del servidor y la adapta al formato que espera Select2
+                console.log("Respuesta del servidor para compañías:", data);
+                
+                // Verifica si la estructura de datos es correcta
                 if (!data || !Array.isArray(data.data)) {
-                    console.error("Server data format is incorrect or missing data.data array:", data);
+                    console.error("Formato de datos incorrecto:", data);
                     return { results: [] };
                 }
                 // Mapea los resultados para Select2
@@ -62,7 +84,12 @@ function showCompanySelect() {
             cache: true,
             error: function(jqXHR, textStatus, errorThrown) {
                 // Maneja errores de la petición AJAX
-                console.error("AJAX error for CompanyShip:", textStatus, errorThrown, jqXHR.responseText);
+                console.error("Error en la solicitud AJAX para compañías:", {
+                    status: jqXHR.status,
+                    statusText: jqXHR.statusText,
+                    responseText: jqXHR.responseText,
+                    error: errorThrown
+                });
             }
         }
     })
@@ -124,8 +151,11 @@ function showCompanyDestSelect() {
             },
             processResults: function (data, params) {
                 // Procesa la respuesta del servidor y la adapta al formato que espera Select2
+                console.log("Respuesta del servidor para compañías destino:", data);
+                
+                // Verifica si la estructura de datos es correcta
                 if (!data || !Array.isArray(data.data)) {
-                    console.error("Server data format is incorrect or missing data.data array:", data);
+                    console.error("Formato de datos incorrecto:", data);
                     return { results: [] };
                 }
                 // Mapea los resultados para Select2
@@ -149,7 +179,12 @@ function showCompanyDestSelect() {
             cache: true,
             error: function(jqXHR, textStatus, errorThrown) {
                 // Maneja errores de la petición AJAX
-                console.error("AJAX error for CompanyDest:", textStatus, errorThrown, jqXHR.responseText);
+                console.error("Error en la solicitud AJAX para compañías destino:", {
+                    status: jqXHR.status,
+                    statusText: jqXHR.statusText,
+                    responseText: jqXHR.responseText,
+                    error: errorThrown
+                });
             }
         }
     })

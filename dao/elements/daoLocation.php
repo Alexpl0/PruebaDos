@@ -34,7 +34,13 @@ try {
     }
     $stmt->close();
 
-    echo json_encode(['status' => 'success', 'data' => $datos], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    // Formatear la respuesta JSON según el ejemplo proporcionado
+    $response = [
+        "status" => "success",
+        "data" => $datos
+    ];
+
+    echo json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     $conex->close();
 
 } catch (Exception $e) {

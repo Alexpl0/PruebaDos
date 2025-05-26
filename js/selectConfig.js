@@ -280,4 +280,40 @@ document.addEventListener('DOMContentLoaded', function() {
     $(document).ready(function() {
         initializeSelect2Elements();
     });
+
+    //==========================================================================
+    // REINICIALIZACIÓN DE SELECTORES DE COMPAÑÍA
+    //==========================================================================
+    
+    // Función específica para reinicializar los selectores de compañía
+    window.reinitializeCompanySelectors = function() {
+        console.log("Reinicializando selectores de compañía");
+        
+        // Destruir instancias previas si existen
+        if ($('#CompanyShip').data('select2')) {
+            $('#CompanyShip').select2('destroy');
+        }
+        
+        if ($('#inputCompanyNameDest').data('select2')) {
+            $('#inputCompanyNameDest').select2('destroy');
+        }
+        
+        // Reinicializar
+        if (typeof initializeCompanySelectors === 'function') {
+            initializeCompanySelectors();
+        } else {
+            console.error("Función initializeCompanySelectors no disponible");
+        }
+    };
+
+    // Asegúrate de que los selectores de compañía se inicialicen después de Select2
+    $(document).ready(function() {
+        // Esperar un momento para asegurar que Select2 se ha cargado completamente
+        setTimeout(function() {
+            if (typeof initializeCompanySelectors === 'function') {
+                console.log("Inicializando selectores de compañía después de carga completa");
+                initializeCompanySelectors();
+            }
+        }, 500);
+    });
 });
