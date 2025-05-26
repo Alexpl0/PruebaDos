@@ -228,6 +228,7 @@ async function submitForm(event) {
 
 // Function to send form data as a promise
 function sendFormDataAsync(payload) {
+    console.log("Sending form data to server: ", URL + 'dao/conections/daoPremiumFreight.php');
     return new Promise((resolve, reject) => {
         fetch(URL + 'dao/conections/daoPremiumFreight.php', {
             method: 'POST',
