@@ -240,4 +240,44 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Reinitializing Select2 components...');
         initializeAll();
     };
+
+    /**
+     * Initialize Select2 for all standard select elements
+     */
+    function initializeSelect2Elements() {
+        // Initialize Select2 for all selects except those excluded
+        $('select').not('.no-select2').each(function() {
+            const $this = $(this);
+            
+            // Apply Select2 with standard configuration
+            $this.select2({
+                width: '100%',
+                placeholder: $this.attr('placeholder') || 'Select an option',
+                allowClear: true
+            });
+            
+            // For Recovery select, add special handling
+            if ($this.attr('id') === 'Recovery') {
+                $this.on('select2:select', function() {
+                    if (typeof handleRecoveryFileVisibility === 'function') {
+                        console.log("Select2 Recovery selection changed, calling visibility handler");
+                        setTimeout(handleRecoveryFileVisibility, 100);
+                    }
+                });
+            }
+        });
+        
+        // Special additional handling after all Select2 elements are initialized
+        setTimeout(function() {
+            // Call recovery visibility handler if it exists
+            if (typeof handleRecoveryFileVisibility === 'function') {
+                handleRecoveryFileVisibility();
+            }
+        }, 300);
+    }
+
+    // Call this function when the document is ready
+    $(document).ready(function() {
+        initializeSelect2Elements();
+    });
 });

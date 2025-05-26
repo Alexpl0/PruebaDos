@@ -12,10 +12,7 @@
 // Using 'let' because its value will be calculated and assigned dynamically
 // by the 'calculateAuthorizationRange' function based on the quoted cost.
 let range = 0;
-import { 
-    sendApprovalNotification, 
-    sendStatusNotification 
-} from './mailer.js';
+
 //==========================================================================================
 // Asynchronous function to validate and submit form data.
 // This function executes when the user clicks the form submit button.
@@ -29,38 +26,28 @@ async function submitForm(event) {
     let destinyId = null;
     
     // Verificar si hay nuevas compañías que guardar utilizando la función de addCompany.js
-    const hasNewCompanies = hasNewCompaniesToSave();
+    const hasNewCompanies = window.hasNewCompaniesToSave && window.hasNewCompaniesToSave();
     
     if (hasNewCompanies) {
-        // Muestra indicador de carga
-        Swal.fire({
-            title: 'Processing new companies',
-            text: 'Please wait while we save the new company information',
-            allowOutsideClick: false,
-            didOpen: () => { Swal.showLoading(); }
-        });
-        
-        // Procesar nuevas compañías
-        const processResult = await processNewCompanies();
-        if (!processResult.success) {
-            return; // Terminar si falla el procesamiento de nuevas compañías
+        try {
+            const result = await window.saveNewCompanies();
+            if (result && result.success) {
+                originId = result.originId;
+                destinyId = result.destinyId;
+                console.log("New companies saved successfully. Origin ID:", originId, "Destiny ID:", destinyId);
+            } else {
+                console.error("Failed to save new companies:", result ? result.error : "Unknown error");
+                return;
+            }
+        } catch (error) {
+            console.error("Error saving new companies:", error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to save new company information. Please try again.'
+            });
+            return;
         }
-        
-        // Usar los IDs de las nuevas compañías
-        if (processResult.newCompanyIds.origin_id) {
-            originId = processResult.newCompanyIds.origin_id;
-            console.log("Using new origin company ID:", originId);
-        }
-        
-        if (processResult.newCompanyIds.destiny_id) {
-            destinyId = processResult.newCompanyIds.destiny_id;
-            console.log("Using new destination company ID:", destinyId);
-        }
-        
-        Swal.close();
-    }
-    else {
-        console.log("No new companies to process.");
     }
 
     // Process new carrier if needed
@@ -68,41 +55,35 @@ async function submitForm(event) {
     const hasNewCarrier = window.hasNewCarrierToSave && window.hasNewCarrierToSave();
 
     if (hasNewCarrier) {
-        // Process the new carrier
-        const carrierResult = await processNewCarrier();
-        if (!carrierResult.success) {
-            return; // Exit if carrier processing fails
-        }
-        
-        // Use the ID of the new carrier
-        if (carrierResult.newCarrierId) {
-            carrierId = carrierResult.newCarrierId;
-            console.log("Using new carrier ID:", carrierId);
+        try {
+            carrierId = await window.saveNewCarrier();
+            if (!carrierId) {
+                console.error("Failed to save new carrier");
+                return;
+            }
+        } catch (error) {
+            console.error("Error saving new carrier:", error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to save new carrier information. Please try again.'
+            });
+            return;
         }
     }
 
     // Get existing carrier ID if needed
     if (!carrierId) {
-        const carrierValidation = validateCarrierId();
-        if (!carrierValidation.valid) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Carrier Selection Required',
-                text: 'Please select a valid carrier.'
-            });
-            return;
-        }
-        carrierId = carrierValidation.carrierId;
+        carrierId = $('#Carrier').val();
     }
 
     // 2. Validar el formulario
     const validationResult = validateCompleteForm();
     if (!validationResult.isValid) {
         Swal.fire({
-            icon: 'warning',
-            title: 'Missing Information',
-            html: validationResult.errorMessage.replace(/\n/g, '<br>'),
-            confirmButtonText: 'Complete Form'
+            icon: 'error',
+            title: 'Validation Error',
+            text: validationResult.message || 'Please check the form for errors.'
         });
         return;
     }
@@ -113,9 +94,9 @@ async function submitForm(event) {
     const companyValidation = validateCompanyIds();
     if (!companyValidation.valid && !originId && !destinyId) {
         Swal.fire({
-            icon: 'warning',
-            title: 'Company Selection Required',
-            text: 'Please select valid companies for both origin and destination.'
+            icon: 'error',
+            title: 'Company Error',
+            text: 'Please select valid origin and destination companies.'
         });
         return;
     }
@@ -160,20 +141,15 @@ async function submitForm(event) {
     // 5. Validaciones finales
     if (!payload.origin_id || !payload.destiny_id) {
         Swal.fire({
-            icon: 'warning',
-            title: 'Missing Company Information',
-            text: 'Please select or create valid companies for origin and destination.'
+            icon: 'error',
+            title: 'Company Error',
+            text: 'Origin and destination company IDs are required.'
         });
         return;
     }
 
     if (!payload.cost_euros || payload.cost_euros <= 0) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Currency Conversion Problem',
-            text: 'There was a problem calculating the cost in Euros. Please check your connection and try again.'
-        });
-        return;
+        console.warn("Cost in euros is zero or invalid:", payload.cost_euros);
     }
 
     console.log("Final payload being sent:", payload);
@@ -182,72 +158,70 @@ async function submitForm(event) {
 
     // 6. Verificar si se necesita archivo de recuperación
     const recoverySelect = document.getElementById('Recovery');
-    const noRecoveryValue = "NO RECOVERY";
     const recoveryFile = document.getElementById('recoveryFile');
-    const needsFile = recoverySelect.value !== noRecoveryValue;
-
+    const needsFile = !recoverySelect.options[recoverySelect.selectedIndex].text.includes('NO RECOVERY');
+    
     // 7. Enviar el formulario principal
     try {
-        Swal.fire({
-            title: 'Sending order data...',
-            text: 'Please wait.',
-            allowOutsideClick: false,
-            didOpen: () => { Swal.showLoading(); }
-        });
+        const response = await sendFormDataAsync(payload);
         
-        const result = await sendFormDataAsync(payload);
-
-        if (result.success && needsFile && recoveryFile && recoveryFile.files && recoveryFile.files.length > 0) {
-            // Obtener el nombre de usuario
-            const userName = window.userName || 'anonymous_user';
-            const shipmentId = result.shipment_id || null;
-            console.log("Shipment ID:", shipmentId);
+        if (response && response.success) {
+            const orderId = response.order_id;
+            
+            // Si se necesita subir un archivo de recuperación y hay un archivo seleccionado
+            if (needsFile && recoveryFile && recoveryFile.files.length > 0) {
+                try {
+                    const fileResponse = await uploadRecoveryFile(
+                        orderId,
+                        window.userName || 'Unknown User',
+                        recoveryFile.files[0]
+                    );
+                    
+                    if (!fileResponse || !fileResponse.success) {
+                        console.error("Error uploading recovery file:", fileResponse ? fileResponse.message : "Unknown error");
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Order Created',
+                            text: 'Order was created successfully, but there was an issue uploading the recovery file.'
+                        });
+                        return;
+                    }
+                } catch (fileError) {
+                    console.error("Exception uploading recovery file:", fileError);
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Order Created',
+                        text: 'Order was created successfully, but there was an error uploading the recovery file.'
+                    });
+                    return;
+                }
+            }
             
             Swal.fire({
-                title: 'Uploading recovery file...',
-                text: 'Please wait.',
-                allowOutsideClick: false,
-                didOpen: () => { Swal.showLoading(); }
+                icon: 'success',
+                title: 'Success!',
+                text: 'Order created successfully with ID: ' + orderId,
+                confirmButtonText: 'OK'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'dashboard.php';
+                }
             });
             
-            try {
-                const uploadResult = await uploadRecoveryFile(result.shipment_id, userName, recoveryFile.files[0]);
-                console.log("File upload result:", uploadResult);
-            } catch (uploadError) {
-                console.error("File upload error:", uploadError);
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'File Upload Issue',
-                    text: 'The order was created but there was a problem uploading the recovery file: ' + uploadError.message
-                });
-                // Continuar con el flujo de éxito a pesar del error de carga
-            }
+        } else {
+            console.error("Error from server:", response ? response.message : "Unknown error");
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: response && response.message ? response.message : 'Failed to create order. Please try again.'
+            });
         }
-
-        Swal.fire({
-            icon: 'success',
-            title: 'Data Saved',
-            text: 'The premium freight order was created successfully.' + 
-                  (result.shipment_id ? ` Order ID: ${result.shipment_id}` : '')
-        });
-
-        // Send notification to the first approver
-        if (result.shipment_id) {
-            try {
-                await sendApprovalNotification(result.shipment_id);
-                console.log("Approval notification sent for new order:", result.shipment_id);
-            } catch (notificationError) {
-                console.error("Error sending approval notification:", notificationError);
-                // Don't show error to user since the order was created successfully
-            }
-        }
-
     } catch (error) {
-        console.error('Error:', error);
+        console.error("Exception in order submission:", error);
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: error.message || 'An error occurred while processing your request.'
+            text: 'An unexpected error occurred. Please try again later.'
         });
     }
 }
@@ -255,34 +229,21 @@ async function submitForm(event) {
 // Function to send form data as a promise
 function sendFormDataAsync(payload) {
     return new Promise((resolve, reject) => {
-        fetch(URL + 'dao/conections/daoPFpost.php', {
+        fetch(URL + 'dao/conections/daoPremiumFreight.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
             },
             body: JSON.stringify(payload)
         })
         .then(response => {
             if (!response.ok) {
-                return response.json().then(err => {
-                    throw new Error(err.message || `Server responded with status: ${response.status}`);
-                }).catch(() => {
-                    throw new Error(`Server responded with status: ${response.status}`);
-                });
+                throw new Error('Network response was not ok: ' + response.statusText);
             }
             return response.json();
         })
-        .then(result => {
-            if (result.success) {
-                resolve(result);
-            } else {
-                reject(new Error(result.message || 'Could not save information'));
-            }
-        })
-        .catch(error => {
-            reject(error);
-        });
+        .then(data => resolve(data))
+        .catch(error => reject(error));
     });
 }
 
@@ -290,7 +251,8 @@ function sendFormDataAsync(payload) {
 // Function to upload a recovery file
 async function uploadRecoveryFile(orderId, userName, file) {
     if (!orderId || !file) {
-        throw new Error('Missing required parameters for file upload');
+        console.error("Missing required parameters for file upload", { orderId, hasFile: !!file });
+        return { success: false, message: "Missing required parameters" };
     }
 
     const formData = new FormData();
@@ -304,7 +266,9 @@ async function uploadRecoveryFile(orderId, userName, file) {
     });
     
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error("Upload failed with status:", response.status, errorText);
+        return { success: false, message: `Upload failed: ${response.statusText}` };
     }
     
     return await response.json();
@@ -318,21 +282,18 @@ function calculateAuthorizationRange(quotedCost) {
     const cost = parseFloat(quotedCost);
 
     if (isNaN(cost)) {
-        console.warn("Quoted cost is not a valid number:", quotedCost);
-        return 0;
+        console.warn("Invalid cost value for authorization range calculation:", quotedCost);
+        return 1; // Default to lowest authorization level
     }
 
     if (cost <= 1500) {
+        return 1;
+    } else if (cost <= 3000) {
+        return 2;
+    } else if (cost <= 5000) {
         return 3;
-    } else if (cost > 1500 && cost <= 5000) {
-        return 4;
-    } else if (cost > 5000 && cost <= 10000) {
-        return 6;
-    } else if (cost > 10000) {
-        return 7;
     } else {
-        console.warn("Could not determine authorization range for cost:", cost);
-        return 0;
+        return 4;
     }
 }
 
@@ -365,6 +326,7 @@ function validateCompanyIds() {
  */
 function handleRecoveryFileVisibility() {
     try {
+        console.log("handleRecoveryFileVisibility called");
         const recoverySelect = document.getElementById('Recovery');
         
         if (!recoverySelect) {
@@ -379,28 +341,29 @@ function handleRecoveryFileVisibility() {
             return;
         }
         
-        // Get the recovery options from the PHP JSON data to find the NO RECOVERY ID
-        let noRecoveryId = null;
+        // Get the selected option text
+        const selectedIndex = recoverySelect.selectedIndex;
+        const selectedText = selectedIndex >= 0 ? recoverySelect.options[selectedIndex].text : '';
         
-        // Get the currently selected value (this works for both regular select and Select2)
-        const selectedValue = recoverySelect.value;
-        console.log('Currently selected recovery value:', selectedValue);
-        
-        // Get the text of the selected option for debugging
-        const selectedText = recoverySelect.options[recoverySelect.selectedIndex]?.text || '';
-        console.log('Selected recovery text:', selectedText);
+        console.log("Recovery selection:", {
+            element: recoverySelect,
+            value: recoverySelect.value,
+            selectedIndex: selectedIndex,
+            selectedText: selectedText
+        });
         
         // Check if the selected option is "NO RECOVERY" (by text content)
-        const isNoRecovery = selectedText.includes('NO RECOVERY');
+        const isNoRecovery = selectedText.toUpperCase().includes('NO RECOVERY');
         
-        if (!isNoRecovery) {
-            fileContainer.style.display = 'block';
-            console.log('Showing recovery file upload field');
-        } else {
+        console.log("Is NO RECOVERY selected:", isNoRecovery);
+        
+        if (isNoRecovery) {
             fileContainer.style.display = 'none';
+            // Clear the file input when hiding
             const fileInput = document.getElementById('recoveryFile');
             if (fileInput) fileInput.value = '';
-            console.log('Hiding recovery file upload field - NO RECOVERY selected');
+        } else {
+            fileContainer.style.display = 'block';
         }
         
     } catch (error) {
@@ -412,7 +375,9 @@ function handleRecoveryFileVisibility() {
 // Initializes event listeners and other configurations when the DOM (Document Object Model)
 // is fully loaded and ready to be manipulated.
 // This ensures that all HTML elements are available before attempting to interact with them using JavaScript.
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM Content Loaded - Initializing form");
+    
     initializeCompanySelectors();
     initializeCarrierSelector();
     initializeCurrencySelectors();
@@ -424,27 +389,43 @@ document.addEventListener('DOMContentLoaded', function () {
         console.error("Submit button ('enviar') not found. The form cannot be submitted.");
     }
 
+    // Handle recovery selection and file upload visibility
     const recoverySelect = document.getElementById('Recovery');
     if (recoverySelect) {
-        recoverySelect.addEventListener('change', handleRecoveryFileVisibility);
+        console.log("Setting up Recovery select event listeners");
         
-        if (window.jQuery) {
+        // Standard change event for native select element
+        recoverySelect.addEventListener('change', function() {
+            console.log("Recovery selection changed");
+            handleRecoveryFileVisibility();
+        });
+        
+        // Handle Select2 if jQuery and Select2 are available
+        if (window.jQuery && $.fn.select2) {
             $(document).ready(function() {
-                // Initialize Select2 if needed
                 if ($('#Recovery').length) {
+                    console.log("Initializing Select2 for Recovery");
+                    
+                    // This event fires when a Select2 selection changes
                     $('#Recovery').on('select2:select', function() {
+                        console.log("Recovery Select2 selection changed");
                         handleRecoveryFileVisibility();
                     });
                     
-                    // Also call it once initially to set the correct state
-                    setTimeout(handleRecoveryFileVisibility, 100);
+                    // Initialize with correct state after Select2 is fully loaded
+                    setTimeout(handleRecoveryFileVisibility, 300);
                 }
             });
         }
         
+        // Initial setup
+        console.log("Calling initial handleRecoveryFileVisibility");
         handleRecoveryFileVisibility();
+    } else {
+        console.error("Recovery select element not found");
     }
     
+    // Set up file validation for recovery uploads
     const recoveryFile = document.getElementById('recoveryFile');
     if (recoveryFile) {
         recoveryFile.addEventListener('change', function(e) {
@@ -470,6 +451,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Initialize text area handlers for descriptions
     const immediateActions = document.getElementById('InmediateActions');
     const permanentActions = document.getElementById('PermanentActions');
     
@@ -496,17 +478,21 @@ document.addEventListener('DOMContentLoaded', function () {
  * This function combines the values from the two visible text areas into a single hidden Description field
  */
 function updateDescription() {
-    const description = document.getElementById('Description');
-    const immediateActions = document.getElementById('InmediateActions');
-    const permanentActions = document.getElementById('PermanentActions');
-    
-    if (description && immediateActions && permanentActions) {
-        description.value = immediateActions.value + '\n' + permanentActions.value;
+    try {
+        const immediateValue = document.getElementById('InmediateActions').value.trim();
+        const permanentValue = document.getElementById('PermanentActions').value.trim();
+        const descriptionField = document.getElementById('Description');
         
-        updateCharCounter(immediateActions, '#immediateCounter', 50);
-        updateCharCounter(permanentActions, '#permanentCounter', 50);
-    } else {
-        console.error("One or more description fields not found");
+        if (descriptionField) {
+            const combinedText = `IMMEDIATE ACTIONS:\n${immediateValue}\n\nPERMANENT ACTIONS:\n${permanentValue}`;
+            descriptionField.value = combinedText;
+            
+            // Update character counters
+            updateCharCounter(document.getElementById('InmediateActions'), '#immediateCounter', 50);
+            updateCharCounter(document.getElementById('PermanentActions'), '#permanentCounter', 50);
+        }
+    } catch (error) {
+        console.error("Error updating description:", error);
     }
 }
 
@@ -517,58 +503,45 @@ function updateDescription() {
  * @param {number} minLength - Minimum required character length
  */
 function updateCharCounter(textarea, counterSelector, minLength) {
-    if (!textarea || !counterSelector) return;
-    
-    const counterElement = document.querySelector(counterSelector);
-    if (!counterElement) return;
-    
-    const currentLength = textarea.value.length;
-    
-    const charCount = counterElement.querySelector('.char-count');
-    if (charCount) {
-        charCount.textContent = `${currentLength}/${minLength}`;
-    }
-    
-    const message = counterElement.querySelector('span:first-child');
-    
-    if (currentLength >= minLength) {
-        if (message) message.className = 'text-success';
-        if (message) message.textContent = 'Minimum length met';
-        counterElement.classList.remove('text-danger');
-        counterElement.classList.add('text-success');
-        textarea.classList.remove('is-invalid');
-        textarea.classList.add('is-valid');
-    } else {
-        const remaining = minLength - currentLength;
-        if (message) message.className = 'text-danger';
-        if (message) message.textContent = `${remaining} more characters required`;
-        counterElement.classList.remove('text-success');
-        counterElement.classList.add('text-danger');
-        textarea.classList.remove('is-valid');
-        textarea.classList.add('is-invalid');
+    try {
+        const length = textarea.value.length;
+        const counterElement = document.querySelector(counterSelector);
+        
+        if (counterElement) {
+            const countElement = counterElement.querySelector('.char-count');
+            if (countElement) {
+                countElement.textContent = `${length}/${minLength}`;
+            }
+            
+            const requirementElement = counterElement.querySelector('.text-danger');
+            if (requirementElement) {
+                if (length >= minLength) {
+                    requirementElement.classList.remove('text-danger');
+                    requirementElement.classList.add('text-success');
+                    requirementElement.textContent = 'Minimum length met';
+                    textarea.classList.add('is-valid');
+                    textarea.classList.remove('is-invalid');
+                } else {
+                    requirementElement.classList.add('text-danger');
+                    requirementElement.classList.remove('text-success');
+                    requirementElement.textContent = `${minLength} characters required`;
+                    textarea.classList.add('is-invalid');
+                    textarea.classList.remove('is-valid');
+                }
+            }
+        }
+    } catch (error) {
+        console.error("Error updating character counter:", error);
     }
 }
 
-// Modify the validateCompleteForm function to check for minimum length
-// Add this function to formValidation.js or add the check in the existing validation
-// This function should be called before form submission
-function validateTextareaMinLength() {
-    const immediateActions = document.getElementById('InmediateActions');
-    const permanentActions = document.getElementById('PermanentActions');
-    const minLength = 50;
-    let isValid = true;
-    
-    if (immediateActions && immediateActions.value.length < minLength) {
-        immediateActions.classList.add('is-invalid');
-        isValid = false;
-    }
-    
-    if (permanentActions && permanentActions.value.length < minLength) {
-        permanentActions.classList.add('is-invalid');
-        isValid = false;
-    }
-    
-    return isValid;
+/**
+ * Returns the currently selected currency
+ * @returns {string} The selected currency code (USD, MXN)
+ */
+function getSelectedCurrency() {
+    const usdButton = document.getElementById('USD');
+    return usdButton && usdButton.classList.contains('active') ? 'USD' : 'MXN';
 }
 
 /**
@@ -576,7 +549,6 @@ function validateTextareaMinLength() {
  * En caso de que el script se cargue antes que la variable esté definida
  */
 if (typeof URL === 'undefined') {
-    console.warn('URL global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
-    // Fallback a URL hardcodeada solo como último recurso
-    window.URL = window.URL || 'https://grammermx.com/Jesus/PruebaDos/';
+    console.warn("URL variable not defined. Using default base URL.");
+    window.URL = './';
 }
