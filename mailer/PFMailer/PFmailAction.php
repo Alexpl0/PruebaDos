@@ -87,26 +87,168 @@ class PFMailAction {
     
     /**
      * Aprueba una orden
+     * 
+     * @param int $orderId ID de la orden a aprobar
+     * @param int $userId ID del usuario que aprueba
+     * @return array Resultado de la operación
      */
     private function approveOrder($orderId, $userId) {
-        // Implementar lógica para aprobar orden
-        // Esta es una implementación simplificada
-        return [
-            'success' => true,
-            'message' => "La orden #$orderId ha sido aprobada exitosamente."
-        ];
+        try {
+            // Registrar para diagnóstico
+            $logFile = __DIR__ . '/action_debug.log';
+            file_put_contents($logFile, date('Y-m-d H:i:s') . " - Aprobando orden #$orderId por usuario #$userId\n", FILE_APPEND);
+            
+            // 1. Actualizar PremiumFreightApprovals para esta orden
+            $updateSql = "UPDATE PremiumFreightApprovals SET act_approv = 1 WHERE premium_freight_id = ?";
+            $updateStmt = $this->db->prepare($updateSql);
+            
+            if (!$updateStmt) {
+                file_put_contents($logFile, "Error preparando consulta de aprobación: " . $this->db->error . "\n", FILE_APPEND);
+                throw new Exception("Error al preparar la consulta de aprobación: " . $this->db->error);
+            }
+            
+            $updateStmt->bind_param("i", $orderId);
+            
+            if (!$updateStmt->execute()) {
+                file_put_contents($logFile, "Error ejecutando consulta de aprobación: " . $updateStmt->error . "\n", FILE_APPEND);
+                throw new Exception("Error al ejecutar la consulta de aprobación: " . $updateStmt->error);
+            }
+            
+            $affectedRows = $updateStmt->affected_rows;
+            file_put_contents($logFile, "Filas actualizadas en PremiumFreightApprovals: $affectedRows\n", FILE_APPEND);
+            
+            if ($affectedRows === 0) {
+                // Verificar si el registro existe
+                $checkSql = "SELECT COUNT(*) as total FROM PremiumFreightApprovals WHERE premium_freight_id = ?";
+                $checkStmt = $this->db->prepare($checkSql);
+                $checkStmt->bind_param("i", $orderId);
+                $checkStmt->execute();
+                $checkResult = $checkStmt->get_result();
+                $totalRecords = $checkResult->fetch_assoc()['total'];
+                
+                if ($totalRecords === 0) {
+                    // Si no existe, crear el registro
+                    file_put_contents($logFile, "No se encontró registro en PremiumFreightApprovals, creando uno nuevo\n", FILE_APPEND);
+                    $insertSql = "INSERT INTO PremiumFreightApprovals (premium_freight_id, act_approv, user_id, approval_date) 
+                                 VALUES (?, 1, ?, NOW())";
+                    $insertStmt = $this->db->prepare($insertSql);
+                    $insertStmt->bind_param("ii", $orderId, $userId);
+                    
+                    if (!$insertStmt->execute()) {
+                        file_put_contents($logFile, "Error insertando aprobación: " . $insertStmt->error . "\n", FILE_APPEND);
+                        throw new Exception("Error al insertar la aprobación: " . $insertStmt->error);
+                    }
+                } else {
+                    file_put_contents($logFile, "El registro ya existía pero no se actualizó (posiblemente ya estaba aprobado)\n", FILE_APPEND);
+                }
+            }
+            
+            // Registrar la acción exitosa
+            file_put_contents($logFile, "Orden #$orderId aprobada exitosamente\n", FILE_APPEND);
+            
+            return [
+                'success' => true,
+                'message' => "La orden #$orderId ha sido aprobada exitosamente."
+            ];
+        } catch (Exception $e) {
+            // Registrar el error
+            file_put_contents($logFile, "Error aprobando orden: " . $e->getMessage() . "\n", FILE_APPEND);
+            
+            return [
+                'success' => false,
+                'message' => "Error al aprobar la orden: " . $e->getMessage()
+            ];
+        }
     }
     
     /**
      * Rechaza una orden
+     * 
+     * @param int $orderId ID de la orden a rechazar
+     * @param int $userId ID del usuario que rechaza
+     * @return array Resultado de la operación
      */
     private function rejectOrder($orderId, $userId) {
-        // Implementar lógica para rechazar orden
-        // Esta es una implementación simplificada
-        return [
-            'success' => true,
-            'message' => "La orden #$orderId ha sido rechazada."
-        ];
+        try {
+            // Registrar para diagnóstico
+            $logFile = __DIR__ . '/action_debug.log';
+            file_put_contents($logFile, date('Y-m-d H:i:s') . " - Rechazando orden #$orderId por usuario #$userId\n", FILE_APPEND);
+            
+            // 1. Actualizar PremiumFreight para marcar la orden como rechazada (status_id = 4)
+            $updateSql = "UPDATE PremiumFreight SET status_id = 4 WHERE id = ?";
+            $updateStmt = $this->db->prepare($updateSql);
+            
+            if (!$updateStmt) {
+                file_put_contents($logFile, "Error preparando consulta de rechazo: " . $this->db->error . "\n", FILE_APPEND);
+                throw new Exception("Error al preparar la consulta de rechazo: " . $this->db->error);
+            }
+            
+            $updateStmt->bind_param("i", $orderId);
+            
+            if (!$updateStmt->execute()) {
+                file_put_contents($logFile, "Error ejecutando consulta de rechazo: " . $updateStmt->error . "\n", FILE_APPEND);
+                throw new Exception("Error al ejecutar la consulta de rechazo: " . $updateStmt->error);
+            }
+            
+            $affectedRows = $updateStmt->affected_rows;
+            file_put_contents($logFile, "Filas actualizadas en PremiumFreight: $affectedRows\n", FILE_APPEND);
+            
+            if ($affectedRows === 0) {
+                // Verificar si la orden existe
+                $checkSql = "SELECT COUNT(*) as total FROM PremiumFreight WHERE id = ?";
+                $checkStmt = $this->db->prepare($checkSql);
+                $checkStmt->bind_param("i", $orderId);
+                $checkStmt->execute();
+                $checkResult = $checkStmt->get_result();
+                $totalOrders = $checkResult->fetch_assoc()['total'];
+                
+                if ($totalOrders === 0) {
+                    file_put_contents($logFile, "La orden #$orderId no existe\n", FILE_APPEND);
+                    throw new Exception("La orden #$orderId no existe en el sistema");
+                } else {
+                    // Si la orden existe pero no se actualizó, podría ser que ya estuviera rechazada
+                    $statusSql = "SELECT status_id FROM PremiumFreight WHERE id = ?";
+                    $statusStmt = $this->db->prepare($statusSql);
+                    $statusStmt->bind_param("i", $orderId);
+                    $statusStmt->execute();
+                    $statusResult = $statusStmt->get_result();
+                    $currentStatus = $statusResult->fetch_assoc()['status_id'];
+                    
+                    file_put_contents($logFile, "La orden existe pero no se actualizó. Estado actual: $currentStatus\n", FILE_APPEND);
+                    
+                    if ($currentStatus == 4) {
+                        // La orden ya estaba rechazada
+                        return [
+                            'success' => true,
+                            'message' => "La orden #$orderId ya estaba marcada como rechazada."
+                        ];
+                    }
+                }
+            }
+            
+            // 2. También registrar el rechazo en la tabla de aprobaciones si existe
+            $rejectSql = "UPDATE PremiumFreightApprovals SET act_approv = 0, rejection_reason = 'Rechazado vía email', 
+                          rejection_date = NOW(), rejector_id = ? WHERE premium_freight_id = ?";
+            $rejectStmt = $this->db->prepare($rejectSql);
+            $rejectStmt->bind_param("ii", $userId, $orderId);
+            $rejectStmt->execute();
+            
+            // Registrar la acción exitosa
+            file_put_contents($logFile, "Orden #$orderId rechazada exitosamente\n", FILE_APPEND);
+            
+            return [
+                'success' => true,
+                'message' => "La orden #$orderId ha sido rechazada."
+            ];
+        } catch (Exception $e) {
+            // Registrar el error
+            file_put_contents($logFile, "Error rechazando orden: " . $e->getMessage() . "\n", FILE_APPEND);
+            
+            return [
+                'success' => false,
+                'message' => "Error al rechazar la orden: " . $e->getMessage()
+            ];
+        }
     }
     
     /**
