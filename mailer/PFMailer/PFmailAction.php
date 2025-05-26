@@ -9,14 +9,116 @@
  */
 
 // Importar la configuración global
-require_once __DIR__ . 'config.php';
+require_once __DIR__ . '/config.php';
 
 // Establecer códigos de respuesta HTTP apropiados
 http_response_code(200);
 
 // Importar las clases necesarias para procesamiento
 require_once 'PFmailer.php';
-require_once 'PFMailAction'; // Asegúrate de crear esta clase
+
+// Clase para manejar acciones de correo
+class PFMailAction {
+    private $db;
+    
+    public function __construct() {
+        // Inicializar conexión a la base de datos
+        $con = new LocalConector();
+        $this->db = $con->conectar();
+    }
+    
+    /**
+     * Procesa una acción basada en un token
+     * 
+     * @param string $token Token único de la acción
+     * @param string $action Tipo de acción (approve/reject)
+     * @return array Resultado del procesamiento
+     */
+    public function processAction($token, $action) {
+        try {
+            // 1. Verificar si el token existe y no ha sido usado
+            $sql = "SELECT * FROM EmailActionTokens WHERE token = ? AND is_used = 0";
+            $stmt = $this->db->prepare($sql);
+            $stmt->bind_param("s", $token);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            if ($result->num_rows === 0) {
+                return [
+                    'success' => false,
+                    'message' => 'El token proporcionado no es válido o ya ha sido utilizado.'
+                ];
+            }
+            
+            // 2. Obtener datos del token
+            $tokenData = $result->fetch_assoc();
+            $orderId = $tokenData['order_id'];
+            $userId = $tokenData['user_id'];
+            $tokenAction = $tokenData['action'];
+            
+            // 3. Verificar que la acción solicitada coincida con la del token
+            if ($action !== $tokenAction) {
+                return [
+                    'success' => false,
+                    'message' => 'La acción solicitada no coincide con la acción autorizada por el token.'
+                ];
+            }
+            
+            // 4. Ejecutar la acción correspondiente
+            if ($action === 'approve') {
+                // Lógica para aprobar la orden
+                $result = $this->approveOrder($orderId, $userId);
+            } else {
+                // Lógica para rechazar la orden
+                $result = $this->rejectOrder($orderId, $userId);
+            }
+            
+            // 5. Marcar el token como usado
+            $this->markTokenAsUsed($token);
+            
+            return $result;
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Error al procesar la acción: ' . $e->getMessage()
+            ];
+        }
+    }
+    
+    /**
+     * Aprueba una orden
+     */
+    private function approveOrder($orderId, $userId) {
+        // Implementar lógica para aprobar orden
+        // Esta es una implementación simplificada
+        return [
+            'success' => true,
+            'message' => "La orden #$orderId ha sido aprobada exitosamente."
+        ];
+    }
+    
+    /**
+     * Rechaza una orden
+     */
+    private function rejectOrder($orderId, $userId) {
+        // Implementar lógica para rechazar orden
+        // Esta es una implementación simplificada
+        return [
+            'success' => true,
+            'message' => "La orden #$orderId ha sido rechazada."
+        ];
+    }
+    
+    /**
+     * Marca un token como usado
+     */
+    private function markTokenAsUsed($token) {
+        $sql = "UPDATE EmailActionTokens SET is_used = 1, used_at = NOW() WHERE token = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bind_param("s", $token);
+        $stmt->execute();
+    }
+}
 
 // Inicializar variables para seguimiento de errores
 $error = false;
@@ -158,6 +260,7 @@ function showSuccess($message) {
  */
 function showError($message) {
     // Usar la constante URL global definida en config.php
+    global $URL;
     
     echo "<!DOCTYPE html>
     <html lang='es'>
