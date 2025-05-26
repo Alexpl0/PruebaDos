@@ -552,7 +552,7 @@ function showSuccess($message, $additionalInfo = '') {
     </head>
     <body>
         <div class='container'>
-            <img src='" . URLPF . "PremiumFreight.svg' alt='Premium Freight Logo' class='logo'>
+            <img src='" . URLPF . "assets\logo\logo.png' alt='Premium Freight Logo' class='logo'>
             <div class='success'>¡Acción Exitosa!</div>
             <div class='message'>$message</div>
             " . ($additionalInfo ? "<div class='additional-info'>$additionalInfo</div>" : "") . "
@@ -638,7 +638,7 @@ function showError($message) {
     </head>
     <body>
         <div class='container'>
-            <img src='" . URLPF . "PremiumFreight.svg' alt='Premium Freight Logo' class='logo'>
+            <img src='" . URLPF . "assets\logo\logo.png' alt='Premium Freight Logo' class='logo'>
             <div class='error'>Error</div>
             <div class='message'>$message</div>
             <a href='" . URLPF . "orders.php' class='btn'>Ver Órdenes</a>

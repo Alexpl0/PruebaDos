@@ -407,7 +407,7 @@ class PFMailer {
         <body>
             <div class='container'>
                 <div class='header'>
-                    <img src='{$this->baseUrl}PremiumFreight.svg' alt='Premium Freight Logo' style='max-width: 200px;'>
+                    <img src='{$this->baseUrl}assets\logo\logo.png' alt='Premium Freight Logo' style='max-width: 200px;'>
                     <h2>Notificación de Estado de Orden</h2>
                 </div>
                 <div class='content'>
