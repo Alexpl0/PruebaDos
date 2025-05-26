@@ -288,12 +288,42 @@ if (!$error) {
 // Si todo está correcto, procesamos la acción
 if (!$error) {
     try {
-        // Inicializar el manejador de acciones
+        // Verificar el token primero
+        $con = new LocalConector();
+        $db = $con->conectar();
+        
+        // Verificar si el token existe y su estado
+        $sql = "SELECT t.*, p.status_id, pa.act_approv 
+                FROM EmailActionTokens t
+                LEFT JOIN PremiumFreight p ON t.order_id = p.id
+                LEFT JOIN PremiumFreightApprovals pa ON p.id = pa.premium_freight_id
+                WHERE t.token = ?";
+        $stmt = $db->prepare($sql);
+        $stmt->bind_param("s", $token);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        // Si no hay resultados o el token ya fue usado, mostrar error
+        if ($result->num_rows === 0) {
+            showError("El token proporcionado no existe.");
+            exit;
+        }
+        
+        $tokenData = $result->fetch_assoc();
+        if ($tokenData['is_used'] == 1) {
+            // Preparar mensaje detallado para el usuario
+            $usedDate = new DateTime($tokenData['used_at']);
+            $formattedDate = $usedDate->format('d/m/Y H:i:s');
+            
+            showError("Este token ya fue utilizado el {$formattedDate}. 
+                      Por favor, contacte al administrador si necesita realizar una nueva acción sobre esta orden.");
+            exit;
+        }
+        
+        // Si todo está bien, procesar normalmente
         $handler = new PFMailAction();
-
-        // Procesar la acción y obtener el resultado
         $result = $handler->processAction($token, $action);
-
+        
         // Mostrar resultado apropiado
         if ($result['success']) {
             showSuccess($result['message']);
