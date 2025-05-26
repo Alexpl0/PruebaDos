@@ -414,7 +414,7 @@ class PFMailAction {
                     FROM EmailActionTokens 
                     WHERE token = ? 
                     AND created_at > DATE_SUB(NOW(), INTERVAL 72 HOUR)
-                    AND used = 0
+                    AND is_used = 0
                     LIMIT 1";
             
             $stmt = $this->db->prepare($sql);
