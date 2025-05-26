@@ -68,7 +68,9 @@ try {
     $checkSql = "SELECT COUNT(*) as total FROM EmailNotifications 
                  WHERE order_id = ? AND type = 'approval_request' 
                  AND sent_at > DATE_SUB(NOW(), INTERVAL 5 MINUTE)";
-    $checkStmt = $this->db->prepare($checkSql);
+    $mailer = new PFMailer();
+    $db = $mailer->getDatabase(); // Suponiendo que hay un método getter para la DB
+    $checkStmt = $db->prepare($checkSql);
     $checkStmt->bind_param("i", $orderId);
     $checkStmt->execute();
     $checkResult = $checkStmt->get_result();
@@ -85,7 +87,6 @@ try {
     }
 
     // Enviar la notificación
-    $mailer = new PFMailer();
     $result = $mailer->sendApprovalNotification($orderId);
     
     // Registrar resultado

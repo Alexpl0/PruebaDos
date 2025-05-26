@@ -48,9 +48,13 @@ function sendApprovalNotification(orderId) {
             console.log(`Respuesta recibida: ${response.status} ${response.statusText}`);
             
             if (!response.ok) {
-                // Intentar obtener detalles del error desde la respuesta
                 return response.text().then(text => {
                     console.error('Detalles del error:', text);
+                    // Verificar si la respuesta parece HTML (contiene etiquetas)
+                    if (text.includes('<') && text.includes('>')) {
+                        throw new Error(`Error del servidor: ${response.status} ${response.statusText} - Respuesta HTML recibida. Probablemente un error PHP en el servidor.`);
+                    }
+                    
                     try {
                         // Intentar parsear como JSON por si el servidor devuelve mensaje estructurado
                         const errorData = JSON.parse(text);
@@ -58,12 +62,22 @@ function sendApprovalNotification(orderId) {
                             throw new Error(errorData.message);
                         }
                     } catch (e) {
-                        // Si no es JSON, usar el texto completo
+                        // Si no es JSON, usar el texto completo o un fragmento
+                        const errorPreview = text.length > 100 ? text.substring(0, 100) + "..." : text;
+                        throw new Error(`Error del servidor: ${response.status} ${response.statusText} - ${errorPreview}`);
                     }
-                    throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
                 });
             }
-            return response.json();
+            
+            // Para respuestas exitosas, intentar procesar como JSON con mejor manejo de errores
+            return response.text().then(text => {
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.error('Error al parsear JSON de respuesta:', text);
+                    throw new Error(`Error al procesar la respuesta del servidor: ${e.message}`);
+                }
+            });
         })
         .then(data => {
             console.log('Respuesta procesada:', data);
