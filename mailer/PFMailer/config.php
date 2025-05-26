@@ -1,4 +1,4 @@
 <?php
 // config.php
-define('URLM', 'https://grammermx.com/Mailer/PFMailer/')
+define('URL', 'https://grammermx.com/Mailer/PFMailer/')
 ?>
