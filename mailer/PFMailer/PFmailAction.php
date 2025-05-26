@@ -282,25 +282,6 @@ class PFMailAction {
             // 1. Actualizar PremiumFreight para marcar la orden como rechazada (status_id = 4)
             $updateSql = "UPDATE PremiumFreight SET status_id = 4 WHERE id = ?";
             
-            // Actualización adicional - También actualizar otra tabla o columna
-            $updateAdditionalSql = "UPDATE PremiumFreight SET rejection_comments = 'Rechazado vía email por token' WHERE id = ?";
-            $updateAdditionalStmt = $this->db->prepare($updateAdditionalSql);
-            
-            if (!$updateAdditionalStmt) {
-                file_put_contents($logFile, "Error preparando consulta adicional: " . $this->db->error . "\n", FILE_APPEND);
-                throw new Exception("Error al preparar la consulta adicional: " . $this->db->error);
-            }
-            
-            $updateAdditionalStmt->bind_param("i", $orderId);
-            
-            if (!$updateAdditionalStmt->execute()) {
-                file_put_contents($logFile, "Error ejecutando consulta adicional: " . $updateAdditionalStmt->error . "\n", FILE_APPEND);
-                throw new Exception("Error al ejecutar la consulta adicional: " . $updateAdditionalStmt->error);
-            }
-            
-            $additionalAffectedRows = $updateAdditionalStmt->affected_rows;
-            file_put_contents($logFile, "Filas actualizadas en consulta adicional: $additionalAffectedRows\n", FILE_APPEND);
-            
             $updateStmt = $this->db->prepare($updateSql);
             
             if (!$updateStmt) {
@@ -352,7 +333,8 @@ class PFMailAction {
             }
             
             // 2. También registrar el rechazo en la tabla de aprobaciones si existe
-            $rejectSql = "UPDATE PremiumFreightApprovals SET act_approv = 0, rejection_reason = 'Rechazado vía email', 
+            // Eliminada referencia a rejection_reason
+            $rejectSql = "UPDATE PremiumFreightApprovals SET act_approv = 0, 
                           rejection_date = NOW(), rejector_id = ? WHERE premium_freight_id = ?";
             $rejectStmt = $this->db->prepare($rejectSql);
             $rejectStmt->bind_param("ii", $userId, $orderId);
