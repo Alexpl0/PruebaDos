@@ -64,6 +64,26 @@ try {
     $orderId = intval($data['orderId']);
     file_put_contents($logFile, "[$timestamp] Procesando orden ID: $orderId\n", FILE_APPEND);
     
+    // Verificar si ya se envió una notificación reciente para esta orden (evitar duplicados)
+    $checkSql = "SELECT COUNT(*) as total FROM EmailNotifications 
+                 WHERE order_id = ? AND type = 'approval_request' 
+                 AND sent_at > DATE_SUB(NOW(), INTERVAL 5 MINUTE)";
+    $checkStmt = $this->db->prepare($checkSql);
+    $checkStmt->bind_param("i", $orderId);
+    $checkStmt->execute();
+    $checkResult = $checkStmt->get_result();
+    $recentNotifications = $checkResult->fetch_assoc()['total'];
+
+    if ($recentNotifications > 0) {
+        // Ya se envió una notificación reciente, informar pero no considerar error
+        file_put_contents($logFile, "[$timestamp] Notificación reciente ya enviada para orden #$orderId\n", FILE_APPEND);
+        echo json_encode([
+            'success' => true,
+            'message' => 'Ya se ha enviado una notificación reciente para esta orden'
+        ]);
+        exit;
+    }
+
     // Enviar la notificación
     $mailer = new PFMailer();
     $result = $mailer->sendApprovalNotification($orderId);

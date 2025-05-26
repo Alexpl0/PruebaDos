@@ -104,7 +104,7 @@ export async function handleApprove() {
         hideModal();
         createCards(window.allOrders);
 
-        // Enviar notificación al siguiente aprobador
+        // Sistema de notificaciones recursivas
         try {
             // Si la orden alcanzó el nivel de aprobación requerido, notificar al creador
             if (updatedStatusTextId === 3) {
@@ -117,6 +117,7 @@ export async function handleApprove() {
             }
         } catch (error) {
             console.error('Error al enviar correo de notificación:', error);
+            // No interrumpimos el flujo si falla la notificación
         }
 
     } catch (error) {

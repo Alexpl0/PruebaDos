@@ -192,6 +192,32 @@ class PFMailAction {
                 file_put_contents($logFile, "Creado nuevo registro de aprobación con nivel 1\n", FILE_APPEND);
             }
             
+            // Verificar si está completamente aprobada
+            $isFullyApproved = false;
+            
+            if ($currentResult->num_rows > 0) {
+                // Si actualizó un registro existente
+                $isFullyApproved = ($newApprovalLevel >= $requiredLevel);
+            }
+            
+            // Enviar notificaciones automáticamente
+            try {
+                $mailer = new PFMailer();
+                
+                if ($isFullyApproved) {
+                    // Si está completamente aprobada, notificar al creador
+                    $mailer->sendStatusNotification($orderId, 'approved');
+                    file_put_contents($logFile, "Notificación de aprobación completa enviada al creador de la orden #$orderId\n", FILE_APPEND);
+                } else {
+                    // Si aún necesita más aprobaciones, notificar al siguiente aprobador
+                    $mailer->sendApprovalNotification($orderId);
+                    file_put_contents($logFile, "Notificación enviada al siguiente aprobador para la orden #$orderId\n", FILE_APPEND);
+                }
+            } catch (Exception $e) {
+                // Registrar el error pero no interrumpir el flujo
+                file_put_contents($logFile, "Error enviando notificaciones: " . $e->getMessage() . "\n", FILE_APPEND);
+            }
+            
             // Registrar la acción exitosa
             file_put_contents($logFile, "Orden #$orderId aprobada exitosamente\n", FILE_APPEND);
             
@@ -301,6 +327,35 @@ class PFMailAction {
             $rejectStmt = $this->db->prepare($rejectSql);
             $rejectStmt->bind_param("ii", $userId, $orderId);
             $rejectStmt->execute();
+            
+            // Enviar notificación de rechazo al creador
+            try {
+                $mailer = new PFMailer();
+                
+                // Obtener información del usuario que rechazó
+                $userSql = "SELECT id, name, authorization_level FROM User WHERE id = ?";
+                $userStmt = $this->db->prepare($userSql);
+                $userStmt->bind_param("i", $userId);
+                $userStmt->execute();
+                $userResult = $userStmt->get_result();
+                $rejectorInfo = null;
+                
+                if ($userResult->num_rows > 0) {
+                    $userData = $userResult->fetch_assoc();
+                    $rejectorInfo = [
+                        'id' => $userData['id'],
+                        'name' => $userData['name'],
+                        'level' => $userData['authorization_level']
+                    ];
+                }
+                
+                // Enviar notificación de rechazo
+                $mailer->sendStatusNotification($orderId, 'rejected', $rejectorInfo);
+                file_put_contents($logFile, "Notificación de rechazo enviada al creador de la orden #$orderId\n", FILE_APPEND);
+            } catch (Exception $e) {
+                // Registrar el error pero no interrumpir el flujo
+                file_put_contents($logFile, "Error enviando notificación de rechazo: " . $e->getMessage() . "\n", FILE_APPEND);
+            }
             
             // Registrar la acción exitosa
             file_put_contents($logFile, "Orden #$orderId rechazada exitosamente\n", FILE_APPEND);
@@ -467,11 +522,11 @@ function showSuccess($message, $additionalInfo = '') {
     </head>
     <body>
         <div class='container'>
-            <img src='" . URL . "PremiumFreight.svg' alt='Premium Freight Logo' class='logo'>
+            <img src='" . URLPF . "PremiumFreight.svg' alt='Premium Freight Logo' class='logo'>
             <div class='success'>¡Acción Exitosa!</div>
             <div class='message'>$message</div>
             " . ($additionalInfo ? "<div class='additional-info'>$additionalInfo</div>" : "") . "
-            <a href='" . URL . "orders.php' class='btn'>Ver Órdenes</a>
+            <a href='" . URLPF . "orders.php' class='btn'>Ver Órdenes</a>
         </div>
     </body>
     </html>";
@@ -553,7 +608,7 @@ function showError($message) {
     </head>
     <body>
         <div class='container'>
-            <img src='" . URL . "PremiumFreight.svg' alt='Premium Freight Logo' class='logo'>
+            <img src='" . URLPF . "PremiumFreight.svg' alt='Premium Freight Logo' class='logo'>
             <div class='error'>Error</div>
             <div class='message'>$message</div>
             <a href='" . URLPF . "orders.php' class='btn'>Ver Órdenes</a>

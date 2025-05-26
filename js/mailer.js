@@ -77,7 +77,10 @@ function sendApprovalNotification(orderId) {
         })
         .catch(error => {
             console.error('Error en sendApprovalNotification:', error);
-            reject(error);
+            // Añadir más contexto al error para facilitar depuración
+            const enhancedError = new Error(`Error enviando notificación para orden #${orderId}: ${error.message}`);
+            enhancedError.originalError = error;
+            reject(enhancedError);
         });
     });
 }

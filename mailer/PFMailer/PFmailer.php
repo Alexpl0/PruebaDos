@@ -87,9 +87,26 @@ class PFMailer {
             $stmt->execute();
             $result = $stmt->get_result();
 
-            // Si no hay usuario con ese nivel, finalizamos
+            // Si no hay usuario con ese nivel, probar con el nivel inmediatamente superior
+            // (en caso de que algunos niveles no tengan usuarios asignados)
             if ($result->num_rows === 0) {
-                return false;
+                $attempts = 1;
+                $maxAttempts = 3; // Límite para evitar bucles infinitos
+                
+                while ($result->num_rows === 0 && $attempts < $maxAttempts) {
+                    $nextApprovalLevel++;
+                    $stmt = $this->db->prepare($sql);
+                    $stmt->bind_param("i", $nextApprovalLevel);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+                    $attempts++;
+                }
+                
+                // Si después de los intentos no encontramos aprobador, finalizar
+                if ($result->num_rows === 0) {
+                    error_log("No se encontró ningún aprobador para la orden $orderId después de $attempts intentos");
+                    return false;
+                }
             }
 
             // Obtenemos los datos del aprobador
