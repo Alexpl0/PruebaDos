@@ -177,16 +177,16 @@ class PFMailer {
                     $rejectAllToken = $this->generateBulkActionToken($user['id'], 'reject', $orderIds);
 
                     // Generar URL para acciones en bloque
-                    $approveAllUrl = $this->baseUrl . "mailer/PFmailBulkAction.php?action=approve&token=$approveAllToken";
-                    $rejectAllUrl = $this->baseUrl . "mailer/PFmailBulkAction.php?action=reject&token=$rejectAllToken";
+                    $approveAllUrl = $this->baseUrl . "PFmailBulkAction.php?action=approve&token=$approveAllToken";
+                    $rejectAllUrl = $this->baseUrl . "PFmailBulkAction.php?action=reject&token=$rejectAllToken";
 
                     // Crear el contenido del correo
                     $tableRows = '';
                     foreach ($pendingOrders as $order) {
                         $approveToken = $this->generateActionToken($order['id'], $user['id'], 'approve');
                         $rejectToken = $this->generateActionToken($order['id'], $user['id'], 'reject');
-                        $approveUrl = $this->baseUrl . "mailer/PFmailAction.php?action=approve&token=$approveToken";
-                        $rejectUrl = $this->baseUrl . "mailer/PFmailAction.php?action=reject&token=$rejectToken";
+                        $approveUrl = $this->baseUrl . "PFmailAction.php?action=approve&token=$approveToken";
+                        $rejectUrl = $this->baseUrl . "PFmailAction.php?action=reject&token=$rejectToken";
                         $costEuros = number_format($order['cost_euros'], 2);
 
                         $tableRows .= "
@@ -460,8 +460,8 @@ class PFMailer {
      * @return string - HTML del cuerpo del correo
      */
     private function createApprovalEmailBody($orderData, $approvalToken, $rejectToken) {
-        $approveUrl = $this->baseUrl . "mailer/PFmailAction.php?action=approve&token=$approvalToken";
-        $rejectUrl = $this->baseUrl . "mailer/PFmailAction.php?action=reject&token=$rejectToken";
+        $approveUrl = $this->baseUrl . "PFmailAction.php?action=approve&token=$approvalToken";
+        $rejectUrl = $this->baseUrl . "PFmailAction.php?action=reject&token=$rejectToken";
         $viewOrderUrl = $this->baseUrl . "orders.php?highlight=" . $orderData['id'];
         $costEuros = number_format($orderData['cost_euros'], 2);
         $svgContent = $this->generateOrderSVG($orderData);
