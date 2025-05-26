@@ -246,7 +246,7 @@ function showSuccess($message) {
             <img src='" . URL . "PremiumFreight.svg' alt='Premium Freight Logo' class='logo'>
             <div class='success'>¡Acción Exitosa!</div>
             <div class='message'>$message</div>
-            <a href='" . URL . "orders.php' class='btn'>Ver Órdenes</a>
+            <a href='" . URLPF . "orders.php' class='btn'>Ver Órdenes</a>
         </div>
     </body>
     </html>";
@@ -331,7 +331,7 @@ function showError($message) {
             <img src='" . URL . "PremiumFreight.svg' alt='Premium Freight Logo' class='logo'>
             <div class='error'>Error</div>
             <div class='message'>$message</div>
-            <a href='" . URL . "orders.php' class='btn'>Ver Órdenes</a>
+            <a href='" . URLPF . "orders.php' class='btn'>Ver Órdenes</a>
         </div>
     </body>
     </html>";

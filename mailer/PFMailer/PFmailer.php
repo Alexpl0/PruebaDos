@@ -16,6 +16,14 @@ require_once 'PFDB.php';
 // Importar la configuración global para acceder a la constante URL
 require_once __DIR__ . '/config.php';
 
+if (!defined('URLM')) {
+    define('URLM', 'https://grammermx.com/Mailer/PFMailer/');
+}
+
+if(!defined('URLPF')) {
+    define('URLPF', 'https://grammermx.com/Jesus/PruebaDos/');
+}
+
 class PFMailer {
     private $mail;
     private $db;
