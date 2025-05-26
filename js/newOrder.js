@@ -379,40 +379,28 @@ function handleRecoveryFileVisibility() {
             return;
         }
         
-        const noRecoveryValue = "NO RECOVERY";
+        // Get the recovery options from the PHP JSON data to find the NO RECOVERY ID
+        let noRecoveryId = null;
         
-        if (window.jQuery && $.fn.select2 && $(recoverySelect).data('select2')) {
-            const select2Container = document.getElementById('select2-Recovery-container');
-            
-            if (select2Container) {
-                const selectedText = select2Container.textContent.trim();
-                // console.log('Recovery selected (Select2):', selectedText);
-                
-                if (selectedText !== noRecoveryValue) {
-                    fileContainer.style.display = 'block';
-                    console.log('Showing recovery file upload field');
-                } else {
-                    fileContainer.style.display = 'none';
-                    const fileInput = document.getElementById('recoveryFile');
-                    if (fileInput) fileInput.value = '';
-                    // console.log('Hiding recovery file upload field');
-                }
-                return;
-            }
-        }
+        // Get the currently selected value (this works for both regular select and Select2)
+        const selectedValue = recoverySelect.value;
+        console.log('Currently selected recovery value:', selectedValue);
         
-        const selectedOption = recoverySelect.options[recoverySelect.selectedIndex];
-        const selectedText = selectedOption ? selectedOption.textContent.trim() : '';
-        // console.log('Recovery selected (standard):', selectedText);
+        // Get the text of the selected option for debugging
+        const selectedText = recoverySelect.options[recoverySelect.selectedIndex]?.text || '';
+        console.log('Selected recovery text:', selectedText);
         
-        if (selectedText !== noRecoveryValue) {
+        // Check if the selected option is "NO RECOVERY" (by text content)
+        const isNoRecovery = selectedText.includes('NO RECOVERY');
+        
+        if (!isNoRecovery) {
             fileContainer.style.display = 'block';
             console.log('Showing recovery file upload field');
         } else {
             fileContainer.style.display = 'none';
             const fileInput = document.getElementById('recoveryFile');
             if (fileInput) fileInput.value = '';
-            // console.log('Hiding recovery file upload field');
+            console.log('Hiding recovery file upload field - NO RECOVERY selected');
         }
         
     } catch (error) {
@@ -442,8 +430,15 @@ document.addEventListener('DOMContentLoaded', function () {
         
         if (window.jQuery) {
             $(document).ready(function() {
-                $('#Recovery').on('select2:select', handleRecoveryFileVisibility);
-                setTimeout(handleRecoveryFileVisibility, 300);
+                // Initialize Select2 if needed
+                if ($('#Recovery').length) {
+                    $('#Recovery').on('select2:select', function() {
+                        handleRecoveryFileVisibility();
+                    });
+                    
+                    // Also call it once initially to set the correct state
+                    setTimeout(handleRecoveryFileVisibility, 100);
+                }
             });
         }
         
