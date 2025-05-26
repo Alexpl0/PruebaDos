@@ -396,6 +396,63 @@ class PFMailAction {
         $stmt->bind_param("s", $token);
         $stmt->execute();
     }
+    
+    /**
+     * Valida un token de acción por correo
+     * 
+     * @param string $token - Token a validar
+     * @return array|false - Información del token si es válido, false en caso contrario
+     */
+    public function validateToken($token) {
+        try {
+            // Registrar para diagnóstico
+            $logFile = __DIR__ . '/action_debug.log';
+            file_put_contents($logFile, date('Y-m-d H:i:s') . " - Validando token: {$token}\n", FILE_APPEND);
+
+            // Preparar la consulta para obtener la información del token
+            $sql = "SELECT token, order_id, user_id, action, created_at 
+                    FROM EmailActionTokens 
+                    WHERE token = ? 
+                    AND created_at > DATE_SUB(NOW(), INTERVAL 72 HOUR)
+                    AND used = 0
+                    LIMIT 1";
+            
+            $stmt = $this->db->prepare($sql);
+            
+            if (!$stmt) {
+                file_put_contents($logFile, "Error al preparar consulta de token: " . $this->db->error . "\n", FILE_APPEND);
+                return false;
+            }
+            
+            $stmt->bind_param("s", $token);
+            
+            if (!$stmt->execute()) {
+                file_put_contents($logFile, "Error al ejecutar consulta de token: " . $stmt->error . "\n", FILE_APPEND);
+                return false;
+            }
+            
+            $result = $stmt->get_result();
+            
+            if ($result->num_rows === 0) {
+                file_put_contents($logFile, "Token no encontrado o expirado: {$token}\n", FILE_APPEND);
+                return false;
+            }
+            
+            $tokenInfo = $result->fetch_assoc();
+            file_put_contents($logFile, "Token válido encontrado: " . json_encode($tokenInfo) . "\n", FILE_APPEND);
+            
+            // Marcar el token como usado para evitar su reutilización
+            $updateSql = "UPDATE EmailActionTokens SET used = 1, used_at = NOW() WHERE token = ?";
+            $updateStmt = $this->db->prepare($updateSql);
+            $updateStmt->bind_param("s", $token);
+            $updateStmt->execute();
+            
+            return $tokenInfo;
+        } catch (Exception $e) {
+            file_put_contents($logFile, "Error en validateToken: " . $e->getMessage() . "\n", FILE_APPEND);
+            return false;
+        }
+    }
 }
 
 // Inicializar variables para seguimiento de errores
@@ -405,49 +462,91 @@ $errorMessage = '';
 // Verificar si se recibieron los parámetros necesarios
 if (!isset($_GET['action']) || !isset($_GET['token'])) {
     $error = true;
-    $errorMessage = 'Parámetros requeridos no encontrados. Se necesitan "action" y "token".';
+    $errorMessage = 'Faltan parámetros requeridos para procesar la acción';
+} else {
+    // Obtener los parámetros
+    $action = $_GET['action'];
+    $token = $_GET['token'];
+    
+    // Validar acción (debe ser approve o reject)
+    if ($action !== 'approve' && $action !== 'reject') {
+        $error = true;
+        $errorMessage = 'Acción inválida';
+    }
 }
+
+// Registrar la acción solicitada para depuración
+$logFile = __DIR__ . '/action_debug.log';
+file_put_contents($logFile, date('Y-m-d H:i:s') . " - Solicitud recibida: acción={$action}, token={$token}\n", FILE_APPEND);
 
 // Solo si no hay errores, continuamos con la validación
 if (!$error) {
-    // Obtener y sanitizar los parámetros
-    $action = filter_var($_GET['action'], FILTER_SANITIZE_SPECIAL_CHARS);
-    $token = filter_var($_GET['token'], FILTER_SANITIZE_SPECIAL_CHARS);
-
-    // Validar la acción
-    if ($action !== 'approve' && $action !== 'reject') {
+    try {
+        // Inicializar la clase de acción
+        $mailAction = new PFMailAction();
+        
+        // Verificar el token y obtener los detalles de la acción
+        $tokenInfo = $mailAction->validateToken($token);
+        
+        if (!$tokenInfo) {
+            $error = true;
+            $errorMessage = 'Token inválido o expirado';
+            file_put_contents($logFile, date('Y-m-d H:i:s') . " - Token inválido: {$token}\n", FILE_APPEND);
+        } else {
+            // Verificar que la acción solicitada coincida con la acción del token
+            if ($tokenInfo['action'] !== $action) {
+                $error = true;
+                $errorMessage = 'La acción solicitada no coincide con la autorizada por el token';
+                file_put_contents($logFile, date('Y-m-d H:i:s') . " - Acción no coincide: solicitada={$action}, token={$tokenInfo['action']}\n", FILE_APPEND);
+            }
+        }
+    } catch (Exception $e) {
         $error = true;
-        $errorMessage = 'Tipo de acción inválido. Debe ser "approve" o "reject".';
+        $errorMessage = 'Error al validar el token: ' . $e->getMessage();
+        file_put_contents($logFile, date('Y-m-d H:i:s') . " - Excepción: {$e->getMessage()}\n", FILE_APPEND);
     }
 }
 
 // Si todo está correcto, procesamos la acción
 if (!$error) {
     try {
-        // Inicializar el manejador de acciones
-        $handler = new PFMailAction();
-
-        // Procesar la acción y obtener el resultado
-        $result = $handler->processAction($token, $action);
-
-        // Mostrar resultado apropiado
-        if ($result['success']) {
-            // Si tenemos información adicional, mostrarla
-            $additionalInfo = '';
-            if (isset($result['alreadyApproved'])) {
-                $additionalInfo = "Esta orden ya ha alcanzado su nivel máximo de aprobación.";
+        file_put_contents($logFile, date('Y-m-d H:i:s') . " - Procesando acción {$action} para orden {$tokenInfo['order_id']} por usuario {$tokenInfo['user_id']}\n", FILE_APPEND);
+        
+        // Ejecutar la acción según el parámetro recibido
+        if ($action === 'approve') {
+            $result = $mailAction->processApprove($tokenInfo['order_id'], $tokenInfo['user_id']);
+            if ($result && $result['success']) {
+                file_put_contents($logFile, date('Y-m-d H:i:s') . " - Aprobación exitosa\n", FILE_APPEND);
+                showSuccess($result['message'], isset($result['additionalInfo']) ? $result['additionalInfo'] : '');
+            } else {
+                file_put_contents($logFile, date('Y-m-d H:i:s') . " - Error en aprobación: {$result['message']}\n", FILE_APPEND);
+                showError($result['message']);
             }
-            showSuccess($result['message'], $additionalInfo);
+        } else if ($action === 'reject') {
+            $result = $mailAction->processReject($tokenInfo['order_id'], $tokenInfo['user_id']);
+            if ($result && $result['success']) {
+                file_put_contents($logFile, date('Y-m-d H:i:s') . " - Rechazo exitoso\n", FILE_APPEND);
+                showSuccess($result['message']);
+            } else {
+                file_put_contents($logFile, date('Y-m-d H:i:s') . " - Error en rechazo: {$result['message']}\n", FILE_APPEND);
+                showError($result['message']);
+            }
         } else {
-            showError($result['message']);
+            // Este caso no debería ocurrir debido a la validación anterior, pero por seguridad
+            file_put_contents($logFile, date('Y-m-d H:i:s') . " - Acción desconocida: {$action}\n", FILE_APPEND);
+            showError('Acción desconocida');
         }
+        
+        // IMPORTANTE: Agregar un exit() para evitar ejecución adicional
+        exit();
+        
     } catch (Exception $e) {
-        // Capturar cualquier excepción no manejada
-        error_log("Error en PFmailAction: " . $e->getMessage());
-        showError("Ha ocurrido un error inesperado. Por favor contacte al administrador.");
+        file_put_contents($logFile, date('Y-m-d H:i:s') . " - Excepción procesando acción: {$e->getMessage()}\n", FILE_APPEND);
+        showError('Error al procesar la acción: ' . $e->getMessage());
     }
 } else {
     // Si hubo un error en la validación, mostrar mensaje
+    file_put_contents($logFile, date('Y-m-d H:i:s') . " - Error final: {$errorMessage}\n", FILE_APPEND);
     showError($errorMessage);
 }
 
