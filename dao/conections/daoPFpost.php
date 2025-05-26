@@ -250,7 +250,9 @@ try {
     echo json_encode([
         "success" => true,
         "message" => "Premium freight order created successfully with approval record.",
-        "shipment_id" => $premiumFreightId,
+        "order_id" => $premiumFreightId,        // Cambiado de "shipment_id" a "order_id"
+        "premium_freight_id" => $premiumFreightId,  // Mantén este también por compatibilidad
+        "shipment_id" => $premiumFreightId,     // Mantén el original por compatibilidad
         "user_name" => $userName
     ]);
 

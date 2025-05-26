@@ -164,13 +164,31 @@ async function submitForm(event) {
     // 7. Enviar el formulario principal
     try {
         const response = await sendFormDataAsync(payload);
+        console.log("Response from server:", response); // Añade este log para depuración
         
         if (response && response.success) {
-            const orderId = response.order_id;
+            // Verifica exactamente qué estructura tiene la respuesta
+            console.log("Order ID from response:", response.order_id, "Full response:", response);
+            
+            // El problema puede estar aquí - el ID de la orden podría tener un nombre diferente
+            // Intenta estas alternativas
+            const orderId = response.order_id || response.orderId || response.id || response.premium_freight_id;
+            
+            if (!orderId) {
+                console.error("Order ID is missing in server response:", response);
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Order Status Unknown',
+                    text: 'The order might have been created, but we could not determine its ID. Please check the dashboard.'
+                });
+                return;
+            }
             
             // Si se necesita subir un archivo de recuperación y hay un archivo seleccionado
             if (needsFile && recoveryFile && recoveryFile.files.length > 0) {
                 try {
+                    console.log("Uploading recovery file for order ID:", orderId);
+                    
                     const fileResponse = await uploadRecoveryFile(
                         orderId,
                         window.userName || 'Unknown User',
