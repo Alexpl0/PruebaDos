@@ -68,6 +68,13 @@ class PFMailAction {
             if ($action === 'approve') {
                 // Lógica para aprobar la orden
                 $result = $this->approveOrder($orderId, $userId);
+                
+                // Si la orden ya estaba aprobada, no marcar el token como usado
+                // para permitir que otros aprobadores lo utilicen si es necesario
+                if (isset($result['alreadyApproved']) && $result['alreadyApproved']) {
+                    // No marcar el token como usado
+                    return $result;
+                }
             } else {
                 // Lógica para rechazar la orden
                 $result = $this->rejectOrder($orderId, $userId);
@@ -98,49 +105,91 @@ class PFMailAction {
             $logFile = __DIR__ . '/action_debug.log';
             file_put_contents($logFile, date('Y-m-d H:i:s') . " - Aprobando orden #$orderId por usuario #$userId\n", FILE_APPEND);
             
-            // 1. Actualizar PremiumFreightApprovals para esta orden
-            $updateSql = "UPDATE PremiumFreightApprovals SET act_approv = 1 WHERE premium_freight_id = ?";
-            $updateStmt = $this->db->prepare($updateSql);
+            // Primero, obtener el valor actual de act_approv y el nivel requerido
+            $getCurrentSql = "SELECT PFA.act_approv, PF.required_auth_level 
+                              FROM PremiumFreightApprovals PFA 
+                              JOIN PremiumFreight PF ON PFA.premium_freight_id = PF.id
+                              WHERE PFA.premium_freight_id = ?";
             
-            if (!$updateStmt) {
-                file_put_contents($logFile, "Error preparando consulta de aprobación: " . $this->db->error . "\n", FILE_APPEND);
-                throw new Exception("Error al preparar la consulta de aprobación: " . $this->db->error);
+            $getCurrentStmt = $this->db->prepare($getCurrentSql);
+            
+            if (!$getCurrentStmt) {
+                file_put_contents($logFile, "Error preparando consulta para obtener valores actuales: " . $this->db->error . "\n", FILE_APPEND);
+                throw new Exception("Error al preparar la consulta para obtener valores actuales: " . $this->db->error);
             }
             
-            $updateStmt->bind_param("i", $orderId);
+            $getCurrentStmt->bind_param("i", $orderId);
             
-            if (!$updateStmt->execute()) {
-                file_put_contents($logFile, "Error ejecutando consulta de aprobación: " . $updateStmt->error . "\n", FILE_APPEND);
-                throw new Exception("Error al ejecutar la consulta de aprobación: " . $updateStmt->error);
+            if (!$getCurrentStmt->execute()) {
+                file_put_contents($logFile, "Error ejecutando consulta para obtener valores actuales: " . $getCurrentStmt->error . "\n", FILE_APPEND);
+                throw new Exception("Error al ejecutar la consulta para obtener valores actuales: " . $getCurrentStmt->error);
             }
             
-            $affectedRows = $updateStmt->affected_rows;
-            file_put_contents($logFile, "Filas actualizadas en PremiumFreightApprovals: $affectedRows\n", FILE_APPEND);
+            $currentResult = $getCurrentStmt->get_result();
             
-            if ($affectedRows === 0) {
-                // Verificar si el registro existe
-                $checkSql = "SELECT COUNT(*) as total FROM PremiumFreightApprovals WHERE premium_freight_id = ?";
-                $checkStmt = $this->db->prepare($checkSql);
-                $checkStmt->bind_param("i", $orderId);
-                $checkStmt->execute();
-                $checkResult = $checkStmt->get_result();
-                $totalRecords = $checkResult->fetch_assoc()['total'];
+            // Si no hay registro, crearemos uno nuevo más adelante
+            if ($currentResult->num_rows > 0) {
+                $currentData = $currentResult->fetch_assoc();
+                $currentApproval = (int)$currentData['act_approv'];
+                $requiredLevel = (int)$currentData['required_auth_level'];
                 
-                if ($totalRecords === 0) {
-                    // Si no existe, crear el registro
-                    file_put_contents($logFile, "No se encontró registro en PremiumFreightApprovals, creando uno nuevo\n", FILE_APPEND);
-                    $insertSql = "INSERT INTO PremiumFreightApprovals (premium_freight_id, act_approv, user_id, approval_date) 
-                                 VALUES (?, 1, ?, NOW())";
-                    $insertStmt = $this->db->prepare($insertSql);
-                    $insertStmt->bind_param("ii", $orderId, $userId);
-                    
-                    if (!$insertStmt->execute()) {
-                        file_put_contents($logFile, "Error insertando aprobación: " . $insertStmt->error . "\n", FILE_APPEND);
-                        throw new Exception("Error al insertar la aprobación: " . $insertStmt->error);
-                    }
-                } else {
-                    file_put_contents($logFile, "El registro ya existía pero no se actualizó (posiblemente ya estaba aprobado)\n", FILE_APPEND);
+                // Verificar si ya está en el nivel máximo
+                if ($currentApproval >= $requiredLevel) {
+                    file_put_contents($logFile, "La orden ya está completamente aprobada (nivel $currentApproval, requerido $requiredLevel)\n", FILE_APPEND);
+                    return [
+                        'success' => true,
+                        'message' => "La orden #$orderId ya está completamente aprobada.",
+                        'alreadyApproved' => true
+                    ];
                 }
+                
+                // Incrementar en 1 el nivel de aprobación actual
+                $newApprovalLevel = $currentApproval + 1;
+                
+                // Actualizar con el nuevo nivel incrementado
+                $updateSql = "UPDATE PremiumFreightApprovals SET act_approv = ?, approval_date = NOW() WHERE premium_freight_id = ?";
+                $updateStmt = $this->db->prepare($updateSql);
+                
+                if (!$updateStmt) {
+                    file_put_contents($logFile, "Error preparando consulta de aprobación: " . $this->db->error . "\n", FILE_APPEND);
+                    throw new Exception("Error al preparar la consulta de aprobación: " . $this->db->error);
+                }
+                
+                $updateStmt->bind_param("ii", $newApprovalLevel, $orderId);
+                
+                if (!$updateStmt->execute()) {
+                    file_put_contents($logFile, "Error ejecutando consulta de aprobación: " . $updateStmt->error . "\n", FILE_APPEND);
+                    throw new Exception("Error al ejecutar la consulta de aprobación: " . $updateStmt->error);
+                }
+                
+                $affectedRows = $updateStmt->affected_rows;
+                file_put_contents($logFile, "Filas actualizadas en PremiumFreightApprovals: $affectedRows, nuevo nivel: $newApprovalLevel\n", FILE_APPEND);
+                
+                // Verificar si con esta aprobación alcanzó el nivel requerido
+                $fullyApproved = ($newApprovalLevel >= $requiredLevel);
+                
+                if ($fullyApproved) {
+                    // Si está completamente aprobado, actualizar el status_id en PremiumFreight
+                    $fullySql = "UPDATE PremiumFreight SET status_id = 3 WHERE id = ?"; // 3 = aprobado
+                    $fullyStmt = $this->db->prepare($fullySql);
+                    $fullyStmt->bind_param("i", $orderId);
+                    $fullyStmt->execute();
+                    
+                    file_put_contents($logFile, "Orden alcanzó nivel completo de aprobación. Status actualizado a 'aprobado'\n", FILE_APPEND);
+                }
+            } else {
+                // No existe el registro, crear uno nuevo con nivel 1
+                $insertSql = "INSERT INTO PremiumFreightApprovals (premium_freight_id, act_approv, user_id, approval_date) 
+                             VALUES (?, 1, ?, NOW())";
+                $insertStmt = $this->db->prepare($insertSql);
+                $insertStmt->bind_param("ii", $orderId, $userId);
+                
+                if (!$insertStmt->execute()) {
+                    file_put_contents($logFile, "Error insertando aprobación: " . $insertStmt->error . "\n", FILE_APPEND);
+                    throw new Exception("Error al insertar la aprobación: " . $insertStmt->error);
+                }
+                
+                file_put_contents($logFile, "Creado nuevo registro de aprobación con nivel 1\n", FILE_APPEND);
             }
             
             // Registrar la acción exitosa
@@ -176,6 +225,26 @@ class PFMailAction {
             
             // 1. Actualizar PremiumFreight para marcar la orden como rechazada (status_id = 4)
             $updateSql = "UPDATE PremiumFreight SET status_id = 4 WHERE id = ?";
+            
+            // Actualización adicional - También actualizar otra tabla o columna
+            $updateAdditionalSql = "UPDATE PremiumFreight SET rejection_comments = 'Rechazado vía email por token' WHERE id = ?";
+            $updateAdditionalStmt = $this->db->prepare($updateAdditionalSql);
+            
+            if (!$updateAdditionalStmt) {
+                file_put_contents($logFile, "Error preparando consulta adicional: " . $this->db->error . "\n", FILE_APPEND);
+                throw new Exception("Error al preparar la consulta adicional: " . $this->db->error);
+            }
+            
+            $updateAdditionalStmt->bind_param("i", $orderId);
+            
+            if (!$updateAdditionalStmt->execute()) {
+                file_put_contents($logFile, "Error ejecutando consulta adicional: " . $updateAdditionalStmt->error . "\n", FILE_APPEND);
+                throw new Exception("Error al ejecutar la consulta adicional: " . $updateAdditionalStmt->error);
+            }
+            
+            $additionalAffectedRows = $updateAdditionalStmt->affected_rows;
+            file_put_contents($logFile, "Filas actualizadas en consulta adicional: $additionalAffectedRows\n", FILE_APPEND);
+            
             $updateStmt = $this->db->prepare($updateSql);
             
             if (!$updateStmt) {
@@ -288,45 +357,20 @@ if (!$error) {
 // Si todo está correcto, procesamos la acción
 if (!$error) {
     try {
-        // Verificar el token primero
-        $con = new LocalConector();
-        $db = $con->conectar();
-        
-        // Verificar si el token existe y su estado
-        $sql = "SELECT t.*, p.status_id, pa.act_approv 
-                FROM EmailActionTokens t
-                LEFT JOIN PremiumFreight p ON t.order_id = p.id
-                LEFT JOIN PremiumFreightApprovals pa ON p.id = pa.premium_freight_id
-                WHERE t.token = ?";
-        $stmt = $db->prepare($sql);
-        $stmt->bind_param("s", $token);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        // Si no hay resultados o el token ya fue usado, mostrar error
-        if ($result->num_rows === 0) {
-            showError("El token proporcionado no existe.");
-            exit;
-        }
-        
-        $tokenData = $result->fetch_assoc();
-        if ($tokenData['is_used'] == 1) {
-            // Preparar mensaje detallado para el usuario
-            $usedDate = new DateTime($tokenData['used_at']);
-            $formattedDate = $usedDate->format('d/m/Y H:i:s');
-            
-            showError("Este token ya fue utilizado el {$formattedDate}. 
-                      Por favor, contacte al administrador si necesita realizar una nueva acción sobre esta orden.");
-            exit;
-        }
-        
-        // Si todo está bien, procesar normalmente
+        // Inicializar el manejador de acciones
         $handler = new PFMailAction();
+
+        // Procesar la acción y obtener el resultado
         $result = $handler->processAction($token, $action);
-        
+
         // Mostrar resultado apropiado
         if ($result['success']) {
-            showSuccess($result['message']);
+            // Si tenemos información adicional, mostrarla
+            $additionalInfo = '';
+            if (isset($result['alreadyApproved'])) {
+                $additionalInfo = "Esta orden ya ha alcanzado su nivel máximo de aprobación.";
+            }
+            showSuccess($result['message'], $additionalInfo);
         } else {
             showError($result['message']);
         }
@@ -345,7 +389,7 @@ if (!$error) {
  * 
  * @param string $message Mensaje a mostrar al usuario
  */
-function showSuccess($message) {
+function showSuccess($message, $additionalInfo = '') {
     // Usar la constante URL global definida en config.php
     global $URL;
     
@@ -394,6 +438,14 @@ function showSuccess($message) {
                 margin-bottom: 30px; 
                 line-height: 1.6;
             }
+            .additional-info {
+                background-color: #f8f9fa;
+                padding: 15px;
+                border-radius: 4px;
+                margin-bottom: 20px;
+                font-size: 14px;
+                color: #555;
+            }
             .btn { 
                 display: inline-block; 
                 padding: 12px 24px; 
@@ -418,7 +470,8 @@ function showSuccess($message) {
             <img src='" . URL . "PremiumFreight.svg' alt='Premium Freight Logo' class='logo'>
             <div class='success'>¡Acción Exitosa!</div>
             <div class='message'>$message</div>
-            <a href='" . URLPF . "orders.php' class='btn'>Ver Órdenes</a>
+            " . ($additionalInfo ? "<div class='additional-info'>$additionalInfo</div>" : "") . "
+            <a href='" . URL . "orders.php' class='btn'>Ver Órdenes</a>
         </div>
     </body>
     </html>";
