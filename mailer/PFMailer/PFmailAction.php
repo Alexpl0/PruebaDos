@@ -36,58 +36,70 @@ class PFMailAction {
      */
     public function processAction($token, $action) {
         try {
-            // 1. Verificar si el token existe y no ha sido usado
-            $sql = "SELECT * FROM EmailActionTokens WHERE token = ? AND is_used = 0";
+            // Iniciar transacción para asegurar atomicidad
+            $this->db->begin_transaction();
+            
+            // Bloquear el registro para evitar race conditions
+            $sql = "SELECT * FROM EmailActionTokens WHERE token = ? FOR UPDATE";
             $stmt = $this->db->prepare($sql);
             $stmt->bind_param("s", $token);
             $stmt->execute();
             $result = $stmt->get_result();
             
-            // 2. Validar si se encontró un token válido
+            // Validar si se encontró un token válido
             if ($result->num_rows === 0) {
+                $this->db->rollback();
                 return [
                     'success' => false,
-                    'message' => 'El token proporcionado no es válido o ya ha sido utilizado.'
+                    'message' => 'El token proporcionado no es válido.'
                 ];
             }
             
-            // 3. Obtener datos del token
+            // Obtener datos del token
             $tokenData = $result->fetch_assoc();
+            
+            // Verificar si el token ya ha sido usado
+            if ($tokenData['is_used'] == 1) {
+                $this->db->rollback();
+                return [
+                    'success' => false,
+                    'message' => 'El token ya ha sido utilizado previamente.'
+                ];
+            }
+            
             $orderId = $tokenData['order_id'];
             $userId = $tokenData['user_id'];
             $tokenAction = $tokenData['action'];
             
-            // 4. Verificar que la acción solicitada coincida con la del token
+            // Verificar que la acción solicitada coincida con la del token
             if ($action !== $tokenAction) {
+                $this->db->rollback();
                 return [
                     'success' => false,
                     'message' => 'La acción solicitada no coincide con la acción autorizada por el token.'
                 ];
             }
             
-            // 5. Ejecutar la acción correspondiente según el tipo
+            // Marcar el token como usado inmediatamente
+            $this->markTokenAsUsed($token);
+            
+            // Ejecutar la acción correspondiente según el tipo
             if ($action === 'approve') {
-                // 5.1. Lógica para aprobar la orden
                 $result = $this->approveOrder($orderId, $userId);
-                
-                // // 5.2. Si la orden ya estaba aprobada, no marcar el token como usado
-                // // para permitir que otros aprobadores lo utilicen si es necesario
-                // if (isset($result['alreadyApproved']) && $result['alreadyApproved']) {
-                //     // No marcar el token como usado
-                //     return $result;
-                // }
             } else {
-                // 5.3. Lógica para rechazar la orden
                 $result = $this->rejectOrder($orderId, $userId);
             }
             
-            // 6. Marcar el token como usado
-            $this->markTokenAsUsed($token);
+            // Si todo salió bien, confirmar los cambios
+            $this->db->commit();
             
-            // 7. Retornar el resultado de la operación
+            // Retornar el resultado de la operación
             return $result;
         } catch (Exception $e) {
-            // 8. Manejar cualquier excepción que ocurra durante el proceso
+            // En caso de error, revertir los cambios
+            $this->db->rollback();
+            
+            // Manejar cualquier excepción que ocurra durante el proceso
             return [
                 'success' => false,
                 'message' => 'Error al procesar la acción: ' . $e->getMessage()
@@ -414,13 +426,13 @@ class PFMailAction {
      * Marca un token como usado
      */
     private function markTokenAsUsed($token) {
-        // 1. Preparar consulta para marcar el token como usado
+        // Preparar consulta para marcar el token como usado
         $sql = "UPDATE EmailActionTokens SET is_used = 1, used_at = NOW() WHERE token = ?";
-        // 2. Preparar statement
+        // Preparar statement
         $stmt = $this->db->prepare($sql);
-        // 3. Vincular parámetros
+        // Vincular parámetros
         $stmt->bind_param("s", $token);
-        // 4. Ejecutar la actualización
+        // Ejecutar la actualización
         $stmt->execute();
     }
     
