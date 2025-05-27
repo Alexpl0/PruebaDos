@@ -449,11 +449,10 @@ class PFMailAction {
             file_put_contents($logFile, date('Y-m-d H:i:s') . " - Validando token: {$token}\n", FILE_APPEND);
 
             // 2. Preparar la consulta para obtener la información del token
-            $sql = "SELECT token, order_id, user_id, action, created_at 
+            $sql = "SELECT token, order_id, user_id, action, created_at, is_used 
                     FROM EmailActionTokens 
                     WHERE token = ? 
                     AND created_at > DATE_SUB(NOW(), INTERVAL 72 HOUR)
-                    AND is_used = 0
                     LIMIT 1";
             
             $stmt = $this->db->prepare($sql);
@@ -483,15 +482,20 @@ class PFMailAction {
             
             // 7. Obtener la información del token y registrarla
             $tokenInfo = $result->fetch_assoc();
+            
+            // 8. Verificar si el token ya ha sido usado
+            if ($tokenInfo['is_used'] == 1) {
+                file_put_contents($logFile, "Token ya utilizado: {$token}\n", FILE_APPEND);
+                return [
+                    'is_used' => true,
+                    'token' => $token,
+                    'action' => $tokenInfo['action']
+                ];
+            }
+            
             file_put_contents($logFile, "Token válido encontrado: " . json_encode($tokenInfo) . "\n", FILE_APPEND);
             
-            // 8. Marcar el token como usado para evitar su reutilización
-            $updateSql = "UPDATE EmailActionTokens SET is_used = 1, used_at = NOW() WHERE token = ?";
-            $updateStmt = $this->db->prepare($updateSql);
-            $updateStmt->bind_param("s", $token);
-            $updateStmt->execute();
-            
-            // 9. Retornar la información del token
+            // 9. Retornar la información del token (ya no lo marcamos como usado aquí)
             return $tokenInfo;
         } catch (Exception $e) {
             // 10. Registrar cualquier error y retornar false
@@ -539,6 +543,10 @@ if (!$error) {
             $error = true;
             $errorMessage = 'Token inválido o expirado';
             file_put_contents($logFile, date('Y-m-d H:i:s') . " - Token inválido: {$token}\n", FILE_APPEND);
+        } else if (isset($tokenInfo['is_used']) && $tokenInfo['is_used']) {
+            $error = true;
+            $errorMessage = 'Este token ya ha sido utilizado previamente';
+            file_put_contents($logFile, date('Y-m-d H:i:s') . " - Token ya utilizado: {$token}\n", FILE_APPEND);
         } else {
             // 6.4. Verificar que la acción solicitada coincida con la acción del token
             if ($tokenInfo['action'] !== $action) {
