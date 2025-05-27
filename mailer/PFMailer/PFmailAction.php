@@ -365,7 +365,7 @@ class PFMailAction {
             }
             
             // 7. También registrar el rechazo en la tabla de aprobaciones si existe
-            $rejectSql = "UPDATE PremiumFreightApprovals SET act_approv = 99, 
+            $rejectSql = "UPDATE PremiumFreightApprovals SET act_approv = 0, 
                           approval_date = NOW(), user_id = ? WHERE premium_freight_id = ?";
             $rejectStmt = $this->db->prepare($rejectSql);
             $rejectStmt->bind_param("ii", $userId, $orderId);
