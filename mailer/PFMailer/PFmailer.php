@@ -329,47 +329,52 @@ class PFMailer {
      */
     public function sendStatusNotification($orderId, $status, $rejectorInfo = null) {
         try {
-            // 1. Obtener los datos completos de la orden desde la base de datos
+            // 1. Validar que el estado sea válido (approved o rejected)
+            if ($status !== 'approved' && $status !== 'rejected') {
+                throw new Exception("Estado no válido: $status. Solo se permite 'approved' o 'rejected'");
+            }
+            
+            // 2. Obtener los datos completos de la orden desde la base de datos
             $orderData = $this->getOrderDetails($orderId);
             if (!$orderData) {
                 throw new Exception("No se encontró la orden con ID $orderId");
             }
 
-            // 2. Verificar que la orden tenga un creador válido con correo
+            // 3. Verificar que la orden tenga un creador válido con correo
             if (empty($orderData['user_id']) || empty($orderData['creator_email'])) {
                 throw new Exception("La orden no tiene un creador válido");
             }
 
-            // 3. Crear el cuerpo del correo según el estado (aprobado/rechazado)
+            // 4. Crear el cuerpo del correo según el estado (aprobado/rechazado)
             $emailBody = $this->createStatusNotificationEmailBody($orderData, $status, $rejectorInfo);
 
-            // 4. Configurar el destinatario principal (creador de la orden)
+            // 5. Configurar el destinatario principal (creador de la orden)
             $this->mail->clearAddresses();
             $this->mail->addAddress($orderData['creator_email'], $orderData['creator_name']);
 
-            // 5. Añadir en copia al gerente de planta si está disponible
+            // 6. Añadir en copia al gerente de planta si está disponible
             if (!empty($orderData['plant_manager_email'])) {
                 $this->mail->addCC($orderData['plant_manager_email'], $orderData['plant_manager_name']);
             }
 
-            // 6. Establecer el asunto según el estado de la orden
+            // 7. Establecer el asunto según el estado de la orden
             $statusText = ($status === 'approved') ? 'Aprobada' : 'Rechazada';
             $this->mail->Subject = "Premium Freight - Orden #{$orderId} {$statusText}";
             $this->mail->Body = $emailBody;
 
-            // 7. Enviar el correo electrónico
+            // 8. Enviar el correo electrónico
             $result = $this->mail->send();
 
-            // 8. Registrar la notificación en la base de datos si se envió correctamente
+            // 9. Registrar la notificación en la base de datos si se envió correctamente
             if ($result) {
                 $notificationType = ($status === 'approved') ? 'status_approved' : 'status_rejected';
                 $this->logNotification($orderId, $orderData['user_id'], $notificationType);
             }
 
-            // 9. Retornar el resultado del envío
+            // 10. Retornar el resultado del envío
             return $result;
         } catch (Exception $e) {
-            // 10. Registrar cualquier error que ocurra durante el proceso
+            // 11. Registrar cualquier error que ocurra durante el proceso
             error_log("Error en sendStatusNotification: " . $e->getMessage());
             return false;
         }
@@ -827,5 +832,23 @@ class PFMailer {
         // 1. Retornar la conexión a la base de datos
         return $this->db;
     }
+}
+
+// Pseudocódigo para el archivo de acción de correo
+if ($action === 'approve') {
+    // Lógica para aprobar
+    // ...
+    if ($ordenCompletamenteAprobada) {
+        $mailer->sendStatusNotification($orderId, 'approved');
+    }
+} elseif ($action === 'reject') {
+    // Lógica para rechazar
+    // ...
+    $rejectorInfo = array(
+        'name' => 'Nombre del Rechazador',
+        'id' => 1,
+        'email' => 'correo@ejemplo.com'
+    ); // Información del usuario que rechazó
+    $mailer->sendStatusNotification($orderId, 'rejected', $rejectorInfo);
 }
 ?>
