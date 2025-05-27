@@ -76,7 +76,7 @@ class PFMailAction {
                 $this->db->rollback();
                 return [
                     'success' => false,
-                    'message' => 'La acción solicitada no coincide con la acción autorizada por el token.'
+                    'message' => 'La acción solicitada no coincide con la acción autorizada por el token.' 
                 ];
             }
             
@@ -562,32 +562,20 @@ if (!$error) {
         file_put_contents($logFile, date('Y-m-d H:i:s') . " - Procesando acción {$action} para orden {$tokenInfo['order_id']} por usuario {$tokenInfo['user_id']}\n", FILE_APPEND);
         
         // 7.2. Ejecutar la acción según el parámetro recibido
-        if ($action === 'approve') {
-            // 7.2.1. Procesar aprobación
-            $result = $mailAction->processApprove($tokenInfo['order_id'], $tokenInfo['user_id']);
+        if ($action === 'approve' || $action === 'reject') {
+            // 7.2.1. Procesar la acción usando el método público processAction
+            $result = $mailAction->processAction($token, $action);
             if ($result && $result['success']) {
-                // 7.2.2. Registrar aprobación exitosa
-                file_put_contents($logFile, date('Y-m-d H:i:s') . " - Aprobación exitosa\n", FILE_APPEND);
+                // 7.2.2. Registrar acción exitosa
+                file_put_contents($logFile, date('Y-m-d H:i:s') . " - {$action} exitoso\n", FILE_APPEND);
                 showSuccess($result['message'], isset($result['additionalInfo']) ? $result['additionalInfo'] : '');
             } else {
-                // 7.2.3. Registrar error en aprobación
-                file_put_contents($logFile, date('Y-m-d H:i:s') . " - Error en aprobación: {$result['message']}\n", FILE_APPEND);
-                showError($result['message']);
-            }
-        } else if ($action === 'reject') {
-            // 7.2.4. Procesar rechazo
-            $result = $mailAction->processReject($tokenInfo['order_id'], $tokenInfo['user_id']);
-            if ($result && $result['success']) {
-                // 7.2.5. Registrar rechazo exitoso
-                file_put_contents($logFile, date('Y-m-d H:i:s') . " - Rechazo exitoso\n", FILE_APPEND);
-                showSuccess($result['message']);
-            } else {
-                // 7.2.6. Registrar error en rechazo
-                file_put_contents($logFile, date('Y-m-d H:i:s') . " - Error en rechazo: {$result['message']}\n", FILE_APPEND);
+                // 7.2.3. Registrar error en la acción
+                file_put_contents($logFile, date('Y-m-d H:i:s') . " - Error en {$action}: {$result['message']}\n", FILE_APPEND);
                 showError($result['message']);
             }
         } else {
-            // 7.2.7. Manejar acción desconocida (caso que no debería ocurrir por la validación previa)
+            // 7.2.4. Manejar acción desconocida (caso que no debería ocurrir por la validación previa)
             file_put_contents($logFile, date('Y-m-d H:i:s') . " - Acción desconocida: {$action}\n", FILE_APPEND);
             showError('Acción desconocida');
         }
