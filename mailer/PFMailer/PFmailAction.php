@@ -486,7 +486,7 @@ class PFMailAction {
             file_put_contents($logFile, "Token válido encontrado: " . json_encode($tokenInfo) . "\n", FILE_APPEND);
             
             // 8. Marcar el token como usado para evitar su reutilización
-            $updateSql = "UPDATE EmailActionTokens SET used = 1, used_at = NOW() WHERE token = ?";
+            $updateSql = "UPDATE EmailActionTokens SET is_used = 1, used_at = NOW() WHERE token = ?";
             $updateStmt = $this->db->prepare($updateSql);
             $updateStmt->bind_param("s", $token);
             $updateStmt->execute();
