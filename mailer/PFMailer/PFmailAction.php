@@ -365,7 +365,7 @@ class PFMailAction {
             }
             
             // 7. También registrar el rechazo en la tabla de aprobaciones si existe
-            $rejectSql = "UPDATE PremiumFreightApprovals SET act_approv = 0, 
+            $rejectSql = "UPDATE PremiumFreightApprovals SET act_approv = 99, 
                           approval_date = NOW(), user_id = ? WHERE premium_freight_id = ?";
             $rejectStmt = $this->db->prepare($rejectSql);
             $rejectStmt->bind_param("ii", $userId, $orderId);
@@ -426,6 +426,9 @@ class PFMailAction {
      * Marca un token como usado
      */
     private function markTokenAsUsed($token) {
+        $logFile = __DIR__ . '/action_debug.log';
+        file_put_contents($logFile, date('Y-m-d H:i:s') . " - Marking token as used: {$token}\n", FILE_APPEND);
+        
         // Preparar consulta para marcar el token como usado
         $sql = "UPDATE EmailActionTokens SET is_used = 1, used_at = NOW() WHERE token = ?";
         // Preparar statement
@@ -433,7 +436,12 @@ class PFMailAction {
         // Vincular parámetros
         $stmt->bind_param("s", $token);
         // Ejecutar la actualización
-        $stmt->execute();
+        $result = $stmt->execute();
+        
+        // Log the result
+        file_put_contents($logFile, date('Y-m-d H:i:s') . " - Token mark result: " . ($result ? "success" : "failed: " . $stmt->error) . "\n", FILE_APPEND);
+        
+        return $result;
     }
     
     /**

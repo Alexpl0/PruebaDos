@@ -13,10 +13,24 @@ import {
 } from './mailer.js';
 
 /**
+ * Variable para controlar el estado de procesamiento
+ * Evita múltiples clics en los botones de aprobación/rechazo
+ */
+let isProcessing = false;
+
+/**
  * Maneja el clic en el botón de aprobar
  * Actualiza el estado de aprobación de la orden seleccionada
  */
 export async function handleApprove() {
+    // Prevenir múltiples clics
+    if (isProcessing) {
+        console.log('Ya se está procesando una aprobación, por favor espere');
+        return;
+    }
+    
+    isProcessing = true;
+    
     // Obtener datos de la orden seleccionada
     const selectedOrderId = sessionStorage.getItem('selectedOrderId');
     const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
@@ -130,6 +144,9 @@ export async function handleApprove() {
             confirmButtonText: 'Aceptar',
             customClass: { container: 'swal-on-top' }
         });
+    } finally {
+        // Siempre restablecer la bandera de procesamiento
+        isProcessing = false;
     }
 }
 

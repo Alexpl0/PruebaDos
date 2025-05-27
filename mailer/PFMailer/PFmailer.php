@@ -834,3 +834,23 @@ class PFMailer {
     }
 }
 
+/*
+// Pseudocódigo para el archivo de acción de correo
+if ($action === 'approve') {
+    // Lógica para aprobar
+    // ...
+    if ($ordenCompletamenteAprobada) {
+        $mailer->sendStatusNotification($orderId, 'approved');
+    }
+} elseif ($action === 'reject') {
+    // Lógica para rechazar
+    // ...
+    $rejectorInfo = array(
+        'name' => 'Nombre del Rechazador',
+        'id' => 1,
+        'email' => 'correo@ejemplo.com'
+    ); // Información del usuario que rechazó
+    $mailer->sendStatusNotification($orderId, 'rejected', $rejectorInfo);
+}
+*/
+
