@@ -1,4 +1,15 @@
 <?php
+// filepath: c:\Users\Ex-Perez-J\OneDrive - GRAMMER AG\Desktop\PruebaDos\mailer\PFMailer\PFmailer.php
+/**
+ * PFmailer.php - Clase para manejo de notificaciones por correo del sistema Premium Freight
+ * 
+ * Esta clase gestiona el envío de correos electrónicos para diferentes procesos:
+ * - Notificaciones de aprobación
+ * - Notificaciones de rechazo
+ * - Resúmenes semanales
+ * - Recordatorios de evidencia
+ */
+
 // 1. Cargar la configuración para tener acceso a las constantes
 require_once __DIR__ . '/config.php';
 
@@ -21,6 +32,9 @@ if(!defined('URLPF')) {
     define('URLPF', 'https://grammermx.com/Jesus/PruebaDos/');
 }
 
+/**
+ * Clase PFMailer - Maneja todas las operaciones de correo del sistema Premium Freight
+ */
 class PFMailer {
     private $mail;
     private $db;
@@ -833,22 +847,14 @@ class PFMailer {
         return $this->db;
     }
 }
-
-// Pseudocódigo para el archivo de acción de correo
-if ($action === 'approve') {
-    // Lógica para aprobar
-    // ...
-    if ($ordenCompletamenteAprobada) {
-        $mailer->sendStatusNotification($orderId, 'approved');
-    }
-} elseif ($action === 'reject') {
-    // Lógica para rechazar
-    // ...
-    $rejectorInfo = array(
-        'name' => 'Nombre del Rechazador',
-        'id' => 1,
-        'email' => 'correo@ejemplo.com'
-    ); // Información del usuario que rechazó
-    $mailer->sendStatusNotification($orderId, 'rejected', $rejectorInfo);
-}
 ?>
+<?php
+if ($isFullyApproved) {
+    // 9.2. Si está completamente aprobada, notificar al creador
+    $mailer->sendStatusNotification($orderId, 'approved');
+    file_put_contents($logFile, "Notificación de aprobación completa enviada al creador de la orden #$orderId\n", FILE_APPEND);
+} else {
+    // 9.3. Si aún necesita más aprobaciones, notificar al siguiente aprobador
+    $mailer->sendApprovalNotification($orderId);
+    file_put_contents($logFile, "Notificación enviada al siguiente aprobador para la orden #$orderId\n", FILE_APPEND);
+}
