@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Freight - Test Email Functions</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        h1 {
+            color: #034C8C;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #333;
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .button-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        button {
+            background-color: #034C8C;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            flex: 1;
+        }
+        button:hover {
+            background-color: #023b6a;
+        }
+        button.secondary {
+            background-color: #6c757d;
+        }
+        button.secondary:hover {
+            background-color: #5a6268;
+        }
+        button.success {
+            background-color: #28a745;
+        }
+        button.success:hover {
+            background-color: #218838;
+        }
+        button.warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        button.warning:hover {
+            background-color: #e0a800;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border-left: 4px solid #6c757d;
+            min-height: 20px;
+        }
+        .success-result {
+            border-left-color: #28a745;
+        }
+        .error-result {
+            border-left-color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <h1>Premium Freight - Email Testing</h1>
+
+    <div class="card">
+        <h2>Approval Email Test</h2>
+        <div class="form-group">
+            <label for="order-id">Order ID:</label>
+            <input type="number" id="order-id" placeholder="Enter order ID">
+        </div>
+        <div class="button-row">
+            <button id="test-approval" class="success">Send Approval Email</button>
+        </div>
+        <div id="approval-result" class="result"></div>
+    </div>
+
+    <div class="card">
+        <h2>Status Notification Test</h2>
+        <div class="form-group">
+            <label for="status-order-id">Order ID:</label>
+            <input type="number" id="status-order-id" placeholder="Enter order ID">
+        </div>
+        <div class="form-group">
+            <label for="status-type">Status Type:</label>
+            <select id="status-type">
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+            </select>
+        </div>
+        <div class="button-row">
+            <button id="test-status" class="success">Send Status Notification</button>
+        </div>
+        <div id="status-result" class="result"></div>
+    </div>
+
+    <div class="card">
+        <h2>Weekly Summary Test</h2>
+        <div class="button-row">
+            <button id="test-weekly-summary" class="warning">Send Weekly Summary</button>
+        </div>
+        <div id="weekly-result" class="result"></div>
+    </div>
+
+    <div class="card">
+        <h2>Recovery Check Test</h2>
+        <div class="button-row">
+            <button id="test-recovery-check" class="warning">Send Recovery Check</button>
+        </div>
+        <div id="recovery-result" class="result"></div>
+    </div>
+
+    <script>
+        // Helper function to show results
+        function showResult(elementId, data, isSuccess) {
+            const resultElement = document.getElementById(elementId);
+            resultElement.textContent = JSON.stringify(data, null, 2);
+            resultElement.classList.remove('success-result', 'error-result');
+            resultElement.classList.add(isSuccess ? 'success-result' : 'error-result');
+        }
+
+        // Test approval email
+        document.getElementById('test-approval').addEventListener('click', async function() {
+            const orderId = document.getElementById('order-id').value;
+            if (!orderId) {
+                showResult('approval-result', { error: 'Please enter an order ID' }, false);
+                return;
+            }
+
+            try {
+                const response = await fetch('PFmailNotification.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ order_id: orderId })
+                });
+                const data = await response.json();
+                showResult('approval-result', data, data.success);
+            } catch (error) {
+                showResult('approval-result', { error: error.message }, false);
+            }
+        });
+
+        // Test status notification
+        document.getElementById('test-status').addEventListener('click', async function() {
+            const orderId = document.getElementById('status-order-id').value;
+            const statusType = document.getElementById('status-type').value;
+            
+            if (!orderId) {
+                showResult('status-result', { error: 'Please enter an order ID' }, false);
+                return;
+            }
+
+            try {
+                const response = await fetch('test_email_functions.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        action: 'status_notification',
+                        order_id: orderId,
+                        status: statusType
+                    })
+                });
+                const data = await response.json();
+                showResult('status-result', data, data.success);
+            } catch (error) {
+                showResult('status-result', { error: error.message }, false);
+            }
+        });
+
+        // Test weekly summary
+        document.getElementById('test-weekly-summary').addEventListener('click', async function() {
+            try {
+                const response = await fetch('test_email_functions.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'weekly_summary' })
+                });
+                const data = await response.json();
+                showResult('weekly-result', data, data.success);
+            } catch (error) {
+                showResult('weekly-result', { error: error.message }, false);
+            }
+        });
+
+        // Test recovery check
+        document.getElementById('test-recovery-check').addEventListener('click', async function() {
+            try {
+                const response = await fetch('test_email_functions.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'recovery_check' })
+                });
+                const data = await response.json();
+                showResult('recovery-result', data, data.success);
+            } catch (error) {
+                showResult('recovery-result', { error: error.message }, false);
+            }
+        });
+    </script>
+</body>
+</html>
