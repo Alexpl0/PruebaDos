@@ -9,7 +9,7 @@
  * @version 1.0
  */
 
-// Asegurar que este archivo solo se incluye una vez
+// Usar una constante para prevenir redeclaraciones
 if (!defined('PF_MAIL_UTILS_INCLUDED')) {
     define('PF_MAIL_UTILS_INCLUDED', true);
 

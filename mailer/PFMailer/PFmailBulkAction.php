@@ -20,7 +20,7 @@ require_once __DIR__ . '/config.php';
 // Importar las clases y utilidades necesarias para el procesamiento
 require_once __DIR__ . '/PFmailUtils.php';  // Importar primero las utilidades
 require_once __DIR__ . '/PFmailer.php';
-require_once __DIR__ . '/PFmailAction.php';
+require_once __DIR__ . '/PFmailAction.php'; 
 
 // Verificar si se recibieron los parámetros necesarios
 if (!isset($_GET['action']) || !isset($_GET['token'])) {
