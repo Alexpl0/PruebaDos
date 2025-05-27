@@ -1,18 +1,18 @@
 <?php
-// Primero cargar la configuración para tener acceso a las constantes
+// 1. Cargar la configuración para tener acceso a las constantes
 require_once __DIR__ . '/config.php';
 
-// Después cargar el resto de dependencias
+// 2. Cargar las dependencias necesarias para el envío de correos
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+// 3. Importar los archivos de la librería PHPMailer
 require '../Phpmailer/Exception.php';
 require '../Phpmailer/PHPMailer.php';
 require '../Phpmailer/SMTP.php';
 require_once 'PFDB.php';
 
-// Las definiciones condicionales de URLM y URLPF deberían estar después
-// del require de config.php pero como precaución las dejamos
+// 4. Definir constantes de URL si no están definidas
 if (!defined('URLM')) {
     define('URLM', 'https://grammermx.com/Mailer/PFMailer/');
 }
@@ -30,31 +30,32 @@ class PFMailer {
      * Constructor - inicializa PHPMailer y la conexión a la base de datos
      */
     public function __construct() {
-        // Inicializar la URL base desde la constante global
+        // 1. Inicializar la URL base desde la constante global
         $this->baseUrl = URLM;
         
-        // Inicializar PHPMailer
+        // 2. Inicializar la instancia de PHPMailer
         $this->mail = new PHPMailer(true);
 
+        // 3. Configurar los parámetros SMTP para el envío de correos
         $this->mail->SMTPDebug = 0;
         $this->mail->isSMTP();
-        $this->mail->Host = 'smtp.hostinger.com'; // Ajustar según el servidor SMTP utilizado
+        $this->mail->Host = 'smtp.hostinger.com'; 
         $this->mail->Port = 465;
         $this->mail->SMTPAuth = true;
-        $this->mail->Username = 'premium_freight@grammermx.com'; // Cambiar por el correo real
-        $this->mail->Password = 'FreightSystem2025.'; // Cambiar por la contraseña real
+        $this->mail->Username = 'premium_freight@grammermx.com';
+        $this->mail->Password = 'FreightSystem2025.';
         $this->mail->SMTPSecure = 'ssl';
         
-        
+        // 4. Configurar formato HTML y codificación de caracteres
         $this->mail->isHTML(true);
         $this->mail->CharSet = 'UTF-8';
         
+        // 5. Configurar el remitente y destinatarios en copia oculta
         $this->mail->setFrom('premium_freight@grammermx.com', 'Premium Freight System');
-        // Añadir BCC para todas las comunicaciones del sistema
         $this->mail->addBCC('extern.jesus.perez@grammer.com', 'Jesús Pérez');
         $this->mail->addBCC('premium_freight@grammermx.com', 'Premium Freight System');
         
-        // Inicializar conexión a la base de datos
+        // 6. Inicializar conexión a la base de datos
         $con = new LocalConector();
         $this->db = $con->conectar();
     }
@@ -67,25 +68,24 @@ class PFMailer {
      */
     public function sendApprovalNotification($orderId) {
         try {
-            // Obtener los datos de la orden
+            // 1. Obtener los datos de la orden desde la base de datos
             $orderData = $this->getOrderDetails($orderId);
             if (!$orderData) {
                 throw new Exception("No se encontró la orden con ID $orderId");
             }
 
-            // Determinar el siguiente nivel de aprobación requerido
+            // 2. Determinar el siguiente nivel de aprobación requerido
             $currentApprovalStatus = intval($orderData['approval_status']);
             $nextApprovalLevel = $currentApprovalStatus + 1;
 
-            // Buscar un usuario con el nivel de aprobación requerido
+            // 3. Buscar un usuario con el nivel de aprobación requerido
             $sql = "SELECT id, name, email FROM User WHERE authorization_level = ? LIMIT 1";
             $stmt = $this->db->prepare($sql);
             $stmt->bind_param("i", $nextApprovalLevel);
             $stmt->execute();
             $result = $stmt->get_result();
 
-            // Si no hay usuario con ese nivel, probar con el nivel inmediatamente superior
-            // (en caso de que algunos niveles no tengan usuarios asignados)
+            // 4. Si no hay usuario con ese nivel, probar con niveles superiores
             if ($result->num_rows === 0) {
                 $attempts = 1;
                 $maxAttempts = 3; // Límite para evitar bucles infinitos
@@ -99,39 +99,41 @@ class PFMailer {
                     $attempts++;
                 }
                 
-                // Si después de los intentos no encontramos aprobador, finalizar
+                // 5. Si después de los intentos no encontramos aprobador, finalizar
                 if ($result->num_rows === 0) {
                     error_log("No se encontró ningún aprobador para la orden $orderId después de $attempts intentos");
                     return false;
                 }
             }
 
-            // Obtenemos los datos del aprobador
+            // 6. Obtener los datos del aprobador encontrado
             $approver = $result->fetch_assoc();
 
-            // Generamos tokens para las acciones de aprobar/rechazar
+            // 7. Generar tokens únicos para las acciones de aprobar/rechazar
             $approvalToken = $this->generateActionToken($orderId, $approver['id'], 'approve');
             $rejectToken = $this->generateActionToken($orderId, $approver['id'], 'reject');
 
-            // Creamos el cuerpo del correo
+            // 8. Crear el cuerpo HTML del correo con los tokens generados
             $emailBody = $this->createApprovalEmailBody($orderData, $approvalToken, $rejectToken);
 
-            // Configurar destinatario y asunto
+            // 9. Configurar los parámetros del correo (destinatario y asunto)
             $this->mail->clearAddresses();
             $this->mail->addAddress($approver['email'], $approver['name']);
             $this->mail->Subject = "Premium Freight - Orden #{$orderId} necesita tu aprobación";
             $this->mail->Body = $emailBody;
 
-            // Enviar el correo
+            // 10. Enviar el correo electrónico
             $result = $this->mail->send();
 
+            // 11. Registrar la notificación en la base de datos si se envió correctamente
             if ($result) {
-                // Registrar la notificación
                 $this->logNotification($orderId, $approver['id'], 'approval_request');
             }
 
+            // 12. Retornar el resultado del envío
             return $result;
         } catch (Exception $e) {
+            // 13. Registrar cualquier error que ocurra durante el proceso
             error_log("Error en sendApprovalNotification: " . $e->getMessage());
             return false;
         }
@@ -144,6 +146,7 @@ class PFMailer {
      * @return array - Resultado del envío: [totalSent, success, errors]
      */
     public function sendWeeklySummaryEmails() {
+        // 1. Inicializar estructura para resultados
         $result = [
             'totalSent' => 0,
             'success' => 0,
@@ -151,7 +154,7 @@ class PFMailer {
         ];
 
         try {
-            // Obtener usuarios con nivel de aprobación
+            // 2. Obtener todos los usuarios con nivel de aprobación
             $sql = "SELECT id, name, email, authorization_level FROM User 
                     WHERE authorization_level > 0 
                     ORDER BY authorization_level";
@@ -159,9 +162,10 @@ class PFMailer {
             $stmt->execute();
             $users = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
+            // 3. Procesar cada usuario para enviar su resumen personalizado
             foreach ($users as $user) {
                 try {
-                    // Buscar órdenes pendientes para este nivel de aprobación
+                    // 4. Buscar órdenes pendientes para el nivel de aprobación de este usuario
                     $level = $user['authorization_level'];
                     $sql = "SELECT pf.*, 
                                 u.name AS creator_name, 
@@ -187,30 +191,34 @@ class PFMailer {
                     $stmt->execute();
                     $pendingOrders = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
+                    // 5. Si no hay órdenes pendientes para este usuario, continuar con el siguiente
                     if (empty($pendingOrders)) {
                         continue;
                     }
 
+                    // 6. Incrementar contador de correos a enviar
                     $result['totalSent']++;
 
-                    // Generar tokens para acciones en bloque
+                    // 7. Generar tokens para acciones en bloque (aprobar/rechazar todas)
                     $orderIds = array_column($pendingOrders, 'id');
                     $approveAllToken = $this->generateBulkActionToken($user['id'], 'approve', $orderIds);
                     $rejectAllToken = $this->generateBulkActionToken($user['id'], 'reject', $orderIds);
 
-                    // Generar URL para acciones en bloque
+                    // 8. Generar URLs para acciones en bloque
                     $approveAllUrl = $this->baseUrl . "PFmailBulkAction.php?action=approve&token=$approveAllToken";
                     $rejectAllUrl = $this->baseUrl . "PFmailBulkAction.php?action=reject&token=$rejectAllToken";
 
-                    // Crear el contenido del correo
+                    // 9. Crear filas de tabla HTML para cada orden pendiente
                     $tableRows = '';
                     foreach ($pendingOrders as $order) {
+                        // 10. Generar tokens individuales para cada orden
                         $approveToken = $this->generateActionToken($order['id'], $user['id'], 'approve');
                         $rejectToken = $this->generateActionToken($order['id'], $user['id'], 'reject');
                         $approveUrl = $this->baseUrl . "PFmailAction.php?action=approve&token=$approveToken";
                         $rejectUrl = $this->baseUrl . "PFmailAction.php?action=reject&token=$rejectToken";
                         $costEuros = number_format($order['cost_euros'], 2);
 
+                        // 11. Agregar fila a la tabla HTML
                         $tableRows .= "
                         <tr>
                             <td>{$order['id']}</td>
@@ -225,6 +233,7 @@ class PFMailer {
                         </tr>";
                     }
 
+                    // 12. Crear el cuerpo completo del correo con HTML y estilos
                     $emailBody = "
                     <html>
                     <head>
@@ -280,13 +289,16 @@ class PFMailer {
                     </body>
                     </html>";
 
+                    // 13. Configurar el destinatario y asunto del correo
                     $this->mail->clearAddresses();
                     $this->mail->addAddress($user['email'], $user['name']);
                     $this->mail->Subject = "Premium Freight - Resumen Semanal de Órdenes Pendientes";
                     $this->mail->Body = $emailBody;
 
+                    // 14. Enviar el correo y registrar el resultado
                     if ($this->mail->send()) {
                         $result['success']++;
+                        // 15. Registrar cada notificación en la base de datos
                         foreach ($pendingOrders as $order) {
                             $this->logNotification($order['id'], $user['id'], 'weekly_summary');
                         }
@@ -294,11 +306,14 @@ class PFMailer {
                         $result['errors'][] = "No se pudo enviar el correo a {$user['email']}";
                     }
                 } catch (Exception $e) {
+                    // 16. Registrar errores específicos para cada usuario
                     $result['errors'][] = "Error al procesar el usuario {$user['id']}: " . $e->getMessage();
                 }
             }
+            // 17. Retornar resultado completo del proceso
             return $result;
         } catch (Exception $e) {
+            // 18. Registrar errores generales del proceso
             $result['errors'][] = "Error general: " . $e->getMessage();
             return $result;
         }
@@ -314,43 +329,47 @@ class PFMailer {
      */
     public function sendStatusNotification($orderId, $status, $rejectorInfo = null) {
         try {
-            // Obtener los datos de la orden
+            // 1. Obtener los datos completos de la orden desde la base de datos
             $orderData = $this->getOrderDetails($orderId);
             if (!$orderData) {
                 throw new Exception("No se encontró la orden con ID $orderId");
             }
 
-            // Verificar que la orden tenga un creador válido
+            // 2. Verificar que la orden tenga un creador válido con correo
             if (empty($orderData['user_id']) || empty($orderData['creator_email'])) {
                 throw new Exception("La orden no tiene un creador válido");
             }
 
-            // Crear el cuerpo del correo
+            // 3. Crear el cuerpo del correo según el estado (aprobado/rechazado)
             $emailBody = $this->createStatusNotificationEmailBody($orderData, $status, $rejectorInfo);
 
-            // Configurar el correo
+            // 4. Configurar el destinatario principal (creador de la orden)
             $this->mail->clearAddresses();
             $this->mail->addAddress($orderData['creator_email'], $orderData['creator_name']);
 
-            // Si hay un gerente de planta asociado, añadirlo en copia
+            // 5. Añadir en copia al gerente de planta si está disponible
             if (!empty($orderData['plant_manager_email'])) {
                 $this->mail->addCC($orderData['plant_manager_email'], $orderData['plant_manager_name']);
             }
 
-            // Establecer el asunto según el estado
+            // 6. Establecer el asunto según el estado de la orden
             $statusText = ($status === 'approved') ? 'Aprobada' : 'Rechazada';
             $this->mail->Subject = "Premium Freight - Orden #{$orderId} {$statusText}";
             $this->mail->Body = $emailBody;
 
+            // 7. Enviar el correo electrónico
             $result = $this->mail->send();
 
+            // 8. Registrar la notificación en la base de datos si se envió correctamente
             if ($result) {
                 $notificationType = ($status === 'approved') ? 'status_approved' : 'status_rejected';
                 $this->logNotification($orderId, $orderData['user_id'], $notificationType);
             }
 
+            // 9. Retornar el resultado del envío
             return $result;
         } catch (Exception $e) {
+            // 10. Registrar cualquier error que ocurra durante el proceso
             error_log("Error en sendStatusNotification: " . $e->getMessage());
             return false;
         }
@@ -365,16 +384,23 @@ class PFMailer {
      * @return string - HTML del cuerpo del correo
      */
     private function createStatusNotificationEmailBody($orderData, $status, $rejectorInfo = null) {
+        // 1. Preparar la URL para ver la orden en el sistema
         $viewOrderUrl = $this->baseUrl . "orders.php?highlight=" . $orderData['id'];
+        
+        // 2. Formatear el costo para mostrarlo con dos decimales
         $costEuros = number_format($orderData['cost_euros'], 2);
+        
+        // 3. Generar contenido SVG para visualización de la orden
         $svgContent = $this->generateOrderSVG($orderData);
 
-        // Mensaje y estilos según el estado
+        // 4. Definir mensaje y estilos según el estado (aprobado/rechazado)
         if ($status === 'approved') {
+            // 4.1. Configuración para órdenes aprobadas
             $statusMessage = "Tu orden de Premium Freight ha sido completamente <strong>aprobada</strong>.";
             $statusColor = "#28a745";
             $statusIcon = "✓";
         } else {
+            // 4.2. Configuración para órdenes rechazadas
             $statusMessage = "Tu orden de Premium Freight ha sido <strong>rechazada</strong>.";
             if ($rejectorInfo) {
                 $statusMessage .= " El rechazo fue realizado por {$rejectorInfo['name']}. ";
@@ -383,6 +409,7 @@ class PFMailer {
             $statusIcon = "✗";
         }
 
+        // 5. Construir el HTML completo del correo con estilos integrados
         $html = "
         <html>
         <head>
@@ -435,6 +462,8 @@ class PFMailer {
         </body>
         </html>
         ";
+        
+        // 6. Retornar el HTML completo
         return $html;
     }
 
@@ -447,12 +476,21 @@ class PFMailer {
      * @return string - Token generado
      */
     private function generateBulkActionToken($userId, $action, $orderIds) {
+        // 1. Generar un token aleatorio seguro
         $token = bin2hex(random_bytes(16));
+        
+        // 2. Convertir el array de IDs a formato JSON para almacenamiento
         $serializedOrderIds = json_encode($orderIds);
+        
+        // 3. Preparar la consulta SQL para insertar el token
         $sql = "INSERT INTO EmailBulkActionTokens (token, order_ids, user_id, action, created_at) VALUES (?, ?, ?, ?, NOW())";
+        
+        // 4. Preparar y ejecutar la consulta con parámetros
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param("ssis", $token, $serializedOrderIds, $userId, $action);
         $stmt->execute();
+        
+        // 5. Retornar el token generado
         return $token;
     }
 
@@ -465,11 +503,18 @@ class PFMailer {
      * @return string - Token generado
      */
     private function generateActionToken($orderId, $userId, $action) {
+        // 1. Generar un token aleatorio seguro de 32 caracteres
         $token = bin2hex(random_bytes(16));
+        
+        // 2. Preparar la consulta SQL para insertar el token en la base de datos
         $sql = "INSERT INTO EmailActionTokens (token, order_id, user_id, action, created_at) VALUES (?, ?, ?, ?, NOW())";
+        
+        // 3. Preparar y ejecutar la consulta con parámetros
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param("siis", $token, $orderId, $userId, $action);
         $stmt->execute();
+        
+        // 4. Retornar el token generado
         return $token;
     }
 
@@ -482,12 +527,20 @@ class PFMailer {
      * @return string - HTML del cuerpo del correo
      */
     private function createApprovalEmailBody($orderData, $approvalToken, $rejectToken) {
+        // 1. Generar URLs para las acciones de aprobación/rechazo con los tokens
         $approveUrl = $this->baseUrl . "PFmailAction.php?action=approve&token=$approvalToken";
         $rejectUrl = $this->baseUrl . "PFmailAction.php?action=reject&token=$rejectToken";
+        
+        // 2. Generar URL para ver la orden en el sistema
         $viewOrderUrl = $this->baseUrl . "orders.php?highlight=" . $orderData['id'];
+        
+        // 3. Formatear el costo para mostrarlo con dos decimales
         $costEuros = number_format($orderData['cost_euros'], 2);
+        
+        // 4. Generar contenido SVG para visualización de la orden
         $svgContent = $this->generateOrderSVG($orderData);
 
+        // 5. Construir el HTML completo del correo con estilos integrados
         $html = "
         <html>
         <head>
@@ -532,6 +585,8 @@ class PFMailer {
         </body>
         </html>
         ";
+        
+        // 6. Retornar el HTML completo
         return $html;
     }
 
@@ -542,7 +597,8 @@ class PFMailer {
      * @return string - Código SVG
      */
     private function generateOrderSVG($orderData) {
-        // Aquí puedes generar un SVG personalizado según los datos de la orden
+        // 1. Por ahora simplemente devolvemos una imagen genérica
+        // Este método podría expandirse para generar un SVG personalizado según los datos
         return "<div style='text-align:center;'><img src='{$this->baseUrl}PremiumFreight.svg' alt='Order Diagram' style='max-width:100%;'></div>";
     }
 
@@ -555,9 +611,14 @@ class PFMailer {
      * @return bool - true si se registró correctamente
      */
     private function logNotification($orderId, $userId, $type) {
+        // 1. Preparar la consulta SQL para registrar la notificación
         $sql = "INSERT INTO EmailNotifications (order_id, user_id, type, sent_at) VALUES (?, ?, ?, NOW())";
+        
+        // 2. Preparar y ejecutar la consulta con parámetros
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param("iis", $orderId, $userId, $type);
+        
+        // 3. Retornar el resultado de la ejecución
         return $stmt->execute();
     }
 
@@ -568,11 +629,18 @@ class PFMailer {
      * @return array|null - Datos del usuario o null si no se encuentra
      */
     public function getUser($userId) {
+        // 1. Preparar la consulta SQL para obtener datos del usuario
         $sql = "SELECT id, name, email FROM User WHERE id = ? LIMIT 1";
+        
+        // 2. Preparar y ejecutar la consulta con parámetros
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param("i", $userId);
         $stmt->execute();
+        
+        // 3. Obtener el resultado de la consulta
         $result = $stmt->get_result();
+        
+        // 4. Retornar los datos del usuario o null si no se encontró
         return ($result->num_rows > 0) ? $result->fetch_assoc() : null;
     }
 
@@ -583,10 +651,15 @@ class PFMailer {
      * @return array - Lista de órdenes pendientes
      */
     public function getPendingRecoveryOrdersByUser($userId) {
+        // 1. Preparar la consulta SQL para obtener órdenes pendientes de evidence
         $sql = "SELECT * FROM PremiumFreight WHERE user_id = ? AND recovery_file IS NOT NULL AND (recovery_evidence IS NULL OR recovery_evidence = '')";
+        
+        // 2. Preparar y ejecutar la consulta con parámetros
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param("i", $userId);
         $stmt->execute();
+        
+        // 3. Retornar todas las órdenes encontradas
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
@@ -597,6 +670,7 @@ class PFMailer {
      * @return array|null - Datos de la orden o null si no se encuentra
      */
     public function getOrder($orderId) {
+        // 1. Delegar la llamada al método privado que obtiene los detalles
         return $this->getOrderDetails($orderId);
     }
 
@@ -607,6 +681,7 @@ class PFMailer {
      * @return array|null - Datos de la orden o null si no se encuentra
      */
     private function getOrderDetails($orderId) {
+        // 1. Preparar la consulta SQL con múltiples JOIN para obtener todos los detalles
         $sql = "SELECT pf.*, 
                     u.name AS creator_name, 
                     u.email AS creator_email,
@@ -624,10 +699,16 @@ class PFMailer {
                 LEFT JOIN Status st ON pf.status_id = st.id
                 LEFT JOIN PremiumFreightApprovals pfa ON pf.id = pfa.premium_freight_id
                 WHERE pf.id = ? LIMIT 1";
+        
+        // 2. Preparar y ejecutar la consulta con parámetros
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param("i", $orderId);
         $stmt->execute();
+        
+        // 3. Obtener el resultado de la consulta
         $result = $stmt->get_result();
+        
+        // 4. Retornar los datos de la orden o null si no se encontró
         return ($result->num_rows > 0) ? $result->fetch_assoc() : null;
     }
 
@@ -640,13 +721,19 @@ class PFMailer {
      */
     public function sendRecoveryCheckEmail($user, $orders) {
         try {
+            // 1. Crear el cuerpo del correo con la información de órdenes pendientes
             $emailBody = $this->createRecoveryCheckEmailBody($orders, $user);
+            
+            // 2. Configurar destinatario y asunto del correo
             $this->mail->clearAddresses();
             $this->mail->addAddress($user['email'], $user['name']);
             $this->mail->Subject = "Premium Freight - Recordatorio de Evidencia de Recovery";
             $this->mail->Body = $emailBody;
+            
+            // 3. Enviar el correo y retornar el resultado
             return $this->mail->send();
         } catch (Exception $e) {
+            // 4. Registrar cualquier error que ocurra durante el proceso
             error_log("Error en sendRecoveryCheckEmail: " . $e->getMessage());
             return false;
         }
@@ -660,8 +747,13 @@ class PFMailer {
      * @return string - HTML del cuerpo del correo
      */
     private function createRecoveryCheckEmailBody($orders, $user) {
+        // 1. Preparar la URL base para subir evidencias
         $evidenceUrlBase = $this->baseUrl . "evidence.php?order=";
+        
+        // 2. Inicializar la variable para las filas de la tabla
         $tableRows = '';
+        
+        // 3. Generar una fila de tabla para cada orden pendiente
         foreach ($orders as $order) {
             $evidenceUrl = $evidenceUrlBase . $order['id'];
             $tableRows .= "
@@ -672,7 +764,11 @@ class PFMailer {
                     <td><a href='{$evidenceUrl}'>Subir Evidencia</a></td>
                 </tr>";
         }
+        
+        // 4. Preparar la URL para ver todas las órdenes pendientes
         $allOrdersUrl = $this->baseUrl . "orders.php?filter=recovery";
+        
+        // 5. Construir el HTML completo del correo con estilos integrados
         $html = "
         <html>
         <head>
@@ -717,6 +813,8 @@ class PFMailer {
         </body>
         </html>
         ";
+        
+        // 6. Retornar el HTML completo
         return $html;
     }
 
@@ -726,6 +824,7 @@ class PFMailer {
      * @return mysqli - Objeto de conexión a la base de datos
      */
     public function getDatabase() {
+        // 1. Retornar la conexión a la base de datos
         return $this->db;
     }
 }

@@ -8,13 +8,13 @@
  * ejecuta la acción correspondiente sobre la orden.
  */
 
-// Importar la configuración global
+// 1. Importar la configuración global
 require_once __DIR__ . '/config.php';
 
-// Establecer códigos de respuesta HTTP apropiados
+// 2. Establecer códigos de respuesta HTTP apropiados
 http_response_code(200);
 
-// Importar las clases necesarias para procesamiento
+// 3. Importar las clases necesarias para procesamiento
 require_once 'PFmailer.php';
 
 // Clase para manejar acciones de correo
@@ -22,7 +22,7 @@ class PFMailAction {
     private $db;
     
     public function __construct() {
-        // Inicializar conexión a la base de datos
+        // 1. Inicializar conexión a la base de datos
         $con = new LocalConector();
         $this->db = $con->conectar();
     }
@@ -43,6 +43,7 @@ class PFMailAction {
             $stmt->execute();
             $result = $stmt->get_result();
             
+            // 2. Validar si se encontró un token válido
             if ($result->num_rows === 0) {
                 return [
                     'success' => false,
@@ -50,13 +51,13 @@ class PFMailAction {
                 ];
             }
             
-            // 2. Obtener datos del token
+            // 3. Obtener datos del token
             $tokenData = $result->fetch_assoc();
             $orderId = $tokenData['order_id'];
             $userId = $tokenData['user_id'];
             $tokenAction = $tokenData['action'];
             
-            // 3. Verificar que la acción solicitada coincida con la del token
+            // 4. Verificar que la acción solicitada coincida con la del token
             if ($action !== $tokenAction) {
                 return [
                     'success' => false,
@@ -64,27 +65,29 @@ class PFMailAction {
                 ];
             }
             
-            // 4. Ejecutar la acción correspondiente
+            // 5. Ejecutar la acción correspondiente según el tipo
             if ($action === 'approve') {
-                // Lógica para aprobar la orden
+                // 5.1. Lógica para aprobar la orden
                 $result = $this->approveOrder($orderId, $userId);
                 
-                // Si la orden ya estaba aprobada, no marcar el token como usado
-                // para permitir que otros aprobadores lo utilicen si es necesario
-                if (isset($result['alreadyApproved']) && $result['alreadyApproved']) {
-                    // No marcar el token como usado
-                    return $result;
-                }
+                // // 5.2. Si la orden ya estaba aprobada, no marcar el token como usado
+                // // para permitir que otros aprobadores lo utilicen si es necesario
+                // if (isset($result['alreadyApproved']) && $result['alreadyApproved']) {
+                //     // No marcar el token como usado
+                //     return $result;
+                // }
             } else {
-                // Lógica para rechazar la orden
+                // 5.3. Lógica para rechazar la orden
                 $result = $this->rejectOrder($orderId, $userId);
             }
             
-            // 5. Marcar el token como usado
+            // 6. Marcar el token como usado
             $this->markTokenAsUsed($token);
             
+            // 7. Retornar el resultado de la operación
             return $result;
         } catch (Exception $e) {
+            // 8. Manejar cualquier excepción que ocurra durante el proceso
             return [
                 'success' => false,
                 'message' => 'Error al procesar la acción: ' . $e->getMessage()
@@ -101,11 +104,11 @@ class PFMailAction {
      */
     private function approveOrder($orderId, $userId) {
         try {
-            // Registrar para diagnóstico
+            // 1. Registrar para diagnóstico - Crea una entrada en el archivo de log con fecha y hora actual
             $logFile = __DIR__ . '/action_debug.log';
             file_put_contents($logFile, date('Y-m-d H:i:s') . " - Aprobando orden #$orderId por usuario #$userId\n", FILE_APPEND);
             
-            // Primero, obtener el valor actual de act_approv y el nivel requerido
+            // 2. Obtener el valor actual de aprobación y el nivel requerido, y el id del Status
             $getCurrentSql = "SELECT PFA.act_approv, PF.required_auth_level, PF.status_id
                               FROM PremiumFreightApprovals PFA 
                               JOIN PremiumFreight PF ON PFA.premium_freight_id = PF.id
@@ -113,11 +116,13 @@ class PFMailAction {
             
             $getCurrentStmt = $this->db->prepare($getCurrentSql);
             
+            // 3. Validar que la consulta se haya preparado correctamente
             if (!$getCurrentStmt) {
                 file_put_contents($logFile, "Error preparando consulta para obtener valores actuales: " . $this->db->error . "\n", FILE_APPEND);
                 throw new Exception("Error al preparar la consulta para obtener valores actuales: " . $this->db->error);
             }
             
+            // 4. Vincular parámetros y ejecutar la consulta
             $getCurrentStmt->bind_param("i", $orderId);
             
             if (!$getCurrentStmt->execute()) {
@@ -125,37 +130,41 @@ class PFMailAction {
                 throw new Exception("Error al ejecutar la consulta para obtener valores actuales: " . $getCurrentStmt->error);
             }
             
+            // 5. Obtener el resultado de la consulta
             $currentResult = $getCurrentStmt->get_result();
             
-            // Si no hay registro, crearemos uno nuevo más adelante
+            // 6. Procesar según si existe o no el registro de aprobación
             if ($currentResult->num_rows > 0) {
+                // 6.1. Obtener datos actuales de aprobación
                 $currentData = $currentResult->fetch_assoc();
                 $currentApproval = (int)$currentData['act_approv'];
                 $requiredLevel = (int)$currentData['required_auth_level'];
                 $currentStatus = (int)$currentData['status_id'];
                 
-                // Verificar si ya está en el nivel máximo
+                // 6.2. Verificar si ya está en el nivel máximo
                 if ($currentApproval >= $requiredLevel) {
                     file_put_contents($logFile, "La orden ya está completamente aprobada (nivel $currentApproval, requerido $requiredLevel)\n", FILE_APPEND);
                     return [
                         'success' => true,
                         'message' => "La orden #$orderId ya está completamente aprobada.",
-                        'alreadyApproved' => true
+                        // 'alreadyApproved' => true
                     ];
                 }
                 
-                // Incrementar en 1 el nivel de aprobación actual
+                // 6.3. Incrementar en 1 el nivel de aprobación actual
                 $newApprovalLevel = $currentApproval + 1;
                 
-                // Actualizar con el nuevo nivel incrementado
+                // 6.4. Actualizar con el nuevo nivel incrementado
                 $updateSql = "UPDATE PremiumFreightApprovals SET act_approv = ?, approval_date = NOW() WHERE premium_freight_id = ?";
                 $updateStmt = $this->db->prepare($updateSql);
                 
+                // 6.5. Validar preparación de consulta
                 if (!$updateStmt) {
                     file_put_contents($logFile, "Error preparando consulta de aprobación: " . $this->db->error . "\n", FILE_APPEND);
                     throw new Exception("Error al preparar la consulta de aprobación: " . $this->db->error);
                 }
                 
+                // 6.6. Ejecutar actualización
                 $updateStmt->bind_param("ii", $newApprovalLevel, $orderId);
                 
                 if (!$updateStmt->execute()) {
@@ -163,13 +172,14 @@ class PFMailAction {
                     throw new Exception("Error al ejecutar la consulta de aprobación: " . $updateStmt->error);
                 }
                 
+                // 6.7. Registrar resultado de la actualización
                 $affectedRows = $updateStmt->affected_rows;
                 file_put_contents($logFile, "Filas actualizadas en PremiumFreightApprovals: $affectedRows, nuevo nivel: $newApprovalLevel\n", FILE_APPEND);
                 
-                // Verificar si con esta aprobación alcanzó el nivel requerido
+                // 6.8. Verificar si con esta aprobación alcanzó el nivel requerido
                 $fullyApproved = ($newApprovalLevel >= $requiredLevel);
                 
-                // CAMBIO: Actualizar el status_id en PremiumFreight según el nivel de aprobación
+                // 6.9. Actualizar el status_id en PremiumFreight según el nivel de aprobación
                 $newStatusId = 2; // En proceso por defecto
                 
                 if ($fullyApproved) {
@@ -179,7 +189,7 @@ class PFMailAction {
                     file_put_contents($logFile, "Orden en proceso de aprobación. Status actualizado a 'en proceso' (2)\n", FILE_APPEND);
                 }
                 
-                // Solo actualizar si el estado ha cambiado
+                // 6.10. Solo actualizar si el estado ha cambiado
                 if ($currentStatus != $newStatusId) {
                     $statusSql = "UPDATE PremiumFreight SET status_id = ? WHERE id = ?";
                     $statusStmt = $this->db->prepare($statusSql);
@@ -196,12 +206,13 @@ class PFMailAction {
                     file_put_contents($logFile, "No se actualizó el status_id ya que ya tiene el valor correcto: $currentStatus\n", FILE_APPEND);
                 }
             } else {
-                // No existe el registro, crear uno nuevo con nivel 1
+                // 7. Si no existe el registro, crear uno nuevo con nivel 1
                 $insertSql = "INSERT INTO PremiumFreightApprovals (premium_freight_id, act_approv, user_id, approval_date) 
                              VALUES (?, 1, ?, NOW())";
                 $insertStmt = $this->db->prepare($insertSql);
                 $insertStmt->bind_param("ii", $orderId, $userId);
                 
+                // 7.1. Ejecutar la inserción
                 if (!$insertStmt->execute()) {
                     file_put_contents($logFile, "Error insertando aprobación: " . $insertStmt->error . "\n", FILE_APPEND);
                     throw new Exception("Error al insertar la aprobación: " . $insertStmt->error);
@@ -209,7 +220,7 @@ class PFMailAction {
                 
                 file_put_contents($logFile, "Creado nuevo registro de aprobación con nivel 1\n", FILE_APPEND);
                 
-                // También actualizar el estado en PremiumFreight a "en proceso" (2)
+                // 7.2. Actualizar el estado en PremiumFreight a "en proceso" (2)
                 $statusSql = "UPDATE PremiumFreight SET status_id = 2 WHERE id = ?";
                 $statusStmt = $this->db->prepare($statusSql);
                 $statusStmt->bind_param("i", $orderId);
@@ -222,43 +233,46 @@ class PFMailAction {
                 file_put_contents($logFile, "Status inicial actualizado a 'en proceso' (1)\n", FILE_APPEND);
             }
             
-            // Verificar si está completamente aprobada para enviar notificaciones
+            // 8. Verificar si está completamente aprobada para enviar notificaciones
             $isFullyApproved = false;
             
             if ($currentResult->num_rows > 0) {
-                // Si actualizó un registro existente
+                // 8.1. Si actualizó un registro existente
                 $isFullyApproved = ($newApprovalLevel >= $requiredLevel);
             }
             
-            // Enviar notificaciones automáticamente
+            // 9. Enviar notificaciones automáticamente
             try {
+                // 9.1. Inicializar mailer
                 $mailer = new PFMailer();
                 
                 if ($isFullyApproved) {
-                    // Si está completamente aprobada, notificar al creador
+                    // 9.2. Si está completamente aprobada, notificar al creador
                     $mailer->sendStatusNotification($orderId, 'approved');
                     file_put_contents($logFile, "Notificación de aprobación completa enviada al creador de la orden #$orderId\n", FILE_APPEND);
                 } else {
-                    // Si aún necesita más aprobaciones, notificar al siguiente aprobador
+                    // 9.3. Si aún necesita más aprobaciones, notificar al siguiente aprobador
                     $mailer->sendApprovalNotification($orderId);
                     file_put_contents($logFile, "Notificación enviada al siguiente aprobador para la orden #$orderId\n", FILE_APPEND);
                 }
             } catch (Exception $e) {
-                // Registrar el error pero no interrumpir el flujo
+                // 9.4. Registrar el error pero no interrumpir el flujo
                 file_put_contents($logFile, "Error enviando notificaciones: " . $e->getMessage() . "\n", FILE_APPEND);
             }
             
-            // Registrar la acción exitosa
+            // 10. Registrar la acción exitosa
             file_put_contents($logFile, "Orden #$orderId aprobada exitosamente\n", FILE_APPEND);
             
+            // 11. Retornar resultado exitoso
             return [
                 'success' => true,
                 'message' => "La orden #$orderId ha sido aprobada exitosamente."
             ];
         } catch (Exception $e) {
-            // Registrar el error
+            // 12. Registrar el error en caso de excepción
             file_put_contents($logFile, "Error aprobando orden: " . $e->getMessage() . "\n", FILE_APPEND);
             
+            // 13. Retornar resultado de error
             return [
                 'success' => false,
                 'message' => "Error al aprobar la orden: " . $e->getMessage()
@@ -275,20 +289,22 @@ class PFMailAction {
      */
     private function rejectOrder($orderId, $userId) {
         try {
-            // Registrar para diagnóstico
+            // 1. Registrar para diagnóstico - Crear entrada en archivo de log
             $logFile = __DIR__ . '/action_debug.log';
             file_put_contents($logFile, date('Y-m-d H:i:s') . " - Rechazando orden #$orderId por usuario #$userId\n", FILE_APPEND);
             
-            // 1. Actualizar PremiumFreight para marcar la orden como rechazada (status_id = 4)
+            // 2. Actualizar PremiumFreight para marcar la orden como rechazada (status_id = 4)
             $updateSql = "UPDATE PremiumFreight SET status_id = 4 WHERE id = ?";
             
             $updateStmt = $this->db->prepare($updateSql);
             
+            // 3. Validar preparación de consulta
             if (!$updateStmt) {
                 file_put_contents($logFile, "Error preparando consulta de rechazo: " . $this->db->error . "\n", FILE_APPEND);
                 throw new Exception("Error al preparar la consulta de rechazo: " . $this->db->error);
             }
             
+            // 4. Vincular parámetros y ejecutar consulta
             $updateStmt->bind_param("i", $orderId);
             
             if (!$updateStmt->execute()) {
@@ -296,11 +312,13 @@ class PFMailAction {
                 throw new Exception("Error al ejecutar la consulta de rechazo: " . $updateStmt->error);
             }
             
+            // 5. Registrar resultado de la actualización
             $affectedRows = $updateStmt->affected_rows;
             file_put_contents($logFile, "Filas actualizadas en PremiumFreight: $affectedRows\n", FILE_APPEND);
             
+            // 6. Verificar si se actualizó alguna fila
             if ($affectedRows === 0) {
-                // Verificar si la orden existe
+                // 6.1. Verificar si la orden existe
                 $checkSql = "SELECT COUNT(*) as total FROM PremiumFreight WHERE id = ?";
                 $checkStmt = $this->db->prepare($checkSql);
                 $checkStmt->bind_param("i", $orderId);
@@ -308,11 +326,12 @@ class PFMailAction {
                 $checkResult = $checkStmt->get_result();
                 $totalOrders = $checkResult->fetch_assoc()['total'];
                 
+                // 6.2. Validar si la orden existe
                 if ($totalOrders === 0) {
                     file_put_contents($logFile, "La orden #$orderId no existe\n", FILE_APPEND);
                     throw new Exception("La orden #$orderId no existe en el sistema");
                 } else {
-                    // Si la orden existe pero no se actualizó, podría ser que ya estuviera rechazada
+                    // 6.3. Si la orden existe pero no se actualizó, podría ser que ya estuviera rechazada
                     $statusSql = "SELECT status_id FROM PremiumFreight WHERE id = ?";
                     $statusStmt = $this->db->prepare($statusSql);
                     $statusStmt->bind_param("i", $orderId);
@@ -322,6 +341,7 @@ class PFMailAction {
                     
                     file_put_contents($logFile, "La orden existe pero no se actualizó. Estado actual: $currentStatus\n", FILE_APPEND);
                     
+                    // 6.4. Verificar si ya estaba rechazada
                     if ($currentStatus == 4) {
                         // La orden ya estaba rechazada
                         return [
@@ -332,19 +352,19 @@ class PFMailAction {
                 }
             }
             
-            // 2. También registrar el rechazo en la tabla de aprobaciones si existe
-            // Eliminada referencia a rejection_reason
+            // 7. También registrar el rechazo en la tabla de aprobaciones si existe
             $rejectSql = "UPDATE PremiumFreightApprovals SET act_approv = 0, 
                           approval_date = NOW(), user_id = ? WHERE premium_freight_id = ?";
             $rejectStmt = $this->db->prepare($rejectSql);
             $rejectStmt->bind_param("ii", $userId, $orderId);
             $rejectStmt->execute();
             
-            // Enviar notificación de rechazo al creador
+            // 8. Enviar notificación de rechazo al creador
             try {
+                // 8.1. Inicializar mailer
                 $mailer = new PFMailer();
                 
-                // Obtener información del usuario que rechazó
+                // 8.2. Obtener información del usuario que rechazó
                 $userSql = "SELECT id, name, authorization_level FROM User WHERE id = ?";
                 $userStmt = $this->db->prepare($userSql);
                 $userStmt->bind_param("i", $userId);
@@ -352,6 +372,7 @@ class PFMailAction {
                 $userResult = $userStmt->get_result();
                 $rejectorInfo = null;
                 
+                // 8.3. Obtener datos del usuario si existe
                 if ($userResult->num_rows > 0) {
                     $userData = $userResult->fetch_assoc();
                     $rejectorInfo = [
@@ -361,25 +382,27 @@ class PFMailAction {
                     ];
                 }
                 
-                // Enviar notificación de rechazo
+                // 8.4. Enviar notificación de rechazo
                 $mailer->sendStatusNotification($orderId, 'rejected', $rejectorInfo);
                 file_put_contents($logFile, "Notificación de rechazo enviada al creador de la orden #$orderId\n", FILE_APPEND);
             } catch (Exception $e) {
-                // Registrar el error pero no interrumpir el flujo
+                // 8.5. Registrar el error pero no interrumpir el flujo
                 file_put_contents($logFile, "Error enviando notificación de rechazo: " . $e->getMessage() . "\n", FILE_APPEND);
             }
             
-            // Registrar la acción exitosa
+            // 9. Registrar la acción exitosa
             file_put_contents($logFile, "Orden #$orderId rechazada exitosamente\n", FILE_APPEND);
             
+            // 10. Retornar resultado exitoso
             return [
                 'success' => true,
                 'message' => "La orden #$orderId ha sido rechazada."
             ];
         } catch (Exception $e) {
-            // Registrar el error
+            // 11. Registrar el error en caso de excepción
             file_put_contents($logFile, "Error rechazando orden: " . $e->getMessage() . "\n", FILE_APPEND);
             
+            // 12. Retornar resultado de error
             return [
                 'success' => false,
                 'message' => "Error al rechazar la orden: " . $e->getMessage()
@@ -391,9 +414,13 @@ class PFMailAction {
      * Marca un token como usado
      */
     private function markTokenAsUsed($token) {
+        // 1. Preparar consulta para marcar el token como usado
         $sql = "UPDATE EmailActionTokens SET is_used = 1, used_at = NOW() WHERE token = ?";
+        // 2. Preparar statement
         $stmt = $this->db->prepare($sql);
+        // 3. Vincular parámetros
         $stmt->bind_param("s", $token);
+        // 4. Ejecutar la actualización
         $stmt->execute();
     }
     
@@ -405,11 +432,11 @@ class PFMailAction {
      */
     public function validateToken($token) {
         try {
-            // Registrar para diagnóstico
+            // 1. Registrar para diagnóstico - Crear entrada en archivo de log
             $logFile = __DIR__ . '/action_debug.log';
             file_put_contents($logFile, date('Y-m-d H:i:s') . " - Validando token: {$token}\n", FILE_APPEND);
 
-            // Preparar la consulta para obtener la información del token
+            // 2. Preparar la consulta para obtener la información del token
             $sql = "SELECT token, order_id, user_id, action, created_at 
                     FROM EmailActionTokens 
                     WHERE token = ? 
@@ -419,11 +446,13 @@ class PFMailAction {
             
             $stmt = $this->db->prepare($sql);
             
+            // 3. Verificar si se preparó correctamente la consulta
             if (!$stmt) {
                 file_put_contents($logFile, "Error al preparar consulta de token: " . $this->db->error . "\n", FILE_APPEND);
                 return false;
             }
             
+            // 4. Vincular parámetros y ejecutar consulta
             $stmt->bind_param("s", $token);
             
             if (!$stmt->execute()) {
@@ -431,69 +460,75 @@ class PFMailAction {
                 return false;
             }
             
+            // 5. Obtener el resultado de la consulta
             $result = $stmt->get_result();
             
+            // 6. Verificar si se encontró un token válido
             if ($result->num_rows === 0) {
                 file_put_contents($logFile, "Token no encontrado o expirado: {$token}\n", FILE_APPEND);
                 return false;
             }
             
+            // 7. Obtener la información del token y registrarla
             $tokenInfo = $result->fetch_assoc();
             file_put_contents($logFile, "Token válido encontrado: " . json_encode($tokenInfo) . "\n", FILE_APPEND);
             
-            // Marcar el token como usado para evitar su reutilización
+            // 8. Marcar el token como usado para evitar su reutilización
             $updateSql = "UPDATE EmailActionTokens SET used = 1, used_at = NOW() WHERE token = ?";
             $updateStmt = $this->db->prepare($updateSql);
             $updateStmt->bind_param("s", $token);
             $updateStmt->execute();
             
+            // 9. Retornar la información del token
             return $tokenInfo;
         } catch (Exception $e) {
+            // 10. Registrar cualquier error y retornar false
             file_put_contents($logFile, "Error en validateToken: " . $e->getMessage() . "\n", FILE_APPEND);
             return false;
         }
     }
 }
 
-// Inicializar variables para seguimiento de errores
+// 1. Inicializar variables para seguimiento de errores
 $error = false;
 $errorMessage = '';
 
-// Verificar si se recibieron los parámetros necesarios
+// 2. Verificar si se recibieron los parámetros necesarios
 if (!isset($_GET['action']) || !isset($_GET['token'])) {
     $error = true;
     $errorMessage = 'Faltan parámetros requeridos para procesar la acción';
 } else {
-    // Obtener los parámetros
+    // 3. Obtener los parámetros
     $action = $_GET['action'];
     $token = $_GET['token'];
     
-    // Validar acción (debe ser approve o reject)
+    // 4. Validar acción (debe ser approve o reject)
     if ($action !== 'approve' && $action !== 'reject') {
         $error = true;
         $errorMessage = 'Acción inválida';
     }
 }
 
-// Registrar la acción solicitada para depuración
+// 5. Registrar la acción solicitada para depuración
 $logFile = __DIR__ . '/action_debug.log';
 file_put_contents($logFile, date('Y-m-d H:i:s') . " - Solicitud recibida: acción={$action}, token={$token}\n", FILE_APPEND);
 
-// Solo si no hay errores, continuamos con la validación
+// 6. Solo si no hay errores, continuamos con la validación
 if (!$error) {
     try {
-        // Inicializar la clase de acción
+        // 6.1. Inicializar la clase de acción
         $mailAction = new PFMailAction();
         
-        // Verificar el token y obtener los detalles de la acción
+        // 6.2. Verificar el token y obtener los detalles de la acción
         $tokenInfo = $mailAction->validateToken($token);
         
+        // 6.3. Validar si el token es válido
         if (!$tokenInfo) {
             $error = true;
             $errorMessage = 'Token inválido o expirado';
             file_put_contents($logFile, date('Y-m-d H:i:s') . " - Token inválido: {$token}\n", FILE_APPEND);
         } else {
-            // Verificar que la acción solicitada coincida con la acción del token
+            // 6.4. Verificar que la acción solicitada coincida con la acción del token
             if ($tokenInfo['action'] !== $action) {
                 $error = true;
                 $errorMessage = 'La acción solicitada no coincide con la autorizada por el token';
@@ -501,51 +536,60 @@ if (!$error) {
             }
         }
     } catch (Exception $e) {
+        // 6.5. Manejar excepciones en la validación
         $error = true;
         $errorMessage = 'Error al validar el token: ' . $e->getMessage();
         file_put_contents($logFile, date('Y-m-d H:i:s') . " - Excepción: {$e->getMessage()}\n", FILE_APPEND);
     }
 }
 
-// Si todo está correcto, procesamos la acción
+// 7. Si todo está correcto, procesamos la acción
 if (!$error) {
     try {
+        // 7.1. Registrar inicio del procesamiento de la acción
         file_put_contents($logFile, date('Y-m-d H:i:s') . " - Procesando acción {$action} para orden {$tokenInfo['order_id']} por usuario {$tokenInfo['user_id']}\n", FILE_APPEND);
         
-        // Ejecutar la acción según el parámetro recibido
+        // 7.2. Ejecutar la acción según el parámetro recibido
         if ($action === 'approve') {
+            // 7.2.1. Procesar aprobación
             $result = $mailAction->processApprove($tokenInfo['order_id'], $tokenInfo['user_id']);
             if ($result && $result['success']) {
+                // 7.2.2. Registrar aprobación exitosa
                 file_put_contents($logFile, date('Y-m-d H:i:s') . " - Aprobación exitosa\n", FILE_APPEND);
                 showSuccess($result['message'], isset($result['additionalInfo']) ? $result['additionalInfo'] : '');
             } else {
+                // 7.2.3. Registrar error en aprobación
                 file_put_contents($logFile, date('Y-m-d H:i:s') . " - Error en aprobación: {$result['message']}\n", FILE_APPEND);
                 showError($result['message']);
             }
         } else if ($action === 'reject') {
+            // 7.2.4. Procesar rechazo
             $result = $mailAction->processReject($tokenInfo['order_id'], $tokenInfo['user_id']);
             if ($result && $result['success']) {
+                // 7.2.5. Registrar rechazo exitoso
                 file_put_contents($logFile, date('Y-m-d H:i:s') . " - Rechazo exitoso\n", FILE_APPEND);
                 showSuccess($result['message']);
             } else {
+                // 7.2.6. Registrar error en rechazo
                 file_put_contents($logFile, date('Y-m-d H:i:s') . " - Error en rechazo: {$result['message']}\n", FILE_APPEND);
                 showError($result['message']);
             }
         } else {
-            // Este caso no debería ocurrir debido a la validación anterior, pero por seguridad
+            // 7.2.7. Manejar acción desconocida (caso que no debería ocurrir por la validación previa)
             file_put_contents($logFile, date('Y-m-d H:i:s') . " - Acción desconocida: {$action}\n", FILE_APPEND);
             showError('Acción desconocida');
         }
         
-        // IMPORTANTE: Agregar un exit() para evitar ejecución adicional
+        // 7.3. Detener ejecución adicional
         exit();
         
     } catch (Exception $e) {
+        // 7.4. Manejar excepciones durante el procesamiento
         file_put_contents($logFile, date('Y-m-d H:i:s') . " - Excepción procesando acción: {$e->getMessage()}\n", FILE_APPEND);
         showError('Error al procesar la acción: ' . $e->getMessage());
     }
 } else {
-    // Si hubo un error en la validación, mostrar mensaje
+    // 8. Si hubo un error en la validación, mostrar mensaje
     file_put_contents($logFile, date('Y-m-d H:i:s') . " - Error final: {$errorMessage}\n", FILE_APPEND);
     showError($errorMessage);
 }
@@ -556,9 +600,10 @@ if (!$error) {
  * @param string $message Mensaje a mostrar al usuario
  */
 function showSuccess($message, $additionalInfo = '') {
-    // Usar la constante URL global definida en config.php
+    // 1. Usar la constante URL global definida en config.php
     global $URL;
     
+    // 2. Generar HTML con mensaje de éxito
     echo "<!DOCTYPE html>
     <html lang='es'>
     <head>
@@ -641,6 +686,7 @@ function showSuccess($message, $additionalInfo = '') {
         </div>
     </body>
     </html>";
+    // 3. Finalizar ejecución
     exit;
 }
 
@@ -650,9 +696,10 @@ function showSuccess($message, $additionalInfo = '') {
  * @param string $message Mensaje de error a mostrar al usuario
  */
 function showError($message) {
-    // Usar la constante URL global definida en config.php
+    // 1. Usar la constante URL global definida en config.php
     global $URL;
     
+    // 2. Generar HTML con mensaje de error
     echo "<!DOCTYPE html>
     <html lang='es'>
     <head>
@@ -726,6 +773,7 @@ function showError($message) {
         </div>
     </body>
     </html>";
+    // 3. Finalizar ejecución
     exit;
 }
 ?>
