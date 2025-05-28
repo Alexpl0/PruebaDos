@@ -270,7 +270,7 @@ footer{
     position: absolute;
     right: 15px; /* Aumentamos un poco la distancia del borde */
     top: 50%;
-    transform: translateY(-50%);
+    transform: translateY(-100%);
     cursor: pointer;
     color: #6c757d;
     width: 18px; /* Ancho fijo ligeramente mayor */
