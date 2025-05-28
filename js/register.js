@@ -86,10 +86,12 @@ function handleRegistration(e) {
         return;
     }
     
-    // Disable form and show loading
+    // Disable form and show loading - DECLARE ORIGINALTEXT OUTSIDE
     const submitButton = document.querySelector('#register-form button[type="submit"]');
+    let originalText = ''; // Declare outside of if block
+    
     if (submitButton) {
-        const originalText = submitButton.innerHTML;
+        originalText = submitButton.innerHTML; // Assign here
         submitButton.disabled = true;
         submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
     }
@@ -126,7 +128,7 @@ function handleRegistration(e) {
             });
         })
         .finally(() => {
-            // Re-enable form
+            // Re-enable form - NOW ORIGINALTEXT IS ACCESSIBLE
             if (submitButton) {
                 submitButton.disabled = false;
                 submitButton.innerHTML = originalText;
