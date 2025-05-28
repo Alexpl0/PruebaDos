@@ -32,9 +32,9 @@ try {
     
     // Get count of orders approved by this user
     $stmt = $conex->prepare("
-        SELECT COUNT(DISTINCT premium_freight_id) 
-        FROM PremiumFreightApprovals 
-        WHERE user_id = ? AND status_id <> 99
+        SELECT COUNT(*) 
+        FROM PremiumFreight 
+        WHERE user_id = ? AND status_id = 3
     ");
     $stmt->bind_param("i", $userId);
     $stmt->execute();
@@ -44,9 +44,9 @@ try {
     
     // Get count of orders rejected by this user
     $stmt = $conex->prepare("
-        SELECT COUNT(DISTINCT premium_freight_id) 
-        FROM PremiumFreightApprovals 
-        WHERE user_id = ? AND status_id = 99
+        SELECT COUNT(*) 
+        FROM PremiumFreight 
+        WHERE user_id = ? AND status_id = 4
     ");
     $stmt->bind_param("i", $userId);
     $stmt->execute();
