@@ -4,23 +4,31 @@
  * Incluye validación de formularios y gestión de sesiones
  */
 
-// Lógica para la interacción del formulario de login al cargar la página
+// Funcionalidad para mostrar/ocultar contraseña
 document.addEventListener('DOMContentLoaded', function() {
-    // Configurar la funcionalidad del botón para mostrar/ocultar contraseña
-    const passwordInput = document.getElementById('password');
     const togglePassword = document.getElementById('togglePassword');
-    
-    if (togglePassword) {
+    const passwordInput = document.getElementById('password');
+
+    if (togglePassword && passwordInput) {
         togglePassword.addEventListener('click', function() {
-            // Cambiar entre tipo 'password' y 'text' para mostrar u ocultar
-            const type = passwordInput.type === 'password' ? 'text' : 'password';
-            passwordInput.type = type;
+            // Cambiar el tipo de input
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
             
-            // Cambiar el icono según si la contraseña es visible o no
-            this.setAttribute('name', type === 'password' ? 'eye-off-outline' : 'eye-outline');
+            // Cambiar el icono
+            if (type === 'text') {
+                togglePassword.classList.remove('fa-eye-slash');
+                togglePassword.classList.add('fa-eye');
+            } else {
+                togglePassword.classList.remove('fa-eye');
+                togglePassword.classList.add('fa-eye-slash');
+            }
         });
     }
-    
+});
+
+// Lógica para la interacción del formulario de login al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
     // Agregar event listener para enviar el formulario con Enter
     const emailInput = document.getElementById('email');
     if (emailInput) {
@@ -31,6 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    const passwordInput = document.getElementById('password');
     if (passwordInput) {
         passwordInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {

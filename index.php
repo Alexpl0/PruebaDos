@@ -53,7 +53,7 @@ include_once 'dao/users/auth_check.php';
                                 <input type="email" id="email" class="form-control" placeholder="Correo electrónico">
                                 <div style="position: relative;">
                                     <input type="password" id="password" class="form-control" placeholder="Contraseña">
-                                    <ion-icon id="togglePassword" name="eye-off-outline" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer;"></ion-icon>
+                                    <i id="togglePassword" class="fas fa-eye-slash" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #6c757d;"></i>
                                 </div>
                                 <button id="btnLogin" class="btn btn-primary" onclick="loginUsuario()">Iniciar Sesión</button>
                             </div>
