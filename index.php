@@ -27,7 +27,6 @@ include_once 'dao/users/auth_check.php';
     <!-- Archivos CSS locales -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
-    <link rel="stylesheet" href="css/index.css">
     
 </head>
 <body>
@@ -53,7 +52,7 @@ include_once 'dao/users/auth_check.php';
                                 <input type="email" id="email" class="form-control" placeholder="Correo electrónico">
                                 <div style="position: relative;">
                                     <input type="password" id="password" class="form-control" placeholder="Contraseña">
-                                    <i id="togglePassword" class="fas fa-eye-slash" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #6c757d;"></i>
+                                    <i id="togglePassword" class="fas fa-eye-slash"></i>
                                 </div>
                                 <button id="btnLogin" class="btn btn-primary" onclick="loginUsuario()">Iniciar Sesión</button>
                             </div>

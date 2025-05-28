@@ -251,3 +251,22 @@ footer{
     text-align: center;
     width: 100%;
 }
+
+/* Estilo para mantener el ancho fijo del icono del ojo */
+#togglePassword {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #6c757d;
+    width: 16px; /* Ancho fijo */
+    text-align: center; /* Centra el icono dentro del ancho fijo */
+    font-size: 16px; /* Tamaño fijo */
+    transition: color 0.3s ease; /* Transición suave para el hover */
+}
+
+/* Efecto hover para el icono */
+#togglePassword:hover {
+    color: var(--first-color);
+}
