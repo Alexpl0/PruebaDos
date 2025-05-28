@@ -61,12 +61,49 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
+ * Gets the current user ID from the page
+ * Safely handles cases where the global variable might not be set
+ * @returns {number} The user ID or 0 if not found
+ */
+function getCurrentUserId() {
+    // Try different ways to get the user ID
+    if (typeof window.userID !== 'undefined' && window.userID) {
+        return parseInt(window.userID, 10);
+    }
+    
+    // Try to get it from a data attribute if set on the body or a specific element
+    const userIdElement = document.querySelector('[data-user-id]');
+    if (userIdElement && userIdElement.dataset.userId) {
+        return parseInt(userIdElement.dataset.userId, 10);
+    }
+    
+    // As a last resort, try to get it from local storage if you're using that
+    const storedUserId = localStorage.getItem('userID');
+    if (storedUserId) {
+        return parseInt(storedUserId, 10);
+    }
+    
+    console.warn('Could not find user ID. Using default value 0.');
+    return 0;
+}
+
+/**
  * Loads order data from the API
  * Uses the global URL variable to construct the API endpoint
  */
 function loadOrderData() {
-    // Get the user ID from the global variable set in PHP
-    const userId = window.userID;
+    // Get the user ID using the safe method
+    const userId = getCurrentUserId();
+    
+    // Check if we have a valid user ID
+    if (!userId) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Authentication Error',
+            text: 'Your user ID could not be found. Please log in again.'
+        });
+        return;
+    }
     
     // Show loading indicator
     Swal.fire({
@@ -76,8 +113,11 @@ function loadOrderData() {
         didOpen: () => { Swal.showLoading(); }
     });
 
+    // Ensure URL is defined
+    const apiUrl = getApiBaseUrl() + 'dao/conections/daoOrdersByUser.php';
+
     // Send a POST request with the user ID
-    fetch(URL + 'dao/conections/daoOrdersByUser.php', {
+    fetch(apiUrl, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -102,7 +142,7 @@ function loadOrderData() {
             // Create cards with the data
             createCards(data.orders);
         } else {
-            throw new Error('No data received from API or incorrect format');
+            throw new Error(data.message || 'No data received from API or incorrect format');
         }
     })
     .catch(error => {
@@ -116,6 +156,21 @@ function loadOrderData() {
             text: 'Could not load your orders. Please try refreshing the page.'
         });
     });
+}
+
+/**
+ * Gets the API base URL, ensuring it ends with a slash
+ * @returns {string} The base URL for API calls
+ */
+function getApiBaseUrl() {
+    // Check if URL is defined in the global scope
+    if (typeof URL === 'undefined' || !URL) {
+        console.warn('URL global variable is not defined, using fallback URL');
+        return 'https://grammermx.com/Jesus/PruebaDos/';
+    }
+    
+    // Ensure URL ends with a slash
+    return URL.endsWith('/') ? URL : URL + '/';
 }
 
 /**
@@ -153,12 +208,10 @@ window.addEventListener('error', function(event) {
     });
 });
 
-/**
- * Verificación de disponibilidad de la variable URL
- * En caso de que el script se cargue antes que la variable esté definida
- */
-if (typeof URL === 'undefined') {
-    console.warn('URL global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
-    // Fallback a URL hardcodeada solo como último recurso
-    window.URL = window.URL || 'https://grammermx.com/Jesus/PruebaDos/';
-}
+// Ensure URL is available when needed
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof URL === 'undefined') {
+        console.warn('URL global variable is not defined. Setting fallback URL.');
+        window.URL = 'https://grammermx.com/Jesus/PruebaDos/';
+    }
+});
