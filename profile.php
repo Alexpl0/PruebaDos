@@ -117,6 +117,12 @@ include_once 'dao/users/auth_check.php';
                         <div id="orders-rejected">Loading...</div>
                     </div>
                 </div>
+                
+                <div class="mt-3 text-center">
+                    <a href="myorders.php" class="btn btn-outline-primary">
+                        <i class="fas fa-list"></i> View My Orders
+                    </a>
+                </div>
             </div>
         </div>
     </main>
