@@ -53,9 +53,10 @@ try {
     }
     $stmt->close();
 
-    // Insertar nuevo usuario incluyendo el campo plant
-    $stmt = $conex->prepare("INSERT INTO `User` (name, email, plant, password) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("ssss", $name, $email, $plant, $password);
+    // Insertar nuevo usuario incluyendo el campo plant y role por defecto como "Worker"
+    $role = "Worker"; // Rol por defecto
+    $stmt = $conex->prepare("INSERT INTO `User` (name, email, plant, password, role) VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssss", $name, $email, $plant, $password, $role);
     if ($stmt->execute()) {
         echo json_encode(['success' => true, 'mensaje' => 'User registered successfully']);
     } else {
