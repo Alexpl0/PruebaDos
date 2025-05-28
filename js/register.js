@@ -54,9 +54,10 @@ function handleRegistration(e) {
     // Get form fields
     const nameInput = document.getElementById('name');
     const emailInput = document.getElementById('email');
+    const plantsInput = document.getElementById('plant');
     const passwordInput = document.getElementById('password');
     
-    if (!nameInput || !emailInput || !passwordInput) {
+    if (!nameInput || !emailInput || !plantsInput || !passwordInput) {
         Swal.fire('Error', 'Form fields not found', 'error');
         return;
     }
@@ -64,10 +65,11 @@ function handleRegistration(e) {
     // Get and trim field values
     const name = nameInput.value.trim();
     const email = emailInput.value.trim();
+    const plant = plantsInput.value.trim();
     const password = passwordInput.value.trim();
     
     // Basic validation
-    if (!name || !email || !password) {
+    if (!name || !email || !plant || !password) {
         Swal.fire('Error', 'Please fill in all fields', 'error');
         return;
     }
@@ -92,8 +94,8 @@ function handleRegistration(e) {
         submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
     }
     
-    // Prepare data
-    const data = { name, email, password };
+    // Prepare data - NOW INCLUDING PLANT
+    const data = { name, email, plant, password };
     
     // Submit registration
     submitRegistration(data)

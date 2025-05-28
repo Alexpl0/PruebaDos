@@ -54,6 +54,16 @@ include_once 'dao/users/auth_check.php';
                             <label for="name" class="form-label">Complete Name</label>
                             <input type="text" class="form-control" id="name" name="name" required>
                         </div>
+                        <div class="mb-3">
+                            <label for="plant"  class="form-label">Plant</label>
+                            <select class="form-select" id="plant" name="plant" required>
+                                <option value="" disabled selected>Select a plant</option>
+                                <option value="3310">3310 - Tetla</option>
+                                <option value="3330">3330 - QRO</option>
+                                <option value="1640">1640 - Tupelo Automotive</option>
+                                <option value="3510">3510 - Delphos</option>
+                            </select>
+                        </div>
                         <div id="passwordInput" class="mb-3">
                             <label for="password" class="form-label">Password</label>
                             <div class="input-group">

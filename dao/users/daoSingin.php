@@ -9,6 +9,7 @@ try {
     $input = json_decode(file_get_contents('php://input'), true);
     $name = $input['name'] ?? '';
     $email = $input['email'] ?? '';
+    $plant = $input['plant'] ?? '';
     $password = $input['password'] ?? '';
 
     // Verificar cada campo individualmente
@@ -19,6 +20,9 @@ try {
     }
     if (empty($email)) {
         $missing_fields[] = 'Email Address';
+    }
+    if (empty($plant)) {
+        $missing_fields[] = 'Plant';
     }
     if (empty($password)) {
         $missing_fields[] = 'Password';
@@ -49,9 +53,9 @@ try {
     }
     $stmt->close();
 
-    // Insertar nuevo usuario (role y authorization_level pueden ser valores por defecto o NULL)
-    $stmt = $conex->prepare("INSERT INTO `User` (name, email, password) VALUES (?, ?, ?)");
-    $stmt->bind_param("sss", $name, $email, $password);
+    // Insertar nuevo usuario incluyendo el campo plant
+    $stmt = $conex->prepare("INSERT INTO `User` (name, email, plant, password) VALUES (?, ?, ?, ?)");
+    $stmt->bind_param("ssss", $name, $email, $plant, $password);
     if ($stmt->execute()) {
         echo json_encode(['success' => true, 'mensaje' => 'User registered successfully']);
     } else {
