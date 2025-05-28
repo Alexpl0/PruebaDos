@@ -261,8 +261,13 @@ footer{
     cursor: pointer;
     color: #6c757d;
     width: 16px; /* Ancho fijo */
+    height: 16px; /* Altura fija también */
     text-align: center; /* Centra el icono dentro del ancho fijo */
     font-size: 16px; /* Tamaño fijo */
+    line-height: 16px; /* Línea de altura igual al tamaño de fuente */
+    display: flex; /* Usar flexbox para centrado perfecto */
+    align-items: center; /* Centrado vertical */
+    justify-content: center; /* Centrado horizontal */
     transition: color 0.3s ease; /* Transición suave para el hover */
 }
 
