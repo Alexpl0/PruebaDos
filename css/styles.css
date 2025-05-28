@@ -151,6 +151,19 @@ textarea {
     box-sizing: border-box
 }
 
+input[type="password"], 
+input[type="text"], 
+input[type="email"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+    font-size: 16px !important; /* Tamaño fijo para evitar cambios */
+    line-height: 1.5 !important; /* Altura de línea consistente */
+    height: 48px !important; /* Altura fija del input */
+}
 
 button{
     justify-self: center;
@@ -255,23 +268,29 @@ footer{
 /* Estilo para mantener el ancho fijo del icono del ojo */
 #togglePassword {
     position: absolute;
-    right: 10px;
+    right: 15px; /* Aumentamos un poco la distancia del borde */
     top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
     color: #6c757d;
-    width: 16px; /* Ancho fijo */
-    height: 16px; /* Altura fija también */
-    text-align: center; /* Centra el icono dentro del ancho fijo */
-    font-size: 16px; /* Tamaño fijo */
-    line-height: 16px; /* Línea de altura igual al tamaño de fuente */
+    width: 18px; /* Ancho fijo ligeramente mayor */
+    height: 18px; /* Altura fija también */
+    font-size: 18px !important; /* Tamaño fijo con !important */
+    line-height: 1 !important; /* Línea de altura fija */
     display: flex; /* Usar flexbox para centrado perfecto */
     align-items: center; /* Centrado vertical */
     justify-content: center; /* Centrado horizontal */
     transition: color 0.3s ease; /* Transición suave para el hover */
+    z-index: 10; /* Asegurar que esté por encima del input */
 }
 
 /* Efecto hover para el icono */
 #togglePassword:hover {
     color: var(--first-color);
+}
+
+/* Asegurar que el contenedor relativo mantenga su altura */
+div[style*="position: relative"] {
+    display: block;
+    width: 100%;
 }
