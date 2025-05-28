@@ -99,6 +99,14 @@ function createHeader(authLevel) {
     document.getElementById('header-container').innerHTML = headerHTML;
 }
 
+// Find where your navigation links are created and add:
+const links = [
+    { url: 'profile.php', text: 'My Profile', icon: 'fas fa-user' },
+    { url: 'newOrder.php', text: 'New Order', icon: 'fas fa-plus-circle' },
+    { url: '#', text: 'Manual', icon: 'fas fa-book' },
+    { url: 'myorders.php', text: 'My Orders', icon: 'fa-list-check' }, // Add this line
+];
+
 /**
  * Inicializa la funcionalidad del header una vez que el DOM está completamente cargado
  */
