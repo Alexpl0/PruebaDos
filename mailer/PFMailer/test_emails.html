@@ -158,7 +158,7 @@
 
         // Test approval email
         document.getElementById('test-approval').addEventListener('click', async function() {
-            const orderId = document.getElementById('order-id').value;
+            const orderId = document.getElementById('orderId').value;
             if (!orderId) {
                 showResult('approval-result', { error: 'Please enter an order ID' }, false);
                 return;
