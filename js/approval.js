@@ -208,8 +208,21 @@ async function sendEmailNotification(orderId, notificationType) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
-        const result = await response.json();
-        console.log(`[EMAIL DEBUG] Resultado del servidor:`, result);
+        // Obtener el texto de la respuesta primero para diagnosticar
+        const responseText = await response.text();
+        console.log(`[EMAIL DEBUG] Respuesta del servidor (texto):`, responseText);
+
+        // Intentar parsear como JSON
+        let result;
+        try {
+            result = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error(`[EMAIL DEBUG] Error parseando JSON:`, parseError);
+            console.error(`[EMAIL DEBUG] Respuesta recibida:`, responseText);
+            throw new Error(`Respuesta del servidor no es JSON válido: ${responseText.substring(0, 200)}...`);
+        }
+
+        console.log(`[EMAIL DEBUG] Resultado del servidor (parseado):`, result);
 
         if (!result.success) {
             console.warn(`[EMAIL DEBUG] Error reportado por el servidor: ${result.message}`);
