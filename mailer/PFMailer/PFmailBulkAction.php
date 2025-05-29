@@ -24,7 +24,7 @@ require_once __DIR__ . '/PFmailAction.php';
 
 // Verificar si se recibieron los parámetros necesarios
 if (!isset($_GET['action']) || !isset($_GET['token'])) {
-    showError('Faltan parámetros requeridos. Se necesitan "action" y "token".');
+    showBulkError('Faltan parámetros requeridos. Se necesitan "action" y "token".');
     exit;
 }
 
@@ -34,7 +34,7 @@ $token = filter_var($_GET['token'], FILTER_SANITIZE_SPECIAL_CHARS);
 
 // Validar la acción y mostrar error específico
 if ($action !== 'approve' && $action !== 'reject') {
-    showError("Tipo de acción inválido: '{$action}'. Las acciones permitidas son 'approve' o 'reject'.");
+    showBulkError("Tipo de acción inválido: '{$action}'. Las acciones permitidas son 'approve' o 'reject'.");
     exit;
 }
 
@@ -55,23 +55,23 @@ try {
 
     // Mostrar resultado según éxito o fracaso
     if ($result['success']) {
-        showSuccess($result['message'], $result['details'] ?? null);
+        showBulkSuccess($result['message'], $result['details'] ?? null);
     } else {
-        showError($result['message'], $result['details'] ?? null);
+        showBulkError($result['message'], $result['details'] ?? null);
     }
 } catch (Exception $e) {
     // Capturar cualquier excepción no manejada
     error_log("Error en PFmailBulkAction: " . $e->getMessage() . "\n" . $e->getTraceAsString());
-    showError("Ha ocurrido un error inesperado. Por favor contacte al administrador.", ['errors' => [$e->getMessage()]]);
+    showBulkError("Ha ocurrido un error inesperado. Por favor contacte al administrador.", ['errors' => [$e->getMessage()]]);
 }
 
 /**
- * Muestra un mensaje de éxito con formato mejorado
+ * Muestra un mensaje de éxito con formato mejorado para acciones en bloque
  * 
  * @param string $message Mensaje a mostrar al usuario
  * @param array|null $details Detalles adicionales del proceso
  */
-function showSuccess($message, $details = null) {
+function showBulkSuccess($message, $details = null) {
     // Acceder a la constante URL global
     global $URL;
     
@@ -103,7 +103,7 @@ function showSuccess($message, $details = null) {
     }
     
     // Generar la página HTML de respuesta
-    echo generateHtmlResponse(
+    echo generateBulkHtmlResponse(
         'Acción en Bloque Exitosa',
         'success',
         '✓ ¡Éxito!',
@@ -114,12 +114,12 @@ function showSuccess($message, $details = null) {
 }
 
 /**
- * Muestra un mensaje de error con formato mejorado
+ * Muestra un mensaje de error con formato mejorado para acciones en bloque
  * 
  * @param string $message Mensaje de error a mostrar al usuario
  * @param array|null $details Detalles adicionales del error
  */
-function showError($message, $details = null) {
+function showBulkError($message, $details = null) {
     // Acceder a la constante URL global
     global $URL;
     
@@ -141,7 +141,7 @@ function showError($message, $details = null) {
     }
     
     // Generar la página HTML de respuesta
-    echo generateHtmlResponse(
+    echo generateBulkHtmlResponse(
         'Error en Acción en Bloque',
         'error',
         '✗ Error',
@@ -152,7 +152,7 @@ function showError($message, $details = null) {
 }
 
 /**
- * Genera el HTML para las páginas de respuesta
+ * Genera el HTML para las páginas de respuesta de acciones en bloque
  * 
  * @param string $title Título de la página
  * @param string $type Tipo de mensaje ('success' o 'error')
@@ -161,7 +161,7 @@ function showError($message, $details = null) {
  * @param string $detailsHtml HTML con detalles adicionales
  * @return string HTML completo para la página
  */
-function generateHtmlResponse($title, $type, $heading, $message, $detailsHtml) {
+function generateBulkHtmlResponse($title, $type, $heading, $message, $detailsHtml) {
     global $URL;
     
     // Determinar color según tipo

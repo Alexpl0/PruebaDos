@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Premium Freight - Test Email Functions</title>
+    <!-- Add SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -158,6 +160,65 @@
                 resultElement.classList.add(isSuccess ? 'success-result' : 'error-result');
             }
 
+            // Helper function to show loading with progress
+            function showLoadingProgress(title, text) {
+                return Swal.fire({
+                    title: title,
+                    text: text,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                        const progressBar = document.createElement('div');
+                        progressBar.style.cssText = `
+                            width: 100%;
+                            height: 20px;
+                            background-color: #f0f0f0;
+                            border-radius: 10px;
+                            margin-top: 20px;
+                            overflow: hidden;
+                        `;
+                        
+                        const progressFill = document.createElement('div');
+                        progressFill.id = 'progress-fill';
+                        progressFill.style.cssText = `
+                            width: 0%;
+                            height: 100%;
+                            background: linear-gradient(90deg, #034C8C, #28a745);
+                            border-radius: 10px;
+                            transition: width 0.3s ease;
+                        `;
+                        
+                        progressBar.appendChild(progressFill);
+                        document.querySelector('.swal2-content').appendChild(progressBar);
+                        
+                        // Progress text
+                        const progressText = document.createElement('div');
+                        progressText.id = 'progress-text';
+                        progressText.style.cssText = `
+                            margin-top: 10px;
+                            font-size: 14px;
+                            color: #666;
+                        `;
+                        progressText.textContent = 'Iniciando...';
+                        document.querySelector('.swal2-content').appendChild(progressText);
+                    }
+                });
+            }
+
+            // Helper function to update progress
+            function updateProgress(percentage, text) {
+                const progressFill = document.getElementById('progress-fill');
+                const progressText = document.getElementById('progress-text');
+                if (progressFill) {
+                    progressFill.style.width = percentage + '%';
+                }
+                if (progressText) {
+                    progressText.textContent = text;
+                }
+            }
+
             // Test approval email
             document.getElementById('test-approval').addEventListener('click', async function() {
                 const orderId = document.getElementById('orderId').value;
@@ -166,16 +227,52 @@
                     return;
                 }
 
+                showLoadingProgress('Enviando Email de Aprobación', 'Procesando solicitud...');
+                updateProgress(25, 'Validando datos...');
+
                 try {
+                    updateProgress(50, 'Conectando con el servidor...');
+                    
                     const response = await fetch('PFmailNotification.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ orderId: orderId })
                     });
+                    
+                    updateProgress(75, 'Enviando email...');
                     const data = await response.json();
-                    showResult('approval-result', data, data.success);
+                    
+                    updateProgress(100, 'Completado');
+                    
+                    setTimeout(() => {
+                        Swal.close();
+                        showResult('approval-result', data, data.success);
+                        
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Email Enviado',
+                                text: 'El email de aprobación se envió correctamente',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: data.message || 'Error al enviar el email'
+                            });
+                        }
+                    }, 500);
+                    
                 } catch (error) {
+                    Swal.close();
                     showResult('approval-result', { error: error.message }, false);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de Conexión',
+                        text: error.message
+                    });
                 }
             });
 
@@ -189,50 +286,157 @@
                     return;
                 }
 
+                showLoadingProgress('Enviando Notificación de Estado', 'Preparando notificación...');
+                updateProgress(20, 'Validando información...');
+
                 try {
+                    updateProgress(40, 'Generando contenido del email...');
+                    
                     const response = await fetch('test_email_functions.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
                             action: 'status_notification',
-                            orderId: orderId,  // Changed from order_id to orderId
+                            orderId: orderId,
                             status: statusType
                         })
                     });
+                    
+                    updateProgress(80, 'Enviando notificación...');
                     const data = await response.json();
-                    showResult('status-result', data, data.success);
+                    
+                    updateProgress(100, 'Completado');
+                    
+                    setTimeout(() => {
+                        Swal.close();
+                        showResult('status-result', data, data.success);
+                        
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Notificación Enviada',
+                                text: 'La notificación de estado se envió correctamente',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        }
+                    }, 500);
+                    
                 } catch (error) {
+                    Swal.close();
                     showResult('status-result', { error: error.message }, false);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.message
+                    });
                 }
             });
 
             // Test weekly summary
             document.getElementById('test-weekly-summary').addEventListener('click', async function() {
+                showLoadingProgress('Enviando Resumen Semanal', 'Esta operación puede tardar varios minutos...');
+                updateProgress(10, 'Recopilando datos de la semana...');
+
                 try {
+                    updateProgress(25, 'Consultando base de datos...');
+                    
                     const response = await fetch('test_email_functions.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ action: 'weekly_summary' })
                     });
+                    
+                    updateProgress(50, 'Generando reportes...');
+                    
+                    // Simular progreso adicional para resumen semanal
+                    setTimeout(() => updateProgress(65, 'Procesando estadísticas...'), 1000);
+                    setTimeout(() => updateProgress(80, 'Preparando emails...'), 2000);
+                    
                     const data = await response.json();
-                    showResult('weekly-result', data, data.success);
+                    
+                    updateProgress(95, 'Enviando a destinatarios...');
+                    
+                    setTimeout(() => {
+                        updateProgress(100, 'Resumen semanal completado');
+                        
+                        setTimeout(() => {
+                            Swal.close();
+                            showResult('weekly-result', data, data.success);
+                            
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Resumen Semanal Enviado',
+                                    text: 'El resumen semanal se ha enviado a todos los destinatarios',
+                                    timer: 3000,
+                                    showConfirmButton: false
+                                });
+                            }
+                        }, 500);
+                    }, 1000);
+                    
                 } catch (error) {
+                    Swal.close();
                     showResult('weekly-result', { error: error.message }, false);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error en Resumen Semanal',
+                        text: error.message
+                    });
                 }
             });
 
             // Test recovery check
             document.getElementById('test-recovery-check').addEventListener('click', async function() {
+                showLoadingProgress('Ejecutando Verificación de Recuperación', 'Analizando datos pendientes...');
+                updateProgress(15, 'Escaneando registros...');
+
                 try {
+                    updateProgress(30, 'Identificando elementos pendientes...');
+                    
                     const response = await fetch('test_email_functions.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ action: 'recovery_check' })
                     });
+                    
+                    updateProgress(60, 'Procesando recuperaciones...');
+                    
+                    // Simular progreso para recovery check
+                    setTimeout(() => updateProgress(80, 'Generando reportes de recuperación...'), 1000);
+                    
                     const data = await response.json();
-                    showResult('recovery-result', data, data.success);
+                    
+                    updateProgress(95, 'Enviando notificaciones...');
+                    
+                    setTimeout(() => {
+                        updateProgress(100, 'Verificación completada');
+                        
+                        setTimeout(() => {
+                            Swal.close();
+                            showResult('recovery-result', data, data.success);
+                            
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Verificación Completada',
+                                    text: 'La verificación de recuperación se ejecutó correctamente',
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                            }
+                        }, 500);
+                    }, 800);
+                    
                 } catch (error) {
+                    Swal.close();
                     showResult('recovery-result', { error: error.message }, false);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error en Verificación',
+                        text: error.message
+                    });
                 }
             });
         });
