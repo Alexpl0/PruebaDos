@@ -169,8 +169,7 @@ class PFMailer {
             $approversSql = "SELECT id, name, email, authorization_level, plant 
                             FROM User 
                             WHERE authorization_level = ? 
-                            AND plant = ? 
-                            AND active = 1";
+                            AND plant = ?";
             
             $approversStmt = $this->db->prepare($approversSql);
             $approversStmt->bind_param("is", $nextAuthLevel, $orderPlant);
@@ -277,7 +276,7 @@ class PFMailer {
             // Excluye órdenes completamente aprobadas (act_approv = required_auth_level) 
             // y órdenes rechazadas (act_approv = 99)
             $sql = "SELECT PF.id, PF.user_id, PF.required_auth_level, PF.cost_euros,
-                           PF.created_at, PF.description, PF.supplier_name,
+                           PF.date, PF.description, PF.planta,
                            COALESCE(PFA.act_approv, 0) as current_approval_level,
                            U.name as creator_name, U.plant as order_plant
                     FROM PremiumFreight PF
@@ -286,7 +285,7 @@ class PFMailer {
                     WHERE PF.status_id IN (1, 2) 
                     AND (PFA.act_approv IS NULL OR 
                          (PFA.act_approv < PF.required_auth_level AND PFA.act_approv != 99))
-                    ORDER BY PF.created_at DESC";
+                    ORDER BY PF.date DESC";
             
             $stmt = $this->db->prepare($sql);
             $stmt->execute();
@@ -320,8 +319,7 @@ class PFMailer {
                 $approversSql = "SELECT id, name, email, authorization_level 
                                 FROM User 
                                 WHERE authorization_level = ? 
-                                AND plant = ? 
-                                AND active = 1";
+                                AND plant = ?";
                 
                 $stmt = $this->db->prepare($approversSql);
                 $stmt->bind_param("is", $nextAuthLevel, $orderPlant);
@@ -375,7 +373,7 @@ class PFMailer {
         $orderRows = '';
         foreach ($orders as $order) {
             $costFormatted = number_format($order['cost_euros'], 2);
-            $createdDate = date('M d, Y', strtotime($order['created_at']));
+            $createdDate = date('M d, Y', strtotime($order['date']));
             
             // 4.1. Generar tokens individuales para cada orden
             $approveToken = $this->generateActionToken($order['id'], $approver['id'], 'approve');
@@ -389,7 +387,7 @@ class PFMailer {
             <tr style='border-bottom: 1px solid #e9ecef;'>
                 <td style='padding: 12px; text-align: center; font-weight: bold;'>#{$order['id']}</td>
                 <td style='padding: 12px;'>" . htmlspecialchars($order['description'] ?? 'N/A') . "</td>
-                <td style='padding: 12px;'>" . htmlspecialchars($order['supplier_name'] ?? 'N/A') . "</td>
+                <td style='padding: 12px;'>" . htmlspecialchars($order['planta'] ?? 'N/A') . "</td>
                 <td style='padding: 12px; text-align: center;'>€{$costFormatted}</td>
                 <td style='padding: 12px; text-align: center;'>{$createdDate}</td>
                 <td style='padding: 12px; text-align: center;'>
@@ -770,7 +768,7 @@ class PFMailer {
                         </div>
                         <div class='detail-row'>
                             <span><strong>Supplier:</strong></span>
-                            <span>" . htmlspecialchars($orderData['supplier_name'] ?? 'N/A') . "</span>
+                            <span>" . htmlspecialchars($orderData['planta'] ?? 'N/A') . "</span>
                         </div>
                         <div class='detail-row'>
                             <span><strong>Cost:</strong></span>
@@ -782,7 +780,7 @@ class PFMailer {
                         </div>
                         <div class='detail-row'>
                             <span><strong>Created:</strong></span>
-                            <span>" . date('M d, Y H:i', strtotime($orderData['created_at'])) . "</span>
+                            <span>" . date('M d, Y H:i', strtotime($orderData['date'])) . "</span>
                         </div>
                     </div>
                     
@@ -926,8 +924,7 @@ class PFMailer {
                     FROM PremiumFreight pf
                     INNER JOIN User u ON pf.user_id = u.id
                     WHERE pf.recovery_file IS NOT NULL 
-                    AND (pf.recovery_evidence IS NULL OR pf.recovery_evidence = '')
-                    AND u.active = 1";
+                    AND (pf.recovery_evidence IS NULL OR pf.recovery_evidence = '')";
             
             $stmt = $this->db->prepare($sql);
             $stmt->execute();
@@ -1014,7 +1011,7 @@ class PFMailer {
                 <td style='padding: 12px; text-align: center; font-weight: bold;'>#{$order['id']}</td>
                 <td style='padding: 12px;'>" . htmlspecialchars($order['description'] ?? 'N/A') . "</td>
                 <td style='padding: 12px; text-align: center;'>€{$costFormatted}</td>
-                <td style='padding: 12px; text-align: center;'>" . date('M d, Y', strtotime($order['created_at'])) . "</td>
+                <td style='padding: 12px; text-align: center;'>" . date('M d, Y', strtotime($order['date'])) . "</td>
                 <td style='padding: 12px; text-align: center;'>
                     <a href='{$evidenceUrl}' 
                        style='background-color: #28a745; color: white; padding: 6px 12px; 
