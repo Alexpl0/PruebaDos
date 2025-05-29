@@ -11,6 +11,8 @@ $_SESSION['user'] = [
     'email' => $input['email'],
     'name' => $input['name'], // Asegúrate de que 'name' esté en el JSON
     'authorization_level' => $input['authorization_level'], 
+    'plant' => $input['plant'], // Asegúrate de que 'plant' esté en el JSON
+    'role' => $input['role'] // Si tienes un campo de rol, puedes agregarlo aquí
     // Puedes agregar más datos si lo deseas
 ];
 
