@@ -36,6 +36,11 @@ export async function handleApprove() {
     const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
     
     try {
+        // Validaciones previas del lado del cliente
+        if (!validateOrderForApproval(selectedOrder)) {
+            return;
+        }
+
         // Mostrar indicador de progreso
         Swal.fire({
             title: 'Procesando...',
@@ -48,6 +53,18 @@ export async function handleApprove() {
         // Calcular el nuevo nivel de aprobación
         const currentStatus = Number(selectedOrder.approval_status);
         const newStatusId = currentStatus + 1;
+        const requiredLevel = Number(selectedOrder.required_auth_level || 7);
+        
+        // Verificar que no se exceda el nivel requerido
+        if (newStatusId > requiredLevel) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Orden ya completamente aprobada',
+                text: 'Esta orden ya ha alcanzado el nivel de aprobación requerido.',
+                customClass: { container: 'swal-on-top' }
+            });
+            return;
+        }
         
         // Preparar datos para la API
         const updateData = {
@@ -60,7 +77,6 @@ export async function handleApprove() {
 
         // Determinar el ID de estado textual
         let updatedStatusTextId = 2; // Por defecto: 'revision'
-        const requiredLevel = Number(selectedOrder.required_auth_level || 7);
         if (newStatusId >= requiredLevel) {
             updatedStatusTextId = 3; // 'aprobado'
         }
@@ -105,11 +121,15 @@ export async function handleApprove() {
         if (updatedStatusTextId === 3) selectedOrder.status_name = 'aprobado';
         else if (updatedStatusTextId === 2) selectedOrder.status_name = 'revision';
 
-        // Mostrar mensaje de éxito
+        // Mostrar mensaje de éxito con información adicional
+        const statusMessage = newStatusId >= requiredLevel ? 
+            'La orden ha sido completamente aprobada.' : 
+            'La orden ha sido aprobada para el siguiente nivel.';
+            
         Swal.fire({
             icon: 'success',
             title: 'Orden Aprobada',
-            text: `La orden ${selectedOrder.id} ha sido aprobada para el siguiente nivel.`,
+            text: `La orden ${selectedOrder.id} ha sido procesada correctamente. ${statusMessage}`,
             confirmButtonText: 'Aceptar',
             customClass: { container: 'swal-on-top' }
         });
@@ -151,6 +171,40 @@ export async function handleApprove() {
 }
 
 /**
+ * Valida si una orden puede ser aprobada por el usuario actual
+ * @param {Object} order - Datos de la orden
+ * @returns {boolean} True si la orden puede ser aprobada
+ */
+function validateOrderForApproval(order) {
+    // Verificar si el usuario tiene planta asignada y si coincide con la del creador
+    if (window.userPlant && order.creator_plant !== window.userPlant) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Sin permisos',
+            text: 'No tienes permisos para aprobar órdenes de otras plantas.',
+            customClass: { container: 'swal-on-top' }
+        });
+        return false;
+    }
+    
+    // Verificar nivel de autorización
+    const currentStatus = Number(order.approval_status);
+    const nextRequiredLevel = currentStatus + 1;
+    
+    if (Number(window.authorizationLevel) !== nextRequiredLevel) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Nivel de autorización incorrecto',
+            text: 'No tienes el nivel de autorización requerido para aprobar esta orden en este momento.',
+            customClass: { container: 'swal-on-top' }
+        });
+        return false;
+    }
+    
+    return true;
+}
+
+/**
  * Maneja el clic en el botón de rechazar
  * Actualiza el estado de la orden a rechazado
  */
@@ -160,6 +214,11 @@ export async function handleReject() {
     const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
     
     try {
+        // Validaciones previas del lado del cliente
+        if (!validateOrderForApproval(selectedOrder)) {
+            return;
+        }
+
         // Solicitar confirmación antes de rechazar
         const confirmation = await Swal.fire({
             title: '¿Está seguro?',

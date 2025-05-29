@@ -74,18 +74,43 @@ function loadOrderData() {
         })
         .then(data => {
             if (data && data.data) {
+                // Store user info globally for plant-based filtering
+                if (data.user_info) {
+                    window.userPlant = data.user_info.plant;
+                    window.userAuthLevel = data.user_info.authorization_level;
+                    
+                    // Log plant filtering info
+                    if (window.userPlant) {
+                        console.log(`User plant: ${window.userPlant} - Showing orders from same plant only`);
+                    } else {
+                        console.log('User has no plant assigned - Showing all orders');
+                    }
+                }
+                
+                // Apply additional client-side filtering if needed
+                let filteredOrders = data.data;
+                
+                // Filter orders based on user plant (redundant with server-side filtering, but good for consistency)
+                if (window.userPlant) {
+                    filteredOrders = data.data.filter(order => order.creator_plant === window.userPlant);
+                    console.log(`Filtered ${data.data.length} orders to ${filteredOrders.length} orders from user's plant`);
+                }
+                
                 // Store orders data in global variables for access by other modules
-                window.allOrders = data.data;
-                window.originalOrders = [...data.data]; // Keep an original copy for filtering/reset
+                window.allOrders = filteredOrders;
+                window.originalOrders = [...filteredOrders]; // Keep an original copy for filtering/reset
                 
                 // Log recovery data for debugging
-                const ordersWithRecovery = data.data.filter(order => order.recovery_file);
+                const ordersWithRecovery = filteredOrders.filter(order => order.recovery_file);
                 if (ordersWithRecovery.length > 0) {
                     console.log(`Found ${ordersWithRecovery.length} orders with recovery files`);
                 }
                 
-                // Create cards with the data
-                createCards(data.data);
+                // Update page title to show plant filter if applicable
+                updatePageTitle();
+                
+                // Create cards with the filtered data
+                createCards(filteredOrders);
             } else {
                 throw new Error('No data received from API or incorrect format');
             }
@@ -98,6 +123,24 @@ function loadOrderData() {
                 text: 'Could not load orders data. Please try refreshing the page.'
             });
         });
+}
+
+/**
+ * Updates the page title to reflect plant filtering
+ */
+function updatePageTitle() {
+    const title2Element = document.getElementById('title2');
+    if (title2Element && window.userPlant) {
+        title2Element.textContent = `Showing orders from Plant: ${window.userPlant}`;
+        title2Element.style.fontSize = '1.2em';
+        title2Element.style.color = '#666';
+        title2Element.style.fontWeight = 'normal';
+    } else if (title2Element && !window.userPlant) {
+        title2Element.textContent = 'Showing all orders (Global Access)';
+        title2Element.style.fontSize = '1.2em';
+        title2Element.style.color = '#666';
+        title2Element.style.fontWeight = 'normal';
+    }
 }
 
 /**
