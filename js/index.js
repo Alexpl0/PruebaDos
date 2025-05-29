@@ -110,11 +110,11 @@ function loginUsuario() {
     })
     .then(data => {
         if (data.status === 'success') {
-            // Debug: Log de la información del usuario recibida
-            console.log('=== LOGIN SUCCESS DATA ===');
-            console.log('User data received:', data.data);
-            console.log('User plant:', data.data.plant);
-            console.log('==========================');
+            // // Debug: Log de la información del usuario recibida
+            // console.log('=== LOGIN SUCCESS DATA ===');
+            // console.log('User data received:', data.data);
+            // console.log('User plant:', data.data.plant);
+            // console.log('==========================');
 
             // Si el login es exitoso, establecer la sesión
             fetch(URL + 'dao/users/loginSession.php', {
