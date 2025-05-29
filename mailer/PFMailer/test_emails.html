@@ -148,90 +148,93 @@
     </div>
 
     <script>
-        // Helper function to show results
-        function showResult(elementId, data, isSuccess) {
-            const resultElement = document.getElementById(elementId);
-            resultElement.textContent = JSON.stringify(data, null, 2);
-            resultElement.classList.remove('success-result', 'error-result');
-            resultElement.classList.add(isSuccess ? 'success-result' : 'error-result');
-        }
-
-        // Test approval email
-        document.getElementById('test-approval').addEventListener('click', async function() {
-            const orderId = document.getElementById('orderId').value;
-            if (!orderId) {
-                showResult('approval-result', { error: 'Please enter an order ID' }, false);
-                return;
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Helper function to show results
+            function showResult(elementId, data, isSuccess) {
+                const resultElement = document.getElementById(elementId);
+                resultElement.textContent = JSON.stringify(data, null, 2);
+                resultElement.classList.remove('success-result', 'error-result');
+                resultElement.classList.add(isSuccess ? 'success-result' : 'error-result');
             }
 
-            try {
-                const response = await fetch('PFmailNotification.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ order_id: orderId })
-                });
-                const data = await response.json();
-                showResult('approval-result', data, data.success);
-            } catch (error) {
-                showResult('approval-result', { error: error.message }, false);
-            }
-        });
+            // Test approval email
+            document.getElementById('test-approval').addEventListener('click', async function() {
+                const orderId = document.getElementById('orderId').value;
+                if (!orderId) {
+                    showResult('approval-result', { error: 'Please enter an order ID' }, false);
+                    return;
+                }
 
-        // Test status notification
-        document.getElementById('test-status').addEventListener('click', async function() {
-            const orderId = document.getElementById('status-order-id').value;
-            const statusType = document.getElementById('status-type').value;
-            
-            if (!orderId) {
-                showResult('status-result', { error: 'Please enter an order ID' }, false);
-                return;
-            }
+                try {
+                    const response = await fetch('PFmailNotification.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ order_id: orderId })
+                    });
+                    const data = await response.json();
+                    showResult('approval-result', data, data.success);
+                } catch (error) {
+                    showResult('approval-result', { error: error.message }, false);
+                }
+            });
 
-            try {
-                const response = await fetch('test_email_functions.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        action: 'status_notification',
-                        order_id: orderId,
-                        status: statusType
-                    })
-                });
-                const data = await response.json();
-                showResult('status-result', data, data.success);
-            } catch (error) {
-                showResult('status-result', { error: error.message }, false);
-            }
-        });
+            // Test status notification
+            document.getElementById('test-status').addEventListener('click', async function() {
+                const orderId = document.getElementById('status-order-id').value;
+                const statusType = document.getElementById('status-type').value;
+                
+                if (!orderId) {
+                    showResult('status-result', { error: 'Please enter an order ID' }, false);
+                    return;
+                }
 
-        // Test weekly summary
-        document.getElementById('test-weekly-summary').addEventListener('click', async function() {
-            try {
-                const response = await fetch('test_email_functions.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'weekly_summary' })
-                });
-                const data = await response.json();
-                showResult('weekly-result', data, data.success);
-            } catch (error) {
-                showResult('weekly-result', { error: error.message }, false);
-            }
-        });
+                try {
+                    const response = await fetch('test_email_functions.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            action: 'status_notification',
+                            order_id: orderId,
+                            status: statusType
+                        })
+                    });
+                    const data = await response.json();
+                    showResult('status-result', data, data.success);
+                } catch (error) {
+                    showResult('status-result', { error: error.message }, false);
+                }
+            });
 
-        // Test recovery check
-        document.getElementById('test-recovery-check').addEventListener('click', async function() {
-            try {
-                const response = await fetch('test_email_functions.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'recovery_check' })
-                });
-                const data = await response.json();
-                showResult('recovery-result', data, data.success);
-            } catch (error) {
-                showResult('recovery-result', { error: error.message }, false);
-            }
+            // Test weekly summary
+            document.getElementById('test-weekly-summary').addEventListener('click', async function() {
+                try {
+                    const response = await fetch('test_email_functions.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'weekly_summary' })
+                    });
+                    const data = await response.json();
+                    showResult('weekly-result', data, data.success);
+                } catch (error) {
+                    showResult('weekly-result', { error: error.message }, false);
+                }
+            });
+
+            // Test recovery check
+            document.getElementById('test-recovery-check').addEventListener('click', async function() {
+                try {
+                    const response = await fetch('test_email_functions.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'recovery_check' })
+                    });
+                    const data = await response.json();
+                    showResult('recovery-result', data, data.success);
+                } catch (error) {
+                    showResult('recovery-result', { error: error.message }, false);
+                }
+            });
         });
     </script>
 </body>
