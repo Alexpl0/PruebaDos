@@ -16,7 +16,25 @@ include_once 'dao/users/auth_check.php';
     const BASE_URL = '<?php echo URL; ?>'; 
     // También mantener URL para compatibilidad
     window.URL_BASE = '<?php echo URL; ?>';
-    <?php echo "const user = { name: '$name', id: '$userID', plant: '$plant' };"; ?>
+    
+    // Crear objeto user con json_encode para evitar problemas de comillas
+    const user = {
+        name: <?php echo json_encode($name); ?>,
+        id: <?php echo json_encode($userID); ?>,
+        plant: <?php echo json_encode($plant); ?>,
+        authorizationLevel: <?php echo json_encode($nivel); ?>
+    };
+    
+    // Debug: Console log de toda la información del usuario
+    console.log('=== USER DEBUG INFO ===');
+    console.log('User Name:', window.userName);
+    console.log('User ID:', window.userID);
+    console.log('User Plant:', window.userPlant);
+    console.log('Authorization Level:', window.authorizationLevel);
+    console.log('User Object:', user);
+    console.log('Base URL:', BASE_URL);
+    console.log('URL_BASE:', window.URL_BASE);
+    console.log('======================');
 </script>
 
 <!DOCTYPE html>
