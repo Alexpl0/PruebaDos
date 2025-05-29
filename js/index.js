@@ -110,6 +110,12 @@ function loginUsuario() {
     })
     .then(data => {
         if (data.status === 'success') {
+            // Debug: Log de la información del usuario recibida
+            console.log('=== LOGIN SUCCESS DATA ===');
+            console.log('User data received:', data.data);
+            console.log('User plant:', data.data.plant);
+            console.log('==========================');
+
             // Si el login es exitoso, establecer la sesión
             fetch(URL + 'dao/users/loginSession.php', {
                 method: 'POST',
@@ -123,13 +129,38 @@ function loginUsuario() {
                 return sessionResponse.text();
             })
             .then(() => {
-                // Mostrar mensaje de éxito y redirigir
+                // Crear mensaje personalizado con información de la planta
+                const userName = data.data.name || 'Usuario';
+                const userPlant = data.data.plant;
+                const authLevel = data.data.authorization_level;
+                
+                let welcomeMessage = `¡Bienvenido, ${userName}!`;
+                
+                // Agregar información de la planta si existe
+                if (userPlant && userPlant !== null && userPlant !== '') {
+                    welcomeMessage += `\nPlanta: ${userPlant}`;
+                } else {
+                    welcomeMessage += '\nAcceso Global (Sin planta asignada)';
+                }
+                
+                // Agregar nivel de autorización
+                welcomeMessage += `\nNivel de autorización: ${authLevel}`;
+
+                // Mostrar mensaje de éxito con información detallada
                 Swal.fire({
                     icon: 'success',
-                    title: 'Bienvenido',
-                    text: 'Inicio de sesión exitoso.',
-                    timer: 1500,
-                    showConfirmButton: false
+                    title: 'Inicio de Sesión Exitoso',
+                    html: `
+                        <div style="text-align: left; font-size: 14px;">
+                            <p><strong>¡Bienvenido, ${userName}!</strong></p>
+                            <p><i class="fas fa-building"></i> <strong>Planta:</strong> ${userPlant || 'Acceso Global'}</p>
+                            <p><i class="fas fa-user-shield"></i> <strong>Nivel de autorización:</strong> ${authLevel}</p>
+                            <p><i class="fas fa-envelope"></i> <strong>Email:</strong> ${data.data.email}</p>
+                        </div>
+                    `,
+                    timer: 3000,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Continuar'
                 }).then(() => {
                     window.location.href = 'newOrder.php';
                 });
