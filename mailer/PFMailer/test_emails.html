@@ -195,7 +195,7 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
                             action: 'status_notification',
-                            order_id: orderId,
+                            orderId: orderId,  // Changed from order_id to orderId
                             status: statusType
                         })
                     });
