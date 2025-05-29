@@ -170,7 +170,7 @@
                     const response = await fetch('PFmailNotification.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ order_id: orderId })
+                        body: JSON.stringify({ orderId: orderId })
                     });
                     const data = await response.json();
                     showResult('approval-result', data, data.success);
