@@ -54,14 +54,14 @@ try {
         switch ($data['action']) {
             case 'status_notification':
                 // Test sending a status notification email
-                if (!isset($data['order_id']) || !isset($data['status'])) {
+                if (!isset($data['orderId']) || !isset($data['status'])) {
                     $response = [
                         'success' => false,
                         'message' => 'Missing required parameters: order_id and status'
                     ];
                 } else {
                     $result = $mailer->sendStatusNotification(
-                        $data['order_id'], 
+                        $data['orderId'], 
                         $data['status'],
                         isset($data['rejector_info']) ? $data['rejector_info'] : null
                     );
