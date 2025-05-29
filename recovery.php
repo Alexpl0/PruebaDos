@@ -1,13 +1,17 @@
 <?php
 session_start();
 require_once 'config.php'; // Include config.php to get URL constant
-// Ahora puedes usar $_SESSION['user']
+$nivel = isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null;
+$name = isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null;
+$userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
+$plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
 include_once 'dao/users/auth_check.php';
 ?>
 <script>
-    window.authorizationLevel = <?php echo json_encode(isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null); ?>;
-    window.userName = <?php echo json_encode(isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null); ?>;
-    window.userID = <?php echo json_encode(isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null); ?>;
+    window.authorizationLevel = <?php echo json_encode($nivel); ?>;
+    window.userName = <?php echo json_encode($name); ?>;
+    window.userID = <?php echo json_encode($userID); ?>;
+    window.userPlant = <?php echo json_encode($plant); ?>;
     // Definimos la variable global de JavaScript con la URL base desde PHP
     const URL = '<?php echo URL; ?>'; 
 </script>
