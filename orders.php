@@ -11,10 +11,12 @@ include_once 'dao/users/auth_check.php';
     window.authorizationLevel = <?php echo json_encode($nivel); ?>;
     window.userName = <?php echo json_encode($name); ?>;
     window.userID = <?php echo json_encode($userID); ?>;
-    window.plant = <?php echo json_encode($plant); ?>;
+    window.userPlant = <?php echo json_encode($plant); ?>;
     // Definimos la variable global de JavaScript con la URL base desde PHP
-    const URL = '<?php echo URL; ?>'; 
-    <?echo "const user = { name: '$name', id: '$userID', plant: '$plant' };"; ?>
+    const BASE_URL = '<?php echo URL; ?>'; 
+    // También mantener URL para compatibilidad
+    window.URL_BASE = '<?php echo URL; ?>';
+    <?php echo "const user = { name: '$name', id: '$userID', plant: '$plant' };"; ?>
 </script>
 
 <!DOCTYPE html>

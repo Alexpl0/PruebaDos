@@ -9,6 +9,9 @@ import { createCards, setupSearch } from './cards.js';
 import { updateModalButtons, setupModalEventListeners } from './modals.js';
 import { setupApprovalEventListeners } from './approval.js';
 
+// Define the URL variable for this module
+const URL = window.URL_BASE || window.BASE_URL || 'https://grammermx.com/Jesus/PruebaDos/';
+
 /**
  * Initialize the application when the DOM is fully loaded
  */
@@ -65,6 +68,8 @@ document.addEventListener('DOMContentLoaded', function() {
  * Uses the global URL variable to construct the API endpoint
  */
 function loadOrderData() {
+    console.log('Loading data from:', URL + 'dao/conections/daoPremiumFreight.php');
+    
     fetch(URL + 'dao/conections/daoPremiumFreight.php')
         .then(response => {
             if (!response.ok) {
@@ -178,12 +183,5 @@ window.addEventListener('error', function(event) {
     });
 });
 
-/**
- * Verificación de disponibilidad de la variable URL
- * En caso de que el script se cargue antes que la variable esté definida
- */
-if (typeof URL === 'undefined') {
-    console.warn('URL global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
-    // Fallback a URL hardcodeada solo como último recurso
-    window.URL = window.URL || 'https://grammermx.com/Jesus/PruebaDos/';
-}
+// Export URL for use by other modules
+export { URL };

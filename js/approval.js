@@ -1,26 +1,20 @@
 /**
  * Módulo de aprobación para el sistema de Premium Freight
- * 
- * Este módulo contiene todas las funcionalidades relacionadas con el proceso
- * de aprobación o rechazo de órdenes de Premium Freight.
  */
 
 import { hideModal } from './modals.js';
 import { createCards } from './cards.js';
-import { 
-    sendApprovalNotification, 
-    sendStatusNotification 
-} from './mailer.js';
+
+// Define the URL variable for this module
+const URL = window.URL_BASE || window.BASE_URL || 'https://grammermx.com/Jesus/PruebaDos/';
 
 /**
  * Variable para controlar el estado de procesamiento
- * Evita múltiples clics en los botones de aprobación/rechazo
  */
 let isProcessing = false;
 
 /**
  * Maneja el clic en el botón de aprobar
- * Actualiza el estado de aprobación de la orden seleccionada
  */
 export async function handleApprove() {
     // Prevenir múltiples clics
@@ -138,22 +132,6 @@ export async function handleApprove() {
         hideModal();
         createCards(window.allOrders);
 
-        // Sistema de notificaciones recursivas
-        try {
-            // Si la orden alcanzó el nivel de aprobación requerido, notificar al creador
-            if (updatedStatusTextId === 3) {
-                await sendStatusNotification(selectedOrder.id, 'approved');
-                console.log('Notificación de aprobación final enviada al creador');
-            } else {
-                // De lo contrario, notificar al siguiente aprobador
-                await sendApprovalNotification(selectedOrder.id);
-                console.log('Notificación enviada al siguiente aprobador');
-            }
-        } catch (error) {
-            console.error('Error al enviar correo de notificación:', error);
-            // No interrumpimos el flujo si falla la notificación
-        }
-
     } catch (error) {
         // Manejar errores durante el proceso de aprobación
         console.error('Error al aprobar la orden:', error);
@@ -172,8 +150,6 @@ export async function handleApprove() {
 
 /**
  * Valida si una orden puede ser aprobada por el usuario actual
- * @param {Object} order - Datos de la orden
- * @returns {boolean} True si la orden puede ser aprobada
  */
 function validateOrderForApproval(order) {
     // Verificar si el usuario tiene planta asignada y si coincide con la del creador
@@ -206,7 +182,6 @@ function validateOrderForApproval(order) {
 
 /**
  * Maneja el clic en el botón de rechazar
- * Actualiza el estado de la orden a rechazado
  */
 export async function handleReject() {
     // Obtener datos de la orden seleccionada
@@ -307,21 +282,6 @@ export async function handleReject() {
         hideModal();
         createCards(window.allOrders);
 
-        // Enviar notificación de rechazo al creador
-        try {
-            // Incluir información del rechazador
-            const rejectorInfo = {
-                id: window.userID,
-                name: window.userName,
-                level: window.authorizationLevel
-            };
-            
-            await sendStatusNotification(selectedOrder.id, 'rejected', rejectorInfo);
-            console.log('Notificación de rechazo enviada al creador');
-        } catch (error) {
-            console.error('Error al enviar notificación de rechazo:', error);
-        }
-
     } catch (error) {
         // Manejar errores durante el proceso de rechazo
         console.error('Error al rechazar la orden:', error);
@@ -355,14 +315,4 @@ export function setupApprovalEventListeners() {
     } else {
         rejectBtn.onclick = handleReject;
     }
-}
-
-/**
- * Verificación de disponibilidad de la variable URL
- * En caso de que el script se cargue antes que la variable esté definida
- */
-if (typeof URL === 'undefined') {
-    console.warn('URL global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
-    // Fallback a URL hardcodeada solo como último recurso
-    window.URL = window.URL || 'https://grammermx.com/Jesus/PruebaDos/';
 }
