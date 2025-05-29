@@ -14,6 +14,7 @@ include_once 'dao/users/auth_check.php';
     window.plant = <?php echo json_encode($plant); ?>;
     // Definimos la variable global de JavaScript con la URL base desde PHP
     const URL = '<?php echo URL; ?>'; 
+    <?echo "const user = { name: '$name', id: '$userID', plant: '$plant' };"; ?>
 </script>
 
 <!DOCTYPE html>
