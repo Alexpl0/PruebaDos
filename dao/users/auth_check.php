@@ -33,18 +33,6 @@ if (!isset($_SESSION['user'])) {
     $user_name = isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null;
     $user_id = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
     
-    // Debug: Agregar console.log para información del usuario desde auth_check
-    echo "<script>";
-    echo "console.log('=== AUTH_CHECK DEBUG INFO ===');";
-    echo "console.log('Current Page:', " . json_encode($current_page) . ");";
-    echo "console.log('User ID:', " . json_encode($user_id) . ");";
-    echo "console.log('User Name:', " . json_encode($user_name) . ");";
-    echo "console.log('User Plant:', " . json_encode($user_plant) . ");";
-    echo "console.log('Authorization Level:', " . json_encode($auth_level) . ");";
-    echo "console.log('Base Name:', " . json_encode($base_name) . ");";
-    echo "console.log('==============================');";
-    echo "</script>";
-    
     // Si el usuario tiene authorization_level 0, verificar página
     if ($auth_level === 0 || $auth_level === '0') {
         // Verificar si está intentando acceder a una página restringida

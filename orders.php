@@ -5,12 +5,14 @@ include_once 'dao/users/auth_check.php';
 $nivel = isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null;
 $name = isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null;
 $userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
+$role = isset($_SESSION['user']['role']) ? $_SESSION['user']['role'] : null;
 $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
 ?>
 <script>
     window.authorizationLevel = <?php echo json_encode($nivel); ?>;
     window.userName = <?php echo json_encode($name); ?>;
     window.userID = <?php echo json_encode($userID); ?>;
+    window.role = <?php echo json_encode($role); ?>;
     window.userPlant = <?php echo json_encode($plant); ?>;
     // Definimos la variable global de JavaScript con la URL base desde PHP
     const BASE_URL = '<?php echo URL; ?>'; 
@@ -21,6 +23,7 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
     const user = {
         name: <?php echo json_encode($name); ?>,
         id: <?php echo json_encode($userID); ?>,
+        role: <?php echo json_encode($role); ?>,
         plant: <?php echo json_encode($plant); ?>,
         authorizationLevel: <?php echo json_encode($nivel); ?>
     };
@@ -29,6 +32,7 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
     console.log('=== USER DEBUG INFO ===');
     console.log('User Name:', window.userName);
     console.log('User ID:', window.userID);
+    console.log('User Role:', window.role);
     console.log('User Plant:', window.userPlant);
     console.log('Authorization Level:', window.authorizationLevel);
     console.log('User Object:', user);
