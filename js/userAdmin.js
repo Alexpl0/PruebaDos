@@ -49,7 +49,8 @@ function initializeDataTable() {
         columns: [
             { data: 'id' },           
             { data: 'name' },        
-            { data: 'email' },        
+            { data: 'email' },
+            { data: 'plant' },        // Agregar columna plant
             { data: 'role' },        
             { data: 'password' },     
             { data: 'authorization_level' }, 
@@ -100,7 +101,7 @@ function initializeDataTable() {
                 titleAttr: 'Export to Excel',
                 title: 'Users_Report',
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 5]  // Exclude password column from export
+                    columns: [0, 1, 2, 3, 4, 6]  // Include plant column, exclude password
                 }
             },
             {
@@ -111,7 +112,7 @@ function initializeDataTable() {
                 titleAttr: 'Export to PDF',
                 title: 'Users Report',
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 5]  // Exclude password column from export
+                    columns: [0, 1, 2, 3, 4, 6]  // Include plant column, exclude password
                 }
             }
         ],
@@ -141,6 +142,7 @@ function initializeDataTable() {
         $('#user-id').val(userData.id);
         $('#user-name').val(userData.name);
         $('#user-email').val(userData.email);
+        $('#user-plant').val(userData.plant);  // Agregar plant
         $('#user-password').val(userData.password);
         
         // Show the form for editing
@@ -221,6 +223,7 @@ function initializeDataTable() {
         const userData = {
             name: $('#user-name').val(),
             email: $('#user-email').val(),
+            plant: $('#user-plant').val(),  // Agregar plant
             role: role,
             password: $('#user-password').val(),
             authorization_level: parseInt(authLevel)

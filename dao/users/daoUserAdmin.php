@@ -45,7 +45,7 @@ try {
         $input = json_decode(file_get_contents('php://input'), true);
         
         // Validate required fields
-        $required_fields = ['name', 'email', 'role', 'password', 'authorization_level'];
+        $required_fields = ['name', 'email', 'plant', 'role', 'password', 'authorization_level'];
         $missing_fields = [];
         
         foreach ($required_fields as $field) {
@@ -80,10 +80,11 @@ try {
         $stmt->close();
         
         // Insert new user
-        $stmt = $conex->prepare("INSERT INTO `User` (name, email, role, password, authorization_level) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssssi", 
+        $stmt = $conex->prepare("INSERT INTO `User` (name, email, plant, role, password, authorization_level) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("sssssi", 
             $input['name'], 
             $input['email'], 
+            $input['plant'],
             $input['role'], 
             $input['password'], 
             $input['authorization_level']
@@ -144,6 +145,12 @@ try {
         if (isset($input['email']) && trim($input['email']) !== '') {
             $updateFields[] = "email = ?";
             $params[] = $input['email'];
+            $types .= "s";
+        }
+        
+        if (isset($input['plant']) && trim($input['plant']) !== '') {
+            $updateFields[] = "plant = ?";
+            $params[] = $input['plant'];
             $types .= "s";
         }
         

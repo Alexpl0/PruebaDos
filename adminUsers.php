@@ -83,6 +83,7 @@ require_once 'config.php';
                             <th>ID</th>
                             <th>Name</th>
                             <th>Email</th>
+                            <th>Plant</th>
                             <th>Role</th>
                             <th>Password</th>
                             <th>Auth Level</th>
@@ -113,8 +114,18 @@ require_once 'config.php';
                             <input type="email" class="form-control" id="user-email" required>
                         </div>
                     </div>
-                    
-                    <div class="row mb-4">
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="user-plant" class="form-label">Plant</label>
+                            <select class="form-select" id="user-plant" required>
+                                <option value="" disabled selected>Select a plant</option>
+                                <option value="3310">3310 - Tetla</option>
+                                <option value="3330">3330 - QRO</option>
+                                <option value="1640">1640 - Tupelo Automotive</option>
+                                <option value="3510">3510 - Delphos</option>
+                            </select>
+                        </div>
                         <div class="col-md-6">
                             <label for="user-role-level" class="form-label">Role & Authorization Level</label>
                             <select class="form-select" id="user-role-level" required>
@@ -128,6 +139,9 @@ require_once 'config.php';
                                 <option value="7:Division Controlling Regional">Division Controlling Regional</option>
                             </select>
                         </div>
+                    </div>
+                    
+                    <div class="row mb-4">
                         <div class="col-md-6">
                             <label for="user-password" class="form-label">Password</label>
                             <div class="input-group">
