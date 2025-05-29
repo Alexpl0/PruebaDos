@@ -173,18 +173,18 @@ async function sendEmailNotification(orderId, notificationType) {
         switch (notificationType) {
             case 'approval':
                 // Enviar correo al siguiente aprobador
-                endpoint = 'mailer/PFMailer/PFmailNotification.php';
+                endpoint = 'https://grammermx.com/Mailer/PFMailer/PFmailNotification.php';
                 console.log(`[EMAIL DEBUG] Configurando envío al siguiente aprobador`);
                 break;
             case 'approved':
                 // Enviar correo de estado final (aprobado) al creador
-                endpoint = 'mailer/PFMailer/PFmailStatus.php';
+                endpoint = 'https://grammermx.com/Mailer/PFMailer/PFmailStatus.php';
                 emailData.status = 'approved';
                 console.log(`[EMAIL DEBUG] Configurando envío de estado final (aprobado) al creador`);
                 break;
             case 'rejected':
                 // Enviar correo de estado final (rechazado) al creador
-                endpoint = 'mailer/PFMailer/PFmailStatus.php';
+                endpoint = 'https://grammermx.com/Mailer/PFMailer/PFmailStatus.php';
                 emailData.status = 'rejected';
                 console.log(`[EMAIL DEBUG] Configurando envío de estado final (rechazado) al creador`);
                 break;
@@ -193,10 +193,10 @@ async function sendEmailNotification(orderId, notificationType) {
                 return;
         }
 
-        console.log(`[EMAIL DEBUG] Endpoint seleccionado: ${URL + endpoint}`);
+        console.log(`[EMAIL DEBUG] Endpoint seleccionado: ${endpoint}`);
         console.log(`[EMAIL DEBUG] Datos del correo:`, emailData);
 
-        const response = await fetch(URL + endpoint, {
+        const response = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(emailData)
