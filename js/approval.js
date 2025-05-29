@@ -115,6 +115,17 @@ export async function handleApprove() {
         if (updatedStatusTextId === 3) selectedOrder.status_name = 'aprobado';
         else if (updatedStatusTextId === 2) selectedOrder.status_name = 'revision';
 
+        // Enviar notificación por correo al siguiente nivel de aprobación
+        if (newStatusId < requiredLevel) {
+            // Si aún necesita más aprobaciones, enviar correo al siguiente aprobador
+            console.log(`[APPROVAL DEBUG] Orden requiere más aprobaciones. Nivel actual: ${newStatusId}, Requerido: ${requiredLevel}`);
+            await sendEmailNotification(selectedOrder.id, 'approval');
+        } else {
+            // Si está completamente aprobada, enviar correo de estado final al creador
+            console.log(`[APPROVAL DEBUG] Orden completamente aprobada. Enviando notificación final al creador`);
+            await sendEmailNotification(selectedOrder.id, 'approved');
+        }
+
         // Mostrar mensaje de éxito con información adicional
         const statusMessage = newStatusId >= requiredLevel ? 
             'La orden ha sido completamente aprobada.' : 
@@ -149,11 +160,78 @@ export async function handleApprove() {
 }
 
 /**
+ * Envía notificación por correo según el tipo de acción
+ */
+async function sendEmailNotification(orderId, notificationType) {
+    console.log(`[EMAIL DEBUG] Iniciando envío de correo - Orden: ${orderId}, Tipo: ${notificationType}`);
+    
+    try {
+        let endpoint = '';
+        const emailData = { orderId: orderId };
+
+        // Determinar el endpoint según el tipo de notificación
+        switch (notificationType) {
+            case 'approval':
+                // Enviar correo al siguiente aprobador
+                endpoint = 'mailer/PFMailer/PFmailNotification.php';
+                console.log(`[EMAIL DEBUG] Configurando envío al siguiente aprobador`);
+                break;
+            case 'approved':
+                // Enviar correo de estado final (aprobado) al creador
+                endpoint = 'mailer/PFMailer/PFmailStatus.php';
+                emailData.status = 'approved';
+                console.log(`[EMAIL DEBUG] Configurando envío de estado final (aprobado) al creador`);
+                break;
+            case 'rejected':
+                // Enviar correo de estado final (rechazado) al creador
+                endpoint = 'mailer/PFMailer/PFmailStatus.php';
+                emailData.status = 'rejected';
+                console.log(`[EMAIL DEBUG] Configurando envío de estado final (rechazado) al creador`);
+                break;
+            default:
+                console.warn(`[EMAIL DEBUG] Tipo de notificación no reconocido: ${notificationType}`);
+                return;
+        }
+
+        console.log(`[EMAIL DEBUG] Endpoint seleccionado: ${URL + endpoint}`);
+        console.log(`[EMAIL DEBUG] Datos del correo:`, emailData);
+
+        const response = await fetch(URL + endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(emailData)
+        });
+
+        console.log(`[EMAIL DEBUG] Respuesta HTTP recibida - Status: ${response.status}, OK: ${response.ok}`);
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log(`[EMAIL DEBUG] Resultado del servidor:`, result);
+
+        if (!result.success) {
+            console.warn(`[EMAIL DEBUG] Error reportado por el servidor: ${result.message}`);
+        } else {
+            console.log(`[EMAIL DEBUG] ✅ Correo enviado exitosamente - Orden: ${orderId}, Tipo: ${notificationType}`);
+        }
+    } catch (error) {
+        console.error(`[EMAIL DEBUG] ❌ Error al enviar correo - Orden: ${orderId}, Tipo: ${notificationType}:`, error);
+        console.error(`[EMAIL DEBUG] Detalles del error:`, {
+            message: error.message,
+            stack: error.stack
+        });
+    }
+}
+
+/**
  * Valida si una orden puede ser aprobada por el usuario actual
  */
 function validateOrderForApproval(order) {
-    // Verificar si el usuario tiene planta asignada y si coincide con la del creador
-    if (window.userPlant && order.creator_plant !== window.userPlant) {
+    // Verificar planta: permitir si userPlant es null/undefined O si coincide exactamente con creator_plant
+    if (window.userPlant !== null && window.userPlant !== undefined && 
+        order.creator_plant !== window.userPlant) {
         Swal.fire({
             icon: 'warning',
             title: 'Sin permisos',
@@ -268,6 +346,10 @@ export async function handleReject() {
         selectedOrder.approval_status = newStatusId;
         selectedOrder.status_id = updatedStatusTextId;
         selectedOrder.status_name = 'rechazado';
+
+        // Enviar notificación de rechazo al creador
+        console.log(`[REJECT DEBUG] Orden rechazada. Enviando notificación al creador`);
+        await sendEmailNotification(selectedOrder.id, 'rejected');
 
         // Mostrar confirmación
         Swal.fire({
