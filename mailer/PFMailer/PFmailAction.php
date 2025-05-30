@@ -532,6 +532,105 @@ class PFMailAction {
     }
     
     /**
+     * Procesa acciones en bloque (aprobar/rechazar múltiples órdenes)
+     * 
+     * @param string $token Token de acción en bloque
+     * @param string $action Tipo de acción (approve/reject)
+     * @return array Resultado del procesamiento
+     */
+    public function processBulkAction($token, $action) {
+        try {
+            $this->log("Iniciando processBulkAction para token={$token}, acción={$action}");
+            
+            // Iniciar transacción
+            $this->db->begin_transaction();
+            
+            // Obtener información del token en bloque
+            $sql = "SELECT * FROM EmailBulkActionTokens WHERE token = ? AND is_used = 0";
+            $stmt = $this->db->prepare($sql);
+            $stmt->bind_param("s", $token);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            if ($result->num_rows === 0) {
+                $this->db->rollback();
+                return [
+                    'success' => false,
+                    'message' => 'Token inválido o ya utilizado'
+                ];
+            }
+            
+            $tokenData = $result->fetch_assoc();
+            $orderIds = json_decode($tokenData['order_ids'], true);
+            $userId = $tokenData['user_id'];
+            
+            if (!is_array($orderIds) || empty($orderIds)) {
+                $this->db->rollback();
+                return [
+                    'success' => false,
+                    'message' => 'No se encontraron órdenes para procesar'
+                ];
+            }
+            
+            // Marcar token como usado
+            $updateTokenSql = "UPDATE EmailBulkActionTokens SET is_used = 1, used_at = NOW() WHERE token = ?";
+            $updateTokenStmt = $this->db->prepare($updateTokenSql);
+            $updateTokenStmt->bind_param("s", $token);
+            $updateTokenStmt->execute();
+            
+            // Procesar cada orden
+            $successful = 0;
+            $failed = 0;
+            $errors = [];
+            
+            foreach ($orderIds as $orderId) {
+                try {
+                    if ($action === 'approve') {
+                        $result = $this->approveOrder($orderId, $userId);
+                    } else {
+                        $result = $this->rejectOrder($orderId, $userId);
+                    }
+                    
+                    if ($result['success']) {
+                        $successful++;
+                    } else {
+                        $failed++;
+                        $errors[] = "Orden #{$orderId}: " . $result['message'];
+                    }
+                } catch (Exception $e) {
+                    $failed++;
+                    $errors[] = "Orden #{$orderId}: " . $e->getMessage();
+                }
+            }
+            
+            // Confirmar transacción
+            $this->db->commit();
+            
+            $total = $successful + $failed;
+            $message = "Procesamiento completado: {$successful} exitosas, {$failed} fallidas de {$total} órdenes";
+            
+            return [
+                'success' => ($successful > 0),
+                'message' => $message,
+                'details' => [
+                    'total' => $total,
+                    'successful' => $successful,
+                    'failed' => $failed,
+                    'errors' => $errors
+                ]
+            ];
+            
+        } catch (Exception $e) {
+            $this->db->rollback();
+            $this->log("Error en processBulkAction: " . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'Error procesando acciones en bloque: ' . $e->getMessage()
+            ];
+        }
+    }
+    
+    /**
      * Registra un mensaje en el archivo de log
      * 
      * @param string $message Mensaje a registrar
