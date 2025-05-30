@@ -9,6 +9,7 @@
  * - Deleting users
  */
 
+
 // Initialize session and authentication
 session_start();
 require_once 'config.php'; // Include config.php to get URL constant
@@ -17,6 +18,9 @@ $name = isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null;
 $userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
 $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
 include_once 'dao/users/auth_check.php';
+// Include authentication check and config
+include_once 'dao/users/auth_check.php';
+require_once 'config.php'
 ?>
 <script>
     window.authorizationLevel = <?php echo json_encode($nivel); ?>;
@@ -27,9 +31,7 @@ include_once 'dao/users/auth_check.php';
     const URL = '<?php echo URL; ?>'; 
 </script>
 
-// Include authentication check and config
-include_once 'dao/users/auth_check.php';
-require_once 'config.php';
+;
 ?>
 <!DOCTYPE html>
 <html lang="en">
