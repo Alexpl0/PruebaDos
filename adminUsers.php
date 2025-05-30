@@ -31,8 +31,6 @@ require_once 'config.php'
     const URL = '<?php echo URL; ?>'; 
 </script>
 
-;
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
