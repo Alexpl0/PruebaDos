@@ -83,22 +83,6 @@ class PFEmailTemplates {
                                             </tr>
                                             <tr>
                                                 <td style="padding: 8px 0; border-bottom: 1px solid #e9ecef;">
-                                                    <strong style="color: #333333;">Supplier:</strong>
-                                                </td>
-                                                <td style="padding: 8px 0; border-bottom: 1px solid #e9ecef; text-align: right;">
-                                                    ' . htmlspecialchars($orderData['planta'] ?? 'N/A') . '
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding: 8px 0; border-bottom: 1px solid #e9ecef;">
-                                                    <strong style="color: #333333;">Cost:</strong>
-                                                </td>
-                                                <td style="padding: 8px 0; border-bottom: 1px solid #e9ecef; text-align: right;">
-                                                    EUR ' . $costEuros . '
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding: 8px 0; border-bottom: 1px solid #e9ecef;">
                                                     <strong style="color: #333333;">Created by:</strong>
                                                 </td>
                                                 <td style="padding: 8px 0; border-bottom: 1px solid #e9ecef; text-align: right;">
@@ -106,11 +90,27 @@ class PFEmailTemplates {
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <td style="padding: 8px 0;">
+                                                <td style="padding: 8px 0; border-bottom: 1px solid #e9ecef;">
                                                     <strong style="color: #333333;">Created:</strong>
                                                 </td>
-                                                <td style="padding: 8px 0; text-align: right;">
+                                                <td style="padding: 8px 0; border-bottom: 1px solid #e9ecef; text-align: right;">
                                                     ' . date('M d, Y H:i', strtotime($orderData['date'])) . '
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; border-bottom: 1px solid #e9ecef;">
+                                                    <strong style="color: #333333;">Area:</strong>
+                                                </td>
+                                                <td style="padding: 8px 0; border-bottom: 1px solid #e9ecef; text-align: right;">
+                                                    ' . htmlspecialchars($orderData['planta'] ?? 'N/A') . '
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0;">
+                                                    <strong style="color: #333333;">Cost:</strong>
+                                                </td>
+                                                <td style="padding: 8px 0; text-align: right;">
+                                                    EUR ' . $costEuros . '
                                                 </td>
                                             </tr>
                                         </table>
@@ -271,7 +271,7 @@ class PFEmailTemplates {
                                     <tr>
                                         <th style="background-color: #034C8C; color: #ffffff; padding: 12px; text-align: left;">Order #</th>
                                         <th style="background-color: #034C8C; color: #ffffff; padding: 12px; text-align: left;">Description</th>
-                                        <th style="background-color: #034C8C; color: #ffffff; padding: 12px; text-align: left;">Supplier</th>
+                                        <th style="background-color: #034C8C; color: #ffffff; padding: 12px; text-align: left;">Area</th>
                                         <th style="background-color: #034C8C; color: #ffffff; padding: 12px; text-align: left;">Cost</th>
                                         <th style="background-color: #034C8C; color: #ffffff; padding: 12px; text-align: left;">Created</th>
                                         <th style="background-color: #034C8C; color: #ffffff; padding: 12px; text-align: left;">Actions</th>
@@ -371,7 +371,23 @@ class PFEmailTemplates {
                                             </tr>
                                             <tr>
                                                 <td style="padding: 8px 0; border-bottom: 1px solid #e9ecef;">
-                                                    <strong style="color: #333333;">Supplier:</strong>
+                                                    <strong style="color: #333333;">Created by:</strong>
+                                                </td>
+                                                <td style="padding: 8px 0; border-bottom: 1px solid #e9ecef; text-align: right;">
+                                                    ' . htmlspecialchars($orderData['creator_name'] ?? 'N/A') . '
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; border-bottom: 1px solid #e9ecef;">
+                                                    <strong style="color: #333333;">Created:</strong>
+                                                </td>
+                                                <td style="padding: 8px 0; border-bottom: 1px solid #e9ecef; text-align: right;">
+                                                    ' . date('M d, Y H:i', strtotime($orderData['date'])) . '
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; border-bottom: 1px solid #e9ecef;">
+                                                    <strong style="color: #333333;">Area:</strong>
                                                 </td>
                                                 <td style="padding: 8px 0; border-bottom: 1px solid #e9ecef; text-align: right;">
                                                     ' . htmlspecialchars($orderData['planta'] ?? 'N/A') . '
@@ -440,25 +456,32 @@ class PFEmailTemplates {
             
             $orderRows .= '
             <tr>
-                <td style="padding: 12px; text-align: center; font-weight: bold; border-bottom: 1px solid #e9ecef;">#' . $order['id'] . '</td>
-                <td style="padding: 12px; border-bottom: 1px solid #e9ecef;">' . htmlspecialchars($order['description'] ?? 'N/A') . '</td>
-                <td style="padding: 12px; border-bottom: 1px solid #e9ecef;">' . htmlspecialchars($order['planta'] ?? 'N/A') . '</td>
-                <td style="padding: 12px; text-align: center; border-bottom: 1px solid #e9ecef;">EUR ' . $costFormatted . '</td>
-                <td style="padding: 12px; text-align: center; border-bottom: 1px solid #e9ecef;">' . $createdDate . '</td>
-                <td style="padding: 12px; text-align: center; border-bottom: 1px solid #e9ecef;">
-                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
-                        <tr>
-                            <td style="padding: 2px;">
-                                <a href="' . $approveUrl . '" style="background-color: #28a745; color: #ffffff; padding: 6px 10px; text-decoration: none; border-radius: 3px; font-size: 12px; display: block;">APPROVE</a>
-                            </td>
-                            <td style="padding: 2px;">
-                                <a href="' . $rejectUrl . '" style="background-color: #dc3545; color: #ffffff; padding: 6px 10px; text-decoration: none; border-radius: 3px; font-size: 12px; display: block;">REJECT</a>
-                            </td>
-                            <td style="padding: 2px;">
-                                <a href="' . $viewUrl . '" style="background-color: #034C8C; color: #ffffff; padding: 6px 10px; text-decoration: none; border-radius: 3px; font-size: 12px; display: block;">VIEW</a>
-                            </td>
-                        </tr>
-                    </table>
+                <td style="padding: 12px; text-align: center; font-weight: bold; border-bottom: 1px solid #e9ecef; width: 10%;">#' . $order['id'] . '</td>
+                <td style="padding: 12px; border-bottom: 1px solid #e9ecef; width: 35%;">' . htmlspecialchars($order['description'] ?? 'N/A') . '</td>
+                <td style="padding: 12px; border-bottom: 1px solid #e9ecef; width: 15%;">' . htmlspecialchars($order['planta'] ?? 'N/A') . '</td>
+                <td style="padding: 12px; text-align: center; border-bottom: 1px solid #e9ecef; width: 12%;">EUR ' . $costFormatted . '</td>
+                <td style="padding: 12px; text-align: center; border-bottom: 1px solid #e9ecef; width: 12%;">' . $createdDate . '</td>
+                <td style="padding: 12px; text-align: center; border-bottom: 1px solid #e9ecef; width: 16%;">
+                    <!-- Botones en columna vertical -->
+                    <div style="text-align: center;">
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto; width: 100%;">
+                            <tr>
+                                <td style="padding-bottom: 4px;">
+                                    <a href="' . $approveUrl . '" style="background-color: #28a745; color: #ffffff; padding: 6px 12px; text-decoration: none; border-radius: 3px; font-size: 11px; display: block; text-align: center; width: 100%; box-sizing: border-box;">APPROVE</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding-bottom: 4px;">
+                                    <a href="' . $rejectUrl . '" style="background-color: #dc3545; color: #ffffff; padding: 6px 12px; text-decoration: none; border-radius: 3px; font-size: 11px; display: block; text-align: center; width: 100%; box-sizing: border-box;">REJECT</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <a href="' . $viewUrl . '" style="background-color: #034C8C; color: #ffffff; padding: 6px 12px; text-decoration: none; border-radius: 3px; font-size: 11px; display: block; text-align: center; width: 100%; box-sizing: border-box;">VIEW</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
                 </td>
             </tr>';
         }

@@ -160,54 +160,46 @@
                 resultElement.classList.add(isSuccess ? 'success-result' : 'error-result');
             }
 
-            // Helper function to show loading with progress
+            // Helper function to show loading with progress (Fixed version)
             function showLoadingProgress(title, text) {
                 return Swal.fire({
                     title: title,
-                    text: text,
+                    html: `
+                        <div style="margin: 20px 0;">
+                            <p>${text}</p>
+                            <div id="progress-container" style="
+                                width: 100%;
+                                height: 20px;
+                                background-color: #f0f0f0;
+                                border-radius: 10px;
+                                margin: 20px 0;
+                                overflow: hidden;
+                            ">
+                                <div id="progress-fill" style="
+                                    width: 0%;
+                                    height: 100%;
+                                    background: linear-gradient(90deg, #034C8C, #28a745);
+                                    border-radius: 10px;
+                                    transition: width 0.3s ease;
+                                "></div>
+                            </div>
+                            <div id="progress-text" style="
+                                font-size: 14px;
+                                color: #666;
+                                text-align: center;
+                            ">Iniciando...</div>
+                        </div>
+                    `,
                     allowOutsideClick: false,
                     allowEscapeKey: false,
                     showConfirmButton: false,
                     didOpen: () => {
                         Swal.showLoading();
-                        const progressBar = document.createElement('div');
-                        progressBar.style.cssText = `
-                            width: 100%;
-                            height: 20px;
-                            background-color: #f0f0f0;
-                            border-radius: 10px;
-                            margin-top: 20px;
-                            overflow: hidden;
-                        `;
-                        
-                        const progressFill = document.createElement('div');
-                        progressFill.id = 'progress-fill';
-                        progressFill.style.cssText = `
-                            width: 0%;
-                            height: 100%;
-                            background: linear-gradient(90deg, #034C8C, #28a745);
-                            border-radius: 10px;
-                            transition: width 0.3s ease;
-                        `;
-                        
-                        progressBar.appendChild(progressFill);
-                        document.querySelector('.swal2-content').appendChild(progressBar);
-                        
-                        // Progress text
-                        const progressText = document.createElement('div');
-                        progressText.id = 'progress-text';
-                        progressText.style.cssText = `
-                            margin-top: 10px;
-                            font-size: 14px;
-                            color: #666;
-                        `;
-                        progressText.textContent = 'Iniciando...';
-                        document.querySelector('.swal2-content').appendChild(progressText);
                     }
                 });
             }
 
-            // Helper function to update progress
+            // Helper function to update progress (Fixed version)
             function updateProgress(percentage, text) {
                 const progressFill = document.getElementById('progress-fill');
                 const progressText = document.getElementById('progress-text');
