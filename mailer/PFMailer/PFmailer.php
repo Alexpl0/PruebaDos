@@ -262,6 +262,9 @@ class PFMailer {
      */
     public function sendRecoveryNotifications() {
         try {
+            // Get database connection through services
+            $db = $this->services->getDatabase();
+            
             // Obtener órdenes que necesitan evidencia de recovery
             $sql = "SELECT PF.id, PF.user_id, PF.description, PF.cost_euros, 
                            PF.date, PF.recovery_file, U.name, U.email
@@ -272,7 +275,7 @@ class PFMailer {
                     AND (PF.recovery_evidence IS NULL OR PF.recovery_evidence = '')
                     AND PF.status_id = 3";
             
-            $stmt = $this->db->prepare($sql);
+            $stmt = $db->prepare($sql);
             $stmt->execute();
             $result = $stmt->get_result();
             

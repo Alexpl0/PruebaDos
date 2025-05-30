@@ -50,16 +50,20 @@ error_log("REQUEST_URI: " . ($_SERVER['REQUEST_URI'] ?? 'NO DISPONIBLE'));
 // Importar las clases y utilidades necesarias para el procesamiento
 error_log("Cargando PFmailUtils.php...");
 require_once __DIR__ . '/PFmailUtils.php';
+error_log("PFmailUtils.php cargado exitosamente");
 
 error_log("Cargando PFmailer.php...");
 require_once __DIR__ . '/PFmailer.php';
+error_log("PFmailer.php cargado exitosamente");
 
 error_log("Cargando PFmailAction.php...");
 require_once __DIR__ . '/PFmailAction.php';
+error_log("PFmailAction.php cargado exitosamente");
 
 error_log("Todos los archivos cargados exitosamente");
 
 // Verificar si se recibieron los parámetros necesarios
+error_log("=== Validación de parámetros ===");
 if (!isset($_GET['action']) || !isset($_GET['token'])) {
     error_log("ERROR: Faltan parámetros requeridos");
     error_log("Action presente: " . (isset($_GET['action']) ? 'SÍ' : 'NO'));
@@ -73,8 +77,11 @@ if (!isset($_GET['action']) || !isset($_GET['token'])) {
 $action = filter_var($_GET['action'], FILTER_SANITIZE_SPECIAL_CHARS);
 $token = filter_var($_GET['token'], FILTER_SANITIZE_SPECIAL_CHARS);
 
+error_log("Acción recibida: " . $_GET['action']);
 error_log("Acción sanitizada: " . $action);
-error_log("Token sanitizado: " . substr($token, 0, 8) . "...");
+error_log("Token recibido: " . $_GET['token']);
+error_log("Token sanitizado: " . $token);
+error_log("Token length: " . strlen($token));
 
 // Validar la acción y mostrar error específico
 if ($action !== 'approve' && $action !== 'reject') {
@@ -83,9 +90,12 @@ if ($action !== 'approve' && $action !== 'reject') {
     exit;
 }
 
+error_log("=== Validación de acción exitosa ===");
+error_log("Acción válida: " . $action);
+
 try {
     error_log("=== Iniciando procesamiento ===");
-    error_log("Procesando acción en bloque: {$action} con token: " . substr($token, 0, 8) . "...");
+    error_log("Procesando acción en bloque: {$action} con token: " . $token);
     
     // Verificar si las clases existen antes de instanciarlas
     if (!class_exists('PFMailAction')) {
@@ -108,7 +118,53 @@ try {
     
     error_log("Método processBulkAction encontrado, ejecutando...");
     
+    // DEBUG: Verificar el token antes de procesarlo
+    error_log("=== Verificación previa del token ===");
+    error_log("Token a verificar: " . $token);
+    
+    // Primero verificar si el token existe en la base de datos
+    $con = new LocalConector();
+    $db = $con->conectar();
+    
+    // Verificar token en EmailActionTokens (acciones individuales)
+    $checkTokenSql = "SELECT * FROM EmailActionTokens WHERE token = ?";
+    $checkStmt = $db->prepare($checkTokenSql);
+    $checkStmt->bind_param("s", $token);
+    $checkStmt->execute();
+    $tokenResult = $checkStmt->get_result();
+    
+    // Verificar token en EmailBulkActionTokens (acciones en bloque)
+    $checkBulkTokenSql = "SELECT * FROM EmailBulkActionTokens WHERE token = ?";
+    $checkBulkStmt = $db->prepare($checkBulkTokenSql);
+    $checkBulkStmt->bind_param("s", $token);
+    $checkBulkStmt->execute();
+    $bulkTokenResult = $checkBulkStmt->get_result();
+    
+    error_log("Tokens encontrados en EmailActionTokens: " . $tokenResult->num_rows);
+    error_log("Tokens encontrados en EmailBulkActionTokens: " . $bulkTokenResult->num_rows);
+    
+    if ($tokenResult->num_rows > 0) {
+        $tokenData = $tokenResult->fetch_assoc();
+        error_log("Token encontrado en EmailActionTokens:");
+        error_log("- Order ID: " . $tokenData['order_id']);
+        error_log("- User ID: " . $tokenData['user_id']);
+        error_log("- Action: " . $tokenData['action']);
+        error_log("- Is Used: " . $tokenData['is_used']);
+        error_log("- Created: " . $tokenData['created_at']);
+    }
+    
+    if ($bulkTokenResult->num_rows > 0) {
+        $bulkTokenData = $bulkTokenResult->fetch_assoc();
+        error_log("Token encontrado en EmailBulkActionTokens:");
+        error_log("- User ID: " . $bulkTokenData['user_id']);
+        error_log("- Action: " . $bulkTokenData['action']);
+        error_log("- Is Used: " . $bulkTokenData['is_used']);
+        error_log("- Order IDs: " . $bulkTokenData['order_ids']);
+        error_log("- Created: " . $bulkTokenData['created_at']);
+    }
+    
     // Ejecutar la acción en bloque
+    error_log("=== Ejecutando processBulkAction ===");
     $result = $handler->processBulkAction($token, $action);
     
     error_log("=== Resultado del procesamiento ===");
