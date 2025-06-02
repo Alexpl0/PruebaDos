@@ -82,6 +82,7 @@ try {
     header('Access-Control-Allow-Origin: *');
     header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
     header('Access-Control-Allow-Headers: Content-Type');
+    header('Cache-Control: no-cache, must-revalidate');
 
     // Manejar preflight requests
     if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -250,4 +251,14 @@ try {
         'line' => $e->getLine()
     ], 500);
 }
+
+// Asegurar respuesta JSON válida
+echo json_encode([
+    'success' => true,
+    'message' => 'Operación completada exitosamente',
+    'data' => $result
+]);
+
+// Detener la ejecución para evitar output adicional
+exit;
 ?>

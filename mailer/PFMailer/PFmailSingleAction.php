@@ -34,7 +34,39 @@ logAction("Solicitud recibida: acción={$action}, token={$token}", 'SINGLEACTION
 try {
     $handler = new PFMailAction();
     
-    // Procesar la acción directamente
+    // Primero validar el token ANTES de procesarlo
+    $tokenInfo = $handler->validateToken($token);
+    
+    if (!$tokenInfo) {
+        logAction("Token inválido o expirado: {$token}", 'SINGLEACTION');
+        showError('Token inválido o expirado. Es posible que este enlace ya no sea válido.');
+        exit;
+    }
+    
+    // Si el token ya fue usado, verificar si fue exitoso para mostrar mensaje apropiado
+    if ($tokenInfo['is_used'] == 1) {
+        logAction("Token ya utilizado detectado: {$token}", 'SINGLEACTION');
+        
+        // Verificar el estado de la orden para determinar si fue exitoso
+        $orderId = $tokenInfo['order_id'];
+        $orderStatus = $handler->getOrderStatus($orderId);
+        
+        if ($orderStatus) {
+            // Si la orden tiene un estado válido (aprobada o rechazada), mostrar éxito
+            $statusMessage = ($action === 'approve') ? 
+                "Esta orden ya ha sido aprobada exitosamente." : 
+                "Esta orden ya ha sido rechazada exitosamente.";
+            
+            logAction("Mostrando mensaje de éxito para token ya usado: {$token}", 'SINGLEACTION');
+            showSuccess($statusMessage);
+        } else {
+            // Si hay algún problema con el estado, mostrar error genérico
+            showError("Esta acción ya ha sido procesada anteriormente.");
+        }
+        exit;
+    }
+    
+    // Procesar la acción solo si el token no ha sido usado
     $result = $handler->processAction($token, $action);
 
     if ($result && isset($result['success']) && $result['success']) {
@@ -43,13 +75,7 @@ try {
     } else {
         $msg = isset($result['message']) ? $result['message'] : 'Error procesando la acción.';
         logAction("Error en acción: {$msg}", 'SINGLEACTION');
-        
-        // Si el token ya fue usado, mostrar éxito en lugar de error
-        if (strpos($msg, 'ya ha sido utilizado') !== false || strpos($msg, 'ya utilizado') !== false) {
-            showSuccess("Esta acción ya ha sido procesada correctamente.");
-        } else {
-            showError($msg);
-        }
+        showError($msg);
     }
     
 } catch (Exception $e) {

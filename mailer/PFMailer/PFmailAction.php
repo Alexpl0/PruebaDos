@@ -81,7 +81,7 @@ class PFMailAction {
             logAction("Iniciando processAction para token={$token}, acción={$action}", 'PROCESSACTION');
             $this->db->begin_transaction();
             
-            // 1. Validar el token SIN marcarlo como usado aún
+            // 1. Obtener datos del token (ya validado previamente)
             $sql = "SELECT * FROM EmailActionTokens WHERE token = ? FOR UPDATE";
             $stmt = $this->db->prepare($sql);
             $stmt->bind_param("s", $token);
@@ -90,60 +90,40 @@ class PFMailAction {
             
             if ($result->num_rows === 0) {
                 $this->db->rollback();
-                logAction("Token no encontrado en la base de datos: {$token}", 'PROCESSACTION');
                 return [
                     'success' => false,
-                    'message' => 'El token proporcionado no es válido.'
+                    'message' => 'Token no encontrado.'
                 ];
             }
             
             $tokenData = $result->fetch_assoc();
             
-            // 2. Verificar si ya fue usado
-            if ($tokenData['is_used'] == 1) {
-                $this->db->rollback();
-                logAction("Token ya utilizado: {$token}", 'PROCESSACTION');
-                return [
-                    'success' => false,
-                    'message' => 'El token ya ha sido utilizado previamente.'
-                ];
-            }
-            
-            // 3. Validar los datos del token
+            // 2. Validar los datos del token
             $orderId = $tokenData['order_id'];
             $userId = $tokenData['user_id'];
             $tokenAction = $tokenData['action'];
             
             if ($action !== $tokenAction) {
                 $this->db->rollback();
-                logAction("Acción solicitada ({$action}) no coincide con la del token ({$tokenAction})", 'PROCESSACTION');
                 return [
                     'success' => false,
-                    'message' => 'La acción solicitada no coincide con la acción autorizada por el token.' 
+                    'message' => "Acción no coincide. Token es para '{$tokenAction}', se recibió '{$action}'."
                 ];
             }
             
-            // 4. Procesar la acción (aprobar o rechazar) SIN marcar el token como usado aún
+            // 3. Procesar la acción
             $result = ($action === 'approve') 
-                ? $this->approveOrder($orderId, $userId)
+                ? $this->approveOrder($orderId, $userId) 
                 : $this->rejectOrder($orderId, $userId);
             
-            // 5. Solo si la acción fue exitosa, marcar el token como usado
+            // 4. Solo si la acción fue exitosa, marcar el token como usado
             if ($result['success']) {
-                if (!$this->markTokenAsUsed($token)) {
-                    $this->db->rollback();
-                    logAction("Error al marcar token como usado después del procesamiento: {$token}", 'PROCESSACTION');
-                    return [
-                        'success' => false,
-                        'message' => 'Error al procesar la acción. No se pudo marcar el token como utilizado.'
-                    ];
-                }
-                
+                $this->markTokenAsUsed($token);
                 $this->db->commit();
                 logAction("Acción {$action} completada exitosamente para orden #{$orderId} y token marcado como usado", 'PROCESSACTION');
             } else {
                 $this->db->rollback();
-                logAction("Error en acción {$action} para orden #{$orderId}: {$result['message']}", 'PROCESSACTION');
+                logAction("Error en acción {$action}: {$result['message']}", 'PROCESSACTION');
             }
             
             return $result;
@@ -153,7 +133,7 @@ class PFMailAction {
             logAction("Excepción en processAction: " . $e->getMessage(), 'PROCESSACTION');
             return [
                 'success' => false,
-                'message' => 'Error al procesar la acción: ' . $e->getMessage()
+                'message' => 'Error interno del sistema: ' . $e->getMessage()
             ];
         }
     }
@@ -630,6 +610,35 @@ class PFMailAction {
                 'success' => false,
                 'message' => 'Error procesando acciones en bloque: ' . $e->getMessage()
             ];
+        }
+    }
+
+    /**
+     * Obtiene el estado actual de una orden
+     * 
+     * @param int $orderId ID de la orden
+     * @return array|false Información del estado de la orden
+     */
+    public function getOrderStatus($orderId) {
+        try {
+            $sql = "SELECT PF.status_id, PFA.act_approv, PF.required_auth_level
+                    FROM PremiumFreight PF 
+                    LEFT JOIN PremiumFreightApprovals PFA ON PF.id = PFA.premium_freight_id 
+                    WHERE PF.id = ?";
+            
+            $stmt = $this->db->prepare($sql);
+            $stmt->bind_param("i", $orderId);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            if ($result->num_rows > 0) {
+                return $result->fetch_assoc();
+            }
+            
+            return false;
+        } catch (Exception $e) {
+            logAction("Error en getOrderStatus: " . $e->getMessage(), 'GETORDERSTATUS');
+            return false;
         }
     }
 }

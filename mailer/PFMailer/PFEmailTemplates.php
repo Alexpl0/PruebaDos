@@ -100,6 +100,10 @@ class PFEmailTemplates {
         .footer-text { color: #6b7280; margin: 0 0 6px 0; font-size: 11px; }
         .footer-copyright { color: #9ca3af; margin: 0; font-size: 10px; }
     </style>
+    <!-- 
+        Note: JavaScript is not reliably supported in email clients.
+        All action buttons should be implemented as direct links.
+    -->
 </head>
 <body>
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f4f4f4;">
@@ -668,19 +672,3 @@ class PFEmailTemplates {
     }
 }
 ?>
-<script>
-let actionInProgress = false;
-
-document.addEventListener('click', function(e) {
-    if (e.target.tagName === 'A' && (e.target.href.includes('approve') || e.target.href.includes('reject'))) {
-        if (actionInProgress) {
-            e.preventDefault();
-            return false;
-        }
-        actionInProgress = true;
-        
-        // Desactivar después de 10 segundos por si acaso
-        setTimeout(() => { actionInProgress = false; }, 10000);
-    }
-});
-</script>
