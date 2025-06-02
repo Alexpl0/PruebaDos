@@ -14,16 +14,11 @@ ini_set('display_errors', 0);  // No mostrar errores al usuario final
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/action_debug.log');
 
-// Función helper para logging con secciones
-function logAction($message, $section = 'MAIN') {
-    $logFile = __DIR__ . '/action_debug.log';
-    $timestamp = date('Y-m-d H:i:s');
-    $logEntry = "[{$timestamp}] [{$section}] {$message}" . PHP_EOL;
-    file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
-}
-
 // Importar la configuración global para usar la constante URL
 require_once __DIR__ . '/config.php';
+
+// Importar las utilidades (que incluyen la función logAction)
+require_once __DIR__ . '/PFmailUtils.php';
 
 // Definir constantes como respaldo si no están definidas en config.php
 if (!defined('URL')) {
@@ -39,7 +34,6 @@ if (!defined('URLM')) {
 }
 
 // Importar las clases y utilidades necesarias para el procesamiento
-require_once __DIR__ . '/PFmailUtils.php';
 require_once __DIR__ . '/PFmailer.php';
 require_once __DIR__ . '/PFmailAction.php';
 

@@ -18,14 +18,6 @@ http_response_code(200);
 // 3. Importar las clases necesarias para procesamiento
 require_once 'PFmailer.php';
 
-// Función helper para logging con secciones
-function logAction($message, $section = 'MAIN') {
-    $logFile = __DIR__ . '/action_debug.log';
-    $timestamp = date('Y-m-d H:i:s');
-    $logEntry = "[{$timestamp}] [{$section}] {$message}" . PHP_EOL;
-    file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
-}
-
 // Clase para manejar acciones de correo
 class PFMailAction {
     private $db;

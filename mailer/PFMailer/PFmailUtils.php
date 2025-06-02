@@ -25,6 +25,21 @@ if (!defined('URLM')) {
 }
 
 /**
+ * Función helper para logging con secciones
+ * 
+ * @param string $message Mensaje a registrar
+ * @param string $section Sección/función que genera el log
+ */
+if (!function_exists('logAction')) {
+    function logAction($message, $section = 'MAIN') {
+        $logFile = __DIR__ . '/action_debug.log';
+        $timestamp = date('Y-m-d H:i:s');
+        $logEntry = "[{$timestamp}] [{$section}] {$message}" . PHP_EOL;
+        file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
+    }
+}
+
+/**
  * Muestra un mensaje de éxito con formato HTML estilizado
  * 
  * @param string $message - Mensaje principal a mostrar
