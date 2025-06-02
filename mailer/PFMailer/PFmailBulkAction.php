@@ -14,61 +14,30 @@ ini_set('display_errors', 0);  // No mostrar errores al usuario final
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/bulk_action_errors.log');
 
-// DEBUG: Registrar información inicial
-error_log("=== PFmailBulkAction.php - Inicio de ejecución ===");
-error_log("Script path: " . __FILE__);
-error_log("Current directory: " . __DIR__);
-
 // Importar la configuración global para usar la constante URL
 require_once __DIR__ . '/config.php';
-
-// DEBUG: Verificar constantes después de incluir config.php
-error_log("¿URL definida después de config.php? " . (defined('URL') ? 'SÍ: ' . URL : 'NO'));
-error_log("¿URLPF definida después de config.php? " . (defined('URLPF') ? 'SÍ: ' . URLPF : 'NO'));
 
 // Definir constantes como respaldo si no están definidas en config.php
 if (!defined('URL')) {
     define('URL', 'https://grammermx.com/Mailer/PFMailer/');
-    error_log("URL definida como respaldo: " . URL);
 }
 
 if (!defined('URLPF')) {
     define('URLPF', 'https://grammermx.com/Jesus/PruebaDos/');
-    error_log("URLPF definida como respaldo: " . URLPF);
 }
 
 if (!defined('URLM')) {
     define('URLM', URL);
-    error_log("URLM definida usando URL: " . URLM);
 }
 
-// DEBUG: Verificar parámetros GET recibidos
-error_log("=== Parámetros recibidos ===");
-error_log("GET parameters: " . print_r($_GET, true));
-error_log("REQUEST_URI: " . ($_SERVER['REQUEST_URI'] ?? 'NO DISPONIBLE'));
-
 // Importar las clases y utilidades necesarias para el procesamiento
-error_log("Cargando PFmailUtils.php...");
 require_once __DIR__ . '/PFmailUtils.php';
-error_log("PFmailUtils.php cargado exitosamente");
-
-error_log("Cargando PFmailer.php...");
 require_once __DIR__ . '/PFmailer.php';
-error_log("PFmailer.php cargado exitosamente");
-
-error_log("Cargando PFmailAction.php...");
 require_once __DIR__ . '/PFmailAction.php';
-error_log("PFmailAction.php cargado exitosamente");
-
-error_log("Todos los archivos cargados exitosamente");
 
 // Verificar si se recibieron los parámetros necesarios
-error_log("=== Validación de parámetros ===");
 if (!isset($_GET['action']) || !isset($_GET['token'])) {
-    error_log("ERROR: Faltan parámetros requeridos");
-    error_log("Action presente: " . (isset($_GET['action']) ? 'SÍ' : 'NO'));
-    error_log("Token presente: " . (isset($_GET['token']) ? 'SÍ' : 'NO'));
-    
+    error_log("ERROR: Faltan parámetros requeridos - Action: " . (isset($_GET['action']) ? 'presente' : 'ausente') . ", Token: " . (isset($_GET['token']) ? 'presente' : 'ausente'));
     showBulkError('Faltan parámetros requeridos. Se necesitan "action" y "token".');
     exit;
 }
@@ -77,94 +46,172 @@ if (!isset($_GET['action']) || !isset($_GET['token'])) {
 $action = filter_var($_GET['action'], FILTER_SANITIZE_SPECIAL_CHARS);
 $token = filter_var($_GET['token'], FILTER_SANITIZE_SPECIAL_CHARS);
 
-error_log("Acción recibida: " . $_GET['action']);
-error_log("Acción sanitizada: " . $action);
-error_log("Token recibido: " . $_GET['token']);
-error_log("Token sanitizado: " . $token);
-error_log("Token length: " . strlen($token));
+error_log("=== Iniciando procesamiento de acción en bloque ===");
+error_log("Acción: $action | Token: $token");
+error_log("Token original recibido: " . $_GET['token']);
+error_log("Token después de sanitización: $token");
+error_log("¿Token cambió después de sanitización?: " . ($_GET['token'] !== $token ? 'SÍ' : 'NO'));
 
 // Validar la acción y mostrar error específico
 if ($action !== 'approve' && $action !== 'reject') {
-    error_log("ERROR: Acción inválida: " . $action);
+    error_log("ERROR: Acción inválida: $action");
     showBulkError("Tipo de acción inválido: '{$action}'. Las acciones permitidas son 'approve' o 'reject'.");
     exit;
 }
 
-error_log("=== Validación de acción exitosa ===");
-error_log("Acción válida: " . $action);
-
 try {
-    error_log("=== Iniciando procesamiento ===");
-    error_log("Procesando acción en bloque: {$action} con token: " . $token);
-    
     // Verificar si las clases existen antes de instanciarlas
     if (!class_exists('PFMailAction')) {
         error_log("ERROR: Clase PFMailAction no encontrada");
         throw new Exception("La clase PFMailAction no está disponible.");
     }
     
-    error_log("Clase PFMailAction encontrada, creando instancia...");
-    
     // Procesar la acción
     $handler = new PFMailAction();
-    error_log("Instancia de PFMailAction creada exitosamente");
     
     // Verificar que el método existe
     if (!method_exists($handler, 'processBulkAction')) {
         error_log("ERROR: Método processBulkAction no encontrado en PFMailAction");
-        error_log("Métodos disponibles: " . implode(', ', get_class_methods($handler)));
         throw new Exception("El método 'processBulkAction' no está implementado en la clase PFMailAction.");
     }
     
-    error_log("Método processBulkAction encontrado, ejecutando...");
-    
     // DEBUG: Verificar el token antes de procesarlo
     error_log("=== Verificación previa del token ===");
-    error_log("Token a verificar: " . $token);
+    error_log("Token a buscar en BD: '$token'");
+    error_log("Longitud del token: " . strlen($token));
+    error_log("Caracteres del token: " . bin2hex($token));
     
     // Primero verificar si el token existe en la base de datos
     $con = new LocalConector();
     $db = $con->conectar();
     
+    if (!$db) {
+        error_log("ERROR: No se pudo conectar a la base de datos");
+        throw new Exception("Error de conexión a la base de datos");
+    }
+    
+    error_log("Conexión a BD establecida correctamente");
+    
     // Verificar token en EmailActionTokens (acciones individuales)
     $checkTokenSql = "SELECT * FROM EmailActionTokens WHERE token = ?";
     $checkStmt = $db->prepare($checkTokenSql);
+    
+    if (!$checkStmt) {
+        error_log("ERROR preparando consulta EmailActionTokens: " . $db->error);
+        throw new Exception("Error preparando consulta individual");
+    }
+    
     $checkStmt->bind_param("s", $token);
     $checkStmt->execute();
     $tokenResult = $checkStmt->get_result();
     
+    error_log("Consulta EmailActionTokens ejecutada - Filas encontradas: " . $tokenResult->num_rows);
+    
     // Verificar token en EmailBulkActionTokens (acciones en bloque)
     $checkBulkTokenSql = "SELECT * FROM EmailBulkActionTokens WHERE token = ?";
     $checkBulkStmt = $db->prepare($checkBulkTokenSql);
+    
+    if (!$checkBulkStmt) {
+        error_log("ERROR preparando consulta EmailBulkActionTokens: " . $db->error);
+        throw new Exception("Error preparando consulta en bloque");
+    }
+    
     $checkBulkStmt->bind_param("s", $token);
     $checkBulkStmt->execute();
     $bulkTokenResult = $checkBulkStmt->get_result();
     
-    error_log("Tokens encontrados en EmailActionTokens: " . $tokenResult->num_rows);
-    error_log("Tokens encontrados en EmailBulkActionTokens: " . $bulkTokenResult->num_rows);
+    error_log("Consulta EmailBulkActionTokens ejecutada - Filas encontradas: " . $bulkTokenResult->num_rows);
+    
+    error_log("Resumen tokens - Individual: " . $tokenResult->num_rows . " | Bulk: " . $bulkTokenResult->num_rows);
+    
+    // Si no se encontró el token en ninguna tabla
+    if ($tokenResult->num_rows === 0 && $bulkTokenResult->num_rows === 0) {
+        error_log("ERROR: Token no encontrado en ninguna tabla");
+        error_log("Verificando si existen tokens similares...");
+        
+        // Buscar tokens similares para debug
+        $similarTokensSql = "SELECT token, created_at, is_used FROM EmailActionTokens WHERE token LIKE ? ORDER BY created_at DESC LIMIT 5";
+        $similarStmt = $db->prepare($similarTokensSql);
+        $searchPattern = substr($token, 0, 10) . '%';
+        $similarStmt->bind_param("s", $searchPattern);
+        $similarStmt->execute();
+        $similarResult = $similarStmt->get_result();
+        
+        error_log("Tokens similares encontrados en EmailActionTokens: " . $similarResult->num_rows);
+        while ($similarToken = $similarResult->fetch_assoc()) {
+            error_log("Token similar: {$similarToken['token']} | Created: {$similarToken['created_at']} | Used: {$similarToken['is_used']}");
+        }
+        
+        // Buscar tokens similares en bulk
+        $similarBulkSql = "SELECT token, created_at, is_used FROM EmailBulkActionTokens WHERE token LIKE ? ORDER BY created_at DESC LIMIT 5";
+        $similarBulkStmt = $db->prepare($similarBulkSql);
+        $similarBulkStmt->bind_param("s", $searchPattern);
+        $similarBulkStmt->execute();
+        $similarBulkResult = $similarBulkStmt->get_result();
+        
+        error_log("Tokens similares encontrados en EmailBulkActionTokens: " . $similarBulkResult->num_rows);
+        while ($similarBulkToken = $similarBulkResult->fetch_assoc()) {
+            error_log("Token bulk similar: {$similarBulkToken['token']} | Created: {$similarBulkToken['created_at']} | Used: {$similarBulkToken['is_used']}");
+        }
+        
+        showBulkError("Token inválido o expirado. El enlace puede haber sido usado anteriormente o haber caducado.");
+        exit;
+    }
     
     if ($tokenResult->num_rows > 0) {
         $tokenData = $tokenResult->fetch_assoc();
-        error_log("Token encontrado en EmailActionTokens:");
-        error_log("- Order ID: " . $tokenData['order_id']);
-        error_log("- User ID: " . $tokenData['user_id']);
-        error_log("- Action: " . $tokenData['action']);
-        error_log("- Is Used: " . $tokenData['is_used']);
-        error_log("- Created: " . $tokenData['created_at']);
+        error_log("=== Token individual encontrado ===");
+        error_log("Order ID: {$tokenData['order_id']}");
+        error_log("User ID: {$tokenData['user_id']}");
+        error_log("Action: {$tokenData['action']}");
+        error_log("Used: {$tokenData['is_used']}");
+        error_log("Created: {$tokenData['created_at']}");
+        error_log("Used at: " . ($tokenData['used_at'] ?? 'NULL'));
+        
+        // Verificar si el token ya fue usado
+        if ($tokenData['is_used'] == 1) {
+            error_log("ERROR: Token ya fue usado anteriormente en: " . $tokenData['used_at']);
+            showBulkError("Este enlace ya fue utilizado anteriormente. Cada enlace solo puede usarse una vez.");
+            exit;
+        }
+        
+        // Verificar si la acción coincide
+        if ($tokenData['action'] !== $action) {
+            error_log("ERROR: Acción no coincide - Token: {$tokenData['action']} vs Solicitada: $action");
+            showBulkError("La acción solicitada no coincide con el token proporcionado.");
+            exit;
+        }
     }
     
     if ($bulkTokenResult->num_rows > 0) {
         $bulkTokenData = $bulkTokenResult->fetch_assoc();
-        error_log("Token encontrado en EmailBulkActionTokens:");
-        error_log("- User ID: " . $bulkTokenData['user_id']);
-        error_log("- Action: " . $bulkTokenData['action']);
-        error_log("- Is Used: " . $bulkTokenData['is_used']);
-        error_log("- Order IDs: " . $bulkTokenData['order_ids']);
-        error_log("- Created: " . $bulkTokenData['created_at']);
+        error_log("=== Token en bloque encontrado ===");
+        error_log("User ID: {$bulkTokenData['user_id']}");
+        error_log("Action: {$bulkTokenData['action']}");
+        error_log("Used: {$bulkTokenData['is_used']}");
+        error_log("Order IDs: {$bulkTokenData['order_ids']}");
+        error_log("Created: {$bulkTokenData['created_at']}");
+        error_log("Used at: " . ($bulkTokenData['used_at'] ?? 'NULL'));
+        
+        // Verificar si el token ya fue usado
+        if ($bulkTokenData['is_used'] == 1) {
+            error_log("ERROR: Token bulk ya fue usado anteriormente en: " . $bulkTokenData['used_at']);
+            showBulkError("Este enlace ya fue utilizado anteriormente. Cada enlace solo puede usarse una vez.");
+            exit;
+        }
+        
+        // Verificar si la acción coincide
+        if ($bulkTokenData['action'] !== $action) {
+            error_log("ERROR: Acción no coincide - Token: {$bulkTokenData['action']} vs Solicitada: $action");
+            showBulkError("La acción solicitada no coincide con el token proporcionado.");
+            exit;
+        }
     }
     
     // Ejecutar la acción en bloque
     error_log("=== Ejecutando processBulkAction ===");
+    error_log("Token validado exitosamente, procediendo con el procesamiento");
+    
     $result = $handler->processBulkAction($token, $action);
     
     error_log("=== Resultado del procesamiento ===");
@@ -176,19 +223,16 @@ try {
 
     // Mostrar resultado según éxito o fracaso
     if ($result['success']) {
-        error_log("Mostrando página de éxito");
+        error_log("Procesamiento exitoso - mostrando página de éxito");
         showBulkSuccess($result['message'], $result['details'] ?? null);
     } else {
-        error_log("Mostrando página de error");
+        error_log("Procesamiento fallido - mostrando página de error");
         showBulkError($result['message'], $result['details'] ?? null);
     }
     
 } catch (Exception $e) {
     error_log("=== EXCEPCIÓN CAPTURADA ===");
-    error_log("Error en PFmailBulkAction: " . $e->getMessage());
-    error_log("Stack trace: " . $e->getTraceAsString());
-    error_log("File: " . $e->getFile());
-    error_log("Line: " . $e->getLine());
+    error_log("Error: " . $e->getMessage() . " | File: " . $e->getFile() . " | Line: " . $e->getLine());
     
     showBulkError("Ha ocurrido un error inesperado. Por favor contacte al administrador.", ['errors' => [$e->getMessage()]]);
 }
@@ -197,8 +241,6 @@ try {
  * Muestra un mensaje de éxito con formato mejorado para acciones en bloque
  */
 function showBulkSuccess($message, $details = null) {
-    error_log("=== Generando página de éxito ===");
-    
     $detailsHtml = '';
     if ($details) {
         if (isset($details['total']) && isset($details['successful']) && isset($details['failed'])) {
@@ -231,8 +273,6 @@ function showBulkSuccess($message, $details = null) {
  * Muestra un mensaje de error con formato mejorado para acciones en bloque
  */
 function showBulkError($message, $details = null) {
-    error_log("=== Generando página de error ===");
-    
     $detailsHtml = '';
     if ($details && !empty($details['errors'])) {
         $detailsHtml .= "<div class='error-details'>";
@@ -337,15 +377,6 @@ function generateBulkHtmlResponse($title, $type, $heading, $message, $detailsHtm
             .btn:hover {
                 background-color: #023b6a;
             }
-            .debug-info {
-                font-size: 10px;
-                color: #999;
-                margin-top: 20px;
-                text-align: left;
-                background-color: #f8f9fa;
-                padding: 10px;
-                border-radius: 4px;
-            }
         </style>
     </head>
     <body>
@@ -354,17 +385,10 @@ function generateBulkHtmlResponse($title, $type, $heading, $message, $detailsHtm
             <div class='message'>" . htmlspecialchars($message) . "</div>
             <div class='details'>{$detailsHtml}</div>
             <a href='" . htmlspecialchars($ordersUrl) . "' class='btn'>Ver Órdenes</a>
-            
-            <div class='debug-info'>
-                <strong>Debug Info:</strong><br>
-                URLPF: " . (defined('URLPF') ? URLPF : 'NO DEFINIDA') . "<br>
-                Script: " . __FILE__ . "<br>
-                Time: " . date('Y-m-d H:i:s') . "
-            </div>
         </div>
     </body>
     </html>";
 }
 
-error_log("=== PFmailBulkAction.php - Fin del script ===");
+error_log("=== Fin del procesamiento ===");
 ?>

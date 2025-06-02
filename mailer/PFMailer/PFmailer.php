@@ -62,7 +62,6 @@ class PFMailer {
         $this->mail->setFrom('premium_freight@grammermx.com', 'Premium Freight System');
         $this->mail->addBCC('extern.jesus.perez@grammer.com', 'Jesús Pérez');
         $this->mail->addBCC('premium_freight@grammermx.com', 'Premium Freight System');
-        $this->mail->addBCC('jperez38414@ucq.edu.mx', 'Jesús Pérez Gmail');
     }
 
     /**

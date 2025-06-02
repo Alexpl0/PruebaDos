@@ -6,43 +6,23 @@
  * @version 1.0
  */
 
-// DEBUG: Verificar si las constantes ya están definidas cuando se carga este archivo
-error_log("=== PFmailUtils.php - Inicio de carga ===");
-error_log("¿URL definida al cargar PFmailUtils? " . (defined('URL') ? 'SÍ: ' . URL : 'NO'));
-error_log("¿URLPF definida al cargar PFmailUtils? " . (defined('URLPF') ? 'SÍ: ' . URLPF : 'NO'));
-error_log("¿URLM definida al cargar PFmailUtils? " . (defined('URLM') ? 'SÍ: ' . URLM : 'NO'));
-
 // Si las constantes no están definidas, cargar config.php
 if (!defined('URL') || !defined('URLPF')) {
-    error_log("Constantes no definidas en PFmailUtils, cargando config.php...");
     require_once __DIR__ . '/config.php';
-    
-    // Verificar después de cargar config.php
-    error_log("Después de cargar config en PFmailUtils:");
-    error_log("¿URL definida? " . (defined('URL') ? 'SÍ: ' . URL : 'NO'));
-    error_log("¿URLPF definida? " . (defined('URLPF') ? 'SÍ: ' . URLPF : 'NO'));
 }
 
 // Definir constantes de respaldo si aún no están definidas
 if (!defined('URL')) {
     define('URL', 'https://grammermx.com/Mailer/PFMailer/');
-    error_log("URL definida como respaldo en PFmailUtils: " . URL);
 }
 
 if (!defined('URLPF')) {
     define('URLPF', 'https://grammermx.com/Jesus/PruebaDos/');
-    error_log("URLPF definida como respaldo en PFmailUtils: " . URLPF);
 }
 
 if (!defined('URLM')) {
     define('URLM', URL);
-    error_log("URLM definida como respaldo en PFmailUtils: " . URLM);
 }
-
-error_log("=== PFmailUtils.php - Estado final de constantes ===");
-error_log("URL: " . URL);
-error_log("URLPF: " . URLPF);
-error_log("URLM: " . URLM);
 
 /**
  * Muestra un mensaje de éxito con formato HTML estilizado
@@ -198,6 +178,4 @@ function isValidEmail($email) {
 function generateUniqueToken($length = 32) {
     return bin2hex(random_bytes($length));
 }
-
-error_log("=== PFmailUtils.php - Finalizado ===");
 ?>
