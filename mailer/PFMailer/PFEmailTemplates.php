@@ -80,30 +80,44 @@ class PFEmailTemplates {
         .actions-section { margin: 32px 0; text-align: center; }
         .actions-title { color: #1e293b; margin: 0 0 16px 0; font-size: 16px; font-weight: 600; }
         .actions-subtitle { color: #6b7280; margin: 0 0 20px 0; font-size: 12px; }
-        .button-container { display: inline-block; margin: 0 6px; }
+        .button-container { display: inline-block; margin: 0 6px; vertical-align: top; }
         .action-button { 
             display: inline-block; 
-            padding: 12px 20px; 
-            color: #ffffff !important; 
+            padding: 14px 20px; 
             text-decoration: none; 
-            font-weight: 600; 
-            font-size: 13px; 
+            font-weight: bold; 
+            font-size: 14px; 
             border-radius: 6px;
-            transition: all 0.2s ease;
+            text-align: center;
+            border: 2px solid transparent;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .approve-btn { background: linear-gradient(135deg, #059669 0%, #10b981 100%); box-shadow: 0 2px 4px rgba(5, 150, 105, 0.3); }
-        .reject-btn { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); box-shadow: 0 2px 4px rgba(220, 38, 38, 0.3); }
-        .view-btn { background: linear-gradient(135deg, #1a4a72 0%, #2563eb 100%); box-shadow: 0 2px 4px rgba(26, 74, 114, 0.3); }
+        .approve-btn { 
+            background-color: #10b981 !important; 
+            color: #ffffff !important; 
+            border-color: #059669 !important;
+        }
+        .reject-btn { 
+            background-color: #ef4444 !important; 
+            color: #ffffff !important; 
+            border-color: #dc2626 !important;
+        }
+        .view-btn { 
+            background-color: #3b82f6 !important; 
+            color: #ffffff !important; 
+            border-color: #2563eb !important;
+        }
+        /* Estilos específicos para Outlook */
+        .action-button[style*="background"] {
+            color: #ffffff !important;
+        }
         .info-box { background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; padding: 16px; margin: 24px 0; }
         .info-text { margin: 0; color: #92400e; font-size: 12px; line-height: 1.4; }
         .footer { background-color: #f8fafc; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0; }
         .footer-text { color: #6b7280; margin: 0 0 6px 0; font-size: 11px; }
         .footer-copyright { color: #9ca3af; margin: 0; font-size: 10px; }
     </style>
-    <!-- 
-        Note: JavaScript is not reliably supported in email clients.
-        All action buttons should be implemented as direct links.
-    -->
 </head>
 <body>
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f4f4f4;">
@@ -168,13 +182,13 @@ class PFEmailTemplates {
                                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
                                     <tr>
                                         <td class="button-container">
-                                            <a href="' . $approveUrl . '" class="action-button approve-btn">APPROVE ORDER</a>
+                                            <a href="' . $approveUrl . '" style="background-color: #10b981 !important; color: #ffffff !important; padding: 14px 20px; text-decoration: none; font-weight: bold; font-size: 14px; border-radius: 6px; text-align: center; display: inline-block; border: 2px solid #059669; text-transform: uppercase; letter-spacing: 0.5px;">APPROVE ORDER</a>
                                         </td>
                                         <td class="button-container">
-                                            <a href="' . $rejectUrl . '" class="action-button reject-btn">REJECT ORDER</a>
+                                            <a href="' . $rejectUrl . '" style="background-color: #ef4444 !important; color: #ffffff !important; padding: 14px 20px; text-decoration: none; font-weight: bold; font-size: 14px; border-radius: 6px; text-align: center; display: inline-block; border: 2px solid #dc2626; text-transform: uppercase; letter-spacing: 0.5px;">REJECT ORDER</a>
                                         </td>
                                         <td class="button-container">
-                                            <a href="' . $viewOrderUrl . '" class="action-button view-btn">VIEW DETAILS</a>
+                                            <a href="' . $viewOrderUrl . '" style="background-color: #3b82f6 !important; color: #ffffff !important; padding: 14px 20px; text-decoration: none; font-weight: bold; font-size: 14px; border-radius: 6px; text-align: center; display: inline-block; border: 2px solid #2563eb; text-transform: uppercase; letter-spacing: 0.5px;">VIEW DETAILS</a>
                                         </td>
                                     </tr>
                                 </table>
@@ -207,12 +221,6 @@ class PFEmailTemplates {
 
     /**
      * Plantilla para correo resumen semanal
-     * 
-     * @param array $orders Lista de órdenes pendientes
-     * @param array $approver Datos del aprobador
-     * @param string $approveAllToken Token para aprobar todas
-     * @param string $rejectAllToken Token para rechazar todas
-     * @return string HTML del correo
      */
     public function getWeeklySummaryTemplate($orders, $approver, $approveAllToken, $rejectAllToken) {
         // URLs para acciones en bloque
@@ -260,16 +268,26 @@ class PFEmailTemplates {
         .bulk-subtitle { color: #6b7280; margin: 0 0 20px 0; font-size: 13px; }
         .bulk-button { 
             display: inline-block; 
-            padding: 14px 24px; 
-            color: #ffffff !important; 
+            padding: 16px 28px; 
             text-decoration: none; 
-            font-weight: 600; 
+            font-weight: bold; 
             border-radius: 6px;
             margin: 0 8px;
-            font-size: 13px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 2px solid transparent;
         }
-        .approve-all-btn { background: linear-gradient(135deg, #059669 0%, #10b981 100%); box-shadow: 0 3px 6px rgba(5, 150, 105, 0.4); }
-        .reject-all-btn { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); box-shadow: 0 3px 6px rgba(220, 38, 38, 0.4); }
+        .approve-all-btn { 
+            background-color: #10b981 !important; 
+            color: #ffffff !important; 
+            border-color: #059669 !important;
+        }
+        .reject-all-btn { 
+            background-color: #ef4444 !important; 
+            color: #ffffff !important; 
+            border-color: #dc2626 !important;
+        }
         .bulk-warning { color: #6b7280; font-size: 11px; margin: 12px 0 0 0; }
         .orders-section { margin: 30px 0; }
         .section-title { color: #1e293b; margin: 0 0 12px 0; font-size: 16px; font-weight: 600; }
@@ -293,18 +311,30 @@ class PFEmailTemplates {
         .order-actions { text-align: center; }
         .order-btn { 
             display: block; 
-            padding: 6px 10px; 
-            color: #ffffff; 
+            padding: 8px 12px; 
             text-decoration: none; 
             border-radius: 4px; 
             font-size: 10px; 
-            font-weight: 600; 
+            font-weight: bold; 
             margin-bottom: 4px;
             text-transform: uppercase;
+            border: 1px solid transparent;
         }
-        .order-approve { background-color: #059669; }
-        .order-reject { background-color: #dc2626; }
-        .order-view { background-color: #1a4a72; }
+        .order-approve { 
+            background-color: #10b981 !important; 
+            color: #ffffff !important; 
+            border-color: #059669 !important;
+        }
+        .order-reject { 
+            background-color: #ef4444 !important; 
+            color: #ffffff !important; 
+            border-color: #dc2626 !important;
+        }
+        .order-view { 
+            background-color: #3b82f6 !important; 
+            color: #ffffff !important; 
+            border-color: #2563eb !important;
+        }
         .info-box { background-color: #dbeafe; border: 1px solid #93c5fd; border-radius: 6px; padding: 16px; margin: 24px 0; }
         .info-text { margin: 0; color: #1e3a8a; font-size: 12px; line-height: 1.4; }
         .footer { background-color: #f8fafc; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0; }
@@ -366,16 +396,16 @@ class PFEmailTemplates {
                                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
                                     <tr>
                                         <td>
-                                            <a href="' . $approveAllUrl . '" class="bulk-button approve-all-btn">APPROVE ALL ORDERS</a>
+                                            <a href="' . $approveAllUrl . '" style="background-color: #10b981 !important; color: #ffffff !important; padding: 16px 28px; text-decoration: none; font-weight: bold; border-radius: 6px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; border: 2px solid #059669; display: inline-block;">APPROVE ALL ORDERS</a>
                                         </td>
-                                        <td>
-                                            <a href="' . $rejectAllUrl . '" class="bulk-button reject-all-btn">REJECT ALL ORDERS</a>
+                                        <td style="padding-left: 16px;">
+                                            <a href="' . $rejectAllUrl . '" style="background-color: #ef4444 !important; color: #ffffff !important; padding: 16px 28px; text-decoration: none; font-weight: bold; border-radius: 6px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; border: 2px solid #dc2626; display: inline-block;">REJECT ALL ORDERS</a>
                                         </td>
                                     </tr>
                                 </table>
                                 
                                 <p class="bulk-warning">
-                                    Bulk actions will affect all ' . $totalOrders . ' orders listed below
+                                    Bulk actions will affect all ' . $totalOrders . ' orders listed abajo
                                 </p>
                             </div>
                             
@@ -428,11 +458,6 @@ class PFEmailTemplates {
 
     /**
      * Plantilla para notificación de estado (aprobado/rechazado)
-     * 
-     * @param array $orderData Datos de la orden
-     * @param string $status Estado (approved/rejected)
-     * @param array|null $rejectorInfo Información del usuario que rechazó (solo para rechazos)
-     * @return string HTML del correo
      */
     public function getStatusNotificationTemplate($orderData, $status, $rejectorInfo = null) {
         $viewOrderUrl = defined('URLPF') ? URLPF . "orders.php?highlight=" . $orderData['id'] : "#";
@@ -495,14 +520,15 @@ class PFEmailTemplates {
         .detail-value.cost { color: #059669; font-weight: 600; font-size: 16px; }
         .view-button { 
             display: inline-block; 
-            padding: 12px 24px; 
-            background: linear-gradient(135deg, #1a4a72 0%, #2563eb 100%); 
+            padding: 14px 24px; 
+            background-color: #3b82f6 !important; 
             color: #ffffff !important; 
             text-decoration: none; 
-            font-weight: 600; 
+            font-weight: bold; 
             border-radius: 6px;
             margin: 20px 0;
-            box-shadow: 0 2px 4px rgba(26, 74, 114, 0.3);
+            border: 2px solid #2563eb !important;
+            text-transform: uppercase;
         }
         .next-steps { background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 16px; margin: 24px 0; }
         .next-steps-title { margin: 0 0 8px 0; color: #1e40af; font-size: 14px; font-weight: 600; }
@@ -574,7 +600,7 @@ class PFEmailTemplates {
                             
                             <!-- View Order Button -->
                             <div style="text-align: center;">
-                                <a href="' . $viewOrderUrl . '" class="view-button">VIEW ORDER DETAILS</a>
+                                <a href="' . $viewOrderUrl . '" style="background-color: #3b82f6 !important; color: #ffffff !important; padding: 14px 24px; text-decoration: none; font-weight: bold; border-radius: 6px; border: 2px solid #2563eb; text-transform: uppercase; display: inline-block;">VIEW ORDER DETAILS</a>
                             </div>
                             
                             <!-- Next Steps -->
@@ -603,10 +629,6 @@ class PFEmailTemplates {
 
     /**
      * Genera las filas de órdenes para el resumen semanal
-     * 
-     * @param array $orders Lista de órdenes
-     * @param int $approverId ID del aprobador
-     * @return string HTML de las filas
      */
     private function generateOrderRows($orders, $approverId) {
         $orderRows = '';
@@ -639,9 +661,9 @@ class PFEmailTemplates {
                 <td class="order-cost">EUR ' . $costFormatted . '</td>
                 <td class="order-date">' . $createdDate . '</td>
                 <td class="order-actions">
-                    <a href="' . $approveUrl . '" class="order-btn order-approve">Approve</a>
-                    <a href="' . $rejectUrl . '" class="order-btn order-reject">Reject</a>
-                    <a href="' . $viewUrl . '" class="order-btn order-view">View</a>
+                    <a href="' . $approveUrl . '" style="background-color: #10b981 !important; color: #ffffff !important; padding: 8px 12px; text-decoration: none; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; border: 1px solid #059669; display: block; margin-bottom: 4px;">Approve</a>
+                    <a href="' . $rejectUrl . '" style="background-color: #ef4444 !important; color: #ffffff !important; padding: 8px 12px; text-decoration: none; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; border: 1px solid #dc2626; display: block; margin-bottom: 4px;">Reject</a>
+                    <a href="' . $viewUrl . '" style="background-color: #3b82f6 !important; color: #ffffff !important; padding: 8px 12px; text-decoration: none; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; border: 1px solid #2563eb; display: block;">View</a>
                 </td>
             </tr>';
         }
@@ -650,11 +672,6 @@ class PFEmailTemplates {
 
     /**
      * Genera un token de acción individual
-     * 
-     * @param int $orderId ID de la orden
-     * @param int $userId ID del usuario
-     * @param string $action Tipo de acción (approve/reject)
-     * @return string Token generado
      */
     private function generateActionToken($orderId, $userId, $action) {
         try {
