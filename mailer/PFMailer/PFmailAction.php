@@ -80,11 +80,14 @@ class PFMailAction {
         try {
             logAction("Iniciando processAction para token={$token}, acción={$action}", 'PROCESSACTION');
             $this->db->begin_transaction();
+            
+            // 1. Validar el token SIN marcarlo como usado aún
             $sql = "SELECT * FROM EmailActionTokens WHERE token = ? FOR UPDATE";
             $stmt = $this->db->prepare($sql);
             $stmt->bind_param("s", $token);
             $stmt->execute();
             $result = $stmt->get_result();
+            
             if ($result->num_rows === 0) {
                 $this->db->rollback();
                 logAction("Token no encontrado en la base de datos: {$token}", 'PROCESSACTION');
@@ -93,7 +96,10 @@ class PFMailAction {
                     'message' => 'El token proporcionado no es válido.'
                 ];
             }
+            
             $tokenData = $result->fetch_assoc();
+            
+            // 2. Verificar si ya fue usado
             if ($tokenData['is_used'] == 1) {
                 $this->db->rollback();
                 logAction("Token ya utilizado: {$token}", 'PROCESSACTION');
@@ -102,9 +108,12 @@ class PFMailAction {
                     'message' => 'El token ya ha sido utilizado previamente.'
                 ];
             }
+            
+            // 3. Validar los datos del token
             $orderId = $tokenData['order_id'];
             $userId = $tokenData['user_id'];
             $tokenAction = $tokenData['action'];
+            
             if ($action !== $tokenAction) {
                 $this->db->rollback();
                 logAction("Acción solicitada ({$action}) no coincide con la del token ({$tokenAction})", 'PROCESSACTION');
@@ -113,25 +122,32 @@ class PFMailAction {
                     'message' => 'La acción solicitada no coincide con la acción autorizada por el token.' 
                 ];
             }
-            if (!$this->markTokenAsUsed($token)) {
-                $this->db->rollback();
-                logAction("Error al marcar token como usado: {$token}", 'PROCESSACTION');
-                return [
-                    'success' => false,
-                    'message' => 'Error al procesar la acción. No se pudo marcar el token como utilizado.'
-                ];
-            }
+            
+            // 4. Procesar la acción (aprobar o rechazar) SIN marcar el token como usado aún
             $result = ($action === 'approve') 
                 ? $this->approveOrder($orderId, $userId)
                 : $this->rejectOrder($orderId, $userId);
+            
+            // 5. Solo si la acción fue exitosa, marcar el token como usado
             if ($result['success']) {
+                if (!$this->markTokenAsUsed($token)) {
+                    $this->db->rollback();
+                    logAction("Error al marcar token como usado después del procesamiento: {$token}", 'PROCESSACTION');
+                    return [
+                        'success' => false,
+                        'message' => 'Error al procesar la acción. No se pudo marcar el token como utilizado.'
+                    ];
+                }
+                
                 $this->db->commit();
-                logAction("Acción {$action} completada exitosamente para orden #{$orderId}", 'PROCESSACTION');
+                logAction("Acción {$action} completada exitosamente para orden #{$orderId} y token marcado como usado", 'PROCESSACTION');
             } else {
                 $this->db->rollback();
                 logAction("Error en acción {$action} para orden #{$orderId}: {$result['message']}", 'PROCESSACTION');
             }
+            
             return $result;
+            
         } catch (Exception $e) {
             $this->db->rollback();
             logAction("Excepción en processAction: " . $e->getMessage(), 'PROCESSACTION');
@@ -545,17 +561,7 @@ class PFMailAction {
             
             logAction("Token en bloque válido - User ID: {$userId}, Órdenes a procesar: " . count($orderIds), 'PROCESSBULKACTION');
             
-            if (!$this->markBulkTokenAsUsed($token)) {
-                $this->db->rollback();
-                logAction("Error al marcar token en bloque como usado: {$token}", 'PROCESSBULKACTION');
-                return [
-                    'success' => false,
-                    'message' => 'Error al procesar la acción. No se pudo marcar el token como utilizado.'
-                ];
-            }
-            
-            logAction("Token marcado como usado", 'PROCESSBULKACTION');
-            
+            // Procesar todas las órdenes ANTES de marcar el token como usado
             $successful = 0;
             $failed = 0;
             $errors = [];
@@ -583,6 +589,19 @@ class PFMailAction {
                     $errors[] = "Orden #{$orderId}: " . $e->getMessage();
                     logAction("Excepción procesando orden #{$orderId}: " . $e->getMessage(), 'PROCESSBULKACTION');
                 }
+            }
+            
+            // Solo si hubo al menos una orden procesada exitosamente, marcar el token como usado
+            if ($successful > 0) {
+                if (!$this->markBulkTokenAsUsed($token)) {
+                    $this->db->rollback();
+                    logAction("Error al marcar token en bloque como usado: {$token}", 'PROCESSBULKACTION');
+                    return [
+                        'success' => false,
+                        'message' => 'Error al procesar la acción. No se pudo marcar el token como utilizado.'
+                    ];
+                }
+                logAction("Token en bloque marcado como usado", 'PROCESSBULKACTION');
             }
             
             $this->db->commit();
