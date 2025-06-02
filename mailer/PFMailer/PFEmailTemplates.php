@@ -7,7 +7,7 @@
  * semanales y actualizaciones de estado.
  * 
  * @author GRAMMER AG
- * @version 2.0
+ * @version 2.1
  * @since 2025-06-02
  */
 
@@ -32,12 +32,12 @@ class PFEmailTemplates {
      * @return string HTML del correo
      */
     public function getApprovalEmailTemplate($orderData, $approvalToken, $rejectToken) {
-        // URLs corregidas para usar el endpoint individual
+        // URLs para usar el endpoint individual
         $approveUrl = $this->baseUrl . "PFmailSingleAction.php?action=approve&token=$approvalToken";
         $rejectUrl = $this->baseUrl . "PFmailSingleAction.php?action=reject&token=$rejectToken";
         $viewOrderUrl = defined('URLPF') ? URLPF . "orders.php?highlight=" . $orderData['id'] : "#";
         
-        // Formatear datos
+        // Formatear datos de manera segura
         $costEuros = number_format((float)($orderData['cost_euros'] ?? 0), 2);
         $orderDescription = htmlspecialchars($orderData['description'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
         $creatorName = htmlspecialchars($orderData['creator_name'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
@@ -60,166 +60,137 @@ class PFEmailTemplates {
     </noscript>
     <![endif]-->
     <style type="text/css">
-        /* Estilos para mejor compatibilidad */
-        .email-container { max-width: 600px; margin: 0 auto; }
-        .button-table { margin: 0 auto; }
+        /* Estilos corporativos optimizados */
+        body { margin: 0; padding: 0; background-color: #f4f4f4; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; }
+        .email-container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+        .header { background: linear-gradient(135deg, #1a4a72 0%, #2563eb 100%); padding: 30px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0 0 8px 0; font-size: 22px; font-weight: 600; }
+        .header h2 { color: #e2e8f0; margin: 0; font-size: 16px; font-weight: 400; }
+        .content { padding: 32px; }
+        .section-title { color: #1e293b; margin: 0 0 16px 0; font-size: 18px; font-weight: 600; }
+        .description { color: #64748b; margin: 0 0 24px 0; line-height: 1.6; font-size: 14px; }
+        .details-card { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin: 20px 0; }
+        .details-title { color: #0f172a; margin: 0 0 16px 0; font-size: 16px; font-weight: 600; border-bottom: 2px solid #1a4a72; padding-bottom: 8px; }
+        .detail-row { padding: 8px 0; border-bottom: 1px solid #e2e8f0; }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { color: #374151; font-weight: 500; width: 40%; display: inline-block; }
+        .detail-value { color: #1f2937; float: right; font-weight: 400; }
+        .detail-value.highlight { color: #1a4a72; font-weight: 600; }
+        .detail-value.cost { color: #059669; font-weight: 600; font-size: 16px; }
+        .actions-section { margin: 32px 0; text-align: center; }
+        .actions-title { color: #1e293b; margin: 0 0 16px 0; font-size: 16px; font-weight: 600; }
+        .actions-subtitle { color: #6b7280; margin: 0 0 20px 0; font-size: 12px; }
+        .button-container { display: inline-block; margin: 0 6px; }
         .action-button { 
-            display: block; 
+            display: inline-block; 
             padding: 12px 20px; 
             color: #ffffff !important; 
             text-decoration: none; 
-            font-weight: bold; 
-            font-size: 14px; 
-            text-align: center;
+            font-weight: 600; 
+            font-size: 13px; 
+            border-radius: 6px;
+            transition: all 0.2s ease;
         }
-        .approve-btn { background-color: #28a745; }
-        .reject-btn { background-color: #dc3545; }
-        .view-btn { background-color: #034C8C; }
+        .approve-btn { background: linear-gradient(135deg, #059669 0%, #10b981 100%); box-shadow: 0 2px 4px rgba(5, 150, 105, 0.3); }
+        .reject-btn { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); box-shadow: 0 2px 4px rgba(220, 38, 38, 0.3); }
+        .view-btn { background: linear-gradient(135deg, #1a4a72 0%, #2563eb 100%); box-shadow: 0 2px 4px rgba(26, 74, 114, 0.3); }
+        .info-box { background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; padding: 16px; margin: 24px 0; }
+        .info-text { margin: 0; color: #92400e; font-size: 12px; line-height: 1.4; }
+        .footer { background-color: #f8fafc; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0; }
+        .footer-text { color: #6b7280; margin: 0 0 6px 0; font-size: 11px; }
+        .footer-copyright { color: #9ca3af; margin: 0; font-size: 10px; }
     </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f8f9fa; font-family: Arial, sans-serif;">
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8f9fa;">
+<body>
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f4f4f4;">
         <tr>
             <td style="padding: 20px 0;">
-                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" class="email-container" style="margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" align="center">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" class="email-container" style="margin: 0 auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" align="center">
                     
                     <!-- Header -->
                     <tr>
-                        <td style="background-color: #034C8C; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-                            <h1 style="color: #ffffff; margin: 0 0 10px 0; font-size: 24px; font-weight: bold;">⚡ Premium Freight Approval Required</h1>
-                            <h2 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: normal;">Order #' . $orderData['id'] . '</h2>
+                        <td class="header" style="border-radius: 8px 8px 0 0;">
+                            <h1>Premium Freight Approval Required</h1>
+                            <h2>Order #' . $orderData['id'] . '</h2>
                         </td>
                     </tr>
                     
-                    <!-- Contenido principal -->
+                    <!-- Content -->
                     <tr>
-                        <td style="padding: 30px;">
-                            <h2 style="color: #333333; margin: 0 0 15px 0; font-size: 18px;">🔔 A new Premium Freight order requires your approval</h2>
-                            <p style="color: #555555; margin: 0 0 20px 0; line-height: 1.6; font-size: 14px;">Please review the following order details and take appropriate action. Your approval is needed to proceed with this Premium Freight request.</p>
+                        <td class="content">
+                            <h2 class="section-title">New Premium Freight Order Requires Your Approval</h2>
+                            <p class="description">A new Premium Freight order has been submitted and requires your approval before processing. Please review the order details below and take the appropriate action.</p>
                             
-                            <!-- Detalles de la orden -->
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8f9fa; border-radius: 8px; margin: 20px 0; border: 1px solid #e9ecef;">
-                                <tr>
-                                    <td style="padding: 25px;">
-                                        <h3 style="color: #333333; margin: 0 0 20px 0; font-size: 16px; border-bottom: 2px solid #034C8C; padding-bottom: 10px;">📋 Order Details</h3>
-                                        
-                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                                            <tr>
-                                                <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef; width: 40%;">
-                                                    <strong style="color: #333333;">🆔 Order ID:</strong>
-                                                </td>
-                                                <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef; text-align: right; color: #034C8C; font-weight: bold;">
-                                                    #' . $orderData['id'] . '
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef;">
-                                                    <strong style="color: #333333;">📝 Description:</strong>
-                                                </td>
-                                                <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef; text-align: right; color: #555555;">
-                                                    ' . $orderDescription . '
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef;">
-                                                    <strong style="color: #333333;">👤 Created by:</strong>
-                                                </td>
-                                                <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef; text-align: right; color: #555555;">
-                                                    ' . $creatorName . '
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef;">
-                                                    <strong style="color: #333333;">📅 Created:</strong>
-                                                </td>
-                                                <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef; text-align: right; color: #555555;">
-                                                    ' . $formattedDate . '
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef;">
-                                                    <strong style="color: #333333;">🏭 Area:</strong>
-                                                </td>
-                                                <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef; text-align: right; color: #555555;">
-                                                    ' . $plantaName . '
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding: 10px 0;">
-                                                    <strong style="color: #333333;">💰 Cost:</strong>
-                                                </td>
-                                                <td style="padding: 10px 0; text-align: right; color: #28a745; font-weight: bold; font-size: 16px;">
-                                                    EUR ' . $costEuros . '
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                            </table>
+                            <!-- Order Details -->
+                            <div class="details-card">
+                                <h3 class="details-title">Order Details</h3>
+                                
+                                <div class="detail-row">
+                                    <span class="detail-label">Order ID:</span>
+                                    <span class="detail-value highlight">#' . $orderData['id'] . '</span>
+                                </div>
+                                
+                                <div class="detail-row">
+                                    <span class="detail-label">Description:</span>
+                                    <span class="detail-value">' . $orderDescription . '</span>
+                                </div>
+                                
+                                <div class="detail-row">
+                                    <span class="detail-label">Requested by:</span>
+                                    <span class="detail-value">' . $creatorName . '</span>
+                                </div>
+                                
+                                <div class="detail-row">
+                                    <span class="detail-label">Date Created:</span>
+                                    <span class="detail-value">' . $formattedDate . '</span>
+                                </div>
+                                
+                                <div class="detail-row">
+                                    <span class="detail-label">Area/Department:</span>
+                                    <span class="detail-value">' . $plantaName . '</span>
+                                </div>
+                                
+                                <div class="detail-row">
+                                    <span class="detail-label">Estimated Cost:</span>
+                                    <span class="detail-value cost">EUR ' . $costEuros . '</span>
+                                </div>
+                            </div>
                             
-                            <!-- Botones de acción -->
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 30px 0;">
-                                <tr>
-                                    <td style="text-align: center;">
-                                        <h3 style="color: #333333; margin: 0 0 20px 0; font-size: 16px;">⚡ Take Action</h3>
-                                        <p style="color: #666666; margin: 0 0 15px 0; font-size: 12px;">Click one of the buttons below to process this order:</p>
-                                        
-                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" class="button-table" style="margin: 0 auto;">
-                                            <tr>
-                                                <td style="padding: 0 8px;">
-                                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0">
-                                                        <tr>
-                                                            <td style="border-radius: 6px; box-shadow: 0 2px 4px rgba(40,167,69,0.3);" class="approve-btn">
-                                                                <a href="' . $approveUrl . '" class="action-button approve-btn" style="display: block; padding: 14px 22px; color: #ffffff; text-decoration: none; font-weight: bold; font-size: 14px; border-radius: 6px;">✅ APPROVE ORDER</a>
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                                
-                                                <td style="padding: 0 8px;">
-                                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0">
-                                                        <tr>
-                                                            <td style="border-radius: 6px; box-shadow: 0 2px 4px rgba(220,53,69,0.3);" class="reject-btn">
-                                                                <a href="' . $rejectUrl . '" class="action-button reject-btn" style="display: block; padding: 14px 22px; color: #ffffff; text-decoration: none; font-weight: bold; font-size: 14px; border-radius: 6px;">❌ REJECT ORDER</a>
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                                
-                                                <td style="padding: 0 8px;">
-                                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0">
-                                                        <tr>
-                                                            <td style="border-radius: 6px; box-shadow: 0 2px 4px rgba(3,76,140,0.3);" class="view-btn">
-                                                                <a href="' . $viewOrderUrl . '" class="action-button view-btn" style="display: block; padding: 14px 22px; color: #ffffff; text-decoration: none; font-weight: bold; font-size: 14px; border-radius: 6px;">👁️ VIEW DETAILS</a>
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                            </table>
+                            <!-- Action Buttons -->
+                            <div class="actions-section">
+                                <h3 class="actions-title">Required Action</h3>
+                                <p class="actions-subtitle">Please select one of the following options to process this order:</p>
+                                
+                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
+                                    <tr>
+                                        <td class="button-container">
+                                            <a href="' . $approveUrl . '" class="action-button approve-btn">APPROVE ORDER</a>
+                                        </td>
+                                        <td class="button-container">
+                                            <a href="' . $rejectUrl . '" class="action-button reject-btn">REJECT ORDER</a>
+                                        </td>
+                                        <td class="button-container">
+                                            <a href="' . $viewOrderUrl . '" class="action-button view-btn">VIEW DETAILS</a>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
                             
-                            <!-- Nota informativa -->
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 25px 0; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px;">
-                                <tr>
-                                    <td style="padding: 15px;">
-                                        <p style="margin: 0; color: #856404; font-size: 12px; line-height: 1.4;">
-                                            ⚠️ <strong>Important:</strong> This approval request will expire in 72 hours. After that time, the requester will need to submit a new request.
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
+                            <!-- Important Notice -->
+                            <div class="info-box">
+                                <p class="info-text">
+                                    <strong>Important:</strong> This approval request will expire in 72 hours. After expiration, the requester will need to submit a new approval request.
+                                </p>
+                            </div>
                         </td>
                     </tr>
                     
                     <!-- Footer -->
                     <tr>
-                        <td style="background-color: #f8f9fa; padding: 25px; text-align: center; border-radius: 0 0 8px 8px; border-top: 1px solid #e9ecef;">
-                            <p style="color: #6c757d; margin: 0 0 8px 0; font-size: 12px;">🤖 This is an automated notification from the Premium Freight System.</p>
-                            <p style="color: #6c757d; margin: 0 0 8px 0; font-size: 12px;">Please do not reply to this email. For support, contact the system administrator.</p>
-                            <p style="color: #adb5bd; margin: 0; font-size: 10px;">© ' . date('Y') . ' GRAMMER AG - Premium Freight Management System</p>
+                        <td class="footer" style="border-radius: 0 0 8px 8px;">
+                            <p class="footer-text">This is an automated notification from the Premium Freight Management System.</p>
+                            <p class="footer-text">Please do not reply to this email. For support, contact your system administrator.</p>
+                            <p class="footer-copyright">© ' . date('Y') . ' GRAMMER AG - Premium Freight Management System</p>
                         </td>
                     </tr>
                 </table>
@@ -240,7 +211,7 @@ class PFEmailTemplates {
      * @return string HTML del correo
      */
     public function getWeeklySummaryTemplate($orders, $approver, $approveAllToken, $rejectAllToken) {
-        // URLs corregidas para acciones en bloque
+        // URLs para acciones en bloque
         $approveAllUrl = $this->baseUrl . "PFmailBulkAction.php?action=approve&token=$approveAllToken";
         $rejectAllUrl = $this->baseUrl . "PFmailBulkAction.php?action=reject&token=$rejectAllToken";
         
@@ -252,7 +223,7 @@ class PFEmailTemplates {
         // Formatear datos del aprobador
         $approverName = htmlspecialchars($approver['name'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
         
-        // Generar filas de órdenes (corregidas para usar PFmailSingleAction.php)
+        // Generar filas de órdenes
         $orderRows = $this->generateOrderRows($orders, $approver['id']);
 
         return '<!DOCTYPE html>
@@ -262,134 +233,162 @@ class PFEmailTemplates {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Weekly Premium Freight Summary</title>
     <style type="text/css">
-        /* Estilos mejorados para el resumen semanal */
-        .email-container { max-width: 800px; margin: 0 auto; }
-        .stats-table { width: 100%; border-collapse: collapse; }
-        .bulk-action-btn { 
-            display: block; 
+        /* Estilos corporativos para resumen semanal */
+        body { margin: 0; padding: 0; background-color: #f4f4f4; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; }
+        .email-container { max-width: 800px; margin: 0 auto; background-color: #ffffff; }
+        .header { background: linear-gradient(135deg, #1a4a72 0%, #2563eb 100%); padding: 30px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0 0 8px 0; font-size: 24px; font-weight: 600; }
+        .header-subtitle { color: #e2e8f0; margin: 0; font-size: 14px; font-weight: 400; }
+        .header-date { color: #cbd5e1; margin: 8px 0 0 0; font-size: 12px; }
+        .content { padding: 32px; }
+        .stats-card { background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border: 1px solid #cbd5e1; border-radius: 8px; padding: 24px; margin: 20px 0; }
+        .stats-title { color: #0f172a; margin: 0 0 16px 0; font-size: 16px; font-weight: 600; border-bottom: 2px solid #1a4a72; padding-bottom: 8px; }
+        .stats-grid { display: table; width: 100%; }
+        .stats-row { display: table-row; }
+        .stats-cell { display: table-cell; padding: 12px 0; width: 50%; vertical-align: middle; }
+        .stat-item { text-align: left; }
+        .stat-item.right { text-align: right; }
+        .stat-label { color: #374151; font-size: 14px; font-weight: 500; }
+        .stat-value { color: #1a4a72; font-size: 18px; font-weight: 600; margin-top: 4px; }
+        .stat-value.cost { color: #059669; }
+        .bulk-actions { background-color: #ffffff; border: 2px solid #e2e8f0; border-radius: 8px; padding: 24px; margin: 24px 0; text-align: center; }
+        .bulk-title { color: #1e293b; margin: 0 0 12px 0; font-size: 16px; font-weight: 600; }
+        .bulk-subtitle { color: #6b7280; margin: 0 0 20px 0; font-size: 13px; }
+        .bulk-button { 
+            display: inline-block; 
             padding: 14px 24px; 
             color: #ffffff !important; 
             text-decoration: none; 
-            font-weight: bold; 
+            font-weight: 600; 
             border-radius: 6px;
-            text-align: center;
+            margin: 0 8px;
+            font-size: 13px;
         }
-        .approve-all-btn { background-color: #28a745; }
-        .reject-all-btn { background-color: #dc3545; }
-        .orders-table { width: 100%; border-collapse: collapse; }
-        .orders-table th { background-color: #034C8C; color: #ffffff; padding: 12px; text-align: left; }
-        .orders-table td { padding: 12px; border-bottom: 1px solid #e9ecef; }
+        .approve-all-btn { background: linear-gradient(135deg, #059669 0%, #10b981 100%); box-shadow: 0 3px 6px rgba(5, 150, 105, 0.4); }
+        .reject-all-btn { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); box-shadow: 0 3px 6px rgba(220, 38, 38, 0.4); }
+        .bulk-warning { color: #6b7280; font-size: 11px; margin: 12px 0 0 0; }
+        .orders-section { margin: 30px 0; }
+        .section-title { color: #1e293b; margin: 0 0 12px 0; font-size: 16px; font-weight: 600; }
+        .section-subtitle { color: #6b7280; margin: 0 0 16px 0; font-size: 13px; }
+        .orders-table { width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; }
+        .orders-table th { 
+            background: linear-gradient(135deg, #1a4a72 0%, #2563eb 100%); 
+            color: #ffffff; 
+            padding: 12px 8px; 
+            text-align: left; 
+            font-size: 11px; 
+            font-weight: 600; 
+            text-transform: uppercase;
+        }
+        .orders-table td { padding: 12px 8px; border-bottom: 1px solid #e2e8f0; font-size: 12px; }
+        .order-id { color: #1a4a72; font-weight: 600; text-align: center; }
+        .order-desc { color: #374151; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .order-area { color: #6b7280; }
+        .order-cost { color: #059669; font-weight: 600; text-align: center; }
+        .order-date { color: #9ca3af; font-size: 11px; text-align: center; }
+        .order-actions { text-align: center; }
+        .order-btn { 
+            display: block; 
+            padding: 6px 10px; 
+            color: #ffffff; 
+            text-decoration: none; 
+            border-radius: 4px; 
+            font-size: 10px; 
+            font-weight: 600; 
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+        .order-approve { background-color: #059669; }
+        .order-reject { background-color: #dc2626; }
+        .order-view { background-color: #1a4a72; }
+        .info-box { background-color: #dbeafe; border: 1px solid #93c5fd; border-radius: 6px; padding: 16px; margin: 24px 0; }
+        .info-text { margin: 0; color: #1e3a8a; font-size: 12px; line-height: 1.4; }
+        .footer { background-color: #f8fafc; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0; }
+        .footer-text { color: #6b7280; margin: 0 0 6px 0; font-size: 11px; }
+        .footer-copyright { color: #9ca3af; margin: 0; font-size: 10px; }
     </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f8f9fa; font-family: Arial, sans-serif;">
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8f9fa;">
+<body>
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f4f4f4;">
         <tr>
             <td style="padding: 20px 0;">
-                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="800" class="email-container" style="margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" align="center">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="800" class="email-container" style="margin: 0 auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" align="center">
                     
                     <!-- Header -->
                     <tr>
-                        <td style="background: linear-gradient(135deg, #034C8C 0%, #0056a3 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-                            <h1 style="color: #ffffff; margin: 0 0 10px 0; font-size: 28px; font-weight: bold;">📊 Weekly Premium Freight Summary</h1>
-                            <p style="color: #ffffff; margin: 0; font-size: 16px; opacity: 0.9;">Hello ' . $approverName . ', you have <strong>' . $totalOrders . '</strong> orders pending your approval</p>
-                            <p style="color: #ffffff; margin: 10px 0 0 0; font-size: 14px; opacity: 0.8;">Week ending: ' . date('F d, Y') . '</p>
+                        <td class="header" style="border-radius: 8px 8px 0 0;">
+                            <h1>Weekly Premium Freight Summary</h1>
+                            <p class="header-subtitle">Hello ' . $approverName . ', you have <strong>' . $totalOrders . '</strong> orders pending your approval</p>
+                            <p class="header-date">Week ending: ' . date('F d, Y') . '</p>
                         </td>
                     </tr>
                     
-                    <!-- Contenido -->
+                    <!-- Content -->
                     <tr>
-                        <td style="padding: 30px;">
+                        <td class="content">
                             
-                            <!-- Estadísticas mejoradas -->
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px; margin: 20px 0; border: 1px solid #dee2e6;">
-                                <tr>
-                                    <td style="padding: 25px;">
-                                        <h3 style="margin: 0 0 20px 0; color: #333333; border-bottom: 2px solid #034C8C; padding-bottom: 10px;">📈 Summary Statistics</h3>
-                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="stats-table">
-                                            <tr>
-                                                <td style="padding: 12px 0; width: 50%;">
-                                                    <div style="display: flex; align-items: center;">
-                                                        <span style="font-size: 24px; margin-right: 10px;">📋</span>
-                                                        <div>
-                                                            <strong style="color: #333333; font-size: 14px;">Total Orders:</strong>
-                                                            <div style="color: #034C8C; font-size: 20px; font-weight: bold;">' . $totalOrders . '</div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td style="padding: 12px 0; text-align: right; width: 50%;">
-                                                    <div style="display: flex; align-items: center; justify-content: flex-end;">
-                                                        <div style="text-align: right; margin-right: 10px;">
-                                                            <strong style="color: #333333; font-size: 14px;">Total Value:</strong>
-                                                            <div style="color: #28a745; font-size: 20px; font-weight: bold;">EUR ' . number_format($totalCost, 2) . '</div>
-                                                        </div>
-                                                        <span style="font-size: 24px;">💰</span>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding: 12px 0; border-top: 1px solid #dee2e6;" colspan="2">
-                                                    <div style="text-align: center;">
-                                                        <strong style="color: #333333; font-size: 14px;">Average Order Value:</strong>
-                                                        <span style="color: #6c757d; font-size: 16px; font-weight: bold; margin-left: 10px;">EUR ' . number_format($avgCost, 2) . '</span>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                            </table>
+                            <!-- Statistics -->
+                            <div class="stats-card">
+                                <h3 class="stats-title">Summary Statistics</h3>
+                                <div class="stats-grid">
+                                    <div class="stats-row">
+                                        <div class="stats-cell">
+                                            <div class="stat-item">
+                                                <div class="stat-label">Total Orders</div>
+                                                <div class="stat-value">' . $totalOrders . '</div>
+                                            </div>
+                                        </div>
+                                        <div class="stats-cell">
+                                            <div class="stat-item right">
+                                                <div class="stat-label">Total Value</div>
+                                                <div class="stat-value cost">EUR ' . number_format($totalCost, 2) . '</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="stats-row" style="border-top: 1px solid #cbd5e1;">
+                                        <div class="stats-cell" colspan="2" style="text-align: center; padding-top: 16px;">
+                                            <div class="stat-label">Average Order Value</div>
+                                            <div class="stat-value">EUR ' . number_format($avgCost, 2) . '</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             
-                            <!-- Botones de acción en bloque mejorados -->
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 25px 0; background-color: #fff; border: 2px solid #e9ecef; border-radius: 8px;">
-                                <tr>
-                                    <td style="padding: 25px; text-align: center;">
-                                        <h3 style="margin: 0 0 15px 0; color: #333333;">⚡ Quick Actions</h3>
-                                        <p style="margin: 0 0 20px 0; color: #666666; font-size: 13px;">Process all orders at once with a single click:</p>
-                                        
-                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
-                                            <tr>
-                                                <td style="padding: 0 10px;">
-                                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0">
-                                                        <tr>
-                                                            <td style="border-radius: 6px; box-shadow: 0 3px 6px rgba(40,167,69,0.4);">
-                                                                <a href="' . $approveAllUrl . '" class="bulk-action-btn approve-all-btn" style="display: block; padding: 14px 24px; color: #ffffff; text-decoration: none; font-weight: bold; background-color: #28a745; border-radius: 6px;">✅ APPROVE ALL ORDERS</a>
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                                <td style="padding: 0 10px;">
-                                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0">
-                                                        <tr>
-                                                            <td style="border-radius: 6px; box-shadow: 0 3px 6px rgba(220,53,69,0.4);">
-                                                                <a href="' . $rejectAllUrl . '" class="bulk-action-btn reject-all-btn" style="display: block; padding: 14px 24px; color: #ffffff; text-decoration: none; font-weight: bold; background-color: #dc3545; border-radius: 6px;">❌ REJECT ALL ORDERS</a>
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                        
-                                        <p style="margin: 15px 0 0 0; color: #6c757d; font-size: 11px;">
-                                            ⚠️ Bulk actions will affect all ' . $totalOrders . ' orders listed below
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
-                            
-                            <!-- Tabla de órdenes mejorada -->
-                            <div style="margin: 30px 0;">
-                                <h3 style="margin: 0 0 15px 0; color: #333333;">📋 Orders Requiring Your Approval</h3>
-                                <p style="margin: 0 0 15px 0; color: #666666; font-size: 13px;">Review each order individually or use the bulk actions above:</p>
+                            <!-- Bulk Actions -->
+                            <div class="bulk-actions">
+                                <h3 class="bulk-title">Quick Actions</h3>
+                                <p class="bulk-subtitle">Process all orders at once with a single click:</p>
                                 
-                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="orders-table" style="border-collapse: collapse; border: 1px solid #dee2e6; border-radius: 6px; overflow: hidden;">
+                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
+                                    <tr>
+                                        <td>
+                                            <a href="' . $approveAllUrl . '" class="bulk-button approve-all-btn">APPROVE ALL ORDERS</a>
+                                        </td>
+                                        <td>
+                                            <a href="' . $rejectAllUrl . '" class="bulk-button reject-all-btn">REJECT ALL ORDERS</a>
+                                        </td>
+                                    </tr>
+                                </table>
+                                
+                                <p class="bulk-warning">
+                                    Bulk actions will affect all ' . $totalOrders . ' orders listed below
+                                </p>
+                            </div>
+                            
+                            <!-- Orders Table -->
+                            <div class="orders-section">
+                                <h3 class="section-title">Orders Requiring Your Approval</h3>
+                                <p class="section-subtitle">Review each order individually or use the bulk actions above:</p>
+                                
+                                <table class="orders-table">
                                     <thead>
                                         <tr>
-                                            <th style="background: linear-gradient(135deg, #034C8C 0%, #0056a3 100%); color: #ffffff; padding: 15px 12px; text-align: left; font-size: 12px; font-weight: bold;">Order #</th>
-                                            <th style="background: linear-gradient(135deg, #034C8C 0%, #0056a3 100%); color: #ffffff; padding: 15px 12px; text-align: left; font-size: 12px; font-weight: bold;">Description</th>
-                                            <th style="background: linear-gradient(135deg, #034C8C 0%, #0056a3 100%); color: #ffffff; padding: 15px 12px; text-align: left; font-size: 12px; font-weight: bold;">Area</th>
-                                            <th style="background: linear-gradient(135deg, #034C8C 0%, #0056a3 100%); color: #ffffff; padding: 15px 12px; text-align: left; font-size: 12px; font-weight: bold;">Cost</th>
-                                            <th style="background: linear-gradient(135deg, #034C8C 0%, #0056a3 100%); color: #ffffff; padding: 15px 12px; text-align: left; font-size: 12px; font-weight: bold;">Created</th>
-                                            <th style="background: linear-gradient(135deg, #034C8C 0%, #0056a3 100%); color: #ffffff; padding: 15px 12px; text-align: center; font-size: 12px; font-weight: bold;">Actions</th>
+                                            <th style="width: 10%;">Order #</th>
+                                            <th style="width: 35%;">Description</th>
+                                            <th style="width: 15%;">Area</th>
+                                            <th style="width: 12%;">Cost</th>
+                                            <th style="width: 12%;">Created</th>
+                                            <th style="width: 16%;">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -398,25 +397,21 @@ class PFEmailTemplates {
                                 </table>
                             </div>
                             
-                            <!-- Nota informativa -->
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 25px 0; background-color: #d1ecf1; border: 1px solid #bee5eb; border-radius: 6px;">
-                                <tr>
-                                    <td style="padding: 15px;">
-                                        <p style="margin: 0; color: #0c5460; font-size: 12px; line-height: 1.4;">
-                                            ℹ️ <strong>Reminder:</strong> These approval requests will expire in 72 hours. Orders not processed will require new approval requests from their creators.
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
+                            <!-- Important Notice -->
+                            <div class="info-box">
+                                <p class="info-text">
+                                    <strong>Reminder:</strong> These approval requests will expire in 72 hours. Orders not processed will require new approval requests from their creators.
+                                </p>
+                            </div>
                         </td>
                     </tr>
                     
                     <!-- Footer -->
                     <tr>
-                        <td style="background-color: #f8f9fa; padding: 25px; text-align: center; border-radius: 0 0 8px 8px; border-top: 1px solid #e9ecef;">
-                            <p style="color: #6c757d; margin: 0 0 8px 0; font-size: 12px;">🤖 This is an automated weekly summary from the Premium Freight System.</p>
-                            <p style="color: #6c757d; margin: 0 0 8px 0; font-size: 12px;">Please do not reply to this email. For support, contact the system administrator.</p>
-                            <p style="color: #adb5bd; margin: 0; font-size: 10px;">© ' . date('Y') . ' GRAMMER AG - Premium Freight Management System</p>
+                        <td class="footer" style="border-radius: 0 0 8px 8px;">
+                            <p class="footer-text">This is an automated weekly summary from the Premium Freight Management System.</p>
+                            <p class="footer-text">Please do not reply to this email. For support, contact your system administrator.</p>
+                            <p class="footer-copyright">© ' . date('Y') . ' GRAMMER AG - Premium Freight Management System</p>
                         </td>
                     </tr>
                 </table>
@@ -439,31 +434,33 @@ class PFEmailTemplates {
         $viewOrderUrl = defined('URLPF') ? URLPF . "orders.php?highlight=" . $orderData['id'] : "#";
         $costEuros = number_format((float)($orderData['cost_euros'] ?? 0), 2);
         
-        // Formatear datos
+        // Formatear datos de manera segura
         $orderDescription = htmlspecialchars($orderData['description'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
         $creatorName = htmlspecialchars($orderData['creator_name'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
         $plantaName = htmlspecialchars($orderData['planta'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
         $formattedDate = date('M d, Y H:i', strtotime($orderData['date']));
 
         if ($status === 'approved') {
-            $statusMessage = "🎉 <strong>Great news!</strong> Your Premium Freight order has been <strong style='color: #28a745;'>approved</strong>.";
+            $statusMessage = "<strong>Great news!</strong> Your Premium Freight order has been <strong style='color: #059669;'>approved</strong>.";
             $statusDetail = "Your request has been processed and approved. You can now proceed with the Premium Freight shipment.";
-            $statusColor = "#28a745";
-            $statusIcon = "✅";
-            $statusBg = "#d4edda";
-            $statusBorder = "#c3e6cb";
+            $statusColor = "#059669";
+            $statusTitle = "Order Approved";
+            $statusBg = "#d1fae5";
+            $statusBorder = "#86efac";
+            $nextSteps = "You can now proceed with your Premium Freight shipment. Contact the logistics team if you need assistance with scheduling or documentation.";
         } else {
-            $statusMessage = "❌ Your Premium Freight order has been <strong style='color: #dc3545;'>rejected</strong>.";
+            $statusMessage = "Your Premium Freight order has been <strong style='color: #dc2626;'>rejected</strong>.";
             $statusDetail = "Unfortunately, your Premium Freight request could not be approved.";
             if ($rejectorInfo) {
                 $rejectorName = htmlspecialchars($rejectorInfo['name'] ?? 'Unknown', ENT_QUOTES, 'UTF-8');
                 $statusDetail .= " Rejection was processed by " . $rejectorName . ".";
             }
             $statusDetail .= " Please review the order details and consider submitting a new request if needed.";
-            $statusColor = "#dc3545";
-            $statusIcon = "❌";
-            $statusBg = "#f8d7da";
-            $statusBorder = "#f5c6cb";
+            $statusColor = "#dc2626";
+            $statusTitle = "Order Rejected";
+            $statusBg = "#fee2e2";
+            $statusBorder = "#fca5a5";
+            $nextSteps = "If you believe this rejection was made in error or have questions, please contact your supervisor or the Premium Freight team for clarification.";
         }
 
         return '<!DOCTYPE html>
@@ -473,141 +470,123 @@ class PFEmailTemplates {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Premium Freight Order Status Update</title>
     <style type="text/css">
-        .status-badge { 
-            padding: 8px 16px; 
-            border-radius: 20px; 
-            font-weight: bold; 
+        /* Estilos corporativos para notificación de estado */
+        body { margin: 0; padding: 0; background-color: #f4f4f4; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; }
+        .email-container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+        .header { background-color: ' . $statusColor . '; padding: 30px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0 0 8px 0; font-size: 22px; font-weight: 600; }
+        .header h2 { color: rgba(255,255,255,0.9); margin: 0; font-size: 16px; font-weight: 400; }
+        .content { padding: 32px; }
+        .section-title { color: #1e293b; margin: 0 0 16px 0; font-size: 18px; font-weight: 600; }
+        .status-card { background-color: ' . $statusBg . '; border: 1px solid ' . $statusBorder . '; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center; }
+        .status-message { margin: 0 0 10px 0; color: #374151; line-height: 1.6; font-size: 16px; }
+        .status-detail { margin: 0; color: #6b7280; line-height: 1.6; font-size: 14px; }
+        .details-card { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin: 20px 0; }
+        .details-title { color: #0f172a; margin: 0 0 16px 0; font-size: 16px; font-weight: 600; border-bottom: 2px solid #1a4a72; padding-bottom: 8px; }
+        .detail-row { padding: 8px 0; border-bottom: 1px solid #e2e8f0; }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { color: #374151; font-weight: 500; width: 40%; display: inline-block; }
+        .detail-value { color: #1f2937; float: right; font-weight: 400; }
+        .detail-value.highlight { color: #1a4a72; font-weight: 600; }
+        .detail-value.cost { color: #059669; font-weight: 600; font-size: 16px; }
+        .view-button { 
             display: inline-block; 
-            margin: 10px 0;
+            padding: 12px 24px; 
+            background: linear-gradient(135deg, #1a4a72 0%, #2563eb 100%); 
+            color: #ffffff !important; 
+            text-decoration: none; 
+            font-weight: 600; 
+            border-radius: 6px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(26, 74, 114, 0.3);
         }
-        .email-container { max-width: 600px; margin: 0 auto; }
+        .next-steps { background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 16px; margin: 24px 0; }
+        .next-steps-title { margin: 0 0 8px 0; color: #1e40af; font-size: 14px; font-weight: 600; }
+        .next-steps-text { margin: 0; color: #1e40af; font-size: 12px; line-height: 1.4; }
+        .footer { background-color: #f8fafc; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0; }
+        .footer-text { color: #6b7280; margin: 0 0 6px 0; font-size: 11px; }
+        .footer-copyright { color: #9ca3af; margin: 0; font-size: 10px; }
     </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f8f9fa; font-family: Arial, sans-serif;">
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8f9fa;">
+<body>
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f4f4f4;">
         <tr>
             <td style="padding: 20px 0;">
-                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" class="email-container" style="margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" align="center">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" class="email-container" style="margin: 0 auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" align="center">
                     
                     <!-- Header -->
                     <tr>
-                        <td style="background-color: ' . $statusColor . '; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-                            <h1 style="color: #ffffff; margin: 0 0 10px 0; font-size: 24px; font-weight: bold;">' . $statusIcon . ' Order ' . ucfirst($status) . '</h1>
-                            <h2 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: normal;">Order #' . $orderData['id'] . '</h2>
+                        <td class="header" style="border-radius: 8px 8px 0 0;">
+                            <h1>' . $statusTitle . '</h1>
+                            <h2>Order #' . $orderData['id'] . '</h2>
                         </td>
                     </tr>
                     
-                    <!-- Contenido principal -->
+                    <!-- Content -->
                     <tr>
-                        <td style="padding: 30px;">
-                            <h2 style="color: #333333; margin: 0 0 15px 0; font-size: 18px;">📄 Order Status Update</h2>
+                        <td class="content">
+                            <h2 class="section-title">Order Status Update</h2>
                             
-                            <!-- Estado destacado -->
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: ' . $statusBg . '; border: 1px solid ' . $statusBorder . '; border-radius: 8px; margin: 20px 0;">
-                                <tr>
-                                    <td style="padding: 20px; text-align: center;">
-                                        <p style="margin: 0 0 10px 0; color: #333333; line-height: 1.6; font-size: 16px;">' . $statusMessage . '</p>
-                                        <p style="margin: 0; color: #555555; line-height: 1.6; font-size: 14px;">' . $statusDetail . '</p>
-                                    </td>
-                                </tr>
-                            </table>
+                            <!-- Status Message -->
+                            <div class="status-card">
+                                <p class="status-message">' . $statusMessage . '</p>
+                                <p class="status-detail">' . $statusDetail . '</p>
+                            </div>
                             
-                            <!-- Detalles de la orden -->
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8f9fa; border-radius: 8px; margin: 20px 0; border: 1px solid #e9ecef;">
-                                <tr>
-                                    <td style="padding: 25px;">
-                                        <h3 style="color: #333333; margin: 0 0 20px 0; font-size: 16px; border-bottom: 2px solid #034C8C; padding-bottom: 10px;">📋 Order Details</h3>
-                                        
-                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                                            <tr>
-                                                <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef; width: 40%;">
-                                                    <strong style="color: #333333;">🆔 Order ID:</strong>
-                                                </td>
-                                                <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef; text-align: right; color: #034C8C; font-weight: bold;">
-                                                    #' . $orderData['id'] . '
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef;">
-                                                    <strong style="color: #333333;">📝 Description:</strong>
-                                                </td>
-                                                <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef; text-align: right; color: #555555;">
-                                                    ' . $orderDescription . '
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef;">
-                                                    <strong style="color: #333333;">👤 Created by:</strong>
-                                                </td>
-                                                <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef; text-align: right; color: #555555;">
-                                                    ' . $creatorName . '
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef;">
-                                                    <strong style="color: #333333;">📅 Created:</strong>
-                                                </td>
-                                                <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef; text-align: right; color: #555555;">
-                                                    ' . $formattedDate . '
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef;">
-                                                    <strong style="color: #333333;">🏭 Area:</strong>
-                                                </td>
-                                                <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef; text-align: right; color: #555555;">
-                                                    ' . $plantaName . '
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding: 10px 0;">
-                                                    <strong style="color: #333333;">💰 Cost:</strong>
-                                                </td>
-                                                <td style="padding: 10px 0; text-align: right; color: #28a745; font-weight: bold; font-size: 16px;">
-                                                    EUR ' . $costEuros . '
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                            </table>
+                            <!-- Order Details -->
+                            <div class="details-card">
+                                <h3 class="details-title">Order Details</h3>
+                                
+                                <div class="detail-row">
+                                    <span class="detail-label">Order ID:</span>
+                                    <span class="detail-value highlight">#' . $orderData['id'] . '</span>
+                                </div>
+                                
+                                <div class="detail-row">
+                                    <span class="detail-label">Description:</span>
+                                    <span class="detail-value">' . $orderDescription . '</span>
+                                </div>
+                                
+                                <div class="detail-row">
+                                    <span class="detail-label">Requested by:</span>
+                                    <span class="detail-value">' . $creatorName . '</span>
+                                </div>
+                                
+                                <div class="detail-row">
+                                    <span class="detail-label">Date Created:</span>
+                                    <span class="detail-value">' . $formattedDate . '</span>
+                                </div>
+                                
+                                <div class="detail-row">
+                                    <span class="detail-label">Area/Department:</span>
+                                    <span class="detail-value">' . $plantaName . '</span>
+                                </div>
+                                
+                                <div class="detail-row">
+                                    <span class="detail-label">Cost:</span>
+                                    <span class="detail-value cost">EUR ' . $costEuros . '</span>
+                                </div>
+                            </div>
                             
-                            <!-- Botón para ver orden -->
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 30px 0;">
-                                <tr>
-                                    <td style="text-align: center;">
-                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
-                                            <tr>
-                                                <td style="background-color: #034C8C; border-radius: 6px; text-align: center; box-shadow: 0 2px 4px rgba(3,76,140,0.3);">
-                                                    <a href="' . $viewOrderUrl . '" style="display: block; padding: 14px 24px; color: #ffffff; text-decoration: none; font-weight: bold; font-size: 14px; border-radius: 6px;">👁️ VIEW ORDER DETAILS</a>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                            </table>
+                            <!-- View Order Button -->
+                            <div style="text-align: center;">
+                                <a href="' . $viewOrderUrl . '" class="view-button">VIEW ORDER DETAILS</a>
+                            </div>
                             
-                            <!-- Próximos pasos -->
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 25px 0; background-color: #e7f3ff; border: 1px solid #b8daff; border-radius: 6px;">
-                                <tr>
-                                    <td style="padding: 15px;">
-                                        <h4 style="margin: 0 0 10px 0; color: #004085; font-size: 14px;">📌 Next Steps:</h4>
-                                        ' . ($status === 'approved' 
-                                            ? '<p style="margin: 0; color: #004085; font-size: 12px; line-height: 1.4;">You can now proceed with your Premium Freight shipment. Contact the logistics team if you need assistance with scheduling or documentation.</p>'
-                                            : '<p style="margin: 0; color: #004085; font-size: 12px; line-height: 1.4;">If you believe this rejection was made in error or have questions, please contact your supervisor or the Premium Freight team for clarification.</p>'
-                                        ) . '
-                                    </td>
-                                </tr>
-                            </table>
+                            <!-- Next Steps -->
+                            <div class="next-steps">
+                                <h4 class="next-steps-title">Next Steps:</h4>
+                                <p class="next-steps-text">' . $nextSteps . '</p>
+                            </div>
                         </td>
                     </tr>
                     
                     <!-- Footer -->
                     <tr>
-                        <td style="background-color: #f8f9fa; padding: 25px; text-align: center; border-radius: 0 0 8px 8px; border-top: 1px solid #e9ecef;">
-                            <p style="color: #6c757d; margin: 0 0 8px 0; font-size: 12px;">🤖 This is an automated notification from the Premium Freight System.</p>
-                            <p style="color: #6c757d; margin: 0 0 8px 0; font-size: 12px;">Please do not reply to this email. For support, contact the system administrator.</p>
-                            <p style="color: #adb5bd; margin: 0; font-size: 10px;">© ' . date('Y') . ' GRAMMER AG - Premium Freight Management System</p>
+                        <td class="footer" style="border-radius: 0 0 8px 8px;">
+                            <p class="footer-text">This is an automated notification from the Premium Freight Management System.</p>
+                            <p class="footer-text">Please do not reply to this email. For support, contact your system administrator.</p>
+                            <p class="footer-copyright">© ' . date('Y') . ' GRAMMER AG - Premium Freight Management System</p>
                         </td>
                     </tr>
                 </table>
@@ -619,7 +598,7 @@ class PFEmailTemplates {
     }
 
     /**
-     * Genera las filas de órdenes para el resumen semanal (CORREGIDO)
+     * Genera las filas de órdenes para el resumen semanal
      * 
      * @param array $orders Lista de órdenes
      * @param int $approverId ID del aprobador
@@ -631,7 +610,7 @@ class PFEmailTemplates {
         
         foreach ($orders as $order) {
             $rowCount++;
-            $rowBgColor = ($rowCount % 2 === 0) ? '#f8f9fa' : '#ffffff';
+            $rowBgColor = ($rowCount % 2 === 0) ? '#f8fafc' : '#ffffff';
             
             // Formatear datos de manera segura
             $costFormatted = number_format((float)($order['cost_euros'] ?? 0), 2);
@@ -643,51 +622,22 @@ class PFEmailTemplates {
             $approveToken = $this->generateActionToken($order['id'], $approverId, 'approve');
             $rejectToken = $this->generateActionToken($order['id'], $approverId, 'reject');
             
-            // URLs CORREGIDAS para usar PFmailSingleAction.php
+            // URLs para usar PFmailSingleAction.php
             $approveUrl = $this->baseUrl . "PFmailSingleAction.php?action=approve&token=$approveToken";
             $rejectUrl = $this->baseUrl . "PFmailSingleAction.php?action=reject&token=$rejectToken";
             $viewUrl = defined('URLPF') ? URLPF . "orders.php?highlight=" . $order['id'] : "#";
             
             $orderRows .= '
             <tr style="background-color: ' . $rowBgColor . ';">
-                <td style="padding: 15px 12px; text-align: center; font-weight: bold; border-bottom: 1px solid #e9ecef; width: 10%; color: #034C8C;">
-                    #' . $order['id'] . '
-                </td>
-                <td style="padding: 15px 12px; border-bottom: 1px solid #e9ecef; width: 35%; color: #333333; line-height: 1.4;">
-                    <div style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="' . $orderDescription . '">
-                        ' . $orderDescription . '
-                    </div>
-                </td>
-                <td style="padding: 15px 12px; border-bottom: 1px solid #e9ecef; width: 15%; color: #555555;">
-                    ' . $plantaName . '
-                </td>
-                <td style="padding: 15px 12px; text-align: center; border-bottom: 1px solid #e9ecef; width: 12%; color: #28a745; font-weight: bold;">
-                    EUR ' . $costFormatted . '
-                </td>
-                <td style="padding: 15px 12px; text-align: center; border-bottom: 1px solid #e9ecef; width: 12%; color: #6c757d; font-size: 12px;">
-                    ' . $createdDate . '
-                </td>
-                <td style="padding: 15px 12px; text-align: center; border-bottom: 1px solid #e9ecef; width: 16%;">
-                    <!-- Botones en columna vertical -->
-                    <div style="text-align: center;">
-                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto; width: 100%;">
-                            <tr>
-                                <td style="padding-bottom: 5px;">
-                                    <a href="' . $approveUrl . '" style="background-color: #28a745; color: #ffffff; padding: 8px 12px; text-decoration: none; border-radius: 4px; font-size: 11px; display: block; text-align: center; width: 100%; box-sizing: border-box; font-weight: bold; box-shadow: 0 1px 3px rgba(40,167,69,0.3);">✅ APPROVE</a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding-bottom: 5px;">
-                                    <a href="' . $rejectUrl . '" style="background-color: #dc3545; color: #ffffff; padding: 8px 12px; text-decoration: none; border-radius: 4px; font-size: 11px; display: block; text-align: center; width: 100%; box-sizing: border-box; font-weight: bold; box-shadow: 0 1px 3px rgba(220,53,69,0.3);">❌ REJECT</a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <a href="' . $viewUrl . '" style="background-color: #034C8C; color: #ffffff; padding: 8px 12px; text-decoration: none; border-radius: 4px; font-size: 11px; display: block; text-align: center; width: 100%; box-sizing: border-box; font-weight: bold; box-shadow: 0 1px 3px rgba(3,76,140,0.3);">👁️ VIEW</a>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
+                <td class="order-id">#' . $order['id'] . '</td>
+                <td class="order-desc" title="' . $orderDescription . '">' . $orderDescription . '</td>
+                <td class="order-area">' . $plantaName . '</td>
+                <td class="order-cost">EUR ' . $costFormatted . '</td>
+                <td class="order-date">' . $createdDate . '</td>
+                <td class="order-actions">
+                    <a href="' . $approveUrl . '" class="order-btn order-approve">Approve</a>
+                    <a href="' . $rejectUrl . '" class="order-btn order-reject">Reject</a>
+                    <a href="' . $viewUrl . '" class="order-btn order-view">View</a>
                 </td>
             </tr>';
         }
@@ -718,3 +668,19 @@ class PFEmailTemplates {
     }
 }
 ?>
+<script>
+let actionInProgress = false;
+
+document.addEventListener('click', function(e) {
+    if (e.target.tagName === 'A' && (e.target.href.includes('approve') || e.target.href.includes('reject'))) {
+        if (actionInProgress) {
+            e.preventDefault();
+            return false;
+        }
+        actionInProgress = true;
+        
+        // Desactivar después de 10 segundos por si acaso
+        setTimeout(() => { actionInProgress = false; }, 10000);
+    }
+});
+</script>
