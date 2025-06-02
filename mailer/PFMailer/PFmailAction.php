@@ -779,7 +779,7 @@ if (!isset($_GET['action']) || !isset($_GET['token'])) {
         $error = true;
         $errorMessage = 'Acción inválida';
     }
-}
+} 
 
 // 5. Registrar la acción solicitada para depuración
 logAction("Solicitud recibida: acción={$action}, token={$token}", 'PFMAILACTION');
