@@ -254,7 +254,7 @@ function validateOrderForApproval(order) {
         return false;
     }
     
-    // Verificar nivel de autorización
+    // Verificar nivel de autorización: debe ser exactamente (act_approv + 1)
     const currentStatus = Number(order.approval_status);
     const nextRequiredLevel = currentStatus + 1;
     
@@ -262,7 +262,30 @@ function validateOrderForApproval(order) {
         Swal.fire({
             icon: 'warning',
             title: 'Nivel de autorización incorrecto',
-            text: 'No tienes el nivel de autorización requerido para aprobar esta orden en este momento.',
+            text: `Tu nivel de autorización (${window.authorizationLevel}) no corresponde al requerido para esta orden (${nextRequiredLevel}).`,
+            customClass: { container: 'swal-on-top' }
+        });
+        return false;
+    }
+    
+    // Verificar que no esté completamente aprobada
+    const requiredLevel = Number(order.required_auth_level || 7);
+    if (currentStatus >= requiredLevel) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Orden ya aprobada',
+            text: 'Esta orden ya está completamente aprobada.',
+            customClass: { container: 'swal-on-top' }
+        });
+        return false;
+    }
+    
+    // Verificar que no esté rechazada
+    if (currentStatus === 99) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Orden rechazada',
+            text: 'Esta orden fue rechazada previamente.',
             customClass: { container: 'swal-on-top' }
         });
         return false;

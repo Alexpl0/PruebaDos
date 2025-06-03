@@ -7,6 +7,7 @@
  */
 
 require_once 'PFDB.php';
+require_once 'PFmailUtils.php'; // Agregar esta línea
 
 class PFEmailServices {
     private $db;
@@ -41,7 +42,7 @@ class PFEmailServices {
      * Obtiene los próximos aprobadores para una orden
      */
     public function getNextApprovers($orderId) {
-        // Obtener el estado actual de aprobación y la planta de la orden
+        // Obtener el estado actual de aprobación y datos de la orden
         $sql = "SELECT PF.user_id, PF.required_auth_level, 
                    COALESCE(PFA.act_approv, 0) as current_approval_level,
                    U.plant as order_plant
@@ -49,13 +50,14 @@ class PFEmailServices {
             LEFT JOIN PremiumFreightApprovals PFA ON PF.id = PFA.premium_freight_id
             INNER JOIN User U ON PF.user_id = U.id
             WHERE PF.id = ?";
-    
+
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param("i", $orderId);
         $stmt->execute();
         $result = $stmt->get_result();
         
         if ($result->num_rows === 0) {
+            logAction("Orden #{$orderId} no encontrada", 'GETNEXTAPPROVERS');
             return [];
         }
         
@@ -66,32 +68,34 @@ class PFEmailServices {
         
         logAction("getNextApprovers - Orden #{$orderId}: current_approval={$currentApprovalLevel}, required={$requiredAuthLevel}, plant={$orderPlant}", 'GETNEXTAPPROVERS');
         
-        // Verificar si ya está completamente aprobada
+        // VALIDACIÓN 1: Verificar si ya está completamente aprobada
         if ($currentApprovalLevel >= $requiredAuthLevel) {
-            logAction("Orden #{$orderId} ya está completamente aprobada", 'GETNEXTAPPROVERS');
+            logAction("Orden #{$orderId} ya está completamente aprobada (act_approv={$currentApprovalLevel} >= required={$requiredAuthLevel})", 'GETNEXTAPPROVERS');
             return [];
         }
         
-        // Verificar si fue rechazada
+        // VALIDACIÓN 2: Verificar si fue rechazada
         if ($currentApprovalLevel == 99) {
-            logAction("Orden #{$orderId} fue rechazada", 'GETNEXTAPPROVERS');
+            logAction("Orden #{$orderId} fue rechazada (act_approv=99)", 'GETNEXTAPPROVERS');
             return [];
         }
         
+        // CALCULAR EL SIGUIENTE NIVEL REQUERIDO
         $nextAuthLevel = $currentApprovalLevel + 1;
         
-        logAction("Buscando aprobadores con nivel {$nextAuthLevel} para planta '{$orderPlant}'", 'GETNEXTAPPROVERS');
+        logAction("Buscando aprobadores con nivel {$nextAuthLevel} para orden de planta '{$orderPlant}'", 'GETNEXTAPPROVERS');
         
-        // Obtener usuarios con el nivel de autorización exacto
-        // Buscar usuarios de la misma planta O usuarios regionales (plant IS NULL)
+        // BÚSQUEDA DE APROBADORES: authorization_level = (act_approv + 1) Y (misma planta O sin planta)
         $approversSql = "SELECT id, name, email, authorization_level, plant 
                         FROM User 
                         WHERE authorization_level = ? 
                         AND (plant = ? OR plant IS NULL)
-                        ORDER BY plant ASC"; // Primero los de la planta, luego los regionales
+                        ORDER BY 
+                            CASE WHEN plant = ? THEN 0 ELSE 1 END, -- Primero los de la misma planta
+                            id ASC"; // Luego por ID para orden consistente
     
         $approversStmt = $this->db->prepare($approversSql);
-        $approversStmt->bind_param("is", $nextAuthLevel, $orderPlant);
+        $approversStmt->bind_param("iss", $nextAuthLevel, $orderPlant, $orderPlant);
         $approversStmt->execute();
         $approversResult = $approversStmt->get_result();
         
