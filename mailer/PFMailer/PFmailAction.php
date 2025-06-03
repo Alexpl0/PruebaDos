@@ -149,154 +149,125 @@ class PFMailAction {
         try {
             logAction("Aprobando orden #{$orderId} por usuario #{$userId}", 'APPROVEORDER');
             
-            // Obtener el estado actual de la orden
-            $getCurrentSql = "SELECT PFA.act_approv, PF.required_auth_level, PF.status_id
+            // PRIMERO: Validar que el usuario tenga el nivel correcto para aprobar
+            $validationSql = "SELECT PFA.act_approv, PF.required_auth_level, PF.status_id, PF.user_id as creator_id,
+                                     U_creator.plant as order_plant, U_approver.authorization_level as approver_level
                               FROM PremiumFreightApprovals PFA 
                               JOIN PremiumFreight PF ON PFA.premium_freight_id = PF.id
+                              JOIN User U_creator ON PF.user_id = U_creator.id
+                              JOIN User U_approver ON U_approver.id = ?
                               WHERE PFA.premium_freight_id = ?";
             
-            $getCurrentStmt = $this->db->prepare($getCurrentSql);
-            $getCurrentStmt->bind_param("i", $orderId);
-            $getCurrentStmt->execute();
-            $currentResult = $getCurrentStmt->get_result();
+            $validationStmt = $this->db->prepare($validationSql);
+            $validationStmt->bind_param("ii", $userId, $orderId);
+            $validationStmt->execute();
+            $validationResult = $validationStmt->get_result();
             
-            if ($currentResult->num_rows > 0) {
-                $currentData = $currentResult->fetch_assoc();
-                $currentApproval = (int)$currentData['act_approv'];
-                $requiredLevel = (int)$currentData['required_auth_level'];
-                $currentStatus = (int)$currentData['status_id'];
+            if ($validationResult->num_rows === 0) {
+                return [
+                    'success' => false,
+                    'message' => "No se pudo validar la orden o el usuario aprobador."
+                ];
+            }
+            
+            $data = $validationResult->fetch_assoc();
+            $currentApproval = (int)$data['act_approv'];
+            $requiredLevel = (int)$data['required_auth_level'];
+            $currentStatus = (int)$data['status_id'];
+            $approverLevel = (int)$data['approver_level'];
+            $orderPlant = $data['order_plant'];
+            
+            // Verificar si ya está completamente aprobada
+            if ($currentApproval >= $requiredLevel) {
+                return [
+                    'success' => true,
+                    'message' => "La orden #{$orderId} ya está completamente aprobada."
+                ];
+            }
+            
+            // Verificar si fue rechazada
+            if ($currentApproval == 99) {
+                return [
+                    'success' => false,
+                    'message' => "La orden #{$orderId} fue rechazada previamente y no puede ser aprobada."
+                ];
+            }
+            
+            // VALIDACIÓN CRÍTICA: El usuario debe tener el nivel correcto
+            $expectedLevel = $currentApproval + 1;
+            if ($approverLevel !== $expectedLevel) {
+                return [
+                    'success' => false,
+                    'message' => "Su nivel de autorización ({$approverLevel}) no corresponde al requerido para esta orden ({$expectedLevel})."
+                ];
+            }
+            
+            // Validar que el usuario sea de la misma planta o sea regional
+            $userPlantSql = "SELECT plant FROM User WHERE id = ?";
+            $userPlantStmt = $this->db->prepare($userPlantSql);
+            $userPlantStmt->bind_param("i", $userId);
+            $userPlantStmt->execute();
+            $userPlantResult = $userPlantStmt->get_result();
+            $userPlant = $userPlantResult->fetch_assoc()['plant'];
+            
+            if ($userPlant !== null && $userPlant !== $orderPlant) {
+                return [
+                    'success' => false,
+                    'message' => "No tiene autorización para aprobar órdenes de la planta: {$orderPlant}."
+                ];
+            }
+            
+            // El nuevo nivel de aprobación será igual al authorization_level del usuario que aprueba
+            $newApprovalLevel = $approverLevel;
+            
+            // Verificar si con este nuevo nivel estará completamente aprobada
+            $willBeFullyApproved = ($newApprovalLevel >= $requiredLevel);
+            
+            // Actualizar act_approv con el authorization_level del aprobador
+            $updateSql = "UPDATE PremiumFreightApprovals 
+                         SET act_approv = ?, approval_date = NOW(), user_id = ? 
+                         WHERE premium_freight_id = ?";
+            $updateStmt = $this->db->prepare($updateSql);
+            $updateStmt->bind_param("iii", $newApprovalLevel, $userId, $orderId);
+            
+            if (!$updateStmt->execute()) {
+                throw new Exception("Error al actualizar la aprobación: " . $updateStmt->error);
+            }
+            
+            // Determinar el nuevo status_id
+            $newStatusId = $willBeFullyApproved ? 3 : 2; // 3 = Completamente aprobado, 2 = En proceso
+            
+            // Actualizar el status_id
+            $statusSql = "UPDATE PremiumFreight SET status_id = ? WHERE id = ?";
+            $statusStmt = $this->db->prepare($statusSql);
+            $statusStmt->bind_param("ii", $newStatusId, $orderId);
+            $statusStmt->execute();
+            
+            logAction("Orden #{$orderId} actualizada: act_approv={$newApprovalLevel}, status_id={$newStatusId}, fully_approved=" . ($willBeFullyApproved ? 'YES' : 'NO'), 'APPROVEORDER');
+            
+            // ENVIAR NOTIFICACIONES SEGÚN EL ESTADO FINAL
+            try {
+                $mailer = new PFMailer();
                 
-                // Verificar si ya está completamente aprobada
-                if ($currentApproval >= $requiredLevel) {
-                    return [
-                        'success' => true,
-                        'message' => "La orden #{$orderId} ya está completamente aprobada."
-                    ];
+                if ($willBeFullyApproved) {
+                    // Orden completamente aprobada - notificar SOLO al creador
+                    logAction("Orden completamente aprobada. Enviando notificación al creador (NO al aprobador actual)", 'APPROVEORDER');
+                    $mailer->sendStatusNotification($orderId, 'approved');
+                } else {
+                    // Orden necesita más aprobaciones - notificar al SIGUIENTE aprobador (NO al actual)
+                    logAction("Orden parcialmente aprobada. Enviando notificación al SIGUIENTE aprobador", 'APPROVEORDER');
+                    $mailer->sendApprovalNotification($orderId);
                 }
-                
-                // Verificar si fue rechazada
-                if ($currentApproval == 99) {
-                    return [
-                        'success' => false,
-                        'message' => "La orden #{$orderId} fue rechazada previamente y no puede ser aprobada."
-                    ];
-                }
-                
-                // Obtener el authorization_level del usuario que aprueba
-                $getUserLevelSql = "SELECT authorization_level FROM User WHERE id = ?";
-                $getUserLevelStmt = $this->db->prepare($getUserLevelSql);
-                $getUserLevelStmt->bind_param("i", $userId);
-                $getUserLevelStmt->execute();
-                $userLevelResult = $getUserLevelStmt->get_result();
-                
-                if ($userLevelResult->num_rows === 0) {
-                    throw new Exception("Usuario aprobador no encontrado");
-                }
-                
-                $userAuthLevel = (int)$userLevelResult->fetch_assoc()['authorization_level'];
-                
-                // El nuevo nivel de aprobación será igual al authorization_level del usuario que aprueba
-                $newApprovalLevel = $userAuthLevel;
-                
-                // Verificar si con este nuevo nivel estará completamente aprobada
-                $willBeFullyApproved = ($newApprovalLevel >= $requiredLevel);
-                
-                // Actualizar act_approv con el authorization_level del aprobador
-                $updateSql = "UPDATE PremiumFreightApprovals 
-                             SET act_approv = ?, approval_date = NOW(), user_id = ? 
-                             WHERE premium_freight_id = ?";
-                $updateStmt = $this->db->prepare($updateSql);
-                $updateStmt->bind_param("iii", $newApprovalLevel, $userId, $orderId);
-                
-                if (!$updateStmt->execute()) {
-                    throw new Exception("Error al actualizar la aprobación: " . $updateStmt->error);
-                }
-                
-                // Determinar el nuevo status_id
-                $newStatusId = $willBeFullyApproved ? 3 : 2; // 3 = Completamente aprobado, 2 = En proceso
-                
-                // Actualizar el status_id si es necesario
-                if ($currentStatus != $newStatusId) {
-                    $statusSql = "UPDATE PremiumFreight SET status_id = ? WHERE id = ?";
-                    $statusStmt = $this->db->prepare($statusSql);
-                    $statusStmt->bind_param("ii", $newStatusId, $orderId);
-                    $statusStmt->execute();
-                }
-                
-                // Enviar notificaciones según el estado final
-                try {
-                    $mailer = new PFMailer();
-                    
-                    if ($willBeFullyApproved) {
-                        // Orden completamente aprobada - notificar al creador
-                        logAction("Enviando notificación de aprobación completa al creador de la orden #{$orderId}", 'APPROVEORDER');
-                        $mailer->sendStatusNotification($orderId, 'approved');
-                    } else {
-                        // Orden necesita más aprobaciones - notificar al siguiente aprobador
-                        logAction("Enviando notificación al siguiente aprobador para la orden #{$orderId}", 'APPROVEORDER');
-                        $mailer->sendApprovalNotification($orderId);
-                    }
-                } catch (Exception $e) {
-                    logAction("Error enviando notificaciones: " . $e->getMessage(), 'APPROVEORDER');
-                    // No fallar la aprobación si hay error en el envío de correos
-                }
-                
-            } else {
-                // No existe registro de aprobación, crear nuevo
-                $getUserLevelSql = "SELECT authorization_level FROM User WHERE id = ?";
-                $getUserLevelStmt = $this->db->prepare($getUserLevelSql);
-                $getUserLevelStmt->bind_param("i", $userId);
-                $getUserLevelStmt->execute();
-                $userLevelResult = $getUserLevelStmt->get_result();
-                
-                if ($userLevelResult->num_rows === 0) {
-                    throw new Exception("Usuario aprobador no encontrado");
-                }
-                
-                $userAuthLevel = (int)$userLevelResult->fetch_assoc()['authorization_level'];
-                
-                // Obtener required_auth_level
-                $getRequiredSql = "SELECT required_auth_level FROM PremiumFreight WHERE id = ?";
-                $getRequiredStmt = $this->db->prepare($getRequiredSql);
-                $getRequiredStmt->bind_param("i", $orderId);
-                $getRequiredStmt->execute();
-                $requiredResult = $getRequiredStmt->get_result();
-                $requiredLevel = (int)$requiredResult->fetch_assoc()['required_auth_level'];
-                
-                // Crear registro con el authorization_level del usuario
-                $insertSql = "INSERT INTO PremiumFreightApprovals (premium_freight_id, act_approv, user_id, approval_date) 
-                             VALUES (?, ?, ?, NOW())";
-                $insertStmt = $this->db->prepare($insertSql);
-                $insertStmt->bind_param("iii", $orderId, $userAuthLevel, $userId);
-                $insertStmt->execute();
-                
-                // Determinar si está completamente aprobada
-                $willBeFullyApproved = ($userAuthLevel >= $requiredLevel);
-                $newStatusId = $willBeFullyApproved ? 3 : 2;
-                
-                // Actualizar status_id
-                $statusSql = "UPDATE PremiumFreight SET status_id = ? WHERE id = ?";
-                $statusStmt = $this->db->prepare($statusSql);
-                $statusStmt->bind_param("ii", $newStatusId, $orderId);
-                $statusStmt->execute();
-                
-                // Enviar notificaciones
-                try {
-                    $mailer = new PFMailer();
-                    
-                    if ($willBeFullyApproved) {
-                        $mailer->sendStatusNotification($orderId, 'approved');
-                    } else {
-                        $mailer->sendApprovalNotification($orderId);
-                    }
-                } catch (Exception $e) {
-                    logAction("Error enviando notificaciones: " . $e->getMessage(), 'APPROVEORDER');
-                }
+            } catch (Exception $e) {
+                logAction("Error enviando notificaciones: " . $e->getMessage(), 'APPROVEORDER');
+                // No fallar la aprobación si hay error en el envío de correos
             }
             
             return [
                 'success' => true,
-                'message' => "La orden #{$orderId} ha sido aprobada exitosamente."
+                'message' => $willBeFullyApproved 
+                    ? "La orden #{$orderId} ha sido completamente aprobada." 
+                    : "La orden #{$orderId} ha sido aprobada. Enviada al siguiente nivel de autorización."
             ];
             
         } catch (Exception $e) {

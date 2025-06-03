@@ -41,7 +41,7 @@ class PFEmailServices {
      * Obtiene los próximos aprobadores para una orden
      */
     public function getNextApprovers($orderId) {
-        // Obtener el estado actual de aprobación
+        // Obtener el estado actual de aprobación y la planta de la orden
         $sql = "SELECT PF.user_id, PF.required_auth_level, 
                    COALESCE(PFA.act_approv, 0) as current_approval_level,
                    U.plant as order_plant
@@ -60,35 +60,46 @@ class PFEmailServices {
         }
         
         $orderInfo = $result->fetch_assoc();
-        $currentApprovalLevel = $orderInfo['current_approval_level'];
-        $requiredAuthLevel = $orderInfo['required_auth_level'];
+        $currentApprovalLevel = (int)$orderInfo['current_approval_level'];
+        $requiredAuthLevel = (int)$orderInfo['required_auth_level'];
         $orderPlant = $orderInfo['order_plant'];
         
-        // Verificar si ya está completamente aprobada (act_approv >= required_auth_level)
+        logAction("getNextApprovers - Orden #{$orderId}: current_approval={$currentApprovalLevel}, required={$requiredAuthLevel}, plant={$orderPlant}", 'GETNEXTAPPROVERS');
+        
+        // Verificar si ya está completamente aprobada
         if ($currentApprovalLevel >= $requiredAuthLevel) {
+            logAction("Orden #{$orderId} ya está completamente aprobada", 'GETNEXTAPPROVERS');
             return [];
         }
         
-        // Verificar si fue rechazada (act_approv = 99)
+        // Verificar si fue rechazada
         if ($currentApprovalLevel == 99) {
+            logAction("Orden #{$orderId} fue rechazada", 'GETNEXTAPPROVERS');
             return [];
         }
         
         $nextAuthLevel = $currentApprovalLevel + 1;
+        
+        logAction("Buscando aprobadores con nivel {$nextAuthLevel} para planta '{$orderPlant}'", 'GETNEXTAPPROVERS');
         
         // Obtener usuarios con el nivel de autorización exacto
         // Buscar usuarios de la misma planta O usuarios regionales (plant IS NULL)
         $approversSql = "SELECT id, name, email, authorization_level, plant 
                         FROM User 
                         WHERE authorization_level = ? 
-                        AND (plant = ? OR plant IS NULL)";
+                        AND (plant = ? OR plant IS NULL)
+                        ORDER BY plant ASC"; // Primero los de la planta, luego los regionales
     
         $approversStmt = $this->db->prepare($approversSql);
         $approversStmt->bind_param("is", $nextAuthLevel, $orderPlant);
         $approversStmt->execute();
         $approversResult = $approversStmt->get_result();
         
-        return $approversResult->fetch_all(MYSQLI_ASSOC);
+        $approvers = $approversResult->fetch_all(MYSQLI_ASSOC);
+        
+        logAction("Encontrados " . count($approvers) . " aprobadores potenciales para nivel {$nextAuthLevel}", 'GETNEXTAPPROVERS');
+        
+        return $approvers;
     }
     
     /**

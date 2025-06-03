@@ -75,77 +75,62 @@ class PFMailer {
      */
     public function sendApprovalNotification($orderId) {
         try {
-            // Log de inicio
-            error_log("Iniciando sendApprovalNotification para orden #$orderId");
+            logAction("Iniciando sendApprovalNotification para orden #{$orderId}", 'SENDAPPROVAL');
             
             // Obtener detalles de la orden
             $orderDetails = $this->services->getOrderDetails($orderId);
             if (!$orderDetails) {
-                error_log("Error: Orden #$orderId no encontrada");
+                logAction("ERROR: No se encontraron detalles para la orden #{$orderId}", 'SENDAPPROVAL');
                 return false;
             }
-            
-            error_log("Orden encontrada: " . print_r($orderDetails, true));
             
             // Obtener próximos aprobadores
             $nextApprovers = $this->services->getNextApprovers($orderId);
             if (empty($nextApprovers)) {
-                error_log("Error: No hay próximos aprobadores para orden #$orderId");
+                logAction("No hay próximos aprobadores para la orden #{$orderId} - puede estar completamente aprobada o rechazada", 'SENDAPPROVAL');
                 return false;
             }
             
-            error_log("Aprobadores encontrados: " . print_r($nextApprovers, true));
+            logAction("Enviando notificación a " . count($nextApprovers) . " aprobadores", 'SENDAPPROVAL');
             
-            $successCount = 0;
-            $totalApprovers = count($nextApprovers);
+            $emailsSent = 0;
             
             foreach ($nextApprovers as $approver) {
                 try {
-                    error_log("Enviando correo a: " . $approver['email']);
-                    
-                    // Generar tokens de acción
+                    // Generar tokens únicos para cada aprobador
                     $approvalToken = $this->services->generateActionToken($orderId, $approver['id'], 'approve');
                     $rejectToken = $this->services->generateActionToken($orderId, $approver['id'], 'reject');
                     
-                    error_log("Tokens generados - Approve: $approvalToken, Reject: $rejectToken");
-                    
-                    // Preparar datos completos de la orden para el template
-                    $orderData = array_merge($orderDetails, [
-                        'approver_name' => $approver['name'],
-                        'approver_email' => $approver['email']
-                    ]);
-                    
-                    // Generar contenido del correo
-                    $emailBody = $this->templates->getApprovalEmailTemplate($orderData, $approvalToken, $rejectToken);
-                    
-                    // Configurar y enviar correo
+                    // Preparar el correo
                     $this->mail->clearAddresses();
                     $this->mail->addAddress($approver['email'], $approver['name']);
-                    $this->mail->Subject = "Premium Freight - Approval Required for Order #{$orderId}";
-                    $this->mail->Body = $emailBody;
+                    $this->mail->Subject = "Premium Freight - Approval Required #$orderId";
                     
+                    // Generar contenido HTML
+                    $htmlContent = $this->templates->getApprovalEmailTemplate($orderDetails, $approvalToken, $rejectToken);
+                    $this->mail->Body = $htmlContent;
+                    
+                    // Enviar el correo
                     if ($this->mail->send()) {
-                        $successCount++;
-                        error_log("Correo enviado exitosamente a: " . $approver['email']);
+                        $emailsSent++;
+                        logAction("Correo enviado exitosamente a {$approver['name']} ({$approver['email']})", 'SENDAPPROVAL');
                         
-                        // Registrar notificación
+                        // Registrar la notificación
                         $this->services->logNotification($orderId, $approver['id'], 'approval_request');
                     } else {
-                        error_log("Error enviando correo a {$approver['email']}: " . $this->mail->ErrorInfo);
+                        logAction("Error enviando correo a {$approver['email']}: " . $this->mail->ErrorInfo, 'SENDAPPROVAL');
                     }
                     
                 } catch (Exception $e) {
-                    error_log("Excepción enviando correo a {$approver['email']}: " . $e->getMessage());
+                    logAction("Excepción enviando correo a {$approver['email']}: " . $e->getMessage(), 'SENDAPPROVAL');
                 }
             }
             
-            error_log("Resumen: $successCount de $totalApprovers correos enviados exitosamente");
-            
-            return $successCount > 0;
+            logAction("Notificaciones de aprobación completadas: {$emailsSent} de " . count($nextApprovers) . " enviados", 'SENDAPPROVAL');
+            return $emailsSent > 0;
             
         } catch (Exception $e) {
-            error_log("Error en sendApprovalNotification: " . $e->getMessage());
-            error_log("Stack trace: " . $e->getTraceAsString());
+            logAction("Error en sendApprovalNotification: " . $e->getMessage(), 'SENDAPPROVAL');
             return false;
         }
     }
