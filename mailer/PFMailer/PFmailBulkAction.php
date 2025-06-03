@@ -80,35 +80,7 @@ try {
     logAction("=== Ejecutando processBulkAction ===", 'BULKACTION');
     logAction("Token: $token, Acción: $action", 'BULKACTION');
     
-    // PRIMERO: Validar el token ANTES de procesarlo (igual que en single action)
-    $tokenInfo = $handler->validateBulkToken($token);
-    
-    if (!$tokenInfo) {
-        logAction("Token inválido o expirado: {$token}", 'BULKACTION');
-        showBulkError('Token inválido o expirado. Es posible que este enlace ya no sea válido.');
-        exit;
-    }
-    
-    // Si el token ya fue usado, mostrar mensaje de éxito (no error)
-    if ($tokenInfo['is_used'] == 1) {
-        logAction("Token ya utilizado detectado: {$token}", 'BULKACTION');
-        
-        // Mostrar mensaje de éxito para tokens ya usados
-        $statusMessage = ($action === 'approve') ? 
-            "Estas órdenes ya han sido aprobadas exitosamente." : 
-            "Estas órdenes ya han sido rechazadas exitosamente.";
-        
-        logAction("Mostrando mensaje de éxito para token en bloque ya usado: {$token}", 'BULKACTION');
-        showBulkSuccess($statusMessage, [
-            'total' => $tokenInfo['total_orders'],
-            'successful' => $tokenInfo['total_orders'],
-            'failed' => 0,
-            'errors' => []
-        ]);
-        exit;
-    }
-    
-    // Ejecutar la acción solo si el token no ha sido usado
+    // Ejecutar la acción directamente - la validación se hace internamente
     $result = $handler->processBulkAction($token, $action);
     
     logAction("=== Resultado del procesamiento ===", 'BULKACTION');
