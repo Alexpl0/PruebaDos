@@ -429,50 +429,40 @@ class PFMailAction {
     public function validateToken($token) {
         try {
             logAction("Validando token: {$token}", 'VALIDATETOKEN');
-
-            $sql = "SELECT token, order_id, user_id, action, created_at, is_used 
+            
+            $sql = "SELECT order_id, user_id, action, created_at, is_used, used_at, used_at 
                     FROM EmailActionTokens 
-                    WHERE token = ? 
-                    AND created_at > DATE_SUB(NOW(), INTERVAL 72 HOUR)
-                    LIMIT 1";
+                    WHERE token = ?";
             
             $stmt = $this->db->prepare($sql);
-            
-            if (!$stmt) {
-                logAction("Error al preparar consulta de token: " . $this->db->error, 'VALIDATETOKEN');
-                return false;
-            }
-            
             $stmt->bind_param("s", $token);
-            
-            if (!$stmt->execute()) {
-                logAction("Error al ejecutar consulta de token: " . $stmt->error, 'VALIDATETOKEN');
-                return false;
-            }
-            
+            $stmt->execute();
             $result = $stmt->get_result();
             
             if ($result->num_rows === 0) {
-                logAction("Token no encontrado o expirado: {$token}", 'VALIDATETOKEN');
+                logAction("Token no encontrado: {$token}", 'VALIDATETOKEN');
                 return false;
             }
             
             $tokenInfo = $result->fetch_assoc();
             
+            // Verificar expiración (si tienes campo used_at)
+            if (isset($tokenInfo['used_at']) && strtotime($tokenInfo['used_at']) < time()) {
+                logAction("Token expirado: {$token}", 'VALIDATETOKEN');
+                return false;
+            }
+            
+            // Si el token ya fue usado, logearlo pero RETORNAR LA INFO (no false)
             if ($tokenInfo['is_used'] == 1) {
                 logAction("Token ya utilizado: {$token}", 'VALIDATETOKEN');
-                return [
-                    'is_used' => true,
-                    'token' => $token,
-                    'action' => $tokenInfo['action']
-                ];
+                return $tokenInfo; // CAMBIO CLAVE: retornar info en lugar de false
             }
             
             logAction("Token válido encontrado: Order ID {$tokenInfo['order_id']}, Action: {$tokenInfo['action']}", 'VALIDATETOKEN');
-            
             return $tokenInfo;
+            
         } catch (Exception $e) {
-            logAction("Error en validateToken: " . $e->getMessage(), 'VALIDATETOKEN');
+            logAction("Error validando token: " . $e->getMessage(), 'VALIDATETOKEN');
             return false;
         }
     }

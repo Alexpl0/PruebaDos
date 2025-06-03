@@ -43,26 +43,20 @@ try {
         exit;
     }
     
-    // Si el token ya fue usado, verificar si fue exitoso para mostrar mensaje apropiado
-    if ($tokenInfo['is_used'] == 1) {
+    // Si el token ya fue usado, mostrar mensaje de éxito SIN procesar
+    if (isset($tokenInfo['is_used']) && $tokenInfo['is_used'] == 1) {
         logAction("Token ya utilizado detectado: {$token}", 'SINGLEACTION');
         
-        // Verificar el estado de la orden para determinar si fue exitoso
+        // Ahora SÍ tenemos acceso a order_id porque validateToken retorna la info
         $orderId = $tokenInfo['order_id'];
-        $orderStatus = $handler->getOrderStatus($orderId);
         
-        if ($orderStatus) {
-            // Si la orden tiene un estado válido (aprobada o rechazada), mostrar éxito
-            $statusMessage = ($action === 'approve') ? 
-                "Esta orden ya ha sido aprobada exitosamente." : 
-                "Esta orden ya ha sido rechazada exitosamente.";
-            
-            logAction("Mostrando mensaje de éxito para token ya usado: {$token}", 'SINGLEACTION');
-            showSuccess($statusMessage);
-        } else {
-            // Si hay algún problema con el estado, mostrar error genérico
-            showError("Esta acción ya ha sido procesada anteriormente.");
-        }
+        // Mensaje apropiado según la acción
+        $statusMessage = ($action === 'approve') ? 
+            "Su aprobación ha sido registrada exitosamente para la orden #{$orderId}." :
+            "Su rechazo ha sido registrado exitosamente para la orden #{$orderId}.";
+        
+        logAction("Mostrando mensaje de éxito para token ya usado: {$token}", 'SINGLEACTION');
+        showSuccess($statusMessage);
         exit;
     }
     

@@ -32,81 +32,103 @@ try {
     $logFile = $logDir . '/mail_log.txt';
     $timestamp = date('Y-m-d H:i:s');
     
-    $logMessage = "[$timestamp] Datos recibidos: " . $rawInput . "\n";
-    file_put_contents($logFile, $logMessage, FILE_APPEND);
-
-    // Verificar método de solicitud
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Método no permitido. Utilice POST.'
-        ]);
-        exit;
-    }
-
-    // Procesar los datos recibidos
-    // Obtener datos de la solicitud
+    file_put_contents($logFile, "[{$timestamp}] Datos recibidos: {$rawInput}\n", FILE_APPEND);
+    
     $data = json_decode($rawInput, true);
     
-    // Registrar datos decodificados
-    file_put_contents($logFile, "[$timestamp] Datos decodificados: " . print_r($data, true) . "\n", FILE_APPEND);
-    
-    // Verificar estructura de datos
     if ($data === null) {
-        throw new Exception("Error decodificando JSON: " . json_last_error_msg());
+        $error = 'Datos JSON inválidos: ' . json_last_error_msg();
+        file_put_contents($logFile, "[{$timestamp}] ERROR: {$error}\n", FILE_APPEND);
+        echo json_encode(['success' => false, 'message' => $error]);
+        exit;
     }
     
-    // Validar datos
-    if (!isset($data['orderId'])) {
-        throw new Exception("Falta el parámetro requerido: orderId");
+    file_put_contents($logFile, "[{$timestamp}] Datos decodificados: " . print_r($data, true) . "\n", FILE_APPEND);
+    
+    // Verificar que orderId esté presente
+    if (!isset($data['orderId']) || empty($data['orderId'])) {
+        $error = 'orderId es requerido';
+        file_put_contents($logFile, "[{$timestamp}] ERROR: {$error}\n", FILE_APPEND);
+        echo json_encode(['success' => false, 'message' => $error]);
+        exit;
     }
     
     $orderId = intval($data['orderId']);
-    file_put_contents($logFile, "[$timestamp] Procesando orden ID: $orderId\n", FILE_APPEND);
+    file_put_contents($logFile, "[{$timestamp}] Procesando orden ID: {$orderId}\n", FILE_APPEND);
     
-    // Verificar si ya se envió una notificación reciente para esta orden (evitar duplicados)
-    $checkSql = "SELECT COUNT(*) as total FROM EmailNotifications 
-                 WHERE order_id = ? AND type = 'approval_request' 
-                 AND sent_at > DATE_SUB(NOW(), INTERVAL 5 MINUTE)";
+    // Crear instancia de PFMailer con manejo de errores
     $mailer = new PFMailer();
-    $db = $mailer->getDatabase();
-    $checkStmt = $db->prepare($checkSql);
-    $checkStmt->bind_param("i", $orderId);
-    $checkStmt->execute();
-    $checkResult = $checkStmt->get_result();
-    $recentNotifications = $checkResult->fetch_assoc()['total'];
-
-    if ($recentNotifications > 0) {
-        // Ya se envió una notificación reciente, informar pero no considerar error
-        file_put_contents($logFile, "[$timestamp] Notificación reciente ya enviada para orden #$orderId\n", FILE_APPEND);
-        echo json_encode([
-            'success' => true,
-            'message' => 'Ya se ha enviado una notificación reciente para esta orden'
-        ]);
+    
+    // DEBUGGING: Verificar que la orden existe antes de enviar
+    $services = new PFEmailServices();
+    $orderDetails = $services->getOrderDetails($orderId);
+    
+    if (!$orderDetails) {
+        $error = "Orden #{$orderId} no encontrada en la base de datos";
+        file_put_contents($logFile, "[{$timestamp}] ERROR: {$error}\n", FILE_APPEND);
+        echo json_encode(['success' => false, 'message' => $error]);
         exit;
     }
-
-    // Enviar la notificación
-    $result = $mailer->sendApprovalNotification($orderId);
     
-    // Registrar resultado
-    file_put_contents($logFile, "[$timestamp] Resultado envío: " . ($result ? "Éxito" : "Fallido") . "\n", FILE_APPEND);
+    file_put_contents($logFile, "[{$timestamp}] Orden encontrada: " . print_r($orderDetails, true) . "\n", FILE_APPEND);
     
-    // Responder con el resultado
-    echo json_encode([
-        'success' => $result,
-        'message' => $result ? 'Notificación enviada correctamente' : 'Error al enviar la notificación'
-    ]);
+    // Verificar próximos aprobadores
+    $nextApprovers = $services->getNextApprovers($orderId);
+    file_put_contents($logFile, "[{$timestamp}] Próximos aprobadores: " . print_r($nextApprovers, true) . "\n", FILE_APPEND);
+    
+    if (empty($nextApprovers)) {
+        $error = "No se encontraron aprobadores para la orden #{$orderId}";
+        file_put_contents($logFile, "[{$timestamp}] ERROR: {$error}\n", FILE_APPEND);
+        echo json_encode(['success' => false, 'message' => $error]);
+        exit;
+    }
+    
+    // Intentar enviar correo con manejo detallado de errores
+    try {
+        $result = $mailer->sendApprovalNotification($orderId);
+        
+        if ($result) {
+            file_put_contents($logFile, "[{$timestamp}] Resultado envío: Exitoso\n", FILE_APPEND);
+            echo json_encode([
+                'success' => true, 
+                'message' => "Correo de aprobación enviado exitosamente para la orden #{$orderId}",
+                'orderDetails' => $orderDetails,
+                'approvers' => $nextApprovers
+            ]);
+        } else {
+            file_put_contents($logFile, "[{$timestamp}] Resultado envío: Fallido\n", FILE_APPEND);
+            echo json_encode([
+                'success' => false, 
+                'message' => "Error al enviar correo de aprobación para la orden #{$orderId}",
+                'debug' => [
+                    'orderFound' => true,
+                    'approversFound' => count($nextApprovers),
+                    'orderDetails' => $orderDetails
+                ]
+            ]);
+        }
+    } catch (Exception $mailException) {
+        $error = "Excepción en envío de correo: " . $mailException->getMessage();
+        file_put_contents($logFile, "[{$timestamp}] EXCEPCIÓN: {$error}\n", FILE_APPEND);
+        echo json_encode([
+            'success' => false, 
+            'message' => $error,
+            'trace' => $mailException->getTraceAsString()
+        ]);
+    }
+    
 } catch (Exception $e) {
-    // Registrar la excepción
-    $errorMessage = "[$timestamp] Error: " . $e->getMessage() . "\n" . $e->getTraceAsString();
-    file_put_contents($logFile, $errorMessage . "\n", FILE_APPEND);
+    $error = "Error general: " . $e->getMessage();
+    $timestamp = date('Y-m-d H:i:s');
     
-    // Responder con el error y código de estado apropiado
-    http_response_code(500);
+    if (isset($logFile)) {
+        file_put_contents($logFile, "[{$timestamp}] ERROR GENERAL: {$error}\n", FILE_APPEND);
+        file_put_contents($logFile, "[{$timestamp}] TRACE: " . $e->getTraceAsString() . "\n", FILE_APPEND);
+    }
+    
     echo json_encode([
-        'success' => false,
-        'message' => 'Error: ' . $e->getMessage(),
+        'success' => false, 
+        'message' => $error,
         'trace' => $e->getTraceAsString()
     ]);
 }
