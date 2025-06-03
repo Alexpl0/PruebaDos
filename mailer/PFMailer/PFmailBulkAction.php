@@ -77,10 +77,45 @@ try {
         throw new Exception("El método 'processBulkAction' no está implementado en la clase PFMailAction.");
     }
     
+    // VALIDACIÓN PREVIA: Verificar el estado del token ANTES de procesarlo
+    $tokenInfo = $handler->validateBulkToken($token);
+    
+    if (!$tokenInfo) {
+        logAction("Token en bloque inválido o expirado: {$token}", 'BULKACTION');
+        showBulkError('Token inválido o expirado. Es posible que este enlace ya no sea válido.');
+        exit;
+    }
+    
+    // Si el token ya fue usado, mostrar mensaje de éxito apropiado
+    if (isset($tokenInfo['is_used']) && $tokenInfo['is_used'] == 1) {
+        logAction("Token en bloque ya utilizado detectado: {$token}", 'BULKACTION');
+        
+        $totalOrders = $tokenInfo['total_orders'];
+        $tokenAction = $tokenInfo['action'];
+        
+        // Mensaje apropiado según la acción del token
+        if ($tokenAction === 'approve') {
+            $statusMessage = "Sus aprobaciones en bloque ya fueron registradas exitosamente para {$totalOrders} órdenes.";
+        } else {
+            $statusMessage = "Sus rechazos en bloque ya fueron registrados exitosamente para {$totalOrders} órdenes.";
+        }
+        
+        logAction("Mostrando mensaje de éxito para token en bloque ya usado: {$token}", 'BULKACTION');
+        showBulkSuccess($statusMessage);
+        exit;
+    }
+    
+    // Validar que la acción solicitada coincida con la del token
+    if ($action !== $tokenInfo['action']) {
+        logAction("Acción no coincide con token en bloque: solicitada={$action}, token={$tokenInfo['action']}", 'BULKACTION');
+        showBulkError("Acción no válida para este enlace.");
+        exit;
+    }
+    
     logAction("=== Ejecutando processBulkAction ===", 'BULKACTION');
     logAction("Token: $token, Acción: $action", 'BULKACTION');
     
-    // Ejecutar la acción directamente - la validación se hace internamente
+    // PROCESAR LA ACCIÓN: Solo si el token es válido y no ha sido usado
     $result = $handler->processBulkAction($token, $action);
     
     logAction("=== Resultado del procesamiento ===", 'BULKACTION');

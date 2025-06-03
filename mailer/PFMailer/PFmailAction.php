@@ -458,105 +458,133 @@ class PFMailAction {
         try {
             logAction("Iniciando processBulkAction para token={$token}, acción={$action}", 'PROCESSBULKACTION');
             
-            // NO validar el token aquí, ya se validó en el archivo principal
-            // Obtener la información del token directamente
-            $sql = "SELECT token, user_id, action, order_ids, created_at, is_used 
-                    FROM EmailBulkActionTokens 
-                    WHERE token = ? AND is_used = 0 
-                    LIMIT 1";
+            // PASO 1: Verificar y marcar el token como usado EN UNA SOLA OPERACIÓN ATÓMICA
+            $sql = "UPDATE EmailBulkActionTokens 
+                    SET is_used = 1, used_at = NOW() 
+                    WHERE token = ? AND is_used = 0";
+            
             $stmt = $this->db->prepare($sql);
-            if (!$stmt) {
-                throw new Exception("Error preparando consulta: " . $this->db->error);
-            }
             $stmt->bind_param("s", $token);
-            if (!$stmt->execute()) {
-                throw new Exception("Error ejecutando consulta: " . $stmt->error);
-            }
-            $result = $stmt->get_result();
+            $result = $stmt->execute();
             
-            if ($result->num_rows === 0) {
-                logAction("Token no encontrado o ya usado en processBulkAction: {$token}", 'PROCESSBULKACTION');
+            // Si no se actualizó ninguna fila, significa que el token ya fue usado o no existe
+            if ($stmt->affected_rows === 0) {
+                logAction("Token en bloque ya procesado o no existe: {$token}", 'PROCESSBULKACTION');
                 return [
                     'success' => false,
-                    'message' => 'Token no válido o ya utilizado'
+                    'message' => 'Este enlace ya fue procesado o no es válido.',
+                    'details' => ['errors' => ['Token ya utilizado o no existe']]
                 ];
             }
             
-            $tokenInfo = $result->fetch_assoc();
+            // PASO 2: Ahora obtener los datos del token (ya marcado como usado)
+            $dataSql = "SELECT user_id, action, order_ids FROM EmailBulkActionTokens WHERE token = ?";
+            $dataStmt = $this->db->prepare($dataSql);
+            $dataStmt->bind_param("s", $token);
+            $dataStmt->execute();
+            $dataResult = $dataStmt->get_result();
             
-            if ($tokenInfo['action'] !== $action) {
-                logAction("Acción no coincide - Token: {$tokenInfo['action']}, Solicitada: {$action}", 'PROCESSBULKACTION');
+            if ($dataResult->num_rows === 0) {
+                logAction("Error: Token en bloque no encontrado después de marcarlo como usado: {$token}", 'PROCESSBULKACTION');
                 return [
                     'success' => false,
-                    'message' => 'La acción solicitada no coincide con el token'
+                    'message' => 'Error interno del sistema.',
+                    'details' => ['errors' => ['Token no encontrado después del marcado']]
                 ];
             }
             
+            $tokenData = $dataResult->fetch_assoc();
+            $userId = $tokenData['user_id'];
+            $tokenAction = $tokenData['action'];
+            $serializedOrderIds = $tokenData['order_ids'];
+            
+            // PASO 3: Validar que la acción coincida
+            if ($action !== $tokenAction) {
+                logAction("Acción no coincide con token en bloque: esperada={$tokenAction}, recibida={$action}", 'PROCESSBULKACTION');
+                return [
+                    'success' => false,
+                    'message' => "Acción no válida. Se esperaba '{$tokenAction}' pero se recibió '{$action}'.",
+                    'details' => ['errors' => ['Acción no coincide con el token']]
+                ];
+            }
+            
+            // PASO 4: Decodificar las órdenes
+            $orderIds = json_decode($serializedOrderIds, true);
+            if (!is_array($orderIds) || empty($orderIds)) {
+                logAction("Error decodificando órdenes del token en bloque: {$token}", 'PROCESSBULKACTION');
+                return [
+                    'success' => false,
+                    'message' => 'Error en los datos del token.',
+                    'details' => ['errors' => ['Error decodificando lista de órdenes']]
+                ];
+            }
+            
+            logAction("Token en bloque procesado exitosamente. User ID: {$userId}, Órdenes a procesar: " . count($orderIds), 'PROCESSBULKACTION');
+            
+            // PASO 5: Iniciar transacción para procesar todas las órdenes
             $this->db->begin_transaction();
             logAction("Transacción iniciada", 'PROCESSBULKACTION');
             
-            $orderIds = json_decode($tokenInfo['order_ids'], true);
-            $userId = $tokenInfo['user_id'];
+            $results = [
+                'total' => count($orderIds),
+                'successful' => 0,
+                'failed' => 0,
+                'errors' => []
+            ];
             
-            logAction("Token en bloque válido - User ID: {$userId}, Órdenes a procesar: " . count($orderIds), 'PROCESSBULKACTION');
-            
-            // Procesar todas las órdenes ANTES de marcar el token como usado
-            $successful = 0;
-            $failed = 0;
-            $errors = [];
-            
+            // PASO 6: Procesar cada orden
             foreach ($orderIds as $orderId) {
-                logAction("Procesando orden #{$orderId}", 'PROCESSBULKACTION');
-                
-                $result = ($action === 'approve') 
-                    ? $this->approveOrder($orderId, $userId)
-                    : $this->rejectOrder($orderId, $userId);
-                
-                if ($result['success']) {
-                    $successful++;
-                    logAction("Orden #{$orderId} procesada exitosamente", 'PROCESSBULKACTION');
-                } else {
-                    $failed++;
-                    $errors[] = "Error en orden #{$orderId}: " . $result['message'];
-                    logAction("Error procesando orden #{$orderId}: " . $result['message'], 'PROCESSBULKACTION');
+                try {
+                    logAction("Procesando orden #{$orderId}", 'PROCESSBULKACTION');
+                    
+                    if ($action === 'approve') {
+                        $result = $this->approveOrder($orderId, $userId);
+                    } else {
+                        $result = $this->rejectOrder($orderId, $userId);
+                    }
+                    
+                    if ($result['success']) {
+                        $results['successful']++;
+                        logAction("Orden #{$orderId} procesada exitosamente", 'PROCESSBULKACTION');
+                    } else {
+                        $results['failed']++;
+                        $results['errors'][] = "Error en orden #{$orderId}: " . $result['message'];
+                        logAction("Error procesando orden #{$orderId}: " . $result['message'], 'PROCESSBULKACTION');
+                    }
+                    
+                } catch (Exception $e) {
+                    $results['failed']++;
+                    $results['errors'][] = "Excepción en orden #{$orderId}: " . $e->getMessage();
+                    logAction("Excepción procesando orden #{$orderId}: " . $e->getMessage(), 'PROCESSBULKACTION');
                 }
             }
             
-            // Solo si hubo al menos una orden procesada exitosamente, marcar el token como usado
-            if ($successful > 0) {
-                if (!$this->markBulkTokenAsUsed($token)) {
-                    logAction("Error marcando token en bloque como usado: {$token}", 'PROCESSBULKACTION');
-                    // No fallar la operación por esto, solo registrar
-                } else {
-                    logAction("Token en bloque marcado como usado", 'PROCESSBULKACTION');
-                }
-            }
-            
+            // PASO 7: Confirmar transacción
             $this->db->commit();
             logAction("Transacción confirmada", 'PROCESSBULKACTION');
             
-            $total = $successful + $failed;
-            $message = "Procesamiento completado: {$successful} exitosas, {$failed} fallidas de {$total} órdenes";
+            // PASO 8: Generar mensaje de resultado
+            $message = "Procesamiento completado: {$results['successful']} exitosas, {$results['failed']} fallidas de {$results['total']} órdenes";
             
-            logAction("Resultado final - Total: {$total}, Exitosas: {$successful}, Fallidas: {$failed}", 'PROCESSBULKACTION');
+            logAction("Resultado final - Total: {$results['total']}, Exitosas: {$results['successful']}, Fallidas: {$results['failed']}", 'PROCESSBULKACTION');
             
             return [
                 'success' => true,
                 'message' => $message,
-                'details' => [
-                    'total' => $total,
-                    'successful' => $successful,
-                    'failed' => $failed,
-                    'errors' => $errors
-                ]
+                'details' => $results
             ];
             
         } catch (Exception $e) {
-            $this->db->rollback();
+            // Revertir transacción en caso de error
+            if ($this->db->inTransaction) {
+                $this->db->rollback();
+                logAction("Transacción revertida debido a excepción", 'PROCESSBULKACTION');
+            }
+            
             logAction("Excepción en processBulkAction: " . $e->getMessage(), 'PROCESSBULKACTION');
             return [
                 'success' => false,
-                'message' => 'Error procesando acciones en bloque: ' . $e->getMessage(),
+                'message' => 'Error interno del sistema durante el procesamiento en bloque.',
                 'details' => ['errors' => [$e->getMessage()]]
             ];
         }
