@@ -175,11 +175,21 @@ class PFMailAction {
                 
                 logAction("Datos actuales - Aprobación: {$currentApproval}, Requerido: {$requiredLevel}, Status: {$currentStatus}", 'APPROVEORDER');
                 
+                // Verificar si ya está completamente aprobada
                 if ($currentApproval >= $requiredLevel) {
                     logAction("La orden ya está completamente aprobada (nivel $currentApproval, requerido $requiredLevel)", 'APPROVEORDER');
                     return [
                         'success' => true,
                         'message' => "La orden #{$orderId} ya está completamente aprobada."
+                    ];
+                }
+                
+                // Verificar si fue rechazada
+                if ($currentApproval == 99) {
+                    logAction("La orden fue rechazada previamente (act_approv = 99)", 'APPROVEORDER');
+                    return [
+                        'success' => false,
+                        'message' => "La orden #{$orderId} fue rechazada previamente y no puede ser aprobada."
                     ];
                 }
                 

@@ -64,18 +64,24 @@ class PFEmailServices {
         $requiredAuthLevel = $orderInfo['required_auth_level'];
         $orderPlant = $orderInfo['order_plant'];
         
-        // Verificar si ya está completamente aprobada
-        if ($currentApprovalLevel >= $requiredAuthLevel || $currentApprovalLevel == 99) {
+        // Verificar si ya está completamente aprobada (act_approv >= required_auth_level)
+        if ($currentApprovalLevel >= $requiredAuthLevel) {
+            return [];
+        }
+        
+        // Verificar si fue rechazada (act_approv = 99)
+        if ($currentApprovalLevel == 99) {
             return [];
         }
         
         $nextAuthLevel = $currentApprovalLevel + 1;
         
         // Obtener usuarios con el nivel de autorización exacto
+        // Buscar usuarios de la misma planta O usuarios regionales (plant IS NULL)
         $approversSql = "SELECT id, name, email, authorization_level, plant 
                         FROM User 
                         WHERE authorization_level = ? 
-                        AND plant = ?";
+                        AND (plant = ? OR plant IS NULL)";
         
         $approversStmt = $this->db->prepare($approversSql);
         $approversStmt->bind_param("is", $nextAuthLevel, $orderPlant);
