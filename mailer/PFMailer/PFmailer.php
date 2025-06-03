@@ -29,6 +29,7 @@ class PFMailer {
     private $services;
     private $templates;
     private $baseUrl;
+    private $db; // Agregar esta propiedad
 
     /**
      * Constructor - inicializa PHPMailer y las dependencias
@@ -41,10 +42,15 @@ class PFMailer {
         $this->services = new PFEmailServices();
         $this->templates = new PFEmailTemplates($this->baseUrl);
         
-        // 3. Inicializar la instancia de PHPMailer
+        // 3. Inicializar la conexión a la base de datos
+        require_once 'PFDB.php';
+        $con = new LocalConector();
+        $this->db = $con->conectar();
+        
+        // 4. Inicializar la instancia de PHPMailer
         $this->mail = new PHPMailer(true);
 
-        // 4. Configurar los parámetros SMTP para el envío de correos
+        // 5. Configurar los parámetros SMTP para el envío de correos
         $this->mail->SMTPDebug = 0;
         $this->mail->isSMTP();
         $this->mail->Host = 'smtp.hostinger.com'; 
@@ -54,11 +60,11 @@ class PFMailer {
         $this->mail->Password = 'FreightSystem2025.';
         $this->mail->SMTPSecure = 'ssl';
         
-        // 5. Configurar formato HTML y codificación de caracteres
+        // 6. Configurar formato HTML y codificación de caracteres
         $this->mail->isHTML(true);
         $this->mail->CharSet = 'UTF-8';
         
-        // 6. Configurar el remitente y destinatarios en copia oculta
+        // 7. Configurar el remitente y destinatarios en copia oculta
         $this->mail->setFrom('premium_freight@grammermx.com', 'Premium Freight System');
         $this->mail->addBCC('extern.jesus.perez@grammer.com', 'Jesús Pérez');
         $this->mail->addBCC('premium_freight@grammermx.com', 'Premium Freight System');
@@ -278,127 +284,6 @@ class PFMailer {
     }
 
     /**
-     * Genera plantilla de email para notificaciones de recovery
-     */
-    private function generateRecoveryEmailTemplate($user, $orders) {
-        $viewOrdersUrl = URLPF . "orders.php";
-        $totalOrders = count($orders);
-        
-        $orderRows = '';
-        foreach ($orders as $order) {
-            $costFormatted = number_format($order['cost_euros'], 2);
-            $createdDate = date('M d, Y', strtotime($order['date']));
-            $viewUrl = URLPF . "orders.php?highlight=" . $order['id'];
-            
-            $orderRows .= '
-            <tr>
-                <td style="padding: 12px; text-align: center; font-weight: bold; border-bottom: 1px solid #e9ecef;">#' . $order['id'] . '</td>
-                <td style="padding: 12px; border-bottom: 1px solid #e9ecef;">' . htmlspecialchars($order['description'] ?? 'N/A') . '</td>
-                <td style="padding: 12px; text-align: center; border-bottom: 1px solid #e9ecef;">EUR ' . $costFormatted . '</td>
-                <td style="padding: 12px; text-align: center; border-bottom: 1px solid #e9ecef;">' . $createdDate . '</td>
-                <td style="padding: 12px; text-align: center; border-bottom: 1px solid #e9ecef;">
-                    <a href="' . $viewUrl . '" style="background-color: #034C8C; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; font-size: 12px;">View Order</a>
-                </td>
-            </tr>';
-        }
-
-        return '<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Premium Freight Recovery Evidence Required</title>
-</head>
-<body style="margin: 0; padding: 0; background-color: #f8f9fa; font-family: Arial, sans-serif;">
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8f9fa;">
-        <tr>
-            <td style="padding: 20px 0;">
-                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="800" style="margin: 0 auto; background-color: #ffffff; border-radius: 8px;" align="center">
-                    
-                    <!-- Header -->
-                    <tr>
-                        <td style="background-color: #ffc107; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-                            <h1 style="color: #212529; margin: 0 0 10px 0; font-size: 24px;">Recovery Evidence Required</h1>
-                            <p style="color: #212529; margin: 0; font-size: 16px;">Hello ' . htmlspecialchars($user['name']) . ', you have ' . $totalOrders . ' orders requiring recovery evidence</p>
-                        </td>
-                    </tr>
-                    
-                    <!-- Contenido -->
-                    <tr>
-                        <td style="padding: 30px;">
-                            <p style="color: #333333; margin: 0 0 20px 0; line-height: 1.6;">The following orders have been approved and require recovery evidence to be uploaded:</p>
-                            
-                            <!-- Tabla de órdenes -->
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-collapse: collapse;">
-                                <thead>
-                                    <tr style="background-color: #f8f9fa;">
-                                        <th style="padding: 15px 12px; text-align: center; border-bottom: 2px solid #dee2e6; font-weight: bold;">Order #</th>
-                                        <th style="padding: 15px 12px; text-align: left; border-bottom: 2px solid #dee2e6; font-weight: bold;">Description</th>
-                                        <th style="padding: 15px 12px; text-align: center; border-bottom: 2px solid #dee2e6; font-weight: bold;">Cost</th>
-                                        <th style="padding: 15px 12px; text-align: center; border-bottom: 2px solid #dee2e6; font-weight: bold;">Date</th>
-                                        <th style="padding: 15px 12px; text-align: center; border-bottom: 2px solid #dee2e6; font-weight: bold;">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ' . $orderRows . '
-                                </tbody>
-                            </table>
-                            
-                            <!-- Botón principal -->
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 30px 0;">
-                                <tr>
-                                    <td style="text-align: center;">
-                                        <a href="' . $viewOrdersUrl . '" style="background-color: #034C8C; color: white; padding: 15px 30px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">View All Orders</a>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                    
-                    <!-- Footer -->
-                    <tr>
-                        <td style="background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 8px 8px;">
-                            <p style="color: #6c757d; margin: 0 0 5px 0; font-size: 12px;">This is an automated notification from the Premium Freight System.</p>
-                            <p style="color: #6c757d; margin: 0; font-size: 12px;">Please do not reply to this email. For support, contact the system administrator.</p>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-</body>
-</html>';
-    }
-
-    /**
-     * Métodos de acceso para compatibilidad hacia atrás
-     */
-    public function getDatabase() {
-        return $this->services->getDatabase();
-    }
-
-    public function getOrderDetails($orderId) {
-        return $this->services->getOrderDetails($orderId);
-    }
-
-    public function getUser($userId) {
-        return $this->services->getUser($userId);
-    }
-
-    // Métodos adicionales que necesites mantener para compatibilidad...
-    
-    /**
-     * Método de prueba de conexión (si lo necesitas)
-     */
-    public function testConnection() {
-        try {
-            return $this->mail->smtpConnect();
-        } catch (Exception $e) {
-            throw new Exception("SMTP connection failed: " . $e->getMessage());
-        }
-    }
-
-    /**
      * Envía correos de verificación de recovery evidence a usuarios con órdenes pendientes
      */
     public function sendRecoveryCheckEmails() {
@@ -409,6 +294,11 @@ class PFMailer {
         ];
 
         try {
+            // Verificar que la conexión a la base de datos existe
+            if (!$this->db) {
+                throw new Exception("Database connection not established");
+            }
+
             // Obtener órdenes que tienen recovery_file pero no recovery_evidence
             $sql = "SELECT PF.id, PF.user_id, PF.description, PF.cost_euros, 
                            PF.date, PF.recovery_file, U.name, U.email
@@ -417,8 +307,13 @@ class PFMailer {
                     WHERE PF.recovery_file IS NOT NULL 
                     AND PF.recovery_file != ''
                     AND (PF.recovery_evidence IS NULL OR PF.recovery_evidence = '')";
-            
+        
+            // Usar MySQLi (igual que las otras funciones)
             $stmt = $this->db->prepare($sql);
+            if (!$stmt) {
+                throw new Exception("Failed to prepare SQL statement: " . $this->db->error);
+            }
+            
             $stmt->execute();
             $ordersResult = $stmt->get_result();
             
@@ -451,6 +346,7 @@ class PFMailer {
                     $user = $userInfo['user'];
                     $orders = $userInfo['orders'];
                     
+                    // Usar el template de la clase PFEmailTemplates
                     $emailBody = $this->templates->getRecoveryCheckTemplate($user, $orders);
                     
                     $this->mail->clearAddresses();
@@ -481,9 +377,38 @@ class PFMailer {
 
         } catch (Exception $e) {
             $result['errors'][] = "Error in sendRecoveryCheckEmails: " . $e->getMessage();
+            error_log("Error in sendRecoveryCheckEmails: " . $e->getMessage());
         }
         
         return $result;
+    }
+
+    /**
+     * Métodos de acceso para compatibilidad hacia atrás
+     */
+    public function getDatabase() {
+        return $this->services->getDatabase();
+    }
+
+    public function getOrderDetails($orderId) {
+        return $this->services->getOrderDetails($orderId);
+    }
+
+    public function getUser($userId) {
+        return $this->services->getUser($userId);
+    }
+
+    // Métodos adicionales que necesites mantener para compatibilidad...
+    
+    /**
+     * Método de prueba de conexión (si lo necesitas)
+     */
+    public function testConnection() {
+        try {
+            return $this->mail->smtpConnect();
+        } catch (Exception $e) {
+            throw new Exception("SMTP connection failed: " . $e->getMessage());
+        }
     }
 }
 ?>

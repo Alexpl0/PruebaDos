@@ -507,36 +507,44 @@ class PFMailAction {
         try {
             logAction("Iniciando processBulkAction para token={$token}, acción={$action}", 'PROCESSBULKACTION');
             
-            $tokenInfo = $this->validateBulkToken($token);
+            // NO validar el token aquí, ya se validó en el archivo principal
+            // Obtener la información del token directamente
+            $sql = "SELECT token, user_id, action, order_ids, created_at, is_used 
+                    FROM EmailBulkActionTokens 
+                    WHERE token = ? AND is_used = 0 
+                    LIMIT 1";
+            $stmt = $this->db->prepare($sql);
+            if (!$stmt) {
+                throw new Exception("Error preparando consulta: " . $this->db->error);
+            }
+            $stmt->bind_param("s", $token);
+            if (!$stmt->execute()) {
+                throw new Exception("Error ejecutando consulta: " . $stmt->error);
+            }
+            $result = $stmt->get_result();
             
-            if (!$tokenInfo) {
-                logAction("Token en bloque inválido o expirado: {$token}", 'PROCESSBULKACTION');
+            if ($result->num_rows === 0) {
+                logAction("Token no encontrado o ya usado en processBulkAction: {$token}", 'PROCESSBULKACTION');
                 return [
                     'success' => false,
-                    'message' => 'Token inválido o expirado'
+                    'message' => 'Token no válido o ya utilizado'
                 ];
             }
             
-            if (isset($tokenInfo['is_used']) && $tokenInfo['is_used']) {
-                logAction("Token en bloque ya utilizado: {$token}", 'PROCESSBULKACTION');
-                return [
-                    'success' => false,
-                    'message' => 'Este token ya ha sido utilizado previamente'
-                ];
-            }
+            $tokenInfo = $result->fetch_assoc();
             
             if ($tokenInfo['action'] !== $action) {
-                logAction("Acción no coincide - Token: {$tokenInfo['action']} vs Solicitada: {$action}", 'PROCESSBULKACTION');
+                logAction("Acción no coincide - Token: {$tokenInfo['action']}, Solicitada: {$action}", 'PROCESSBULKACTION');
                 return [
                     'success' => false,
-                    'message' => 'La acción solicitada no coincide con la autorizada por el token'
+                    'message' => 'La acción solicitada no coincide con el token'
                 ];
             }
             
             $this->db->begin_transaction();
             logAction("Transacción iniciada", 'PROCESSBULKACTION');
             
-            $orderIds = $tokenInfo['decoded_order_ids'];
+            $orderIds = json_decode($tokenInfo['order_ids'], true);
             $userId = $tokenInfo['user_id'];
             
             logAction("Token en bloque válido - User ID: {$userId}, Órdenes a procesar: " . count($orderIds), 'PROCESSBULKACTION');
@@ -547,41 +555,30 @@ class PFMailAction {
             $errors = [];
             
             foreach ($orderIds as $orderId) {
-                try {
-                    logAction("Procesando orden #{$orderId}", 'PROCESSBULKACTION');
-                    
-                    if ($action === 'approve') {
-                        $result = $this->approveOrder($orderId, $userId);
-                    } else {
-                        $result = $this->rejectOrder($orderId, $userId);
-                    }
-                    
-                    if ($result['success']) {
-                        $successful++;
-                        logAction("Orden #{$orderId} procesada exitosamente", 'PROCESSBULKACTION');
-                    } else {
-                        $failed++;
-                        $errors[] = "Orden #{$orderId}: " . $result['message'];
-                        logAction("Error procesando orden #{$orderId}: " . $result['message'], 'PROCESSBULKACTION');
-                    }
-                } catch (Exception $e) {
+                logAction("Procesando orden #{$orderId}", 'PROCESSBULKACTION');
+                
+                $result = ($action === 'approve') 
+                    ? $this->approveOrder($orderId, $userId)
+                    : $this->rejectOrder($orderId, $userId);
+                
+                if ($result['success']) {
+                    $successful++;
+                    logAction("Orden #{$orderId} procesada exitosamente", 'PROCESSBULKACTION');
+                } else {
                     $failed++;
-                    $errors[] = "Orden #{$orderId}: " . $e->getMessage();
-                    logAction("Excepción procesando orden #{$orderId}: " . $e->getMessage(), 'PROCESSBULKACTION');
+                    $errors[] = "Error en orden #{$orderId}: " . $result['message'];
+                    logAction("Error procesando orden #{$orderId}: " . $result['message'], 'PROCESSBULKACTION');
                 }
             }
             
             // Solo si hubo al menos una orden procesada exitosamente, marcar el token como usado
             if ($successful > 0) {
                 if (!$this->markBulkTokenAsUsed($token)) {
-                    $this->db->rollback();
-                    logAction("Error al marcar token en bloque como usado: {$token}", 'PROCESSBULKACTION');
-                    return [
-                        'success' => false,
-                        'message' => 'Error al procesar la acción. No se pudo marcar el token como utilizado.'
-                    ];
+                    logAction("Error marcando token en bloque como usado: {$token}", 'PROCESSBULKACTION');
+                    // No fallar la operación por esto, solo registrar
+                } else {
+                    logAction("Token en bloque marcado como usado", 'PROCESSBULKACTION');
                 }
-                logAction("Token en bloque marcado como usado", 'PROCESSBULKACTION');
             }
             
             $this->db->commit();
@@ -593,7 +590,7 @@ class PFMailAction {
             logAction("Resultado final - Total: {$total}, Exitosas: {$successful}, Fallidas: {$failed}", 'PROCESSBULKACTION');
             
             return [
-                'success' => ($successful > 0),
+                'success' => true,
                 'message' => $message,
                 'details' => [
                     'total' => $total,
@@ -605,10 +602,11 @@ class PFMailAction {
             
         } catch (Exception $e) {
             $this->db->rollback();
-            logAction("Error en processBulkAction: " . $e->getMessage(), 'PROCESSBULKACTION');
+            logAction("Excepción en processBulkAction: " . $e->getMessage(), 'PROCESSBULKACTION');
             return [
                 'success' => false,
-                'message' => 'Error procesando acciones en bloque: ' . $e->getMessage()
+                'message' => 'Error procesando acciones en bloque: ' . $e->getMessage(),
+                'details' => ['errors' => [$e->getMessage()]]
             ];
         }
     }

@@ -267,15 +267,17 @@ class PFEmailTemplates {
         .header-date { color: #cbd5e1; margin: 8px 0 0 0; font-size: 12px; font-family: Georgia, serif; }
         .content { padding: 32px; font-family: Georgia, serif; }
         .stats-card { background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border: 1px solid #cbd5e1; border-radius: 8px; padding: 24px; margin: 20px 0; }
-        .stats-title { color: #0f172a; margin: 0 0 16px 0; font-size: 16px; font-weight: 700; border-bottom: 2px solid #034C8C; padding-bottom: 8px; font-family: Georgia, serif; }
-        .stats-grid { display: table; width: 100%; }
-        .stats-row { display: table-row; }
-        .stats-cell { display: table-cell; padding: 12px 0; width: 50%; vertical-align: middle; }
-        .stat-item { text-align: left; }
-        .stat-item.right { text-align: right; }
-        .stat-label { color: #374151; font-size: 14px; font-weight: 500; font-family: Georgia, serif; }
-        .stat-value { color: #034C8C; font-size: 18px; font-weight: 700; margin-top: 4px; font-family: Georgia, serif; }
+        .stats-title { color: #0f172a; margin: 0 0 20px 0; font-size: 16px; font-weight: 700; border-bottom: 2px solid #034C8C; padding-bottom: 8px; font-family: Georgia, serif; }
+        
+        /* Nuevo CSS para estadísticas en una fila */
+        .stats-row { width: 100%; }
+        .stats-row table { width: 100%; border-collapse: collapse; }
+        .stats-cell { width: 33.33%; text-align: center; padding: 0 15px; vertical-align: top; }
+        .stat-box { background-color: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; padding: 16px; margin: 0; }
+        .stat-label { color: #374151; font-size: 12px; font-weight: 500; margin-bottom: 6px; font-family: Georgia, serif; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-value { color: #034C8C; font-size: 22px; font-weight: 700; margin: 0; font-family: Georgia, serif; }
         .stat-value.cost { color: #059669; font-family: Georgia, serif; }
+        
         .bulk-actions { background-color: #ffffff; border: 2px solid #e2e8f0; border-radius: 8px; padding: 24px; margin: 24px 0; text-align: center; }
         .bulk-title { color: #1e293b; margin: 0 0 12px 0; font-size: 16px; font-weight: 700; font-family: Georgia, serif; }
         .bulk-subtitle { color: #6b7280; margin: 0 0 20px 0; font-size: 13px; font-family: Georgia, serif; }
@@ -377,30 +379,32 @@ class PFEmailTemplates {
                     <tr>
                         <td class="content" style="font-family: Georgia, serif;">
                             
-                            <!-- Statistics -->
+                            <!-- Statistics - Nueva estructura en una fila -->
                             <div class="stats-card">
                                 <h3 class="stats-title" style="font-family: Georgia, serif;">Summary Statistics</h3>
-                                <div class="stats-grid">
-                                    <div class="stats-row">
-                                        <div class="stats-cell">
-                                            <div class="stat-item">
-                                                <div class="stat-label" style="font-family: Georgia, serif;">Total Orders</div>
-                                                <div class="stat-value" style="font-family: Georgia, serif;">' . $totalOrders . '</div>
-                                            </div>
-                                        </div>
-                                        <div class="stats-cell">
-                                            <div class="stat-item right">
-                                                <div class="stat-label" style="font-family: Georgia, serif;">Total Value</div>
-                                                <div class="stat-value cost" style="font-family: Georgia, serif;">EUR ' . number_format($totalCost, 2) . '</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="stats-row" style="border-top: 1px solid #cbd5e1;">
-                                        <div class="stats-cell" colspan="2" style="text-align: center; padding-top: 16px;">
-                                            <div class="stat-label" style="font-family: Georgia, serif;">Average Order Value</div>
-                                            <div class="stat-value" style="font-family: Georgia, serif;">EUR ' . number_format($avgCost, 2) . '</div>
-                                        </div>
-                                    </div>
+                                <div class="stats-row">
+                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 100%; border-collapse: collapse;">
+                                        <tr>
+                                            <td class="stats-cell" style="width: 33.33%; text-align: center; padding: 0 15px; vertical-align: top;">
+                                                <div class="stat-box">
+                                                    <div class="stat-label" style="font-family: Georgia, serif;">Total Orders</div>
+                                                    <div class="stat-value" style="font-family: Georgia, serif;">' . $totalOrders . '</div>
+                                                </div>
+                                            </td>
+                                            <td class="stats-cell" style="width: 33.33%; text-align: center; padding: 0 15px; vertical-align: top;">
+                                                <div class="stat-box">
+                                                    <div class="stat-label" style="font-family: Georgia, serif;">Total Value</div>
+                                                    <div class="stat-value cost" style="font-family: Georgia, serif;">EUR ' . number_format($totalCost, 2) . '</div>
+                                                </div>
+                                            </td>
+                                            <td class="stats-cell" style="width: 33.33%; text-align: center; padding: 0 15px; vertical-align: top;">
+                                                <div class="stat-box">
+                                                    <div class="stat-label" style="font-family: Georgia, serif;">Average Order Value</div>
+                                                    <div class="stat-value" style="font-family: Georgia, serif;">EUR ' . number_format($avgCost, 2) . '</div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
                                 </div>
                             </div>
                             
