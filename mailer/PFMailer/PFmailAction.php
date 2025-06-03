@@ -79,61 +79,76 @@ class PFMailAction {
     public function processAction($token, $action) {
         try {
             logAction("Iniciando processAction para token={$token}, acción={$action}", 'PROCESSACTION');
-            $this->db->begin_transaction();
             
-            // 1. Obtener datos del token (ya validado previamente)
-            $sql = "SELECT * FROM EmailActionTokens WHERE token = ? FOR UPDATE";
+            // PASO 1: Verificar y marcar el token como usado EN UNA SOLA OPERACIÓN ATÓMICA
+            $sql = "UPDATE EmailActionTokens 
+                    SET is_used = 1, used_at = NOW() 
+                    WHERE token = ? AND is_used = 0";
+            
             $stmt = $this->db->prepare($sql);
             $stmt->bind_param("s", $token);
-            $stmt->execute();
-            $result = $stmt->get_result();
+            $result = $stmt->execute();
             
-            if ($result->num_rows === 0) {
-                $this->db->rollback();
+            // Si no se actualizó ninguna fila, significa que el token ya fue usado o no existe
+            if ($stmt->affected_rows === 0) {
+                logAction("Token ya procesado o no existe: {$token}", 'PROCESSACTION');
                 return [
                     'success' => false,
-                    'message' => 'Token no encontrado.'
+                    'message' => 'Este enlace ya fue procesado o no es válido.'
                 ];
             }
             
-            $tokenData = $result->fetch_assoc();
+            // PASO 2: Ahora obtener los datos del token (ya marcado como usado)
+            $dataSql = "SELECT order_id, user_id, action FROM EmailActionTokens WHERE token = ?";
+            $dataStmt = $this->db->prepare($dataSql);
+            $dataStmt->bind_param("s", $token);
+            $dataStmt->execute();
+            $dataResult = $dataStmt->get_result();
             
-            // 2. Validar los datos del token
+            if ($dataResult->num_rows === 0) {
+                logAction("Error: Token no encontrado después de marcarlo como usado: {$token}", 'PROCESSACTION');
+                return [
+                    'success' => false,
+                    'message' => 'Error interno del sistema.'
+                ];
+            }
+            
+            $tokenData = $dataResult->fetch_assoc();
             $orderId = $tokenData['order_id'];
             $userId = $tokenData['user_id'];
             $tokenAction = $tokenData['action'];
             
+            // PASO 3: Validar que la acción coincida
             if ($action !== $tokenAction) {
-                $this->db->rollback();
+                logAction("Acción no coincide: esperada={$tokenAction}, recibida={$action}", 'PROCESSACTION');
                 return [
                     'success' => false,
-                    'message' => "Acción no coincide. Token es para '{$tokenAction}', se recibió '{$action}'."
+                    'message' => "Acción no válida. Se esperaba '{$tokenAction}' pero se recibió '{$action}'."
                 ];
             }
             
-            // 3. Procesar la acción
-            $result = ($action === 'approve') 
-                ? $this->approveOrder($orderId, $userId) 
-                : $this->rejectOrder($orderId, $userId);
+            logAction("Token procesado exitosamente. Ejecutando acción {$action} para orden #{$orderId}", 'PROCESSACTION');
             
-            // 4. Solo si la acción fue exitosa, marcar el token como usado
-            if ($result['success']) {
-                $this->markTokenAsUsed($token);
-                $this->db->commit();
-                logAction("Acción {$action} completada exitosamente para orden #{$orderId} y token marcado como usado", 'PROCESSACTION');
+            // PASO 4: Procesar la acción
+            if ($action === 'approve') {
+                $result = $this->approveOrder($orderId, $userId);
             } else {
-                $this->db->rollback();
-                logAction("Error en acción {$action}: {$result['message']}", 'PROCESSACTION');
+                $result = $this->rejectOrder($orderId, $userId);
+            }
+            
+            if ($result['success']) {
+                logAction("Acción {$action} completada exitosamente para orden #{$orderId}", 'PROCESSACTION');
+            } else {
+                logAction("Error en acción {$action}: " . $result['message'], 'PROCESSACTION');
             }
             
             return $result;
             
         } catch (Exception $e) {
-            $this->db->rollback();
             logAction("Excepción en processAction: " . $e->getMessage(), 'PROCESSACTION');
             return [
                 'success' => false,
-                'message' => 'Error interno del sistema: ' . $e->getMessage()
+                'message' => 'Error interno del sistema.'
             ];
         }
     }
@@ -149,51 +164,60 @@ class PFMailAction {
         try {
             logAction("Aprobando orden #{$orderId} por usuario #{$userId}", 'APPROVEORDER');
             
-            // PRIMERO: Validar que el usuario tenga el nivel correcto para aprobar
-            $validationSql = "SELECT PFA.act_approv, PF.required_auth_level, PF.status_id, PF.user_id as creator_id,
-                                     U_creator.plant as order_plant, U_approver.authorization_level as approver_level
-                              FROM PremiumFreightApprovals PFA 
-                              JOIN PremiumFreight PF ON PFA.premium_freight_id = PF.id
-                              JOIN User U_creator ON PF.user_id = U_creator.id
-                              JOIN User U_approver ON U_approver.id = ?
-                              WHERE PFA.premium_freight_id = ?";
-            
+            // PASO 1: Validar que el usuario tenga el nivel correcto para aprobar
+            $validationSql = "SELECT 
+                            PFA.act_approv, 
+                            PF.required_auth_level, 
+                            PF.status_id, 
+                            PF.user_id as creator_id,
+                            U_creator.plant as order_plant, 
+                            U_approver.authorization_level as approver_level,
+                            U_approver.plant as approver_plant
+                          FROM PremiumFreightApprovals PFA 
+                          JOIN PremiumFreight PF ON PFA.premium_freight_id = PF.id
+                          JOIN User U_creator ON PF.user_id = U_creator.id
+                          JOIN User U_approver ON U_approver.id = ?
+                          WHERE PFA.premium_freight_id = ?";
+        
             $validationStmt = $this->db->prepare($validationSql);
             $validationStmt->bind_param("ii", $userId, $orderId);
             $validationStmt->execute();
             $validationResult = $validationStmt->get_result();
-            
+        
             if ($validationResult->num_rows === 0) {
                 return [
                     'success' => false,
                     'message' => "No se pudo validar la orden o el usuario aprobador."
                 ];
             }
-            
+        
             $data = $validationResult->fetch_assoc();
             $currentApproval = (int)$data['act_approv'];
             $requiredLevel = (int)$data['required_auth_level'];
             $currentStatus = (int)$data['status_id'];
             $approverLevel = (int)$data['approver_level'];
             $orderPlant = $data['order_plant'];
-            
-            // Verificar si ya está completamente aprobada
+            $approverPlant = $data['approver_plant'];
+        
+            logAction("Datos de validación - current_approval: {$currentApproval}, required: {$requiredLevel}, approver_level: {$approverLevel}, order_plant: {$orderPlant}, approver_plant: {$approverPlant}", 'APPROVEORDER');
+        
+            // VALIDACIÓN 1: Verificar que no esté ya completamente aprobada
             if ($currentApproval >= $requiredLevel) {
                 return [
                     'success' => true,
                     'message' => "La orden #{$orderId} ya está completamente aprobada."
                 ];
             }
-            
-            // Verificar si fue rechazada
+        
+            // VALIDACIÓN 2: Verificar que no esté rechazada
             if ($currentApproval == 99) {
                 return [
                     'success' => false,
                     'message' => "La orden #{$orderId} fue rechazada previamente y no puede ser aprobada."
                 ];
             }
-            
-            // VALIDACIÓN CRÍTICA: El usuario debe tener el nivel correcto
+        
+            // VALIDACIÓN 3: El usuario debe tener el nivel correcto (act_approv + 1)
             $expectedLevel = $currentApproval + 1;
             if ($approverLevel !== $expectedLevel) {
                 return [
@@ -201,51 +225,42 @@ class PFMailAction {
                     'message' => "Su nivel de autorización ({$approverLevel}) no corresponde al requerido para esta orden ({$expectedLevel})."
                 ];
             }
-            
-            // Validar que el usuario sea de la misma planta o sea regional
-            $userPlantSql = "SELECT plant FROM User WHERE id = ?";
-            $userPlantStmt = $this->db->prepare($userPlantSql);
-            $userPlantStmt->bind_param("i", $userId);
-            $userPlantStmt->execute();
-            $userPlantResult = $userPlantStmt->get_result();
-            $userPlant = $userPlantResult->fetch_assoc()['plant'];
-            
-            if ($userPlant !== null && $userPlant !== $orderPlant) {
+        
+            // VALIDACIÓN 4: Validar planta (misma planta O usuario regional sin planta)
+            if ($approverPlant !== null && $approverPlant !== $orderPlant) {
                 return [
                     'success' => false,
                     'message' => "No tiene autorización para aprobar órdenes de la planta: {$orderPlant}."
                 ];
             }
-            
-            // El nuevo nivel de aprobación será igual al authorization_level del usuario que aprueba
+        
+            // PASO 2: Actualizar act_approv con el authorization_level del aprobador
             $newApprovalLevel = $approverLevel;
-            
-            // Verificar si con este nuevo nivel estará completamente aprobada
-            $willBeFullyApproved = ($newApprovalLevel >= $requiredLevel);
-            
-            // Actualizar act_approv con el authorization_level del aprobador
+        
             $updateSql = "UPDATE PremiumFreightApprovals 
-                         SET act_approv = ?, approval_date = NOW(), user_id = ? 
-                         WHERE premium_freight_id = ?";
+                     SET act_approv = ?, approval_date = NOW(), user_id = ? 
+                     WHERE premium_freight_id = ?";
             $updateStmt = $this->db->prepare($updateSql);
             $updateStmt->bind_param("iii", $newApprovalLevel, $userId, $orderId);
-            
+        
             if (!$updateStmt->execute()) {
                 throw new Exception("Error al actualizar la aprobación: " . $updateStmt->error);
             }
-            
-            // Determinar el nuevo status_id
+        
+            // PASO 3: Determinar si está completamente aprobada después de esta aprobación
+            $willBeFullyApproved = ($newApprovalLevel >= $requiredLevel);
+        
+            // PASO 4: Actualizar el status_id según corresponda
             $newStatusId = $willBeFullyApproved ? 3 : 2; // 3 = Completamente aprobado, 2 = En proceso
-            
-            // Actualizar el status_id
+        
             $statusSql = "UPDATE PremiumFreight SET status_id = ? WHERE id = ?";
             $statusStmt = $this->db->prepare($statusSql);
             $statusStmt->bind_param("ii", $newStatusId, $orderId);
             $statusStmt->execute();
-            
+        
             logAction("Orden #{$orderId} actualizada: act_approv={$newApprovalLevel}, status_id={$newStatusId}, fully_approved=" . ($willBeFullyApproved ? 'YES' : 'NO'), 'APPROVEORDER');
-            
-            // ENVIAR NOTIFICACIONES SEGÚN EL ESTADO FINAL
+        
+            // PASO 5: ENVIAR NOTIFICACIONES SEGÚN EL ESTADO FINAL
             try {
                 $mailer = new PFMailer();
                 
@@ -371,9 +386,10 @@ class PFMailAction {
         try {
             logAction("Validando token: {$token}", 'VALIDATETOKEN');
             
-            $sql = "SELECT order_id, user_id, action, created_at, is_used, used_at, used_at 
+            $sql = "SELECT order_id, user_id, action, created_at, is_used, used_at 
                     FROM EmailActionTokens 
-                    WHERE token = ?";
+                    WHERE token = ? 
+                    LIMIT 1";
             
             $stmt = $this->db->prepare($sql);
             $stmt->bind_param("s", $token);
@@ -387,23 +403,27 @@ class PFMailAction {
             
             $tokenInfo = $result->fetch_assoc();
             
-            // Verificar expiración (si tienes campo used_at)
-            if (isset($tokenInfo['used_at']) && strtotime($tokenInfo['used_at']) < time()) {
-                logAction("Token expirado: {$token}", 'VALIDATETOKEN');
-                return false;
+            // Verificar si el token ya fue usado
+            if ($tokenInfo['is_used'] == 1) {
+                logAction("Token ya usado: {$token}", 'VALIDATETOKEN');
+                return $tokenInfo; // Retornar la info para mostrar mensaje apropiado
             }
             
-            // Si el token ya fue usado, logearlo pero RETORNAR LA INFO (no false)
-            if ($tokenInfo['is_used'] == 1) {
-                logAction("Token ya utilizado: {$token}", 'VALIDATETOKEN');
-                return $tokenInfo; // CAMBIO CLAVE: retornar info en lugar de false
+            // Verificar expiración (opcional - tokens válidos por 24 horas)
+            $createdTime = strtotime($tokenInfo['created_at']);
+            $currentTime = time();
+            $tokenAge = $currentTime - $createdTime;
+            
+            if ($tokenAge > (24 * 60 * 60)) { // 24 horas
+                logAction("Token expirado: {$token} (edad: {$tokenAge} segundos)", 'VALIDATETOKEN');
+                return false;
             }
             
             logAction("Token válido encontrado: Order ID {$tokenInfo['order_id']}, Action: {$tokenInfo['action']}", 'VALIDATETOKEN');
             return $tokenInfo;
             
         } catch (Exception $e) {
-            logAction("Error validando token: " . $e->getMessage(), 'VALIDATETOKEN');
+            logAction("Error en validateToken: " . $e->getMessage(), 'VALIDATETOKEN');
             return false;
         }
     }

@@ -34,7 +34,7 @@ logAction("Solicitud recibida: acción={$action}, token={$token}", 'SINGLEACTION
 try {
     $handler = new PFMailAction();
     
-    // Primero validar el token ANTES de procesarlo
+    // VALIDACIÓN PREVIA: Verificar el estado del token ANTES de procesarlo
     $tokenInfo = $handler->validateToken($token);
     
     if (!$tokenInfo) {
@@ -43,24 +43,33 @@ try {
         exit;
     }
     
-    // Si el token ya fue usado, mostrar mensaje de éxito SIN procesar
+    // Si el token ya fue usado, mostrar mensaje de éxito apropiado
     if (isset($tokenInfo['is_used']) && $tokenInfo['is_used'] == 1) {
         logAction("Token ya utilizado detectado: {$token}", 'SINGLEACTION');
         
-        // Ahora SÍ tenemos acceso a order_id porque validateToken retorna la info
         $orderId = $tokenInfo['order_id'];
+        $tokenAction = $tokenInfo['action'];
         
-        // Mensaje apropiado según la acción
-        $statusMessage = ($action === 'approve') ? 
-            "Su aprobación ha sido registrada exitosamente para la orden #{$orderId}." :
-            "Su rechazo ha sido registrado exitosamente para la orden #{$orderId}.";
+        // Mensaje apropiado según la acción del token (no la acción solicitada)
+        if ($tokenAction === 'approve') {
+            $statusMessage = "Su aprobación ya fue registrada exitosamente para la orden #{$orderId}.";
+        } else {
+            $statusMessage = "Su rechazo ya fue registrado exitosamente para la orden #{$orderId}.";
+        }
         
         logAction("Mostrando mensaje de éxito para token ya usado: {$token}", 'SINGLEACTION');
         showSuccess($statusMessage);
         exit;
     }
     
-    // Procesar la acción solo si el token no ha sido usado
+    // Validar que la acción solicitada coincida con la del token
+    if ($action !== $tokenInfo['action']) {
+        logAction("Acción no coincide con token: solicitada={$action}, token={$tokenInfo['action']}", 'SINGLEACTION');
+        showError("Acción no válida para este enlace.");
+        exit;
+    }
+    
+    // PROCESAR LA ACCIÓN: Solo si el token es válido y no ha sido usado
     $result = $handler->processAction($token, $action);
 
     if ($result && isset($result['success']) && $result['success']) {
