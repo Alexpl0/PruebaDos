@@ -301,9 +301,11 @@ class PFMailer {
 
             // Obtener órdenes que tienen recovery_file pero no recovery_evidence
             $sql = "SELECT PF.id, PF.user_id, PF.description, PF.cost_euros, 
-                           PF.date, PF.recovery_file, U.name, U.email
+                           PF.date, PF.recovery_file, PF.area, U.name, U.email,
+                           P.planta as planta_name
                     FROM PremiumFreight PF
                     INNER JOIN User U ON PF.user_id = U.id
+                    LEFT JOIN plantas P ON PF.planta = P.id
                     WHERE PF.recovery_file IS NOT NULL 
                     AND PF.recovery_file != ''
                     AND (PF.recovery_evidence IS NULL OR PF.recovery_evidence = '')";
@@ -343,35 +345,25 @@ class PFMailer {
             // Enviar correo a cada usuario con sus órdenes pendientes
             foreach ($ordersByUser as $userInfo) {
                 try {
-                    $user = $userInfo['user'];
-                    $orders = $userInfo['orders'];
-                    
-                    // Usar el template de la clase PFEmailTemplates
-                    $emailBody = $this->templates->getRecoveryCheckTemplate($user, $orders);
+                    $emailBody = $this->templates->getRecoveryCheckTemplate($userInfo['user'], $userInfo['orders']);
                     
                     $this->mail->clearAddresses();
-                    $this->mail->addAddress($user['email'], $user['name']);
+                    $this->mail->addAddress($userInfo['user']['email'], $userInfo['user']['name']);
                     $this->mail->Subject = "Premium Freight - Recovery Evidence Required";
                     $this->mail->Body = $emailBody;
                     
                     if ($this->mail->send()) {
                         $result['success']++;
-                        $result['totalSent']++;
-                        
-                        // Registrar la notificación para cada orden
-                        foreach ($orders as $order) {
-                            $this->services->logNotification($order['id'], $user['id'], 'recovery_check');
-                        }
-                        
-                        error_log("Recovery check email sent to {$user['email']} for " . count($orders) . " orders");
+                        error_log("Recovery check email sent to {$userInfo['user']['email']}");
                     } else {
-                        $result['errors'][] = "Error sending to {$user['email']}: " . $this->mail->ErrorInfo;
-                        $result['totalSent']++;
+                        $result['errors'][] = "Failed to send recovery check email to {$userInfo['user']['email']}: " . $this->mail->ErrorInfo;
                     }
                     
-                } catch (Exception $e) {
-                    $result['errors'][] = "Exception sending to {$user['email']}: " . $e->getMessage();
                     $result['totalSent']++;
+                    
+                } catch (Exception $e) {
+                    $result['errors'][] = "Error sending recovery check email to {$userInfo['user']['email']}: " . $e->getMessage();
+                    error_log("Error sending recovery check email: " . $e->getMessage());
                 }
             }
 

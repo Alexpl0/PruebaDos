@@ -42,6 +42,14 @@ class PFEmailTemplates {
         $orderDescription = htmlspecialchars($orderData['description'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
         $creatorName = htmlspecialchars($orderData['creator_name'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
         $plantaName = htmlspecialchars($orderData['planta'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
+        $areaName = htmlspecialchars($orderData['area'] ?? '', ENT_QUOTES, 'UTF-8');
+        
+        // Formatear el nombre con área si está disponible
+        $requestedBy = $creatorName;
+        if (!empty($areaName)) {
+            $requestedBy .= ' (' . $areaName . ')';
+        }
+        
         $formattedDate = date('M d, Y H:i', strtotime($orderData['date']));
 
         return '<!DOCTYPE html>
@@ -168,7 +176,7 @@ class PFEmailTemplates {
                                 
                                 <div class="detail-row">
                                     <span class="detail-label" style="font-family: Georgia, serif;">Requested by:</span>
-                                    <span class="detail-value" style="font-family: Georgia, serif;">' . $creatorName . '</span>
+                                    <span class="detail-value" style="font-family: Georgia, serif;">' . $requestedBy . '</span>
                                 </div>
                                 
                                 <div class="detail-row">
@@ -439,7 +447,7 @@ class PFEmailTemplates {
                                         <tr>
                                             <th style="width: 10%; font-family: Georgia, serif;">Order #</th>
                                             <th style="width: 35%; font-family: Georgia, serif;">Description</th>
-                                            <th style="width: 15%; font-family: Georgia, serif;">Area</th>
+                                            <th style="width: 15%; font-family: Georgia, serif;">Planta</th>
                                             <th style="width: 12%; font-family: Georgia, serif;">Cost</th>
                                             <th style="width: 12%; font-family: Georgia, serif;">Created</th>
                                             <th style="width: 16%; font-family: Georgia, serif;">Actions</th>
@@ -487,6 +495,14 @@ class PFEmailTemplates {
         $orderDescription = htmlspecialchars($orderData['description'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
         $creatorName = htmlspecialchars($orderData['creator_name'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
         $plantaName = htmlspecialchars($orderData['planta'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
+        $areaName = htmlspecialchars($orderData['area'] ?? '', ENT_QUOTES, 'UTF-8');
+        
+        // Formatear el nombre con área si está disponible
+        $requestedBy = $creatorName;
+        if (!empty($areaName)) {
+            $requestedBy .= ' (' . $areaName . ')';
+        }
+        
         $formattedDate = date('M d, Y H:i', strtotime($orderData['date']));
 
         if ($status === 'approved') {
@@ -602,7 +618,7 @@ class PFEmailTemplates {
                                 
                                 <div class="detail-row">
                                     <span class="detail-label" style="font-family: Georgia, serif;">Requested by:</span>
-                                    <span class="detail-value" style="font-family: Georgia, serif;">' . $creatorName . '</span>
+                                    <span class="detail-value" style="font-family: Georgia, serif;">' . $requestedBy . '</span>
                                 </div>
                                 
                                 <div class="detail-row">

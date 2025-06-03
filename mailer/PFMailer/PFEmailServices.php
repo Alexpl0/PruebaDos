@@ -21,14 +21,16 @@ class PFEmailServices {
      */
     public function getOrderDetails($orderId) {
         $sql = "SELECT PF.id, PF.user_id, PF.required_auth_level, PF.cost_euros,
-                       PF.date, PF.description, PF.planta, PF.status_id,
-                       COALESCE(PFA.act_approv, 0) as current_approval_level,
-                       U.name as creator_name, U.plant as order_plant
-                FROM PremiumFreight PF
-                LEFT JOIN PremiumFreightApprovals PFA ON PF.id = PFA.premium_freight_id
-                INNER JOIN User U ON PF.user_id = U.id
-                WHERE PF.id = ?";
-        
+                   PF.date, PF.description, PF.planta, PF.status_id, PF.area,
+                   COALESCE(PFA.act_approv, 0) as current_approval_level,
+                   U.name as creator_name, U.plant as order_plant,
+                   P.planta as planta_name
+            FROM PremiumFreight PF
+            LEFT JOIN PremiumFreightApprovals PFA ON PF.id = PFA.premium_freight_id
+            INNER JOIN User U ON PF.user_id = U.id
+            LEFT JOIN plantas P ON PF.planta = P.id
+            WHERE PF.id = ?";
+    
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param("i", $orderId);
         $stmt->execute();
@@ -90,17 +92,19 @@ class PFEmailServices {
      */
     public function getPendingOrdersForWeeklySummary() {
         $sql = "SELECT PF.id, PF.user_id, PF.required_auth_level, PF.cost_euros,
-                       PF.date, PF.description, PF.planta,
-                       COALESCE(PFA.act_approv, 0) as current_approval_level,
-                       U.name as creator_name, U.plant as order_plant
-                FROM PremiumFreight PF
-                LEFT JOIN PremiumFreightApprovals PFA ON PF.id = PFA.premium_freight_id
-                INNER JOIN User U ON PF.user_id = U.id
-                WHERE PF.status_id IN (1, 2) 
-                AND (PFA.act_approv IS NULL OR 
-                     (PFA.act_approv < PF.required_auth_level AND PFA.act_approv != 99))
-                ORDER BY PF.date DESC";
-        
+                   PF.date, PF.description, PF.planta, PF.area,
+                   COALESCE(PFA.act_approv, 0) as current_approval_level,
+                   U.name as creator_name, U.plant as order_plant,
+                   P.planta as planta_name
+            FROM PremiumFreight PF
+            LEFT JOIN PremiumFreightApprovals PFA ON PF.id = PFA.premium_freight_id
+            INNER JOIN User U ON PF.user_id = U.id
+            LEFT JOIN plantas P ON PF.planta = P.id
+            WHERE PF.status_id IN (1, 2) 
+            AND (PFA.act_approv IS NULL OR 
+                 (PFA.act_approv < PF.required_auth_level AND PFA.act_approv != 99))
+            ORDER BY PF.date DESC";
+    
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         $result = $stmt->get_result();

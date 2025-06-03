@@ -429,47 +429,37 @@ class PFMailAction {
     public function validateToken($token) {
         try {
             logAction("Validando token: {$token}", 'VALIDATETOKEN');
-
             $sql = "SELECT token, order_id, user_id, action, created_at, is_used 
                     FROM EmailActionTokens 
                     WHERE token = ? 
                     AND created_at > DATE_SUB(NOW(), INTERVAL 72 HOUR)
                     LIMIT 1";
-            
             $stmt = $this->db->prepare($sql);
-            
             if (!$stmt) {
                 logAction("Error al preparar consulta de token: " . $this->db->error, 'VALIDATETOKEN');
                 return false;
             }
-            
             $stmt->bind_param("s", $token);
-            
             if (!$stmt->execute()) {
                 logAction("Error al ejecutar consulta de token: " . $stmt->error, 'VALIDATETOKEN');
                 return false;
             }
-            
             $result = $stmt->get_result();
-            
             if ($result->num_rows === 0) {
                 logAction("Token no encontrado o expirado: {$token}", 'VALIDATETOKEN');
                 return false;
             }
-            
             $tokenInfo = $result->fetch_assoc();
-            
             if ($tokenInfo['is_used'] == 1) {
                 logAction("Token ya utilizado: {$token}", 'VALIDATETOKEN');
                 return [
                     'is_used' => true,
                     'token' => $token,
-                    'action' => $tokenInfo['action']
+                    'action' => $tokenInfo['action'],
+                    'order_id' => $tokenInfo['order_id']
                 ];
             }
-            
             logAction("Token válido encontrado: Order ID {$tokenInfo['order_id']}, Action: {$tokenInfo['action']}", 'VALIDATETOKEN');
-            
             return $tokenInfo;
         } catch (Exception $e) {
             logAction("Error en validateToken: " . $e->getMessage(), 'VALIDATETOKEN');
@@ -507,11 +497,10 @@ class PFMailAction {
         try {
             logAction("Iniciando processBulkAction para token={$token}, acción={$action}", 'PROCESSBULKACTION');
             
-            // NO validar el token aquí, ya se validó en el archivo principal
             // Obtener la información del token directamente
             $sql = "SELECT token, user_id, action, order_ids, created_at, is_used 
                     FROM EmailBulkActionTokens 
-                    WHERE token = ? AND is_used = 0 
+                    WHERE token = ?
                     LIMIT 1";
             $stmt = $this->db->prepare($sql);
             if (!$stmt) {
@@ -524,20 +513,18 @@ class PFMailAction {
             $result = $stmt->get_result();
             
             if ($result->num_rows === 0) {
-                logAction("Token no encontrado o ya usado en processBulkAction: {$token}", 'PROCESSBULKACTION');
                 return [
                     'success' => false,
-                    'message' => 'Token no válido o ya utilizado'
+                    'message' => 'Token de acción en bloque no encontrado.'
                 ];
             }
             
             $tokenInfo = $result->fetch_assoc();
             
             if ($tokenInfo['action'] !== $action) {
-                logAction("Acción no coincide - Token: {$tokenInfo['action']}, Solicitada: {$action}", 'PROCESSBULKACTION');
                 return [
                     'success' => false,
-                    'message' => 'La acción solicitada no coincide con el token'
+                    'message' => "Acción no coincide. Token es para '{$tokenInfo['action']}', se recibió '{$action}'."
                 ];
             }
             
@@ -555,29 +542,32 @@ class PFMailAction {
             $errors = [];
             
             foreach ($orderIds as $orderId) {
-                logAction("Procesando orden #{$orderId}", 'PROCESSBULKACTION');
-                
-                $result = ($action === 'approve') 
-                    ? $this->approveOrder($orderId, $userId)
-                    : $this->rejectOrder($orderId, $userId);
-                
-                if ($result['success']) {
-                    $successful++;
-                    logAction("Orden #{$orderId} procesada exitosamente", 'PROCESSBULKACTION');
-                } else {
+                try {
+                    $result = ($action === 'approve') ? 
+                        $this->approveOrder($orderId, $userId) : 
+                        $this->rejectOrder($orderId, $userId);
+                    
+                    if ($result['success']) {
+                        $successful++;
+                        logAction("Orden #{$orderId} procesada exitosamente", 'PROCESSBULKACTION');
+                    } else {
+                        $failed++;
+                        $errors[] = "Orden #{$orderId}: " . $result['message'];
+                        logAction("Error procesando orden #{$orderId}: " . $result['message'], 'PROCESSBULKACTION');
+                    }
+                } catch (Exception $e) {
                     $failed++;
-                    $errors[] = "Error en orden #{$orderId}: " . $result['message'];
-                    logAction("Error procesando orden #{$orderId}: " . $result['message'], 'PROCESSBULKACTION');
+                    $errors[] = "Orden #{$orderId}: " . $e->getMessage();
+                    logAction("Excepción procesando orden #{$orderId}: " . $e->getMessage(), 'PROCESSBULKACTION');
                 }
             }
             
             // Solo si hubo al menos una orden procesada exitosamente, marcar el token como usado
             if ($successful > 0) {
-                if (!$this->markBulkTokenAsUsed($token)) {
-                    logAction("Error marcando token en bloque como usado: {$token}", 'PROCESSBULKACTION');
-                    // No fallar la operación por esto, solo registrar
+                if ($this->markBulkTokenAsUsed($token)) {
+                    logAction("Token en bloque marcado como usado exitosamente", 'PROCESSBULKACTION');
                 } else {
-                    logAction("Token en bloque marcado como usado", 'PROCESSBULKACTION');
+                    logAction("Error marcando token en bloque como usado", 'PROCESSBULKACTION');
                 }
             }
             
@@ -605,8 +595,13 @@ class PFMailAction {
             logAction("Excepción en processBulkAction: " . $e->getMessage(), 'PROCESSBULKACTION');
             return [
                 'success' => false,
-                'message' => 'Error procesando acciones en bloque: ' . $e->getMessage(),
-                'details' => ['errors' => [$e->getMessage()]]
+                'message' => 'Error interno del sistema: ' . $e->getMessage(),
+                'details' => [
+                    'total' => 0,
+                    'successful' => 0,
+                    'failed' => 0,
+                    'errors' => [$e->getMessage()]
+                ]
             ];
         }
     }
@@ -619,21 +614,23 @@ class PFMailAction {
      */
     public function getOrderStatus($orderId) {
         try {
-            $sql = "SELECT PF.status_id, PFA.act_approv, PF.required_auth_level
-                    FROM PremiumFreight PF 
-                    LEFT JOIN PremiumFreightApprovals PFA ON PF.id = PFA.premium_freight_id 
-                    WHERE PF.id = ?";
-            
-            $stmt = $this->db->prepare($sql);
-            $stmt->bind_param("i", $orderId);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            
-            if ($result->num_rows > 0) {
-                return $result->fetch_assoc();
-            }
-            
-            return false;
+            $sql = "SELECT PF.status_id, PF.area, PFA.act_approv, S.status_name,
+                       U.name as creator_name, P.planta as planta_name
+                FROM PremiumFreight PF 
+                LEFT JOIN PremiumFreightApprovals PFA ON PF.id = PFA.premium_freight_id 
+                LEFT JOIN Status S ON PF.status_id = S.id
+                LEFT JOIN User U ON PF.user_id = U.id
+                LEFT JOIN plantas P ON PF.planta = P.id
+                WHERE PF.id = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bind_param("i", $orderId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows > 0) {
+            return $result->fetch_assoc();
+        }
+        return false;
         } catch (Exception $e) {
             logAction("Error en getOrderStatus: " . $e->getMessage(), 'GETORDERSTATUS');
             return false;
