@@ -148,23 +148,16 @@ class PFMailAction {
     private function approveOrder($orderId, $userId) {
         try {
             logAction("Aprobando orden #{$orderId} por usuario #{$userId}", 'APPROVEORDER');
+            
+            // Obtener el estado actual de la orden
             $getCurrentSql = "SELECT PFA.act_approv, PF.required_auth_level, PF.status_id
                               FROM PremiumFreightApprovals PFA 
                               JOIN PremiumFreight PF ON PFA.premium_freight_id = PF.id
                               WHERE PFA.premium_freight_id = ?";
             
             $getCurrentStmt = $this->db->prepare($getCurrentSql);
-            if (!$getCurrentStmt) {
-                logAction("Error preparando consulta para obtener valores actuales: " . $this->db->error, 'APPROVEORDER');
-                throw new Exception("Error al preparar la consulta para obtener valores actuales: " . $this->db->error);
-            }
             $getCurrentStmt->bind_param("i", $orderId);
-            
-            if (!$getCurrentStmt->execute()) {
-                logAction("Error ejecutando consulta para obtener valores actuales: " . $getCurrentStmt->error, 'APPROVEORDER');
-                throw new Exception("Error al ejecutar la consulta para obtener valores actuales: " . $getCurrentStmt->error);
-            }
-            
+            $getCurrentStmt->execute();
             $currentResult = $getCurrentStmt->get_result();
             
             if ($currentResult->num_rows > 0) {
@@ -173,11 +166,8 @@ class PFMailAction {
                 $requiredLevel = (int)$currentData['required_auth_level'];
                 $currentStatus = (int)$currentData['status_id'];
                 
-                logAction("Datos actuales - Aprobación: {$currentApproval}, Requerido: {$requiredLevel}, Status: {$currentStatus}", 'APPROVEORDER');
-                
                 // Verificar si ya está completamente aprobada
                 if ($currentApproval >= $requiredLevel) {
-                    logAction("La orden ya está completamente aprobada (nivel $currentApproval, requerido $requiredLevel)", 'APPROVEORDER');
                     return [
                         'success' => true,
                         'message' => "La orden #{$orderId} ya está completamente aprobada."
@@ -186,114 +176,130 @@ class PFMailAction {
                 
                 // Verificar si fue rechazada
                 if ($currentApproval == 99) {
-                    logAction("La orden fue rechazada previamente (act_approv = 99)", 'APPROVEORDER');
                     return [
                         'success' => false,
                         'message' => "La orden #{$orderId} fue rechazada previamente y no puede ser aprobada."
                     ];
                 }
                 
-                $newApprovalLevel = $currentApproval + 1;
-                logAction("Incrementando nivel de aprobación de {$currentApproval} a {$newApprovalLevel}", 'APPROVEORDER');
+                // Obtener el authorization_level del usuario que aprueba
+                $getUserLevelSql = "SELECT authorization_level FROM User WHERE id = ?";
+                $getUserLevelStmt = $this->db->prepare($getUserLevelSql);
+                $getUserLevelStmt->bind_param("i", $userId);
+                $getUserLevelStmt->execute();
+                $userLevelResult = $getUserLevelStmt->get_result();
                 
-                $updateSql = "UPDATE PremiumFreightApprovals SET act_approv = ?, approval_date = NOW() WHERE premium_freight_id = ?";
-                $updateStmt = $this->db->prepare($updateSql);
-                if (!$updateStmt) {
-                    logAction("Error preparando consulta de aprobación: " . $this->db->error, 'APPROVEORDER');
-                    throw new Exception("Error al preparar la consulta de aprobación: " . $this->db->error);
+                if ($userLevelResult->num_rows === 0) {
+                    throw new Exception("Usuario aprobador no encontrado");
                 }
-                $updateStmt->bind_param("ii", $newApprovalLevel, $orderId);
+                
+                $userAuthLevel = (int)$userLevelResult->fetch_assoc()['authorization_level'];
+                
+                // El nuevo nivel de aprobación será igual al authorization_level del usuario que aprueba
+                $newApprovalLevel = $userAuthLevel;
+                
+                // Verificar si con este nuevo nivel estará completamente aprobada
+                $willBeFullyApproved = ($newApprovalLevel >= $requiredLevel);
+                
+                // Actualizar act_approv con el authorization_level del aprobador
+                $updateSql = "UPDATE PremiumFreightApprovals 
+                             SET act_approv = ?, approval_date = NOW(), user_id = ? 
+                             WHERE premium_freight_id = ?";
+                $updateStmt = $this->db->prepare($updateSql);
+                $updateStmt->bind_param("iii", $newApprovalLevel, $userId, $orderId);
                 
                 if (!$updateStmt->execute()) {
-                    logAction("Error ejecutando consulta de aprobación: " . $updateStmt->error, 'APPROVEORDER');
-                    throw new Exception("Error al ejecutar la consulta de aprobación: " . $updateStmt->error);
+                    throw new Exception("Error al actualizar la aprobación: " . $updateStmt->error);
                 }
                 
-                $affectedRows = $updateStmt->affected_rows;
-                logAction("Filas actualizadas en PremiumFreightApprovals: $affectedRows, nuevo nivel: $newApprovalLevel", 'APPROVEORDER');
+                // Determinar el nuevo status_id
+                $newStatusId = $willBeFullyApproved ? 3 : 2; // 3 = Completamente aprobado, 2 = En proceso
                 
-                $fullyApproved = ($newApprovalLevel >= $requiredLevel);
-                
-                $newStatusId = 2; // En proceso por defecto
-                
-                if ($fullyApproved) {
-                    $newStatusId = 3; // Completamente aprobado
-                    logAction("Orden alcanzó nivel completo de aprobación. Status actualizado a 'aprobado' (3)", 'APPROVEORDER');
-                } else {
-                    logAction("Orden en proceso de aprobación. Status actualizado a 'en proceso' (2)", 'APPROVEORDER');
-                }
-                
+                // Actualizar el status_id si es necesario
                 if ($currentStatus != $newStatusId) {
                     $statusSql = "UPDATE PremiumFreight SET status_id = ? WHERE id = ?";
                     $statusStmt = $this->db->prepare($statusSql);
                     $statusStmt->bind_param("ii", $newStatusId, $orderId);
+                    $statusStmt->execute();
+                }
+                
+                // Enviar notificaciones según el estado final
+                try {
+                    $mailer = new PFMailer();
                     
-                    if (!$statusStmt->execute()) {
-                        logAction("Error actualizando status_id en PremiumFreight: " . $statusStmt->error, 'APPROVEORDER');
-                        throw new Exception("Error al actualizar status_id en PremiumFreight: " . $statusStmt->error);
+                    if ($willBeFullyApproved) {
+                        // Orden completamente aprobada - notificar al creador
+                        logAction("Enviando notificación de aprobación completa al creador de la orden #{$orderId}", 'APPROVEORDER');
+                        $mailer->sendStatusNotification($orderId, 'approved');
+                    } else {
+                        // Orden necesita más aprobaciones - notificar al siguiente aprobador
+                        logAction("Enviando notificación al siguiente aprobador para la orden #{$orderId}", 'APPROVEORDER');
+                        $mailer->sendApprovalNotification($orderId);
                     }
-                    
-                    $statusAffectedRows = $statusStmt->affected_rows;
-                    logAction("Status actualizado a $newStatusId. Filas afectadas: $statusAffectedRows", 'APPROVEORDER');
-                } else {
-                    logAction("No se actualizó el status_id ya que ya tiene el valor correcto: $currentStatus", 'APPROVEORDER');
+                } catch (Exception $e) {
+                    logAction("Error enviando notificaciones: " . $e->getMessage(), 'APPROVEORDER');
+                    // No fallar la aprobación si hay error en el envío de correos
                 }
+                
             } else {
-                logAction("No existe registro de aprobación, creando nuevo con nivel 1", 'APPROVEORDER');
+                // No existe registro de aprobación, crear nuevo
+                $getUserLevelSql = "SELECT authorization_level FROM User WHERE id = ?";
+                $getUserLevelStmt = $this->db->prepare($getUserLevelSql);
+                $getUserLevelStmt->bind_param("i", $userId);
+                $getUserLevelStmt->execute();
+                $userLevelResult = $getUserLevelStmt->get_result();
                 
+                if ($userLevelResult->num_rows === 0) {
+                    throw new Exception("Usuario aprobador no encontrado");
+                }
+                
+                $userAuthLevel = (int)$userLevelResult->fetch_assoc()['authorization_level'];
+                
+                // Obtener required_auth_level
+                $getRequiredSql = "SELECT required_auth_level FROM PremiumFreight WHERE id = ?";
+                $getRequiredStmt = $this->db->prepare($getRequiredSql);
+                $getRequiredStmt->bind_param("i", $orderId);
+                $getRequiredStmt->execute();
+                $requiredResult = $getRequiredStmt->get_result();
+                $requiredLevel = (int)$requiredResult->fetch_assoc()['required_auth_level'];
+                
+                // Crear registro con el authorization_level del usuario
                 $insertSql = "INSERT INTO PremiumFreightApprovals (premium_freight_id, act_approv, user_id, approval_date) 
-                             VALUES (?, 1, ?, NOW())";
+                             VALUES (?, ?, ?, NOW())";
                 $insertStmt = $this->db->prepare($insertSql);
-                $insertStmt->bind_param("ii", $orderId, $userId);
+                $insertStmt->bind_param("iii", $orderId, $userAuthLevel, $userId);
+                $insertStmt->execute();
                 
-                if (!$insertStmt->execute()) {
-                    logAction("Error insertando aprobación: " . $insertStmt->error, 'APPROVEORDER');
-                    throw new Exception("Error al insertar la aprobación: " . $insertStmt->error);
-                }
+                // Determinar si está completamente aprobada
+                $willBeFullyApproved = ($userAuthLevel >= $requiredLevel);
+                $newStatusId = $willBeFullyApproved ? 3 : 2;
                 
-                logAction("Creado nuevo registro de aprobación con nivel 1", 'APPROVEORDER');
-                
-                $statusSql = "UPDATE PremiumFreight SET status_id = 2 WHERE id = ?";
+                // Actualizar status_id
+                $statusSql = "UPDATE PremiumFreight SET status_id = ? WHERE id = ?";
                 $statusStmt = $this->db->prepare($statusSql);
-                $statusStmt->bind_param("i", $orderId);
+                $statusStmt->bind_param("ii", $newStatusId, $orderId);
+                $statusStmt->execute();
                 
-                if (!$statusStmt->execute()) {
-                    logAction("Error actualizando status_id inicial en PremiumFreight: " . $statusStmt->error, 'APPROVEORDER');
-                    throw new Exception("Error al actualizar status_id inicial en PremiumFreight: " . $statusStmt->error);
+                // Enviar notificaciones
+                try {
+                    $mailer = new PFMailer();
+                    
+                    if ($willBeFullyApproved) {
+                        $mailer->sendStatusNotification($orderId, 'approved');
+                    } else {
+                        $mailer->sendApprovalNotification($orderId);
+                    }
+                } catch (Exception $e) {
+                    logAction("Error enviando notificaciones: " . $e->getMessage(), 'APPROVEORDER');
                 }
-                
-                logAction("Status inicial actualizado a 'en proceso' (2)", 'APPROVEORDER');
             }
-            
-            $isFullyApproved = false;
-            
-            if ($currentResult->num_rows > 0) {
-                $isFullyApproved = ($newApprovalLevel >= $requiredLevel);
-            }
-            
-            try {
-                $mailer = new PFMailer();
-                
-                if ($isFullyApproved) {
-                    $mailer->sendStatusNotification($orderId, 'approved');
-                    logAction("Notificación de aprobación completa enviada al creador de la orden #{$orderId}", 'APPROVEORDER');
-                } else {
-                    $mailer->sendApprovalNotification($orderId);
-                    logAction("Notificación enviada al siguiente aprobador para la orden #{$orderId}", 'APPROVEORDER');
-                }
-            } catch (Exception $e) {
-                logAction("Error enviando notificaciones: " . $e->getMessage(), 'APPROVEORDER');
-            }
-            
-            logAction("Orden #{$orderId} aprobada exitosamente", 'APPROVEORDER');
             
             return [
                 'success' => true,
                 'message' => "La orden #{$orderId} ha sido aprobada exitosamente."
             ];
-        } catch (Exception $e) {
-            logAction("Error aprobando orden: " . $e->getMessage(), 'APPROVEORDER');
             
+        } catch (Exception $e) {
             return [
                 'success' => false,
                 'message' => "Error al aprobar la orden: " . $e->getMessage()
@@ -312,63 +318,20 @@ class PFMailAction {
         try {
             logAction("Rechazando orden #{$orderId} por usuario #{$userId}", 'REJECTORDER');
             
+            // Actualizar status_id a rechazado (4) en PremiumFreight
             $updateSql = "UPDATE PremiumFreight SET status_id = 4 WHERE id = ?";
-            
             $updateStmt = $this->db->prepare($updateSql);
-            
-            if (!$updateStmt) {
-                logAction("Error preparando consulta de rechazo: " . $this->db->error, 'REJECTORDER');
-                throw new Exception("Error al preparar la consulta de rechazo: " . $this->db->error);
-            }
-            
             $updateStmt->bind_param("i", $orderId);
+            $updateStmt->execute();
             
-            if (!$updateStmt->execute()) {
-                logAction("Error ejecutando consulta de rechazo: " . $updateStmt->error, 'REJECTORDER');
-                throw new Exception("Error al ejecutar la consulta de rechazo: " . $updateStmt->error);
-            }
-            
-            $affectedRows = $updateStmt->affected_rows;
-            logAction("Filas actualizadas en PremiumFreight: $affectedRows", 'REJECTORDER');
-            
-            if ($affectedRows === 0) {
-                $checkSql = "SELECT COUNT(*) as total FROM PremiumFreight WHERE id = ?";
-                $checkStmt = $this->db->prepare($checkSql);
-                $checkStmt->bind_param("i", $orderId);
-                $checkStmt->execute();
-                $checkResult = $checkStmt->get_result();
-                $totalOrders = $checkResult->fetch_assoc()['total'];
-                
-                if ($totalOrders === 0) {
-                    logAction("La orden #{$orderId} no existe", 'REJECTORDER');
-                    throw new Exception("La orden #{$orderId} no existe en el sistema");
-                } else {
-                    $statusSql = "SELECT status_id FROM PremiumFreight WHERE id = ?";
-                    $statusStmt = $this->db->prepare($statusSql);
-                    $statusStmt->bind_param("i", $orderId);
-                    $statusStmt->execute();
-                    $statusResult = $statusStmt->get_result();
-                    $currentStatus = $statusResult->fetch_assoc()['status_id'];
-                    
-                    logAction("La orden existe pero no se actualizó. Estado actual: $currentStatus", 'REJECTORDER');
-                    
-                    if ($currentStatus == 4) {
-                        return [
-                            'success' => true,
-                            'message' => "La orden #{$orderId} ya estaba marcada como rechazada."
-                        ];
-                    }
-                }
-            }
-            
+            // Actualizar act_approv a 99 (rechazado) en PremiumFreightApprovals
             $rejectSql = "UPDATE PremiumFreightApprovals SET act_approv = 99, 
                           approval_date = NOW(), user_id = ? WHERE premium_freight_id = ?";
             $rejectStmt = $this->db->prepare($rejectSql);
             $rejectStmt->bind_param("ii", $userId, $orderId);
             $rejectStmt->execute();
             
-            logAction("Registro de aprobación actualizado con código de rechazo (99)", 'REJECTORDER');
-            
+            // Obtener información del usuario que rechaza para la notificación
             try {
                 $mailer = new PFMailer();
                 
@@ -386,24 +349,21 @@ class PFMailAction {
                         'name' => $userData['name'],
                         'level' => $userData['authorization_level']
                     ];
-                    logAction("Información del usuario que rechaza: " . $userData['name'] . " (nivel " . $userData['authorization_level'] . ")", 'REJECTORDER');
                 }
                 
+                // Enviar notificación de rechazo al creador
                 $mailer->sendStatusNotification($orderId, 'rejected', $rejectorInfo);
                 logAction("Notificación de rechazo enviada al creador de la orden #{$orderId}", 'REJECTORDER');
             } catch (Exception $e) {
                 logAction("Error enviando notificación de rechazo: " . $e->getMessage(), 'REJECTORDER');
             }
             
-            logAction("Orden #{$orderId} rechazada exitosamente", 'REJECTORDER');
-            
             return [
                 'success' => true,
-                'message' => "La orden #{$orderId} ha sido rechazada."
+                'message' => "La orden #{$orderId} ha sido rechazada exitosamente."
             ];
-        } catch (Exception $e) {
-            logAction("Error rechazando orden: " . $e->getMessage(), 'REJECTORDER');
             
+        } catch (Exception $e) {
             return [
                 'success' => false,
                 'message' => "Error al rechazar la orden: " . $e->getMessage()

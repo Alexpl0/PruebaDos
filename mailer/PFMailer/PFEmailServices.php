@@ -43,13 +43,13 @@ class PFEmailServices {
     public function getNextApprovers($orderId) {
         // Obtener el estado actual de aprobación
         $sql = "SELECT PF.user_id, PF.required_auth_level, 
-                       COALESCE(PFA.act_approv, 0) as current_approval_level,
-                       U.plant as order_plant
-                FROM PremiumFreight PF
-                LEFT JOIN PremiumFreightApprovals PFA ON PF.id = PFA.premium_freight_id
-                INNER JOIN User U ON PF.user_id = U.id
-                WHERE PF.id = ?";
-        
+                   COALESCE(PFA.act_approv, 0) as current_approval_level,
+                   U.plant as order_plant
+            FROM PremiumFreight PF
+            LEFT JOIN PremiumFreightApprovals PFA ON PF.id = PFA.premium_freight_id
+            INNER JOIN User U ON PF.user_id = U.id
+            WHERE PF.id = ?";
+    
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param("i", $orderId);
         $stmt->execute();
@@ -82,7 +82,7 @@ class PFEmailServices {
                         FROM User 
                         WHERE authorization_level = ? 
                         AND (plant = ? OR plant IS NULL)";
-        
+    
         $approversStmt = $this->db->prepare($approversSql);
         $approversStmt->bind_param("is", $nextAuthLevel, $orderPlant);
         $approversStmt->execute();
