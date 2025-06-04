@@ -13,77 +13,70 @@ main {
     padding: 5%;
 }
 /* === ESTILOS GENERALES PARA TARJETAS === */
-.card-body {
-    flex: 1 1 auto;
-    padding: 5% 5% 0% 5%;
-}
-
 .card {
     max-width: 260px !important;
     width: 100%;
     max-height: 270px !important;
     height: 100%;
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 1%;
-    margin: 1%;
+    background-color: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-md);
+    margin: var(--spacing-md);
     font-family: var(--body-font);
-    color: #333;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    color: var(--gray-800);
+    transition: all var(--transition-normal);
 }
+
 .card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-xl);
+    border-color: var(--grammer-light-blue);
 }
 
 .card-title, .card-subtitle {
     font-size: 1.2rem;
     font-weight: bold;
-    margin-bottom: 1%;
-}
-
-.card-text {
-    font-size: 1rem;
-    margin-bottom: 1%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 4;
-    -webkit-box-orient: vertical;
-    max-width: 100%;
-    white-space: normal;
+    margin-bottom: var(--spacing-sm);
+    color: var(--gray-900);
 }
 
 .card-p {
-    color: white;
+    color: var(--white);
     font-size: 80%;
-    margin-top: 4%;
-    margin-bottom: 4%;
-    background-color: #3B82F6;
+    margin-top: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    background-color: var(--grammer-blue);
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
-    border-radius: 6px;
-    padding: 2%;
+    border-radius: var(--border-radius);
+    padding: var(--spacing-sm);
     justify-content: center;
     display: flex;
 }
 
 .card-button {
-    background-color: #3B82F6;
-    color: white;
+    background-color: var(--grammer-blue);
+    color: var(--white);
     border: none;
-    border-radius: 7px;
-    padding: 3%;
+    border-radius: var(--border-radius);
+    padding: var(--spacing-sm);
     width: 50%;
     display: flex;
     justify-content: center;
-    align-self: center; /* Para centrarlo si el padre es flex column */
+    align-self: center;
     font-size: 90%;
     cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.3s ease;
+    transition: all var(--transition-normal);
+    box-shadow: var(--shadow-sm);
+}
+
+.card-button:hover {
+    background-color: var(--grammer-dark-blue);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
 }
 
 /* === ESTILOS GENERALES PARA MODALES === */
@@ -101,6 +94,18 @@ main {
   /* Usamos flex para centrar el .modal-content si no se usa .modal-dialog */
   /* align-items: center; */ /* Bootstrap .modal-dialog lo maneja */
   /* justify-content: center; */ /* Bootstrap .modal-dialog lo maneja */
+}
+
+.modal-content {
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-xl);
+    border: none;
+}
+
+.modal-header {
+    background-color: var(--gray-50);
+    border-bottom: 1px solid var(--gray-200);
+    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
 }
 
 .modal-content {
@@ -202,24 +207,44 @@ main {
 .save-pdf-button, 
 #approveBtn, 
 #rejectBtn {
-  color: white;
-  border-radius: 10px;
+  color: var(--white);
+  border-radius: var(--border-radius-lg);
   border: none;
-  padding: 8px 18px;
+  padding: var(--spacing-sm) var(--spacing-lg);
   cursor: pointer;
-  font-weight: 500; /* Añadido para consistencia */
+  font-weight: 500;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-sm);
 }
 
 .save-pdf-button {
-  background-color: #3B82F6;
+  background-color: var(--info);
+}
+
+.save-pdf-button:hover {
+  background-color: var(--grammer-dark-blue);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 #approveBtn {
-  background-color: #22c55e; /* verde */
+  background-color: var(--success);
+}
+
+#approveBtn:hover {
+  background-color: #059669;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 #rejectBtn {
-  background-color: #ef4444; /* rojo */
+  background-color: var(--danger);
+}
+
+#rejectBtn:hover {
+  background-color: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 /* Contenedor de la previsualización del SVG dentro de #myModal */

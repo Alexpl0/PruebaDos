@@ -2,37 +2,40 @@
 
 /* Estilos generales del dashboard */
 .card {
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-normal);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--gray-200);
 }
 
 .card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-xl);
 }
 
 .card-title {
-    color: #4472C4;
+    color: var(--grammer-blue);
     font-weight: 600;
-    margin-bottom: 20px;
+    margin-bottom: var(--spacing-xl);
 }
 
-/* Estilos específicos para las cards dentro de la sección de filtros */
+/* Estilos específicos para las cards de filtros */
 #filterscards .card-title {
-    color: white;
+    color: var(--white);
 }
 
 #filterscards .card-body {
-    color: white;
+    color: var(--white);
 }
 
-/* También puedes personalizar más elementos dentro de las cards de filtros si lo deseas */
 #filterscards .card {
-    background-color: #4472C4; /* Color de fondo que combine con el tema */
+    background: linear-gradient(135deg, var(--grammer-blue) 0%, var(--grammer-dark-blue) 100%);
+    border: none;
+    box-shadow: var(--shadow-lg);
 }
 
 #filterscards label {
-    color: white;
+    color: var(--white);
 }
 
 /* Resto de los estilos originales */
@@ -46,23 +49,39 @@
 .chart-container {
     min-height: 350px;
     position: relative;
+    background-color: var(--white);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    box-shadow: var(--shadow-sm);
 }
 
-/* Estilos para el mapa */
+/* Mapa */
 #mapOriginDestiny {
-    border-radius: 5px;
+    border-radius: var(--border-radius);
     height: 400px;
     width: 100%;
+    box-shadow: var(--shadow-md);
 }
 
-/* Estilos para las tarjetas de estadísticas */
+/* Tarjetas de estadísticas */
 .stats-card {
     font-size: 0.9rem;
+    background-color: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-normal);
+}
+
+.stats-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
 }
 
 .stats-card .title {
     font-weight: 600;
-    color: #4472C4;
+    color: var(--grammer-blue);
 }
 
 .stats-card .value {
@@ -72,13 +91,22 @@
 
 /* Estilos para tabs */
 .nav-tabs .nav-link {
-    color: #6c757d;
+    color: var(--gray-600);
     font-weight: 500;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    transition: all var(--transition-fast);
 }
 
 .nav-tabs .nav-link.active {
-    color: #4472C4;
+    color: var(--grammer-blue);
     font-weight: 600;
+    background-color: var(--white);
+    border-color: var(--gray-300);
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--grammer-dark-blue);
+    background-color: var(--gray-50);
 }
 
 /* Estilos para el selector de rango de fechas */
@@ -103,13 +131,14 @@
 
 /* Añadir al final del archivo */
 
+/* Loading overlay */
 #loadingOverlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(255, 255, 255, 0.8);
+    background-color: rgba(255, 255, 255, 0.9);
     z-index: 9999;
     display: flex;
     justify-content: center;
@@ -118,10 +147,10 @@
 
 .spinner-container {
     text-align: center;
-    background-color: white;
-    padding: 20px 40px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: var(--white);
+    padding: var(--spacing-xl) var(--spacing-2xl);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-xl);
 }
 
 #chartTimeSeries {

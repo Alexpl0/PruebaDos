@@ -2,7 +2,10 @@
 #registerform-container {
     max-width: 600px;
     margin: 0 auto;
-    padding: 20px;
+    padding: var(--spacing-xl);
+    background-color: var(--white);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
 }
 
 /* Estilos para el grupo de input de contraseña */
@@ -10,43 +13,45 @@
     display: flex;
     align-items: stretch;
     width: 100%;
-    height: 38px; /* Altura fija para el contenedor */
+    height: 38px;
 }
 
 .form-control {
-    flex: 0.95; /* 95% del espacio disponible */
+    flex: 0.95;
     border-right: none;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     margin: 0;
+    border: 1px solid var(--gray-300);
+    transition: all var(--transition-fast);
+    box-shadow: var(--shadow-sm);
 }
 
-.input-group .form-control {
-    flex: 0.95; /* 95% del espacio disponible */
-    height: 100%; /* Ocupa toda la altura del contenedor */
-    border-right: none;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    margin: 0;
+.form-control:focus {
+    border-color: var(--grammer-blue);
+    box-shadow: 0 0 0 0.25rem rgba(3, 76, 140, 0.25);
 }
 
 .input-group .toggle-password {
-    flex: 0.05; /* 5% del espacio disponible */
-    min-width: 40px; /* Ancho mínimo para que el icono sea visible */
-    height: 100%; /* Ocupa toda la altura del contenedor */
+    flex: 0.05;
+    min-width: 40px;
+    height: 100%;
     padding: 0;
     display: flex;
-    justify-content: center; /* Centra horizontalmente el icono */
-    align-items: center; /* Centra verticalmente el icono */
+    justify-content: center;
+    align-items: center;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
     z-index: 0;
     margin: 0;
+    background-color: var(--gray-50);
+    border: 1px solid var(--gray-300);
+    border-left: none;
+    transition: all var(--transition-fast);
 }
 
-.input-group .toggle-password i {
-    font-size: 1.2rem;
-    color: #000000 !important; /* Fuerza el color negro */
+.input-group .toggle-password:hover {
+    background-color: var(--gray-100);
 }
 
 /* Ajuste para pantallas pequeñas */
@@ -57,30 +62,23 @@
 }
 
 #title1{
-    margin-top: 2%;
+    margin-top: var(--spacing-lg);
+    color: var(--gray-800);
 }
 
-/* Input de contraseña con tamaño fijo */
-#password {
-    width: 100%; /* Asegura que siempre ocupe el espacio disponible */
-    box-sizing: border-box;
-    min-height: 38px;
-}
-
-/* Sobrescribe el estilo predeterminado cuando se muestra como texto */
-#password[type="text"] {
-    font-family: monospace; /* Mantiene la misma fuente que cuando es tipo password */
-    letter-spacing: 0.1em; /* Mantiene el mismo espaciado */
-}
-
-#name{
-    width: 100%; /* Asegura que siempre ocupe el espacio disponible */
-    box-sizing: border-box;
-    min-height: 38px;
+/* Input styling */
+#password, #name {
     width: 100%;
-    padding: 0;
-    margin-bottom: 0;
-    border-radius: 5px;
     box-sizing: border-box;
-    max-height: 15%; 
+    min-height: 38px;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-sm);
+    transition: all var(--transition-fast);
+    box-shadow: var(--shadow-sm);
+}
+
+#password:focus, #name:focus {
+    border-color: var(--grammer-blue);
+    box-shadow: 0 0 0 0.25rem rgba(3, 76, 140, 0.25);
 }

@@ -6,15 +6,11 @@
  * Estas variables definen los parámetros básicos del componente header
  *============================================================================*/
 :root {
-  --header-height: 3rem; /* Altura base del header */
-  --z-fixed: 100; /* Índice z para elementos fijos como el header */
+  --header-height: 3rem;
+  --z-fixed: 100;
   
-  /* Las variables de color y tipografía se toman de styles.css:
-   * --first-color: #034C8C (Color principal/header)
-   * --dark-color: #034C8C (Color menú lateral)
-   * --dark-color-alt: #282B3A (Color elementos alternos)
-   * --white-color: #FFFFFF (Color textos e iconos)
-   */
+  /* Uso de las nuevas variables de color */
+  /* Variables heredadas de styles.css se usan automáticamente */
 }
 
 /*===== CONFIGURACIÓN PARA PANTALLAS GRANDES =====*/
@@ -83,7 +79,6 @@ img {
 
 /*============================================================================
  * HEADER - ESTILOS COMUNES
- * Estos estilos se aplican al header independientemente del tamaño de pantalla
  *============================================================================*/
 .header {
   width: 100vw;
@@ -91,49 +86,54 @@ img {
   position: fixed;
   top: 0;
   left: 0;
-  padding: 0 1.5rem;
-  /* Degradado igual al de view_order - solo colores */
-  background: linear-gradient(135deg, var(--first-color) 0%, var(--dark-color) 100%);
+  padding: 0 var(--spacing-lg);
+  background: linear-gradient(135deg, var(--grammer-blue) 0%, var(--grammer-dark-blue) 100%);
   z-index: var(--z-fixed);
   display: flex;
-  justify-content: space-between; /* Logo a la izquierda, toggle a la derecha */
+  justify-content: space-between;
   align-items: center;
+  box-shadow: var(--shadow-md);
 }
 
-/* Logo del header - visible solo en móvil */
+/* Logo del header */
 .header__logo {
-  color: var(--white-color);
+  color: var(--white);
   font-family: var(--body-font);
   font-size: var(--normal-font-size);
   font-weight: bold;
 }
 
-/* Botón hamburguesa - visible solo en móvil */
+/* Botón hamburguesa */
 .header__toggle {
   font-size: 1.5rem;
-  color: var(--white-color);
+  color: var(--white);
   cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.header__toggle:hover {
+  color: var(--grammer-light-blue);
 }
 
 /*============================================================================
  * NAVEGACIÓN - VERSIÓN MÓVIL (POR DEFECTO)  
  * Menú lateral que se desliza desde la izquierda
  *============================================================================*/
-@media screen and (max-width: 999px) { /* Móvil y tablets */
+@media screen and (max-width: 999px) {
   .nav {
     position: fixed;
     top: 0;
-    left: -100%; /* Inicialmente fuera de la pantalla */
-    /* Degradado más sutil para el menú lateral */
-    background: linear-gradient(135deg, var(--dark-color) 0%, var(--dark-color-alt) 100%);
-    color: var(--white-color);
-    width: 80%; /* Ancho del menú lateral */
-    max-width: 400px; /* Ancho máximo para tablets */
+    left: -100%;
+    background: linear-gradient(135deg, var(--grammer-dark-blue) 0%, var(--gray-800) 100%);
+    color: var(--white);
+    width: 80%;
+    max-width: 400px;
     height: 100vh;
-    padding: 1.5rem 0;
+    padding: var(--spacing-lg) 0;
     z-index: var(--z-fixed);
-    transition: left 0.5s ease; /* Transición suave al abrir/cerrar */
-    overflow-y: auto; /* Scroll si el contenido es demasiado alto */
+    transition: left var(--transition-slow);
+    overflow-y: auto;
+    box-shadow: var(--shadow-xl);
   }
   
   /* Clase que muestra el menú lateral */
@@ -278,28 +278,22 @@ img {
 .nav__link {
   display: flex;
   align-items: center;
-  color: var(--white-color);
-  padding: 0.75rem 1rem;
-  border-radius: 0.25rem;
-  transition: all 0.3s ease;
+  color: var(--white);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius);
+  transition: all var(--transition-normal);
   width: 100%;
 }
 
-/* Iconos dentro de los enlaces */
-.nav__link-icon {
-  margin-right: 0.75rem;
-  font-size: 1.1rem;
-}
-
-/* Estilo hover para enlaces */
 .nav__link:hover {
   background-color: rgba(255, 255, 255, 0.1);
+  transform: translateX(4px);
 }
 
-/* Clase para enlaces activos */
 .nav__link.active {
-  background-color: var(--dark-color-alt);
-  color: var(--white-color);
+  background-color: var(--grammer-accent);
+  color: var(--white);
+  box-shadow: var(--shadow-sm);
 }
 
 /*============================================================================

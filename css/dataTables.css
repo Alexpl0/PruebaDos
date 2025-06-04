@@ -2,8 +2,8 @@
 .buttons-container {
     display: flex;
     justify-content: center;
-    gap: 20px;
-    margin: 20px auto;
+    gap: var(--spacing-xl);
+    margin: var(--spacing-xl) auto;
     width: 100%;
     max-width: 800px;
     align-items: stretch;
@@ -20,6 +20,14 @@
     align-items: center;
     justify-content: center;
     margin: 0;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-normal);
+}
+
+.buttons-container .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
 }
 
 /* Ajustes para modales grandes */
@@ -29,7 +37,10 @@
 
 /* Estilos para DataTables */
 .dataTables_wrapper {
-    padding: 10px;
+    padding: var(--spacing-md);
+    background-color: var(--white);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
 }
 
 .centered {
@@ -40,28 +51,37 @@
 table.dataTable thead th {
     position: sticky !important; /* Hace la cabecera de la tabla pegajosa */
     top: 0; /* Se pega justo debajo de los .dt-buttons si ambos son sticky top:0 en el mismo scroll container y .dt-buttons tiene mayor z-index, o al inicio del scroll si no hay botones sticky arriba. */
-    background-color: #f8f9fa; /* Fondo para la cabecera pegajosa */
+    background-color: var(--gray-50); /* Fondo para la cabecera pegajosa */
     z-index: 10; /* Asegura que esté sobre el contenido de la tabla */
+    border-bottom: 2px solid var(--gray-200);
+    color: var(--gray-700);
+    font-weight: 600;
 }
 
 /* Mejoras de legibilidad */
 .table-striped>tbody>tr:nth-of-type(odd) {
-    background-color: rgba(0, 0, 0, 0.02);
+    background-color: var(--gray-50);
+}
+
+.table-striped>tbody>tr:hover {
+    background-color: var(--grammer-light-blue);
+    color: var(--white);
+    transition: all var(--transition-fast);
 }
 
 /* Estilos para botones de exportación de DataTables */
 .dt-buttons {
-    margin-bottom: 15px;
+    margin-bottom: var(--spacing-lg);
     position: sticky; /* Hace los botones de DataTables pegajosos */
     top: 0; /* Se pegan en la parte superior del .modal-body */
-    background-color: #f8f9fa; /* Fondo para los botones pegajosos, idealmente el mismo que .modal-body o .modal-header */
+    background-color: var(--white);
     z-index: 11; /* Asegura que estén sobre las cabeceras de la tabla si ambas son sticky top:0 */
-    padding-top: 10px; /* Espacio arriba de los botones */
-    padding-bottom: 10px; /* Espacio debajo de los botones para que no se peguen al contenido siguiente */
+    padding: var(--spacing-md) 0; /* Espacio arriba y abajo de los botones */
     display: flex;           /* Alinea los botones en fila */
     flex-wrap: nowrap;       /* Evita que se vayan a otra línea */
-    gap: 10px;               /* Espacio entre botones */
+    gap: var(--spacing-md);               /* Espacio entre botones */
     justify-content: flex-start; /* Opcional: puedes usar center si prefieres */
+    border-bottom: 1px solid var(--gray-200);
 }
 
 .dt-buttons .btn, 
@@ -69,6 +89,16 @@ table.dataTable thead th {
 .dt-buttons .dt-button {
     white-space: nowrap;     /* Evita que el texto se divida en varias líneas */
     min-width: 100px;        /* Opcional: ancho mínimo para uniformidad */
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-normal);
+}
+
+.dt-buttons .btn:hover,
+.dt-buttons button:hover,
+.dt-buttons .dt-button:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
 }
 
 #modaldiv { /* Estilo para el .modal-dialog */
@@ -133,4 +163,38 @@ button i {
     line-height: 1;
     position: relative;
     top: -1px;
+}
+
+/* Button colors */
+.dt-buttons .btn-primary {
+    background-color: var(--grammer-blue);
+    color: var(--white);
+    border-color: var(--grammer-blue);
+}
+
+.dt-buttons .btn-primary:hover {
+    background-color: var(--grammer-dark-blue);
+    border-color: var(--grammer-dark-blue);
+}
+
+.dt-buttons .btn-success {
+    background-color: var(--success);
+    color: var(--white);
+    border-color: var(--success);
+}
+
+.dt-buttons .btn-success:hover {
+    background-color: #059669;
+    border-color: #047857;
+}
+
+.dt-buttons .btn-danger {
+    background-color: var(--danger);
+    color: var(--white);
+    border-color: var(--danger);
+}
+
+.dt-buttons .btn-danger:hover {
+    background-color: #dc2626;
+    border-color: #b91c1c;
 }
