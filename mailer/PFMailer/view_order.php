@@ -1,27 +1,27 @@
 <?php
 /**
- * view_order.php - Página para mostrar SVG de órdenes desde emails
- * Versión actualizada con soporte para tokens separados de approve/reject
+ * view_order.php - Professional Order Viewer
+ * Corporate email-style interface for Premium Freight orders
  */
 
-// Activar reporte de errores para debugging
+// Error handling and logging
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/view_order_errors.log');
 
 try {
-    // Cargar dependencias
+    // Load dependencies
     require_once __DIR__ . '/config.php';
     require_once 'PFDB.php';
     require_once 'PFmailUtils.php';
 
-    // Verificar parámetros
+    // Verify parameters
     if (!isset($_GET['order']) || !isset($_GET['token'])) {
         if (function_exists('showError')) {
-            showError('Parámetros requeridos faltantes. Se necesita order y token.');
+            showError('Required parameters missing. Order ID and token are required.');
         } else {
-            die('Error: Parámetros requeridos faltantes. Se necesita order y token.');
+            die('Error: Required parameters missing. Order ID and token are required.');
         }
         exit;
     }
@@ -29,34 +29,34 @@ try {
     $orderId = intval($_GET['order']);
     $token = $_GET['token'];
 
-    // Validar parámetros básicos
+    // Validate basic parameters
     if ($orderId <= 0) {
         if (function_exists('showError')) {
-            showError('ID de orden inválido.');
+            showError('Invalid order ID.');
         } else {
-            die('Error: ID de orden inválido.');
+            die('Error: Invalid order ID.');
         }
         exit;
     }
 
     if (empty($token)) {
         if (function_exists('showError')) {
-            showError('Token vacío.');
+            showError('Empty token.');
         } else {
-            die('Error: Token vacío.');
+            die('Error: Empty token.');
         }
         exit;
     }
 
-    // Conectar a la base de datos
+    // Database connection
     $con = new LocalConector();
     $db = $con->conectar();
 
     if (!$db) {
-        throw new Exception('No se pudo conectar a la base de datos');
+        throw new Exception('Could not connect to database');
     }
 
-    // Verificar que el token sea válido y obtener datos
+    // Verify token and get data
     $sql = "SELECT EAT.*, U.name as approver_name 
             FROM EmailActionTokens EAT 
             INNER JOIN User U ON EAT.user_id = U.id 
@@ -64,7 +64,7 @@ try {
     
     $stmt = $db->prepare($sql);
     if (!$stmt) {
-        throw new Exception('Error preparando consulta de token: ' . $db->error);
+        throw new Exception('Error preparing token query: ' . $db->error);
     }
     
     $stmt->bind_param("si", $token, $orderId);
@@ -73,16 +73,16 @@ try {
 
     if ($result->num_rows === 0) {
         if (function_exists('showError')) {
-            showError('Token inválido o expirado para la orden especificada.');
+            showError('Invalid or expired token for the specified order.');
         } else {
-            die('Error: Token inválido o expirado para la orden especificada.');
+            die('Error: Invalid or expired token for the specified order.');
         }
         exit;
     }
 
     $tokenData = $result->fetch_assoc();
 
-    // Obtener AMBOS tokens (approve y reject) para esta orden y usuario
+    // Get BOTH tokens (approve and reject) for this order and user
     $tokensSQL = "SELECT * FROM EmailActionTokens 
                   WHERE order_id = ? AND user_id = ? AND is_used = 0 
                   ORDER BY action";
@@ -103,7 +103,7 @@ try {
         }
     }
 
-    // Obtener detalles de la orden - consulta completa para SVG
+    // Get complete order details for SVG
     $orderSql = "SELECT 
                     pf.*,
                     u.name AS creator_name,
@@ -139,7 +139,7 @@ try {
     
     $orderStmt = $db->prepare($orderSql);
     if (!$orderStmt) {
-        throw new Exception('Error preparando consulta de orden: ' . $db->error);
+        throw new Exception('Error preparing order query: ' . $db->error);
     }
     
     $orderStmt->bind_param("i", $orderId);
@@ -148,25 +148,25 @@ try {
 
     if ($orderResult->num_rows === 0) {
         if (function_exists('showError')) {
-            showError('Orden no encontrada con ID: ' . $orderId);
+            showError('Order not found with ID: ' . $orderId);
         } else {
-            die('Error: Orden no encontrada con ID: ' . $orderId);
+            die('Error: Order not found with ID: ' . $orderId);
         }
         exit;
     }
 
     $orderData = $orderResult->fetch_assoc();
 
-    // Verificar que las constantes necesarias estén definidas
+    // Verify required constants
     if (!defined('URLM')) {
-        throw new Exception('URLM no está definida');
+        throw new Exception('URLM is not defined');
     }
 
     if (!defined('URLPF')) {
-        throw new Exception('URLPF no está definida');
+        throw new Exception('URLPF is not defined');
     }
 
-    // URLs para las acciones con tokens específicos
+    // URLs for actions with specific tokens
     $approveUrl = $approveToken ? URLM . "PFmailSingleAction.php?action=approve&token=" . urlencode($approveToken) : null;
     $rejectUrl = $rejectToken ? URLM . "PFmailSingleAction.php?action=reject&token=" . urlencode($rejectToken) : null;
 
@@ -181,7 +181,7 @@ try {
     }
     exit;
 } catch (Error $e) {
-    $errorMsg = 'Error fatal: ' . $e->getMessage();
+    $errorMsg = 'Fatal error: ' . $e->getMessage();
     error_log("Fatal error in view_order.php: " . $errorMsg);
     
     if (function_exists('showError')) {
@@ -193,207 +193,295 @@ try {
 }
 ?>
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Freight Order #<?php echo $orderId; ?></title>
+    <title>Premium Freight Order #<?php echo $orderId; ?> - Grammer AG</title>
     
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Preload critical resources -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" as="style">
+    <link rel="preload" href="<?php echo URLPF; ?>js/html2canvas.min.js" as="script">
+    <link rel="preload" href="<?php echo URLPF; ?>js/jspdf.umd.min.js" as="script">
     
-    <!-- Font Awesome para iconos -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Scripts necesarios -->
+    <!-- External CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- External JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
-    <!-- Scripts de la aplicación -->
     <script src="<?php echo URLPF; ?>js/html2canvas.min.js"></script>
     <script src="<?php echo URLPF; ?>js/jspdf.umd.min.js"></script>
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="<?php echo URLPF; ?>assets/favicon.ico">
     
-    <!-- Variables globales necesarias -->
+    <!-- Global Variables -->
     <script>
-        // Definir variables globales que necesitan los módulos JS
+        // Global variables for modules
         window.URL = '<?php echo URLPF; ?>';
         window.URLM = '<?php echo URLM; ?>';
         
-        // Datos de la orden
+        // Order data
         window.allOrders = [<?php echo json_encode($orderData); ?>];
         window.originalOrders = [<?php echo json_encode($orderData); ?>];
         window.authorizationLevel = <?php echo $tokenData['user_id']; ?>;
         window.userName = '<?php echo htmlspecialchars($tokenData['approver_name']); ?>';
         
-        // URLs para acciones con tokens específicos
+        // Action URLs with specific tokens
         window.approveUrl = '<?php echo $approveUrl; ?>';
         window.rejectUrl = '<?php echo $rejectUrl; ?>';
         
-        // Estado de tokens
+        // Token states
         window.hasApproveToken = <?php echo $approveToken ? 'true' : 'false'; ?>;
         window.hasRejectToken = <?php echo $rejectToken ? 'true' : 'false'; ?>;
-        
-        // Debug info
-        console.log('🔍 Order Data:', window.allOrders[0]);
-        console.log('📊 Order fields available:', Object.keys(window.allOrders[0]));
-        console.log('🏢 Origin data:', {
-            company: window.allOrders[0].origin_company_name,
-            city: window.allOrders[0].origin_city,
-            state: window.allOrders[0].origin_state,
-            zip: window.allOrders[0].origin_zip
-        });
-        console.log('🏭 Destination data:', {
-            company: window.allOrders[0].destiny_company_name,
-            city: window.allOrders[0].destiny_city,
-            state: window.allOrders[0].destiny_state,
-            zip: window.allOrders[0].destiny_zip
-        });
-        console.log('🔑 Token Info:', {
-            currentToken: '<?php echo substr($token, 0, 10) . "..."; ?>',
-            currentAction: '<?php echo $tokenData['action']; ?>',
-            hasApproveToken: window.hasApproveToken,
-            hasRejectToken: window.hasRejectToken,
-            tokenUsed: <?php echo $tokenData['is_used'] ? 'true' : 'false'; ?>
-        });
+        window.tokenUsed = <?php echo $tokenData['is_used'] ? 'true' : 'false'; ?>;
     </script>
     
     <style>
+        /* CSS Custom Properties */
         :root {
-            --primary-blue: #034C8C;
-            --secondary-blue: #0056b3;
-            --success-green: #28a745;
-            --danger-red: #dc3545;
-            --warning-yellow: #ffc107;
-            --info-cyan: #17a2b8;
-            --light-gray: #f8f9fa;
-            --dark-gray: #6c757d;
-            --white: #ffffff;
-            --shadow: 0 4px 15px rgba(0,0,0,0.1);
-            --border-radius: 10px;
-            --transition: all 0.3s ease;
+            /* Grammer Corporate Colors */
+            --grammer-blue: #034C8C;
+            --grammer-light-blue: #4A90D9;
+            --grammer-dark-blue: #002856;
+            --grammer-accent: #00A3E0;
+            
+            /* Semantic Colors */
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --info: #3B82F6;
+            
+            /* Neutrals */
+            --white: #FFFFFF;
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-400: #9CA3AF;
+            --gray-500: #6B7280;
+            --gray-600: #4B5563;
+            --gray-700: #374151;
+            --gray-800: #1F2937;
+            --gray-900: #111827;
+            
+            /* Layout */
+            --max-width: 1200px;
+            --border-radius: 12px;
+            --border-radius-lg: 16px;
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-2xl: 3rem;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            
+            /* Transitions */
+            --transition-fast: 0.15s ease-in-out;
+            --transition-normal: 0.3s ease-in-out;
+            --transition-slow: 0.5s ease-in-out;
         }
 
+        /* Base Styles */
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, var(--light-gray) 0%, #e9ecef 100%);
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
+            color: var(--gray-800);
+            background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        .container {
-            max-width: 1200px;
+        /* Email-style Layout */
+        .email-container {
+            max-width: var(--max-width);
             margin: 0 auto;
+            background: var(--white);
+            min-height: 100vh;
+            box-shadow: var(--shadow-xl);
         }
 
-        .header-card {
-            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+        /* Professional Header */
+        .email-header {
+            background: linear-gradient(135deg, var(--grammer-blue) 0%, var(--grammer-dark-blue) 100%);
             color: var(--white);
-            padding: 40px;
-            border-radius: var(--border-radius);
-            margin-bottom: 30px;
-            box-shadow: var(--shadow);
+            padding: var(--spacing-2xl) var(--spacing-xl);
             position: relative;
             overflow: hidden;
         }
 
-        .header-card::before {
+        .email-header::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-            opacity: 0.3;
-            pointer-events: none;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+            opacity: 0.4;
         }
 
-        .order-title {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 15px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        .email-header-content {
             position: relative;
             z-index: 1;
+        }
+
+        .company-logo {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .company-logo i {
+            font-size: 2.5rem;
+            opacity: 0.9;
+        }
+
+        .company-name {
+            font-size: 1.75rem;
+            font-weight: 600;
+            letter-spacing: -0.025em;
+        }
+
+        .order-title-main {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-sm);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            letter-spacing: -0.025em;
+        }
+
+        .order-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        /* Professional Status Badge */
+        .status-section {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-xl);
+            margin-top: var(--spacing-xl);
         }
 
         .approver-info {
-            background-color: rgba(255,255,255,0.15);
-            padding: 25px;
-            border-radius: 12px;
-            margin-top: 25px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-            position: relative;
-            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
         }
 
-        .approver-info h3 {
-            margin: 0 0 15px 0;
-            font-size: 1.4rem;
+        .approver-avatar {
+            width: 48px;
+            height: 48px;
+            background: var(--white);
+            color: var(--grammer-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
             font-weight: 600;
+            box-shadow: var(--shadow-md);
+        }
+
+        .approver-details h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .approver-role {
+            font-size: 0.9rem;
+            opacity: 0.8;
         }
 
         .status-badge {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            border-radius: 25px;
-            font-size: 0.95rem;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border-radius: 9999px;
+            font-size: 0.875rem;
             font-weight: 600;
-            margin-left: 15px;
-            background-color: var(--warning-yellow);
-            color: #856404;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            transition: var(--transition);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: var(--transition-normal);
         }
 
-        .status-badge.completed {
-            background-color: var(--success-green);
+        .status-pending {
+            background: var(--warning);
+            color: var(--white);
+            box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.2);
+            animation: pulse-warning 2s infinite;
+        }
+
+        .status-completed {
+            background: var(--success);
             color: var(--white);
         }
 
+        @keyframes pulse-warning {
+            0%, 100% { box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.2); }
+            50% { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0.1); }
+        }
+
+        /* Professional Action Buttons */
         .actions-section {
-            margin-top: 25px;
-            padding-top: 20px;
+            margin-top: var(--spacing-xl);
+            padding-top: var(--spacing-lg);
             border-top: 1px solid rgba(255,255,255,0.2);
         }
 
-        .actions-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-lg);
         }
 
         .action-btn {
-            display: inline-flex;
+            display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 14px 28px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            margin: 8px;
-            min-width: 160px;
-            transition: var(--transition);
-            text-decoration: none;
             justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            gap: var(--spacing-sm);
+            padding: var(--spacing-lg);
+            background: var(--white);
+            color: var(--gray-700);
             border: 2px solid transparent;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: var(--transition-normal);
+            cursor: pointer;
+            box-shadow: var(--shadow-md);
             position: relative;
             overflow: hidden;
         }
@@ -401,96 +489,134 @@ try {
         .action-btn::before {
             content: '';
             position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: rgba(255,255,255,0.2);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            transition: width 0.3s ease, height 0.3s ease;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: var(--transition-normal);
         }
 
         .action-btn:hover::before {
-            width: 300px;
-            height: 300px;
+            left: 100%;
         }
 
         .action-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
         }
 
         .btn-approve {
-            background: linear-gradient(135deg, var(--success-green) 0%, #218838 100%);
-            color: var(--white);
+            border-color: var(--success);
+            color: var(--success);
         }
 
         .btn-approve:hover {
-            background: linear-gradient(135deg, #218838 0%, #1e7e34 100%);
+            background: var(--success);
             color: var(--white);
-            text-decoration: none;
         }
 
         .btn-reject {
-            background: linear-gradient(135deg, var(--danger-red) 0%, #c82333 100%);
-            color: var(--white);
+            border-color: var(--danger);
+            color: var(--danger);
         }
 
         .btn-reject:hover {
-            background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+            background: var(--danger);
             color: var(--white);
-            text-decoration: none;
         }
 
         .btn-download {
-            background: linear-gradient(135deg, var(--info-cyan) 0%, #138496 100%);
-            color: var(--white);
+            border-color: var(--info);
+            color: var(--info);
         }
 
         .btn-download:hover {
-            background: linear-gradient(135deg, #138496 0%, #117a8b 100%);
+            background: var(--info);
             color: var(--white);
-            text-decoration: none;
         }
 
+        /* Email Body */
+        .email-body {
+            padding: var(--spacing-2xl);
+        }
+
+        .document-section {
+            background: var(--white);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-lg);
+            padding: var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
+            border: 1px solid var(--gray-200);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-xl);
+            padding-bottom: var(--spacing-lg);
+            border-bottom: 2px solid var(--gray-100);
+        }
+
+        .section-header i {
+            font-size: 1.5rem;
+            color: var(--grammer-blue);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin: 0;
+        }
+
+        /* SVG Container */
         .svg-container {
-            background-color: var(--white);
-            border-radius: var(--border-radius);
-            padding: 40px;
-            box-shadow: var(--shadow);
-            margin-bottom: 30px;
-            min-height: 500px;
+            background: var(--white);
+            border: 2px dashed var(--gray-200);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-xl);
+            min-height: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             position: relative;
+            transition: var(--transition-normal);
         }
 
-        .svg-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(45deg, transparent 49%, rgba(0,0,0,0.02) 50%, transparent 51%);
-            pointer-events: none;
+        .svg-container:hover {
+            border-color: var(--grammer-light-blue);
+            background: var(--gray-50);
         }
 
-        .loading {
+        .svg-container svg {
+            max-width: 100%;
+            height: auto;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            transition: var(--transition-normal);
+        }
+
+        .svg-container:hover svg {
+            transform: scale(1.02);
+        }
+
+        /* Loading States */
+        .loading-state {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 80px 20px;
-            font-size: 1.3rem;
-            color: var(--dark-gray);
-            gap: 20px;
+            gap: var(--spacing-lg);
+            color: var(--gray-500);
+            font-size: 1.1rem;
         }
 
         .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--primary-blue);
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--gray-200);
+            border-top: 4px solid var(--grammer-blue);
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -500,103 +626,138 @@ try {
             100% { transform: rotate(360deg); }
         }
 
-        .error {
-            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-            color: #721c24;
-            padding: 30px;
-            border-radius: var(--border-radius);
-            margin-bottom: 20px;
-            border-left: 5px solid var(--danger-red);
-            box-shadow: var(--shadow);
-        }
-
-        .error i {
-            margin-right: 10px;
-            font-size: 1.2rem;
-        }
-
-        #svgContainer svg {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .debug-info {
-            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
-            padding: 20px;
-            border-radius: var(--border-radius);
-            margin-bottom: 20px;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            line-height: 1.5;
-            border-left: 4px solid var(--primary-blue);
-            box-shadow: var(--shadow);
-        }
-
-        .debug-info strong {
-            color: var(--primary-blue);
-            font-size: 14px;
-        }
-
-        .completed-message {
+        .loading-dots {
             display: flex;
+            gap: var(--spacing-xs);
+        }
+
+        .loading-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--grammer-blue);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .loading-dot:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dot:nth-child(2) { animation-delay: -0.16s; }
+        .loading-dot:nth-child(3) { animation-delay: 0s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        /* Error States */
+        .error-state {
+            background: linear-gradient(135deg, #FEF2F2 0%, #FECACA 100%);
+            color: var(--danger);
+            padding: var(--spacing-xl);
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--danger);
+            margin: var(--spacing-lg) 0;
+        }
+
+        .error-state i {
+            font-size: 1.5rem;
+            margin-right: var(--spacing-md);
+        }
+
+        /* Professional Footer */
+        .email-footer {
+            background: var(--gray-100);
+            padding: var(--spacing-xl);
+            border-top: 1px solid var(--gray-200);
+            text-align: center;
+        }
+
+        .footer-content {
+            display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 12px;
-            font-size: 1.1rem;
+            gap: var(--spacing-md);
+            color: var(--gray-600);
+        }
+
+        .footer-logo {
+            font-size: 1.25rem;
             font-weight: 600;
-            color: var(--success-green);
-            margin-bottom: 20px;
-            padding: 15px;
-            background-color: rgba(40, 167, 69, 0.1);
-            border-radius: 8px;
-            border-left: 4px solid var(--success-green);
+            color: var(--grammer-blue);
+        }
+
+        .footer-links {
+            display: flex;
+            gap: var(--spacing-lg);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .footer-link {
+            color: var(--gray-500);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: var(--transition-fast);
+        }
+
+        .footer-link:hover {
+            color: var(--grammer-blue);
         }
 
         /* Responsive Design */
         @media (max-width: 768px) {
-            body {
-                padding: 10px;
+            .email-container {
+                margin: 0;
+                box-shadow: none;
             }
-            
-            .header-card {
-                padding: 25px;
+
+            .email-header {
+                padding: var(--spacing-xl) var(--spacing-lg);
             }
-            
-            .order-title {
-                font-size: 2.2rem;
+
+            .order-title-main {
+                font-size: 2rem;
             }
-            
-            .action-btn {
-                display: block;
-                margin: 10px 0;
-                width: 100%;
-                max-width: none;
+
+            .email-body {
+                padding: var(--spacing-lg);
             }
-            
-            .svg-container {
-                padding: 20px;
+
+            .actions-grid {
+                grid-template-columns: 1fr;
             }
-            
+
             .approver-info {
-                padding: 20px;
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .section-header {
+                flex-direction: column;
+                text-align: center;
             }
         }
 
         @media (max-width: 480px) {
-            .order-title {
-                font-size: 1.8rem;
+            .order-title-main {
+                font-size: 1.75rem;
             }
-            
-            .action-btn {
-                font-size: 1rem;
-                padding: 12px 20px;
+
+            .company-name {
+                font-size: 1.25rem;
+            }
+
+            .document-section {
+                padding: var(--spacing-lg);
             }
         }
 
-        /* Animaciones */
+        /* Animation Classes */
         .fade-in {
-            animation: fadeIn 0.5s ease-in;
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        .slide-up {
+            animation: slideUp 0.6s ease-out forwards;
         }
 
         @keyframes fadeIn {
@@ -604,296 +765,486 @@ try {
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .pulse {
-            animation: pulse 2s infinite;
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(3, 76, 140, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(3, 76, 140, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(3, 76, 140, 0); }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--gray-100);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--gray-400);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gray-500);
+        }
+
+        /* Print Styles */
+        @media print {
+            .email-header,
+            .actions-section,
+            .email-footer {
+                display: none !important;
+            }
+
+            .email-container {
+                box-shadow: none;
+            }
+
+            .email-body {
+                padding: 0;
+            }
+        }
+
+        /* Focus Styles for Accessibility */
+        .action-btn:focus,
+        .footer-link:focus {
+            outline: 2px solid var(--grammer-blue);
+            outline-offset: 2px;
+        }
+
+        /* High Contrast Mode Support */
+        @media (prefers-contrast: high) {
+            :root {
+                --gray-100: #E0E0E0;
+                --gray-200: #C0C0C0;
+            }
+        }
+
+        /* Reduced Motion Support */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Enhanced SweetAlert2 Styles */
+        .swal-professional {
+            font-family: 'Inter', sans-serif !important;
+        }
+        
+        .swal-btn-confirm {
+            font-weight: 600 !important;
+            padding: 0.75rem 1.5rem !important;
+            border-radius: 0.5rem !important;
+        }
+        
+        .swal-btn-cancel {
+            font-weight: 500 !important;
+            padding: 0.75rem 1.5rem !important;
+            border-radius: 0.5rem !important;
+        }
+        
+        .swal2-popup {
+            border-radius: var(--border-radius-lg) !important;
+            box-shadow: var(--shadow-xl) !important;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Debug Info (comentar en producción) -->
-        <div class="debug-info">
-            <strong><i class="fas fa-bug"></i> Debug Information:</strong><br>
-            <strong>Order ID:</strong> <?php echo $orderId; ?><br>
-            <strong>Current Token:</strong> <?php echo substr($token, 0, 10) . '...'; ?> (<?php echo $tokenData['action']; ?>)<br>
-            <strong>Approve Token:</strong> <?php echo $approveToken ? substr($approveToken, 0, 10) . '...' : 'N/A'; ?><br>
-            <strong>Reject Token:</strong> <?php echo $rejectToken ? substr($rejectToken, 0, 10) . '...' : 'N/A'; ?><br>
-            <strong>Creator:</strong> <?php echo htmlspecialchars($orderData['creator_name'] ?? 'N/A'); ?> (<?php echo htmlspecialchars($orderData['creator_role'] ?? 'N/A'); ?>)<br>
-            <strong>Plant:</strong> <?php echo htmlspecialchars($orderData['creator_plant'] ?? 'N/A'); ?><br>
-            <strong>Carrier:</strong> <?php echo htmlspecialchars($orderData['carrier'] ?? 'N/A'); ?><br>
-            <strong>Status:</strong> <?php echo htmlspecialchars($orderData['status_name'] ?? 'N/A'); ?><br>
-            <strong>Cost:</strong> €<?php echo number_format($orderData['cost_euros'] ?? 0, 2); ?><br>
-            <strong>Origin:</strong> <?php echo htmlspecialchars($orderData['origin_company_name'] ?? 'N/A'); ?>, <?php echo htmlspecialchars($orderData['origin_city'] ?? 'N/A'); ?><br>
-            <strong>Destination:</strong> <?php echo htmlspecialchars($orderData['destiny_company_name'] ?? 'N/A'); ?>, <?php echo htmlspecialchars($orderData['destiny_city'] ?? 'N/A'); ?><br>
-            <strong>Approver:</strong> <?php echo htmlspecialchars($tokenData['approver_name']); ?><br>
-            <strong>Token Used:</strong> <?php echo $tokenData['is_used'] ? 'Yes' : 'No'; ?><br>
-            <strong>URLPF:</strong> <?php echo URLPF; ?><br>
-            <strong>URLM:</strong> <?php echo URLM; ?>
-        </div>
-
-        <!-- Header -->
-        <div class="header-card fade-in">
-            <h1 class="order-title">
-                <i class="fas fa-shipping-fast"></i>
-                Order #<?php echo $orderId; ?>
-            </h1>
-            
-            <div class="approver-info">
-                <h3>
-                    <i class="fas fa-user-check"></i>
-                    Approver: <?php echo htmlspecialchars($tokenData['approver_name']); ?>
-                </h3>
+    <div class="email-container">
+        <!-- Professional Email Header -->
+        <header class="email-header">
+            <div class="email-header-content">
+                <div class="company-logo fade-in">
+                    <i class="fas fa-industry"></i>
+                    <div class="company-name">Grammer AG</div>
+                </div>
                 
-                <?php if ($tokenData['is_used'] == 0): ?>
-                    <span class="status-badge pulse">
-                        <i class="fas fa-clock"></i>
-                        Pending Approval
-                    </span>
-                <?php else: ?>
-                    <span class="status-badge completed">
-                        <i class="fas fa-check-circle"></i>
-                        Action Completed
-                    </span>
-                <?php endif; ?>
+                <h1 class="order-title-main slide-up">Order #<?php echo $orderId; ?></h1>
+                <p class="order-subtitle slide-up">Premium Freight Request Document</p>
                 
-                <!-- Actions Section -->
-                <div class="actions-section">
+                <div class="status-section slide-up">
+                    <div class="approver-info">
+                        <div class="approver-avatar">
+                            <?php echo strtoupper(substr($tokenData['approver_name'], 0, 1)); ?>
+                        </div>
+                        <div class="approver-details">
+                            <h4><?php echo htmlspecialchars($tokenData['approver_name']); ?></h4>
+                            <div class="approver-role">Authorization Required</div>
+                        </div>
+                    </div>
+                    
                     <?php if ($tokenData['is_used'] == 0): ?>
-                        <div class="actions-title">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            Action Required:
+                        <div class="status-badge status-pending">
+                            <i class="fas fa-clock"></i>
+                            <span>Pending Review</span>
                         </div>
-                        
-                        <?php if ($approveToken): ?>
-                            <a href="javascript:void(0)" class="action-btn btn-approve" onclick="confirmAction('approve')">
-                                <i class="fas fa-check"></i>
-                                Approve Order
-                            </a>
-                        <?php endif; ?>
-                        
-                        <?php if ($rejectToken): ?>
-                            <a href="javascript:void(0)" class="action-btn btn-reject" onclick="confirmAction('reject')">
-                                <i class="fas fa-times"></i>
-                                Reject Order
-                            </a>
-                        <?php endif; ?>
-                        
-                        <a href="javascript:void(0)" class="action-btn btn-download" onclick="downloadPDF()">
-                            <i class="fas fa-download"></i>
-                            Download PDF
-                        </a>
                     <?php else: ?>
-                        <div class="completed-message">
+                        <div class="status-badge status-completed">
                             <i class="fas fa-check-circle"></i>
-                            Action has been completed successfully
+                            <span>Action Completed</span>
                         </div>
+                    <?php endif; ?>
+                    
+                    <?php if ($tokenData['is_used'] == 0 && ($approveToken || $rejectToken)): ?>
+                    <div class="actions-section">
+                        <h4 style="color: var(--white); margin-bottom: var(--spacing-lg); display: flex; align-items: center; gap: var(--spacing-sm);">
+                            <i class="fas fa-tasks"></i>
+                            Available Actions
+                        </h4>
                         
-                        <a href="javascript:void(0)" class="action-btn btn-download" onclick="downloadPDF()">
-                            <i class="fas fa-download"></i>
-                            Download PDF
-                        </a>
+                        <div class="actions-grid">
+                            <?php if ($approveToken): ?>
+                            <button class="action-btn btn-approve" onclick="confirmAction('approve')">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Approve Order</span>
+                            </button>
+                            <?php endif; ?>
+                            
+                            <?php if ($rejectToken): ?>
+                            <button class="action-btn btn-reject" onclick="confirmAction('reject')">
+                                <i class="fas fa-times-circle"></i>
+                                <span>Reject Order</span>
+                            </button>
+                            <?php endif; ?>
+                            
+                            <button class="action-btn btn-download" onclick="downloadPDF()">
+                                <i class="fas fa-file-pdf"></i>
+                                <span>Download PDF</span>
+                            </button>
+                        </div>
+                    </div>
+                    <?php else: ?>
+                    <div class="actions-section">
+                        <div class="actions-grid">
+                            <button class="action-btn btn-download" onclick="downloadPDF()">
+                                <i class="fas fa-file-pdf"></i>
+                                <span>Download PDF</span>
+                            </button>
+                        </div>
+                    </div>
                     <?php endif; ?>
                 </div>
             </div>
-        </div>
+        </header>
 
-        <!-- SVG Container -->
-        <div class="svg-container fade-in">
-            <div id="svgContainer" class="loading">
-                <div class="loading-spinner"></div>
-                <div>Loading order details...</div>
+        <!-- Email Body -->
+        <main class="email-body">
+            <div class="document-section fade-in">
+                <div class="section-header">
+                    <i class="fas fa-file-contract"></i>
+                    <h2 class="section-title">Order Documentation</h2>
+                </div>
+                
+                <div class="svg-container" id="svgContainer">
+                    <div class="loading-state">
+                        <div class="loading-spinner"></div>
+                        <div>Loading order details...</div>
+                        <div class="loading-dots">
+                            <div class="loading-dot"></div>
+                            <div class="loading-dot"></div>
+                            <div class="loading-dot"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
+        </main>
+
+        <!-- Professional Footer -->
+        <footer class="email-footer">
+            <div class="footer-content">
+                <div class="footer-logo">Grammer AG</div>
+                <div class="footer-links">
+                    <a href="#" class="footer-link">Privacy Policy</a>
+                    <a href="#" class="footer-link">Terms of Service</a>
+                    <a href="#" class="footer-link">Contact Support</a>
+                </div>
+                <p style="font-size: 0.75rem; color: var(--gray-500);">
+                    © <?php echo date('Y'); ?> Grammer AG. All rights reserved. | This is an automated message.
+                </p>
+            </div>
+        </footer>
     </div>
 
-    <!-- Scripts -->
+    <!-- Enhanced JavaScript Module -->
     <script type="module">
-        // Función para cargar el SVG
+        // Import PDF generation module
+        import { generatePDF, loadAndPopulateSVG } from '<?php echo URLPF; ?>js/svgOrders.js';
+        
+        // Make functions globally available
+        window.generatePDF = generatePDF;
+
+        // Enhanced SVG loading with better error handling
         async function loadOrderSVG() {
+            const container = document.getElementById('svgContainer');
+            
             try {
-                console.log('🚀 Starting SVG load...');
+                // Console logging only for debugging
+                console.log('🚀 Initializing order document...');
                 
-                // Intentar importar el módulo SVG
-                const { loadAndPopulateSVG } = await import(window.URL + 'js/svgOrders.js');
+                // Show enhanced loading state
+                container.innerHTML = `
+                    <div class="loading-state">
+                        <div class="loading-spinner"></div>
+                        <div style="font-weight: 600;">Processing Document</div>
+                        <div style="font-size: 0.9rem; opacity: 0.8;">Please wait while we prepare your order details</div>
+                        <div class="loading-dots">
+                            <div class="loading-dot"></div>
+                            <div class="loading-dot"></div>
+                            <div class="loading-dot"></div>
+                        </div>
+                    </div>
+                `;
                 
                 const orderData = window.allOrders[0];
-                console.log('📦 Order data for SVG:', orderData);
+                console.log('📦 Processing order data:', orderData);
                 
+                // Load SVG with order data
                 await loadAndPopulateSVG(orderData, 'svgContainer');
-                console.log('✅ SVG loaded successfully');
+                
+                console.log('✅ Document loaded successfully');
+                
+                // Add success animation
+                setTimeout(() => {
+                    const svgElement = container.querySelector('svg');
+                    if (svgElement) {
+                        svgElement.style.animation = 'fadeIn 0.5s ease-out';
+                    }
+                }, 100);
                 
             } catch (error) {
-                console.error('❌ Error loading SVG:', error);
-                document.getElementById('svgContainer').innerHTML = 
-                    '<div class="error"><i class="fas fa-exclamation-triangle"></i><strong>Error loading order details:</strong> ' + error.message + '</div>';
+                console.error('❌ Error loading document:', error);
+                
+                container.innerHTML = `
+                    <div class="error-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <strong>Unable to Load Document</strong>
+                            <p style="margin-top: 0.5rem; font-size: 0.9rem;">
+                                We encountered an issue while loading your order details. 
+                                Please try refreshing the page or contact support if the problem persists.
+                            </p>
+                            <button class="action-btn btn-download" onclick="location.reload()" style="margin-top: 1rem;">
+                                <i class="fas fa-refresh"></i>
+                                <span>Retry</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
             }
         }
 
-        // Función para generar PDF
+        // Enhanced PDF generation
         async function generateOrderPDF() {
-            try {
-                // Use the global function instead of importing
-                if (typeof window.generatePDF !== 'function') {
-                    throw new Error('PDF generation module not loaded');
-                }
-                
-                const orderData = window.allOrders[0];
-                const doc = await window.generatePDF(orderData);
-                
-                // Download the PDF
-                doc.save(`PF_Order_${orderData.id}.pdf`);
-                
-                return true;
-            } catch (error) {
-                console.error('❌ Error generating PDF:', error);
-                throw error;
+            if (typeof window.generatePDF !== 'function') {
+                throw new Error('PDF generation module not available');
             }
+            
+            const orderData = window.allOrders[0];
+            const fileName = await window.generatePDF(orderData, `Grammer_PF_Order_${orderData.id}`);
+            
+            console.log('✅ PDF generated:', fileName);
+            return fileName;
         }
 
-        // Funciones globales
+        // Enhanced action confirmation
         window.confirmAction = function(action) {
             const actionText = action === 'approve' ? 'approve' : 'reject';
-            const actionColor = action === 'approve' ? '#28a745' : '#dc3545';
-            const actionIcon = action === 'approve' ? 'success' : 'warning';
-            
-            // Verificar que tenemos la URL correspondiente
             const actionUrl = action === 'approve' ? window.approveUrl : window.rejectUrl;
             
             if (!actionUrl) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Error',
-                    text: `No ${actionText} token available for this action.`,
-                    confirmButtonColor: '#dc3545'
+                    title: 'Action Unavailable',
+                    html: `
+                        <div style="text-align: center; padding: 1rem;">
+                            <i class="fas fa-lock" style="font-size: 3rem; color: var(--danger); margin-bottom: 1rem;"></i>
+                            <p>The ${actionText} action is not available for this request.</p>
+                            <small style="color: var(--gray-500);">This may be due to expired tokens or insufficient permissions.</small>
+                        </div>
+                    `,
+                    confirmButtonColor: 'var(--grammer-blue)',
+                    confirmButtonText: 'Understood'
                 });
                 return;
             }
             
+            const config = {
+                approve: {
+                    color: 'var(--success)',
+                    icon: 'success',
+                    iconClass: 'check-circle'
+                },
+                reject: {
+                    color: 'var(--danger)',
+                    icon: 'warning',
+                    iconClass: 'times-circle'
+                }
+            };
+            
             Swal.fire({
                 title: `${actionText.charAt(0).toUpperCase() + actionText.slice(1)} Order?`,
                 html: `
-                    <div style="text-align: left; margin: 20px 0;">
-                        <p><strong>Order ID:</strong> #<?php echo $orderId; ?></p>
-                        <p><strong>Action:</strong> ${actionText.toUpperCase()}</p>
-                        <p><strong>Approver:</strong> <?php echo htmlspecialchars($tokenData['approver_name']); ?></p>
+                    <div style="text-align: left; background: var(--gray-50); padding: 1.5rem; border-radius: 0.5rem; margin: 1rem 0;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                            <strong style="color: var(--grammer-blue);">Order Details</strong>
+                        </div>
+                        <div style="display: grid; gap: 0.5rem; font-size: 0.9rem;">
+                            <div><strong>Order ID:</strong> #<?php echo $orderId; ?></div>
+                            <div><strong>Action:</strong> <span style="color: ${config[action].color}; font-weight: 600; text-transform: uppercase;">${actionText}</span></div>
+                            <div><strong>Approver:</strong> <?php echo htmlspecialchars($tokenData['approver_name']); ?></div>
+                            <div><strong>Date:</strong> ${new Date().toLocaleDateString()}</div>
+                        </div>
                     </div>
-                    <p style="color: #666; font-size: 0.9rem;">This action cannot be undone.</p>
+                    <div style="background: #FEF3CD; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid var(--warning);">
+                        <i class="fas fa-exclamation-triangle" style="color: var(--warning); margin-right: 0.5rem;"></i>
+                        <strong>Important:</strong> This action cannot be undone and will be recorded in the system.
+                    </div>
                 `,
-                icon: actionIcon,
+                icon: config[action].icon,
                 showCancelButton: true,
-                confirmButtonColor: actionColor,
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: `<i class="fas fa-${action === 'approve' ? 'check' : 'times'}"></i> Yes, ${actionText} it!`,
+                confirmButtonColor: config[action].color,
+                cancelButtonColor: 'var(--gray-500)',
+                confirmButtonText: `<i class="fas fa-${config[action].iconClass}"></i> Confirm ${actionText.charAt(0).toUpperCase() + actionText.slice(1)}`,
                 cancelButtonText: '<i class="fas fa-arrow-left"></i> Cancel',
                 reverseButtons: true,
-                focusConfirm: false,
-                focusCancel: true
+                focusCancel: true,
+                width: '600px',
+                customClass: {
+                    popup: 'swal-professional',
+                    confirmButton: 'swal-btn-confirm',
+                    cancelButton: 'swal-btn-cancel'
+                }
             }).then((result) => {
                 if (result.isConfirmed) {
                     Swal.fire({
-                        title: 'Processing...',
+                        title: 'Processing Request',
                         html: `
-                            <div style="margin: 20px 0;">
-                                <div class="loading-spinner" style="margin: 0 auto 15px auto;"></div>
-                                <p>Please wait while we process your ${actionText} request.</p>
+                            <div style="text-align: center; padding: 2rem;">
+                                <div class="loading-spinner" style="margin: 0 auto 1.5rem auto;"></div>
+                                <p style="font-weight: 600; margin-bottom: 0.5rem;">Processing your ${actionText} request</p>
+                                <p style="color: var(--gray-500); font-size: 0.9rem;">Please do not close this window</p>
                             </div>
                         `,
                         allowOutsideClick: false,
                         allowEscapeKey: false,
                         showConfirmButton: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
+                        didOpen: () => Swal.showLoading()
                     });
                     
-                    // Pequeño delay para mostrar el loading
                     setTimeout(() => {
                         window.location.href = actionUrl;
-                    }, 500);
+                    }, 1500);
                 }
             });
         };
 
+        // Enhanced PDF download
         window.downloadPDF = async function() {
             try {
                 Swal.fire({
-                    title: 'Generating PDF...',
+                    title: 'Generating Document',
                     html: `
-                        <div style="margin: 20px 0;">
-                            <div class="loading-spinner" style="margin: 0 auto 15px auto;"></div>
-                            <p>Please wait while we prepare your document.</p>
+                        <div style="text-align: center; padding: 2rem;">
+                            <div class="loading-spinner" style="margin: 0 auto 1.5rem auto;"></div>
+                            <p style="font-weight: 600; margin-bottom: 0.5rem;">Creating your PDF document</p>
+                            <p style="color: var(--gray-500); font-size: 0.9rem;">This may take a few moments...</p>
+                            <div class="loading-dots" style="justify-content: center; margin-top: 1rem;">
+                                <div class="loading-dot"></div>
+                                <div class="loading-dot"></div>
+                                <div class="loading-dot"></div>
+                            </div>
                         </div>
                     `,
                     allowOutsideClick: false,
                     allowEscapeKey: false,
                     showConfirmButton: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
+                    didOpen: () => Swal.showLoading()
                 });
 
-                await generateOrderPDF();
-                
-                Swal.close();
+                const fileName = await generateOrderPDF();
                 
                 Swal.fire({
                     icon: 'success',
-                    title: 'PDF Downloaded!',
+                    title: 'Download Complete!',
                     html: `
-                        <div style="margin: 15px 0;">
-                            <i class="fas fa-file-pdf" style="font-size: 3rem; color: #dc3545; margin-bottom: 15px;"></i>
-                            <p>The PDF has been generated and downloaded successfully.</p>
+                        <div style="text-align: center; padding: 1rem;">
+                            <i class="fas fa-file-pdf" style="font-size: 4rem; color: var(--danger); margin-bottom: 1.5rem;"></i>
+                            <p style="font-weight: 600; margin-bottom: 0.5rem;">Your document has been downloaded successfully</p>
+                            <div style="background: var(--gray-50); padding: 1rem; border-radius: 0.5rem; margin: 1rem 0;">
+                                <small style="color: var(--gray-600); font-family: monospace;">${fileName}</small>
+                            </div>
+                            <p style="color: var(--gray-500); font-size: 0.9rem;">Check your Downloads folder</p>
                         </div>
                     `,
-                    timer: 3000,
+                    timer: 5000,
                     timerProgressBar: true,
-                    confirmButtonColor: '#17a2b8'
+                    confirmButtonColor: 'var(--grammer-blue)',
+                    confirmButtonText: 'Great!'
                 });
                 
             } catch (error) {
-                console.error('❌ Error generating PDF:', error);
+                console.error('❌ PDF generation failed:', error);
+                
                 Swal.fire({
                     icon: 'error',
-                    title: 'PDF Generation Error',
+                    title: 'Download Failed',
                     html: `
-                        <div style="margin: 15px 0;">
-                            <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: #dc3545; margin-bottom: 15px;"></i>
-                            <p>Could not generate PDF. Please try again later.</p>
-                            <small style="color: #666;">Error: ${error.message}</small>
+                        <div style="text-align: center; padding: 1rem;">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--danger); margin-bottom: 1.5rem;"></i>
+                            <p style="margin-bottom: 1rem;">We couldn't generate your PDF document at this time.</p>
+                            <div style="background: #FEF2F2; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid var(--danger); text-align: left;">
+                                <strong>Error Details:</strong><br>
+                                <code style="font-size: 0.8rem; color: var(--gray-600);">${error.message}</code>
+                            </div>
+                            <p style="color: var(--gray-500); font-size: 0.9rem; margin-top: 1rem;">
+                                Please try again or contact IT support if the problem persists.
+                            </p>
                         </div>
                     `,
-                    confirmButtonColor: '#dc3545'
+                    confirmButtonColor: 'var(--danger)',
+                    confirmButtonText: 'Try Again',
+                    showCancelButton: true,
+                    cancelButtonText: 'Contact Support'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.downloadPDF();
+                    }
                 });
             }
         };
 
-        // Cargar SVG cuando el DOM esté listo
+        // Initialize when DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🎯 DOM loaded, starting SVG load...');
+            console.log('🎯 Premium Freight Order Viewer initialized');
             
-            // Añadir clase de animación a elementos
-            document.querySelectorAll('.fade-in').forEach((element, index) => {
+            // Staggered animations
+            const animatedElements = document.querySelectorAll('.fade-in, .slide-up');
+            animatedElements.forEach((element, index) => {
                 setTimeout(() => {
-                    element.style.opacity = '1';
-                    element.style.transform = 'translateY(0)';
-                }, index * 100);
+                    element.style.animationDelay = `${index * 0.1}s`;
+                }, 50);
             });
             
-            // Cargar SVG
+            // Load order document
             loadOrderSVG();
+            
+            // Log system info for debugging (console only)
+            console.group('🔧 System Information');
+            console.log('🌐 URLs:', { URLPF: window.URL, URLM: window.URLM });
+            console.log('📋 Order:', window.allOrders[0]);
+            console.log('🔑 Tokens:', { approve: window.hasApproveToken, reject: window.hasRejectToken });
+            console.groupEnd();
         });
 
-        // Mostrar información de conexión en consola
-        console.log('🌐 Premium Freight Order Viewer Loaded');
-        console.log('🔗 Connection URLs:', {
-            URLPF: window.URL,
-            URLM: window.URLM
+        // Performance monitoring (console only)
+        window.addEventListener('load', function() {
+            const loadTime = performance.now();
+            console.log(`⚡ Page loaded in ${Math.round(loadTime)}ms`);
         });
     </script>
 </body>
