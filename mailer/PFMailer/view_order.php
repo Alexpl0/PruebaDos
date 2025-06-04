@@ -1,6 +1,6 @@
 <?php
 /**
- * view_order.php - Página temporal para mostrar SVG de órdenes desde emails
+ * view_order.php - Página para mostrar SVG de órdenes desde emails
  */
 
 // Activar reporte de errores para debugging
@@ -81,11 +81,39 @@ try {
 
     $tokenData = $result->fetch_assoc();
 
-    // Obtener detalles de la orden - consulta simplificada primero
-    $orderSql = "SELECT PF.*, U.name as creator_name 
-                 FROM PremiumFreight PF
-                 INNER JOIN User U ON PF.user_id = U.id
-                 WHERE PF.id = ?";
+    // Obtener detalles de la orden - consulta completa para SVG
+    $orderSql = "SELECT 
+                    pf.*,
+                    u.name AS creator_name,
+                    u.email AS creator_email,
+                    u.role AS creator_role,
+                    u.plant AS creator_plant,
+                    lo_from.company_name AS origin_company_name,
+                    lo_from.city AS origin_city,
+                    lo_from.state AS origin_state,
+                    lo_from.zip AS origin_zip,
+                    lo_to.company_name AS destiny_company_name,
+                    lo_to.city AS destiny_city,
+                    lo_to.state AS destiny_state,
+                    lo_to.zip AS destiny_zip,
+                    c.name AS carrier,
+                    st.id AS statusid,
+                    st.name AS status_name,
+                    pfa.id AS approval_id,
+                    pfa.approval_date,
+                    pfa.act_approv AS approval_status,
+                    u_approver.name AS approver_name,
+                    u_approver.email AS approver_email,
+                    u_approver.role AS approver_role
+                FROM PremiumFreight pf
+                LEFT JOIN Carriers c ON pf.carrier_id = c.id
+                LEFT JOIN User u ON pf.user_id = u.id
+                LEFT JOIN Location lo_from ON pf.origin_id = lo_from.id
+                LEFT JOIN Location lo_to ON pf.destiny_id = lo_to.id
+                LEFT JOIN Status st ON pf.status_id = st.id
+                LEFT JOIN PremiumFreightApprovals pfa ON pf.id = pfa.premium_freight_id
+                LEFT JOIN User u_approver ON pfa.user_id = u_approver.id
+                WHERE pf.id = ?";
     
     $orderStmt = $db->prepare($orderSql);
     if (!$orderStmt) {
@@ -177,7 +205,17 @@ try {
         
         // Debug info
         console.log('Order Data:', window.allOrders[0]);
-        console.log('URLs:', { URLPF: window.URL, URLM: window.URLM });
+        console.log('Order fields available:', Object.keys(window.allOrders[0]));
+        console.log('Origin data:', {
+            company: window.allOrders[0].origin_company_name,
+            city: window.allOrders[0].origin_city,
+            state: window.allOrders[0].origin_state
+        });
+        console.log('Destination data:', {
+            company: window.allOrders[0].destiny_company_name,
+            city: window.allOrders[0].destiny_city,
+            state: window.allOrders[0].destiny_state
+        });
     </script>
     
     <style>
@@ -226,14 +264,14 @@ try {
             text-align: center;
         }
         .action-btn {
-            padding: 15px 30px;
-            font-size: 1.1rem;
+            padding: 12px 24px; /* Un poco más pequeños para el header */
+            font-size: 1rem; /* Tamaño de fuente reducido */
             font-weight: bold;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            margin: 10px;
-            min-width: 150px;
+            margin: 5px;
+            min-width: 130px; /* Ancho mínimo reducido */
             transition: all 0.3s ease;
             text-decoration: none;
             display: inline-block;
@@ -241,32 +279,46 @@ try {
         .btn-approve {
             background-color: #28a745;
             color: white;
+            border: 2px solid rgba(255,255,255,0.3); /* Borde sutil para el header */
         }
         .btn-approve:hover {
             background-color: #218838;
             transform: translateY(-2px);
             color: white;
             text-decoration: none;
+            border-color: rgba(255,255,255,0.5);
         }
         .btn-reject {
             background-color: #dc3545;
             color: white;
+            border: 2px solid rgba(255,255,255,0.3);
         }
         .btn-reject:hover {
             background-color: #c82333;
             transform: translateY(-2px);
             color: white;
             text-decoration: none;
+            border-color: rgba(255,255,255,0.5);
         }
         .btn-download {
             background-color: #17a2b8;
             color: white;
+            border: 2px solid rgba(255,255,255,0.3);
         }
         .btn-download:hover {
             background-color: #138496;
             transform: translateY(-2px);
             color: white;
             text-decoration: none;
+            border-color: rgba(255,255,255,0.5);
+        }
+        /* Estilos responsivos para el header */
+        @media (max-width: 768px) {
+            .action-btn {
+                display: block;
+                margin: 5px 0;
+                width: 100%;
+            }
         }
         .status-badge {
             display: inline-block;
@@ -312,6 +364,12 @@ try {
             <strong>Debug Info:</strong><br>
             Order ID: <?php echo $orderId; ?><br>
             Token: <?php echo substr($token, 0, 10) . '...'; ?><br>
+            Creator: <?php echo htmlspecialchars($orderData['creator_name'] ?? 'N/A'); ?><br>
+            Plant: <?php echo htmlspecialchars($orderData['creator_plant'] ?? 'N/A'); ?><br>
+            Carrier: <?php echo htmlspecialchars($orderData['carrier'] ?? 'N/A'); ?><br>
+            Status: <?php echo htmlspecialchars($orderData['status_name'] ?? 'N/A'); ?><br>
+            Origin: <?php echo htmlspecialchars($orderData['origin_company_name'] ?? 'N/A'); ?><br>
+            Destination: <?php echo htmlspecialchars($orderData['destiny_company_name'] ?? 'N/A'); ?><br>
             Approver: <?php echo htmlspecialchars($tokenData['approver_name']); ?><br>
             Token Used: <?php echo $tokenData['is_used'] ? 'Yes' : 'No'; ?><br>
             URLPF: <?php echo URLPF; ?><br>
@@ -325,6 +383,27 @@ try {
             <div class="approver-info">
                 <strong>Approver:</strong> <?php echo htmlspecialchars($tokenData['approver_name']); ?>
                 <span class="status-badge">Pending Approval</span>
+                
+                <!-- Actions dentro del header -->
+                <div style="margin-top: 20px;">
+                    <?php if ($tokenData['is_used'] == 0): ?>
+                        <p style="margin-bottom: 15px; font-weight: bold;">Action Required:</p>
+                        <a href="javascript:void(0)" class="action-btn btn-approve" onclick="confirmAction('approve')" style="margin-right: 10px;">
+                            ✓ Approve Order
+                        </a>
+                        <a href="javascript:void(0)" class="action-btn btn-reject" onclick="confirmAction('reject')" style="margin-right: 10px;">
+                            ✗ Reject Order
+                        </a>
+                        <a href="javascript:void(0)" class="action-btn btn-download" onclick="downloadPDF()">
+                            📄 Download PDF
+                        </a>
+                    <?php else: ?>
+                        <p style="margin-bottom: 15px; color: #28a745; font-weight: bold;">✓ Action Already Completed</p>
+                        <a href="javascript:void(0)" class="action-btn btn-download" onclick="downloadPDF()">
+                            📄 Download PDF
+                        </a>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
 
@@ -334,32 +413,6 @@ try {
                 Loading order details...
             </div>
         </div>
-
-        <!-- Actions -->
-        <?php if ($tokenData['is_used'] == 0): ?>
-        <div class="actions-container">
-            <h3 style="margin-bottom: 25px; color: #034C8C;">Action Required</h3>
-            <p style="margin-bottom: 30px; color: #6c757d;">Please review the order details above and choose an action:</p>
-            
-            <a href="javascript:void(0)" class="action-btn btn-approve" onclick="confirmAction('approve')">
-                ✓ Approve Order
-            </a>
-            <a href="javascript:void(0)" class="action-btn btn-reject" onclick="confirmAction('reject')">
-                ✗ Reject Order
-            </a>
-            <a href="javascript:void(0)" class="action-btn btn-download" onclick="downloadPDF()">
-                📄 Download PDF
-            </a>
-        </div>
-        <?php else: ?>
-        <div class="actions-container">
-            <h3 style="color: #28a745;">✓ Action Already Completed</h3>
-            <p style="color: #6c757d;">This order has already been processed.</p>
-            <a href="javascript:void(0)" class="action-btn btn-download" onclick="downloadPDF()">
-                📄 Download PDF
-            </a>
-        </div>
-        <?php endif; ?>
     </div>
 
     <!-- Scripts -->
