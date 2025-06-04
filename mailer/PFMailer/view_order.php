@@ -2,6 +2,7 @@
 /**
  * view_order.php - Professional Order Viewer
  * Corporate email-style interface for Premium Freight orders
+ * Version: 2.0 - Enhanced with robust PDF generation
  */
 
 // Error handling and logging
@@ -199,6 +200,11 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Premium Freight Order #<?php echo $orderId; ?> - Grammer AG</title>
     
+    <!-- SEO and Meta -->
+    <meta name="description" content="Premium Freight Order Management System - Grammer AG">
+    <meta name="author" content="Grammer AG">
+    <meta name="robots" content="noindex, nofollow">
+    
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
@@ -211,24 +217,44 @@ try {
     
     <!-- Global Variables -->
     <script>
-        // Global variables for modules
-        window.URL = '<?php echo URLPF; ?>';
-        window.URLM = '<?php echo URLM; ?>';
+        // ===== GLOBAL CONFIGURATION =====
+        window.PF_CONFIG = {
+            // URLs
+            URLPF: '<?php echo URLPF; ?>',
+            URLM: '<?php echo URLM; ?>',
+            
+            // Order data
+            orderData: <?php echo json_encode($orderData); ?>,
+            orderId: <?php echo $orderId; ?>,
+            
+            // User context
+            user: {
+                id: <?php echo $tokenData['user_id']; ?>,
+                name: '<?php echo htmlspecialchars($tokenData['approver_name']); ?>',
+                tokenUsed: <?php echo $tokenData['is_used'] ? 'true' : 'false'; ?>
+            },
+            
+            // Action URLs
+            actions: {
+                approve: '<?php echo $approveUrl; ?>',
+                reject: '<?php echo $rejectUrl; ?>',
+                hasApprove: <?php echo $approveToken ? 'true' : 'false'; ?>,
+                hasReject: <?php echo $rejectToken ? 'true' : 'false'; ?>
+            }
+        };
         
-        // Order data
-        window.allOrders = [<?php echo json_encode($orderData); ?>];
-        window.originalOrders = [<?php echo json_encode($orderData); ?>];
-        window.authorizationLevel = <?php echo $tokenData['user_id']; ?>;
-        window.userName = '<?php echo htmlspecialchars($tokenData['approver_name']); ?>';
-        
-        // Action URLs with specific tokens
-        window.approveUrl = '<?php echo $approveUrl; ?>';
-        window.rejectUrl = '<?php echo $rejectUrl; ?>';
-        
-        // Token states
-        window.hasApproveToken = <?php echo $approveToken ? 'true' : 'false'; ?>;
-        window.hasRejectToken = <?php echo $rejectToken ? 'true' : 'false'; ?>;
-        window.tokenUsed = <?php echo $tokenData['is_used'] ? 'true' : 'false'; ?>;
+        // Legacy support
+        window.URL = window.PF_CONFIG.URLPF;
+        window.URLM = window.PF_CONFIG.URLM;
+        window.allOrders = [window.PF_CONFIG.orderData];
+        window.originalOrders = [window.PF_CONFIG.orderData];
+        window.authorizationLevel = window.PF_CONFIG.user.id;
+        window.userName = window.PF_CONFIG.user.name;
+        window.approveUrl = window.PF_CONFIG.actions.approve;
+        window.rejectUrl = window.PF_CONFIG.actions.reject;
+        window.hasApproveToken = window.PF_CONFIG.actions.hasApprove;
+        window.hasRejectToken = window.PF_CONFIG.actions.hasReject;
+        window.tokenUsed = window.PF_CONFIG.user.tokenUsed;
     </script>
     
     <style>
@@ -311,6 +337,8 @@ try {
             background: var(--white);
             min-height: 100vh;
             box-shadow: var(--shadow-xl);
+            position: relative;
+            overflow: hidden;
         }
 
         /* ===== COMPACT PROFESSIONAL HEADER ===== */
@@ -493,6 +521,23 @@ try {
             box-shadow: var(--shadow-sm);
             min-width: 70px;
             height: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn-compact::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .action-btn-compact:hover::before {
+            left: 100%;
         }
 
         .action-btn-compact:hover {
@@ -542,6 +587,7 @@ try {
             padding: var(--spacing-xl);
             margin-bottom: var(--spacing-xl);
             border: 1px solid var(--gray-200);
+            position: relative;
         }
 
         .section-header {
@@ -677,24 +723,6 @@ try {
         .footer-logo {
             font-size: 1rem;
             font-weight: 600;
-            color: var(--grammer-blue);
-        }
-
-        .footer-links {
-            display: flex;
-            gap: var(--spacing-md);
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .footer-link {
-            color: var(--gray-500);
-            text-decoration: none;
-            font-size: 0.8rem;
-            transition: var(--transition-fast);
-        }
-
-        .footer-link:hover {
             color: var(--grammer-blue);
         }
 
@@ -887,7 +915,6 @@ try {
         <footer class="email-footer">
             <div class="footer-content">
                 <div class="footer-logo">Grammer AG</div>
-
                 <p style="font-size: 0.7rem; color: var(--gray-500);">
                     © <?php echo date('Y'); ?> Grammer AG. All rights reserved.
                 </p>
@@ -895,142 +922,204 @@ try {
         </footer>
     </div>
 
-    <!-- ===== ENHANCED LIBRARY LOADING & APPLICATION LOGIC ===== -->
+    <!-- ===== ENHANCED APPLICATION LOGIC ===== -->
     <script>
-        // ===== ENHANCED LIBRARY LOADING WITH ROBUST ERROR HANDLING =====
-        function loadLibrary(url, checkFunction, fallbackUrl = null) {
-            return new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = url;
-                script.onload = () => {
-                    // Enhanced timeout for library initialization
-                    setTimeout(() => {
-                        if (checkFunction()) {
-                            console.log(`✅ Successfully loaded: ${url}`);
-                            resolve();
-                        } else if (fallbackUrl) {
-                            console.log(`⚠️ Primary source failed, trying fallback: ${fallbackUrl}`);
-                            loadLibrary(fallbackUrl, checkFunction)
+        // ===== LIBRARY MANAGEMENT SYSTEM =====
+        class LibraryManager {
+            constructor() {
+                this.loadedLibraries = new Set();
+                this.loadingPromises = new Map();
+            }
+
+            async loadLibrary(url, checkFunction, fallbackUrl = null) {
+                if (this.loadedLibraries.has(url)) {
+                    return Promise.resolve();
+                }
+
+                if (this.loadingPromises.has(url)) {
+                    return this.loadingPromises.get(url);
+                }
+
+                const promise = this._loadScript(url, checkFunction, fallbackUrl);
+                this.loadingPromises.set(url, promise);
+                
+                try {
+                    await promise;
+                    this.loadedLibraries.add(url);
+                    console.log(`✅ Successfully loaded: ${url}`);
+                } catch (error) {
+                    this.loadingPromises.delete(url);
+                    throw error;
+                }
+
+                return promise;
+            }
+
+            _loadScript(url, checkFunction, fallbackUrl = null) {
+                return new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = url;
+                    script.async = true;
+                    
+                    script.onload = () => {
+                        setTimeout(() => {
+                            if (checkFunction()) {
+                                resolve();
+                            } else if (fallbackUrl) {
+                                console.log(`⚠️ Primary source failed, trying fallback: ${fallbackUrl}`);
+                                this._loadScript(fallbackUrl, checkFunction)
+                                    .then(resolve)
+                                    .catch(reject);
+                            } else {
+                                reject(new Error(`Library not available after loading: ${url}`));
+                            }
+                        }, 500);
+                    };
+                    
+                    script.onerror = () => {
+                        if (fallbackUrl) {
+                            console.log(`❌ Failed to load ${url}, trying fallback: ${fallbackUrl}`);
+                            this._loadScript(fallbackUrl, checkFunction)
                                 .then(resolve)
                                 .catch(reject);
                         } else {
-                            reject(new Error(`Library not available after loading: ${url}`));
+                            reject(new Error(`Failed to load script: ${url}`));
                         }
-                    }, 500); // Increased timeout for better reliability
-                };
-                script.onerror = () => {
-                    if (fallbackUrl) {
-                        console.log(`❌ Failed to load ${url}, trying fallback: ${fallbackUrl}`);
-                        loadLibrary(fallbackUrl, checkFunction)
-                            .then(resolve)
-                            .catch(reject);
-                    } else {
-                        reject(new Error(`Failed to load script: ${url}`));
-                    }
-                };
-                document.head.appendChild(script);
-            });
+                    };
+                    
+                    document.head.appendChild(script);
+                });
+            }
         }
 
-        // ===== ENHANCED APPLICATION INITIALIZATION =====
-        async function initializeApp() {
-            try {
-                console.log('🚀 Initializing Premium Freight Order Viewer...');
-                
-                // Load html2canvas with enhanced error checking
-                await loadLibrary(
-                    'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
-                    () => typeof html2canvas !== 'undefined',
-                    '<?php echo URLPF; ?>js/html2canvas.min.js'
-                );
-                
-                // Load jsPDF with multiple fallback strategies
-                await loadLibrary(
-                    'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
-                    () => {
-                        // Enhanced jsPDF detection for multiple versions
-                        return typeof window.jsPDF !== 'undefined' || 
-                               (typeof window.jspdf !== 'undefined' && typeof window.jspdf.jsPDF !== 'undefined') ||
-                               typeof jsPDF !== 'undefined';
+        // ===== APPLICATION INITIALIZATION =====
+        class PremiumFreightViewer {
+            constructor() {
+                this.libraryManager = new LibraryManager();
+                this.isInitialized = false;
+            }
+
+            async initialize() {
+                if (this.isInitialized) return;
+
+                try {
+                    console.log('🚀 Initializing Premium Freight Order Viewer v2.0...');
+                    
+                    await this.loadDependencies();
+                    await this.loadSVGModule();
+                    
+                    this.setupEventHandlers();
+                    this.applyAnimations();
+                    await this.loadOrderDocument();
+                    
+                    this.isInitialized = true;
+                    this.logSystemInfo();
+                    
+                    console.log('✅ Premium Freight Order Viewer initialized successfully');
+                    
+                } catch (error) {
+                    console.error('❌ Application initialization failed:', error);
+                    this.showError(error);
+                }
+            }
+
+            async loadDependencies() {
+                const dependencies = [
+                    {
+                        url: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+                        check: () => typeof html2canvas !== 'undefined',
+                        fallback: `${window.PF_CONFIG.URLPF}js/html2canvas.min.js`
                     },
-                    '<?php echo URLPF; ?>js/pdfmin/jspdf.min.js'
-                );
-                
-                // Normalize jsPDF reference for cross-version compatibility
+                    {
+                        url: 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+                        check: () => typeof window.jsPDF !== 'undefined' || 
+                                    (typeof window.jspdf !== 'undefined' && typeof window.jspdf.jsPDF !== 'undefined') ||
+                                    typeof jsPDF !== 'undefined',
+                        fallback: `${window.PF_CONFIG.URLPF}js/pdfmin/jspdf.min.js`
+                    }
+                ];
+
+                for (const dep of dependencies) {
+                    await this.libraryManager.loadLibrary(dep.url, dep.check, dep.fallback);
+                }
+
+                // Normalize jsPDF reference
                 if (typeof window.jsPDF === 'undefined' && typeof window.jspdf !== 'undefined' && typeof window.jspdf.jsPDF !== 'undefined') {
                     window.jsPDF = window.jspdf.jsPDF;
                 }
-                
-                console.log('✅ All dependencies loaded successfully');
-                console.log('📚 Library status check:', {
-                    'html2canvas': typeof html2canvas !== 'undefined',
-                    'window.jsPDF': typeof window.jsPDF !== 'undefined',
-                    'window.jspdf.jsPDF': typeof window.jspdf !== 'undefined' && typeof window.jspdf.jsPDF !== 'undefined'
-                });
-                
-                // Import and initialize SVG module
+            }
+
+            async loadSVGModule() {
                 try {
-                    const { generatePDF, loadAndPopulateSVG } = await import('<?php echo URLPF; ?>js/svgOrders.js');
+                    const { generatePDF, loadAndPopulateSVG } = await import(`${window.PF_CONFIG.URLPF}js/svgOrders.js`);
                     
-                    // Make functions globally available
                     window.generatePDF = generatePDF;
                     window.loadAndPopulateSVG = loadAndPopulateSVG;
                     
                     console.log('✅ SVG module imported successfully');
-                } catch (moduleError) {
-                    console.error('❌ Failed to import SVG module:', moduleError);
-                    throw new Error(`SVG module import failed: ${moduleError.message}`);
+                } catch (error) {
+                    throw new Error(`SVG module import failed: ${error.message}`);
                 }
-                
-                // Initialize the application
-                initializeOrderViewer();
-                
-            } catch (error) {
-                console.error('❌ Application initialization failed:', error);
-                showDependencyError(error);
             }
-        }
 
-        // ===== ENHANCED ERROR DISPLAY =====
-        function showDependencyError(error) {
-            const container = document.getElementById('svgContainer');
-            if (container) {
-                container.innerHTML = `
-                    <div class="error-state">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <div>
-                            <strong>Application Error</strong>
-                            <p style="margin-top: 0.5rem; font-size: 0.9rem;">
-                                Required libraries failed to load. This may be due to network issues or content blockers.
-                            </p>
-                            <div style="background: #FEF2F2; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid var(--danger); text-align: left; margin: 1rem 0;">
-                                <strong>Technical Details:</strong><br>
-                                <code style="font-size: 0.8rem; color: var(--gray-600);">${error.message}</code>
-                            </div>
-                            <div style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
-                                <button class="action-btn-compact btn-download" onclick="location.reload()">
-                                    <i class="fas fa-refresh"></i>
-                                    <span>Retry</span>
-                                </button>
-                                <button class="action-btn-compact btn-download" onclick="window.location.href = window.location.href.split('?')[0] + '?order=<?php echo $orderId; ?>&token=<?php echo $token; ?>&cache=' + Date.now()">
-                                    <i class="fas fa-sync-alt"></i>
-                                    <span>Force Reload</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
+            setupEventHandlers() {
+                // Global error handlers
+                window.addEventListener('error', (event) => {
+                    console.error('💥 Global error caught:', event.error);
+                });
+
+                window.addEventListener('unhandledrejection', (event) => {
+                    console.error('💥 Unhandled promise rejection:', event.reason);
+                });
+
+                // Make functions globally available
+                window.confirmAction = this.confirmAction.bind(this);
+                window.downloadPDF = this.downloadPDF.bind(this);
+                window.loadOrderSVG = this.loadOrderDocument.bind(this);
             }
-        }
 
-        // ===== ENHANCED SVG LOADING =====
-        async function loadOrderSVG() {
-            const container = document.getElementById('svgContainer');
-            
-            try {
-                console.log('🚀 Loading order document...');
+            applyAnimations() {
+                const animatedElements = document.querySelectorAll('.fade-in, .slide-up');
+                animatedElements.forEach((element, index) => {
+                    setTimeout(() => {
+                        element.style.animationDelay = `${index * 0.1}s`;
+                        element.classList.add('animated');
+                    }, 50);
+                });
+            }
+
+            async loadOrderDocument() {
+                const container = document.getElementById('svgContainer');
                 
-                // Show enhanced loading state
+                try {
+                    console.log('🚀 Loading order document...');
+                    
+                    this.showLoadingState(container);
+                    
+                    if (typeof window.loadAndPopulateSVG !== 'function') {
+                        throw new Error('SVG loading module not properly initialized');
+                    }
+                    
+                    await window.loadAndPopulateSVG(window.PF_CONFIG.orderData, 'svgContainer');
+                    
+                    console.log('✅ Document loaded and rendered successfully');
+                    
+                    // Add animation to loaded SVG
+                    setTimeout(() => {
+                        const svgElement = container.querySelector('svg');
+                        if (svgElement) {
+                            svgElement.style.animation = 'fadeIn 0.5s ease-out';
+                            svgElement.style.animationFillMode = 'forwards';
+                        }
+                    }, 100);
+                    
+                } catch (error) {
+                    console.error('❌ Error loading order document:', error);
+                    this.showDocumentError(container, error);
+                }
+            }
+
+            showLoadingState(container) {
                 container.innerHTML = `
                     <div class="loading-state">
                         <div class="loading-spinner"></div>
@@ -1043,45 +1132,22 @@ try {
                         </div>
                     </div>
                 `;
-                
-                const orderData = window.allOrders[0];
-                console.log('📦 Processing order data:', orderData);
-                
-                // Verify SVG loading function is available
-                if (typeof window.loadAndPopulateSVG !== 'function') {
-                    throw new Error('SVG loading module not properly initialized');
-                }
-                
-                // Load and populate SVG
-                await window.loadAndPopulateSVG(orderData, 'svgContainer');
-                
-                console.log('✅ Document loaded and rendered successfully');
-                
-                // Add subtle animation to the loaded SVG
-                setTimeout(() => {
-                    const svgElement = container.querySelector('svg');
-                    if (svgElement) {
-                        svgElement.style.animation = 'fadeIn 0.5s ease-out';
-                        svgElement.style.animationFillMode = 'forwards';
-                    }
-                }, 100);
-                
-            } catch (error) {
-                console.error('❌ Error loading order document:', error);
-                
+            }
+
+            showDocumentError(container, error) {
                 container.innerHTML = `
                     <div class="error-state">
                         <i class="fas fa-exclamation-triangle"></i>
                         <div>
                             <strong>Unable to Load Document</strong>
                             <p style="margin-top: 0.5rem; font-size: 0.9rem;">
-                                We encountered an issue while loading your order details. 
+                                We encountered an issue while loading your order details.
                             </p>
                             <div style="background: #FEF2F2; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid var(--danger); text-align: left; margin: 1rem 0;">
                                 <strong>Error Details:</strong><br>
                                 <code style="font-size: 0.8rem; color: var(--gray-600);">${error.message}</code>
                             </div>
-                            <button class="action-btn-compact btn-download" onclick="loadOrderSVG()" style="margin-top: 1rem;">
+                            <button class="action-btn-compact btn-download" onclick="pfViewer.loadOrderDocument()" style="margin-top: 1rem;">
                                 <i class="fas fa-refresh"></i>
                                 <span>Retry Loading</span>
                             </button>
@@ -1089,216 +1155,289 @@ try {
                     </div>
                 `;
             }
-        }
 
-        // ===== ORDER VIEWER INITIALIZATION =====
-        function initializeOrderViewer() {
-            console.log('🎯 Premium Freight Order Viewer initialized successfully');
-            
-            // Apply staggered animations to elements
-            const animatedElements = document.querySelectorAll('.fade-in, .slide-up');
-            animatedElements.forEach((element, index) => {
-                setTimeout(() => {
-                    element.style.animationDelay = `${index * 0.1}s`;
-                    element.classList.add('animated');
-                }, 50);
-            });
-            
-            // Load the order SVG
-            loadOrderSVG();
-            
-            // Enhanced system information logging
-            console.group('🔧 System Information');
-            console.log('🌐 URLs:', { 
-                URLPF: window.URL, 
-                URLM: window.URLM 
-            });
-            console.log('📋 Order Data:', window.allOrders[0]);
-            console.log('🔑 Token Information:', { 
-                hasApprove: window.hasApproveToken, 
-                hasReject: window.hasRejectToken,
-                tokenUsed: window.tokenUsed
-            });
-            console.log('📚 Library Status:', { 
-                html2canvas: typeof html2canvas !== 'undefined', 
-                jsPDF: typeof window.jsPDF !== 'undefined',
-                svgModule: typeof window.loadAndPopulateSVG !== 'undefined'
-            });
-            console.log('👤 User Context:', {
-                name: window.userName,
-                authLevel: window.authorizationLevel
-            });
-            console.groupEnd();
-        }
-
-        // ===== ENHANCED ACTION CONFIRMATION =====
-        window.confirmAction = function(action) {
-            const actionText = action === 'approve' ? 'approve' : 'reject';
-            const actionUrl = action === 'approve' ? window.approveUrl : window.rejectUrl;
-            
-            if (!actionUrl) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Action Unavailable',
-                    text: `The ${actionText} action is not available for this request.`,
-                    confirmButtonColor: 'var(--grammer-blue)',
-                    customClass: {
-                        popup: 'swal2-enhanced'
-                    }
-                });
-                return;
-            }
-            
-            const config = {
-                approve: { color: 'var(--success)', icon: 'success' },
-                reject: { color: 'var(--danger)', icon: 'warning' }
-            };
-            
-            Swal.fire({
-                title: `${actionText.charAt(0).toUpperCase() + actionText.slice(1)} Order?`,
-                html: `
-                    <div style="text-align: left; background: var(--gray-50); padding: 1rem; border-radius: 0.5rem; margin: 1rem 0;">
-                        <div><strong>Order ID:</strong> #<?php echo $orderId; ?></div>
-                        <div><strong>Action:</strong> <span style="color: ${config[action].color}; font-weight: 600;">${actionText.toUpperCase()}</span></div>
-                        <div><strong>Approver:</strong> <?php echo htmlspecialchars($tokenData['approver_name']); ?></div>
-                        <div><strong>Date:</strong> ${new Date().toLocaleDateString()}</div>
-                    </div>
-                    <div style="background: #FEF3CD; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid var(--warning);">
-                        <strong>⚠️ Important:</strong> This action cannot be undone and will be permanently recorded.
-                    </div>
-                `,
-                icon: config[action].icon,
-                showCancelButton: true,
-                confirmButtonColor: config[action].color,
-                cancelButtonColor: 'var(--gray-500)',
-                confirmButtonText: `✓ Confirm ${actionText.charAt(0).toUpperCase() + actionText.slice(1)}`,
-                cancelButtonText: '✕ Cancel',
-                customClass: {
-                    popup: 'swal2-enhanced',
-                    confirmButton: 'swal2-confirm-enhanced',
-                    cancelButton: 'swal2-cancel-enhanced'
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Processing Request...',
-                        text: `Processing your ${actionText} request`,
-                        allowOutsideClick: false,
-                        allowEscapeKey: false,
-                        customClass: {
-                            popup: 'swal2-enhanced'
-                        },
-                        didOpen: () => Swal.showLoading()
-                    });
-                    
-                    // Process action with slight delay for better UX
-                    setTimeout(() => {
-                        window.location.href = actionUrl;
-                    }, 1500);
-                }
-            });
-        };
-
-        // ===== ENHANCED PDF DOWNLOAD =====
-        window.downloadPDF = async function() {
-            try {
-                // Mostrar loading
-                Swal.fire({
-                    title: 'Generating PDF...',
-                    text: 'Converting document to PDF format',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    customClass: {
-                        popup: 'swal2-enhanced'
-                    },
-                    didOpen: () => Swal.showLoading()
-                });
-
-                // Obtener el SVG del contenedor
-                const svgContainer = document.getElementById('svgContainer');
-                const svgElement = svgContainer.querySelector('svg');
-                
-                if (!svgElement) {
-                    throw new Error('No SVG document found to convert');
-                }
-
-                // Obtener dimensiones del SVG
-                const svgRect = svgElement.getBoundingClientRect();
-                const svgWidth = svgRect.width || 800;
-                const svgHeight = svgRect.height || 600;
-
-                // Convertir SVG a Canvas usando html2canvas
-                const canvas = await html2canvas(svgElement, {
-                    backgroundColor: '#ffffff',
-                    scale: 2, // Mayor calidad
-                    useCORS: true,
-                    allowTaint: true,
-                    width: svgWidth,
-                    height: svgHeight
-                });
-
-                // Crear PDF con jsPDF
-                const pdf = new window.jsPDF({
-                    orientation: svgWidth > svgHeight ? 'landscape' : 'portrait',
-                    unit: 'px',
-                    format: [svgWidth, svgHeight]
-                });
-
-                // Agregar la imagen del canvas al PDF
-                const imgData = canvas.toDataURL('image/png');
-                pdf.addImage(imgData, 'PNG', 0, 0, svgWidth, svgHeight);
-
-                // Generar nombre del archivo
-                const fileName = `PF_${<?php echo $orderId; ?>}.pdf`;
-
-                // Descargar el PDF
-                pdf.save(fileName);
-
-                // Mostrar confirmación
-                Swal.fire({
-                    icon: 'success',
-                    title: 'PDF Generated!',
-                    text: `Document saved as: ${fileName}`,
-                    confirmButtonColor: 'var(--grammer-blue)',
-                    customClass: {
-                        popup: 'swal2-enhanced'
-                    }
-                });
-
-            } catch (error) {
-                console.error('Error generating PDF:', error);
-                
-                Swal.fire({
-                    icon: 'error',
-                    title: 'PDF Generation Failed',
-                    html: `
-                        <div style="text-align: left;">
-                            <p>Unable to generate PDF document.</p>
-                            <div style="background: #FEF2F2; padding: 1rem; border-radius: 0.5rem; margin-top: 1rem;">
-                                <strong>Error:</strong><br>
-                                <code style="font-size: 0.8rem;">${error.message}</code>
+            showError(error) {
+                const container = document.getElementById('svgContainer');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="error-state">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <div>
+                                <strong>Application Error</strong>
+                                <p style="margin-top: 0.5rem; font-size: 0.9rem;">
+                                    Required libraries failed to load. This may be due to network issues or content blockers.
+                                </p>
+                                <div style="background: #FEF2F2; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid var(--danger); text-align: left; margin: 1rem 0;">
+                                    <strong>Technical Details:</strong><br>
+                                    <code style="font-size: 0.8rem; color: var(--gray-600);">${error.message}</code>
+                                </div>
+                                <div style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+                                    <button class="action-btn-compact btn-download" onclick="location.reload()">
+                                        <i class="fas fa-refresh"></i>
+                                        <span>Retry</span>
+                                    </button>
+                                    <button class="action-btn-compact btn-download" onclick="window.location.href = window.location.href.split('?')[0] + '?order=${window.PF_CONFIG.orderId}&token=' + new URLSearchParams(window.location.search).get('token') + '&cache=' + Date.now()">
+                                        <i class="fas fa-sync-alt"></i>
+                                        <span>Force Reload</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
+                    `;
+                }
+            }
+
+            confirmAction(action) {
+                const actionText = action === 'approve' ? 'approve' : 'reject';
+                const actionUrl = action === 'approve' ? window.PF_CONFIG.actions.approve : window.PF_CONFIG.actions.reject;
+                
+                if (!actionUrl) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Action Unavailable',
+                        text: `The ${actionText} action is not available for this request.`,
+                        confirmButtonColor: 'var(--grammer-blue)',
+                        customClass: { popup: 'swal2-enhanced' }
+                    });
+                    return;
+                }
+                
+                const config = {
+                    approve: { color: 'var(--success)', icon: 'success' },
+                    reject: { color: 'var(--danger)', icon: 'warning' }
+                };
+                
+                Swal.fire({
+                    title: `${actionText.charAt(0).toUpperCase() + actionText.slice(1)} Order?`,
+                    html: `
+                        <div style="text-align: left; background: var(--gray-50); padding: 1rem; border-radius: 0.5rem; margin: 1rem 0;">
+                            <div><strong>Order ID:</strong> #${window.PF_CONFIG.orderId}</div>
+                            <div><strong>Action:</strong> <span style="color: ${config[action].color}; font-weight: 600;">${actionText.toUpperCase()}</span></div>
+                            <div><strong>Approver:</strong> ${window.PF_CONFIG.user.name}</div>
+                            <div><strong>Date:</strong> ${new Date().toLocaleDateString()}</div>
+                        </div>
+                        <div style="background: #FEF3CD; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid var(--warning);">
+                            <strong>⚠️ Important:</strong> This action cannot be undone and will be permanently recorded.
+                        </div>
                     `,
-                    confirmButtonColor: 'var(--grammer-blue)',
+                    icon: config[action].icon,
+                    showCancelButton: true,
+                    confirmButtonColor: config[action].color,
+                    cancelButtonColor: 'var(--gray-500)',
+                    confirmButtonText: `✓ Confirm ${actionText.charAt(0).toUpperCase() + actionText.slice(1)}`,
+                    cancelButtonText: '✕ Cancel',
                     customClass: {
-                        popup: 'swal2-enhanced'
+                        popup: 'swal2-enhanced',
+                        confirmButton: 'swal2-confirm-enhanced',
+                        cancelButton: 'swal2-cancel-enhanced'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Processing Request...',
+                            text: `Processing your ${actionText} request`,
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            customClass: { popup: 'swal2-enhanced' },
+                            didOpen: () => Swal.showLoading()
+                        });
+                        
+                        setTimeout(() => {
+                            window.location.href = actionUrl;
+                        }, 1500);
                     }
                 });
             }
+
+            async downloadPDF() {
+                try {
+                    Swal.fire({
+                        title: 'Generating PDF...',
+                        text: 'Converting document to PDF format',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        customClass: { popup: 'swal2-enhanced' },
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    const svgContainer = document.getElementById('svgContainer');
+                    const svgElement = svgContainer.querySelector('svg');
+                    
+                    if (!svgElement) {
+                        throw new Error('No SVG document found to convert');
+                    }
+
+                    const svgRect = svgElement.getBoundingClientRect();
+                    const svgWidth = svgRect.width || 800;
+                    const svgHeight = svgRect.height || 600;
+
+                    // Method 1: Try html2canvas
+                    try {
+                        const canvas = await html2canvas(svgContainer, {
+                            backgroundColor: '#ffffff',
+                            scale: 2,
+                            useCORS: true,
+                            allowTaint: true,
+                            width: svgWidth,
+                            height: svgHeight,
+                            scrollX: 0,
+                            scrollY: 0,
+                            windowWidth: svgWidth,
+                            windowHeight: svgHeight
+                        });
+
+                        const pdf = new window.jsPDF({
+                            orientation: svgWidth > svgHeight ? 'landscape' : 'portrait',
+                            unit: 'px',
+                            format: [svgWidth, svgHeight]
+                        });
+
+                        const imgData = canvas.toDataURL('image/png', 1.0);
+                        pdf.addImage(imgData, 'PNG', 0, 0, svgWidth, svgHeight);
+
+                        const fileName = `PF_${window.PF_CONFIG.orderId}.pdf`;
+                        pdf.save(fileName);
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'PDF Generated!',
+                            text: `Document saved as: ${fileName}`,
+                            confirmButtonColor: 'var(--grammer-blue)',
+                            customClass: { popup: 'swal2-enhanced' }
+                        });
+
+                    } catch (canvasError) {
+                        console.log('html2canvas failed, trying alternative method...', canvasError);
+                        throw canvasError;
+                    }
+
+                } catch (error) {
+                    console.error('Error generating PDF:', error);
+                    
+                    // Alternative method: Print dialog
+                    try {
+                        const svgContainer = document.getElementById('svgContainer');
+                        const svgElement = svgContainer.querySelector('svg');
+                        
+                        if (!svgElement) {
+                            throw new Error('No SVG found for alternative method');
+                        }
+
+                        const printWindow = window.open('', '_blank');
+                        printWindow.document.write(`
+                            <!DOCTYPE html>
+                            <html>
+                            <head>
+                                <title>PF_${window.PF_CONFIG.orderId}</title>
+                                <style>
+                                    body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+                                    svg { max-width: 100%; height: auto; }
+                                    @media print {
+                                        body { margin: 0; padding: 0; }
+                                    }
+                                </style>
+                            </head>
+                            <body>
+                                ${svgElement.outerHTML}
+                                <script>
+                                    window.onload = function() {
+                                        window.print();
+                                        setTimeout(() => window.close(), 1000);
+                                    }
+                                <\/script>
+                            </body>
+                            </html>
+                        `);
+                        printWindow.document.close();
+
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Print Dialog Opened',
+                            html: `
+                                <div style="text-align: left;">
+                                    <p>A print dialog has been opened in a new window.</p>
+                                    <p><strong>To save as PDF:</strong></p>
+                                    <ol style="text-align: left; margin: 1rem 0;">
+                                        <li>In the print dialog, select "Save as PDF" as destination</li>
+                                        <li>Choose your preferred settings</li>
+                                        <li>Click "Save" to download the PDF</li>
+                                    </ol>
+                                </div>
+                            `,
+                            confirmButtonColor: 'var(--grammer-blue)',
+                            customClass: { popup: 'swal2-enhanced' }
+                        });
+
+                    } catch (altError) {
+                        console.error('Alternative method also failed:', altError);
+                        
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'PDF Generation Failed',
+                            html: `
+                                <div style="text-align: left;">
+                                    <p>Unable to generate PDF document automatically.</p>
+                                    <div style="background: #FEF2F2; padding: 1rem; border-radius: 0.5rem; margin: 1rem 0;">
+                                        <strong>Primary Error:</strong><br>
+                                        <code style="font-size: 0.8rem;">${error.message}</code>
+                                    </div>
+                                    <div style="background: #F0F9FF; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid var(--info);">
+                                        <strong>💡 Manual Solution:</strong><br>
+                                        <p style="margin: 0.5rem 0;">Use your browser's print function:</p>
+                                        <ol style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                                            <li>Press <kbd>Ctrl+P</kbd> (or Cmd+P on Mac)</li>
+                                            <li>Select "Save as PDF" as destination</li>
+                                            <li>Click "Save"</li>
+                                        </ol>
+                                    </div>
+                                </div>
+                            `,
+                            confirmButtonColor: 'var(--grammer-blue)',
+                            customClass: { popup: 'swal2-enhanced' }
+                        });
+                    }
+                }
+            }
+
+            logSystemInfo() {
+                console.group('🔧 System Information');
+                console.log('🌐 URLs:', { 
+                    URLPF: window.PF_CONFIG.URLPF, 
+                    URLM: window.PF_CONFIG.URLM 
+                });
+                console.log('📋 Order Data:', window.PF_CONFIG.orderData);
+                console.log('🔑 Token Information:', window.PF_CONFIG.actions);
+                console.log('📚 Library Status:', { 
+                    html2canvas: typeof html2canvas !== 'undefined', 
+                    jsPDF: typeof window.jsPDF !== 'undefined',
+                    svgModule: typeof window.loadAndPopulateSVG !== 'undefined'
+                });
+                console.log('👤 User Context:', window.PF_CONFIG.user);
+                console.groupEnd();
+            }
         }
 
-        // ===== GLOBAL ERROR HANDLER =====
-        window.addEventListener('error', function(event) {
-            console.error('💥 Global error caught:', event.error);
-        });
+        // ===== INITIALIZE APPLICATION =====
+        const pfViewer = new PremiumFreightViewer();
 
-        window.addEventListener('unhandledrejection', function(event) {
-            console.error('💥 Unhandled promise rejection:', event.reason);
-        });
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => pfViewer.initialize());
+        } else {
+            pfViewer.initialize();
+        }
 
-        // ===== INITIALIZE APPLICATION WHEN DOM IS READY =====
-        document.addEventListener('DOMContentLoaded', initializeApp);
+        // Make instance globally available for debugging
+        window.pfViewer = pfViewer;
+
+        // Global function shortcuts for compatibility
+        function confirmAction(action) {
+            return pfViewer.confirmAction(action);
+        }
+
+        function downloadPDF() {
+            return pfViewer.downloadPDF();
+        }
     </script>
 </body>
 </html>
