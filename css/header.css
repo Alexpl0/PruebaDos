@@ -92,11 +92,34 @@ img {
   top: 0;
   left: 0;
   padding: 0 1.5rem;
-  background-color: var(--first-color);
+  /* Degradado elegante igual al de view_order */
+  background: linear-gradient(135deg, var(--first-color) 0%, var(--dark-color) 100%);
   z-index: var(--z-fixed);
   display: flex;
   justify-content: space-between; /* Logo a la izquierda, toggle a la derecha */
   align-items: center;
+  /* Efecto de profundidad con patrón sutil */
+  position: relative;
+  overflow: hidden;
+}
+
+/* Patrón de puntos sutil para dar textura al header (opcional) */
+.header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+  opacity: 0.2;
+  pointer-events: none; /* Para que no interfiera con los clics */
+}
+
+/* Asegurar que el contenido del header esté por encima del patrón */
+.header > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* Logo del header - visible solo en móvil */
@@ -123,7 +146,8 @@ img {
     position: fixed;
     top: 0;
     left: -100%; /* Inicialmente fuera de la pantalla */
-    background-color: var(--dark-color);
+    /* Degradado más sutil para el menú lateral */
+    background: linear-gradient(135deg, var(--dark-color) 0%, var(--dark-color-alt) 100%);
     color: var(--white-color);
     width: 80%; /* Ancho del menú lateral */
     max-width: 400px; /* Ancho máximo para tablets */

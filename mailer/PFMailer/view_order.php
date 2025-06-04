@@ -830,7 +830,7 @@ try {
                 <div class="header-left">
                     <div class="company-logo fade-in">
                         <i class="fas fa-industry"></i>
-                        <div class="company-name">Grammer AG</div>
+                        <div class="company-name">Grammer</div>
                     </div>
                     
                     <div class="order-info slide-up">
