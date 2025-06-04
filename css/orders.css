@@ -16,17 +16,20 @@ main {
 .card {
     max-width: 260px !important;
     width: 100%;
-    max-height: 270px !important;
+    max-height: 300px !important; /* Aumentamos la altura */
     height: 100%;
     background-color: var(--white);
     border: 1px solid var(--gray-200);
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-md);
-    padding: var(--spacing-md);
+    padding: var(--spacing-md) var(--spacing-md) var(--spacing-sm) var(--spacing-md); /* Reducimos padding inferior */
     margin: var(--spacing-md);
     font-family: var(--body-font);
     color: var(--gray-800);
     transition: all var(--transition-normal);
+    /* Flexbox para organizar el contenido */
+    display: flex;
+    flex-direction: column;
 }
 
 .card:hover {
@@ -55,28 +58,33 @@ main {
     padding: var(--spacing-sm);
     justify-content: center;
     display: flex;
+    flex-grow: 1; /* Permite que este elemento crezca y empuje el botón hacia abajo */
 }
 
-.card-button {
-    background-color: var(--grammer-blue);
-    color: var(--white);
-    border: none;
-    border-radius: var(--border-radius);
-    padding: var(--spacing-sm);
-    width: 50%;
-    display: flex;
-    justify-content: center;
-    align-self: center;
-    font-size: 90%;
+.card-button,
+.btn.ver-btn {
+    background-color: var(--grammer-blue) !important;
+    color: var(--white) !important;
+    border: none !important;
+    border-radius: var(--border-radius) !important;
+    padding: var(--spacing-sm) var(--spacing-md) !important;
+    width: 80% !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-self: center !important;
+    font-size: 90% !important;
     cursor: pointer;
-    transition: all var(--transition-normal);
-    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-normal) !important;
+    box-shadow: var(--shadow-sm) !important;
+    margin-top: auto !important; /* Empuja el botón hacia la parte inferior de la tarjeta */
+    margin-bottom: 0 !important;
 }
 
-.card-button:hover {
-    background-color: var(--grammer-dark-blue);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+.card-button:hover,
+.btn.ver-btn:hover {
+    background-color: var(--grammer-dark-blue) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: var(--shadow-md) !important;
 }
 
 /* === ESTILOS GENERALES PARA MODALES === */
