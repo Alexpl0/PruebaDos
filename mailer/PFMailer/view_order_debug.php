@@ -40,11 +40,39 @@ try {
 
     $tokenData = $result->fetch_assoc();
 
-    // Consulta simplificada para obtener detalles de la orden
-    $orderSql = "SELECT PF.*, U.name as creator_name 
-                 FROM PremiumFreight PF
-                 INNER JOIN User U ON PF.user_id = U.id
-                 WHERE PF.id = ?";
+    // Consulta completa para obtener todos los detalles de la orden
+    $orderSql = "SELECT 
+                    pf.*,
+                    u.name AS creator_name,
+                    u.email AS creator_email,
+                    u.role AS creator_role,
+                    u.plant AS creator_plant,
+                    lo_from.company_name AS origin_company_name,
+                    lo_from.city AS origin_city,
+                    lo_from.state AS origin_state,
+                    lo_from.zip AS origin_zip,
+                    lo_to.company_name AS destiny_company_name,
+                    lo_to.city AS destiny_city,
+                    lo_to.state AS destiny_state,
+                    lo_to.zip AS destiny_zip,
+                    c.name AS carrier,
+                    st.id AS statusid,
+                    st.name AS status_name,
+                    pfa.id AS approval_id,
+                    pfa.approval_date,
+                    pfa.act_approv AS approval_status,
+                    u_approver.name AS approver_name,
+                    u_approver.email AS approver_email,
+                    u_approver.role AS approver_role
+                FROM PremiumFreight pf
+                LEFT JOIN Carriers c ON pf.carrier_id = c.id
+                LEFT JOIN User u ON pf.user_id = u.id
+                LEFT JOIN Location lo_from ON pf.origin_id = lo_from.id
+                LEFT JOIN Location lo_to ON pf.destiny_id = lo_to.id
+                LEFT JOIN Status st ON pf.status_id = st.id
+                LEFT JOIN PremiumFreightApprovals pfa ON pf.id = pfa.premium_freight_id
+                LEFT JOIN User u_approver ON pfa.user_id = u_approver.id
+                WHERE pf.id = ?";
     $orderStmt = $db->prepare($orderSql);
     $orderStmt->bind_param("i", $orderId);
     $orderStmt->execute();
@@ -122,6 +150,23 @@ try {
         <div class="header-card">
             <h1>Order #<?php echo $orderId; ?></h1>
             <p><strong>Approver:</strong> <?php echo htmlspecialchars($tokenData['approver_name']); ?></p>
+            
+            <!-- Actions dentro del header -->
+            <?php if ($tokenData['is_used'] == 0): ?>
+                <div class="mt-3">
+                    <p class="mb-2"><strong>Action Required:</strong></p>
+                    <a href="<?php echo $approveUrl; ?>" class="action-btn btn-approve">
+                        ✓ Approve Order
+                    </a>
+                    <a href="<?php echo $rejectUrl; ?>" class="action-btn btn-reject">
+                        ✗ Reject Order
+                    </a>
+                </div>
+            <?php else: ?>
+                <div class="mt-3">
+                    <p class="mb-0"><strong>Status:</strong> ✓ Action Already Completed</p>
+                </div>
+            <?php endif; ?>
         </div>
 
         <!-- Order Details -->
@@ -144,26 +189,6 @@ try {
             <p>State: <?php echo htmlspecialchars($orderData['destiny_state'] ?? 'N/A'); ?></p>
             <p>ZIP: <?php echo htmlspecialchars($orderData['destiny_zip'] ?? 'N/A'); ?></p>
         </div>
-
-        <!-- Actions -->
-        <?php if ($tokenData['is_used'] == 0): ?>
-        <div class="content-card text-center">
-            <h3>Action Required</h3>
-            <p>Please review the order details above and choose an action:</p>
-            
-            <a href="<?php echo $approveUrl; ?>" class="action-btn btn-approve">
-                ✓ Approve Order
-            </a>
-            <a href="<?php echo $rejectUrl; ?>" class="action-btn btn-reject">
-                ✗ Reject Order
-            </a>
-        </div>
-        <?php else: ?>
-        <div class="content-card text-center">
-            <h3>✓ Action Already Completed</h3>
-            <p>This order has already been processed.</p>
-        </div>
-        <?php endif; ?>
     </div>
 </body>
 </html>
