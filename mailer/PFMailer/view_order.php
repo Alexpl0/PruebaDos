@@ -37,12 +37,23 @@ if ($result->num_rows === 0) {
 
 $tokenData = $result->fetch_assoc();
 
-// Obtener detalles de la orden
-$orderSql = "SELECT PF.*, U.name as creator_name, U.email as creator_email,
-             COALESCE(PFA.act_approv, 0) as current_approval_level
+// Obtener detalles de la orden usando la MISMA consulta que funciona en la página principal
+$orderSql = "SELECT 
+                PF.id, PF.user_id, PF.planta, PF.code_planta, PF.date, PF.transport, 
+                PF.in_out_bound, PF.cost_euros, PF.area, PF.int_ext, PF.paid_by, 
+                PF.category_cause, PF.project_status, PF.recovery, PF.description, 
+                PF.origin_company_name, PF.origin_city, PF.origin_state, PF.origin_zip,
+                PF.destiny_company_name, PF.destiny_city, PF.destiny_state, PF.destiny_zip,
+                PF.weight, PF.measures, PF.products, PF.carrier, PF.quoted_cost, 
+                PF.moneda, PF.reference_number, PF.required_auth_level, PF.status_id,
+                PF.recovery_file, PF.recovery_evidence,
+                U.name as creator_name, U.email as creator_email,
+                S.name as status_name,
+                COALESCE(PFA.act_approv, 0) as approval_status
              FROM PremiumFreight PF
              LEFT JOIN PremiumFreightApprovals PFA ON PF.id = PFA.premium_freight_id
              INNER JOIN User U ON PF.user_id = U.id
+             LEFT JOIN Status S ON PF.status_id = S.id
              WHERE PF.id = ?";
 $orderStmt = $db->prepare($orderSql);
 $orderStmt->bind_param("i", $orderId);
@@ -67,10 +78,32 @@ $rejectUrl = URLM . "PFmailSingleAction.php?action=reject&token=" . urlencode($t
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Premium Freight Order #<?php echo $orderId; ?></title>
+    
+    <!-- Usar exactamente los mismos recursos que la página principal -->
     <link rel="stylesheet" href="<?php echo URLPF; ?>css/bootstrap.min.css">
+    <link rel="stylesheet" href="<?php echo URLPF; ?>css/styles.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    
+    <!-- Scripts necesarios -->
     <script src="<?php echo URLPF; ?>js/html2canvas.min.js"></script>
     <script src="<?php echo URLPF; ?>js/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="<?php echo URLPF; ?>js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Variable global URL necesaria para los scripts -->
+    <script>
+        // Definir variables globales que necesitan los módulos JS
+        window.URL = '<?php echo URLPF; ?>';
+        window.URLM = '<?php echo URLM; ?>';
+        
+        // Simular las variables que usa la página principal
+        window.allOrders = [<?php echo json_encode($orderData); ?>];
+        window.originalOrders = [<?php echo json_encode($orderData); ?>];
+        window.authorizationLevel = <?php echo $tokenData['user_id']; ?>; // Nivel del aprobador
+        window.userName = '<?php echo htmlspecialchars($tokenData['approver_name']); ?>';
+    </script>
+    
     <style>
         body {
             font-family: 'Merriweather', Georgia, serif;
@@ -94,11 +127,6 @@ $rejectUrl = URLM . "PFmailSingleAction.php?action=reject&token=" . urlencode($t
             font-size: 2.5rem;
             font-weight: 700;
             margin-bottom: 10px;
-        }
-        .order-subtitle {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            margin-bottom: 0;
         }
         .approver-info {
             background-color: rgba(255,255,255,0.1);
@@ -130,6 +158,8 @@ $rejectUrl = URLM . "PFmailSingleAction.php?action=reject&token=" . urlencode($t
             margin: 10px;
             min-width: 150px;
             transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
         }
         .btn-approve {
             background-color: #28a745;
@@ -138,6 +168,8 @@ $rejectUrl = URLM . "PFmailSingleAction.php?action=reject&token=" . urlencode($t
         .btn-approve:hover {
             background-color: #218838;
             transform: translateY(-2px);
+            color: white;
+            text-decoration: none;
         }
         .btn-reject {
             background-color: #dc3545;
@@ -146,6 +178,8 @@ $rejectUrl = URLM . "PFmailSingleAction.php?action=reject&token=" . urlencode($t
         .btn-reject:hover {
             background-color: #c82333;
             transform: translateY(-2px);
+            color: white;
+            text-decoration: none;
         }
         .btn-download {
             background-color: #17a2b8;
@@ -154,6 +188,8 @@ $rejectUrl = URLM . "PFmailSingleAction.php?action=reject&token=" . urlencode($t
         .btn-download:hover {
             background-color: #138496;
             transform: translateY(-2px);
+            color: white;
+            text-decoration: none;
         }
         .status-badge {
             display: inline-block;
@@ -188,6 +224,17 @@ $rejectUrl = URLM . "PFmailSingleAction.php?action=reject&token=" . urlencode($t
             border-radius: 8px;
             margin-bottom: 20px;
         }
+        
+        /* Estilos para el SVG container */
+        #svgContainer svg {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        /* Copiar estilos del modal de la página principal */
+        .swal-on-top {
+            z-index: 10000 !important;
+        }
     </style>
 </head>
 <body>
@@ -195,7 +242,6 @@ $rejectUrl = URLM . "PFmailSingleAction.php?action=reject&token=" . urlencode($t
         <!-- Header -->
         <div class="header-card">
             <h1 class="order-title">Order #<?php echo $orderId; ?></h1>
-            <p class="order-subtitle"><?php echo htmlspecialchars($orderData['description']); ?></p>
             
             <div class="approver-info">
                 <strong>Approver:</strong> <?php echo htmlspecialchars($tokenData['approver_name']); ?>
@@ -203,7 +249,7 @@ $rejectUrl = URLM . "PFmailSingleAction.php?action=reject&token=" . urlencode($t
             </div>
         </div>
 
-        <!-- SVG Container -->
+        <!-- SVG Container - usar exactamente el mismo ID que en la página principal -->
         <div class="svg-container">
             <div id="svgContainer" class="loading">
                 Loading order details...
@@ -216,41 +262,48 @@ $rejectUrl = URLM . "PFmailSingleAction.php?action=reject&token=" . urlencode($t
             <h3 style="margin-bottom: 25px; color: #034C8C;">Action Required</h3>
             <p style="margin-bottom: 30px; color: #6c757d;">Please review the order details above and choose an action:</p>
             
-            <button class="action-btn btn-approve" onclick="confirmAction('approve')">
+            <a href="javascript:void(0)" class="action-btn btn-approve" onclick="confirmAction('approve')">
                 ✓ Approve Order
-            </button>
-            <button class="action-btn btn-reject" onclick="confirmAction('reject')">
+            </a>
+            <a href="javascript:void(0)" class="action-btn btn-reject" onclick="confirmAction('reject')">
                 ✗ Reject Order
-            </button>
-            <button class="action-btn btn-download" onclick="downloadPDF()">
+            </a>
+            <a href="javascript:void(0)" class="action-btn btn-download" onclick="downloadPDF()">
                 📄 Download PDF
-            </button>
+            </a>
         </div>
         <?php else: ?>
         <div class="actions-container">
             <h3 style="color: #28a745;">✓ Action Already Completed</h3>
             <p style="color: #6c757d;">This order has already been processed.</p>
-            <button class="action-btn btn-download" onclick="downloadPDF()">
+            <a href="javascript:void(0)" class="action-btn btn-download" onclick="downloadPDF()">
                 📄 Download PDF
-            </button>
+            </a>
         </div>
         <?php endif; ?>
     </div>
 
+    <!-- Cargar los módulos exactamente como en la página principal -->
     <script type="module">
+        // Importar exactamente los mismos módulos que usa la página principal
         import { loadAndPopulateSVG, generatePDF } from '<?php echo URLPF; ?>js/svgOrders.js';
 
-        // Datos de la orden
-        const orderData = <?php echo json_encode($orderData); ?>;
-        
         // URLs para las acciones
         window.approveUrl = '<?php echo $approveUrl; ?>';
         window.rejectUrl = '<?php echo $rejectUrl; ?>';
 
-        // Cargar el SVG cuando la página esté lista
+        // Cargar el SVG cuando la página esté lista - EXACTAMENTE como en la página principal
         document.addEventListener('DOMContentLoaded', async function() {
             try {
+                // Usar los mismos datos que están disponibles en window.allOrders
+                const orderData = window.allOrders[0];
+                
+                console.log('Loading SVG with order data:', orderData);
+                
+                // Usar exactamente la misma función que funciona en la página principal
                 await loadAndPopulateSVG(orderData, 'svgContainer');
+                
+                console.log('SVG loaded successfully');
             } catch (error) {
                 console.error('Error loading SVG:', error);
                 document.getElementById('svgContainer').innerHTML = 
@@ -271,7 +324,8 @@ $rejectUrl = URLM . "PFmailSingleAction.php?action=reject&token=" . urlencode($t
                 confirmButtonColor: actionColor,
                 cancelButtonColor: '#6c757d',
                 confirmButtonText: `Yes, ${actionText} it!`,
-                cancelButtonText: 'Cancel'
+                cancelButtonText: 'Cancel',
+                customClass: { container: 'swal-on-top' }
             }).then((result) => {
                 if (result.isConfirmed) {
                     const url = action === 'approve' ? window.approveUrl : window.rejectUrl;
@@ -281,6 +335,7 @@ $rejectUrl = URLM . "PFmailSingleAction.php?action=reject&token=" . urlencode($t
                         title: 'Processing...',
                         text: 'Please wait while we process your request.',
                         allowOutsideClick: false,
+                        customClass: { container: 'swal-on-top' },
                         didOpen: () => {
                             Swal.showLoading();
                         }
@@ -292,18 +347,21 @@ $rejectUrl = URLM . "PFmailSingleAction.php?action=reject&token=" . urlencode($t
             });
         };
 
-        // Función para descargar PDF
+        // Función para descargar PDF - usar exactamente la misma que funciona
         window.downloadPDF = async function() {
             try {
                 Swal.fire({
                     title: 'Generating PDF...',
                     text: 'Please wait while we prepare your document.',
                     allowOutsideClick: false,
+                    customClass: { container: 'swal-on-top' },
                     didOpen: () => {
                         Swal.showLoading();
                     }
                 });
 
+                // Usar exactamente los mismos datos que están en window.allOrders
+                const orderData = window.allOrders[0];
                 await generatePDF(orderData, `PF_Order_${orderData.id}`);
                 
                 Swal.close();
@@ -313,7 +371,8 @@ $rejectUrl = URLM . "PFmailSingleAction.php?action=reject&token=" . urlencode($t
                     title: 'PDF Downloaded!',
                     text: 'The PDF has been generated and downloaded successfully.',
                     timer: 3000,
-                    timerProgressBar: true
+                    timerProgressBar: true,
+                    customClass: { container: 'swal-on-top' }
                 });
                 
             } catch (error) {
@@ -321,7 +380,8 @@ $rejectUrl = URLM . "PFmailSingleAction.php?action=reject&token=" . urlencode($t
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: 'Could not generate PDF. Please try again later.'
+                    text: 'Could not generate PDF. Please try again later.',
+                    customClass: { container: 'swal-on-top' }
                 });
             }
         };
