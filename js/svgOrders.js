@@ -309,13 +309,25 @@ async function generatePDF(selectedOrder, customFileName) {
             backgroundColor: 'white'
         });
         
-        // Create PDF - ajustado a tamaño carta (8.5 x 11 pulgadas = 612 x 792 puntos)
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'pt',
-            format: 'letter'  // Formato carta
-        });
+        // Create PDF - Corrección aquí
+        let pdf;
+        if (typeof window.jspdf !== 'undefined' && window.jspdf.jsPDF) {
+            // Versión nueva de jsPDF (3.x+)
+            pdf = new window.jspdf.jsPDF({
+                orientation: 'portrait',
+                unit: 'pt',
+                format: 'letter'
+            });
+        } else if (typeof window.jsPDF !== 'undefined') {
+            // Versión antigua de jsPDF (2.x)
+            pdf = new window.jsPDF({
+                orientation: 'portrait',
+                unit: 'pt',
+                format: 'letter'
+            });
+        } else {
+            throw new Error('jsPDF library not available');
+        }
         
         // Calcula el factor de escala para ajustar a la página
         const pageWidth = 612;

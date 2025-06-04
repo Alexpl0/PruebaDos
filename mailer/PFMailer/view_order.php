@@ -925,14 +925,18 @@ try {
                     '<?php echo URLPF; ?>js/html2canvas.min.js'
                 );
                 
-                // Load jsPDF
+                // Load jsPDF - intentar la versión más reciente primero
                 await loadLibrary(
                     'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
-                    () => typeof window.jsPDF !== 'undefined',
+                    () => typeof window.jsPDF !== 'undefined' || (typeof window.jspdf !== 'undefined' && window.jspdf.jsPDF),
                     '<?php echo URLPF; ?>js/jspdf.umd.min.js'
                 );
                 
                 console.log('✅ All libraries loaded successfully');
+                console.log('📚 jsPDF available:', {
+                    'window.jsPDF': typeof window.jsPDF !== 'undefined',
+                    'window.jspdf.jsPDF': typeof window.jspdf !== 'undefined' && typeof window.jspdf.jsPDF !== 'undefined'
+                });
                 
                 // Import SVG module
                 const { generatePDF, loadAndPopulateSVG } = await import('<?php echo URLPF; ?>js/svgOrders.js');
@@ -1114,7 +1118,7 @@ try {
             });
         };
 
-        // PDF download
+        // Enhanced PDF download 
         window.downloadPDF = async function() {
             try {
                 if (typeof html2canvas === 'undefined' || typeof window.jsPDF === 'undefined') {
@@ -1129,6 +1133,8 @@ try {
                 });
 
                 const orderData = window.allOrders[0];
+                
+                // Usar la función de svgOrders.js
                 const fileName = await window.generatePDF(orderData, `Grammer_PF_Order_${orderData.id}`);
                 
                 Swal.fire({
