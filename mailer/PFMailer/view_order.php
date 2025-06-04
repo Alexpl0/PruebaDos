@@ -1202,40 +1202,10 @@ try {
         // ===== ENHANCED PDF DOWNLOAD =====
         window.downloadPDF = async function() {
             try {
-                // Enhanced library availability check
-                const html2canvasAvailable = typeof html2canvas !== 'undefined';
-                const jsPDFAvailable = typeof window.jsPDF !== 'undefined' || 
-                                      (typeof window.jspdf !== 'undefined' && typeof window.jspdf.jsPDF !== 'undefined');
-                
-                console.log('📚 PDF Generation - Library check:', { 
-                    html2canvas: html2canvasAvailable, 
-                    jsPDF: jsPDFAvailable 
-                });
-                
-                if (!html2canvasAvailable) {
-                    throw new Error('html2canvas library not loaded - required for PDF generation');
-                }
-                
-                if (!jsPDFAvailable) {
-                    throw new Error('jsPDF library not loaded - required for PDF generation');
-                }
-                
-                // Normalize jsPDF reference if needed
-                if (typeof window.jsPDF === 'undefined' && typeof window.jspdf !== 'undefined') {
-                    window.jsPDF = window.jspdf.jsPDF;
-                }
-
-                // Show enhanced loading state
+                // Mostrar loading
                 Swal.fire({
                     title: 'Generating PDF...',
-                    html: `
-                        <div style="margin: 1rem 0;">
-                            <div style="font-size: 0.9rem; color: var(--gray-600);">Creating your document</div>
-                            <div style="margin: 1rem 0; padding: 0.5rem; background: var(--gray-50); border-radius: 0.5rem;">
-                                <div style="font-size: 0.8rem; color: var(--gray-500);">Order #<?php echo $orderId; ?></div>
-                            </div>
-                        </div>
-                    `,
+                    text: 'Converting document to PDF format',
                     allowOutsideClick: false,
                     allowEscapeKey: false,
                     customClass: {
@@ -1244,267 +1214,79 @@ try {
                     didOpen: () => Swal.showLoading()
                 });
 
-                const orderData = window.allOrders[0];
+                // Obtener el SVG del contenedor
+                const svgContainer = document.getElementById('svgContainer');
+                const svgElement = svgContainer.querySelector('svg');
                 
-                // === IMPLEMENT THE SAME LOGIC AS YOUR generatePDF FUNCTION ===
-                
-                // Step 1: Prepare SVG in off-screen container
-                const response = await fetch('<?php echo URLPF; ?>PremiumFreight.svg');
-                if (!response.ok) throw new Error(`Error HTTP! estado: ${response.status}`);
-                
-                const svgText = await response.text();
-                const container = document.createElement('div');
-                
-                // Configure container for PDF generation
-                container.style.width = '816px';
-                container.style.height = '1056px';
-                container.style.position = 'absolute';
-                container.style.left = '-9999px';
-                container.style.backgroundColor = 'white';
-                container.innerHTML = svgText;
-
-                // SVG mapping (same as in svgOrders.js)
-                const svgMap = {
-                    'RequestingPlantValue': 'planta',
-                    'PlantCodeValue': 'code_planta',
-                    'DateValue': 'date', 
-                    'TransportValue': 'transport',
-                    'InOutBoundValue': 'in_out_bound',
-                    'CostInEurosValue': 'cost_euros',
-                    'AreaOfResponsabilityValue': 'area',
-                    'InExtValue': 'int_ext',
-                    'CostPaidByValue': 'paid_by',
-                    'RootCauseValue': 'category_cause',
-                    'ProjectStatusValue': 'project_status',
-                    'RecoveryValue': 'recovery',
-                    'DescriptionAndRootCauseValue': 'description',
-                    'IssuerValue': 'creator_name',
-                    'PlantManagerValue': '',
-                    'SeniorManagerValue': '',
-                    'ManagerOPSDivisionValue': '',
-                    'SRVPRegionalValue': '',
-                    'CompanyNameShipValue': 'origin_company_name',
-                    'CityShipValue': 'origin_city',
-                    'StateShipValue': 'origin_state',
-                    'ZIPShipValue': 'origin_zip',
-                    'CompanyNameDestValue': 'destiny_company_name',
-                    'CityDestValue': 'destiny_city',
-                    'StateDestValue': 'destiny_state',
-                    'ZIPDestValue': 'destiny_zip',
-                    'WeightValue': (order) => {
-                        const getMeasureAbbreviation = (measure) => {
-                            if (!measure) return '';
-                            switch (measure.toUpperCase()) {
-                                case 'KILOS': return 'KG';
-                                case 'LIBRAS': return 'LB';
-                                default: return measure;
-                            }
-                        };
-                        const measureAbbr = getMeasureAbbreviation(order.measures);
-                        return `${order.weight || '0'} ${measureAbbr}`;
-                    },
-                    'ProductValue': 'products',
-                    'CarrierNameValue': 'carrier',
-                    'QuotedCostValue': (order) => `$ ${order.quoted_cost || '0'} ${order.moneda || 'MXN'}`,
-                    'ReferenceNumberValue': 'reference_number',
-                };
-
-                // Format date function
-                const formatDate = (dateString) => {
-                    if (!dateString) return '';
-                    try {
-                        const date = new Date(dateString);
-                        if (isNaN(date.getTime())) return dateString; 
-                        return date.toLocaleDateString('en-US', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric'
-                        });
-                    } catch (e) {
-                        console.error("Error al formatear la fecha:", dateString, e);
-                        return dateString;
-                    }
-                };
-
-                // Populate the SVG fields with order data
-                for (const [svgId, orderKey] of Object.entries(svgMap)) {
-                    const element = container.querySelector(`#${svgId}`);
-                    if (element) {
-                        if (svgId === 'DateValue') {
-                            element.textContent = formatDate(orderData.date);
-                        } else if (typeof orderKey === 'function') {
-                            element.textContent = orderKey(orderData);
-                        } else {
-                            element.textContent = orderData[orderKey] || '';
-                        }
-                    }
+                if (!svgElement) {
+                    throw new Error('No SVG document found to convert');
                 }
 
-                // Add the container to the DOM
-                document.body.appendChild(container);
-                
-                // Apply text wrapping for PDF generation
-                const descriptionElement = container.querySelector('#DescriptionAndRootCauseValue');
-                if (descriptionElement) {
-                    const tempTextElement = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                    Array.from(descriptionElement.attributes).forEach(attr => {
-                        tempTextElement.setAttribute(attr.name, attr.value);
-                    });
-                    
-                    tempTextElement.textContent = orderData.description || '';
-                    descriptionElement.parentNode.replaceChild(tempTextElement, descriptionElement);
-                    
-                    const text = tempTextElement.textContent.trim();
-                    if (text) {
-                        const x = tempTextElement.getAttribute("x");
-                        const y = tempTextElement.getAttribute("y");
-                        const fontSize = parseFloat(tempTextElement.style.fontSize || "3.175px");
-                        const lineHeight = fontSize * 1.3;
-                        
-                        tempTextElement.textContent = "";
-                        
-                        const maxCharsPerLine = 101;
-                        const words = text.split(/\s+/);
-                        let currentLine = "";
-                        let firstLine = true;
-                        
-                        words.forEach(word => {
-                            if ((currentLine + " " + word).length > maxCharsPerLine && currentLine.length > 0) {
-                                const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-                                tspan.setAttribute("x", x);
-                                if (firstLine) {
-                                    firstLine = false;
-                                } else {
-                                    tspan.setAttribute("dy", `${lineHeight}px`);
-                                }
-                                tspan.textContent = currentLine;
-                                tempTextElement.appendChild(tspan);
-                                currentLine = word;
-                            } else {
-                                if (currentLine.length > 0) {
-                                    currentLine += " " + word;
-                                } else {
-                                    currentLine = word;
-                                }
-                            }
-                        });
-                        
-                        if (currentLine.length > 0) {
-                            const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-                            tspan.setAttribute("x", x);
-                            if (!firstLine) {
-                                tspan.setAttribute("dy", `${lineHeight}px`);
-                            }
-                            tspan.textContent = currentLine;
-                            tempTextElement.appendChild(tspan);
-                        }
-                    }
-                }
-                
-                // Step 2: Small pause to ensure rendering completes
-                await new Promise(resolve => setTimeout(resolve, 300));
-                
-                // Step 3: Convert to canvas
-                const canvas = await html2canvas(container, {
-                    scale: 2,
-                    logging: false,
+                // Obtener dimensiones del SVG
+                const svgRect = svgElement.getBoundingClientRect();
+                const svgWidth = svgRect.width || 800;
+                const svgHeight = svgRect.height || 600;
+
+                // Convertir SVG a Canvas usando html2canvas
+                const canvas = await html2canvas(svgElement, {
+                    backgroundColor: '#ffffff',
+                    scale: 2, // Mayor calidad
                     useCORS: true,
                     allowTaint: true,
-                    backgroundColor: 'white'
+                    width: svgWidth,
+                    height: svgHeight
                 });
-                
-                // Step 4: Create PDF with the same logic
-                let pdf;
-                if (typeof window.jspdf !== 'undefined' && window.jspdf.jsPDF) {
-                    // Versión nueva de jsPDF (3.x+)
-                    pdf = new window.jspdf.jsPDF({
-                        orientation: 'portrait',
-                        unit: 'pt',
-                        format: 'letter'
-                    });
-                } else if (typeof window.jsPDF !== 'undefined') {
-                    // Versión antigua de jsPDF (2.x)
-                    pdf = new window.jsPDF({
-                        orientation: 'portrait',
-                        unit: 'pt',
-                        format: 'letter'
-                    });
-                } else {
-                    throw new Error('jsPDF library not available');
-                }
-                
-                // Step 5: Calculate scale factor to fit the page
-                const pageWidth = 612;
-                const pageHeight = 792;
-                const imgWidth = canvas.width;
-                const imgHeight = canvas.height;
-                
-                // Calculate scale to fit page width with 40pt margin
-                let scale = (pageWidth - 80) / imgWidth;
-                
-                // If scaled height exceeds page height, adjust by height
-                if (imgHeight * scale > (pageHeight - 80)) {
-                    scale = (pageHeight - 80) / imgHeight;
-                }
-                
-                // Centered coordinates
-                const xPos = (pageWidth - imgWidth * scale) / 2;
-                const yPos = (pageHeight - imgHeight * scale) / 2;
-                
-                // Step 6: Add image to PDF with adjusted size
+
+                // Crear PDF con jsPDF
+                const pdf = new window.jsPDF({
+                    orientation: svgWidth > svgHeight ? 'landscape' : 'portrait',
+                    unit: 'px',
+                    format: [svgWidth, svgHeight]
+                });
+
+                // Agregar la imagen del canvas al PDF
                 const imgData = canvas.toDataURL('image/png');
-                pdf.addImage(imgData, 'PNG', xPos, yPos, imgWidth * scale, imgHeight * scale);
-                
-                // Step 7: Save the PDF
-                const fileName = `Grammer_PF_Order_${orderData.id}.pdf`;
+                pdf.addImage(imgData, 'PNG', 0, 0, svgWidth, svgHeight);
+
+                // Generar nombre del archivo
+                const fileName = `PF_${<?php echo $orderId; ?>}.pdf`;
+
+                // Descargar el PDF
                 pdf.save(fileName);
-                
-                // Step 8: Clean up - remove the container
-                if (container && container.parentNode) {
-                    document.body.removeChild(container);
-                }
-                
-                // Show success message
+
+                // Mostrar confirmación
                 Swal.fire({
                     icon: 'success',
-                    title: 'Download Complete!',
-                    html: `
-                        <div style="margin: 1rem 0;">
-                            <div style="font-size: 0.9rem; color: var(--gray-600);">Document saved successfully</div>
-                            <div style="margin: 1rem 0; padding: 0.5rem; background: var(--gray-50); border-radius: 0.5rem;">
-                                <div style="font-size: 0.8rem; color: var(--gray-500); font-family: monospace;">${fileName}</div>
-                            </div>
-                        </div>
-                    `,
-                    timer: 4000,
-                    timerProgressBar: true,
-                    customClass: {
-                        popup: 'swal2-enhanced'
-                    }
-                });
-                
-            } catch (error) {
-                console.error('❌ PDF generation failed:', error);
-                
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Download Failed',
-                    html: `
-                        <div style="margin: 1rem 0;">
-                            <div style="font-size: 0.9rem; color: var(--gray-600);">Could not generate PDF document</div>
-                            <div style="margin: 1rem 0; padding: 0.5rem; background: #FEF2F2; border-radius: 0.5rem; border-left: 4px solid var(--danger);">
-                                <div style="font-size: 0.8rem; color: var(--danger);">${error.message}</div>
-                            </div>
-                        </div>
-                    `,
-                    confirmButtonText: '🔄 Refresh Page',
+                    title: 'PDF Generated!',
+                    text: `Document saved as: ${fileName}`,
                     confirmButtonColor: 'var(--grammer-blue)',
                     customClass: {
                         popup: 'swal2-enhanced'
                     }
-                }).then(() => location.reload());
+                });
+
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'PDF Generation Failed',
+                    html: `
+                        <div style="text-align: left;">
+                            <p>Unable to generate PDF document.</p>
+                            <div style="background: #FEF2F2; padding: 1rem; border-radius: 0.5rem; margin-top: 1rem;">
+                                <strong>Error:</strong><br>
+                                <code style="font-size: 0.8rem;">${error.message}</code>
+                            </div>
+                        </div>
+                    `,
+                    confirmButtonColor: 'var(--grammer-blue)',
+                    customClass: {
+                        popup: 'swal2-enhanced'
+                    }
+                });
             }
-        };
+        }
 
         // ===== GLOBAL ERROR HANDLER =====
         window.addEventListener('error', function(event) {
