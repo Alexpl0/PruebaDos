@@ -201,8 +201,8 @@ try {
     
     <!-- Preload critical resources -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" as="style">
-    <link rel="preload" href="<?php echo URLPF; ?>js/html2canvas.min.js" as="script">
-    <link rel="preload" href="<?php echo URLPF; ?>js/jspdf.umd.min.js" as="script">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" as="script">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" as="script">
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -213,8 +213,24 @@ try {
     
     <!-- External JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="<?php echo URLPF; ?>js/html2canvas.min.js"></script>
-    <script src="<?php echo URLPF; ?>js/jspdf.umd.min.js"></script>
+    
+    <!-- PDF and Canvas Scripts - Primary CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- Fallback Scripts - Local copies -->
+    <script>
+        // Check if libraries loaded from CDN, if not load local fallbacks
+        if (typeof html2canvas === 'undefined') {
+            console.log('Loading html2canvas from local fallback...');
+            document.write('<script src="<?php echo URLPF; ?>js/html2canvas.min.js"><\/script>');
+        }
+        
+        if (typeof window.jsPDF === 'undefined') {
+            console.log('Loading jsPDF from local fallback...');
+            document.write('<script src="<?php echo URLPF; ?>js/jspdf.umd.min.js"><\/script>');
+        }
+    </script>
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="<?php echo URLPF; ?>assets/favicon.ico">
@@ -323,11 +339,11 @@ try {
             box-shadow: var(--shadow-xl);
         }
 
-        /* Professional Header */
+        /* Professional Header - Compact Version */
         .email-header {
             background: linear-gradient(135deg, var(--grammer-blue) 0%, var(--grammer-dark-blue) 100%);
             color: var(--white);
-            padding: var(--spacing-2xl) var(--spacing-xl);
+            padding: var(--spacing-lg) var(--spacing-xl);
             position: relative;
             overflow: hidden;
         }
@@ -340,7 +356,7 @@ try {
             right: 0;
             bottom: 0;
             background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
-            opacity: 0.4;
+            opacity: 0.3;
         }
 
         .email-header-content {
@@ -351,84 +367,85 @@ try {
         .company-logo {
             display: flex;
             align-items: center;
-            gap: var(--spacing-md);
-            margin-bottom: var(--spacing-lg);
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
         }
 
         .company-logo i {
-            font-size: 2.5rem;
+            font-size: 1.5rem;
             opacity: 0.9;
         }
 
         .company-name {
-            font-size: 1.75rem;
+            font-size: 1.25rem;
             font-weight: 600;
             letter-spacing: -0.025em;
         }
 
         .order-title-main {
-            font-size: 3rem;
+            font-size: 2rem;
             font-weight: 700;
-            margin-bottom: var(--spacing-sm);
+            margin-bottom: var(--spacing-xs);
             text-shadow: 0 2px 4px rgba(0,0,0,0.2);
             letter-spacing: -0.025em;
         }
 
         .order-subtitle {
-            font-size: 1.2rem;
+            font-size: 1rem;
             opacity: 0.9;
             font-weight: 400;
+            margin-bottom: var(--spacing-md);
         }
 
-        /* Professional Status Badge */
+        /* Compact Status Section */
         .status-section {
             background: rgba(255,255,255,0.1);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.2);
             border-radius: var(--border-radius);
-            padding: var(--spacing-xl);
-            margin-top: var(--spacing-xl);
+            padding: var(--spacing-md);
+            margin-top: var(--spacing-md);
         }
 
         .approver-info {
             display: flex;
             align-items: center;
-            gap: var(--spacing-md);
-            margin-bottom: var(--spacing-lg);
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
         }
 
         .approver-avatar {
-            width: 48px;
-            height: 48px;
+            width: 36px;
+            height: 36px;
             background: var(--white);
             color: var(--grammer-blue);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.25rem;
+            font-size: 1rem;
             font-weight: 600;
             box-shadow: var(--shadow-md);
         }
 
         .approver-details h4 {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 600;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.125rem;
         }
 
         .approver-role {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             opacity: 0.8;
         }
 
         .status-badge {
             display: inline-flex;
             align-items: center;
-            gap: var(--spacing-sm);
-            padding: var(--spacing-sm) var(--spacing-lg);
+            gap: var(--spacing-xs);
+            padding: var(--spacing-xs) var(--spacing-md);
             border-radius: 9999px;
-            font-size: 0.875rem;
+            font-size: 0.75rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -972,18 +989,76 @@ try {
 
     <!-- Enhanced JavaScript Module -->
     <script type="module">
-        // Import PDF generation module
-        import { generatePDF, loadAndPopulateSVG } from '<?php echo URLPF; ?>js/svgOrders.js';
-        
-        // Make functions globally available
-        window.generatePDF = generatePDF;
+        // Wait for all dependencies to load
+        async function waitForDependencies() {
+            const maxAttempts = 50; // 5 seconds max wait
+            let attempts = 0;
+            
+            while (attempts < maxAttempts) {
+                if (typeof html2canvas !== 'undefined' && typeof window.jsPDF !== 'undefined') {
+                    return true;
+                }
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+            
+            throw new Error('Required libraries (html2canvas, jsPDF) failed to load');
+        }
+
+        // Import PDF generation module with dependency check
+        async function initializeApp() {
+            try {
+                // Wait for dependencies
+                await waitForDependencies();
+                console.log('✅ All dependencies loaded successfully');
+                
+                // Import SVG module
+                const { generatePDF, loadAndPopulateSVG } = await import('<?php echo URLPF; ?>js/svgOrders.js');
+                
+                // Make functions globally available
+                window.generatePDF = generatePDF;
+                window.loadAndPopulateSVG = loadAndPopulateSVG;
+                
+                // Initialize the application
+                initializeOrderViewer();
+                
+            } catch (error) {
+                console.error('❌ Failed to initialize application:', error);
+                showDependencyError(error);
+            }
+        }
+
+        // Show dependency error
+        function showDependencyError(error) {
+            const container = document.getElementById('svgContainer');
+            if (container) {
+                container.innerHTML = `
+                    <div class="error-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <strong>Application Error</strong>
+                            <p style="margin-top: 0.5rem; font-size: 0.9rem;">
+                                Required libraries failed to load. Please check your internet connection and try refreshing the page.
+                            </p>
+                            <div style="background: #FEF2F2; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid var(--danger); text-align: left; margin: 1rem 0;">
+                                <strong>Technical Details:</strong><br>
+                                <code style="font-size: 0.8rem; color: var(--gray-600);">${error.message}</code>
+                            </div>
+                            <button class="action-btn btn-download" onclick="location.reload()" style="margin-top: 1rem;">
+                                <i class="fas fa-refresh"></i>
+                                <span>Retry</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
 
         // Enhanced SVG loading with better error handling
         async function loadOrderSVG() {
             const container = document.getElementById('svgContainer');
             
             try {
-                // Console logging only for debugging
                 console.log('🚀 Initializing order document...');
                 
                 // Show enhanced loading state
@@ -1003,8 +1078,13 @@ try {
                 const orderData = window.allOrders[0];
                 console.log('📦 Processing order data:', orderData);
                 
+                // Check if loadAndPopulateSVG is available
+                if (typeof window.loadAndPopulateSVG !== 'function') {
+                    throw new Error('SVG module not loaded properly');
+                }
+                
                 // Load SVG with order data
-                await loadAndPopulateSVG(orderData, 'svgContainer');
+                await window.loadAndPopulateSVG(orderData, 'svgContainer');
                 
                 console.log('✅ Document loaded successfully');
                 
@@ -1028,6 +1108,10 @@ try {
                                 We encountered an issue while loading your order details. 
                                 Please try refreshing the page or contact support if the problem persists.
                             </p>
+                            <div style="background: #FEF2F2; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid var(--danger); text-align: left; margin: 1rem 0;">
+                                <strong>Error Details:</strong><br>
+                                <code style="font-size: 0.8rem; color: var(--gray-600);">${error.message}</code>
+                            </div>
                             <button class="action-btn btn-download" onclick="location.reload()" style="margin-top: 1rem;">
                                 <i class="fas fa-refresh"></i>
                                 <span>Retry</span>
@@ -1049,6 +1133,33 @@ try {
             
             console.log('✅ PDF generated:', fileName);
             return fileName;
+        }
+
+        // Initialize the order viewer
+        function initializeOrderViewer() {
+            console.log('🎯 Premium Freight Order Viewer initialized');
+            
+            // Staggered animations
+            const animatedElements = document.querySelectorAll('.fade-in, .slide-up');
+            animatedElements.forEach((element, index) => {
+                setTimeout(() => {
+                    element.style.animationDelay = `${index * 0.1}s`;
+                }, 50);
+            });
+            
+            // Load order document
+            loadOrderSVG();
+            
+            // Log system info for debugging (console only)
+            console.group('🔧 System Information');
+            console.log('🌐 URLs:', { URLPF: window.URL, URLM: window.URLM });
+            console.log('📋 Order:', window.allOrders[0]);
+            console.log('🔑 Tokens:', { approve: window.hasApproveToken, reject: window.hasRejectToken });
+            console.log('📚 Libraries:', { 
+                html2canvas: typeof html2canvas !== 'undefined', 
+                jsPDF: typeof window.jsPDF !== 'undefined' 
+            });
+            console.groupEnd();
         }
 
         // Enhanced action confirmation
@@ -1146,6 +1257,11 @@ try {
         // Enhanced PDF download
         window.downloadPDF = async function() {
             try {
+                // Check if dependencies are loaded
+                if (typeof html2canvas === 'undefined' || typeof window.jsPDF === 'undefined') {
+                    throw new Error('PDF generation libraries not loaded. Please refresh the page and try again.');
+                }
+
                 Swal.fire({
                     title: 'Generating Document',
                     html: `
@@ -1202,44 +1318,24 @@ try {
                                 <code style="font-size: 0.8rem; color: var(--gray-600);">${error.message}</code>
                             </div>
                             <p style="color: var(--gray-500); font-size: 0.9rem; margin-top: 1rem;">
-                                Please try again or contact IT support if the problem persists.
+                                Please try refreshing the page or contact IT support if the problem persists.
                             </p>
                         </div>
                     `,
                     confirmButtonColor: 'var(--danger)',
-                    confirmButtonText: 'Try Again',
+                    confirmButtonText: 'Refresh Page',
                     showCancelButton: true,
                     cancelButtonText: 'Contact Support'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        window.downloadPDF();
+                        location.reload();
                     }
                 });
             }
         };
 
         // Initialize when DOM is ready
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🎯 Premium Freight Order Viewer initialized');
-            
-            // Staggered animations
-            const animatedElements = document.querySelectorAll('.fade-in, .slide-up');
-            animatedElements.forEach((element, index) => {
-                setTimeout(() => {
-                    element.style.animationDelay = `${index * 0.1}s`;
-                }, 50);
-            });
-            
-            // Load order document
-            loadOrderSVG();
-            
-            // Log system info for debugging (console only)
-            console.group('🔧 System Information');
-            console.log('🌐 URLs:', { URLPF: window.URL, URLM: window.URLM });
-            console.log('📋 Order:', window.allOrders[0]);
-            console.log('🔑 Tokens:', { approve: window.hasApproveToken, reject: window.hasRejectToken });
-            console.groupEnd();
-        });
+        document.addEventListener('DOMContentLoaded', initializeApp);
 
         // Performance monitoring (console only)
         window.addEventListener('load', function() {
