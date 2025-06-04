@@ -738,9 +738,17 @@ try {
         // Función para generar PDF
         async function generateOrderPDF() {
             try {
-                const { generatePDF } = await import(window.URL + 'js/createPDF.js');
+                // Use the global function instead of importing
+                if (typeof window.generatePDF !== 'function') {
+                    throw new Error('PDF generation module not loaded');
+                }
+                
                 const orderData = window.allOrders[0];
-                await generatePDF(orderData, `PF_Order_${orderData.id}`);
+                const doc = await window.generatePDF(orderData);
+                
+                // Download the PDF
+                doc.save(`PF_Order_${orderData.id}.pdf`);
+                
                 return true;
             } catch (error) {
                 console.error('❌ Error generating PDF:', error);
