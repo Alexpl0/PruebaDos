@@ -25,17 +25,14 @@ class PFEmailTemplates {
     
     /**
      * Plantilla para correo de aprobación individual
-     * 
-     * @param array $orderData Datos de la orden
-     * @param string $approvalToken Token de aprobación
-     * @param string $rejectToken Token de rechazo
-     * @return string HTML del correo
      */
     public function getApprovalEmailTemplate($orderData, $approvalToken, $rejectToken) {
-        // URLs para usar el endpoint individual
+        // URLs actualizadas - ahora apuntan a la página de visualización
+        $viewOrderUrl = $this->baseUrl . "view_order.php?order=" . $orderData['id'] . "&token=" . $approvalToken;
+        
+        // URLs directas para acciones rápidas (mantener como alternativa)
         $approveUrl = $this->baseUrl . "PFmailSingleAction.php?action=approve&token=$approvalToken";
         $rejectUrl = $this->baseUrl . "PFmailSingleAction.php?action=reject&token=$rejectToken";
-        $viewOrderUrl = defined('URLPF') ? URLPF . "orders.php?highlight=" . $orderData['id'] : "#";
         
         // Formatear datos de manera segura
         $costEuros = number_format((float)($orderData['cost_euros'] ?? 0), 2);
@@ -148,77 +145,90 @@ class PFEmailTemplates {
                     
                     <!-- Header -->
                     <tr>
-                        <td class="header" style="border-radius: 8px 8px 0 0; background-color: #034C8C;">
-                            <h1 style="font-family: Georgia, serif; color: #ffffff; margin: 0 0 8px 0; font-size: 22px; font-weight: 700;">Premium Freight Approval Required</h1>
-                            <h2 style="font-family: Georgia, serif; color: #e2e8f0; margin: 0; font-size: 16px; font-weight: 400;">Order #' . $orderData['id'] . '</h2>
+                        <td class="header" style="border-radius: 8px 8px 0 0;">
+                            <h1>Approval Required</h1>
+                            <h2>Order #' . $orderData['id'] . '</h2>
                         </td>
                     </tr>
                     
                     <!-- Content -->
                     <tr>
-                        <td class="content" style="font-family: Georgia, serif;">
-                            <h2 class="section-title" style="font-family: Georgia, serif;">New Premium Freight Order Requires Your Approval</h2>
-                            <p class="description" style="font-family: Georgia, serif;">A new Premium Freight order has been submitted and requires your approval before processing. Please review the order details below and take the appropriate action.</p>
+                        <td class="content">
+                            <h2 class="section-title">Premium Freight Authorization Request</h2>
+                            <p class="description">A new Premium Freight order requires your approval. Please review the details below and take the appropriate action.</p>
                             
                             <!-- Order Details -->
                             <div class="details-card">
-                                <h3 class="details-title" style="font-family: Georgia, serif;">Order Details</h3>
+                                <h3 class="details-title">Order Information</h3>
                                 
                                 <div class="detail-row">
-                                    <span class="detail-label" style="font-family: Georgia, serif;">Order ID:</span>
-                                    <span class="detail-value highlight" style="font-family: Georgia, serif;">#' . $orderData['id'] . '</span>
+                                    <span class="detail-label">Order ID:</span>
+                                    <span class="detail-value highlight">#' . $orderData['id'] . '</span>
                                 </div>
                                 
                                 <div class="detail-row">
-                                    <span class="detail-label" style="font-family: Georgia, serif;">Description:</span>
-                                    <span class="detail-value" style="font-family: Georgia, serif;">' . $orderDescription . '</span>
+                                    <span class="detail-label">Description:</span>
+                                    <span class="detail-value">' . $orderDescription . '</span>
                                 </div>
                                 
                                 <div class="detail-row">
-                                    <span class="detail-label" style="font-family: Georgia, serif;">Requested by:</span>
-                                    <span class="detail-value" style="font-family: Georgia, serif;">' . $requestedBy . '</span>
+                                    <span class="detail-label">Requested by:</span>
+                                    <span class="detail-value">' . $requestedBy . '</span>
                                 </div>
                                 
                                 <div class="detail-row">
-                                    <span class="detail-label" style="font-family: Georgia, serif;">Date Created:</span>
-                                    <span class="detail-value" style="font-family: Georgia, serif;">' . $formattedDate . '</span>
+                                    <span class="detail-label">Plant:</span>
+                                    <span class="detail-value">' . $plantaName . '</span>
                                 </div>
                                 
                                 <div class="detail-row">
-                                    <span class="detail-label" style="font-family: Georgia, serif;">Area/Department:</span>
-                                    <span class="detail-value" style="font-family: Georgia, serif;">' . $plantaName . '</span>
+                                    <span class="detail-label">Cost:</span>
+                                    <span class="detail-value cost">€' . $costEuros . '</span>
                                 </div>
                                 
                                 <div class="detail-row">
-                                    <span class="detail-label" style="font-family: Georgia, serif;">Estimated Cost:</span>
-                                    <span class="detail-value cost" style="font-family: Georgia, serif;">EUR ' . $costEuros . '</span>
+                                    <span class="detail-label">Date:</span>
+                                    <span class="detail-value">' . $formattedDate . '</span>
                                 </div>
                             </div>
                             
-                            <!-- Action Buttons -->
+                            <!-- New: Single View Order Button -->
+                            <div style="text-align: center; margin: 30px 0;">
+                                <a href="' . $viewOrderUrl . '" style="background-color: #034C8C !important; color: #ffffff !important; padding: 16px 32px; text-decoration: none; font-weight: bold; border-radius: 8px; border: 2px solid #023b6a; text-transform: uppercase; display: inline-block; font-size: 16px;">
+                                    📋 VIEW ORDER & TAKE ACTION
+                                </a>
+                            </div>
+                            
+                            <!-- Quick Actions Section -->
                             <div class="actions-section">
-                                <h3 class="actions-title" style="font-family: Georgia, serif;">Required Action</h3>
-                                <p class="actions-subtitle" style="font-family: Georgia, serif;">Please select one of the following options to process this order:</p>
+                                <h3 class="actions-title">Quick Actions</h3>
+                                <p class="actions-subtitle">Click the button above to view full details, or use these quick action buttons:</p>
                                 
-                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
-                                    <tr>
-                                        <td class="button-container">
-                                            <a href="' . $approveUrl . '" style="background-color: #059669 !important; color: #ffffff !important; padding: 12px 18px; text-decoration: none; font-weight: bold; font-size: 12px; border-radius: 6px; text-align: center; display: inline-block; border: 2px solid #047857; text-transform: uppercase; letter-spacing: 0.3px; font-family: Georgia, serif; min-width: 90px;">APPROVE</a>
-                                        </td>
-                                        <td class="button-container">
-                                            <a href="' . $rejectUrl . '" style="background-color: #dc2626 !important; color: #ffffff !important; padding: 12px 18px; text-decoration: none; font-weight: bold; font-size: 12px; border-radius: 6px; text-align: center; display: inline-block; border: 2px solid #b91c1c; text-transform: uppercase; letter-spacing: 0.3px; font-family: Georgia, serif; min-width: 90px;">REJECT</a>
-                                        </td>
-                                        <td class="button-container">
-                                            <a href="' . $viewOrderUrl . '" style="background-color: #1e40af !important; color: #ffffff !important; padding: 12px 18px; text-decoration: none; font-weight: bold; font-size: 12px; border-radius: 6px; text-align: center; display: inline-block; border: 2px solid #1d4ed8; text-transform: uppercase; letter-spacing: 0.3px; font-family: Georgia, serif; min-width: 90px;">VIEW DETAILS</a>
-                                        </td>
-                                    </tr>
-                                </table>
+                                <div style="text-align: center;">
+                                    <!--[if mso]>
+                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
+                                        <tr>
+                                            <td style="padding: 0 8px;">
+                                    <![endif]-->
+                                    <a href="' . $approveUrl . '" class="action-button approve-btn" style="background-color: #28a745 !important; color: #ffffff !important; padding: 14px 24px; text-decoration: none; font-weight: bold; border-radius: 6px; border: 2px solid #1e7e34 !important; text-transform: uppercase; display: inline-block; margin: 8px;">✓ APPROVE</a>
+                                    <!--[if mso]>
+                                            </td>
+                                            <td style="padding: 0 8px;">
+                                    <![endif]-->
+                                    <a href="' . $rejectUrl . '" class="action-button reject-btn" style="background-color: #dc3545 !important; color: #ffffff !important; padding: 14px 24px; text-decoration: none; font-weight: bold; border-radius: 6px; border: 2px solid #bd2130 !important; text-transform: uppercase; display: inline-block; margin: 8px;">✗ REJECT</a>
+                                    <!--[if mso]>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <![endif]-->
+                                </div>
                             </div>
                             
-                            <!-- Important Notice -->
+                            <!-- Info Box -->
                             <div class="info-box">
-                                <p class="info-text" style="font-family: Georgia, serif;">
-                                    <strong>Important:</strong> This approval request will expire in 72 hours. After expiration, the requester will need to submit a new approval request.
+                                <p class="info-text">
+                                    <strong>Note:</strong> This approval request will expire in 7 days. 
+                                    If no action is taken, you will receive weekly reminders until the order is processed.
                                 </p>
                             </div>
                         </td>
@@ -227,9 +237,9 @@ class PFEmailTemplates {
                     <!-- Footer -->
                     <tr>
                         <td class="footer" style="border-radius: 0 0 8px 8px;">
-                            <p class="footer-text" style="font-family: Georgia, serif;">This is an automated notification from the Premium Freight Management System.</p>
-                            <p class="footer-text" style="font-family: Georgia, serif;">Please do not reply to this email. For support, contact your system administrator.</p>
-                            <p class="footer-copyright" style="font-family: Georgia, serif;">© ' . date('Y') . ' GRAMMER AG - Premium Freight Management System</p>
+                            <p class="footer-text">This is an automated notification from the Premium Freight Management System.</p>
+                            <p class="footer-text">Please do not reply to this email. For support, contact your system administrator.</p>
+                            <p class="footer-copyright">© ' . date('Y') . ' GRAMMER AG - Premium Freight Management System</p>
                         </td>
                     </tr>
                 </table>
@@ -241,10 +251,10 @@ class PFEmailTemplates {
     }
 
     /**
-     * Plantilla para correo resumen semanal
+     * Plantilla para correo resumen semanal - actualizar URLs
      */
     public function getWeeklySummaryTemplate($orders, $approver, $approveAllToken, $rejectAllToken) {
-        // URLs para acciones en bloque
+        // URLs para acciones en bloque (mantener como están)
         $approveAllUrl = $this->baseUrl . "PFmailBulkAction.php?action=approve&token=$approveAllToken";
         $rejectAllUrl = $this->baseUrl . "PFmailBulkAction.php?action=reject&token=$rejectAllToken";
         
@@ -256,8 +266,8 @@ class PFEmailTemplates {
         // Formatear datos del aprobador
         $approverName = htmlspecialchars($approver['name'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
         
-        // Generar filas de órdenes
-        $orderRows = $this->generateOrderRows($orders, $approver['id']);
+        // Generar filas de órdenes con nueva URL de visualización
+        $orderRows = $this->generateOrderRowsUpdated($orders, $approver['id']);
 
         return '<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -433,7 +443,7 @@ class PFEmailTemplates {
                                 </table>
                                 
                                 <p class="bulk-warning" style="font-family: Georgia, serif;">
-                                    Bulk actions will affect all ' . $totalOrders . ' orders listed abajo
+                                    Bulk actions will affect all ' . $totalOrders . ' orders listed below.
                                 </p>
                             </div>
                             
@@ -462,7 +472,7 @@ class PFEmailTemplates {
                             <!-- Important Notice -->
                             <div class="info-box">
                                 <p class="info-text" style="font-family: Georgia, serif;">
-                                    <strong>Reminder:</strong> These approval requests will expire in 72 hours. Orders not processed will require new approval requests from their creators.
+                                    <strong>Reminder:</strong> These approval requests will expire in 72 hours. Orders not processed will require manual management.
                                 </p>
                             </div>
                         </td>
@@ -619,7 +629,7 @@ class PFEmailTemplates {
                                 </div>
                                 
                                 <div class="detail-row">
-                                    <span class="detail-label" style="font-family: Georgia, serif;">Area/Department:</span>
+                                    <span class="detail-label" style="font-family: Georgia, serif;">Plant:</span>
                                     <span class="detail-value" style="font-family: Georgia, serif;">' . $plantaName . '</span>
                                 </div>
                                 
