@@ -209,9 +209,6 @@ try {
     <!-- External JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="<?php echo URLPF; ?>assets/favicon.ico">
-    
     <!-- Global Variables -->
     <script>
         // Global variables for modules
@@ -235,7 +232,7 @@ try {
     </script>
     
     <style>
-        /* CSS Custom Properties */
+        /* ===== CSS CUSTOM PROPERTIES ===== */
         :root {
             /* Grammer Corporate Colors */
             --grammer-blue: #034C8C;
@@ -285,7 +282,7 @@ try {
             --transition-slow: 0.5s ease-in-out;
         }
 
-        /* Base Styles */
+        /* ===== BASE STYLES ===== */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -307,7 +304,7 @@ try {
             -moz-osx-font-smoothing: grayscale;
         }
 
-        /* Email-style Layout */
+        /* ===== EMAIL-STYLE LAYOUT ===== */
         .email-container {
             max-width: var(--max-width);
             margin: 0 auto;
@@ -316,11 +313,11 @@ try {
             box-shadow: var(--shadow-xl);
         }
 
-        /* Compact Professional Header */
+        /* ===== COMPACT PROFESSIONAL HEADER ===== */
         .email-header {
             background: linear-gradient(135deg, var(--grammer-blue) 0%, var(--grammer-dark-blue) 100%);
             color: var(--white);
-            padding: var(--spacing-md) var(--spacing-xl);
+            padding: var(--spacing-sm) var(--spacing-xl);
             position: relative;
             overflow: hidden;
         }
@@ -344,6 +341,7 @@ try {
             align-items: center;
             flex-wrap: wrap;
             gap: var(--spacing-md);
+            min-height: 60px;
         }
 
         .header-left {
@@ -359,12 +357,12 @@ try {
         }
 
         .company-logo i {
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             opacity: 0.9;
         }
 
         .company-name {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 600;
             letter-spacing: -0.025em;
         }
@@ -375,17 +373,19 @@ try {
         }
 
         .order-title-main {
-            font-size: 1.75rem;
+            font-size: 1.5rem;
             font-weight: 700;
             margin-bottom: 0.125rem;
             text-shadow: 0 1px 2px rgba(0,0,0,0.1);
             letter-spacing: -0.025em;
+            line-height: 1.2;
         }
 
         .order-subtitle {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             opacity: 0.8;
             font-weight: 400;
+            line-height: 1;
         }
 
         .header-right {
@@ -394,7 +394,7 @@ try {
             gap: var(--spacing-md);
         }
 
-        /* Compact Status Section */
+        /* ===== COMPACT STATUS SECTION ===== */
         .status-section {
             display: flex;
             align-items: center;
@@ -403,38 +403,38 @@ try {
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.2);
             border-radius: var(--border-radius);
-            padding: var(--spacing-sm) var(--spacing-md);
+            padding: var(--spacing-xs) var(--spacing-sm);
         }
 
         .approver-info {
             display: flex;
             align-items: center;
-            gap: var(--spacing-sm);
+            gap: var(--spacing-xs);
         }
 
         .approver-avatar {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             background: var(--white);
             color: var(--grammer-blue);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.875rem;
+            font-size: 0.75rem;
             font-weight: 600;
             box-shadow: var(--shadow-sm);
         }
 
         .approver-details h4 {
-            font-size: 0.875rem;
+            font-size: 0.8rem;
             font-weight: 600;
             margin-bottom: 0;
             line-height: 1.2;
         }
 
         .approver-role {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             opacity: 0.8;
             line-height: 1;
         }
@@ -445,7 +445,7 @@ try {
             gap: var(--spacing-xs);
             padding: var(--spacing-xs) var(--spacing-sm);
             border-radius: 9999px;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -469,10 +469,10 @@ try {
             50% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.1); }
         }
 
-        /* Compact Action Buttons */
+        /* ===== COMPACT ACTION BUTTONS ===== */
         .quick-actions {
             display: flex;
-            gap: var(--spacing-sm);
+            gap: var(--spacing-xs);
         }
 
         .action-btn-compact {
@@ -480,18 +480,19 @@ try {
             align-items: center;
             justify-content: center;
             gap: var(--spacing-xs);
-            padding: var(--spacing-sm) var(--spacing-md);
+            padding: var(--spacing-xs) var(--spacing-sm);
             background: var(--white);
             color: var(--gray-700);
             border: 1px solid rgba(255,255,255,0.3);
             border-radius: var(--border-radius);
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 500;
             text-decoration: none;
             transition: var(--transition-normal);
             cursor: pointer;
             box-shadow: var(--shadow-sm);
-            min-width: 80px;
+            min-width: 70px;
+            height: 32px;
         }
 
         .action-btn-compact:hover {
@@ -529,7 +530,7 @@ try {
             color: var(--white);
         }
 
-        /* Email Body */
+        /* ===== EMAIL BODY ===== */
         .email-body {
             padding: var(--spacing-xl);
         }
@@ -564,7 +565,7 @@ try {
             margin: 0;
         }
 
-        /* SVG Container */
+        /* ===== SVG CONTAINER ===== */
         .svg-container {
             background: var(--white);
             border: 2px dashed var(--gray-200);
@@ -595,7 +596,7 @@ try {
             transform: scale(1.02);
         }
 
-        /* Loading States */
+        /* ===== LOADING STATES ===== */
         .loading-state {
             display: flex;
             flex-direction: column;
@@ -641,7 +642,7 @@ try {
             40% { transform: scale(1); }
         }
 
-        /* Error States */
+        /* ===== ERROR STATES ===== */
         .error-state {
             background: linear-gradient(135deg, #FEF2F2 0%, #FECACA 100%);
             color: var(--danger);
@@ -649,6 +650,7 @@ try {
             border-radius: var(--border-radius);
             border-left: 4px solid var(--danger);
             margin: var(--spacing-lg) 0;
+            text-align: center;
         }
 
         .error-state i {
@@ -656,7 +658,7 @@ try {
             margin-right: var(--spacing-md);
         }
 
-        /* Professional Footer */
+        /* ===== PROFESSIONAL FOOTER ===== */
         .email-footer {
             background: var(--gray-100);
             padding: var(--spacing-lg);
@@ -696,7 +698,7 @@ try {
             color: var(--grammer-blue);
         }
 
-        /* Responsive Design */
+        /* ===== RESPONSIVE DESIGN ===== */
         @media (max-width: 768px) {
             .email-container {
                 margin: 0;
@@ -704,13 +706,22 @@ try {
             }
 
             .email-header {
-                padding: var(--spacing-md);
+                padding: var(--spacing-sm);
             }
 
             .email-header-content {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: var(--spacing-sm);
+                min-height: auto;
+            }
+
+            .header-left {
+                gap: var(--spacing-md);
+            }
+
+            .order-title-main {
+                font-size: 1.25rem;
             }
 
             .header-right {
@@ -719,14 +730,12 @@ try {
             }
 
             .status-section {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: var(--spacing-sm);
+                flex: 1;
+                justify-content: center;
             }
 
             .quick-actions {
-                width: 100%;
-                justify-content: space-between;
+                flex-shrink: 0;
             }
 
             .email-body {
@@ -737,9 +746,14 @@ try {
                 flex-direction: column;
                 text-align: center;
             }
+
+            .action-btn-compact {
+                min-width: 60px;
+                font-size: 0.7rem;
+            }
         }
 
-        /* Animation Classes */
+        /* ===== ANIMATION CLASSES ===== */
         .fade-in {
             animation: fadeIn 0.6s ease-out forwards;
         }
@@ -758,23 +772,31 @@ try {
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Focus Styles for Accessibility */
+        /* ===== ACCESSIBILITY ===== */
         .action-btn-compact:focus,
         .footer-link:focus {
             outline: 2px solid var(--grammer-blue);
             outline-offset: 2px;
         }
 
-        /* SweetAlert2 Styles */
+        /* ===== SWEETALERT2 CUSTOMIZATION ===== */
         .swal2-popup {
             border-radius: var(--border-radius-lg) !important;
             box-shadow: var(--shadow-xl) !important;
+        }
+
+        .swal2-title {
+            color: var(--gray-800) !important;
+        }
+
+        .swal2-html-container {
+            color: var(--gray-600) !important;
         }
     </style>
 </head>
 <body>
     <div class="email-container">
-        <!-- Compact Professional Email Header -->
+        <!-- ===== COMPACT PROFESSIONAL EMAIL HEADER ===== -->
         <header class="email-header">
             <div class="email-header-content">
                 <div class="header-left">
@@ -838,7 +860,7 @@ try {
             </div>
         </header>
 
-        <!-- Email Body -->
+        <!-- ===== EMAIL BODY ===== -->
         <main class="email-body">
             <div class="document-section fade-in">
                 <div class="section-header">
@@ -849,7 +871,8 @@ try {
                 <div class="svg-container" id="svgContainer">
                     <div class="loading-state">
                         <div class="loading-spinner"></div>
-                        <div>Loading order details...</div>
+                        <div style="font-weight: 600;">Processing Document</div>
+                        <div style="font-size: 0.9rem; opacity: 0.8;">Please wait while we prepare your order details</div>
                         <div class="loading-dots">
                             <div class="loading-dot"></div>
                             <div class="loading-dot"></div>
@@ -860,15 +883,11 @@ try {
             </div>
         </main>
 
-        <!-- Professional Footer -->
+        <!-- ===== PROFESSIONAL FOOTER ===== -->
         <footer class="email-footer">
             <div class="footer-content">
                 <div class="footer-logo">Grammer AG</div>
-                <div class="footer-links">
-                    <a href="#" class="footer-link">Privacy Policy</a>
-                    <a href="#" class="footer-link">Terms of Service</a>
-                    <a href="#" class="footer-link">Contact Support</a>
-                </div>
+
                 <p style="font-size: 0.7rem; color: var(--gray-500);">
                     © <?php echo date('Y'); ?> Grammer AG. All rights reserved.
                 </p>
@@ -876,85 +895,103 @@ try {
         </footer>
     </div>
 
-    <!-- Load Libraries Sequentially -->
+    <!-- ===== ENHANCED LIBRARY LOADING & APPLICATION LOGIC ===== -->
     <script>
-        // Library loading with better error handling
+        // ===== ENHANCED LIBRARY LOADING WITH ROBUST ERROR HANDLING =====
         function loadLibrary(url, checkFunction, fallbackUrl = null) {
             return new Promise((resolve, reject) => {
                 const script = document.createElement('script');
                 script.src = url;
                 script.onload = () => {
-                    // Wait a bit for the library to initialize
+                    // Enhanced timeout for library initialization
                     setTimeout(() => {
                         if (checkFunction()) {
-                            console.log(`✅ Loaded: ${url}`);
+                            console.log(`✅ Successfully loaded: ${url}`);
                             resolve();
                         } else if (fallbackUrl) {
-                            console.log(`⚠️ Trying fallback: ${fallbackUrl}`);
+                            console.log(`⚠️ Primary source failed, trying fallback: ${fallbackUrl}`);
                             loadLibrary(fallbackUrl, checkFunction)
                                 .then(resolve)
                                 .catch(reject);
                         } else {
                             reject(new Error(`Library not available after loading: ${url}`));
                         }
-                    }, 100);
+                    }, 500); // Increased timeout for better reliability
                 };
                 script.onerror = () => {
                     if (fallbackUrl) {
-                        console.log(`⚠️ Failed, trying fallback: ${fallbackUrl}`);
+                        console.log(`❌ Failed to load ${url}, trying fallback: ${fallbackUrl}`);
                         loadLibrary(fallbackUrl, checkFunction)
                             .then(resolve)
                             .catch(reject);
                     } else {
-                        reject(new Error(`Failed to load: ${url}`));
+                        reject(new Error(`Failed to load script: ${url}`));
                     }
                 };
                 document.head.appendChild(script);
             });
         }
 
-        // Initialize application
+        // ===== ENHANCED APPLICATION INITIALIZATION =====
         async function initializeApp() {
             try {
-                console.log('🚀 Loading required libraries...');
+                console.log('🚀 Initializing Premium Freight Order Viewer...');
                 
-                // Load html2canvas
+                // Load html2canvas with enhanced error checking
                 await loadLibrary(
                     'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
                     () => typeof html2canvas !== 'undefined',
                     '<?php echo URLPF; ?>js/html2canvas.min.js'
                 );
                 
-                // Load jsPDF - intentar la versión más reciente primero
+                // Load jsPDF with multiple fallback strategies
                 await loadLibrary(
                     'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
-                    () => typeof window.jsPDF !== 'undefined' || (typeof window.jspdf !== 'undefined' && window.jspdf.jsPDF),
-                    '<?php echo URLPF; ?>js/jspdf.umd.min.js'
+                    () => {
+                        // Enhanced jsPDF detection for multiple versions
+                        return typeof window.jsPDF !== 'undefined' || 
+                               (typeof window.jspdf !== 'undefined' && typeof window.jspdf.jsPDF !== 'undefined') ||
+                               typeof jsPDF !== 'undefined';
+                    },
+                    '<?php echo URLPF; ?>js/pdfmin/jspdf.min.js'
                 );
                 
-                console.log('✅ All libraries loaded successfully');
-                console.log('📚 jsPDF available:', {
+                // Normalize jsPDF reference for cross-version compatibility
+                if (typeof window.jsPDF === 'undefined' && typeof window.jspdf !== 'undefined' && typeof window.jspdf.jsPDF !== 'undefined') {
+                    window.jsPDF = window.jspdf.jsPDF;
+                }
+                
+                console.log('✅ All dependencies loaded successfully');
+                console.log('📚 Library status check:', {
+                    'html2canvas': typeof html2canvas !== 'undefined',
                     'window.jsPDF': typeof window.jsPDF !== 'undefined',
                     'window.jspdf.jsPDF': typeof window.jspdf !== 'undefined' && typeof window.jspdf.jsPDF !== 'undefined'
                 });
                 
-                // Import SVG module
-                const { generatePDF, loadAndPopulateSVG } = await import('<?php echo URLPF; ?>js/svgOrders.js');
-                
-                // Make functions globally available
-                window.generatePDF = generatePDF;
-                window.loadAndPopulateSVG = loadAndPopulateSVG;
+                // Import and initialize SVG module
+                try {
+                    const { generatePDF, loadAndPopulateSVG } = await import('<?php echo URLPF; ?>js/svgOrders.js');
+                    
+                    // Make functions globally available
+                    window.generatePDF = generatePDF;
+                    window.loadAndPopulateSVG = loadAndPopulateSVG;
+                    
+                    console.log('✅ SVG module imported successfully');
+                } catch (moduleError) {
+                    console.error('❌ Failed to import SVG module:', moduleError);
+                    throw new Error(`SVG module import failed: ${moduleError.message}`);
+                }
                 
                 // Initialize the application
                 initializeOrderViewer();
                 
             } catch (error) {
-                console.error('❌ Failed to initialize application:', error);
+                console.error('❌ Application initialization failed:', error);
                 showDependencyError(error);
             }
         }
 
-        // Show dependency error
+        // ===== ENHANCED ERROR DISPLAY =====
         function showDependencyError(error) {
             const container = document.getElementById('svgContainer');
             if (container) {
@@ -964,29 +1001,36 @@ try {
                         <div>
                             <strong>Application Error</strong>
                             <p style="margin-top: 0.5rem; font-size: 0.9rem;">
-                                Required libraries failed to load. Please check your internet connection and try refreshing the page.
+                                Required libraries failed to load. This may be due to network issues or content blockers.
                             </p>
                             <div style="background: #FEF2F2; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid var(--danger); text-align: left; margin: 1rem 0;">
                                 <strong>Technical Details:</strong><br>
                                 <code style="font-size: 0.8rem; color: var(--gray-600);">${error.message}</code>
                             </div>
-                            <button class="action-btn-compact btn-download" onclick="location.reload()" style="margin-top: 1rem;">
-                                <i class="fas fa-refresh"></i>
-                                <span>Retry</span>
-                            </button>
+                            <div style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+                                <button class="action-btn-compact btn-download" onclick="location.reload()">
+                                    <i class="fas fa-refresh"></i>
+                                    <span>Retry</span>
+                                </button>
+                                <button class="action-btn-compact btn-download" onclick="window.location.href = window.location.href.split('?')[0] + '?order=<?php echo $orderId; ?>&token=<?php echo $token; ?>&cache=' + Date.now()">
+                                    <i class="fas fa-sync-alt"></i>
+                                    <span>Force Reload</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
             }
         }
 
-        // Enhanced SVG loading
+        // ===== ENHANCED SVG LOADING =====
         async function loadOrderSVG() {
             const container = document.getElementById('svgContainer');
             
             try {
-                console.log('🚀 Initializing order document...');
+                console.log('🚀 Loading order document...');
                 
+                // Show enhanced loading state
                 container.innerHTML = `
                     <div class="loading-state">
                         <div class="loading-spinner"></div>
@@ -1003,23 +1047,27 @@ try {
                 const orderData = window.allOrders[0];
                 console.log('📦 Processing order data:', orderData);
                 
+                // Verify SVG loading function is available
                 if (typeof window.loadAndPopulateSVG !== 'function') {
-                    throw new Error('SVG module not loaded properly');
+                    throw new Error('SVG loading module not properly initialized');
                 }
                 
+                // Load and populate SVG
                 await window.loadAndPopulateSVG(orderData, 'svgContainer');
                 
-                console.log('✅ Document loaded successfully');
+                console.log('✅ Document loaded and rendered successfully');
                 
+                // Add subtle animation to the loaded SVG
                 setTimeout(() => {
                     const svgElement = container.querySelector('svg');
                     if (svgElement) {
                         svgElement.style.animation = 'fadeIn 0.5s ease-out';
+                        svgElement.style.animationFillMode = 'forwards';
                     }
                 }, 100);
                 
             } catch (error) {
-                console.error('❌ Error loading document:', error);
+                console.error('❌ Error loading order document:', error);
                 
                 container.innerHTML = `
                     <div class="error-state">
@@ -1028,11 +1076,14 @@ try {
                             <strong>Unable to Load Document</strong>
                             <p style="margin-top: 0.5rem; font-size: 0.9rem;">
                                 We encountered an issue while loading your order details. 
-                                Please try refreshing the page or contact support if the problem persists.
                             </p>
-                            <button class="action-btn-compact btn-download" onclick="location.reload()" style="margin-top: 1rem;">
+                            <div style="background: #FEF2F2; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid var(--danger); text-align: left; margin: 1rem 0;">
+                                <strong>Error Details:</strong><br>
+                                <code style="font-size: 0.8rem; color: var(--gray-600);">${error.message}</code>
+                            </div>
+                            <button class="action-btn-compact btn-download" onclick="loadOrderSVG()" style="margin-top: 1rem;">
                                 <i class="fas fa-refresh"></i>
-                                <span>Retry</span>
+                                <span>Retry Loading</span>
                             </button>
                         </div>
                     </div>
@@ -1040,31 +1091,47 @@ try {
             }
         }
 
-        // Initialize the order viewer
+        // ===== ORDER VIEWER INITIALIZATION =====
         function initializeOrderViewer() {
-            console.log('🎯 Premium Freight Order Viewer initialized');
+            console.log('🎯 Premium Freight Order Viewer initialized successfully');
             
+            // Apply staggered animations to elements
             const animatedElements = document.querySelectorAll('.fade-in, .slide-up');
             animatedElements.forEach((element, index) => {
                 setTimeout(() => {
                     element.style.animationDelay = `${index * 0.1}s`;
+                    element.classList.add('animated');
                 }, 50);
             });
             
+            // Load the order SVG
             loadOrderSVG();
             
+            // Enhanced system information logging
             console.group('🔧 System Information');
-            console.log('🌐 URLs:', { URLPF: window.URL, URLM: window.URLM });
-            console.log('📋 Order:', window.allOrders[0]);
-            console.log('🔑 Tokens:', { approve: window.hasApproveToken, reject: window.hasRejectToken });
-            console.log('📚 Libraries:', { 
+            console.log('🌐 URLs:', { 
+                URLPF: window.URL, 
+                URLM: window.URLM 
+            });
+            console.log('📋 Order Data:', window.allOrders[0]);
+            console.log('🔑 Token Information:', { 
+                hasApprove: window.hasApproveToken, 
+                hasReject: window.hasRejectToken,
+                tokenUsed: window.tokenUsed
+            });
+            console.log('📚 Library Status:', { 
                 html2canvas: typeof html2canvas !== 'undefined', 
-                jsPDF: typeof window.jsPDF !== 'undefined' 
+                jsPDF: typeof window.jsPDF !== 'undefined',
+                svgModule: typeof window.loadAndPopulateSVG !== 'undefined'
+            });
+            console.log('👤 User Context:', {
+                name: window.userName,
+                authLevel: window.authorizationLevel
             });
             console.groupEnd();
         }
 
-        // Action confirmation
+        // ===== ENHANCED ACTION CONFIRMATION =====
         window.confirmAction = function(action) {
             const actionText = action === 'approve' ? 'approve' : 'reject';
             const actionUrl = action === 'approve' ? window.approveUrl : window.rejectUrl;
@@ -1074,7 +1141,10 @@ try {
                     icon: 'error',
                     title: 'Action Unavailable',
                     text: `The ${actionText} action is not available for this request.`,
-                    confirmButtonColor: 'var(--grammer-blue)'
+                    confirmButtonColor: 'var(--grammer-blue)',
+                    customClass: {
+                        popup: 'swal2-enhanced'
+                    }
                 });
                 return;
             }
@@ -1091,58 +1161,326 @@ try {
                         <div><strong>Order ID:</strong> #<?php echo $orderId; ?></div>
                         <div><strong>Action:</strong> <span style="color: ${config[action].color}; font-weight: 600;">${actionText.toUpperCase()}</span></div>
                         <div><strong>Approver:</strong> <?php echo htmlspecialchars($tokenData['approver_name']); ?></div>
+                        <div><strong>Date:</strong> ${new Date().toLocaleDateString()}</div>
                     </div>
                     <div style="background: #FEF3CD; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid var(--warning);">
-                        <strong>Important:</strong> This action cannot be undone.
+                        <strong>⚠️ Important:</strong> This action cannot be undone and will be permanently recorded.
                     </div>
                 `,
                 icon: config[action].icon,
                 showCancelButton: true,
                 confirmButtonColor: config[action].color,
                 cancelButtonColor: 'var(--gray-500)',
-                confirmButtonText: `Confirm ${actionText.charAt(0).toUpperCase() + actionText.slice(1)}`,
-                cancelButtonText: 'Cancel'
+                confirmButtonText: `✓ Confirm ${actionText.charAt(0).toUpperCase() + actionText.slice(1)}`,
+                cancelButtonText: '✕ Cancel',
+                customClass: {
+                    popup: 'swal2-enhanced',
+                    confirmButton: 'swal2-confirm-enhanced',
+                    cancelButton: 'swal2-cancel-enhanced'
+                }
             }).then((result) => {
                 if (result.isConfirmed) {
                     Swal.fire({
-                        title: 'Processing...',
+                        title: 'Processing Request...',
                         text: `Processing your ${actionText} request`,
                         allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        customClass: {
+                            popup: 'swal2-enhanced'
+                        },
                         didOpen: () => Swal.showLoading()
                     });
                     
+                    // Process action with slight delay for better UX
                     setTimeout(() => {
                         window.location.href = actionUrl;
-                    }, 1000);
+                    }, 1500);
                 }
             });
         };
 
-        // Enhanced PDF download 
+        // ===== ENHANCED PDF DOWNLOAD =====
         window.downloadPDF = async function() {
             try {
-                if (typeof html2canvas === 'undefined' || typeof window.jsPDF === 'undefined') {
-                    throw new Error('PDF libraries not loaded');
+                // Enhanced library availability check
+                const html2canvasAvailable = typeof html2canvas !== 'undefined';
+                const jsPDFAvailable = typeof window.jsPDF !== 'undefined' || 
+                                      (typeof window.jspdf !== 'undefined' && typeof window.jspdf.jsPDF !== 'undefined');
+                
+                console.log('📚 PDF Generation - Library check:', { 
+                    html2canvas: html2canvasAvailable, 
+                    jsPDF: jsPDFAvailable 
+                });
+                
+                if (!html2canvasAvailable) {
+                    throw new Error('html2canvas library not loaded - required for PDF generation');
+                }
+                
+                if (!jsPDFAvailable) {
+                    throw new Error('jsPDF library not loaded - required for PDF generation');
+                }
+                
+                // Normalize jsPDF reference if needed
+                if (typeof window.jsPDF === 'undefined' && typeof window.jspdf !== 'undefined') {
+                    window.jsPDF = window.jspdf.jsPDF;
                 }
 
+                // Show enhanced loading state
                 Swal.fire({
                     title: 'Generating PDF...',
-                    text: 'Creating your document',
+                    html: `
+                        <div style="margin: 1rem 0;">
+                            <div style="font-size: 0.9rem; color: var(--gray-600);">Creating your document</div>
+                            <div style="margin: 1rem 0; padding: 0.5rem; background: var(--gray-50); border-radius: 0.5rem;">
+                                <div style="font-size: 0.8rem; color: var(--gray-500);">Order #<?php echo $orderId; ?></div>
+                            </div>
+                        </div>
+                    `,
                     allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    customClass: {
+                        popup: 'swal2-enhanced'
+                    },
                     didOpen: () => Swal.showLoading()
                 });
 
                 const orderData = window.allOrders[0];
                 
-                // Usar la función de svgOrders.js
-                const fileName = await window.generatePDF(orderData, `Grammer_PF_Order_${orderData.id}`);
+                // === IMPLEMENT THE SAME LOGIC AS YOUR generatePDF FUNCTION ===
                 
+                // Step 1: Prepare SVG in off-screen container
+                const response = await fetch('<?php echo URLPF; ?>PremiumFreight.svg');
+                if (!response.ok) throw new Error(`Error HTTP! estado: ${response.status}`);
+                
+                const svgText = await response.text();
+                const container = document.createElement('div');
+                
+                // Configure container for PDF generation
+                container.style.width = '816px';
+                container.style.height = '1056px';
+                container.style.position = 'absolute';
+                container.style.left = '-9999px';
+                container.style.backgroundColor = 'white';
+                container.innerHTML = svgText;
+
+                // SVG mapping (same as in svgOrders.js)
+                const svgMap = {
+                    'RequestingPlantValue': 'planta',
+                    'PlantCodeValue': 'code_planta',
+                    'DateValue': 'date', 
+                    'TransportValue': 'transport',
+                    'InOutBoundValue': 'in_out_bound',
+                    'CostInEurosValue': 'cost_euros',
+                    'AreaOfResponsabilityValue': 'area',
+                    'InExtValue': 'int_ext',
+                    'CostPaidByValue': 'paid_by',
+                    'RootCauseValue': 'category_cause',
+                    'ProjectStatusValue': 'project_status',
+                    'RecoveryValue': 'recovery',
+                    'DescriptionAndRootCauseValue': 'description',
+                    'IssuerValue': 'creator_name',
+                    'PlantManagerValue': '',
+                    'SeniorManagerValue': '',
+                    'ManagerOPSDivisionValue': '',
+                    'SRVPRegionalValue': '',
+                    'CompanyNameShipValue': 'origin_company_name',
+                    'CityShipValue': 'origin_city',
+                    'StateShipValue': 'origin_state',
+                    'ZIPShipValue': 'origin_zip',
+                    'CompanyNameDestValue': 'destiny_company_name',
+                    'CityDestValue': 'destiny_city',
+                    'StateDestValue': 'destiny_state',
+                    'ZIPDestValue': 'destiny_zip',
+                    'WeightValue': (order) => {
+                        const getMeasureAbbreviation = (measure) => {
+                            if (!measure) return '';
+                            switch (measure.toUpperCase()) {
+                                case 'KILOS': return 'KG';
+                                case 'LIBRAS': return 'LB';
+                                default: return measure;
+                            }
+                        };
+                        const measureAbbr = getMeasureAbbreviation(order.measures);
+                        return `${order.weight || '0'} ${measureAbbr}`;
+                    },
+                    'ProductValue': 'products',
+                    'CarrierNameValue': 'carrier',
+                    'QuotedCostValue': (order) => `$ ${order.quoted_cost || '0'} ${order.moneda || 'MXN'}`,
+                    'ReferenceNumberValue': 'reference_number',
+                };
+
+                // Format date function
+                const formatDate = (dateString) => {
+                    if (!dateString) return '';
+                    try {
+                        const date = new Date(dateString);
+                        if (isNaN(date.getTime())) return dateString; 
+                        return date.toLocaleDateString('en-US', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                        });
+                    } catch (e) {
+                        console.error("Error al formatear la fecha:", dateString, e);
+                        return dateString;
+                    }
+                };
+
+                // Populate the SVG fields with order data
+                for (const [svgId, orderKey] of Object.entries(svgMap)) {
+                    const element = container.querySelector(`#${svgId}`);
+                    if (element) {
+                        if (svgId === 'DateValue') {
+                            element.textContent = formatDate(orderData.date);
+                        } else if (typeof orderKey === 'function') {
+                            element.textContent = orderKey(orderData);
+                        } else {
+                            element.textContent = orderData[orderKey] || '';
+                        }
+                    }
+                }
+
+                // Add the container to the DOM
+                document.body.appendChild(container);
+                
+                // Apply text wrapping for PDF generation
+                const descriptionElement = container.querySelector('#DescriptionAndRootCauseValue');
+                if (descriptionElement) {
+                    const tempTextElement = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                    Array.from(descriptionElement.attributes).forEach(attr => {
+                        tempTextElement.setAttribute(attr.name, attr.value);
+                    });
+                    
+                    tempTextElement.textContent = orderData.description || '';
+                    descriptionElement.parentNode.replaceChild(tempTextElement, descriptionElement);
+                    
+                    const text = tempTextElement.textContent.trim();
+                    if (text) {
+                        const x = tempTextElement.getAttribute("x");
+                        const y = tempTextElement.getAttribute("y");
+                        const fontSize = parseFloat(tempTextElement.style.fontSize || "3.175px");
+                        const lineHeight = fontSize * 1.3;
+                        
+                        tempTextElement.textContent = "";
+                        
+                        const maxCharsPerLine = 101;
+                        const words = text.split(/\s+/);
+                        let currentLine = "";
+                        let firstLine = true;
+                        
+                        words.forEach(word => {
+                            if ((currentLine + " " + word).length > maxCharsPerLine && currentLine.length > 0) {
+                                const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+                                tspan.setAttribute("x", x);
+                                if (firstLine) {
+                                    firstLine = false;
+                                } else {
+                                    tspan.setAttribute("dy", `${lineHeight}px`);
+                                }
+                                tspan.textContent = currentLine;
+                                tempTextElement.appendChild(tspan);
+                                currentLine = word;
+                            } else {
+                                if (currentLine.length > 0) {
+                                    currentLine += " " + word;
+                                } else {
+                                    currentLine = word;
+                                }
+                            }
+                        });
+                        
+                        if (currentLine.length > 0) {
+                            const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+                            tspan.setAttribute("x", x);
+                            if (!firstLine) {
+                                tspan.setAttribute("dy", `${lineHeight}px`);
+                            }
+                            tspan.textContent = currentLine;
+                            tempTextElement.appendChild(tspan);
+                        }
+                    }
+                }
+                
+                // Step 2: Small pause to ensure rendering completes
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                // Step 3: Convert to canvas
+                const canvas = await html2canvas(container, {
+                    scale: 2,
+                    logging: false,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: 'white'
+                });
+                
+                // Step 4: Create PDF with the same logic
+                let pdf;
+                if (typeof window.jspdf !== 'undefined' && window.jspdf.jsPDF) {
+                    // Versión nueva de jsPDF (3.x+)
+                    pdf = new window.jspdf.jsPDF({
+                        orientation: 'portrait',
+                        unit: 'pt',
+                        format: 'letter'
+                    });
+                } else if (typeof window.jsPDF !== 'undefined') {
+                    // Versión antigua de jsPDF (2.x)
+                    pdf = new window.jsPDF({
+                        orientation: 'portrait',
+                        unit: 'pt',
+                        format: 'letter'
+                    });
+                } else {
+                    throw new Error('jsPDF library not available');
+                }
+                
+                // Step 5: Calculate scale factor to fit the page
+                const pageWidth = 612;
+                const pageHeight = 792;
+                const imgWidth = canvas.width;
+                const imgHeight = canvas.height;
+                
+                // Calculate scale to fit page width with 40pt margin
+                let scale = (pageWidth - 80) / imgWidth;
+                
+                // If scaled height exceeds page height, adjust by height
+                if (imgHeight * scale > (pageHeight - 80)) {
+                    scale = (pageHeight - 80) / imgHeight;
+                }
+                
+                // Centered coordinates
+                const xPos = (pageWidth - imgWidth * scale) / 2;
+                const yPos = (pageHeight - imgHeight * scale) / 2;
+                
+                // Step 6: Add image to PDF with adjusted size
+                const imgData = canvas.toDataURL('image/png');
+                pdf.addImage(imgData, 'PNG', xPos, yPos, imgWidth * scale, imgHeight * scale);
+                
+                // Step 7: Save the PDF
+                const fileName = `Grammer_PF_Order_${orderData.id}.pdf`;
+                pdf.save(fileName);
+                
+                // Step 8: Clean up - remove the container
+                if (container && container.parentNode) {
+                    document.body.removeChild(container);
+                }
+                
+                // Show success message
                 Swal.fire({
                     icon: 'success',
                     title: 'Download Complete!',
-                    text: `Document saved as: ${fileName}`,
-                    timer: 3000,
-                    timerProgressBar: true
+                    html: `
+                        <div style="margin: 1rem 0;">
+                            <div style="font-size: 0.9rem; color: var(--gray-600);">Document saved successfully</div>
+                            <div style="margin: 1rem 0; padding: 0.5rem; background: var(--gray-50); border-radius: 0.5rem;">
+                                <div style="font-size: 0.8rem; color: var(--gray-500); font-family: monospace;">${fileName}</div>
+                            </div>
+                        </div>
+                    `,
+                    timer: 4000,
+                    timerProgressBar: true,
+                    customClass: {
+                        popup: 'swal2-enhanced'
+                    }
                 });
                 
             } catch (error) {
@@ -1151,13 +1489,33 @@ try {
                 Swal.fire({
                     icon: 'error',
                     title: 'Download Failed',
-                    text: 'Could not generate PDF. Please try refreshing the page.',
-                    confirmButtonText: 'Refresh Page'
+                    html: `
+                        <div style="margin: 1rem 0;">
+                            <div style="font-size: 0.9rem; color: var(--gray-600);">Could not generate PDF document</div>
+                            <div style="margin: 1rem 0; padding: 0.5rem; background: #FEF2F2; border-radius: 0.5rem; border-left: 4px solid var(--danger);">
+                                <div style="font-size: 0.8rem; color: var(--danger);">${error.message}</div>
+                            </div>
+                        </div>
+                    `,
+                    confirmButtonText: '🔄 Refresh Page',
+                    confirmButtonColor: 'var(--grammer-blue)',
+                    customClass: {
+                        popup: 'swal2-enhanced'
+                    }
                 }).then(() => location.reload());
             }
         };
 
-        // Initialize when DOM is ready
+        // ===== GLOBAL ERROR HANDLER =====
+        window.addEventListener('error', function(event) {
+            console.error('💥 Global error caught:', event.error);
+        });
+
+        window.addEventListener('unhandledrejection', function(event) {
+            console.error('💥 Unhandled promise rejection:', event.reason);
+        });
+
+        // ===== INITIALIZE APPLICATION WHEN DOM IS READY =====
         document.addEventListener('DOMContentLoaded', initializeApp);
     </script>
 </body>
