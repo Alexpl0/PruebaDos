@@ -33,7 +33,7 @@ class PFMailer {
     
     // CONFIGURACIÓN DE TESTING - CAMBIAR ANTES DE PRODUCCIÓN
     private $testingMode = true; // Cambiar a false para producción
-    private $testingEmail = 'premium_freight@grammermx.com'; // Email de pruebas
+    private $testingEmail = 'extern.jesus.perez@grammer.com'; // Email de pruebas
 
     /**
      * Constructor - inicializa PHPMailer y las dependencias

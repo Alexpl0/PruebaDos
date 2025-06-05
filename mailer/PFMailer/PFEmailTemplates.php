@@ -267,7 +267,7 @@ class PFEmailTemplates {
         $approverName = htmlspecialchars($approver['name'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
         
         // Generar filas de órdenes con nueva URL de visualización
-        $orderRows = $this->generateOrderRowsUpdated($orders, $approver['id']);
+        $orderRows = $this->generateOrderRowsUpdated($orders, $approver['id'] ?? 0);
 
         return '<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -819,27 +819,49 @@ class PFEmailTemplates {
     /**
      * Generate HTML rows for updated orders in weekly summary
      * @param array $orders Array of order data
+     * @param int $approverId ID del aprobador para generar tokens
      * @return string HTML table rows
      */
-    public function generateOrderRowsUpdated($orders) {
+    public function generateOrderRowsUpdated($orders, $approverId = 0) {
         $rows = '';
         
         if (empty($orders)) {
-            return '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #666;">No hay órdenes actualizadas esta semana</td></tr>';
+            return '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #666; font-family: Georgia, serif;">No orders found</td></tr>';
         }
         
+        $rowCount = 0;
         foreach ($orders as $order) {
-            $statusClass = $this->getStatusClass($order['status'] ?? '');
-            $statusText = $this->getStatusText($order['status'] ?? '');
+            $rowCount++;
+            $rowBgColor = ($rowCount % 2 === 0) ? '#f8fafc' : '#ffffff';
             
-            $rows .= '<tr>';
-            $rows .= '<td style="padding: 12px; border-bottom: 1px solid #ddd;">' . htmlspecialchars($order['id'] ?? '') . '</td>';
-            $rows .= '<td style="padding: 12px; border-bottom: 1px solid #ddd;">' . htmlspecialchars($order['customer_name'] ?? '') . '</td>';
-            $rows .= '<td style="padding: 12px; border-bottom: 1px solid #ddd;">' . htmlspecialchars($order['origin'] ?? '') . '</td>';
-            $rows .= '<td style="padding: 12px; border-bottom: 1px solid #ddd;">' . htmlspecialchars($order['destination'] ?? '') . '</td>';
-            $rows .= '<td style="padding: 12px; border-bottom: 1px solid #ddd;"><span class="status-badge ' . $statusClass . '">' . $statusText . '</span></td>';
-            $rows .= '<td style="padding: 12px; border-bottom: 1px solid #ddd;">' . htmlspecialchars($order['updated_date'] ?? '') . '</td>';
-            $rows .= '</tr>';
+            // Formatear datos de manera segura
+            $costFormatted = number_format((float)($order['cost_euros'] ?? 0), 2);
+            $createdDate = date('M d', strtotime($order['date'] ?? 'now'));
+            $orderDescription = htmlspecialchars($order['description'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
+            $plantaName = htmlspecialchars($order['planta'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
+            
+            // Generar tokens usando el método privado de esta clase
+            $approveToken = $this->generateActionToken($order['id'], $approverId, 'approve');
+            $rejectToken = $this->generateActionToken($order['id'], $approverId, 'reject');
+            
+            // URLs para acciones
+            $approveUrl = $this->baseUrl . "PFmailSingleAction.php?action=approve&token=" . $approveToken;
+            $rejectUrl = $this->baseUrl . "PFmailSingleAction.php?action=reject&token=" . $rejectToken;
+            $viewUrl = $this->baseUrl . "view_order.php?order=" . $order['id'] . "&token=" . $approveToken;
+            
+            $rows .= '
+            <tr style="background-color: ' . $rowBgColor . ';">
+                <td class="order-id" style="text-align: center; color: #034C8C; font-weight: 700; font-family: Georgia, serif; padding: 12px 8px; border-bottom: 1px solid #e2e8f0;">#' . $order['id'] . '</td>
+                <td class="order-desc" style="color: #374151; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: Georgia, serif; padding: 12px 8px; border-bottom: 1px solid #e2e8f0;" title="' . $orderDescription . '">' . $orderDescription . '</td>
+                <td class="order-area" style="color: #6b7280; font-family: Georgia, serif; padding: 12px 8px; border-bottom: 1px solid #e2e8f0; text-align: center;">' . $plantaName . '</td>
+                <td class="order-cost" style="color: #059669; font-weight: 700; text-align: center; font-family: Georgia, serif; padding: 12px 8px; border-bottom: 1px solid #e2e8f0;">€' . $costFormatted . '</td>
+                <td class="order-date" style="color: #9ca3af; font-size: 11px; text-align: center; font-family: Georgia, serif; padding: 12px 8px; border-bottom: 1px solid #e2e8f0;">' . $createdDate . '</td>
+                <td class="order-actions" style="text-align: center; padding: 12px 8px; border-bottom: 1px solid #e2e8f0;">
+                    <a href="' . $viewUrl . '" style="display: block; padding: 6px 10px; background-color: #1e40af !important; color: #ffffff !important; text-decoration: none; border-radius: 4px; font-size: 9px; font-weight: bold; margin-bottom: 3px; text-transform: uppercase; border: 1px solid #1d4ed8; font-family: Georgia, serif;">VIEW</a>
+                    <a href="' . $approveUrl . '" style="display: block; padding: 6px 10px; background-color: #059669 !important; color: #ffffff !important; text-decoration: none; border-radius: 4px; font-size: 9px; font-weight: bold; margin-bottom: 3px; text-transform: uppercase; border: 1px solid #047857; font-family: Georgia, serif;">APPROVE</a>
+                    <a href="' . $rejectUrl . '" style="display: block; padding: 6px 10px; background-color: #dc2626 !important; color: #ffffff !important; text-decoration: none; border-radius: 4px; font-size: 9px; font-weight: bold; text-transform: uppercase; border: 1px solid #b91c1c; font-family: Georgia, serif;">REJECT</a>
+                </td>
+            </tr>';
         }
         
         return $rows;
