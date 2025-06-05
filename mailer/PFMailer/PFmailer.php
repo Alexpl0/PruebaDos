@@ -57,7 +57,7 @@ class PFMailer {
         $this->mail->Port = 465;
         $this->mail->SMTPAuth = true;
         $this->mail->Username = 'premium_freight@grammermx.com';
-        $this->mail->Password = 'FreightSystem2025.';
+        $this->mail->Password = 'Freight.System2025';
         $this->mail->SMTPSecure = 'ssl';
         
         // 6. Configurar formato HTML y codificación de caracteres
@@ -66,8 +66,8 @@ class PFMailer {
         
         // 7. Configurar el remitente y destinatarios en copia oculta
         $this->mail->setFrom('premium_freight@grammermx.com', 'Premium Freight System');
-        $this->mail->addBCC('extern.jesus.perez@grammer.com', 'Jesús Pérez');
         $this->mail->addBCC('premium_freight@grammermx.com', 'Premium Freight System');
+        $this->mail->addBCC('hadbet.altamirano@grammer.com', 'Hadbet Altamirano');
     }
 
     /**

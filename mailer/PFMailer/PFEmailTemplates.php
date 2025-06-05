@@ -817,6 +817,80 @@ class PFEmailTemplates {
     }
 
     /**
+     * Generate HTML rows for updated orders in weekly summary
+     * @param array $orders Array of order data
+     * @return string HTML table rows
+     */
+    public function generateOrderRowsUpdated($orders) {
+        $rows = '';
+        
+        if (empty($orders)) {
+            return '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #666;">No hay órdenes actualizadas esta semana</td></tr>';
+        }
+        
+        foreach ($orders as $order) {
+            $statusClass = $this->getStatusClass($order['status'] ?? '');
+            $statusText = $this->getStatusText($order['status'] ?? '');
+            
+            $rows .= '<tr>';
+            $rows .= '<td style="padding: 12px; border-bottom: 1px solid #ddd;">' . htmlspecialchars($order['id'] ?? '') . '</td>';
+            $rows .= '<td style="padding: 12px; border-bottom: 1px solid #ddd;">' . htmlspecialchars($order['customer_name'] ?? '') . '</td>';
+            $rows .= '<td style="padding: 12px; border-bottom: 1px solid #ddd;">' . htmlspecialchars($order['origin'] ?? '') . '</td>';
+            $rows .= '<td style="padding: 12px; border-bottom: 1px solid #ddd;">' . htmlspecialchars($order['destination'] ?? '') . '</td>';
+            $rows .= '<td style="padding: 12px; border-bottom: 1px solid #ddd;"><span class="status-badge ' . $statusClass . '">' . $statusText . '</span></td>';
+            $rows .= '<td style="padding: 12px; border-bottom: 1px solid #ddd;">' . htmlspecialchars($order['updated_date'] ?? '') . '</td>';
+            $rows .= '</tr>';
+        }
+        
+        return $rows;
+    }
+
+    /**
+     * Get CSS class for order status
+     * @param string $status Order status
+     * @return string CSS class name
+     */
+    private function getStatusClass($status) {
+        switch (strtolower($status)) {
+            case 'approved':
+            case 'completed':
+                return 'status-success';
+            case 'pending':
+            case 'in_progress':
+                return 'status-warning';
+            case 'rejected':
+            case 'cancelled':
+                return 'status-error';
+            default:
+                return 'status-default';
+        }
+    }
+
+    /**
+     * Get display text for order status
+     * @param string $status Order status
+     * @return string Display text
+     */
+    private function getStatusText($status) {
+        switch (strtolower($status)) {
+            case 'approved':
+                return 'Aprobado';
+            case 'pending':
+                return 'Pendiente';
+            case 'rejected':
+                return 'Rechazado';
+            case 'completed':
+                return 'Completado';
+            case 'in_progress':
+                return 'En Progreso';
+            case 'cancelled':
+                return 'Cancelado';
+            default:
+                return ucfirst($status);
+        }
+    }
+
+    /**
      * Genera las filas de órdenes para el resumen semanal
      */
     private function generateOrderRows($orders, $approverId) {
