@@ -1,5 +1,4 @@
 <?php
-<?php
 /**
  * view_bulk_orders.php - Visualizador de múltiples órdenes para aprobación
  * Interfaz para revisar y procesar múltiples órdenes desde correos semanales
