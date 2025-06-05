@@ -30,6 +30,10 @@ class PFMailer {
     private $templates;
     private $baseUrl;
     private $db; // Agregar esta propiedad
+    
+    // CONFIGURACIÓN DE TESTING - CAMBIAR ANTES DE PRODUCCIÓN
+    private $testingMode = true; // Cambiar a false para producción
+    private $testingEmail = 'premium_freight@grammermx.com'; // Email de pruebas
 
     /**
      * Constructor - inicializa PHPMailer y las dependencias
@@ -56,8 +60,8 @@ class PFMailer {
         $this->mail->Host = 'smtp.hostinger.com'; 
         $this->mail->Port = 465;
         $this->mail->SMTPAuth = true;
-        $this->mail->Username = 'premium_freight@grammermx.com';
-        $this->mail->Password = 'Freight.System2025';
+        $this->mail->Username = 'pruebasjesus@grammermx.com';
+        $this->mail->Password = 'FreightSystem.2025';
         $this->mail->SMTPSecure = 'ssl';
         
         // 6. Configurar formato HTML y codificación de caracteres
@@ -65,9 +69,32 @@ class PFMailer {
         $this->mail->CharSet = 'UTF-8';
         
         // 7. Configurar el remitente y destinatarios en copia oculta
-        $this->mail->setFrom('premium_freight@grammermx.com', 'Premium Freight System');
-        $this->mail->addBCC('premium_freight@grammermx.com', 'Premium Freight System');
-        $this->mail->addBCC('hadbet.altamirano@grammer.com', 'Hadbet Altamirano');
+        $this->mail->setFrom('pruebasjesus@grammermx.com', 'Premium Freight System');
+        
+        // MODO TESTING: Solo BCC a testing email
+        if ($this->testingMode) {
+            $this->mail->addBCC($this->testingEmail, 'Premium Freight Testing');
+        } else {
+            // PRODUCCIÓN: BCCs originales (comentado para testing)
+            // $this->mail->addBCC('pruebasjesus@grammermx.com', 'Premium Freight System');
+            // $this->mail->addBCC('hadbet.altamirano@grammer.com', 'Hadbet Altamirano');
+        }
+    }
+
+    /**
+     * Método helper para configurar destinatarios según el modo (testing/producción)
+     */
+    private function setEmailRecipient($email, $name, $originalInfo = null) {
+        if ($this->testingMode) {
+            // MODO TESTING: Todos los correos van a testing email
+            $this->mail->addAddress($this->testingEmail, 'Premium Freight Testing');
+            
+            // Log para saber a quién se habría enviado originalmente
+            logAction("TESTING MODE: Email redirected to {$this->testingEmail} (original: {$name} <{$email}>)", 'TESTING');
+        } else {
+            // MODO PRODUCCIÓN: Usar email real del destinatario
+            $this->mail->addAddress($email, $name);
+        }
     }
 
     /**
@@ -103,7 +130,10 @@ class PFMailer {
                     
                     // Preparar el correo
                     $this->mail->clearAddresses();
-                    $this->mail->addAddress($approver['email'], $approver['name']);
+                    
+                    // TESTING/PRODUCCIÓN: Configurar destinatario
+                    $this->setEmailRecipient($approver['email'], $approver['name']);
+                    
                     $this->mail->Subject = "Premium Freight - Approval Required #$orderId";
                     
                     // Generar contenido HTML
@@ -173,7 +203,10 @@ class PFMailer {
                     $emailBody = $this->templates->getWeeklySummaryTemplate($userOrders, $approver, $approveAllToken, $rejectAllToken);
                     
                     $this->mail->clearAddresses();
-                    $this->mail->addAddress($approver['email'], $approver['name']);
+                    
+                    // TESTING/PRODUCCIÓN: Configurar destinatario
+                    $this->setEmailRecipient($approver['email'], $approver['name']);
+                    
                     $this->mail->Subject = "Weekly Premium Freight Summary - " . count($userOrders) . " Orders Pending Approval";
                     $this->mail->Body = $emailBody;
                     
@@ -233,7 +266,10 @@ class PFMailer {
             
             // 5. Configurar y enviar el correo
             $this->mail->clearAddresses();
-            $this->mail->addAddress($creator['email'], $creator['name']);
+            
+            // TESTING/PRODUCCIÓN: Configurar destinatario
+            $this->setEmailRecipient($creator['email'], $creator['name']);
+            
             $this->mail->Subject = $subject;
             $this->mail->Body = $emailBody;
             
@@ -359,7 +395,10 @@ class PFMailer {
                     $emailBody = $this->templates->getRecoveryCheckTemplate($userInfo['user'], $userInfo['orders']);
                     
                     $this->mail->clearAddresses();
-                    $this->mail->addAddress($userInfo['user']['email'], $userInfo['user']['name']);
+                    
+                    // TESTING/PRODUCCIÓN: Configurar destinatario
+                    $this->setEmailRecipient($userInfo['user']['email'], $userInfo['user']['name']);
+                    
                     $this->mail->Subject = "Premium Freight - Recovery Evidence Required";
                     $this->mail->Body = $emailBody;
                     
@@ -411,6 +450,21 @@ class PFMailer {
         } catch (Exception $e) {
             throw new Exception("SMTP connection failed: " . $e->getMessage());
         }
+    }
+
+    /**
+     * Método para cambiar entre modo testing y producción
+     */
+    public function setTestingMode($enabled) {
+        $this->testingMode = $enabled;
+        return $this;
+    }
+
+    /**
+     * Método para obtener el estado actual del modo testing
+     */
+    public function isTestingMode() {
+        return $this->testingMode;
     }
 }
 ?>
