@@ -89,7 +89,7 @@ main {
 
 .card-body {
     flex: 1 1 auto;
-    padding: 1rem 1rem 0 1rem; /* top right bottom left - quitamos el padding inferior */
+    padding: 0 1rem 0 1rem; /* top right bottom left - quitamos el padding inferior */
 }
 
 /* === ESTILOS GENERALES PARA MODALES === */

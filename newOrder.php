@@ -434,5 +434,48 @@ include_once 'dao/users/auth_check.php';
     <script src="js/carrierSelect.js"></script>
     <script src="js/addCarrier.js"></script>
     <script src="js/selectConfig.js"></script>  
+    <!-- Add this just before the closing </body> tag -->
+    <script>
+        // Debug script for recovery file container visibility
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("Debug script loaded");
+            
+            // Add a manual test button
+            const testButton = document.createElement('button');
+            testButton.textContent = "Test Recovery Visibility";
+            testButton.style.marginTop = "20px";
+            testButton.className = "btn btn-secondary";
+            testButton.onclick = function() {
+                console.log("Manual test triggered");
+                const select = document.getElementById('Recovery');
+                const container = document.getElementById('recoveryFileContainer');
+                
+                console.log("Recovery select:", select);
+                console.log("Container:", container);
+                
+                if (select && container) {
+                    console.log("Recovery options:", Array.from(select.options).map(o => ({
+                        text: o.text,
+                        value: o.value,
+                        selected: o.selected
+                    })));
+                    console.log("Current container display:", container.style.display);
+                    
+                    if (typeof handleRecoveryFileVisibility === 'function') {
+                        handleRecoveryFileVisibility();
+                        console.log("Visibility handler called, new display:", container.style.display);
+                    } else {
+                        console.error("handleRecoveryFileVisibility function not available");
+                    }
+                }
+            };
+            
+            // Add the button at the bottom of the form
+            const form = document.getElementById('plant-form');
+            if (form) {
+                form.appendChild(testButton);
+            }
+        });
+    </script>
 </body>
 </html>
