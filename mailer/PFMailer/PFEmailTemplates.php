@@ -7,8 +7,8 @@
  * semanales y actualizaciones de estado.
  * 
  * @author GRAMMER AG
- * @version 2.1
- * @since 2025-06-02
+ * @version 2.2
+ * @since 2025-06-05
  */
 
 class PFEmailTemplates {
@@ -251,12 +251,15 @@ class PFEmailTemplates {
     }
 
     /**
-     * Plantilla para correo resumen semanal - actualizar URLs
+     * Plantilla para correo resumen semanal - ACTUALIZADA con nuevas URLs
      */
     public function getWeeklySummaryTemplate($orders, $approver, $approveAllToken, $rejectAllToken) {
-        // URLs para acciones en bloque (mantener como están)
+        // URLs para acciones en bloque
         $approveAllUrl = $this->baseUrl . "PFmailBulkAction.php?action=approve&token=$approveAllToken";
         $rejectAllUrl = $this->baseUrl . "PFmailBulkAction.php?action=reject&token=$rejectAllToken";
+        
+        // NUEVA URL: Para ver todas las órdenes en modo bulk
+        $viewAllOrdersUrl = $this->baseUrl . "view_bulk_orders.php?user=" . $approver['id'] . "&token=$approveAllToken";
         
         // Calcular estadísticas
         $totalOrders = count($orders);
@@ -267,7 +270,7 @@ class PFEmailTemplates {
         $approverName = htmlspecialchars($approver['name'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
         
         // Generar filas de órdenes con nueva URL de visualización
-        $orderRows = $this->generateOrderRowsUpdated($orders, $approver['id']);
+        $orderRows = $this->generateOrderRows($orders, $approver['id']);
 
         return '<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -287,7 +290,7 @@ class PFEmailTemplates {
         .stats-card { background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border: 1px solid #cbd5e1; border-radius: 8px; padding: 24px; margin: 20px 0; }
         .stats-title { color: #0f172a; margin: 0 0 20px 0; font-size: 16px; font-weight: 700; border-bottom: 2px solid #034C8C; padding-bottom: 8px; font-family: Georgia, serif; }
         
-        /* Nuevo CSS para estadísticas en una fila */
+        /* Estadísticas en una fila */
         .stats-row { width: 100%; }
         .stats-row table { width: 100%; border-collapse: collapse; }
         .stats-cell { width: 33.33%; text-align: center; padding: 0 15px; vertical-align: top; }
@@ -299,194 +302,81 @@ class PFEmailTemplates {
         .bulk-actions { background-color: #ffffff; border: 2px solid #e2e8f0; border-radius: 8px; padding: 24px; margin: 24px 0; text-align: center; }
         .bulk-title { color: #1e293b; margin: 0 0 12px 0; font-size: 16px; font-weight: 700; font-family: Georgia, serif; }
         .bulk-subtitle { color: #6b7280; margin: 0 0 20px 0; font-size: 13px; font-family: Georgia, serif; }
-        .bulk-button { 
-            display: inline-block; 
-            padding: 14px 24px; 
-            text-decoration: none; 
-            font-weight: bold; 
-            border-radius: 6px;
-            margin: 0 6px;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            border: 2px solid transparent;
-            font-family: Georgia, serif;
-        }
-        .approve-all-btn { 
-            background-color: #059669 !important; 
-            color: #ffffff !important; 
-            border-color: #047857 !important;
-        }
-        .reject-all-btn { 
-            background-color: #dc2626 !important; 
-            color: #ffffff !important; 
-            border-color: #b91c1c !important;
-        }
+        .bulk-button { display: inline-block; margin: 0 8px; padding: 14px 28px; font-size: 14px; font-weight: 600; text-decoration: none; border-radius: 6px; transition: all 0.2s ease; font-family: Georgia, serif; }
+        .approve-all-btn { background-color: #059669; color: #ffffff; border: 2px solid #059669; }
+        .approve-all-btn:hover { background-color: #047857; border-color: #047857; }
+        .reject-all-btn { background-color: #dc2626; color: #ffffff; border: 2px solid #dc2626; }
+        .reject-all-btn:hover { background-color: #b91c1c; border-color: #b91c1c; }
+        /* NUEVO: Botón para ver todas las órdenes */
+        .view-all-btn { background-color: #034C8C; color: #ffffff; border: 2px solid #034C8C; }
+        .view-all-btn:hover { background-color: #023b6a; border-color: #023b6a; }
         .bulk-warning { color: #6b7280; font-size: 11px; margin: 12px 0 0 0; font-family: Georgia, serif; }
         .orders-section { margin: 30px 0; }
         .section-title { color: #1e293b; margin: 0 0 12px 0; font-size: 16px; font-weight: 700; font-family: Georgia, serif; }
-        .section-subtitle { color: #6b7280; margin: 0 0 16px 0; font-size: 13px; font-family: Georgia, serif; }
-        .orders-table { width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; }
-        .orders-table th { 
-            background-color: #034C8C; 
-            color: #ffffff; 
-            padding: 12px 8px; 
-            text-align: left; 
-            font-size: 11px; 
-            font-weight: 700; 
-            text-transform: uppercase;
-            font-family: Georgia, serif;
-        }
-        .orders-table td { padding: 12px 8px; border-bottom: 1px solid #e2e8f0; font-size: 12px; font-family: Georgia, serif; }
-        .order-id { color: #034C8C; font-weight: 700; text-align: center; font-family: Georgia, serif; }
-        .order-desc { color: #374151; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: Georgia, serif; }
-        .order-area { color: #6b7280; font-family: Georgia, serif; }
-        .order-cost { color: #059669; font-weight: 700; text-align: center; font-family: Georgia, serif; }
-        .order-date { color: #9ca3af; font-size: 11px; text-align: center; font-family: Georgia, serif; }
-        .order-actions { text-align: center; }
-        .order-btn { 
-            display: block; 
-            padding: 6px 10px; 
-            text-decoration: none; 
-            border-radius: 4px; 
-            font-size: 9px; 
-            font-weight: bold; 
-            margin-bottom: 3px;
-            text-transform: uppercase;
-            border: 1px solid transparent;
-            font-family: Georgia, serif;
-        }
-        .order-approve { 
-            background-color: #059669 !important; 
-            color: #ffffff !important; 
-            border-color: #047857 !important;
-        }
-        .order-reject { 
-            background-color: #dc2626 !important; 
-            color: #ffffff !important; 
-            border-color: #b91c1c !important;
-        }
-        .order-view { 
-            background-color: #1e40af !important; 
-            color: #ffffff !important; 
-            border-color: #1d4ed8 !important;
-        }
-        .info-box { background-color: #dbeafe; border: 1px solid #93c5fd; border-radius: 6px; padding: 16px; margin: 24px 0; }
-        .info-text { margin: 0; color: #1e3a8a; font-size: 12px; line-height: 1.4; font-family: Georgia, serif; }
-        .footer { background-color: #f8fafc; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0; }
-        .footer-text { color: #6b7280; margin: 0 0 6px 0; font-size: 11px; font-family: Georgia, serif; }
-        .footer-copyright { color: #9ca3af; margin: 0; font-size: 10px; font-family: Georgia, serif; }
     </style>
 </head>
 <body>
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f4f4f4;">
         <tr>
-            <td style="padding: 20px 0;">
-                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="850" class="email-container" style="margin: 0 auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" align="center">
-                    
+            <td align="center">
+                <div class="email-container">
                     <!-- Header -->
-                    <tr>
-                        <td class="header" style="border-radius: 8px 8px 0 0; background-color: #034C8C;">
-                            <h1 style="font-family: Georgia, serif; color: #ffffff; margin: 0 0 8px 0; font-size: 24px; font-weight: 700;">Weekly Premium Freight Summary</h1>
-                            <p class="header-subtitle" style="font-family: Georgia, serif;">Hello ' . $approverName . ', you have <strong>' . $totalOrders . '</strong> orders pending your approval</p>
-                            <p class="header-date" style="font-family: Georgia, serif;">Week ending: ' . date('F d, Y') . '</p>
-                        </td>
-                    </tr>
-                    
+                    <div class="header">
+                        <h1>Weekly Premium Freight Summary</h1>
+                        <div class="header-subtitle">Pending Approvals for ' . $approverName . '</div>
+                        <div class="header-date">' . date('F j, Y') . '</div>
+                    </div>
+
                     <!-- Content -->
-                    <tr>
-                        <td class="content" style="font-family: Georgia, serif;">
-                            
-                            <!-- Statistics - Nueva estructura en una fila -->
-                            <div class="stats-card">
-                                <h3 class="stats-title" style="font-family: Georgia, serif;">Summary Statistics</h3>
-                                <div class="stats-row">
-                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 100%; border-collapse: collapse;">
-                                        <tr>
-                                            <td class="stats-cell" style="width: 33.33%; text-align: center; padding: 0 15px; vertical-align: top;">
-                                                <div class="stat-box">
-                                                    <div class="stat-label" style="font-family: Georgia, serif;">Total Orders</div>
-                                                    <div class="stat-value" style="font-family: Georgia, serif;">' . $totalOrders . '</div>
-                                                </div>
-                                            </td>
-                                            <td class="stats-cell" style="width: 33.33%; text-align: center; padding: 0 15px; vertical-align: top;">
-                                                <div class="stat-box">
-                                                    <div class="stat-label" style="font-family: Georgia, serif;">Total Value</div>
-                                                    <div class="stat-value cost" style="font-family: Georgia, serif;">EUR ' . number_format($totalCost, 2) . '</div>
-                                                </div>
-                                            </td>
-                                            <td class="stats-cell" style="width: 33.33%; text-align: center; padding: 0 15px; vertical-align: top;">
-                                                <div class="stat-box">
-                                                    <div class="stat-label" style="font-family: Georgia, serif;">Average Order Value</div>
-                                                    <div class="stat-value" style="font-family: Georgia, serif;">EUR ' . number_format($avgCost, 2) . '</div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </div>
-                            </div>
-                            
-                            <!-- Bulk Actions -->
-                            <div class="bulk-actions">
-                                <h3 class="bulk-title" style="font-family: Georgia, serif;">Quick Actions</h3>
-                                <p class="bulk-subtitle" style="font-family: Georgia, serif;">Process all orders at once with a single click:</p>
-                                
-                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
+                    <div class="content">
+                        <!-- Statistics -->
+                        <div class="stats-card">
+                            <div class="stats-title">📊 Summary Statistics</div>
+                            <div class="stats-row">
+                                <table>
                                     <tr>
-                                        <td>
-                                            <a href="' . $approveAllUrl . '" style="background-color: #059669 !important; color: #ffffff !important; padding: 14px 24px; text-decoration: none; font-weight: bold; border-radius: 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; border: 2px solid #047857; display: inline-block; font-family: Georgia, serif;">APPROVE ALL</a>
+                                        <td class="stats-cell">
+                                            <div class="stat-box">
+                                                <div class="stat-label">Total Orders</div>
+                                                <div class="stat-value">' . $totalOrders . '</div>
+                                            </div>
                                         </td>
-                                        <td style="padding-left: 16px;">
-                                            <a href="' . $rejectAllUrl . '" style="background-color: #dc2626 !important; color: #ffffff !important; padding: 14px 24px; text-decoration: none; font-weight: bold; border-radius: 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; border: 2px solid #b91c1c; display: inline-block; font-family: Georgia, serif;">REJECT ALL</a>
+                                        <td class="stats-cell">
+                                            <div class="stat-box">
+                                                <div class="stat-label">Total Cost</div>
+                                                <div class="stat-value cost">€' . number_format($totalCost, 2) . '</div>
+                                            </div>
+                                        </td>
+                                        <td class="stats-cell">
+                                            <div class="stat-box">
+                                                <div class="stat-label">Average Cost</div>
+                                                <div class="stat-value cost">€' . number_format($avgCost, 2) . '</div>
+                                            </div>
                                         </td>
                                     </tr>
                                 </table>
-                                
-                                <p class="bulk-warning" style="font-family: Georgia, serif;">
-                                    Bulk actions will affect all ' . $totalOrders . ' orders listed below.
-                                </p>
                             </div>
-                            
-                            <!-- Orders Table -->
-                            <div class="orders-section">
-                                <h3 class="section-title" style="font-family: Georgia, serif;">Orders Requiring Your Approval</h3>
-                                <p class="section-subtitle" style="font-family: Georgia, serif;">Review each order individually or use the bulk actions above:</p>
-                                
-                                <table class="orders-table">
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 10%; font-family: Georgia, serif;">Order #</th>
-                                            <th style="width: 35%; font-family: Georgia, serif;">Description</th>
-                                            <th style="width: 15%; font-family: Georgia, serif;">Planta</th>
-                                            <th style="width: 12%; font-family: Georgia, serif;">Cost</th>
-                                            <th style="width: 12%; font-family: Georgia, serif;">Created</th>
-                                            <th style="width: 16%; font-family: Georgia, serif;">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ' . $orderRows . '
-                                    </tbody>
-                                </table>
+                        </div>
+
+                        <!-- Bulk Actions - ACTUALIZADA con nuevo botón -->
+                        <div class="bulk-actions">
+                            <div class="bulk-title">⚡ Quick Actions</div>
+                            <div class="bulk-subtitle">Process all orders at once or review them individually</div>
+                            <a href="' . $viewAllOrdersUrl . '" class="bulk-button view-all-btn">📋 View All Orders</a>
+                            <a href="' . $approveAllUrl . '" class="bulk-button approve-all-btn">✅ Approve All</a>
+                            <a href="' . $rejectAllUrl . '" class="bulk-button reject-all-btn">❌ Reject All</a>
+                            <div class="bulk-warning">
+                                ⚠️ Bulk actions will process all orders listed below. Use "View All Orders" to review individually.
                             </div>
-                            
-                            <!-- Important Notice -->
-                            <div class="info-box">
-                                <p class="info-text" style="font-family: Georgia, serif;">
-                                    <strong>Reminder:</strong> These approval requests will expire in 72 hours. Orders not processed will require manual management.
-                                </p>
-                            </div>
-                        </td>
-                    </tr>
-                    
-                    <!-- Footer -->
-                    <tr>
-                        <td class="footer" style="border-radius: 0 0 8px 8px;">
-                            <p class="footer-text" style="font-family: Georgia, serif;">This is an automated weekly summary from the Premium Freight Management System.</p>
-                            <p class="footer-text" style="font-family: Georgia, serif;">Please do not reply to this email. For support, contact your system administrator.</p>
-                            <p class="footer-copyright" style="font-family: Georgia, serif;">© ' . date('Y') . ' GRAMMER AG - Premium Freight Management System</p>
-                        </td>
-                    </tr>
-                </table>
+                        </div>
+
+                        <!-- Orders List -->
+                        <div class="orders-section">
+                            <div class="section-title">📋 Orders Requiring Your Approval</div>
+                            ' . $orderRows . '
+                        </div>
+                    </div>
+                </div>
             </td>
         </tr>
     </table>
@@ -820,43 +710,30 @@ class PFEmailTemplates {
      * Genera las filas de órdenes para el resumen semanal
      */
     private function generateOrderRows($orders, $approverId) {
-        $orderRows = '';
-        $rowCount = 0;
+        $rows = '<table style="width: 100%; border-collapse: collapse; margin-top: 16px;">';
         
         foreach ($orders as $order) {
-            $rowCount++;
-            $rowBgColor = ($rowCount % 2 === 0) ? '#f8fafc' : '#ffffff';
-            
-            // Formatear datos de manera segura
-            $costFormatted = number_format((float)($order['cost_euros'] ?? 0), 2);
-            $createdDate = date('M d, Y', strtotime($order['date']));
-            $orderDescription = htmlspecialchars($order['description'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
-            $plantaName = htmlspecialchars($order['planta'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
-            
-            // Generar tokens para acciones individuales
             $approveToken = $this->generateActionToken($order['id'], $approverId, 'approve');
             $rejectToken = $this->generateActionToken($order['id'], $approverId, 'reject');
             
-            // URLs para usar PFmailSingleAction.php
-            $approveUrl = $this->baseUrl . "PFmailSingleAction.php?action=approve&token=$approveToken";
-            $rejectUrl = $this->baseUrl . "PFmailSingleAction.php?action=reject&token=$rejectToken";
-            $viewUrl = defined('URLPF') ? URLPF . "orders.php?highlight=" . $order['id'] : "#";
+            // NUEVA URL: Usar view_bulk_orders.php para orden individual
+            $viewUrl = $this->baseUrl . "view_bulk_orders.php?user=" . $approverId . "&order=" . $order['id'] . "&token=" . $approveToken;
             
-            $orderRows .= '
-            <tr style="background-color: ' . $rowBgColor . ';">
-                <td class="order-id" style="font-family: Georgia, serif;">#' . $order['id'] . '</td>
-                <td class="order-desc" title="' . $orderDescription . '" style="font-family: Georgia, serif;">' . $orderDescription . '</td>
-                <td class="order-area" style="font-family: Georgia, serif;">' . $plantaName . '</td>
-                <td class="order-cost" style="font-family: Georgia, serif;">EUR ' . $costFormatted . '</td>
-                <td class="order-date" style="font-family: Georgia, serif;">' . $createdDate . '</td>
-                <td class="order-actions">
-                    <a href="' . $approveUrl . '" style="background-color: #059669 !important; color: #ffffff !important; padding: 6px 10px; text-decoration: none; border-radius: 4px; font-size: 9px; font-weight: bold; text-transform: uppercase; border: 1px solid #047857; display: block; margin-bottom: 3px; font-family: Georgia, serif;">Approve</a>
-                    <a href="' . $rejectUrl . '" style="background-color: #dc2626 !important; color: #ffffff !important; padding: 6px 10px; text-decoration: none; border-radius: 4px; font-size: 9px; font-weight: bold; text-transform: uppercase; border: 1px solid #b91c1c; display: block; margin-bottom: 3px; font-family: Georgia, serif;">Reject</a>
-                    <a href="' . $viewUrl . '" style="background-color: #1e40af !important; color: #ffffff !important; padding: 6px 10px; text-decoration: none; border-radius: 4px; font-size: 9px; font-weight: bold; text-transform: uppercase; border: 1px solid #1d4ed8; display: block; font-family: Georgia, serif;">View</a>
+            $rows .= '
+            <tr style="border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 12px 8px; vertical-align: top;">
+                    <div style="color: #1e293b; font-weight: 600; margin-bottom: 4px;">Order #' . $order['id'] . '</div>
+                    <div style="color: #64748b; font-size: 12px; margin-bottom: 8px;">' . htmlspecialchars($order['description'], ENT_QUOTES, 'UTF-8') . '</div>
+                    <div style="color: #059669; font-weight: 700; font-size: 14px;">€' . number_format($order['cost_euros'], 2) . '</div>
+                </td>
+                <td style="padding: 12px 8px; text-align: right; vertical-align: middle;">
+                    <a href="' . $viewUrl . '" style="display: inline-block; padding: 8px 16px; background-color: #034C8C; color: #ffffff; text-decoration: none; border-radius: 4px; font-size: 12px; margin: 0 2px;">View</a>
                 </td>
             </tr>';
         }
-        return $orderRows;
+        
+        $rows .= '</table>';
+        return $rows;
     }
 
     /**

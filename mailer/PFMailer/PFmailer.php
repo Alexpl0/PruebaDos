@@ -27,7 +27,7 @@ if(!defined('URLPF')) {
 // 6. CONFIGURACIÓN DE MODO DE PRUEBA
 // Cambiar a false para producción
 define('TEST_MODE', true);
-define('TEST_EMAIL', 'pruebasjesus@grammermx.com');
+define('TEST_EMAIL', 'premium_freight@grammermx.com');
 
 class PFMailer {
     private $mail;
@@ -62,7 +62,7 @@ class PFMailer {
         $this->mail->Port = 465;
         $this->mail->SMTPAuth = true;
         $this->mail->Username = 'pruebasjesus@grammermx.com';
-        $this->mail->Password = 'FreightSystem.2025.';
+        $this->mail->Password = 'FreightSystem.2025';
         $this->mail->SMTPSecure = 'ssl';
         
         // 6. Configurar formato HTML y codificación de caracteres
@@ -70,7 +70,8 @@ class PFMailer {
         $this->mail->CharSet = 'UTF-8';
         
         // 7. Configurar el remitente
-        $this->mail->setFrom('premium_freight@grammermx.com', 'Premium Freight System');
+        $this->mail->setFrom('pruebasjesus@grammermx.com', 'Premium Freight System');
+        $this->mail->addBCC('pruebasjesus@grammermx.com', 'Jesús Pérez');
         
         // 8. Configurar destinatarios en copia oculta según el modo
         if (TEST_MODE) {

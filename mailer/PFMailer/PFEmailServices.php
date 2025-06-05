@@ -3,11 +3,11 @@
  * PFEmailServices.php - Servicios de base de datos para el sistema de correos
  * 
  * @author GRAMMER AG
- * @version 1.0
+ * @version 1.1 - Agregado soporte para tokens bulk
  */
 
 require_once 'PFDB.php';
-require_once 'PFmailUtils.php'; // Agregar esta línea
+require_once 'PFmailUtils.php';
 
 class PFEmailServices {
     private $db;
@@ -167,22 +167,50 @@ class PFEmailServices {
     }
     
     /**
-     * Genera y almacena un token de acción en bloque
+     * Genera y almacena un token de acción en bloque - ACTUALIZADO
      */
     public function generateBulkActionToken($userId, $action, $orderIds) {
-        $token = bin2hex(random_bytes(16));
+        $token = bin2hex(random_bytes(32)); // Increased token length for bulk
         $serializedOrderIds = json_encode($orderIds);
         
-        $sql = "INSERT INTO EmailBulkActionTokens (token, order_ids, user_id, action, created_at) VALUES (?, ?, ?, ?, NOW())";
+        // Ensure the table exists, if not create it
+        $this->ensureBulkTokensTable();
+        
+        $sql = "INSERT INTO EmailBulkActionTokens (token, order_ids, user_id, action, created_at, is_used) VALUES (?, ?, ?, ?, NOW(), 0)";
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param("ssis", $token, $serializedOrderIds, $userId, $action);
-        $stmt->execute();
+        
+        if (!$stmt->execute()) {
+            error_log("Error creating bulk token: " . $stmt->error);
+            return null;
+        }
         
         return $token;
     }
-    
+
     /**
-     * Agrupa órdenes por aprobador
+     * Asegura que la tabla de tokens bulk existe
+     */
+    private function ensureBulkTokensTable() {
+        $sql = "CREATE TABLE IF NOT EXISTS EmailBulkActionTokens (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            token VARCHAR(128) NOT NULL UNIQUE,
+            order_ids TEXT NOT NULL,
+            user_id INT NOT NULL,
+            action ENUM('approve', 'reject') NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            used_at TIMESTAMP NULL,
+            is_used BOOLEAN DEFAULT FALSE,
+            INDEX idx_token (token),
+            INDEX idx_user_action (user_id, action),
+            FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE
+        )";
+        
+        $this->db->query($sql);
+    }
+
+    /**
+     * Agrupa órdenes por aprobador y genera tokens bulk - ACTUALIZADO
      */
     public function groupOrdersByApprover($orders) {
         $groupedOrders = [];
@@ -196,28 +224,44 @@ class PFEmailServices {
             $approversSql = "SELECT id, name, email, authorization_level 
                             FROM User 
                             WHERE authorization_level = ? 
-                            AND plant = ?";
+                            AND (plant = ? OR plant IS NULL)
+                            ORDER BY 
+                                CASE WHEN plant = ? THEN 0 ELSE 1 END,
+                                id ASC";
             
             $stmt = $this->db->prepare($approversSql);
-            $stmt->bind_param("is", $nextAuthLevel, $orderPlant);
+            $stmt->bind_param("iss", $nextAuthLevel, $orderPlant, $orderPlant);
             $stmt->execute();
             $approversResult = $stmt->get_result();
             
             while ($approver = $approversResult->fetch_assoc()) {
                 if (!isset($groupedOrders[$approver['id']])) {
-                    $groupedOrders[$approver['id']] = [];
+                    $groupedOrders[$approver['id']] = [
+                        'approver' => $approver,
+                        'orders' => [],
+                        'order_ids' => []
+                    ];
                 }
                 
                 $order['next_auth_level'] = $nextAuthLevel;
                 $order['approver_info'] = $approver;
                 
-                $groupedOrders[$approver['id']][] = $order;
+                $groupedOrders[$approver['id']]['orders'][] = $order;
+                $groupedOrders[$approver['id']]['order_ids'][] = $order['id'];
             }
+        }
+        
+        // Generate bulk tokens for each approver
+        foreach ($groupedOrders as $approverId => &$data) {
+            $data['bulk_tokens'] = [
+                'approve' => $this->generateBulkActionToken($approverId, 'approve', $data['order_ids']),
+                'reject' => $this->generateBulkActionToken($approverId, 'reject', $data['order_ids'])
+            ];
         }
         
         return $groupedOrders;
     }
-    
+
     /**
      * Obtiene la conexión a la base de datos
      */
