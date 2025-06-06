@@ -11,7 +11,8 @@ $allowed_pages_level0 = [
 $restricted_pages_level0 = [
     '/orders.php',
     '/adminUsers.php',
-    '/dashboard.php'
+    '/dashboard.php',
+    '/view_order.php'
 ];
 
 // Obtener la ruta actual
