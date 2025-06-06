@@ -610,9 +610,10 @@ class PFEmailServices {
         // Asegurar que la tabla existe
         $this->ensureNotificationsTable();
         
+        // CORREGIR: Solo 3 columnas, 3 valores
         $sql = "INSERT INTO EmailNotifications 
-                (order_id, user_id, type, sent_at) 
-                VALUES (?, ?, ?, NOW(), ?)";
+                (order_id, user_id, type) 
+                VALUES (?, ?, ?)";
         
         $stmt = $this->db->prepare($sql);
         if (!$stmt) {
@@ -620,8 +621,8 @@ class PFEmailServices {
             return false;
         }
         
-    
-        $stmt->bind_param("iiss", $orderId, $userId, $type);
+        // CORREGIR: Solo 3 parámetros para 3 placeholders
+        $stmt->bind_param("iis", $orderId, $userId, $type);
         $success = $stmt->execute();
         
         if (!$success) {

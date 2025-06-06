@@ -14,8 +14,9 @@ ini_set('error_log', __DIR__ . '/view_bulk_orders_errors.log');
 try {
     // Load dependencies
     require_once __DIR__ . '/config.php';
-    require_once 'PFDB.php';
-    require_once 'PFmailUtils.php';
+    require_once __DIR__ . '/PFDB.php';
+    require_once __DIR__ . '/PFmailUtils.php';
+    require_once __DIR__ . '/PFEmailServices.php';  // ← ESTA LÍNEA FALTABA
 
     // Verificar parámetros básicos
     if (!isset($_GET['user']) || !isset($_GET['token'])) {
@@ -154,8 +155,8 @@ try {
         exit;
     }
 
-    // Generar tokens para acciones
-    $services = new PFEmailServices();
+    // ✅ AHORA SÍ DEBERÍA FUNCIONAR - Generar tokens para acciones
+    $services = new PFEmailServices();  // ← LÍNEA 158 - Ahora debería funcionar
     $tokensData = [];
     
     foreach ($ordersData as $order) {
@@ -183,7 +184,99 @@ try {
     showError($errorMsg);
     exit;
 }
+
+// ✅ AGREGAR la función showError si no existe
+function showError($message) {
+    ?>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Error - Premium Freight</title>
+        <style>
+            body { 
+                font-family: 'Inter', Arial, sans-serif; 
+                background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+                margin: 0; 
+                padding: 40px; 
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .error-container { 
+                background: white; 
+                padding: 40px; 
+                border-radius: 12px; 
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+                border-left: 5px solid #ef4444; 
+                max-width: 600px;
+                width: 100%;
+            }
+            .error-container h1 { 
+                color: #ef4444; 
+                margin: 0 0 20px 0; 
+                font-size: 1.5rem;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            .error-container p { 
+                color: #374151; 
+                margin: 0 0 20px 0; 
+                line-height: 1.6;
+            }
+            .error-details { 
+                background: #f9fafb; 
+                padding: 20px; 
+                border-radius: 8px; 
+                margin-top: 20px; 
+                font-family: 'Courier New', monospace; 
+                font-size: 0.9rem;
+                border: 1px solid #e5e7eb;
+            }
+            .back-button {
+                display: inline-block;
+                background: #034C8C;
+                color: white;
+                padding: 12px 24px;
+                text-decoration: none;
+                border-radius: 6px;
+                margin-top: 20px;
+                font-weight: 600;
+                transition: background 0.3s ease;
+            }
+            .back-button:hover {
+                background: #023b6a;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="error-container">
+            <h1>
+                <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+                Error Loading Orders
+            </h1>
+            <p><strong>Message:</strong> <?php echo htmlspecialchars($message); ?></p>
+            <div class="error-details">
+                <strong>Debug Information:</strong><br>
+                Timestamp: <?php echo date('Y-m-d H:i:s'); ?><br>
+                File: view_bulk_orders.php<br>
+                User Agent: <?php echo htmlspecialchars($_SERVER['HTTP_USER_AGENT'] ?? 'Unknown'); ?><br>
+                IP: <?php echo $_SERVER['REMOTE_ADDR'] ?? 'Unknown'; ?><br>
+                Parameters: <?php echo htmlspecialchars(http_build_query($_GET)); ?>
+            </div>
+            <a href="javascript:history.back()" class="back-button">← Go Back</a>
+        </div>
+    </body>
+    </html>
+    <?php
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
