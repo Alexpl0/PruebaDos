@@ -192,7 +192,7 @@ class PFMailer {
             $ordersByApprover = $this->services->groupOrdersByApprover($pendingOrders);
             
             // 3. Enviar correo a cada aprobador con sus órdenes pendientes
-            foreach ($ordersByApprover as $approverId => $userOrders) {
+            foreach ($ordersByApprover as $approverId => $groupData) { // CAMBIO: $userOrders -> $groupData
                 try {
                     $approver = $this->services->getUser($approverId);
                     
@@ -201,12 +201,19 @@ class PFMailer {
                         continue;
                     }
                     
-                    $orderIds = array_column($userOrders, 'id');
-                    $approveAllToken = $this->services->generateBulkActionToken($approverId, 'approve', $orderIds);
-                    $rejectAllToken = $this->services->generateBulkActionToken($approverId, 'reject', $orderIds);
+                    // CORREGIR: Extraer las órdenes y tokens correctamente
+                    $userOrders = $groupData['orders'];        // ✅ Solo las órdenes
+                    $orderIds = $groupData['order_ids'];       // ✅ Solo los IDs
+                    $bulkTokens = $groupData['bulk_tokens'];   // ✅ Solo los tokens
                     
+                    $approveAllToken = $bulkTokens['approve'];
+                    $rejectAllToken = $bulkTokens['reject'];
+                    
+                    // CORREGIR: Pasar solo las órdenes al template
                     $emailBody = $this->templates->getWeeklySummaryTemplate($userOrders, $approver, $approveAllToken, $rejectAllToken);
-                    
+                    //                                                      ^^^^^^^^^^
+                    //                                                      AHORA SÍ son las órdenes
+                
                     // Configurar destinatarios según el modo
                     $this->setEmailRecipients($approver['email'], $approver['name']);
                     
@@ -220,6 +227,7 @@ class PFMailer {
                     if ($this->mail->send()) {
                         $result['success']++;
                         
+                        // CORREGIR: Usar las órdenes reales para el logging
                         foreach ($userOrders as $order) {
                             $this->services->logNotification($order['id'], $approverId, 'weekly_summary');
                         }

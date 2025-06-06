@@ -2,25 +2,22 @@
 /**
  * PFEmailTemplates.php - Plantillas HTML para correos de Premium Freight
  * 
- * Este archivo contiene todas las plantillas de correo electrónico utilizadas
- * en el sistema Premium Freight para notificaciones de aprobación, resúmenes
- * semanales y actualizaciones de estado.
- * 
  * @author GRAMMER AG
- * @version 2.2
- * @since 2025-06-05
+ * @version 2.3 - Corregido generación de tokens individuales
  */
 
 class PFEmailTemplates {
     private $baseUrl;
+    private $services;
     
     /**
      * Constructor de la clase
-     * 
-     * @param string $baseUrl URL base para los enlaces en los correos
      */
     public function __construct($baseUrl) {
         $this->baseUrl = rtrim($baseUrl, '/') . '/';
+        // Inicializar servicios para generar tokens
+        require_once 'PFEmailServices.php';
+        $this->services = new PFEmailServices();
     }
     
     /**
@@ -251,14 +248,14 @@ class PFEmailTemplates {
     }
 
     /**
-     * Plantilla para correo resumen semanal - ACTUALIZADA con nuevas URLs
+     * Plantilla para correo resumen semanal - CORREGIDA
      */
     public function getWeeklySummaryTemplate($orders, $approver, $approveAllToken, $rejectAllToken) {
         // URLs para acciones en bloque
         $approveAllUrl = $this->baseUrl . "PFmailBulkAction.php?action=approve&token=$approveAllToken";
         $rejectAllUrl = $this->baseUrl . "PFmailBulkAction.php?action=reject&token=$rejectAllToken";
         
-        // NUEVA URL: Para ver todas las órdenes en modo bulk
+        // URL para ver todas las órdenes en modo bulk
         $viewAllOrdersUrl = $this->baseUrl . "view_bulk_orders.php?user=" . $approver['id'] . "&token=$approveAllToken";
         
         // Calcular estadísticas
@@ -269,8 +266,8 @@ class PFEmailTemplates {
         // Formatear datos del aprobador
         $approverName = htmlspecialchars($approver['name'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
         
-        // Generar filas de órdenes con nueva URL de visualización
-        $orderRows = $this->generateOrderRows($orders, $approver['id']);
+        // Generar filas de órdenes con token bulk como fallback
+        $orderRows = $this->generateOrderRows($orders, $approver['id'], $approveAllToken);
 
         return '<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -307,7 +304,6 @@ class PFEmailTemplates {
         .approve-all-btn:hover { background-color: #047857; border-color: #047857; }
         .reject-all-btn { background-color: #dc2626; color: #ffffff; border: 2px solid #dc2626; }
         .reject-all-btn:hover { background-color: #b91c1c; border-color: #b91c1c; }
-        /* NUEVO: Botón para ver todas las órdenes */
         .view-all-btn { background-color: #034C8C; color: #ffffff; border: 2px solid #034C8C; }
         .view-all-btn:hover { background-color: #023b6a; border-color: #023b6a; }
         .bulk-warning { color: #6b7280; font-size: 11px; margin: 12px 0 0 0; font-family: Georgia, serif; }
@@ -358,7 +354,7 @@ class PFEmailTemplates {
                             </div>
                         </div>
 
-                        <!-- Bulk Actions - ACTUALIZADA con nuevo botón -->
+                        <!-- Bulk Actions -->
                         <div class="bulk-actions">
                             <div class="bulk-title">⚡ Quick Actions</div>
                             <div class="bulk-subtitle">Process all orders at once or review them individually</div>
@@ -707,24 +703,30 @@ class PFEmailTemplates {
     }
 
     /**
-     * Genera las filas de órdenes para el resumen semanal
+     * Generar filas de órdenes - VERSIÓN FINAL CORREGIDA
      */
-    private function generateOrderRows($orders, $approverId) {
+    private function generateOrderRows($orders, $approverId, $bulkApproveToken = null) {
         $rows = '<table style="width: 100%; border-collapse: collapse; margin-top: 16px;">';
         
         foreach ($orders as $order) {
-            $approveToken = $this->generateActionToken($order['id'], $approverId, 'approve');
-            $rejectToken = $this->generateActionToken($order['id'], $approverId, 'reject');
+            // VALIDACIÓN CRÍTICA: Verificar que la orden tenga ID válido
+            if (!isset($order['id']) || empty($order['id']) || !is_numeric($order['id'])) {
+                logAction("generateOrderRows - Orden con ID inválido omitida: " . json_encode($order), 'GENERATEORDERROWS');
+                continue;
+            }
             
-            // NUEVA URL: Usar view_bulk_orders.php para orden individual
-            $viewUrl = $this->baseUrl . "view_bulk_orders.php?user=" . $approverId . "&order=" . $order['id'] . "&token=" . $approveToken;
+            $orderId = (int)$order['id'];
+            
+            // Usar siempre view_bulk_orders.php con el token bulk para mayor consistencia
+            $fallbackToken = $bulkApproveToken ?: 'MISSING_TOKEN';
+            $viewUrl = $this->baseUrl . "view_bulk_orders.php?user=" . $approverId . "&order=" . $orderId . "&token=" . $fallbackToken;
             
             $rows .= '
             <tr style="border-bottom: 1px solid #e2e8f0;">
                 <td style="padding: 12px 8px; vertical-align: top;">
-                    <div style="color: #1e293b; font-weight: 600; margin-bottom: 4px;">Order #' . $order['id'] . '</div>
-                    <div style="color: #64748b; font-size: 12px; margin-bottom: 8px;">' . htmlspecialchars($order['description'], ENT_QUOTES, 'UTF-8') . '</div>
-                    <div style="color: #059669; font-weight: 700; font-size: 14px;">€' . number_format($order['cost_euros'], 2) . '</div>
+                    <div style="color: #1e293b; font-weight: 600; margin-bottom: 4px;">Order #' . $orderId . '</div>
+                    <div style="color: #64748b; font-size: 12px; margin-bottom: 8px;">' . htmlspecialchars($order['description'] ?? 'N/A', ENT_QUOTES, 'UTF-8') . '</div>
+                    <div style="color: #059669; font-weight: 700; font-size: 14px;">€' . number_format($order['cost_euros'] ?? 0, 2) . '</div>
                 </td>
                 <td style="padding: 12px 8px; text-align: right; vertical-align: middle;">
                     <a href="' . $viewUrl . '" style="display: inline-block; padding: 8px 16px; background-color: #034C8C; color: #ffffff; text-decoration: none; border-radius: 4px; font-size: 12px; margin: 0 2px;">View</a>
@@ -734,24 +736,6 @@ class PFEmailTemplates {
         
         $rows .= '</table>';
         return $rows;
-    }
-
-    /**
-     * Genera un token de acción individual
-     */
-    private function generateActionToken($orderId, $userId, $action) {
-        try {
-            // Crear una instancia temporal de servicios para generar el token
-            require_once 'PFEmailServices.php';
-            $services = new PFEmailServices();
-            return $services->generateActionToken($orderId, $userId, $action);
-        } catch (Exception $e) {
-            // Log del error y retornar un token temporal
-            if (function_exists('logAction')) {
-                logAction("Error generando token: " . $e->getMessage(), 'EMAILTEMPLATES');
-            }
-            return 'error_' . md5($orderId . $userId . $action . time());
-        }
     }
 }
 ?>
