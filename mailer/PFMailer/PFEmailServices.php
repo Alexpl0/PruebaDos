@@ -301,9 +301,7 @@ class PFEmailServices {
                     name, 
                     email, 
                     authorization_level, 
-                    plant,
-                    created_at,
-                    updated_at
+                    plant
                 FROM User 
                 WHERE id = ?
                 LIMIT 1";
@@ -613,7 +611,7 @@ class PFEmailServices {
         $this->ensureNotificationsTable();
         
         $sql = "INSERT INTO EmailNotifications 
-                (order_id, user_id, type, sent_at, ip_address) 
+                (order_id, user_id, type, sent_at) 
                 VALUES (?, ?, ?, NOW(), ?)";
         
         $stmt = $this->db->prepare($sql);
@@ -622,8 +620,8 @@ class PFEmailServices {
             return false;
         }
         
-        $ipAddress = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-        $stmt->bind_param("iiss", $orderId, $userId, $type, $ipAddress);
+    
+        $stmt->bind_param("iiss", $orderId, $userId, $type);
         $success = $stmt->execute();
         
         if (!$success) {
@@ -682,7 +680,6 @@ class PFEmailServices {
                 FROM User 
                 WHERE authorization_level = ? 
                 AND (plant = ? OR plant IS NULL)
-                AND active = 1 -- Solo usuarios activos
                 ORDER BY 
                     CASE WHEN plant = ? THEN 0 ELSE 1 END,
                     id ASC";
