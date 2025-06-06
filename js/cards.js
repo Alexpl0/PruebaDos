@@ -164,27 +164,13 @@ function getApprovalStatusMessage(order) {
  * Attaches event listeners to card elements
  */
 function attachCardEventListeners() {
-    // Attach click handlers to View buttons
+    // Attach click handlers to View buttons - REDIRECT TO NEW PAGE
     document.querySelectorAll('.ver-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const orderId = this.getAttribute('data-order-id');
-            sessionStorage.setItem('selectedOrderId', orderId);
             
-            // Show loading indicator
-            Swal.fire({
-                title: 'Loading',
-                html: 'Please wait while the document is loading...',
-                timer: 1000,
-                timerProgressBar: true,
-                didOpen: () => { Swal.showLoading(); },
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                allowEnterKey: false,
-                customClass: { container: 'swal-on-top' }
-            });
-            
-            // Show the modal
-            showModal(orderId);
+            // Redirect to the new view_order.php page instead of showing modal
+            window.location.href = `view_order.php?order=${orderId}`;
         });
     });
     

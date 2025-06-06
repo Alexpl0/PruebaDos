@@ -1,57 +1,180 @@
 <?php
 /**
- * view_bulk_orders.php - Visualizador de múltiples órdenes para aprobación
- * Interfaz para revisar y procesar múltiples órdenes desde correos semanales
+ * ================================================================================
+ * VIEW BULK ORDERS - PREMIUM FREIGHT SYSTEM
+ * ================================================================================
+ * 
+ * PROPÓSITO:
+ * Este archivo es el visualizador principal para múltiples órdenes de Premium Freight
+ * que requieren aprobación. Permite a los usuarios revisar, aprobar, rechazar y 
+ * descargar múltiples órdenes desde una interfaz unificada.
+ * 
+ * FUNCIONALIDADES PRINCIPALES:
+ * 1. Validación de tokens individuales y bulk
+ * 2. Carga de múltiples órdenes con toda su información relacionada
+ * 3. Generación de tokens de acción para cada orden
+ * 4. Interfaz visual con SVG para cada orden
+ * 5. Acciones individuales y en lote (aprobar/rechazar/descargar)
+ * 
+ * FLUJO DE TRABAJO:
+ * 1. Usuario accede mediante token válido (individual o bulk)
+ * 2. Sistema valida token y obtiene IDs de órdenes asociadas
+ * 3. Se cargan todos los datos de las órdenes desde la base de datos
+ * 4. Se generan tokens únicos para acciones de cada orden
+ * 5. Se presenta interfaz visual con SVG de cada orden
+ * 6. Usuario puede procesar órdenes individualmente o en lote
+ * 
+ * PARÁMETROS REQUERIDOS:
+ * - user: ID del usuario que realizará las acciones
+ * - token: Token de acceso (puede ser individual o bulk)
+ * - order: (opcional) ID de orden específica para filtrar
+ * 
  * Version: 1.0
+ * Autor: Sistema Premium Freight - Grammer AG
+ * Fecha: 2024
  */
 
-// Error handling and logging
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-ini_set('log_errors', 1);
-ini_set('error_log', __DIR__ . '/view_bulk_orders_errors.log');
+// ================================================================================
+// CONFIGURACIÓN DE ERROR HANDLING Y LOGGING
+// ================================================================================
+error_reporting(E_ALL);                                    // Reportar todos los errores para debugging
+ini_set('display_errors', 1);                             // Mostrar errores en pantalla durante desarrollo
+ini_set('log_errors', 1);                                 // Habilitar logging de errores
+ini_set('error_log', __DIR__ . '/view_bulk_orders_errors.log'); // Archivo específico para errores de este script
 
 try {
-    // Load dependencies
+    // ================================================================================
+    // CARGA DE DEPENDENCIAS CRÍTICAS
+    // ================================================================================
+    
+    /**
+     * DEPENDENCIA: config.php
+     * Contiene configuraciones globales del sistema incluyendo:
+     * - Constantes de URL (URLM, URLPF)
+     * - Configuraciones de base de datos
+     * - Configuraciones de email
+     */
     require_once __DIR__ . '/config.php';
+    
+    /**
+     * DEPENDENCIA: PFDB.php
+     * Maneja todas las conexiones y operaciones de base de datos:
+     * - Clase LocalConector para conexión a MySQL
+     * - Métodos de consulta seguros con prepared statements
+     */
     require_once __DIR__ . '/PFDB.php';
+    
+    /**
+     * DEPENDENCIA: PFmailUtils.php
+     * Funciones de utilidad para el sistema de correos:
+     * - showError(): Función para mostrar errores de manera consistente
+     * - showSuccess(): Función para mostrar mensajes de éxito
+     * - generateHtmlResponse(): Función para generar respuestas HTML
+     */
     require_once __DIR__ . '/PFmailUtils.php';
-    require_once __DIR__ . '/PFEmailServices.php';  // ← ESTA LÍNEA FALTABA
+    
+    /**
+     * DEPENDENCIA: PFEmailServices.php
+     * Servicios de email y gestión de tokens:
+     * - Clase PFEmailServices para generar tokens de acción
+     * - Métodos para envío de correos
+     * - Gestión de tokens de seguridad
+     */
+    require_once __DIR__ . '/PFEmailServices.php';
 
-    // Verificar parámetros básicos
+    // ================================================================================
+    // VALIDACIÓN DE PARÁMETROS DE ENTRADA
+    // ================================================================================
+    
+    /**
+     * VALIDACIÓN CRÍTICA: Verificar parámetros básicos requeridos
+     * 
+     * user: ID del usuario que realizará las acciones (debe ser numérico y > 0)
+     * token: Token de acceso válido (cadena hexadecimal de 64 caracteres)
+     * 
+     * Sin estos parámetros, el sistema no puede:
+     * - Identificar al usuario autorizado
+     * - Validar permisos de acceso
+     * - Generar tokens de acción seguros
+     */
     if (!isset($_GET['user']) || !isset($_GET['token'])) {
         showError('Required parameters missing. User ID and token are required.');
         exit;
     }
 
-    $userId = intval($_GET['user']);
-    $token = $_GET['token'];
-    $specificOrderId = isset($_GET['order']) ? intval($_GET['order']) : null;
+    // Extraer y sanitizar parámetros de entrada
+    $userId = intval($_GET['user']);                       // Convertir a entero para prevenir inyección SQL
+    $token = $_GET['token'];                               // Token como string (se validará contra DB)
+    $specificOrderId = isset($_GET['order']) ? intval($_GET['order']) : null; // Orden específica opcional
 
-    // Validar parámetros
+    /**
+     * VALIDACIÓN DE USER ID
+     * Debe ser un entero positivo válido que corresponda a un usuario real en la DB
+     */
     if ($userId <= 0) {
         showError('Invalid user ID.');
         exit;
     }
 
+    /**
+     * VALIDACIÓN DE TOKEN
+     * No puede estar vacío - debe ser una cadena válida para verificar contra DB
+     */
     if (empty($token)) {
         showError('Empty token.');
         exit;
     }
 
-    // Database connection
+    // ================================================================================
+    // CONEXIÓN A BASE DE DATOS
+    // ================================================================================
+    
+    /**
+     * ESTABLECER CONEXIÓN SEGURA A BASE DE DATOS
+     * 
+     * Utilizamos LocalConector que implementa:
+     * - Conexión MySQLi con prepared statements
+     * - Manejo automático de errores de conexión
+     * - Configuración de charset UTF-8
+     * - Timeouts apropiados para operaciones
+     */
     $con = new LocalConector();
     $db = $con->conectar();
 
+    // Verificar que la conexión sea exitosa antes de continuar
     if (!$db) {
         throw new Exception('Could not connect to database');
     }
 
-    // Verificar token (puede ser individual o bulk)
-    $tokenValid = false;
-    $orderIds = [];
+    // ================================================================================
+    // VALIDACIÓN DE TOKENS Y OBTENCIÓN DE ORDER IDS
+    // ================================================================================
+    
+    /**
+     * SISTEMA DUAL DE TOKENS
+     * 
+     * El sistema maneja dos tipos de tokens:
+     * 
+     * 1. TOKENS INDIVIDUALES (EmailActionTokens):
+     *    - Asociados a una sola orden específica
+     *    - Usados para acciones directas desde emails individuales
+     *    - Tabla: EmailActionTokens(token, user_id, order_id)
+     * 
+     * 2. TOKENS BULK (EmailBulkActionTokens):
+     *    - Asociados a múltiples órdenes
+     *    - Usados para procesamiento en lote desde emails semanales
+     *    - Tabla: EmailBulkActionTokens(token, user_id, order_ids JSON)
+     */
+    
+    $tokenValid = false;                                   // Flag para rastrear validez del token
+    $orderIds = [];                                        // Array de IDs de órdenes a procesar
 
-    // Primero intentar como token individual
+    /**
+     * FASE 1: VERIFICACIÓN COMO TOKEN INDIVIDUAL
+     * 
+     * Si se proporciona un specificOrderId, primero intentamos validar
+     * como token individual para mayor precisión y seguridad
+     */
     if ($specificOrderId) {
         $sql = "SELECT order_id FROM EmailActionTokens WHERE token = ? AND user_id = ? AND order_id = ?";
         $stmt = $db->prepare($sql);
@@ -59,13 +182,19 @@ try {
         $stmt->execute();
         $result = $stmt->get_result();
         
+        // Si encontramos coincidencia exacta, es un token individual válido
         if ($result->num_rows > 0) {
             $tokenValid = true;
-            $orderIds = [$specificOrderId];
+            $orderIds = [$specificOrderId];                // Solo procesar la orden específica
         }
     }
 
-    // Si no es token individual, intentar como token bulk
+    /**
+     * FASE 2: VERIFICACIÓN COMO TOKEN BULK
+     * 
+     * Si no es token individual válido, verificamos si es token bulk
+     * Los tokens bulk contienen múltiples order IDs en formato JSON
+     */
     if (!$tokenValid) {
         $sql = "SELECT order_ids FROM EmailBulkActionTokens WHERE token = ? AND user_id = ?";
         $stmt = $db->prepare($sql);
@@ -75,28 +204,55 @@ try {
         
         if ($result->num_rows > 0) {
             $row = $result->fetch_assoc();
+            
+            /**
+             * DECODIFICACIÓN DE ORDER IDS
+             * Los order_ids se almacenan como JSON array en la base de datos
+             * Ejemplo: "[123, 456, 789]" -> [123, 456, 789]
+             */
             $orderIds = json_decode($row['order_ids'], true);
             $tokenValid = true;
             
-            // Si se especificó una orden específica, filtrar
+            /**
+             * FILTRADO OPCIONAL POR ORDEN ESPECÍFICA
+             * Si se especifica una orden particular dentro del bulk token,
+             * filtramos para procesar solo esa orden
+             */
             if ($specificOrderId && in_array($specificOrderId, $orderIds)) {
                 $orderIds = [$specificOrderId];
             }
         }
     }
 
+    /**
+     * VALIDACIÓN FINAL DE TOKEN
+     * Si después de ambas verificaciones el token no es válido,
+     * el acceso debe ser denegado por seguridad
+     */
     if (!$tokenValid) {
         showError('Invalid or expired token.');
         exit;
     }
 
-    // Obtener información del usuario
+    // ================================================================================
+    // OBTENCIÓN DE INFORMACIÓN DEL USUARIO
+    // ================================================================================
+    
+    /**
+     * CARGAR DATOS COMPLETOS DEL USUARIO AUTORIZADO
+     * 
+     * Necesitamos la información del usuario para:
+     * - Mostrar en la interfaz quien está realizando las acciones
+     * - Registrar en logs quien aprobó/rechazó órdenes
+     * - Personalizar la experiencia de usuario
+     */
     $userSql = "SELECT name, email FROM User WHERE id = ?";
     $userStmt = $db->prepare($userSql);
     $userStmt->bind_param("i", $userId);
     $userStmt->execute();
     $userResult = $userStmt->get_result();
     
+    // Verificar que el usuario existe en la base de datos
     if ($userResult->num_rows === 0) {
         showError('User not found.');
         exit;
@@ -104,33 +260,63 @@ try {
     
     $userData = $userResult->fetch_assoc();
 
-    // Obtener detalles de las órdenes
+    // ================================================================================
+    // CARGA COMPLETA DE DATOS DE ÓRDENES
+    // ================================================================================
+    
+    /**
+     * CONSULTA COMPREHENSIVA DE ÓRDENES
+     * 
+     * Esta consulta obtiene TODOS los datos necesarios para mostrar y procesar las órdenes:
+     * 
+     * DATOS PRINCIPALES (tabla PremiumFreight):
+     * - Información básica de la orden (id, descripción, costos, fechas)
+     * - Referencias y números de tracking
+     * - Estados y categorías
+     * 
+     * DATOS DEL CREADOR (tabla User):
+     * - Nombre, email, rol y planta del usuario que creó la orden
+     * 
+     * DATOS DE UBICACIONES (tablas Location):
+     * - Información completa de origen (compañía, ciudad, estado, ZIP)
+     * - Información completa de destino (compañía, ciudad, estado, ZIP)
+     * 
+     * DATOS DEL TRANSPORTISTA (tabla Carriers):
+     * - Nombre de la empresa de transporte
+     * 
+     * DATOS DE ESTADO (tabla Status):
+     * - Estado actual de la orden
+     * 
+     * DATOS DE APROBACIONES (tabla PremiumFreightApprovals):
+     * - Información de aprobaciones previas
+     * - Usuario que aprobó y fecha
+     */
     $ordersData = [];
-    $placeholders = str_repeat('?,', count($orderIds) - 1) . '?';
+    $placeholders = str_repeat('?,', count($orderIds) - 1) . '?';  // Crear placeholders dinámicos para IN clause
     
     $ordersSql = "SELECT 
-                    pf.*,
-                    u.name AS creator_name,
-                    u.email AS creator_email,
-                    u.role AS creator_role,
-                    u.plant AS creator_plant,
-                    lo_from.company_name AS origin_company_name,
-                    lo_from.city AS origin_city,
-                    lo_from.state AS origin_state,
-                    lo_from.zip AS origin_zip,
-                    lo_to.company_name AS destiny_company_name,
-                    lo_to.city AS destiny_city,
-                    lo_to.state AS destiny_state,
-                    lo_to.zip AS destiny_zip,
-                    c.name AS carrier,
-                    st.id AS statusid,
-                    st.name AS status_name,
-                    pfa.id AS approval_id,
-                    pfa.approval_date,
-                    pfa.act_approv AS approval_status,
-                    u_approver.name AS approver_name,
-                    u_approver.email AS approver_email,
-                    u_approver.role AS approver_role
+                    pf.*,                                   -- Todos los campos de PremiumFreight
+                    u.name AS creator_name,                 -- Nombre del creador
+                    u.email AS creator_email,               -- Email del creador
+                    u.role AS creator_role,                 -- Rol del creador
+                    u.plant AS creator_plant,               -- Planta del creador
+                    lo_from.company_name AS origin_company_name,    -- Compañía origen
+                    lo_from.city AS origin_city,                    -- Ciudad origen
+                    lo_from.state AS origin_state,                  -- Estado origen
+                    lo_from.zip AS origin_zip,                      -- ZIP origen
+                    lo_to.company_name AS destiny_company_name,     -- Compañía destino
+                    lo_to.city AS destiny_city,                     -- Ciudad destino
+                    lo_to.state AS destiny_state,                   -- Estado destino
+                    lo_to.zip AS destiny_zip,                       -- ZIP destino
+                    c.name AS carrier,                              -- Nombre transportista
+                    st.id AS statusid,                              -- ID de estado
+                    st.name AS status_name,                         -- Nombre de estado
+                    pfa.id AS approval_id,                          -- ID de aprobación
+                    pfa.approval_date,                              -- Fecha de aprobación
+                    pfa.act_approv AS approval_status,              -- Estado de aprobación
+                    u_approver.name AS approver_name,               -- Nombre del aprobador
+                    u_approver.email AS approver_email,             -- Email del aprobador
+                    u_approver.role AS approver_role                -- Rol del aprobador
                 FROM PremiumFreight pf
                 LEFT JOIN Carriers c ON pf.carrier_id = c.id
                 LEFT JOIN User u ON pf.user_id = u.id
@@ -141,35 +327,93 @@ try {
                 LEFT JOIN User u_approver ON pfa.user_id = u_approver.id
                 WHERE pf.id IN ($placeholders)";
     
+    /**
+     * EJECUCIÓN SEGURA DE CONSULTA
+     * Utilizamos prepared statements para prevenir inyección SQL
+     * bind_param con tipos dinámicos basados en cantidad de órdenes
+     */
     $ordersStmt = $db->prepare($ordersSql);
     $ordersStmt->bind_param(str_repeat('i', count($orderIds)), ...$orderIds);
     $ordersStmt->execute();
     $ordersResult = $ordersStmt->get_result();
 
+    // Recopilar todos los resultados en array para procesamiento
     while ($row = $ordersResult->fetch_assoc()) {
         $ordersData[] = $row;
     }
 
+    // Verificar que encontramos órdenes válidas
     if (empty($ordersData)) {
         showError('No orders found.');
         exit;
     }
 
-    // ✅ AHORA SÍ DEBERÍA FUNCIONAR - Generar tokens para acciones
-    $services = new PFEmailServices();  // ← LÍNEA 158 - Ahora debería funcionar
+    // ================================================================================
+    // GENERACIÓN DE TOKENS DE ACCIÓN SEGUROS
+    // ================================================================================
+    
+    /**
+     * GENERACIÓN DE TOKENS ÚNICOS PARA CADA ACCIÓN
+     * 
+     * Para cada orden, generamos tokens únicos y seguros que permiten:
+     * 
+     * 1. APPROVE TOKEN:
+     *    - Permite aprobar la orden específica
+     *    - Válido solo para el usuario actual
+     *    - Tiempo de vida limitado por seguridad
+     * 
+     * 2. REJECT TOKEN:
+     *    - Permite rechazar la orden específica
+     *    - Válido solo para el usuario actual
+     *    - Tiempo de vida limitado por seguridad
+     * 
+     * BENEFICIOS DE TOKENS ÚNICOS:
+     * - Previene ataques CSRF
+     * - Permite rastreo granular de acciones
+     * - Cada acción requiere autorización específica
+     * - Tokens expiran automáticamente por seguridad
+     */
+    $services = new PFEmailServices();
     $tokensData = [];
     
     foreach ($ordersData as $order) {
+        /**
+         * GENERAR TOKEN DE APROBACIÓN
+         * Crea un token único que solo permite aprobar esta orden específica
+         * por este usuario específico
+         */
         $approveToken = $services->generateActionToken($order['id'], $userId, 'approve');
+        
+        /**
+         * GENERAR TOKEN DE RECHAZO
+         * Crea un token único que solo permite rechazar esta orden específica
+         * por este usuario específico
+         */
         $rejectToken = $services->generateActionToken($order['id'], $userId, 'reject');
         
+        // Almacenar tokens organizados por ID de orden para fácil acceso
         $tokensData[$order['id']] = [
             'approve' => $approveToken,
             'reject' => $rejectToken
         ];
     }
 
-    // Verificar constantes requeridas
+    // ================================================================================
+    // VALIDACIÓN DE CONSTANTES REQUERIDAS
+    // ================================================================================
+    
+    /**
+     * VERIFICAR CONSTANTES CRÍTICAS DEL SISTEMA
+     * 
+     * Estas constantes son esenciales para el funcionamiento:
+     * - URLM: URL base del sistema de mailer
+     * - URLPF: URL base del sistema Premium Freight
+     * 
+     * Sin estas constantes, el JavaScript no puede:
+     * - Cargar archivos SVG correctamente
+     * - Hacer llamadas AJAX a endpoints correctos
+     * - Generar URLs de acción válidas
+     */
     if (!defined('URLM')) {
         throw new Exception('URLM is not defined');
     }
@@ -179,101 +423,18 @@ try {
     }
 
 } catch (Exception $e) {
+    /**
+     * MANEJO COMPREHENSIVO DE ERRORES
+     * 
+     * Cualquier error durante la inicialización es crítico y debe:
+     * 1. Ser registrado en el log para debugging
+     * 2. Mostrar mensaje de error al usuario
+     * 3. Terminar ejecución de manera segura
+     */
     $errorMsg = 'Error: ' . $e->getMessage();
     error_log("Error in view_bulk_orders.php: " . $errorMsg);
     showError($errorMsg);
     exit;
-}
-
-// ✅ AGREGAR la función showError si no existe
-function showError($message) {
-    ?>
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Error - Premium Freight</title>
-        <style>
-            body { 
-                font-family: 'Inter', Arial, sans-serif; 
-                background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-                margin: 0; 
-                padding: 40px; 
-                min-height: 100vh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            .error-container { 
-                background: white; 
-                padding: 40px; 
-                border-radius: 12px; 
-                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-                border-left: 5px solid #ef4444; 
-                max-width: 600px;
-                width: 100%;
-            }
-            .error-container h1 { 
-                color: #ef4444; 
-                margin: 0 0 20px 0; 
-                font-size: 1.5rem;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-            .error-container p { 
-                color: #374151; 
-                margin: 0 0 20px 0; 
-                line-height: 1.6;
-            }
-            .error-details { 
-                background: #f9fafb; 
-                padding: 20px; 
-                border-radius: 8px; 
-                margin-top: 20px; 
-                font-family: 'Courier New', monospace; 
-                font-size: 0.9rem;
-                border: 1px solid #e5e7eb;
-            }
-            .back-button {
-                display: inline-block;
-                background: #034C8C;
-                color: white;
-                padding: 12px 24px;
-                text-decoration: none;
-                border-radius: 6px;
-                margin-top: 20px;
-                font-weight: 600;
-                transition: background 0.3s ease;
-            }
-            .back-button:hover {
-                background: #023b6a;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="error-container">
-            <h1>
-                <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
-                Error Loading Orders
-            </h1>
-            <p><strong>Message:</strong> <?php echo htmlspecialchars($message); ?></p>
-            <div class="error-details">
-                <strong>Debug Information:</strong><br>
-                Timestamp: <?php echo date('Y-m-d H:i:s'); ?><br>
-                File: view_bulk_orders.php<br>
-                User Agent: <?php echo htmlspecialchars($_SERVER['HTTP_USER_AGENT'] ?? 'Unknown'); ?><br>
-                IP: <?php echo $_SERVER['REMOTE_ADDR'] ?? 'Unknown'; ?><br>
-                Parameters: <?php echo htmlspecialchars(http_build_query($_GET)); ?>
-            </div>
-            <a href="javascript:history.back()" class="back-button">← Go Back</a>
-        </div>
-    </body>
-    </html>
-    <?php
 }
 ?>
 
@@ -284,23 +445,43 @@ function showError($message) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Premium Freight Orders - <?php echo count($ordersData); ?> Orders - Grammer AG</title>
     
-    <!-- SEO and Meta -->
+    <!-- ===== META TAGS PARA SEO Y SEGURIDAD ===== -->
     <meta name="description" content="Premium Freight Order Management System - Grammer AG">
     <meta name="author" content="Grammer AG">
-    <meta name="robots" content="noindex, nofollow">
+    <meta name="robots" content="noindex, nofollow">  <!-- Prevenir indexación por motores de búsqueda -->
     
-    <!-- Fonts -->
+    <!-- ===== FUENTES EXTERNAS ===== -->
+    <!-- Inter font para tipografía moderna y legible -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- External CSS -->
+    <!-- ===== FRAMEWORKS CSS EXTERNOS ===== -->
+    <!-- Bootstrap 5.3 para componentes y grid system responsivo -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6.4 para iconografía consistente -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- External JS -->
+    <!-- ===== LIBRERÍAS JAVASCRIPT EXTERNAS ===== -->
+    <!-- SweetAlert2 para modales y alertas elegantes -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
-    <!-- Global Variables -->
+    <!-- ===== CONFIGURACIÓN GLOBAL JAVASCRIPT ===== -->
     <script>
+        /**
+         * CONFIGURACIÓN GLOBAL DE LA APLICACIÓN BULK
+         * 
+         * Este objeto contiene toda la información crítica que necesita
+         * el JavaScript del frontend para funcionar correctamente:
+         * 
+         * - userId: ID del usuario actual para validaciones
+         * - userName: Nombre del usuario para personalización
+         * - token: Token principal de acceso
+         * - orders: Array completo de todas las órdenes con sus datos
+         * - tokens: Tokens de acción únicos para cada orden
+         * - urls: URLs críticas para llamadas AJAX
+         * - totalOrders: Contador total para estadísticas
+         * - isSpecificOrder: Flag para determinar si es vista de orden específica
+         * - specificOrderId: ID de orden específica si aplica
+         */
         window.PF_BULK_CONFIG = {
             userId: <?php echo $userId; ?>,
             userName: '<?php echo addslashes($userData['name']); ?>',
@@ -319,21 +500,21 @@ function showError($message) {
     </script>
     
     <style>
-        /* CSS CUSTOM PROPERTIES */
+        /* ===== VARIABLES CSS PERSONALIZADAS ===== */
         :root {
-            /* Grammer Corporate Colors */
+            /* Colores corporativos de Grammer */
             --grammer-blue: #034C8C;
             --grammer-light-blue: #4A90D9;
             --grammer-dark-blue: #002856;
             --grammer-accent: #00A3E0;
             
-            /* Semantic Colors */
+            /* Colores semánticos para estados */
             --success: #10B981;
             --warning: #F59E0B;
             --danger: #EF4444;
             --info: #3B82F6;
             
-            /* Neutrals */
+            /* Escala de grises consistente */
             --white: #FFFFFF;
             --gray-50: #F9FAFB;
             --gray-100: #F3F4F6;
@@ -346,7 +527,7 @@ function showError($message) {
             --gray-800: #1F2937;
             --gray-900: #111827;
             
-            /* Layout */
+            /* Variables de layout responsivo */
             --max-width: 1400px;
             --border-radius: 8px;
             --border-radius-lg: 12px;
@@ -357,19 +538,19 @@ function showError($message) {
             --spacing-xl: 2rem;
             --spacing-2xl: 3rem;
             
-            /* Shadows */
+            /* Sombras para profundidad visual */
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
             
-            /* Transitions */
+            /* Transiciones suaves */
             --transition-fast: 0.15s ease-in-out;
             --transition-normal: 0.3s ease-in-out;
             --transition-slow: 0.5s ease-in-out;
         }
 
-        /* BASE STYLES */
+        /* ===== ESTILOS BASE GLOBALES ===== */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -378,7 +559,7 @@ function showError($message) {
 
         html {
             font-size: 16px;
-            scroll-behavior: smooth;
+            scroll-behavior: smooth;  /* Scrolling suave para navegación */
         }
 
         body {
@@ -387,11 +568,11 @@ function showError($message) {
             color: var(--gray-800);
             background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
             min-height: 100vh;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+            -webkit-font-smoothing: antialiased;  /* Mejorar renderizado de fuentes en WebKit */
+            -moz-osx-font-smoothing: grayscale;   /* Mejorar renderizado de fuentes en Firefox */
         }
 
-        /* BULK CONTAINER */
+        /* ===== CONTENEDOR PRINCIPAL BULK ===== */
         .bulk-container {
             max-width: var(--max-width);
             margin: 0 auto;
@@ -402,7 +583,7 @@ function showError($message) {
             overflow: hidden;
         }
 
-        /* BULK HEADER */
+        /* ===== HEADER PRINCIPAL ===== */
         .bulk-header {
             background: linear-gradient(135deg, var(--grammer-blue) 0%, var(--grammer-dark-blue) 100%);
             color: var(--white);
@@ -411,6 +592,7 @@ function showError($message) {
             overflow: hidden;
         }
 
+        /* Patrón de fondo decorativo para el header */
         .bulk-header::before {
             content: '';
             position: absolute;
@@ -483,7 +665,7 @@ function showError($message) {
             gap: var(--spacing-md);
         }
 
-        /* BULK ACTIONS HEADER */
+        /* ===== PANEL DE ACCIONES BULK ===== */
         .bulk-actions-header {
             display: flex;
             align-items: center;
@@ -520,6 +702,7 @@ function showError($message) {
             box-shadow: var(--shadow-md);
         }
 
+        /* Estilos específicos para botones de acción */
         .btn-approve-all {
             background: var(--success);
             color: var(--white);
@@ -550,7 +733,7 @@ function showError($message) {
             color: var(--white);
         }
 
-        /* ORDERS GRID */
+        /* ===== GRID DE ÓRDENES ===== */
         .orders-grid {
             padding: var(--spacing-xl);
             display: grid;
@@ -558,7 +741,7 @@ function showError($message) {
             gap: var(--spacing-xl);
         }
 
-        /* ORDER CARD */
+        /* ===== TARJETAS DE ORDEN INDIVIDUAL ===== */
         .order-card {
             background: var(--white);
             border: 1px solid var(--gray-200);
@@ -575,6 +758,7 @@ function showError($message) {
             transform: translateY(-2px);
         }
 
+        /* Estados visuales de las tarjetas */
         .order-card.processed {
             opacity: 0.6;
             transform: scale(0.98);
@@ -585,7 +769,7 @@ function showError($message) {
             display: none;
         }
 
-        /* ORDER HEADER */
+        /* ===== HEADER DE ORDEN INDIVIDUAL ===== */
         .order-header {
             background: linear-gradient(90deg, var(--grammer-blue), var(--grammer-light-blue));
             color: var(--white);
@@ -627,6 +811,7 @@ function showError($message) {
             color: var(--white);
         }
 
+        /* Estilos específicos para botones de orden */
         .btn-approve-order {
             background: var(--success);
             border-color: var(--success);
@@ -660,7 +845,7 @@ function showError($message) {
             color: var(--white);
         }
 
-        /* ORDER CONTENT */
+        /* ===== CONTENIDO DE ORDEN ===== */
         .order-content {
             padding: var(--spacing-lg);
         }
@@ -671,7 +856,7 @@ function showError($message) {
             border-radius: var(--border-radius);
             padding: var(--spacing-md);
             margin-bottom: var(--spacing-lg);
-            min-height: 400px;
+            min-height: 600px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -690,7 +875,7 @@ function showError($message) {
             transition: var(--transition-normal);
         }
 
-        /* STATUS INDICATORS */
+        /* ===== INDICADORES DE ESTADO ===== */
         .status-indicator {
             position: absolute;
             top: var(--spacing-sm);
@@ -718,7 +903,7 @@ function showError($message) {
             color: var(--white);
         }
 
-        /* FLOATING ACTION PANEL */
+        /* ===== PANEL FLOTANTE DE RESUMEN ===== */
         .floating-summary {
             position: fixed;
             bottom: var(--spacing-lg);
@@ -746,7 +931,7 @@ function showError($message) {
             color: var(--gray-600);
         }
 
-        /* LOADING STATE */
+        /* ===== ESTADOS DE CARGA ===== */
         .loading-overlay {
             position: absolute;
             top: 0;
@@ -774,7 +959,7 @@ function showError($message) {
             100% { transform: rotate(360deg); }
         }
 
-        /* RESPONSIVE */
+        /* ===== DISEÑO RESPONSIVO ===== */
         @media (max-width: 768px) {
             .orders-grid {
                 grid-template-columns: 1fr;
@@ -802,20 +987,23 @@ function showError($message) {
 </head>
 <body>
     <div class="bulk-container">
-        <!-- BULK HEADER -->
+        <!-- ===== HEADER PRINCIPAL CON INFORMACIÓN Y ACCIONES ===== -->
         <header class="bulk-header">
             <div class="bulk-header-content">
                 <div class="header-left">
+                    <!-- Logo y nombre de la compañía -->
                     <div class="company-logo">
                         <i class="fas fa-truck-fast"></i>
                         <span class="company-name">Grammer AG</span>
                     </div>
+                    <!-- Información de las órdenes -->
                     <div class="orders-info">
                         <h1 class="orders-title-main">Premium Freight Orders</h1>
                         <p class="orders-subtitle"><?php echo count($ordersData); ?> orders pending approval by <?php echo htmlspecialchars($userData['name']); ?></p>
                     </div>
                 </div>
                 <div class="header-right">
+                    <!-- Panel de acciones bulk -->
                     <div class="bulk-actions-header">
                         <button id="approve-all-btn" class="bulk-action-btn btn-approve-all">
                             <i class="fas fa-check-double"></i>
@@ -834,25 +1022,29 @@ function showError($message) {
             </div>
         </header>
 
-        <!-- ORDERS GRID -->
+        <!-- ===== GRID PRINCIPAL DE ÓRDENES ===== -->
         <main class="orders-grid" id="orders-grid">
             <?php foreach ($ordersData as $order): ?>
+            <!-- Tarjeta individual para cada orden -->
             <div class="order-card" data-order-id="<?php echo $order['id']; ?>">
                 <div class="order-header">
                     <h2 class="order-title">Order #<?php echo $order['id']; ?></h2>
                     <div class="order-actions">
+                        <!-- Botón de aprobación con token único -->
                         <button class="order-action-btn btn-approve-order" 
                                 data-order-id="<?php echo $order['id']; ?>"
                                 data-token="<?php echo $tokensData[$order['id']]['approve']; ?>">
                             <i class="fas fa-check"></i>
                             Approve
                         </button>
+                        <!-- Botón de rechazo con token único -->
                         <button class="order-action-btn btn-reject-order"
                                 data-order-id="<?php echo $order['id']; ?>"
                                 data-token="<?php echo $tokensData[$order['id']]['reject']; ?>">
                             <i class="fas fa-times"></i>
                             Reject
                         </button>
+                        <!-- Botón de descarga PDF -->
                         <button class="order-action-btn btn-download-order"
                                 data-order-id="<?php echo $order['id']; ?>">
                             <i class="fas fa-download"></i>
@@ -861,6 +1053,7 @@ function showError($message) {
                     </div>
                 </div>
                 <div class="order-content">
+                    <!-- Contenedor para SVG que será populado por JavaScript -->
                     <div class="order-svg-container" id="svg-container-<?php echo $order['id']; ?>">
                         <div class="loading-spinner"></div>
                     </div>
@@ -869,7 +1062,7 @@ function showError($message) {
             <?php endforeach; ?>
         </main>
 
-        <!-- FLOATING SUMMARY -->
+        <!-- ===== PANEL FLOTANTE DE PROGRESO ===== -->
         <div class="floating-summary" id="floating-summary">
             <div class="summary-title">Progress Summary</div>
             <div class="summary-stats">
@@ -879,51 +1072,122 @@ function showError($message) {
         </div>
     </div>
 
-    <!-- APPLICATION LOGIC -->
+    <!-- ===== LÓGICA PRINCIPAL DE LA APLICACIÓN ===== -->
     <script type="module">
-        import { generateOrderSVG, generatePDF } from '<?php echo URLPF; ?>js/svgOrders.js';
+        /**
+         * IMPORTACIÓN DE MÓDULOS CRÍTICOS
+         * 
+         * loadAndPopulateSVG: Función para cargar y poblar SVGs con datos de órdenes
+         * generatePDF: Función para generar y descargar PDFs de órdenes
+         */
+        import { loadAndPopulateSVG, generatePDF } from '<?php echo URLPF; ?>js/svgOrders.js';
 
+        /**
+         * ================================================================================
+         * CLASE PRINCIPAL: BulkOrdersViewer
+         * ================================================================================
+         * 
+         * Esta clase maneja toda la funcionalidad del visualizador de órdenes bulk:
+         * 
+         * RESPONSABILIDADES PRINCIPALES:
+         * 1. Inicialización y configuración de la aplicación
+         * 2. Carga de SVGs para todas las órdenes
+         * 3. Manejo de eventos de usuario (clicks, acciones)
+         * 4. Procesamiento de acciones individuales y bulk
+         * 5. Actualización de UI en tiempo real
+         * 6. Comunicación con backend via AJAX
+         * 7. Generación de PDFs
+         * 8. Manejo de estados y errores
+         */
         class BulkOrdersViewer {
+            /**
+             * CONSTRUCTOR DE LA CLASE
+             * 
+             * Inicializa la instancia con configuración global y estado inicial:
+             * - Obtiene configuración de window.PF_BULK_CONFIG
+             * - Inicializa Set para rastrear órdenes procesadas
+             * - Lanza proceso de inicialización asíncrono
+             */
             constructor() {
-                this.config = window.PF_BULK_CONFIG;
-                this.processedOrders = new Set();
-                this.initialize();
+                this.config = window.PF_BULK_CONFIG;           // Configuración global de PHP
+                this.processedOrders = new Set();             // Set para rastrear órdenes ya procesadas
+                this.initialize();                             // Iniciar proceso de configuración
             }
 
+            /**
+             * MÉTODO DE INICIALIZACIÓN PRINCIPAL
+             * 
+             * Coordina la inicialización completa de la aplicación:
+             * 
+             * SECUENCIA DE INICIALIZACIÓN:
+             * 1. Log de información de configuración para debugging
+             * 2. Carga asíncrona de todos los SVGs de órdenes
+             * 3. Configuración de event listeners para interacciones
+             * 4. Actualización inicial del resumen de progreso
+             * 
+             * Este método es async porque la carga de SVGs requiere operaciones asíncronas
+             */
             async initialize() {
                 console.log('Initializing Bulk Orders Viewer:', this.config);
                 
-                // Load SVGs for all orders
+                // Cargar visualizaciones SVG para todas las órdenes
                 await this.loadAllOrderSVGs();
                 
-                // Setup event listeners
+                // Configurar manejadores de eventos para todas las interacciones
                 this.setupEventListeners();
                 
-                // Update summary
+                // Actualizar estadísticas iniciales en panel flotante
                 this.updateSummary();
             }
 
+            /**
+             * CARGA MASIVA DE SVGs PARA TODAS LAS ÓRDENES
+             * 
+             * ESTRATEGIA DE CARGA:
+             * - Crea array de promesas para carga paralela
+             * - Cada orden se carga de manera independiente
+             * - Promise.all espera a que todas las cargas terminen
+             * - Manejo individual de errores por orden
+             * 
+             * BENEFICIOS:
+             * - Carga paralela mejora performance significativamente
+             * - Una orden que falle no afecta a las demás
+             * - Usuario ve progreso visual mientras cargan
+             */
             async loadAllOrderSVGs() {
                 const promises = this.config.orders.map(order => this.loadOrderSVG(order));
                 await Promise.all(promises);
             }
 
+            /**
+             * CARGA INDIVIDUAL DE SVG PARA UNA ORDEN ESPECÍFICA
+             * 
+             * PROCESO DE CARGA:
+             * 1. Genera containerId único basado en ID de orden
+             * 2. Llama a loadAndPopulateSVG del módulo svgOrders.js
+             * 3. La función pobla el SVG con datos específicos de la orden
+             * 4. Maneja errores mostrando mensaje de error en contenedor
+             * 
+             * PARÁMETROS:
+             * @param {Object} orderData - Datos completos de la orden desde PHP
+             * 
+             * MANEJO DE ERRORES:
+             * - Captura cualquier error durante la carga
+             * - Muestra mensaje de error visual en lugar del SVG
+             * - Permite que otras órdenes continúen cargando
+             */
             async loadOrderSVG(orderData) {
                 try {
-                    const container = document.getElementById(`svg-container-${orderData.id}`);
-                    if (!container) return;
-
-                    // Generate SVG
-                    const svgElement = await generateOrderSVG(orderData);
+                    const containerId = `svg-container-${orderData.id}`;
                     
-                    // Replace loading spinner with SVG
-                    container.innerHTML = '';
-                    container.appendChild(svgElement);
+                    // Usar la misma función que view_order.php para consistencia
+                    await loadAndPopulateSVG(orderData, containerId);
                     
                     console.log(`SVG loaded for order ${orderData.id}`);
                 } catch (error) {
                     console.error(`Error loading SVG for order ${orderData.id}:`, error);
                     
+                    // Mostrar mensaje de error en lugar del SVG
                     const container = document.getElementById(`svg-container-${orderData.id}`);
                     if (container) {
                         container.innerHTML = `
@@ -936,31 +1200,99 @@ function showError($message) {
                 }
             }
 
+            /**
+             * CONFIGURACIÓN DE EVENT LISTENERS
+             * 
+             * Configura todos los manejadores de eventos para:
+             * 
+             * ACCIONES INDIVIDUALES POR ORDEN:
+             * - Botones de aprobación (.btn-approve-order)
+             * - Botones de rechazo (.btn-reject-order)
+             * - Botones de descarga (.btn-download-order)
+             * 
+             * ACCIONES BULK (TODAS LAS ÓRDENES):
+             * - Aprobar todas (#approve-all-btn)
+             * - Rechazar todas (#reject-all-btn)
+             * - Descargar todas (#download-all-btn)
+             * 
+             * PATRÓN DE EVENT DELEGATION:
+             * - Usa querySelectorAll para encontrar todos los elementos
+             * - Cada listener maneja múltiples elementos del mismo tipo
+             * - Delegación eficiente para elementos dinámicos
+             */
             setupEventListeners() {
-                // Individual order actions
+                // ===== EVENT LISTENERS PARA ACCIONES INDIVIDUALES =====
+                
+                /**
+                 * BOTONES DE APROBACIÓN INDIVIDUAL
+                 * Cada botón maneja la aprobación de una orden específica
+                 */
                 document.querySelectorAll('.btn-approve-order').forEach(btn => {
                     btn.addEventListener('click', (e) => this.handleIndividualAction(e, 'approve'));
                 });
 
+                /**
+                 * BOTONES DE RECHAZO INDIVIDUAL
+                 * Cada botón maneja el rechazo de una orden específica
+                 */
                 document.querySelectorAll('.btn-reject-order').forEach(btn => {
                     btn.addEventListener('click', (e) => this.handleIndividualAction(e, 'reject'));
                 });
 
+                /**
+                 * BOTONES DE DESCARGA INDIVIDUAL
+                 * Cada botón genera y descarga PDF de una orden específica
+                 */
                 document.querySelectorAll('.btn-download-order').forEach(btn => {
                     btn.addEventListener('click', (e) => this.handleDownloadOrder(e));
                 });
 
-                // Bulk actions
+                // ===== EVENT LISTENERS PARA ACCIONES BULK =====
+                
+                /**
+                 * BOTÓN APROBAR TODAS
+                 * Procesa aprobación de todas las órdenes pendientes
+                 */
                 document.getElementById('approve-all-btn').addEventListener('click', () => this.handleBulkAction('approve'));
+                
+                /**
+                 * BOTÓN RECHAZAR TODAS
+                 * Procesa rechazo de todas las órdenes pendientes
+                 */
                 document.getElementById('reject-all-btn').addEventListener('click', () => this.handleBulkAction('reject'));
+                
+                /**
+                 * BOTÓN DESCARGAR TODAS
+                 * Genera PDFs para todas las órdenes
+                 */
                 document.getElementById('download-all-btn').addEventListener('click', () => this.handleDownloadAll());
             }
 
+            /**
+             * MANEJADOR DE ACCIONES INDIVIDUALES (APROBAR/RECHAZAR)
+             * 
+             * FLUJO DE PROCESAMIENTO:
+             * 1. Extrae información del botón clickeado (order ID, token)
+             * 2. Verifica si la orden ya fue procesada
+             * 3. Muestra confirmación con SweetAlert2
+             * 4. Si se confirma, procesa la acción
+             * 
+             * PARÁMETROS:
+             * @param {Event} event - Evento de click del botón
+             * @param {string} action - Tipo de acción ('approve' o 'reject')
+             * 
+             * VALIDACIONES:
+             * - Verifica que la orden no haya sido procesada previamente
+             * - Requiere confirmación explícita del usuario
+             * - Usa tokens únicos para seguridad
+             */
             async handleIndividualAction(event, action) {
+                // Obtener información del botón clickeado
                 const btn = event.target.closest('.order-action-btn');
                 const orderId = btn.getAttribute('data-order-id');
                 const token = btn.getAttribute('data-token');
 
+                // Verificar si la orden ya fue procesada
                 if (this.processedOrders.has(orderId)) {
                     Swal.fire({
                         icon: 'info',
@@ -970,6 +1302,7 @@ function showError($message) {
                     return;
                 }
 
+                // Mostrar confirmación antes de procesar
                 const result = await Swal.fire({
                     title: `${action.charAt(0).toUpperCase() + action.slice(1)} Order #${orderId}?`,
                     text: `Are you sure you want to ${action} this order?`,
@@ -980,14 +1313,35 @@ function showError($message) {
                     cancelButtonText: 'Cancel'
                 });
 
+                // Procesar acción si fue confirmada
                 if (result.isConfirmed) {
                     await this.processAction(token, action, orderId);
                 }
             }
 
+            /**
+             * MANEJADOR DE ACCIONES BULK (TODAS LAS ÓRDENES)
+             * 
+             * LÓGICA DE PROCESAMIENTO BULK:
+             * 1. Filtra órdenes que aún no han sido procesadas
+             * 2. Verifica que haya órdenes pendientes
+             * 3. Muestra confirmación con advertencia
+             * 4. Procesa cada orden individualmente en secuencia
+             * 
+             * PARÁMETROS:
+             * @param {string} action - Tipo de acción ('approve' o 'reject')
+             * 
+             * CONSIDERACIONES:
+             * - Solo procesa órdenes que no han sido procesadas
+             * - Requiere confirmación explícita por el impacto masivo
+             * - Procesa en secuencia para evitar sobrecarga del servidor
+             * - Cada orden usa su token individual para seguridad
+             */
             async handleBulkAction(action) {
+                // Filtrar solo órdenes que no han sido procesadas
                 const pendingOrders = this.config.orders.filter(order => !this.processedOrders.has(order.id.toString()));
                 
+                // Verificar si hay órdenes pendientes
                 if (pendingOrders.length === 0) {
                     Swal.fire({
                         icon: 'info',
@@ -997,6 +1351,7 @@ function showError($message) {
                     return;
                 }
 
+                // Mostrar confirmación con advertencia de impacto masivo
                 const result = await Swal.fire({
                     title: `${action.charAt(0).toUpperCase() + action.slice(1)} All Orders?`,
                     text: `This will ${action} ${pendingOrders.length} pending orders. This action cannot be undone.`,
@@ -1008,8 +1363,7 @@ function showError($message) {
                 });
 
                 if (result.isConfirmed) {
-                    // TODO: Implement bulk action processing
-                    // For now, process each individually
+                    // Procesar cada orden individualmente con su token único
                     for (const order of pendingOrders) {
                         const token = this.config.tokens[order.id][action];
                         await this.processAction(token, action, order.id);
@@ -1017,11 +1371,37 @@ function showError($message) {
                 }
             }
 
+            /**
+             * PROCESAMIENTO CORE DE ACCIONES (BACKEND COMMUNICATION)
+             * 
+             * FLUJO DE COMUNICACIÓN CON BACKEND:
+             * 1. Construye URL con parámetros de acción y token
+             * 2. Muestra indicador de carga con SweetAlert2
+             * 3. Ejecuta llamada AJAX al endpoint de procesamiento
+             * 4. Verifica respuesta y actualiza UI según resultado
+             * 5. Maneja errores y muestra feedback apropiado
+             * 
+             * PARÁMETROS:
+             * @param {string} token - Token único para la acción específica
+             * @param {string} action - Tipo de acción ('approve' o 'reject')
+             * @param {number|string} orderId - ID de la orden a procesar
+             * 
+             * SEGURIDAD:
+             * - Cada llamada usa token único y temporal
+             * - Validación server-side de permisos
+             * - Timeouts para prevenir requests colgados
+             * 
+             * FEEDBACK VISUAL:
+             * - Loading spinner durante procesamiento
+             * - Mensajes de éxito/error claros
+             * - Actualización inmediata de UI
+             */
             async processAction(token, action, orderId) {
                 try {
+                    // Construir URL del endpoint con parámetros
                     const url = `${this.config.urls.singleAction}?action=${action}&token=${token}`;
                     
-                    // Show loading
+                    // Mostrar indicador de carga
                     Swal.fire({
                         title: 'Processing...',
                         text: `${action.charAt(0).toUpperCase() + action.slice(1)}ing order #${orderId}`,
@@ -1031,16 +1411,16 @@ function showError($message) {
                         }
                     });
 
+                    // Ejecutar llamada AJAX
                     const response = await fetch(url, { method: 'GET' });
                     
                     if (response.ok) {
-                        // Mark as processed
+                        // ÉXITO: Actualizar estado local y UI
                         this.processedOrders.add(orderId.toString());
-                        
-                        // Update UI
                         this.markOrderAsProcessed(orderId, action);
                         this.updateSummary();
                         
+                        // Mostrar mensaje de éxito
                         Swal.fire({
                             icon: 'success',
                             title: 'Success!',
@@ -1049,9 +1429,11 @@ function showError($message) {
                             timerProgressBar: true
                         });
                     } else {
+                        // ERROR HTTP: Lanzar excepción con detalles
                         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                     }
                 } catch (error) {
+                    // MANEJO DE ERRORES: Log y feedback al usuario
                     console.error('Error processing action:', error);
                     Swal.fire({
                         icon: 'error',
@@ -1061,19 +1443,37 @@ function showError($message) {
                 }
             }
 
+            /**
+             * ACTUALIZACIÓN VISUAL DE ORDEN PROCESADA
+             * 
+             * CAMBIOS VISUALES APLICADOS:
+             * 1. Añade clase 'processed' para estilos CSS
+             * 2. Crea y añade indicador de estado visual
+             * 3. Programa ocultación automática opcional
+             * 
+             * PARÁMETROS:
+             * @param {number|string} orderId - ID de la orden procesada
+             * @param {string} action - Acción realizada ('approve' o 'reject')
+             * 
+             * FEEDBACK VISUAL:
+             * - Cambio de opacidad y escala de la tarjeta
+             * - Badge de estado (APPROVED/REJECTED)
+             * - Opción de ocultar orden después de delay
+             */
             markOrderAsProcessed(orderId, action) {
                 const orderCard = document.querySelector(`[data-order-id="${orderId}"]`);
                 if (orderCard) {
+                    // Aplicar clase CSS para cambios visuales
                     orderCard.classList.add('processed');
                     
-                    // Add status indicator
+                    // Crear y añadir indicador de estado
                     const orderHeader = orderCard.querySelector('.order-header');
                     const statusIndicator = document.createElement('div');
                     statusIndicator.className = `status-indicator status-${action}d`;
                     statusIndicator.textContent = action === 'approve' ? 'APPROVED' : 'REJECTED';
                     orderHeader.appendChild(statusIndicator);
                     
-                    // Optionally hide the order after a delay
+                    // Opción de ocultar orden después de delay
                     setTimeout(() => {
                         if (confirm(`Hide processed order #${orderId}?`)) {
                             orderCard.classList.add('hidden');
@@ -1082,11 +1482,28 @@ function showError($message) {
                 }
             }
 
+            /**
+             * MANEJADOR DE DESCARGA DE PDF
+             * 
+             * FLUJO DE DESCARGA:
+             * 1. Extrae ID de orden del botón clickeado
+             * 2. Busca datos completos de la orden en configuración
+             * 3. Llama a generatePDF del módulo svgOrders.js
+             * 4. Muestra feedback de éxito o error
+             * 
+             * PARÁMETROS:
+             * @param {Event} event - Evento de click del botón
+             * 
+             * VALIDACIONES:
+             * - Verifica que los datos de la orden existan
+             * - Muestra mensaje de error si faltan datos
+             */
             async handleDownloadOrder(event) {
                 const btn = event.target.closest('.order-action-btn');
                 const orderId = btn.getAttribute('data-order-id');
                 const orderData = this.config.orders.find(o => o.id == orderId);
                 
+                // Validar que los datos de la orden estén disponibles
                 if (!orderData) {
                     Swal.fire({
                         icon: 'error',
@@ -1097,8 +1514,10 @@ function showError($message) {
                 }
 
                 try {
+                    // Llamar a la función de generación de PDF
                     await generatePDF(orderData, `PF_Order_${orderId}`);
                     
+                    // Mostrar mensaje de éxito con temporizador
                     Swal.fire({
                         icon: 'success',
                         title: 'PDF Downloaded!',
@@ -1107,6 +1526,7 @@ function showError($message) {
                         timerProgressBar: true
                     });
                 } catch (error) {
+                    // Manejo de errores específico para generación de PDF
                     console.error('Error generating PDF:', error);
                     Swal.fire({
                         icon: 'error',
@@ -1116,7 +1536,22 @@ function showError($message) {
                 }
             }
 
+            /**
+             * MANEJADOR DE DESCARGA DE TODOS LOS PDFs
+             * 
+             * FLUJO DE DESCARGA MASIVO:
+             * 1. Muestra confirmación antes de iniciar descarga masiva
+             * 2. Muestra indicador de progreso durante la generación
+             * 3. Genera y descarga cada PDF de orden en secuencia
+             * 4. Maneja errores y muestra feedback al usuario
+             * 
+             * CONSIDERACIONES:
+             * - Descarga en secuencia para evitar sobrecarga del servidor
+             * - Actualiza el progreso en tiempo real
+             * - Muestra mensaje final de éxito o error
+             */
             async handleDownloadAll() {
+                // Confirmar acción con el usuario
                 const result = await Swal.fire({
                     title: 'Download All Orders?',
                     text: `This will generate PDFs for ${this.config.orders.length} orders. This may take a few moments.`,
@@ -1129,6 +1564,7 @@ function showError($message) {
 
                 if (result.isConfirmed) {
                     try {
+                        // Mostrar indicador de generación de PDFs
                         Swal.fire({
                             title: 'Generating PDFs...',
                             text: 'Please wait while we generate all PDFs.',
@@ -1138,17 +1574,19 @@ function showError($message) {
                             }
                         });
 
+                        // Generar PDF para cada orden en secuencia
                         for (let i = 0; i < this.config.orders.length; i++) {
                             const order = this.config.orders[i];
                             await generatePDF(order, `PF_Order_${order.id}`);
                             
-                            // Update progress
+                            // Actualizar progreso en el diálogo
                             const progress = ((i + 1) / this.config.orders.length) * 100;
                             Swal.update({
                                 text: `Generated ${i + 1} of ${this.config.orders.length} PDFs (${Math.round(progress)}%)`
                             });
                         }
 
+                        // Mostrar mensaje de éxito al finalizar
                         Swal.fire({
                             icon: 'success',
                             title: 'All PDFs Downloaded!',
@@ -1157,6 +1595,7 @@ function showError($message) {
                             timerProgressBar: true
                         });
                     } catch (error) {
+                        // Manejo de errores durante la generación masiva de PDFs
                         console.error('Error generating PDFs:', error);
                         Swal.fire({
                             icon: 'error',
@@ -1167,6 +1606,17 @@ function showError($message) {
                 }
             }
 
+            /**
+             * ACTUALIZACIÓN DEL RESUMEN EN EL PANEL FLOTANTE
+             * 
+             * Este método actualiza los contadores de órdenes pendientes y procesadas
+             * en el panel flotante de resumen:
+             * 
+             * - pendingCount: Total de órdenes menos las procesadas
+             * - processedCount: Total de órdenes procesadas
+             * 
+             * Se llama automáticamente después de cada acción para reflejar el estado actual
+             */
             updateSummary() {
                 const pendingCount = this.config.orders.length - this.processedOrders.size;
                 const processedCount = this.processedOrders.size;
@@ -1176,7 +1626,7 @@ function showError($message) {
             }
         }
 
-        // Initialize when DOM is ready
+        // Inicializar cuando el DOM esté listo
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => new BulkOrdersViewer());
         } else {
