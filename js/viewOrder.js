@@ -322,7 +322,7 @@ async function handleGeneratePDF(event) {
         // Show loading
         showLoading('Generating PDF', 'Please wait while we create your document...');
         
-        // Generate PDF using the svgOrders module - CORREGIDO: usar la función importada
+        // Generate PDF using the svgOrders module - CORREGIDO: usar la función correcta
         const fileName = await svgGeneratePDF(currentOrder, `Order_${currentOrder.id}`);
         
         // Show success message
