@@ -320,7 +320,7 @@ async function handleGeneratePDF(event) {
         showLoading('Generating PDF', 'Please wait while we create your document...');
         
         // Generate PDF using the svgOrders module
-        const fileName = await svgGeneratePDF(currentOrder, `Order_${currentOrder.id}`);
+        const fileName = await generatePDF(currentOrder, `Order_${currentOrder.id}`);
         
         // Show success message
         Swal.fire({
