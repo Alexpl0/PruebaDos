@@ -49,7 +49,7 @@ include_once 'dao/users/auth_check.php';
                         <h2 class="text-center">Ingresar a mi Cuenta</h2>
                         <div class="row text-center">
                             <p class="text-center">Por favor ingresa tu usuario y contraseña</p>
-                            <p class="text-center">Usuario: jesus@example.com</p>
+                            <p class="text-center">Usuario: lunetra029@davomi.com</p>
                             <p class="text-center">Contraseña: pass123</p>
                             
                             <div id="loginform">

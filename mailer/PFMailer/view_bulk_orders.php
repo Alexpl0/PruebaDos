@@ -871,7 +871,6 @@ try {
         .order-svg-container svg {
             width: 100%;
             height: auto;
-            max-height: 400px;
             transition: var(--transition-normal);
         }
 
