@@ -146,7 +146,7 @@ body {
 /* ===== COMPACT STATUS SECTION ===== */
 .status-section {
     background: var(--accent-color);
-    padding: var(--spacing-xl) var(--spacing-2xl);
+    padding: 0 5% 0 5%;
     border-bottom: 1px solid var(--border-color);
     display: grid;
     grid-template-columns: 1fr auto;
