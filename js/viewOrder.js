@@ -307,6 +307,7 @@ async function handleRejectionClick(event) {
 
 /**
  * Handle PDF generation
+ * ACTUALIZADO: Usar la misma lógica que modals.js
  */
 async function handleGeneratePDF(event) {
     // Verificar si event existe antes de llamar preventDefault
@@ -319,23 +320,49 @@ async function handleGeneratePDF(event) {
     try {
         isLoading = true;
         
-        // Show loading
-        showLoading('Generating PDF', 'Please wait while we create your document...');
-        
-        // Generate PDF using the svgOrders module - CORREGIDO: usar la función correcta
-        const fileName = await svgGeneratePDF(currentOrder, `Order_${currentOrder.id}`);
-        
-        // Show success message
+        // Show loading message similar to modals.js
+        Swal.fire({
+            title: 'Generating PDF',
+            html: 'Please wait while the document is being processed...',
+            timerProgressBar: true,
+            didOpen: () => { Swal.showLoading(); },
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            allowEnterKey: false,
+            customClass: { container: 'swal-on-top' }
+        });
+
+        // Generate PDF using the svgOrders module - igual que en modals.js
+        const fileName = await svgGeneratePDF(currentOrder);
+
+        // Show success message igual que en modals.js
         Swal.fire({
             icon: 'success',
-            title: 'PDF Generated',
-            text: `${fileName} has been downloaded successfully`,
-            confirmButtonColor: '#28a745'
+            title: 'PDF Generated Successfully!',
+            html: `The file <b>${fileName}</b> has been downloaded successfully.`,
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#28a745',
+            customClass: { container: 'swal-on-top' }
         });
         
     } catch (error) {
         console.error('Error generating PDF:', error);
-        showErrorMessage('Failed to generate PDF');
+        
+        // Error handling igual que en modals.js
+        Swal.fire({
+            icon: 'error',
+            title: 'Error Generating PDF',
+            text: error.message || 'An unexpected error occurred.',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#dc3545',
+            customClass: { container: 'swal-on-top' }
+        });
+        
+        // Clean up any temporary container that might have been created
+        const tempContainer = document.querySelector('div[style*="left: -9999px"]');
+        if (tempContainer) {
+            document.body.removeChild(tempContainer);
+        }
     } finally {
         isLoading = false;
     }
