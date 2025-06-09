@@ -358,7 +358,7 @@ async function generatePDF(selectedOrder, customFileName) {
         const imgData = canvas.toDataURL('image/png');
         pdf.addImage(imgData, 'PNG', xPos, yPos, imgWidth * scale, imgHeight * scale);
         
-        // CORREGIDO: Usar método nativo en lugar de pdf.save()
+        // CORREGIDO: Usar la API nativa del navegador sin conflictos
         const fileName = customFileName 
             ? `${customFileName}.pdf` 
             : `PF_${selectedOrder.id || 'Order'}.pdf`;
@@ -366,8 +366,51 @@ async function generatePDF(selectedOrder, customFileName) {
         // Generar el PDF como blob
         const pdfOutput = pdf.output('blob');
         
-        // Crear enlace de descarga usando la API nativa del navegador
-        const url = window.URL.createObjectURL(pdfOutput);
+        // CORRECCIÓN CRÍTICA: Usar la API nativa sin interferencias
+        // Guardar referencia a la API nativa antes de cualquier posible sobrescritura
+        const nativeURL = window.webkitURL || window.mozURL || (function() {
+            // Fallback: crear una referencia directa a la API nativa
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+            const nativeWindow = iframe.contentWindow;
+            document.body.removeChild(iframe);
+            return nativeWindow.URL;
+        })();
+        
+        // Si nativeURL no está disponible, usar la API directa del navegador
+        const urlAPI = nativeURL || (function() {
+            // Crear un objeto temporal que no interfiera
+            return {
+                createObjectURL: function(blob) {
+                    // Método alternativo usando FileReader si createObjectURL no está disponible
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(blob);
+                    });
+                },
+                revokeObjectURL: function() {
+                    // Placeholder - no es crítico para este caso
+                }
+            };
+        })();
+        
+        // Crear enlace de descarga
+        let url;
+        if (typeof urlAPI.createObjectURL === 'function') {
+            url = urlAPI.createObjectURL(pdfOutput);
+        } else {
+            // Método alternativo usando data URL
+            const reader = new FileReader();
+            url = await new Promise((resolve, reject) => {
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(pdfOutput);
+            });
+        }
+        
         const link = document.createElement('a');
         link.href = url;
         link.download = fileName;
@@ -378,10 +421,12 @@ async function generatePDF(selectedOrder, customFileName) {
         link.click();
         document.body.removeChild(link);
         
-        // Limpiar URL object después de un tiempo
-        setTimeout(() => {
-            window.URL.revokeObjectURL(url);
-        }, 1000);
+        // Limpiar URL object después de un tiempo (solo si es object URL)
+        if (url.startsWith('blob:') && urlAPI.revokeObjectURL) {
+            setTimeout(() => {
+                urlAPI.revokeObjectURL(url);
+            }, 1000);
+        }
         
         console.log('[SVG PDF] PDF generado exitosamente:', fileName);
         return fileName;

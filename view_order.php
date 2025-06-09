@@ -140,7 +140,7 @@ $URLM = "https://grammermx.com/Mailer/PFMailer/";
         };
         
         // Legacy support for existing modules
-        window.URL = window.PF_CONFIG.baseURL;
+        window.PF_URL = window.PF_CONFIG.baseURL;  // En lugar de window.URL
         window.URLM = window.PF_CONFIG.mailerURL;
         window.allOrders = [window.PF_CONFIG.orderData];
         window.originalOrders = [window.PF_CONFIG.orderData];
