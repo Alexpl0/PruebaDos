@@ -459,8 +459,7 @@ async function refreshOrderData() {
  * Global functions for compatibility
  */
 window.goBack = handleGoBack;
-// CORREGIDO: No exportar generatePDF como global para evitar conflictos
-// window.generatePDF = handleGeneratePDF;
+window.handleGeneratePDF = handleGeneratePDF; // Agregar esta línea
 
 /**
  * Export functions for use by other modules
