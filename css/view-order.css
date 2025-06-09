@@ -2,23 +2,31 @@
  * view-order.css
  * Professional Order Viewer Styles
  * Premium Freight Authorization System - Grammer AG
+ * ACTUALIZADO: Usando las mismas variables CSS del proyecto principal
  */
 
-/* ===== CSS CUSTOM PROPERTIES ===== */
+/* ===== HEREDAMOS LAS VARIABLES GLOBALES DEL PROYECTO ===== */
+/* Las variables ya están definidas en styles.css, solo agregamos las específicas que necesitamos */
 :root {
-    --primary-color: #1c4481;
-    --secondary-color: #2c5aa0;
-    --accent-color: #f8f9fa;
-    --success-color: #28a745;
-    --warning-color: #ffc107;
-    --danger-color: #dc3545;
-    --text-primary: #2c3e50;
-    --text-secondary: #6c757d;
-    --border-color: #e9ecef;
-    --shadow-light: 0 2px 10px rgba(0,0,0,0.1);
-    --shadow-medium: 0 4px 20px rgba(0,0,0,0.15);
-    --border-radius: 12px;
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Variables específicas para view-order que complementan las globales */
+    --view-order-shadow-light: 0 2px 10px rgba(0,0,0,0.1);
+    --view-order-shadow-medium: 0 4px 20px rgba(0,0,0,0.15);
+    --view-order-transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Mapeo de variables locales a variables globales para compatibilidad */
+    --primary-color: var(--grammer-blue);
+    --secondary-color: var(--grammer-light-blue);
+    --accent-color: var(--gray-50);
+    --success-color: var(--success);
+    --warning-color: var(--warning);
+    --danger-color: var(--danger);
+    --text-primary: var(--gray-900);
+    --text-secondary: var(--gray-600);
+    --border-color: var(--gray-200);
+    --shadow-light: var(--shadow-md);
+    --shadow-medium: var(--shadow-lg);
+    --border-radius: var(--border-radius-lg);
+    --transition-smooth: var(--transition-normal);
 }
 
 /* ===== BASE STYLES ===== */
@@ -34,30 +42,30 @@ html {
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    font-family: var(--body-font);
+    background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
     color: var(--text-primary);
     line-height: 1.6;
     min-height: 100vh;
-    padding: 20px;
+    padding: var(--spacing-lg);
 }
 
 /* ===== EMAIL-STYLE LAYOUT ===== */
 .email-container {
-    max-width: 900px;
+    max-width: var(--max-width);
     margin: 0 auto;
-    background: white;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-medium);
+    background: var(--white);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-xl);
     overflow: hidden;
     position: relative;
 }
 
 /* ===== COMPACT PROFESSIONAL HEADER ===== */
 .email-header {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-    color: white;
-    padding: 20px 30px;
+    background: linear-gradient(135deg, var(--grammer-blue) 0%, var(--grammer-light-blue) 100%);
+    color: var(--white);
+    padding: var(--spacing-xl) var(--spacing-2xl);
     position: relative;
     overflow: hidden;
 }
@@ -78,21 +86,21 @@ body {
     z-index: 2;
     display: grid;
     grid-template-columns: 1fr auto;
-    gap: 30px;
+    gap: var(--spacing-2xl);
     align-items: center;
 }
 
 .header-left {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: var(--spacing-lg);
 }
 
 .company-logo {
     width: 50px;
     height: 50px;
     background: rgba(255,255,255,0.15);
-    border-radius: 12px;
+    border-radius: var(--border-radius-lg);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -101,14 +109,15 @@ body {
 
 .company-logo i {
     font-size: 24px;
-    color: white;
+    color: var(--white);
 }
 
 .company-name {
-    font-size: 24px;
+    font-size: 1.5rem;
     font-weight: 700;
     margin: 0;
     letter-spacing: -0.5px;
+    font-family: var(--body-font);
 }
 
 .order-info {
@@ -116,16 +125,18 @@ body {
 }
 
 .order-title-main {
-    font-size: 28px;
+    font-size: 1.75rem;
     font-weight: 700;
-    margin: 0 0 5px 0;
+    margin: 0 0 var(--spacing-xs) 0;
     letter-spacing: -0.5px;
+    font-family: var(--body-font);
 }
 
 .order-subtitle {
-    font-size: 14px;
+    font-size: var(--small-font-size);
     opacity: 0.9;
     margin: 0;
+    font-family: var(--body-font);
 }
 
 .header-right {
@@ -135,53 +146,57 @@ body {
 /* ===== COMPACT STATUS SECTION ===== */
 .status-section {
     background: var(--accent-color);
-    padding: 20px 30px;
+    padding: var(--spacing-xl) var(--spacing-2xl);
     border-bottom: 1px solid var(--border-color);
     display: grid;
     grid-template-columns: 1fr auto;
-    gap: 20px;
+    gap: var(--spacing-xl);
     align-items: center;
 }
 
 .approver-info {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: var(--spacing-lg);
 }
 
 .approver-avatar {
     width: 45px;
     height: 45px;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    background: linear-gradient(135deg, var(--grammer-blue), var(--grammer-light-blue));
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: var(--white);
     font-weight: 600;
-    font-size: 16px;
+    font-size: 1rem;
+    font-family: var(--body-font);
 }
 
 .approver-details h4 {
     margin: 0;
-    font-size: 16px;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--text-primary);
+    font-family: var(--body-font);
 }
 
 .approver-role {
     margin: 0;
-    font-size: 13px;
+    font-size: var(--small-font-size);
     color: var(--text-secondary);
+    font-family: var(--body-font);
 }
 
 .status-badge {
-    padding: 8px 16px;
+    padding: var(--spacing-sm) var(--spacing-md);
     border-radius: 20px;
-    font-size: 13px;
+    font-size: var(--small-font-size);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    font-family: var(--body-font);
 }
 
 .status-pending {
@@ -191,7 +206,7 @@ body {
 }
 
 .status-completed {
-    background: linear-gradient(135deg, #d4edda, #00b894);
+    background: linear-gradient(135deg, #d4edda, var(--success));
     color: #155724;
 }
 
@@ -203,24 +218,25 @@ body {
 /* ===== COMPACT ACTION BUTTONS ===== */
 .quick-actions {
     display: flex;
-    gap: 12px;
+    gap: var(--spacing-sm);
 }
 
 .action-btn-compact {
-    padding: 10px 20px;
+    padding: var(--spacing-sm) var(--spacing-xl);
     border: none;
-    border-radius: 8px;
-    font-size: 13px;
+    border-radius: var(--border-radius);
+    font-size: var(--small-font-size);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     cursor: pointer;
-    transition: var(--transition-smooth);
+    transition: var(--transition-normal);
     position: relative;
     overflow: hidden;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--spacing-sm);
+    font-family: var(--body-font);
 }
 
 .action-btn-compact::before {
@@ -240,12 +256,12 @@ body {
 
 .action-btn-compact:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    box-shadow: var(--shadow-lg);
 }
 
 .btn-approve {
-    background: linear-gradient(135deg, var(--success-color), #20c997);
-    color: white;
+    background: linear-gradient(135deg, var(--success), #20c997);
+    color: var(--white);
 }
 
 .btn-approve:hover {
@@ -253,8 +269,8 @@ body {
 }
 
 .btn-reject {
-    background: linear-gradient(135deg, var(--danger-color), #e74c3c);
-    color: white;
+    background: linear-gradient(135deg, var(--danger), #e74c3c);
+    color: var(--white);
 }
 
 .btn-reject:hover {
@@ -263,7 +279,7 @@ body {
 
 .btn-pdf {
     background: linear-gradient(135deg, #6f42c1, #8b5cf6);
-    color: white;
+    color: var(--white);
 }
 
 .btn-pdf:hover {
@@ -271,18 +287,18 @@ body {
 }
 
 .btn-back {
-    background: linear-gradient(135deg, #6c757d, #495057);
-    color: white;
+    background: linear-gradient(135deg, var(--gray-600), var(--gray-700));
+    color: var(--white);
 }
 
 .btn-back:hover {
-    background: linear-gradient(135deg, #5a6268, #3d4449);
+    background: linear-gradient(135deg, var(--gray-700), var(--gray-800));
 }
 
 /* ===== SVG CONTAINER ===== */
 .svg-container {
-    padding: 30px;
-    background: white;
+    padding: var(--spacing-2xl);
+    background: var(--white);
     min-height: 600px;
     display: flex;
     align-items: center;
@@ -308,9 +324,10 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: var(--spacing-sm);
     color: var(--text-secondary);
-    font-size: 14px;
+    font-size: var(--small-font-size);
+    font-family: var(--body-font);
 }
 
 .spinner {
@@ -330,19 +347,19 @@ body {
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
     body {
-        padding: 10px;
+        padding: var(--spacing-sm);
     }
 
     .email-header-content {
         grid-template-columns: 1fr;
         text-align: center;
-        gap: 15px;
+        gap: var(--spacing-lg);
     }
 
     .status-section {
         grid-template-columns: 1fr;
         text-align: center;
-        gap: 15px;
+        gap: var(--spacing-lg);
     }
 
     .quick-actions {
@@ -356,7 +373,15 @@ body {
     }
 
     .svg-container {
-        padding: 20px;
+        padding: var(--spacing-xl);
+    }
+
+    .email-header {
+        padding: var(--spacing-xl) var(--spacing-lg);
+    }
+
+    .status-section {
+        padding: var(--spacing-xl) var(--spacing-lg);
     }
 }
 
@@ -372,4 +397,50 @@ body {
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== SWEET ALERT CUSTOMIZATION ===== */
+.swal-on-top {
+    z-index: 10000 !important;
+}
+
+/* ===== TYPOGRAPHY CONSISTENCY ===== */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--body-font);
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: var(--spacing-sm);
+}
+
+p {
+    font-family: var(--body-font);
+    line-height: 1.6;
+    margin-bottom: var(--spacing-md);
+}
+
+/* ===== ACCESSIBILITY IMPROVEMENTS ===== */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .action-btn-compact::before {
+        display: none;
+    }
+    
+    .status-pending {
+        animation: none;
+    }
+}
+
+/* ===== FOCUS STYLES FOR ACCESSIBILITY ===== */
+.action-btn-compact:focus {
+    outline: 2px solid var(--grammer-accent);
+    outline-offset: 2px;
+}
+
+.action-btn-compact:focus:not(:focus-visible) {
+    outline: none;
 }
