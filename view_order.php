@@ -241,11 +241,7 @@ $URLM = "https://grammermx.com/Mailer/PFMailer/";
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
 
     <!-- Custom scripts -->
-    <script src="js/header.js"></script>
     <script src="js/uploadFiles.js"></script>
-    <script src="js/dataTables.js"></script>
-    <script src="js/orders.js" type="module"></script>
-
     <script type="module" src="js/viewOrder.js"></script>
 </body>
 </html>
