@@ -44,34 +44,25 @@ export async function handleApprove() {
             customClass: { container: 'swal-on-top' }
         });
 
-        // Calcular el nuevo nivel de aprobación
-        const currentStatus = Number(selectedOrder.approval_status);
-        const newStatusId = currentStatus + 1;
+        // NUEVO: Usar el authorization_level del usuario actual como nuevo act_approv
+        const newApprovalLevel = Number(window.authorizationLevel);
         const requiredLevel = Number(selectedOrder.required_auth_level || 7);
-        
-        // Verificar que no se exceda el nivel requerido
-        if (newStatusId > requiredLevel) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Orden ya completamente aprobada',
-                text: 'Esta orden ya ha alcanzado el nivel de aprobación requerido.',
-                customClass: { container: 'swal-on-top' }
-            });
-            return;
-        }
         
         // Preparar datos para la API
         const updateData = {
             orderId: selectedOrder.id,
-            newStatusId: newStatusId,
+            newStatusId: newApprovalLevel, // Usar authorization_level, no act_approv + 1
             userLevel: window.authorizationLevel,
             userID: window.userID,
             authDate: new Date().toISOString().slice(0, 19).replace('T', ' ')
         };
 
+        // Determinar si estará completamente aprobada después de esta aprobación
+        const willBeFullyApproved = (newApprovalLevel >= requiredLevel);
+        
         // Determinar el ID de estado textual
         let updatedStatusTextId = 2; // Por defecto: 'revision'
-        if (newStatusId >= requiredLevel) {
+        if (willBeFullyApproved) {
             updatedStatusTextId = 3; // 'aprobado'
         }
 
@@ -108,26 +99,26 @@ export async function handleApprove() {
         }
 
         // Actualizar datos locales
-        selectedOrder.approval_status = newStatusId;
+        selectedOrder.approval_status = newApprovalLevel;
         selectedOrder.status_id = updatedStatusTextId;
         
         // Actualizar nombre de estado para reflejos en UI
         if (updatedStatusTextId === 3) selectedOrder.status_name = 'aprobado';
         else if (updatedStatusTextId === 2) selectedOrder.status_name = 'revision';
 
-        // Enviar notificación por correo al siguiente nivel de aprobación
-        if (newStatusId < requiredLevel) {
-            // Si aún necesita más aprobaciones, enviar correo al siguiente aprobador
-            console.log(`[APPROVAL DEBUG] Orden requiere más aprobaciones. Nivel actual: ${newStatusId}, Requerido: ${requiredLevel}`);
-            await sendEmailNotification(selectedOrder.id, 'approval');
-        } else {
-            // Si está completamente aprobada, enviar correo de estado final al creador
+        // CORREGIDO: Enviar notificación según el estado final
+        if (willBeFullyApproved) {
+            // Orden completamente aprobada - notificar SOLO al creador
             console.log(`[APPROVAL DEBUG] Orden completamente aprobada. Enviando notificación final al creador`);
             await sendEmailNotification(selectedOrder.id, 'approved');
+        } else {
+            // Orden necesita más aprobaciones - enviar correo al SIGUIENTE aprobador (NO al actual)
+            console.log(`[APPROVAL DEBUG] Orden requiere más aprobaciones. Nivel actual: ${newApprovalLevel}, Requerido: ${requiredLevel}`);
+            await sendEmailNotification(selectedOrder.id, 'approval');
         }
 
         // Mostrar mensaje de éxito con información adicional
-        const statusMessage = newStatusId >= requiredLevel ? 
+        const statusMessage = willBeFullyApproved ? 
             'La orden ha sido completamente aprobada.' : 
             'La orden ha sido aprobada para el siguiente nivel.';
             
@@ -141,8 +132,16 @@ export async function handleApprove() {
         
         // Cerrar modal y regenerar tarjetas
         hideModal();
-        createCards(window.allOrders);
 
+        // NUEVO: Verificar si estamos en viewOrder.js y actualizar específicamente
+        if (window.location.pathname.includes('viewOrder.php') || 
+            document.getElementById('svgContent')) {
+            // Estamos en viewOrder.js, no llamar createCards sino dejar que viewOrder maneje la UI
+            console.log('[APPROVAL DEBUG] Detectado viewOrder.js, omitiendo createCards');
+        } else {
+            // Estamos en orders.php, llamar createCards normalmente
+            createCards(window.allOrders);
+        }
     } catch (error) {
         // Manejar errores durante el proceso de aprobación
         console.error('Error al aprobar la orden:', error);
@@ -255,8 +254,8 @@ function validateOrderForApproval(order) {
     }
     
     // Verificar nivel de autorización: debe ser exactamente (act_approv + 1)
-    const currentStatus = Number(order.approval_status);
-    const nextRequiredLevel = currentStatus + 1;
+    const currentApprovalLevel = Number(order.approval_status);
+    const nextRequiredLevel = currentApprovalLevel + 1;
     
     if (Number(window.authorizationLevel) !== nextRequiredLevel) {
         Swal.fire({
@@ -268,9 +267,9 @@ function validateOrderForApproval(order) {
         return false;
     }
     
-    // Verificar que no esté completamente aprobada
+    // Verificar que no esté completamente aprobada (act_approv >= required_auth_level)
     const requiredLevel = Number(order.required_auth_level || 7);
-    if (currentStatus >= requiredLevel) {
+    if (currentApprovalLevel >= requiredLevel) {
         Swal.fire({
             icon: 'warning',
             title: 'Orden ya aprobada',
@@ -280,8 +279,8 @@ function validateOrderForApproval(order) {
         return false;
     }
     
-    // Verificar que no esté rechazada
-    if (currentStatus === 99) {
+    // Verificar que no esté rechazada (act_approv = 99)
+    if (currentApprovalLevel === 99) {
         Swal.fire({
             icon: 'warning',
             title: 'Orden rechazada',

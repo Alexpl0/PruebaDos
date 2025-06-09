@@ -108,99 +108,162 @@ function setupEventListeners() {
 }
 
 /**
+ * Check if user has permission to approve this order
+ * ACTUALIZADO: Siguiendo exactamente la misma lógica que approval.js
+ */
+function checkApprovalPermissions(user, order) {
+    // Verificar que existan los datos necesarios
+    if (!user || !order) {
+        console.log('[VIEWORDER DEBUG] Datos de usuario u orden no disponibles');
+        return false;
+    }
+
+    // Obtener datos necesarios para validación
+    const userAuthLevel = Number(user.authorizationLevel || window.authorizationLevel);
+    const userPlant = user.plant || window.userPlant;
+    const currentApprovalLevel = Number(order.approval_status);
+    const requiredLevel = Number(order.required_auth_level || 7);
+    const creatorPlant = order.creator_plant;
+
+    console.log('[VIEWORDER DEBUG] Validando permisos:', {
+        userAuthLevel,
+        userPlant,
+        currentApprovalLevel,
+        requiredLevel,
+        creatorPlant
+    });
+
+    // 1. Verificar que no esté completamente aprobada (act_approv >= required_auth_level)
+    if (currentApprovalLevel >= requiredLevel) {
+        console.log('[VIEWORDER DEBUG] Orden ya completamente aprobada');
+        return false;
+    }
+    
+    // 2. Verificar que no esté rechazada (act_approv = 99)
+    if (currentApprovalLevel === 99) {
+        console.log('[VIEWORDER DEBUG] Orden fue rechazada previamente');
+        return false;
+    }
+
+    // 3. Verificar nivel de autorización: debe ser exactamente (act_approv + 1)
+    const nextRequiredLevel = currentApprovalLevel + 1;
+    if (userAuthLevel !== nextRequiredLevel) {
+        console.log('[VIEWORDER DEBUG] Nivel de autorización incorrecto:', {
+            userLevel: userAuthLevel,
+            requiredLevel: nextRequiredLevel
+        });
+        return false;
+    }
+
+    // 4. Verificar planta: debe ser la misma planta O el usuario no debe tener planta (regional)
+    if (userPlant !== null && userPlant !== undefined && creatorPlant !== userPlant) {
+        console.log('[VIEWORDER DEBUG] Usuario no tiene permisos de planta:', {
+            userPlant,
+            creatorPlant
+        });
+        return false;
+    }
+
+    console.log('[VIEWORDER DEBUG] ✅ Usuario tiene permisos para aprobar esta orden');
+    return true;
+}
+
+/**
  * Configure approval/rejection buttons based on user permissions
+ * ACTUALIZADO: Configurar correctamente las variables globales para approval.js
  */
 function configureActionButtons() {
     const user = window.PF_CONFIG?.user;
     const order = currentOrder;
     
-    if (!user || !order) return;
+    if (!user || !order) {
+        console.log('[VIEWORDER DEBUG] Datos de usuario u orden no disponibles para configurar botones');
+        return;
+    }
+
+    // IMPORTANTE: Configurar variables globales que necesita approval.js
+    window.authorizationLevel = user.authorizationLevel;
+    window.userPlant = user.plant;
+    window.userID = user.id;
     
+    // Configurar sessionStorage con el ID de la orden actual para approval.js
+    sessionStorage.setItem('selectedOrderId', order.id.toString());
+    
+    // Configurar window.allOrders para que approval.js pueda encontrar la orden
+    if (!window.allOrders) {
+        window.allOrders = [];
+    }
+    
+    // Asegurar que la orden actual esté en allOrders
+    const existingOrderIndex = window.allOrders.findIndex(o => o.id === order.id);
+    if (existingOrderIndex >= 0) {
+        window.allOrders[existingOrderIndex] = order;
+    } else {
+        window.allOrders.push(order);
+    }
+
     const approveBtn = document.getElementById('approveBtn');
     const rejectBtn = document.getElementById('rejectBtn');
     
-    // Check if user can approve this order
+    // Check if user can approve this order using the corrected logic
     const canApprove = checkApprovalPermissions(user, order);
+    
+    console.log('[VIEWORDER DEBUG] Configurando botones - canApprove:', canApprove);
     
     if (canApprove) {
         // Show approval buttons
         if (approveBtn) {
             approveBtn.classList.remove('hidden');
+            console.log('[VIEWORDER DEBUG] Mostrando botón de aprobar');
         }
         if (rejectBtn) {
             rejectBtn.classList.remove('hidden');
+            console.log('[VIEWORDER DEBUG] Mostrando botón de rechazar');
         }
     } else {
         // Hide approval buttons
         if (approveBtn) {
             approveBtn.classList.add('hidden');
+            console.log('[VIEWORDER DEBUG] Ocultando botón de aprobar');
         }
         if (rejectBtn) {
             rejectBtn.classList.add('hidden');
+            console.log('[VIEWORDER DEBUG] Ocultando botón de rechazar');
         }
     }
-}
-
-/**
- * Check if user has permission to approve this order
- */
-function checkApprovalPermissions(user, order) {
-    // Users with authorization level 0 cannot approve
-    if (user.authorizationLevel === 0) {
-        return false;
-    }
-    
-    // Check plant permission
-    if (user.plant && order.creator_plant && user.plant !== order.creator_plant) {
-        return false;
-    }
-    
-    // Check if order is in a state that can be approved
-    const approvableStatuses = [1, 2, 3, 4]; // Adjust based on your status IDs
-    if (!approvableStatuses.includes(parseInt(order.statusid))) {
-        return false;
-    }
-    
-    // Check authorization level vs order cost
-    if (order.euros && user.authorizationLevel) {
-        // Define cost thresholds based on authorization level
-        const costThresholds = {
-            1: 1000,   // Level 1 can approve up to 1000 EUR
-            2: 5000,   // Level 2 can approve up to 5000 EUR
-            3: 15000,  // Level 3 can approve up to 15000 EUR
-            4: 50000,  // Level 4 can approve up to 50000 EUR
-            5: Infinity // Level 5 can approve any amount
-        };
-        
-        const maxAmount = costThresholds[user.authorizationLevel] || 0;
-        if (parseFloat(order.euros) > maxAmount) {
-            return false;
-        }
-    }
-    
-    return true;
 }
 
 /**
  * Handle approval button click
+ * ACTUALIZADO: Simplificado para usar directamente approval.js
  */
 async function handleApprovalClick(event) {
     event.preventDefault();
     
-    if (isLoading) return;
+    if (isLoading) {
+        console.log('[VIEWORDER DEBUG] Ya se está procesando, ignorando clic');
+        return;
+    }
     
     try {
         isLoading = true;
         
-        // Use the approval module
+        console.log('[VIEWORDER DEBUG] Iniciando proceso de aprobación desde viewOrder');
+        
+        // Asegurar que los datos estén actualizados
+        sessionStorage.setItem('selectedOrderId', currentOrder.id.toString());
+        
+        // Use the approval module - que ya tiene toda la lógica correcta
         await handleApprove();
         
-        // Refresh order data after approval
+        // Refresh order data after approval to update the UI
         await refreshOrderData();
         
+        console.log('[VIEWORDER DEBUG] Proceso de aprobación completado desde viewOrder');
+        
     } catch (error) {
-        console.error('Error during approval:', error);
-        showErrorMessage('Failed to approve order');
+        console.error('[VIEWORDER DEBUG] Error durante approval:', error);
+        showErrorMessage('Failed to approve order: ' + error.message);
     } finally {
         isLoading = false;
     }
@@ -208,24 +271,35 @@ async function handleApprovalClick(event) {
 
 /**
  * Handle rejection button click
+ * ACTUALIZADO: Simplificado para usar directamente approval.js
  */
 async function handleRejectionClick(event) {
     event.preventDefault();
     
-    if (isLoading) return;
+    if (isLoading) {
+        console.log('[VIEWORDER DEBUG] Ya se está procesando, ignorando clic');
+        return;
+    }
     
     try {
         isLoading = true;
         
-        // Use the approval module
+        console.log('[VIEWORDER DEBUG] Iniciando proceso de rechazo desde viewOrder');
+        
+        // Asegurar que los datos estén actualizados
+        sessionStorage.setItem('selectedOrderId', currentOrder.id.toString());
+        
+        // Use the approval module - que ya tiene toda la lógica correcta
         await handleReject();
         
-        // Refresh order data after rejection
+        // Refresh order data after rejection to update the UI
         await refreshOrderData();
         
+        console.log('[VIEWORDER DEBUG] Proceso de rechazo completado desde viewOrder');
+        
     } catch (error) {
-        console.error('Error during rejection:', error);
-        showErrorMessage('Failed to reject order');
+        console.error('[VIEWORDER DEBUG] Error durante rejection:', error);
+        showErrorMessage('Failed to reject order: ' + error.message);
     } finally {
         isLoading = false;
     }
@@ -268,13 +342,8 @@ async function handleGeneratePDF(event) {
  * Handle back navigation
  */
 function handleGoBack() {
-    // Try to go back in history first
-    if (window.history.length > 1) {
-        window.history.back();
-    } else {
-        // Fallback to orders page
-        window.location.href = 'orders.php';
-    }
+    // Always redirect to orders page
+    window.location.href = 'orders.php';
 }
 
 /**
@@ -341,9 +410,12 @@ function showErrorMessage(message) {
 
 /**
  * Refresh order data from server
+ * ACTUALIZADO: Mejorado para mantener sincronización con approval.js
  */
 async function refreshOrderData() {
     try {
+        console.log('[VIEWORDER DEBUG] Refrescando datos de la orden:', currentOrder.id);
+        
         const response = await fetch(`${window.PF_CONFIG.baseURL}dao/orders/get_order.php?id=${currentOrder.id}`);
         
         if (!response.ok) {
@@ -356,19 +428,27 @@ async function refreshOrderData() {
             // Update current order data
             currentOrder = updatedOrder.data;
             window.PF_CONFIG.orderData = currentOrder;
-            window.allOrders = [currentOrder];
             
-            // Reconfigure buttons
+            // Update window.allOrders to keep it synchronized
+            const existingOrderIndex = window.allOrders?.findIndex(o => o.id === currentOrder.id);
+            if (existingOrderIndex >= 0) {
+                window.allOrders[existingOrderIndex] = currentOrder;
+            } else {
+                if (!window.allOrders) window.allOrders = [];
+                window.allOrders.push(currentOrder);
+            }
+            
+            // Reconfigure buttons with updated data
             configureActionButtons();
             
             // Update display
             await initializeOrderDisplay();
             
-            console.log('Order data refreshed successfully');
+            console.log('[VIEWORDER DEBUG] Datos de orden refrescados exitosamente');
         }
         
     } catch (error) {
-        console.error('Error refreshing order data:', error);
+        console.error('[VIEWORDER DEBUG] Error refreshing order data:', error);
     }
 }
 
