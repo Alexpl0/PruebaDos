@@ -309,7 +309,10 @@ async function handleRejectionClick(event) {
  * Handle PDF generation
  */
 async function handleGeneratePDF(event) {
-    event.preventDefault();
+    // Verificar si event existe antes de llamar preventDefault
+    if (event && typeof event.preventDefault === 'function') {
+        event.preventDefault();
+    }
     
     if (isLoading) return;
     
@@ -319,8 +322,8 @@ async function handleGeneratePDF(event) {
         // Show loading
         showLoading('Generating PDF', 'Please wait while we create your document...');
         
-        // Generate PDF using the svgOrders module
-        const fileName = await generatePDF(currentOrder, `Order_${currentOrder.id}`);
+        // Generate PDF using the svgOrders module - CORREGIDO: usar la función importada
+        const fileName = await svgGeneratePDF(currentOrder, `Order_${currentOrder.id}`);
         
         // Show success message
         Swal.fire({
@@ -456,7 +459,8 @@ async function refreshOrderData() {
  * Global functions for compatibility
  */
 window.goBack = handleGoBack;
-window.generatePDF = handleGeneratePDF;
+// CORREGIDO: No exportar generatePDF como global para evitar conflictos
+// window.generatePDF = handleGeneratePDF;
 
 /**
  * Export functions for use by other modules
