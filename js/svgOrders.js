@@ -293,12 +293,14 @@ function applyTextWrappingForPDF(container, selectedOrder) {
  * @returns {Promise<string>} - Nombre del archivo generado
  */
 async function generatePDF(selectedOrder, customFileName) {
-    // Prepare SVG in off-screen container
-    const container = await prepareOffscreenSVG(selectedOrder);
-    
     try {
+        console.log('[SVG PDF] Iniciando generación de PDF para orden:', selectedOrder.id);
+        
+        // Prepare SVG in off-screen container
+        const container = await prepareOffscreenSVG(selectedOrder);
+        
         // Small pause to ensure rendering completes
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Convert to canvas
         const canvas = await html2canvas(container, {
@@ -309,7 +311,12 @@ async function generatePDF(selectedOrder, customFileName) {
             backgroundColor: 'white'
         });
         
-        // Create PDF - Corrección aquí
+        // Clean up the DOM immediately after canvas creation
+        if (container && container.parentNode) {
+            document.body.removeChild(container);
+        }
+        
+        // Create PDF - CORREGIDO: Detectar versión correcta de jsPDF
         let pdf;
         if (typeof window.jspdf !== 'undefined' && window.jspdf.jsPDF) {
             // Versión nueva de jsPDF (3.x+)
@@ -351,20 +358,37 @@ async function generatePDF(selectedOrder, customFileName) {
         const imgData = canvas.toDataURL('image/png');
         pdf.addImage(imgData, 'PNG', xPos, yPos, imgWidth * scale, imgHeight * scale);
         
-        // Save the PDF
+        // CORREGIDO: Usar método nativo en lugar de pdf.save()
         const fileName = customFileName 
             ? `${customFileName}.pdf` 
             : `PF_${selectedOrder.id || 'Order'}.pdf`;
-        pdf.save(fileName);
         
+        // Generar el PDF como blob
+        const pdfOutput = pdf.output('blob');
+        
+        // Crear enlace de descarga usando la API nativa del navegador
+        const url = window.URL.createObjectURL(pdfOutput);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        link.style.display = 'none';
+        
+        // Agregar al DOM, hacer clic y limpiar
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Limpiar URL object después de un tiempo
+        setTimeout(() => {
+            window.URL.revokeObjectURL(url);
+        }, 1000);
+        
+        console.log('[SVG PDF] PDF generado exitosamente:', fileName);
         return fileName;
+        
     } catch (error) {
-        throw error;
-    } finally {
-        // Clean up - remove the container
-        if (container && container.parentNode) {
-            document.body.removeChild(container);
-        }
+        console.error('[SVG PDF] Error generando PDF:', error);
+        throw new Error('Error generating PDF: ' + error.message);
     }
 }
 
