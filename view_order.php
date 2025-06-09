@@ -192,7 +192,7 @@ $URLM = "https://grammermx.com/Mailer/PFMailer/";
                     Back
                 </button>
                 
-                <button class="action-btn-compact btn-pdf" onclick="generatePDF()">
+                <button class="action-btn-compact btn-pdf" onclick="handleGeneratePDF()">
                     <i class="fas fa-file-pdf"></i>
                     PDF
                 </button>
