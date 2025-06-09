@@ -25,7 +25,7 @@ $userPlant = $user_plant;
 $authorizationLevel = $auth_level;
 
 // Database connection
-require_once 'dao/conections/LocalConector.php';
+require_once 'dao/db/PFDB.php';
 
 try {
     $con = new LocalConector();
