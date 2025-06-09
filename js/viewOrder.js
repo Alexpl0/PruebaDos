@@ -9,10 +9,9 @@
  * - Real-time order status updates
  */
 
-// Import required modules
-import { loadSvgOrders } from './svgOrders.js';
+// Import required modules - Corregir los imports
+import { loadAndPopulateSVG, generatePDF as svgGeneratePDF } from './svgOrders.js';
 import { handleApprove, handleReject } from './approval.js';
-import { generatePDF } from './createPDF.js';
 import { showLoading } from './utils.js';
 
 /**
@@ -64,11 +63,8 @@ async function initializeViewOrder() {
  */
 async function initializeOrderDisplay() {
     try {
-        // Prepare order data for SVG loading
-        const orderData = [currentOrder]; // SVG loader expects an array
-        
-        // Load SVG content
-        await loadSvgOrders(orderData);
+        // Load SVG content using the correct function and container
+        await loadAndPopulateSVG(currentOrder, 'svgContent');
         
         // Update page title
         updatePageTitle();
@@ -247,13 +243,18 @@ async function handleGeneratePDF(event) {
         isLoading = true;
         
         // Show loading
-        const loadingAlert = showLoading('Generating PDF', 'Please wait while we create your document...');
+        showLoading('Generating PDF', 'Please wait while we create your document...');
         
-        // Generate PDF using the createPDF module
-        await generatePDF(currentOrder, `Order_${currentOrder.id}.pdf`);
+        // Generate PDF using the svgOrders module
+        const fileName = await svgGeneratePDF(currentOrder, `Order_${currentOrder.id}`);
         
-        // Close loading
-        loadingAlert.close();
+        // Show success message
+        Swal.fire({
+            icon: 'success',
+            title: 'PDF Generated',
+            text: `${fileName} has been downloaded successfully`,
+            confirmButtonColor: '#28a745'
+        });
         
     } catch (error) {
         console.error('Error generating PDF:', error);
