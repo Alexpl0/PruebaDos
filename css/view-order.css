@@ -261,12 +261,12 @@ body {
 }
 
 .btn-approve {
-    background: linear-gradient(135deg, var(--success), #1A3A23);
+    background: linear-gradient(135deg, var(--success), #218621);
     color: var(--white);
 }
 
 .btn-approve:hover {
-    background: linear-gradient(135deg, #1A3A23, #1A3A23);
+    background: linear-gradient(135deg, #218621, #218621);
 }
 
 .btn-reject {
