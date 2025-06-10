@@ -448,7 +448,7 @@ async function handleOrderApprove(orderId) {
         });
         
         // CORREGIDO: Call the approval endpoint directly
-        const approvalResponse = await fetch(`${window.PF_CONFIG.baseURL}dao/conections/daoStausUpdate.php`, {
+        const approvalResponse = await fetch(`${window.PF_CONFIG.baseURL}dao/conections/daoStatusUpdate.php`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -558,7 +558,7 @@ async function handleOrderReject(orderId) {
         });
         
         // CORREGIDO: Call the rejection endpoint directly
-        const rejectionResponse = await fetch(`${window.PF_CONFIG.baseURL}dao/conections/daoStausUpdate.php`, {
+        const rejectionResponse = await fetch(`${window.PF_CONFIG.baseURL}dao/conections/daoStatusUpdate.php`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -714,7 +714,7 @@ async function handleApproveAll() {
         for (const order of pendingOrdersList) {
             try {
                 // Procesar la aprobación sin mostrar dialogs individuales
-                const approvalResponse = await fetch(`${window.PF_CONFIG.baseURL}dao/conections/daoStausUpdate.php`, {
+                const approvalResponse = await fetch(`${window.PF_CONFIG.baseURL}dao/conections/daoStatusUpdate.php`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
