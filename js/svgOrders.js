@@ -7,8 +7,8 @@
 // --- SVG mapping and configuration ---
 // Define the mapping between SVG element IDs and order object properties
 const svgMap = {
-    'RequestingPlantValue': 'planta',
-    'PlantCodeValue': 'code_planta',
+    'RequestingPlantValue': 'creator_plant', // CORREGIDO: usar creator_plant de daoPremiumFreight.php
+    'PlantCodeValue': 'creator_plant',
     'DateValue': 'date', 
     'TransportValue': 'transport',
     'InOutBoundValue': 'in_out_bound',
@@ -34,7 +34,6 @@ const svgMap = {
     'StateDestValue': 'destiny_state',
     'ZIPDestValue': 'destiny_zip',
     'WeightValue': (order) => {
-        // Función para convertir texto de unidad a abreviatura
         const getMeasureAbbreviation = (measure) => {
             if (!measure) return '';
             switch (measure.toUpperCase()) {
@@ -43,7 +42,7 @@ const svgMap = {
                 case 'LIBRAS':
                     return 'LB';
                 default:
-                    return measure; // Mantener el valor original si no coincide
+                    return measure;
             }
         };
         
@@ -51,7 +50,7 @@ const svgMap = {
         return `${order.weight || '0'} ${measureAbbr}`;
     },
     'ProductValue': 'products',
-    'CarrierNameValue': 'carrier',
+    'CarrierNameValue': 'carrier', // CORREGIDO: viene directamente de daoPremiumFreight.php
     'QuotedCostValue': (order) => `$ ${order.quoted_cost || '0'} ${order.moneda || 'MXN'}`,
     'ReferenceNumberValue': 'reference_number',
 };
@@ -79,12 +78,30 @@ function formatDate(dateString) {
 }
 
 /**
- * Wraps text in an SVG element to fit within specified width
- * @param {string} elementId - The ID of the SVG text element to wrap
+ * CORREGIDO: Wraps text in an SVG element to fit within specified width
+ * @param {string|HTMLElement} containerOrElementId - The container element or ID of the SVG text element to wrap
+ * @param {string} [elementId] - Optional specific element ID when container is provided
  */
-function wrapSVGText(elementId = "DescriptionAndRootCauseValue") {
-    const textElement = document.getElementById(elementId);
-    if (!textElement) return;
+function wrapSVGText(containerOrElementId = "DescriptionAndRootCauseValue", elementId = null) {
+    let textElement;
+    
+    // CORRECCIÓN: Determinar si se pasó un contenedor o un ID
+    if (typeof containerOrElementId === 'string') {
+        // Comportamiento original para compatibilidad con view_order.php
+        textElement = document.getElementById(containerOrElementId);
+    } else if (containerOrElementId instanceof HTMLElement) {
+        // Nuevo comportamiento para weekOrders.js - buscar dentro del contenedor
+        const targetId = elementId || "DescriptionAndRootCauseValue";
+        textElement = containerOrElementId.querySelector(`#${targetId}`);
+    } else {
+        console.error('[SVG] wrapSVGText: Invalid container or element ID provided');
+        return;
+    }
+    
+    if (!textElement) {
+        console.warn(`[SVG] Text element not found: ${elementId || containerOrElementId}`);
+        return;
+    }
     
     const text = textElement.textContent.trim();
     if (!text) return;
@@ -138,19 +155,31 @@ function wrapSVGText(elementId = "DescriptionAndRootCauseValue") {
 }
 
 /**
- * Loads SVG template, populates it with order data, and displays it in a specified container
+ * CORREGIDO: Loads SVG template, populates it with order data, and displays it in a specified container
  * @param {Object} selectedOrder - The order data to populate the SVG with
  * @param {string} containerId - The ID of the container to display the populated SVG
  * @returns {Promise<boolean>} - Resolves to true if successful, rejects with error if failed
  */
 async function loadAndPopulateSVG(selectedOrder, containerId = 'svgPreview') {
     try {
+        console.log(`[SVG] Loading SVG for order ${selectedOrder.id} in container ${containerId}`);
+        
         const response = await fetch('PremiumFreight.svg');
         if (!response.ok) throw new Error(`Error HTTP! estado: ${response.status}`);
         
         const svgText = await response.text();
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = svgText;
+
+        // CORREGIDO: Debug de los datos que se están mapeando
+        console.log(`[SVG] Mapping data for order ${selectedOrder.id}:`, {
+            creator_name: selectedOrder.creator_name,
+            description: selectedOrder.description?.substring(0, 50) + '...',
+            cost_euros: selectedOrder.cost_euros,
+            carrier: selectedOrder.carrier,
+            origin_company_name: selectedOrder.origin_company_name,
+            destiny_company_name: selectedOrder.destiny_company_name
+        });
 
         // Populate SVG fields with order data
         for (const [svgId, orderKey] of Object.entries(svgMap)) {
@@ -163,18 +192,27 @@ async function loadAndPopulateSVG(selectedOrder, containerId = 'svgPreview') {
                 } else {
                     element.textContent = selectedOrder[orderKey] || '';
                 }
+            } else {
+                console.warn(`[SVG] Element not found in SVG: ${svgId}`);
             }
         }
         
+        // CORREGIDO: Obtener el contenedor de destino
+        const targetContainer = document.getElementById(containerId);
+        if (!targetContainer) {
+            throw new Error(`Container ${containerId} not found in DOM`);
+        }
+        
         // Display the populated SVG in the specified container
-        document.getElementById(containerId).innerHTML = tempDiv.innerHTML;
+        targetContainer.innerHTML = tempDiv.innerHTML;
         
-        // Apply text wrapping to the description field
-        wrapSVGText();
+        // CORRECCIÓN CRÍTICA: Apply text wrapping pasando el contenedor específico
+        wrapSVGText(targetContainer, 'DescriptionAndRootCauseValue');
         
+        console.log(`[SVG] Successfully loaded SVG for order ${selectedOrder.id}`);
         return true;
     } catch (error) {
-        console.error('Error al cargar o procesar el SVG:', error);
+        console.error(`[SVG] Error loading SVG for order ${selectedOrder.id}:`, error);
         throw error;
     }
 }
@@ -216,14 +254,14 @@ async function prepareOffscreenSVG(selectedOrder) {
     // Add the container to the DOM
     document.body.appendChild(container);
     
-    // Apply special text wrapping for PDF generation
+    // CORREGIDO: Apply special text wrapping for PDF generation usando el contenedor
     applyTextWrappingForPDF(container, selectedOrder);
     
     return container;
 }
 
 /**
- * Applies text wrapping to the description field in the offscreen container for PDF generation
+ * CORREGIDO: Applies text wrapping to the description field in the offscreen container for PDF generation
  * @param {HTMLElement} container - The container with the SVG
  * @param {Object} selectedOrder - The order data
  */
