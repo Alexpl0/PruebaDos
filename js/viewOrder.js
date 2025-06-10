@@ -34,16 +34,40 @@ async function loadOrderData() {
     try {
         console.log('[VIEWORDER DEBUG] Cargando datos de orden desde endpoint existente...');
         
-        // Usar el mismo endpoint que uses en orders.php
-        const response = await fetch(`${window.PF_CONFIG.baseURL}dao/db/PFDB.php`);
+        // CORREGIDO: Usar el endpoint correcto
+        const response = await fetch(`${window.PF_CONFIG.baseURL}dao/conections/daoPremiumFreight.php`, {
+            method: 'GET',
+            credentials: 'same-origin', // Incluir cookies de sesión
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        console.log('[VIEWORDER DEBUG] Response status:', response.status);
         
         if (!response.ok) {
-            throw new Error('Failed to fetch order data');
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        const data = await response.json();
+        const responseText = await response.text();
+        console.log('[VIEWORDER DEBUG] Raw response (first 500 chars):', responseText.substring(0, 500));
         
-        if (!data.success || !Array.isArray(data.data)) {
+        if (!responseText || responseText.trim() === '') {
+            throw new Error('Empty response from server');
+        }
+        
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error('[VIEWORDER DEBUG] JSON parse error:', parseError);
+            throw new Error('Invalid JSON response from server. Check browser console for details.');
+        }
+        
+        console.log('[VIEWORDER DEBUG] Parsed data:', data);
+        
+        if (!data.status || data.status !== 'success' || !Array.isArray(data.data)) {
             throw new Error('Invalid data format received');
         }
         
@@ -54,11 +78,8 @@ async function loadOrderData() {
             throw new Error(`Order #${window.PF_CONFIG.orderId} not found`);
         }
         
-        // Verificar permisos de planta
-        if (window.PF_CONFIG.user.plant !== null && 
-            targetOrder.creator_plant !== window.PF_CONFIG.user.plant) {
-            throw new Error('You do not have permission to view this order from a different plant.');
-        }
+        // Verificar permisos de planta (ya está manejado por el endpoint)
+        console.log('[VIEWORDER DEBUG] Plant permissions handled by endpoint');
         
         // Actualizar datos globales
         window.PF_CONFIG.orderData = targetOrder;
@@ -181,9 +202,9 @@ function checkApprovalPermissions(user, order) {
     // Obtener datos necesarios para validación
     const userAuthLevel = Number(user.authorizationLevel || window.authorizationLevel);
     const userPlant = user.plant || window.userPlant;
-    // CORREGIDO: usar act_approv de la tabla PremiumFreightApprovals
+    // CORREGIDO: usar approval_status que viene de pfa.act_approv AS approval_status
     const currentApprovalLevel = Number(order.approval_status);
-    // CORREGIDO: requiredLevel es act_approv + 1
+    // CORREGIDO: requiredLevel es approval_status + 1
     const requiredLevel = currentApprovalLevel + 1;
     const creatorPlant = order.creator_plant;
 
@@ -202,13 +223,13 @@ function checkApprovalPermissions(user, order) {
         return false;
     }
     
-    // 2. Verificar que no esté rechazada (act_approv = 99)
+    // 2. Verificar que no esté rechazada (approval_status = 99)
     if (currentApprovalLevel === 99) {
         console.log('[VIEWORDER DEBUG] Orden fue rechazada previamente');
         return false;
     }
 
-    // 3. Verificar nivel de autorización: debe ser exactamente (act_approv + 1)
+    // 3. Verificar nivel de autorización: debe ser exactamente (approval_status + 1)
     if (userAuthLevel !== requiredLevel) {
         console.log('[VIEWORDER DEBUG] Nivel de autorización incorrecto:', {
             userLevel: userAuthLevel,
