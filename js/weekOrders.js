@@ -558,7 +558,7 @@ async function handleOrderReject(orderId) {
         });
         
         // CORREGIDO: Call the rejection endpoint directly
-        const rejectionResponse = await fetch(`${window.PF_CONFIG.baseURL}dao/approvals/reject_order.php`, {
+        const rejectionResponse = await fetch(`${window.PF_CONFIG.baseURL}dao/conections/daoStausUpdate.php`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
