@@ -69,7 +69,14 @@
     gap: var(--spacing-sm);
     align-items: center;
     justify-content: flex-end;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    min-width: 0;
+}
+
+/* Asegurar que los botones no se compriman demasiado */
+.order-card-actions .action-btn-compact {
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 /* ===== NO ORDERS MESSAGE ===== */
@@ -201,14 +208,17 @@
     .order-card-actions {
         justify-content: center;
         align-items: center;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         width: 100%;
+        gap: var(--spacing-xs);
     }
 
     .action-btn-compact {
         flex: 0 0 auto;
-        min-width: 80px;
-        max-width: 100px;
+        min-width: 70px;
+        max-width: none;
+        font-size: 0.75rem;
+        padding: 8px 12px;
     }
 
     .quick-actions {
@@ -226,14 +236,37 @@
     .order-card-actions {
         flex-direction: row;
         justify-content: center;
-        gap: var(--spacing-xs);
+        gap: 4px;
+        flex-wrap: nowrap;
     }
 
     .action-btn-compact {
-        flex: 1;
-        min-width: 70px;
-        max-width: 90px;
-        font-size: 0.8rem;
+        flex: 0 0 auto;
+        min-width: 60px;
+        font-size: 0.7rem;
+        padding: 6px 8px;
+    }
+
+    /* Reducir texto de los botones en pantallas muy pequeñas */
+    .action-btn-compact i {
+        margin-right: 2px;
+    }
+}
+
+/* Asegurar que los botones siempre quepan en una fila */
+@media (max-width: 360px) {
+    .action-btn-compact {
+        min-width: 50px;
+        font-size: 0.65rem;
+        padding: 4px 6px;
+    }
+    
+    .action-btn-compact span {
+        display: none;
+    }
+    
+    .action-btn-compact i {
+        margin-right: 0;
     }
 }
 
