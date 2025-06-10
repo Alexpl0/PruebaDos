@@ -24,8 +24,8 @@ class PFEmailTemplates {
      * Plantilla para correo de aprobación individual
      */
     public function getApprovalEmailTemplate($orderData, $approvalToken, $rejectToken) {
-        // URLs actualizadas - ahora apuntan a la página de visualización
-        $viewOrderUrl = $this->baseUrl . "view_order.php?order=" . $orderData['id'] . "&token=" . $approvalToken;
+        // CORREGIDO: URLs actualizadas - ahora apuntan directamente a view_order.php
+        $viewOrderUrl = $this->baseUrl . "view_order.php?order=" . $orderData['id'];
         
         // URLs directas para acciones rápidas (mantener como alternativa)
         $approveUrl = $this->baseUrl . "PFmailSingleAction.php?action=approve&token=$approvalToken";
@@ -384,7 +384,8 @@ class PFEmailTemplates {
      * Plantilla para notificación de estado (aprobado/rechazado)
      */
     public function getStatusNotificationTemplate($orderData, $status, $rejectorInfo = null) {
-        $viewOrderUrl = defined('URLPF') ? URLPF . "orders.php?highlight=" . $orderData['id'] : "#";
+        // CORREGIDO: Cambiar a view_order.php
+        $viewOrderUrl = $this->baseUrl . "view_order.php?order=" . $orderData['id'];
         $costEuros = number_format((float)($orderData['cost_euros'] ?? 0), 2);
         
         // Formatear datos de manera segura
@@ -562,7 +563,8 @@ class PFEmailTemplates {
      * @return string HTML del correo
      */
     public function getRecoveryCheckTemplate($user, $orders) {
-        $viewOrdersUrl = defined('URLPF') ? URLPF . "orders.php" : "#";
+        // CORREGIDO: URLs actualizadas
+        $viewOrdersUrl = $this->baseUrl . "orders.php";
         $totalOrders = count($orders);
         $userName = htmlspecialchars($user['name'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
         
@@ -572,7 +574,8 @@ class PFEmailTemplates {
             $costFormatted = number_format((float)($order['cost_euros'] ?? 0), 2);
             $createdDate = date('M d, Y', strtotime($order['date']));
             $orderDescription = htmlspecialchars($order['description'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
-            $viewUrl = defined('URLPF') ? URLPF . "orders.php?highlight=" . $order['id'] : "#";
+            // CORREGIDO: Cambiar a view_order.php
+            $viewUrl = $this->baseUrl . "view_order.php?order=" . $order['id'];
             
             $orderRows .= '
             <tr>
