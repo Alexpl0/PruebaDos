@@ -240,7 +240,7 @@ body {
     font-family: var(--body-font);
 }
 
-.action-btn-compact::before {
+/* .action-btn-compact::before {
     content: '';
     position: absolute;
     top: 0;
@@ -253,10 +253,10 @@ body {
 
 .action-btn-compact:hover::before {
     left: 100%;
-}
+} */
 
 .action-btn-compact:hover {
-    /* transform: translateY(-2px); */
+    transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
 }
 
