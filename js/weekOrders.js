@@ -2,6 +2,8 @@
  * weekOrders.js - Premium Freight Weekly Orders Viewer
  * 
  * This module handles the weekly orders view functionality including:
+ * - Loading orders data from daoPremiumFreight.php endpoint
+ * - Filtering pending orders for current user
  * - Loading and displaying SVG content for multiple orders
  * - Individual order approval/rejection functionality
  * - Bulk operations (approve all, download all)
@@ -12,7 +14,6 @@
 // Import required modules - same as view_order.php
 import { loadAndPopulateSVG, generatePDF as svgGeneratePDF } from './svgOrders.js';
 import { handleApprove, handleReject } from './approval.js';
-import { showLoading } from './utils.js';
 
 /**
  * Configuration and global variables
@@ -29,28 +30,252 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
+ * Load orders data from the existing daoPremiumFreight.php endpoint
+ */
+async function loadOrdersData() {
+    try {
+        const response = await fetch(`${window.PF_CONFIG.baseURL}dao/conections/daoPremiumFreight.php`, {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const responseText = await response.text();
+        
+        if (!responseText || responseText.trim() === '') {
+            throw new Error('Empty response from server');
+        }
+        
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (parseError) {
+            throw new Error('Invalid JSON response from server: ' + parseError.message);
+        }
+        
+        if (!data.status || data.status !== 'success' || !Array.isArray(data.data)) {
+            throw new Error('Invalid data structure received from server');
+        }
+        
+        return data.data;
+        
+    } catch (error) {
+        console.error('Error loading orders:', error);
+        throw error;
+    }
+}
+
+/**
+ * Filter orders to show only those pending approval by current user
+ */
+function filterPendingOrders(allOrders) {
+    const user = window.PF_CONFIG.user;
+    const userAuthLevel = user.authorizationLevel;
+    const userPlant = user.plant !== null && user.plant !== undefined ? parseInt(user.plant, 10) : null;
+    
+    return allOrders.filter(order => {
+        // Convert to numbers for proper comparison
+        const currentApprovalLevel = Number(order.approval_status || 0);
+        const requiredLevel = Number(order.required_auth_level || 7);
+        const creatorPlant = parseInt(order.creator_plant, 10) || 0;
+        const nextRequiredLevel = currentApprovalLevel + 1;
+        
+        // 1. Check if order needs approval at user's authorization level
+        if (userAuthLevel !== nextRequiredLevel) {
+            return false;
+        }
+        
+        // 2. Check if not fully approved yet
+        if (currentApprovalLevel >= requiredLevel) {
+            return false;
+        }
+        
+        // 3. Check if not rejected
+        if (currentApprovalLevel === 99) {
+            return false;
+        }
+        
+        // 4. Check plant permissions
+        if (userPlant !== null && userPlant !== undefined && creatorPlant !== userPlant) {
+            return false;
+        }
+        
+        return true;
+    });
+}
+
+/**
  * Main initialization function
  */
 async function initializeWeeklyOrders() {
     try {
-        // Get pending orders from global config
-        pendingOrders = window.PF_CONFIG.pendingOrders || [];
+        // Show initial loading
+        showMainLoading(true);
+        
+        // Load all orders from endpoint
+        const allOrders = await loadOrdersData();
+        
+        // Filter to get only pending orders for current user
+        pendingOrders = filterPendingOrders(allOrders);
+        
+        // Update global variables for compatibility
+        window.PF_CONFIG.pendingOrders = pendingOrders;
+        window.allOrders = pendingOrders;
+        window.originalOrders = pendingOrders;
+        
+        // Update UI
+        updateOrderCount();
+        updateActionButtons();
         
         if (pendingOrders.length === 0) {
-            console.log('No pending orders to display');
-            return;
+            showNoOrdersMessage();
+        } else {
+            // Render orders
+            await renderOrders();
+            
+            // Initialize SVG content for all orders
+            await initializeAllOrderDisplays();
         }
         
-        // Initialize SVG content for all orders
-        await initializeAllOrderDisplays();
-        
-        // Setup event listeners
-        setupEventListeners();
+        // Hide main loading
+        showMainLoading(false);
         
     } catch (error) {
         console.error('Error initializing weekly orders:', error);
+        showMainLoading(false);
         showErrorMessage('Error loading orders: ' + error.message);
     }
+}
+
+/**
+ * Update order count in header
+ */
+function updateOrderCount() {
+    const orderCountElement = document.getElementById('orderCount');
+    if (orderCountElement) {
+        const count = pendingOrders.length;
+        orderCountElement.textContent = count === 0 ? 
+            'No orders pending your approval' : 
+            `${count} order${count === 1 ? '' : 's'} pending your approval`;
+    }
+}
+
+/**
+ * Update action buttons visibility
+ */
+function updateActionButtons() {
+    const approveAllBtn = document.querySelector('.btn-approve-all');
+    const downloadAllBtn = document.querySelector('.btn-download-all');
+    
+    if (pendingOrders.length > 1) {
+        if (approveAllBtn) approveAllBtn.classList.remove('hidden');
+        if (downloadAllBtn) downloadAllBtn.classList.remove('hidden');
+    } else {
+        if (approveAllBtn) approveAllBtn.classList.add('hidden');
+        if (downloadAllBtn) downloadAllBtn.classList.add('hidden');
+    }
+}
+
+/**
+ * Show main loading spinner
+ */
+function showMainLoading(show) {
+    const loadingElement = document.getElementById('loadingOrders');
+    const contentElement = document.getElementById('ordersContent');
+    
+    if (show) {
+        if (loadingElement) loadingElement.classList.remove('hidden');
+        if (contentElement) contentElement.classList.add('hidden');
+    } else {
+        if (loadingElement) loadingElement.classList.add('hidden');
+        if (contentElement) contentElement.classList.remove('hidden');
+    }
+}
+
+/**
+ * Show no orders message
+ */
+function showNoOrdersMessage() {
+    const contentElement = document.getElementById('ordersContent');
+    if (contentElement) {
+        contentElement.innerHTML = `
+            <div class="no-orders-message">
+                <div class="no-orders-content">
+                    <i class="fas fa-check-circle"></i>
+                    <h3>No Pending Orders</h3>
+                    <p>You have no orders pending approval at this time.</p>
+                    <button class="action-btn-compact btn-back" onclick="goBack()">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Dashboard
+                    </button>
+                </div>
+            </div>
+        `;
+        contentElement.classList.remove('hidden');
+    }
+}
+
+/**
+ * Render all orders
+ */
+async function renderOrders() {
+    const contentElement = document.getElementById('ordersContent');
+    if (!contentElement) return;
+    
+    let html = '';
+    
+    for (const order of pendingOrders) {
+        html += `
+            <div class="order-card" data-order-id="${order.id}">
+                <!-- Order Header -->
+                <div class="order-card-header">
+                    <div class="order-card-info">
+                        <h3 class="order-card-title">Order #${order.id}</h3>
+                        <p class="order-card-subtitle">
+                            Created by ${escapeHtml(order.creator_name || 'Unknown')} • 
+                            €${Number(order.cost_euros || 0).toFixed(2)} • 
+                            ${formatDate(order.date)}
+                        </p>
+                    </div>
+                    <div class="order-card-actions">
+                        <button class="action-btn-compact btn-pdf" onclick="handleOrderPDF(${order.id})">
+                            <i class="fas fa-file-pdf"></i>
+                            PDF
+                        </button>
+                        <button class="action-btn-compact btn-approve" onclick="handleOrderApprove(${order.id})">
+                            <i class="fas fa-check-circle"></i>
+                            Approve
+                        </button>
+                        <button class="action-btn-compact btn-reject" onclick="handleOrderReject(${order.id})">
+                            <i class="fas fa-times-circle"></i>
+                            Reject
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- SVG Container -->
+                <div class="svg-container">
+                    <div class="svg-content">
+                        <div class="loading-spinner" id="loadingSpinner-${order.id}">
+                            <div class="spinner"></div>
+                            Loading order details...
+                        </div>
+                        <div id="svgContent-${order.id}" class="hidden"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    contentElement.innerHTML = html;
+    contentElement.classList.remove('hidden');
 }
 
 /**
@@ -102,21 +327,7 @@ async function initializeOrderDisplay(order) {
 }
 
 /**
- * Setup event listeners
- */
-function setupEventListeners() {
-    // Back button
-    const backBtn = document.querySelector('.btn-back');
-    if (backBtn) {
-        backBtn.addEventListener('click', handleGoBack);
-    }
-    
-    // Keyboard shortcuts
-    document.addEventListener('keydown', handleKeyboardShortcuts);
-}
-
-/**
- * Handle individual order approval
+ * Handle individual order approval - SAME LOGIC AS viewOrder.js
  */
 window.handleOrderApprove = async function(orderId) {
     if (isLoading || processedOrders.has(orderId)) {
@@ -160,7 +371,7 @@ window.handleOrderApprove = async function(orderId) {
 };
 
 /**
- * Handle individual order rejection
+ * Handle individual order rejection - SAME LOGIC AS viewOrder.js
  */
 window.handleOrderReject = async function(orderId) {
     if (isLoading || processedOrders.has(orderId)) {
@@ -204,7 +415,7 @@ window.handleOrderReject = async function(orderId) {
 };
 
 /**
- * Handle PDF generation for individual order
+ * Handle PDF generation for individual order - SAME LOGIC AS viewOrder.js
  */
 window.handleOrderPDF = async function(orderId) {
     if (isLoading) return;
@@ -385,19 +596,10 @@ function markOrderAsProcessed(orderId, action) {
  * Handle back navigation
  */
 function handleGoBack() {
-    window.location.href = 'dashboard.php';
+    window.location.href = 'orders.php';
 }
 
 window.goBack = handleGoBack;
-
-/**
- * Handle keyboard shortcuts
- */
-function handleKeyboardShortcuts(event) {
-    if (event.key === 'Escape') {
-        handleGoBack();
-    }
-}
 
 /**
  * Show/hide loading spinner for specific order
@@ -426,6 +628,34 @@ function showErrorMessage(message) {
         confirmButtonColor: '#dc3545',
         customClass: { container: 'swal-on-top' }
     });
+}
+
+/**
+ * Utility functions
+ */
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text ? text.replace(/[&<>"']/g, function(m) { return map[m]; }) : '';
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric' 
+        });
+    } catch (error) {
+        return dateString;
+    }
 }
 
 /**
