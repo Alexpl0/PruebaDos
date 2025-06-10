@@ -73,7 +73,7 @@ async function loadOrdersData() {
 }
 
 /**
- * Filter orders to show only those pending approval by current user
+ * Filter and sort orders to show only those pending approval by current user
  */
 function filterPendingOrders(allOrders) {
     const user = window.PF_CONFIG.user;
@@ -134,13 +134,29 @@ function filterPendingOrders(allOrders) {
         return include;
     });
     
-    console.log('[Filter Debug] Filter result:', {
-        originalCount: allOrders.length,
-        filteredCount: filtered.length,
-        filteredIds: filtered.map(o => o.id)
+    // NUEVO: Ordenar las órdenes filtradas por fecha (más antigua primero)
+    const sorted = filtered.sort((a, b) => {
+        // Convertir fechas a objetos Date para comparación
+        const dateA = new Date(a.date || '1970-01-01');
+        const dateB = new Date(b.date || '1970-01-01');
+        
+        // Ordenar por fecha ascendente (más antigua primero)
+        if (dateA.getTime() !== dateB.getTime()) {
+            return dateA.getTime() - dateB.getTime();
+        }
+        
+        // Si las fechas son iguales, ordenar por ID ascendente
+        return (a.id || 0) - (b.id || 0);
     });
     
-    return filtered;
+    console.log('[Filter Debug] Filter and sort result:', {
+        originalCount: allOrders.length,
+        filteredCount: sorted.length,
+        filteredIds: sorted.map(o => ({ id: o.id, date: o.date })),
+        sortOrder: 'Oldest first (ASC)'
+    });
+    
+    return sorted;
 }
 
 /**
@@ -279,7 +295,7 @@ async function renderOrders() {
                         <h3 class="order-card-title">Order #${order.id}</h3>
                         <p class="order-card-subtitle">
                             Created by ${creatorName} (${area}) • 
-                            ${orderDate}}
+                            ${orderDate}
                         </p>
                     </div>
                     <div class="order-card-actions">
