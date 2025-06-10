@@ -964,13 +964,89 @@ function showAllOrdersProcessedMessage() {
     }
 }
 
+/**
+ * AGREGADO: Handle back navigation
+ */
+function handleGoBack() {
+    try {
+        // Intentar ir al dashboard de órdenes
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            // Fallback: ir directamente al dashboard
+            window.location.href = 'orders.php';
+        }
+    } catch (error) {
+        console.error('Error navigating back:', error);
+        // Fallback de emergencia
+        window.location.href = 'index.php';
+    }
+}
+
+/**
+ * Show/hide loading spinner for specific order
+ */
+function showLoadingSpinner(show, spinnerId, containerId) {
+    const spinner = document.getElementById(spinnerId);
+    const content = document.getElementById(containerId);
+    
+    if (show) {
+        if (spinner) spinner.classList.remove('hidden');
+        if (content) content.classList.add('hidden');
+    } else {
+        if (spinner) spinner.classList.add('hidden');
+        if (content) content.classList.remove('hidden');
+    }
+}
+
+/**
+ * Show error message to user
+ */
+function showErrorMessage(message) {
+    Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: message,
+        confirmButtonColor: '#dc3545',
+        customClass: { container: 'swal-on-top' }
+    });
+}
+
+/**
+ * Utility functions
+ */
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text ? text.replace(/[&<>"']/g, function(m) { return map[m]; }) : '';
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric' 
+        });
+    } catch (error) {
+        return dateString;
+    }
+}
+
 // Assign to window for onclick handlers in HTML
 window.handleOrderApprove = handleOrderApprove;
 window.handleOrderReject = handleOrderReject;
 window.handleOrderPDF = handleOrderPDF;
 window.handleApproveAll = handleApproveAll;
 window.handleDownloadAll = handleDownloadAll;
-window.goBack = handleGoBack;
+window.goBack = handleGoBack; // CORREGIDO: Asignar la función correcta
 
 /**
  * Export functions for use by other modules
@@ -982,5 +1058,5 @@ export {
     handleOrderPDF,
     handleApproveAll,
     handleDownloadAll,
-    handleGoBack
+    handleGoBack // CORREGIDO: Exportar la función definida
 };
