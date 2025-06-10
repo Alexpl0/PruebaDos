@@ -130,18 +130,17 @@ export async function handleApprove() {
             customClass: { container: 'swal-on-top' }
         });
         
-        // Cerrar modal y regenerar tarjetas
-        hideModal();
-
-        // NUEVO: Verificar si estamos en viewOrder.js y actualizar específicamente
-        if (window.location.pathname.includes('viewOrder.php') || 
-            document.getElementById('svgContent')) {
-            // Estamos en viewOrder.js, no llamar createCards sino dejar que viewOrder maneje la UI
-            console.log('[APPROVAL DEBUG] Detectado viewOrder.js, omitiendo createCards');
-        } else {
-            // Estamos en orders.php, llamar createCards normalmente
+        // CORREGIDO: Solo cerrar modal si estamos en orders.php
+        const isInViewOrder = window.location.pathname.includes('viewOrder.php') || 
+                             document.getElementById('svgContent');
+        
+        if (!isInViewOrder) {
+            // Estamos en orders.php, cerrar modal y regenerar tarjetas
+            hideModal();
             createCards(window.allOrders);
         }
+        // Si estamos en viewOrder.php, no hacer nada aquí - viewOrder.js manejará la actualización
+
     } catch (error) {
         // Manejar errores durante el proceso de aprobación
         console.error('Error al aprobar la orden:', error);
@@ -411,9 +410,16 @@ export async function handleReject() {
             customClass: { container: 'swal-on-top' }
         });
         
-        // Cerrar modal y regenerar tarjetas
-        hideModal();
-        createCards(window.allOrders);
+        // CORREGIDO: Solo cerrar modal si estamos en orders.php
+        const isInViewOrder = window.location.pathname.includes('viewOrder.php') || 
+                             document.getElementById('svgContent');
+        
+        if (!isInViewOrder) {
+            // Estamos en orders.php, cerrar modal y regenerar tarjetas
+            hideModal();
+            createCards(window.allOrders);
+        }
+        // Si estamos en viewOrder.php, no hacer nada aquí - viewOrder.js manejará la actualización
 
     } catch (error) {
         // Manejar errores durante el proceso de rechazo
