@@ -216,7 +216,7 @@
     .action-btn-compact {
         flex: 0 0 auto;
         min-width: 70px;
-        max-width: none;
+        max-width: 110px;
         font-size: 0.75rem;
         padding: 8px 12px;
     }
