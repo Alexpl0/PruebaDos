@@ -239,8 +239,8 @@ async function renderOrders() {
                     <div class="order-card-info">
                         <h3 class="order-card-title">Order #${order.id}</h3>
                         <p class="order-card-subtitle">
-                            Created by ${escapeHtml(order.creator_name || 'Unknown')} • 
-                            Area: ${order.area || 'Unknown'} • 
+                            Created by ${escapeHtml(order.creator_name || 'Unknown')} 
+                            ( ${order.area || 'Unknown'} ) • 
                             ${formatDate(order.date)}
                         </p>
                     </div>
