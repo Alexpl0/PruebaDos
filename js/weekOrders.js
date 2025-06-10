@@ -329,7 +329,7 @@ async function initializeOrderDisplay(order) {
 /**
  * Handle individual order approval - SAME LOGIC AS viewOrder.js
  */
-window.handleOrderApprove = async function(orderId) {
+async function handleOrderApprove(orderId) {
     if (isLoading || processedOrders.has(orderId)) {
         return;
     }
@@ -368,12 +368,12 @@ window.handleOrderApprove = async function(orderId) {
     } finally {
         isLoading = false;
     }
-};
+}
 
 /**
  * Handle individual order rejection - SAME LOGIC AS viewOrder.js
  */
-window.handleOrderReject = async function(orderId) {
+async function handleOrderReject(orderId) {
     if (isLoading || processedOrders.has(orderId)) {
         return;
     }
@@ -412,12 +412,12 @@ window.handleOrderReject = async function(orderId) {
     } finally {
         isLoading = false;
     }
-};
+}
 
 /**
  * Handle PDF generation for individual order - SAME LOGIC AS viewOrder.js
  */
-window.handleOrderPDF = async function(orderId) {
+async function handleOrderPDF(orderId) {
     if (isLoading) return;
     
     try {
@@ -463,12 +463,12 @@ window.handleOrderPDF = async function(orderId) {
     } finally {
         isLoading = false;
     }
-};
+}
 
 /**
  * Handle approve all orders
  */
-window.handleApproveAll = async function() {
+async function handleApproveAll() {
     const pendingOrdersList = pendingOrders.filter(order => !processedOrders.has(order.id));
     
     if (pendingOrdersList.length === 0) {
@@ -495,18 +495,18 @@ window.handleApproveAll = async function() {
     if (result.isConfirmed) {
         for (const order of pendingOrdersList) {
             try {
-                await window.handleOrderApprove(order.id);
+                await handleOrderApprove(order.id);
             } catch (error) {
                 console.error(`Error approving order ${order.id}:`, error);
             }
         }
     }
-};
+}
 
 /**
  * Handle download all PDFs
  */
-window.handleDownloadAll = async function() {
+async function handleDownloadAll() {
     if (pendingOrders.length === 0) {
         return;
     }
@@ -562,7 +562,7 @@ window.handleDownloadAll = async function() {
             });
         }
     }
-};
+}
 
 /**
  * Mark order as processed
@@ -598,8 +598,6 @@ function markOrderAsProcessed(orderId, action) {
 function handleGoBack() {
     window.location.href = 'orders.php';
 }
-
-window.goBack = handleGoBack;
 
 /**
  * Show/hide loading spinner for specific order
@@ -657,6 +655,14 @@ function formatDate(dateString) {
         return dateString;
     }
 }
+
+// Assign to window for onclick handlers in HTML
+window.handleOrderApprove = handleOrderApprove;
+window.handleOrderReject = handleOrderReject;
+window.handleOrderPDF = handleOrderPDF;
+window.handleApproveAll = handleApproveAll;
+window.handleDownloadAll = handleDownloadAll;
+window.goBack = handleGoBack;
 
 /**
  * Export functions for use by other modules
