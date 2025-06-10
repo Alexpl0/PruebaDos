@@ -521,11 +521,10 @@ async function handleOrderReject(orderId) {
             html: `
                 <p>Please provide a reason for rejecting order <strong>#${order.id}</strong>:</p>
                 <textarea 
-                    id="rejection-reason" 
-                    class="swal2-textarea" 
+                    id="rejection-reason"
+                    class="swal2-textarea"
                     placeholder="Enter rejection reason..."
-                    style="min-height: 100px; width: 85%; margin-top: 10px; justify-self: center;">
-                    </textarea>
+                    style="min-height: 100px; width: 85%; margin-top: 10px; justify-self: center;"></textarea>
             `,
             icon: 'warning',
             showCancelButton: true,
