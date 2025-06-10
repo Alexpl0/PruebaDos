@@ -77,6 +77,7 @@
 .order-card-actions .action-btn-compact {
     flex-shrink: 0;
     white-space: nowrap;
+    max-width: 140px;
 }
 
 /* ===== NO ORDERS MESSAGE ===== */
