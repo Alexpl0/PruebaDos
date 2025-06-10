@@ -65,8 +65,10 @@
 
 .order-card-actions {
     display: flex;
+    flex-direction: column;
     gap: var(--spacing-sm);
-    flex-wrap: wrap;
+    align-items: stretch;
+    min-width: 120px;
 }
 
 /* ===== NO ORDERS MESSAGE ===== */
@@ -197,10 +199,12 @@
 
     .order-card-actions {
         justify-content: center;
+        align-items: center;
+        min-width: auto;
+        width: 100%;
     }
 
     .action-btn-compact {
-        flex: 1;
         min-width: 100px;
         max-width: 120px;
     }
@@ -219,6 +223,7 @@
 @media (max-width: 480px) {
     .order-card-actions {
         flex-direction: column;
+        align-items: stretch;
     }
 
     .action-btn-compact {
