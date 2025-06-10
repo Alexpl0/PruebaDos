@@ -44,7 +44,7 @@ async function loadOrderData() {
             }
         });
         
-        console.log('[VIEWORDER DEBUG] Response status:', response.status);
+        console.log('[FETCH DEBUG] Response status:', response.status);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
