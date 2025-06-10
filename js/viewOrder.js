@@ -201,7 +201,7 @@ function checkApprovalPermissions(user, order) {
 
     // Obtener datos necesarios para validación
     const userAuthLevel = Number(user.authorizationLevel || window.authorizationLevel);
-    const userPlant = user.plant || window.userPlant;
+    const userPlant = parseInt(user.plant || window.userPlant, 10) || null;
     // CORREGIDO: usar approval_status que viene de pfa.act_approv AS approval_status
     const currentApprovalLevel = Number(order.approval_status);
     // CORREGIDO: requiredLevel es approval_status + 1
