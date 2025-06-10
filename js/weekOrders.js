@@ -278,9 +278,8 @@ async function renderOrders() {
                     <div class="order-card-info">
                         <h3 class="order-card-title">Order #${order.id}</h3>
                         <p class="order-card-subtitle">
-                            Created by ${creatorName}${creatorRole ? ` (${creatorRole})` : ''} • 
-                            €${costEuros} • 
-                            ${orderDate}${area ? ` • Area: ${area}` : ''}
+                            Created by ${creatorName} (${area}) • 
+                            ${orderDate}}
                         </p>
                     </div>
                     <div class="order-card-actions">
