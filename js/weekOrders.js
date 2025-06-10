@@ -80,35 +80,67 @@ function filterPendingOrders(allOrders) {
     const userAuthLevel = user.authorizationLevel;
     const userPlant = user.plant !== null && user.plant !== undefined ? parseInt(user.plant, 10) : null;
     
-    return allOrders.filter(order => {
+    console.log('[Filter Debug] Filtering orders:', {
+        totalOrders: allOrders.length,
+        userAuthLevel,
+        userPlant,
+        sampleOrder: allOrders[0] ? {
+            id: allOrders[0].id,
+            approval_status: allOrders[0].approval_status,
+            required_auth_level: allOrders[0].required_auth_level,
+            creator_plant: allOrders[0].creator_plant,
+            hasDescription: !!allOrders[0].description,
+            hasCarrier: !!allOrders[0].carrier,
+            hasLocations: !!(allOrders[0].origin_company_name && allOrders[0].destiny_company_name)
+        } : 'No orders'
+    });
+    
+    const filtered = allOrders.filter(order => {
         // Convert to numbers for proper comparison
         const currentApprovalLevel = Number(order.approval_status || 0);
         const requiredLevel = Number(order.required_auth_level || 7);
         const creatorPlant = parseInt(order.creator_plant, 10) || 0;
         const nextRequiredLevel = currentApprovalLevel + 1;
         
+        // Debug individual order
+        const reasons = [];
+        
         // 1. Check if order needs approval at user's authorization level
         if (userAuthLevel !== nextRequiredLevel) {
-            return false;
+            reasons.push(`Auth level mismatch: user(${userAuthLevel}) !== required(${nextRequiredLevel})`);
         }
         
         // 2. Check if not fully approved yet
         if (currentApprovalLevel >= requiredLevel) {
-            return false;
+            reasons.push(`Already approved: current(${currentApprovalLevel}) >= required(${requiredLevel})`);
         }
         
         // 3. Check if not rejected
         if (currentApprovalLevel === 99) {
-            return false;
+            reasons.push('Order is rejected (status 99)');
         }
         
         // 4. Check plant permissions
         if (userPlant !== null && userPlant !== undefined && creatorPlant !== userPlant) {
-            return false;
+            reasons.push(`Plant mismatch: user(${userPlant}) !== creator(${creatorPlant})`);
         }
         
-        return true;
+        const include = reasons.length === 0;
+        
+        if (!include) {
+            console.log(`[Filter Debug] Excluding order ${order.id}:`, reasons);
+        }
+        
+        return include;
     });
+    
+    console.log('[Filter Debug] Filter result:', {
+        originalCount: allOrders.length,
+        filteredCount: filtered.length,
+        filteredIds: filtered.map(o => o.id)
+    });
+    
+    return filtered;
 }
 
 /**
@@ -232,6 +264,13 @@ async function renderOrders() {
     let html = '';
     
     for (const order of pendingOrders) {
+        // CORREGIDO: Usar los campos correctos del endpoint daoPremiumFreight.php
+        const creatorName = escapeHtml(order.creator_name || 'Unknown');
+        const creatorRole = escapeHtml(order.creator_role || '');
+        const costEuros = Number(order.cost_euros || 0).toFixed(2);
+        const orderDate = formatDate(order.date);
+        const area = escapeHtml(order.area || '');
+        
         html += `
             <div class="order-card" data-order-id="${order.id}">
                 <!-- Order Header -->
@@ -239,23 +278,23 @@ async function renderOrders() {
                     <div class="order-card-info">
                         <h3 class="order-card-title">Order #${order.id}</h3>
                         <p class="order-card-subtitle">
-                            Created by ${escapeHtml(order.creator_name || 'Unknown')} 
-                            ( ${order.area || 'Unknown'} ) • 
-                            ${formatDate(order.date)}
+                            Created by ${creatorName}${creatorRole ? ` (${creatorRole})` : ''} • 
+                            €${costEuros} • 
+                            ${orderDate}${area ? ` • Area: ${area}` : ''}
                         </p>
                     </div>
                     <div class="order-card-actions">
                         <button class="action-btn-compact btn-pdf" onclick="handleOrderPDF(${order.id})">
                             <i class="fas fa-file-pdf"></i>
-                            PDF
+                            <span>PDF</span>
                         </button>
                         <button class="action-btn-compact btn-approve" onclick="handleOrderApprove(${order.id})">
                             <i class="fas fa-check-circle"></i>
-                            Approve
+                            <span>Approve</span>
                         </button>
                         <button class="action-btn-compact btn-reject" onclick="handleOrderReject(${order.id})">
                             <i class="fas fa-times-circle"></i>
-                            Reject
+                            <span>Reject</span>
                         </button>
                     </div>
                 </div>
@@ -294,17 +333,39 @@ async function initializeOrderDisplay(order) {
         const containerId = `svgContent-${order.id}`;
         const spinnerId = `loadingSpinner-${order.id}`;
         
+        console.log(`[SVG Debug] Inicializando SVG para orden ${order.id}:`, {
+            containerId,
+            orderData: {
+                id: order.id,
+                creator_name: order.creator_name,
+                cost_euros: order.cost_euros,
+                date: order.date,
+                description: order.description?.substring(0, 50) + '...',
+                carrier: order.carrier,
+                origin_company_name: order.origin_company_name,
+                destiny_company_name: order.destiny_company_name
+            }
+        });
+        
         // Show loading spinner
         showLoadingSpinner(true, spinnerId, containerId);
         
+        // CORREGIDO: Verificar que el contenedor existe antes de cargar
+        const container = document.getElementById(containerId);
+        if (!container) {
+            throw new Error(`Container ${containerId} not found in DOM`);
+        }
+        
         // Load SVG content using the same function as view_order.php
         await loadAndPopulateSVG(order, containerId);
+        
+        console.log(`[SVG Debug] SVG cargado exitosamente para orden ${order.id}`);
         
         // Hide loading spinner and show content
         showLoadingSpinner(false, spinnerId, containerId);
         
     } catch (error) {
-        console.error(`Error loading SVG for order ${order.id}:`, error);
+        console.error(`[SVG Error] Error loading SVG for order ${order.id}:`, error);
         
         const container = document.getElementById(`svgContent-${order.id}`);
         if (container) {
@@ -313,7 +374,7 @@ async function initializeOrderDisplay(order) {
                     <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 20px; color: #dc3545;"></i>
                     <h3>Error Loading Order</h3>
                     <p>${error.message}</p>
-                    <button onclick="location.reload()" class="btn btn-primary">Retry</button>
+                    <button onclick="retryLoadOrder(${order.id})" class="btn btn-primary">Retry</button>
                 </div>
             `;
             container.classList.remove('hidden');
@@ -325,6 +386,16 @@ async function initializeOrderDisplay(order) {
         }
     }
 }
+
+/**
+ * Retry loading a specific order's SVG
+ */
+window.retryLoadOrder = async function(orderId) {
+    const order = pendingOrders.find(o => o.id === orderId);
+    if (order) {
+        await initializeOrderDisplay(order);
+    }
+};
 
 /**
  * Handle individual order approval - SAME LOGIC AS viewOrder.js
