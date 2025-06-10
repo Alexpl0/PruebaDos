@@ -176,5 +176,7 @@ $URLM = "https://grammermx.com/Mailer/PFMailer/";
     <!-- Custom scripts -->
     <script src="js/uploadFiles.js"></script>
     <script type="module" src="js/viewOrder.js"></script>
+
+    <script>console.log('User Plant:', window.userPlant);</script>
 </body>
 </html>

@@ -242,8 +242,7 @@ async function sendEmailNotification(orderId, notificationType) {
  */
 function validateOrderForApproval(order) {
     // Verificar planta: permitir si userPlant es null/undefined O si coincide exactamente con creator_plant
-    console.log('User Plant:', window.userPlant);
-    
+
     if (window.userPlant !== null && window.userPlant !== undefined && 
         order.creator_plant !== window.userPlant) {
         Swal.fire({
