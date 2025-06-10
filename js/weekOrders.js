@@ -240,7 +240,7 @@ async function renderOrders() {
                         <h3 class="order-card-title">Order #${order.id}</h3>
                         <p class="order-card-subtitle">
                             Created by ${escapeHtml(order.creator_name || 'Unknown')} • 
-                            €${Number(order.cost_euros || 0).toFixed(2)} • 
+                            Area: ${order.area || 'Unknown'} • 
                             ${formatDate(order.date)}
                         </p>
                     </div>
