@@ -65,10 +65,11 @@
 
 .order-card-actions {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: var(--spacing-sm);
-    align-items: stretch;
-    min-width: 120px;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
 }
 
 /* ===== NO ORDERS MESSAGE ===== */
@@ -200,13 +201,14 @@
     .order-card-actions {
         justify-content: center;
         align-items: center;
-        min-width: auto;
+        flex-wrap: wrap;
         width: 100%;
     }
 
     .action-btn-compact {
-        min-width: 100px;
-        max-width: 120px;
+        flex: 0 0 auto;
+        min-width: 80px;
+        max-width: 100px;
     }
 
     .quick-actions {
@@ -222,13 +224,16 @@
 
 @media (max-width: 480px) {
     .order-card-actions {
-        flex-direction: column;
-        align-items: stretch;
+        flex-direction: row;
+        justify-content: center;
+        gap: var(--spacing-xs);
     }
 
     .action-btn-compact {
-        width: 100%;
-        max-width: none;
+        flex: 1;
+        min-width: 70px;
+        max-width: 90px;
+        font-size: 0.8rem;
     }
 }
 
