@@ -65,7 +65,7 @@ async function loadOrderData() {
             throw new Error('Invalid JSON response from server. Check browser console for details.');
         }
         
-        console.log('[VIEWORDER DEBUG] Parsed data:', data);
+        console.log('[DATA DEBUG] Parsed data:', data);
         
         if (!data.status || data.status !== 'success' || !Array.isArray(data.data)) {
             throw new Error('Invalid data format received');
@@ -206,7 +206,8 @@ function checkApprovalPermissions(user, order) {
     const currentApprovalLevel = Number(order.approval_status);
     // CORREGIDO: requiredLevel es approval_status + 1
     const requiredLevel = currentApprovalLevel + 1;
-    const creatorPlant = order.creator_plant;
+    // Convertir planta a número para comparación consistente
+    const creatorPlant = parseInt(order.creator_plant, 10) || 0;
 
     console.log('[VIEWORDER DEBUG] Validando permisos:', {
         userAuthLevel,
