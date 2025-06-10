@@ -24,73 +24,6 @@ $userRole = $_SESSION['user']['role'] ?? '';
 $userPlant = $user_plant;
 $authorizationLevel = $auth_level;
 
-// Database connection
-require_once 'dao/db/PFDB.php';
-
-try {
-    $con = new LocalConector();
-    $db = $con->conectar();
-
-    if (!$db) {
-        throw new Exception('Could not connect to database');
-    }
-
-    // Get complete order details
-    $orderSql = "SELECT 
-                    pf.*,
-                    u.name AS creator_name,
-                    u.email AS creator_email,
-                    u.role AS creator_role,
-                    u.plant AS creator_plant,
-                    lo_from.company_name AS origin_company_name,
-                    lo_from.city AS origin_city,
-                    lo_from.state AS origin_state,
-                    lo_from.zip AS origin_zip,
-                    lo_to.company_name AS destiny_company_name,
-                    lo_to.city AS destiny_city,
-                    lo_to.state AS destiny_state,
-                    lo_to.zip AS destiny_zip,
-                    c.name AS carrier,
-                    st.id AS statusid,
-                    st.name AS status_name
-                FROM PremiumFreight pf
-                LEFT JOIN Carriers c ON pf.carrier_id = c.id
-                LEFT JOIN User u ON pf.user_id = u.id
-                LEFT JOIN Location lo_from ON pf.origin_id = lo_from.id
-                LEFT JOIN Location lo_to ON pf.destiny_id = lo_to.id
-                LEFT JOIN Status st ON pf.status_id = st.id
-                WHERE pf.id = ?";
-    
-    $orderStmt = $db->prepare($orderSql);
-    if (!$orderStmt) {
-        throw new Exception('Error preparing order query: ' . $db->error);
-    }
-    
-    $orderStmt->bind_param("i", $orderId);
-    $orderStmt->execute();
-    $orderResult = $orderStmt->get_result();
-
-    if ($orderResult->num_rows === 0) {
-        throw new Exception('Order not found with ID: ' . $orderId);
-    }
-
-    $orderData = $orderResult->fetch_assoc();
-
-    // Check if user has permission to view this order (plant permission)
-    // Since auth_check already blocks level 0 users, we only need to check plant permission
-    if ($userPlant !== null && $orderData['creator_plant'] !== $userPlant) {
-        throw new Exception('You do not have permission to view this order from a different plant.');
-    }
-
-} catch (Exception $e) {
-    $errorMsg = 'Error: ' . $e->getMessage();
-    error_log("Error in view_order.php: " . $errorMsg);
-    
-    // Redirect back to orders page with error
-    header('Location: orders.php?error=' . urlencode($errorMsg));
-    exit;
-}
-
 // Define base URLs
 $URLBASE = "https://grammermx.com/Jesus/PruebaDos/";
 $URLM = "https://grammermx.com/Mailer/PFMailer/";
@@ -128,7 +61,7 @@ $URLM = "https://grammermx.com/Mailer/PFMailer/";
         window.PF_CONFIG = {
             baseURL: '<?php echo $URLBASE; ?>',
             mailerURL: '<?php echo $URLM; ?>',
-            orderData: <?php echo json_encode($orderData); ?>,
+            orderData: null, // Se cargará vía AJAX usando el endpoint existente
             user: {
                 id: <?php echo $userId; ?>,
                 name: '<?php echo $userName; ?>',
@@ -141,10 +74,10 @@ $URLM = "https://grammermx.com/Mailer/PFMailer/";
         };
         
         // Legacy support for existing modules
-        window.PF_URL = window.PF_CONFIG.baseURL;  // En lugar de window.URL
+        window.PF_URL = window.PF_CONFIG.baseURL;
         window.URLM = window.PF_CONFIG.mailerURL;
-        window.allOrders = [window.PF_CONFIG.orderData];
-        window.originalOrders = [window.PF_CONFIG.orderData];
+        window.allOrders = [];
+        window.originalOrders = [];
         window.authorizationLevel = window.PF_CONFIG.user.authorizationLevel;
         window.userName = window.PF_CONFIG.user.name;
         window.userID = window.PF_CONFIG.user.id;
@@ -222,8 +155,7 @@ $URLM = "https://grammermx.com/Mailer/PFMailer/";
         </div>
     </div>
 
-
-     <!-- PDF and Canvas Scripts -->
+    <!-- PDF and Canvas Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     

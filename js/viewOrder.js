@@ -28,33 +28,91 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
+ * Load order data from the existing PFDB endpoint
+ */
+async function loadOrderData() {
+    try {
+        console.log('[VIEWORDER DEBUG] Cargando datos de orden desde endpoint existente...');
+        
+        // Usar el mismo endpoint que uses en orders.php
+        const response = await fetch(`${window.PF_CONFIG.baseURL}dao/db/PFDB.php`);
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch order data');
+        }
+        
+        const data = await response.json();
+        
+        if (!data.success || !Array.isArray(data.data)) {
+            throw new Error('Invalid data format received');
+        }
+        
+        // Buscar la orden específica en los datos
+        const targetOrder = data.data.find(order => order.id === window.PF_CONFIG.orderId);
+        
+        if (!targetOrder) {
+            throw new Error(`Order #${window.PF_CONFIG.orderId} not found`);
+        }
+        
+        // Verificar permisos de planta
+        if (window.PF_CONFIG.user.plant !== null && 
+            targetOrder.creator_plant !== window.PF_CONFIG.user.plant) {
+            throw new Error('You do not have permission to view this order from a different plant.');
+        }
+        
+        // Actualizar datos globales
+        window.PF_CONFIG.orderData = targetOrder;
+        window.allOrders = [targetOrder];
+        window.originalOrders = [targetOrder];
+        
+        console.log('[VIEWORDER DEBUG] Datos de orden cargados exitosamente:', targetOrder);
+        
+        return targetOrder;
+        
+    } catch (error) {
+        console.error('[VIEWORDER DEBUG] Error loading order data:', error);
+        
+        // Mostrar error y redirigir a orders.php
+        Swal.fire({
+            icon: 'error',
+            title: 'Error Loading Order',
+            text: error.message,
+            confirmButtonText: 'Back to Orders',
+            customClass: { container: 'swal-on-top' }
+        }).then(() => {
+            window.location.href = 'orders.php';
+        });
+        
+        throw error;
+    }
+}
+
+/**
  * Main initialization function
  */
 async function initializeViewOrder() {
     try {
-        // Show initial loading
-        showLoadingSpinner(true);
+        console.log('[VIEWORDER DEBUG] Inicializando visor de orden...');
         
-        // Get order data from global configuration
-        currentOrder = window.PF_CONFIG?.orderData;
+        // Load order data first
+        const orderData = await loadOrderData();
         
-        if (!currentOrder) {
-            throw new Error('Order data not available');
-        }
+        // Set current order for other functions
+        currentOrder = orderData;
         
-        // Initialize components
+        // Initialize UI components
         await initializeOrderDisplay();
-        setupEventListeners();
+        
+        // Configure buttons based on permissions
         configureActionButtons();
         
-        // Hide loading spinner
-        showLoadingSpinner(false);
+        // Setup event listeners
+        setupEventListeners();
         
-        console.log('ViewOrder initialized successfully for order:', currentOrder.id);
+        console.log('[VIEWORDER DEBUG] Visor de orden inicializado exitosamente');
         
     } catch (error) {
-        console.error('Error initializing view order:', error);
-        showErrorMessage('Failed to load order details');
+        console.error('[VIEWORDER DEBUG] Error initializing order viewer:', error);
     }
 }
 
