@@ -12,6 +12,7 @@
  * Hace validaciones de seguridad como que el nivel de usuario sea el correcto
  * Además de que el usuario tenga acceso a la orden
  * Si no se cumplen estas condiciones no se permite la aprobación
+ * ACTUALIZADO: Ahora también maneja rejection_reason para rechazos
  * */
 
 session_start();
@@ -55,6 +56,35 @@ $authDate = $data['authDate'];
 $orderId = intval($data['orderId']);
 $newStatusId = intval($data['newStatusId']);
 $userPlant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
+
+// NUEVO: Obtener rejection_reason si está presente
+$rejectionReason = isset($data['rejection_reason']) ? trim($data['rejection_reason']) : null;
+
+// Validar rejection_reason para rechazos
+if ($newStatusId === 99) {
+    // Para rechazos, validar que se proporcione una razón
+    if (empty($rejectionReason)) {
+        http_response_code(400);
+        echo json_encode([
+            "success" => false,
+            "message" => "Se requiere una razón para rechazar la orden."
+        ]);
+        exit;
+    }
+    
+    // Validar longitud máxima
+    if (strlen($rejectionReason) > 999) {
+        http_response_code(400);
+        echo json_encode([
+            "success" => false,
+            "message" => "La razón de rechazo no puede exceder 999 caracteres."
+        ]);
+        exit;
+    }
+} else {
+    // Para aprobaciones, la razón debe ser null
+    $rejectionReason = null;
+}
 
 // Seguridad: El nivel enviado por el frontend debe coincidir con el de la sesión
 if ($sessionLevel !== $userLevel) {
@@ -132,30 +162,39 @@ try {
         exit;
     }
 
-    // 5. Actualiza el estado y registra el usuario y la fecha de autorización
+    // 5. ACTUALIZADO: Actualiza el estado, registra el usuario, fecha y razón de rechazo si aplica
     $stmt = $conex->prepare(
         "UPDATE PremiumFreightApprovals 
          SET act_approv = ?, 
              user_id = ?, 
-             approval_date = ?
+             approval_date = ?,
+             rejection_reason = ?
          WHERE premium_freight_id = ?"
     );
     $stmt->bind_param(
-        "issi",
+        "isssi",
         $newStatusId,
         $userID,
         $authDate,
+        $rejectionReason,
         $orderId
     );
     $stmt->execute();
 
     if ($stmt->affected_rows > 0) {
-        echo json_encode([
+        $response = [
             "success" => true,
-            "message" => "Estado actualizado correctamente",
+            "message" => $newStatusId === 99 ? "Orden rechazada correctamente" : "Estado actualizado correctamente",
             "new_status" => $newStatusId,
             "required_level" => $requiredAuthLevel
-        ]);
+        ];
+        
+        // Incluir rejection_reason en la respuesta si es un rechazo
+        if ($newStatusId === 99 && $rejectionReason) {
+            $response['rejection_reason'] = $rejectionReason;
+        }
+        
+        echo json_encode($response);
     } else {
         echo json_encode([
             "success" => false,

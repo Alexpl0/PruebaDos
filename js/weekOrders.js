@@ -524,8 +524,8 @@ async function handleOrderReject(orderId) {
                     id="rejection-reason" 
                     class="swal2-textarea" 
                     placeholder="Enter rejection reason..."
-                    style="min-height: 100px; width: 100%; margin-top: 10px;"
-                ></textarea>
+                    style="min-height: 100px; width: 85%; margin-top: 10px; justify-self: center;">
+                    </textarea>
             `,
             icon: 'warning',
             showCancelButton: true,
