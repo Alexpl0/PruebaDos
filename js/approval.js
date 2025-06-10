@@ -1,9 +1,10 @@
 /**
- * Approval module for the Premium Freight system
+ * Approval module for the Premium Freight system - REFACTORED for reusability
+ * 
+ * NOTA: Este módulo anteriormente usaba modales de orders.php (hideModal, createCards)
+ * pero se removió esa dependencia para hacerlo más versátil y reutilizable.
+ * Ahora funciona tanto en contexto de modales como en páginas independientes.
  */
-
-import { hideModal } from './modals.js';
-import { createCards } from './cards.js';
 
 // Define the URL variable for this module
 const URL = window.URL_BASE || window.BASE_URL || 'https://grammermx.com/Jesus/PruebaDos/';
@@ -14,9 +15,9 @@ const URL = window.URL_BASE || window.BASE_URL || 'https://grammermx.com/Jesus/P
 let isProcessing = false;
 
 /**
- * Handles approve button click
+ * NUEVO: Generic approval function that can work with any context
  */
-export async function handleApprove() {
+export async function approveOrder(orderId, options = {}) {
     // Prevent multiple clicks
     if (isProcessing) {
         console.log('Already processing an approval, please wait');
@@ -25,35 +26,60 @@ export async function handleApprove() {
     
     isProcessing = true;
     
-    // Get selected order data
-    const selectedOrderId = sessionStorage.getItem('selectedOrderId');
-    const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
-    
     try {
+        // Find the order
+        const selectedOrder = window.allOrders?.find(order => order.id === parseInt(orderId)) || 
+                            window.PF_CONFIG?.pendingOrders?.find(order => order.id === parseInt(orderId));
+        
+        if (!selectedOrder) {
+            throw new Error('Order not found');
+        }
+
         // Client-side validation
         if (!validateOrderForApproval(selectedOrder)) {
             return;
         }
 
+        // Show confirmation if requested
+        if (options.showConfirmation !== false) {
+            const confirmation = await Swal.fire({
+                title: 'Approve Order?',
+                html: `
+                    <p>Are you sure you want to approve order <strong>#${selectedOrder.id}</strong>?</p>
+                    <p><small>Created by: ${selectedOrder.creator_name}</small></p>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10B981',
+                confirmButtonText: 'Yes, approve it!',
+                cancelButtonText: 'Cancel',
+                customClass: { container: 'swal-on-top' }
+            });
+
+            if (!confirmation.isConfirmed) {
+                return;
+            }
+        }
+
         // Show progress indicator
         Swal.fire({
-            title: 'Processing...',
-            text: 'Updating order status',
+            title: 'Processing Approval...',
+            text: 'Please wait while we process your approval.',
             allowOutsideClick: false,
             didOpen: () => { Swal.showLoading(); },
             customClass: { container: 'swal-on-top' }
         });
 
         // Use current user's authorization_level as new approval status
-        const newApprovalLevel = Number(window.authorizationLevel);
+        const newApprovalLevel = Number(window.authorizationLevel || window.PF_CONFIG?.user?.authorizationLevel);
         const requiredLevel = Number(selectedOrder.required_auth_level || 7);
         
         // Prepare data for API
         const updateData = {
             orderId: selectedOrder.id,
             newStatusId: newApprovalLevel,
-            userLevel: window.authorizationLevel,
-            userID: window.userID,
+            userLevel: newApprovalLevel,
+            userID: window.userID || window.PF_CONFIG?.user?.id,
             authDate: new Date().toISOString().slice(0, 19).replace('T', ' ')
         };
 
@@ -65,12 +91,6 @@ export async function handleApprove() {
         if (willBeFullyApproved) {
             updatedStatusTextId = 3; // 'approved'
         }
-
-        // Prepare data to update status text
-        const updateStatusText = {
-            orderId: selectedOrder.id,
-            statusid: updatedStatusTextId
-        };
 
         // Update approval level in database
         const responseApproval = await fetch(URL + 'dao/conections/daoStatusUpdate.php', {
@@ -85,17 +105,23 @@ export async function handleApprove() {
             throw new Error(resultApproval.message || 'Error updating approval level.');
         }
 
-        // Update status text in database
-        const responseStatusText = await fetch(URL + 'dao/conections/daoStatusText.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updateStatusText)
-        });
-        
-        // Process status text update response
-        const resultStatusText = await responseStatusText.json();
-        if (!resultStatusText.success) {
-            console.error('Error updating status text:', resultStatusText.message);
+        // Update status text in database if needed
+        if (options.updateStatusText !== false) {
+            const updateStatusText = {
+                orderId: selectedOrder.id,
+                statusid: updatedStatusTextId
+            };
+
+            const responseStatusText = await fetch(URL + 'dao/conections/daoStatusText.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updateStatusText)
+            });
+            
+            const resultStatusText = await responseStatusText.json();
+            if (!resultStatusText.success) {
+                console.error('Error updating status text:', resultStatusText.message);
+            }
         }
 
         // Update local data
@@ -107,52 +133,221 @@ export async function handleApprove() {
         else if (updatedStatusTextId === 2) selectedOrder.status_name = 'under review';
 
         // Send notification based on final status
-        if (willBeFullyApproved) {
-            // Order fully approved - notify ONLY the creator
-            console.log(`[APPROVAL DEBUG] Order fully approved. Sending final notification to creator`);
-            await sendEmailNotification(selectedOrder.id, 'approved');
-        } else {
-            // Order needs more approvals - send email to NEXT approver (NOT current)
-            console.log(`[APPROVAL DEBUG] Order requires more approvals. Current level: ${newApprovalLevel}, Required: ${requiredLevel}`);
-            await sendEmailNotification(selectedOrder.id, 'approval');
+        if (options.sendNotifications !== false) {
+            if (willBeFullyApproved) {
+                // Order fully approved - notify ONLY the creator
+                console.log(`[APPROVAL DEBUG] Order fully approved. Sending final notification to creator`);
+                await sendEmailNotification(selectedOrder.id, 'approved');
+            } else {
+                // Order needs more approvals - send email to NEXT approver (NOT current)
+                console.log(`[APPROVAL DEBUG] Order requires more approvals. Current level: ${newApprovalLevel}, Required: ${requiredLevel}`);
+                await sendEmailNotification(selectedOrder.id, 'approval');
+            }
         }
 
-        // Show success message with additional information
+        // Show success message
         const statusMessage = willBeFullyApproved ? 
             'The order has been fully approved.' : 
             'The order has been approved for the next level.';
             
         Swal.fire({
             icon: 'success',
-            title: 'Order Approved',
-            text: `Order ${selectedOrder.id} has been processed successfully. ${statusMessage}`,
+            title: 'Order Approved!',
+            text: `Order #${selectedOrder.id} has been approved successfully. ${statusMessage}`,
+            timer: options.autoClose ? 3000 : undefined,
+            timerProgressBar: options.autoClose,
             confirmButtonText: 'Accept',
             customClass: { container: 'swal-on-top' }
         });
         
-        // Only close modal if we're in orders.php
-        const isInViewOrder = window.location.pathname.includes('viewOrder.php') || 
-                             document.getElementById('svgContent');
-        
-        if (!isInViewOrder) {
-            // We're in orders.php, close modal and regenerate cards
-            hideModal();
-            createCards(window.allOrders);
+        // Handle UI updates based on context
+        if (options.onSuccess) {
+            options.onSuccess(selectedOrder, 'approve');
         }
-        // If we're in viewOrder.php, do nothing here - viewOrder.js will handle the update
+        // REMOVIDO: Ya no maneja modales automáticamente
+        // Las páginas que necesiten actualizar UI específica deben usar onSuccess
 
+        return { success: true, order: selectedOrder };
+        
     } catch (error) {
         // Handle errors during approval process
         console.error('Error approving order:', error);
         Swal.fire({
             icon: 'error',
-            title: 'Error',
-            text: 'Could not update the order: ' + error.message,
+            title: 'Approval Failed',
+            text: error.message || 'Failed to approve order. Please try again.',
+            confirmButtonColor: '#dc3545',
+            customClass: { container: 'swal-on-top' }
+        });
+        
+        if (options.onError) {
+            options.onError(error);
+        }
+        
+        return { success: false, error: error.message };
+    } finally {
+        // Always reset processing flag
+        isProcessing = false;
+    }
+}
+
+/**
+ * NUEVO: Generic rejection function that can work with any context
+ */
+export async function rejectOrder(orderId, rejectionReason = null, options = {}) {
+    if (isProcessing) {
+        console.log('Already processing a rejection, please wait');
+        return;
+    }
+    
+    isProcessing = true;
+    
+    try {
+        // Find the order
+        const selectedOrder = window.allOrders?.find(order => order.id === parseInt(orderId)) || 
+                            window.PF_CONFIG?.pendingOrders?.find(order => order.id === parseInt(orderId));
+        
+        if (!selectedOrder) {
+            throw new Error('Order not found');
+        }
+
+        // Client-side validation
+        if (!validateOrderForApproval(selectedOrder)) {
+            return;
+        }
+
+        // Ask for rejection reason if not provided
+        if (!rejectionReason && options.requireReason !== false) {
+            const { value: reason, isConfirmed } = await Swal.fire({
+                title: 'Reject Order',
+                html: `
+                    <p>Please provide a reason for rejecting order <strong>#${selectedOrder.id}</strong>:</p>
+                    <textarea 
+                        id="rejection-reason"
+                        class="swal2-textarea"
+                        placeholder="Enter rejection reason..."
+                        style="min-height: 100px; width: 85%; margin-top: 10px;"></textarea>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                confirmButtonText: 'Reject Order',
+                cancelButtonText: 'Cancel',
+                customClass: { container: 'swal-on-top' },
+                preConfirm: () => {
+                    const reason = document.getElementById('rejection-reason').value.trim();
+                    if (!reason) {
+                        Swal.showValidationMessage('Please provide a rejection reason');
+                        return false;
+                    }
+                    return reason;
+                }
+            });
+
+            if (!isConfirmed || !reason) {
+                return;
+            }
+            
+            rejectionReason = reason;
+        }
+
+        // Show progress indicator
+        Swal.fire({
+            title: 'Processing Rejection...',
+            text: 'Please wait while we process your rejection.',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); },
+            customClass: { container: 'swal-on-top' }
+        });
+
+        // Configure rejection status (99)
+        const updateData = {
+            orderId: selectedOrder.id,
+            newStatusId: 99,
+            userLevel: window.authorizationLevel || window.PF_CONFIG?.user?.authorizationLevel,
+            userID: window.userID || window.PF_CONFIG?.user?.id,
+            authDate: new Date().toISOString().slice(0, 19).replace('T', ' '),
+            rejection_reason: rejectionReason
+        };
+
+        // Update approval level in database
+        const responseApproval = await fetch(URL + 'dao/conections/daoStatusUpdate.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updateData)
+        });
+        
+        const resultApproval = await responseApproval.json();
+        if (!resultApproval.success) {
+            throw new Error(resultApproval.message || 'Error updating status to rejected.');
+        }
+
+        // Update status text in database if needed
+        if (options.updateStatusText !== false) {
+            const updateStatusText = {
+                orderId: selectedOrder.id,
+                statusid: 4 // rejected
+            };
+
+            const responseStatusText = await fetch(URL + 'dao/conections/daoStatusText.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updateStatusText)
+            });
+            
+            const resultStatusText = await responseStatusText.json();
+            if (!resultStatusText.success) {
+                console.error('Error updating status text to rejected:', resultStatusText.message);
+            }
+        }
+
+        // Update local data
+        selectedOrder.approval_status = 99;
+        selectedOrder.status_id = 4;
+        selectedOrder.status_name = 'rejected';
+
+        // Send rejection notification to creator
+        if (options.sendNotifications !== false) {
+            console.log(`[REJECT DEBUG] Order rejected. Sending notification to creator`);
+            await sendEmailNotification(selectedOrder.id, 'rejected');
+        }
+
+        // Show confirmation
+        Swal.fire({
+            icon: 'success',
+            title: 'Order Rejected',
+            text: `Order #${selectedOrder.id} has been rejected.`,
+            timer: options.autoClose ? 3000 : undefined,
+            timerProgressBar: options.autoClose,
             confirmButtonText: 'Accept',
             customClass: { container: 'swal-on-top' }
         });
+        
+        // Handle UI updates based on context
+        if (options.onSuccess) {
+            options.onSuccess(selectedOrder, 'reject');
+        }
+        // REMOVIDO: Ya no maneja modales automáticamente
+        // Las páginas que necesiten actualizar UI específica deben usar onSuccess
+
+        return { success: true, order: selectedOrder };
+
+    } catch (error) {
+        console.error('Error rejecting order:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Rejection Failed',
+            text: error.message || 'Failed to reject order. Please try again.',
+            confirmButtonColor: '#dc3545',
+            customClass: { container: 'swal-on-top' }
+        });
+        
+        if (options.onError) {
+            options.onError(error);
+        }
+        
+        return { success: false, error: error.message };
     } finally {
-        // Always reset processing flag
         isProcessing = false;
     }
 }
@@ -309,129 +504,29 @@ function validateOrderForApproval(order) {
 }
 
 /**
- * Handles reject button click
+ * LEGACY: Handles approve button click (for backward compatibility)
+ */
+export async function handleApprove() {
+    const selectedOrderId = sessionStorage.getItem('selectedOrderId');
+    if (!selectedOrderId) {
+        console.error('No order selected');
+        return;
+    }
+    
+    return await approveOrder(selectedOrderId);
+}
+
+/**
+ * LEGACY: Handles reject button click (for backward compatibility)
  */
 export async function handleReject() {
-    // Get selected order data
     const selectedOrderId = sessionStorage.getItem('selectedOrderId');
-    const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
-    
-    try {
-        // Client-side validation
-        if (!validateOrderForApproval(selectedOrder)) {
-            return;
-        }
-
-        // Request confirmation before rejecting
-        const confirmation = await Swal.fire({
-            title: 'Are you sure?',
-            text: `Do you really want to reject order ${selectedOrderId}? This action cannot be undone.`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, reject',
-            cancelButtonText: 'Cancel',
-            customClass: { container: 'swal-on-top' }
-        });
-
-        // If user cancels, stop the process
-        if (!confirmation.isConfirmed) {
-            return;
-        }
-
-        // Show progress indicator
-        Swal.fire({
-            title: 'Processing...',
-            text: 'Rejecting order',
-            allowOutsideClick: false,
-            didOpen: () => { Swal.showLoading(); },
-            customClass: { container: 'swal-on-top' }
-        });
-
-        // Configure rejection status (99)
-        const newStatusId = 99;
-        const updateData = {
-            orderId: selectedOrder.id,
-            newStatusId: newStatusId,
-            userLevel: window.authorizationLevel,
-            userID: window.userID,
-            authDate: new Date().toISOString().slice(0, 19).replace('T', ' ')
-        };
-
-        // Configure status text to 'rejected'
-        const updatedStatusTextId = 4;
-        const updateStatusText = {
-            orderId: selectedOrder.id,
-            statusid: updatedStatusTextId
-        };
-
-        // Update approval level in database
-        const responseApproval = await fetch(URL + 'dao/conections/daoStatusUpdate.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updateData)
-        });
-        
-        // Process approval update response
-        const resultApproval = await responseApproval.json();
-        if (!resultApproval.success) {
-            throw new Error(resultApproval.message || 'Error updating status to rejected.');
-        }
-
-        // Update status text in database
-        const responseStatusText = await fetch(URL + 'dao/conections/daoStatusText.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updateStatusText)
-        });
-        
-        // Process status text update response
-        const resultStatusText = await responseStatusText.json();
-        if (!resultStatusText.success) {
-            console.error('Error updating status text to rejected:', resultStatusText.message);
-        }
-
-        // Update local data
-        selectedOrder.approval_status = newStatusId;
-        selectedOrder.status_id = updatedStatusTextId;
-        selectedOrder.status_name = 'rejected';
-
-        // Send rejection notification to creator
-        console.log(`[REJECT DEBUG] Order rejected. Sending notification to creator`);
-        await sendEmailNotification(selectedOrder.id, 'rejected');
-
-        // Show confirmation
-        Swal.fire({
-            icon: 'error',
-            title: 'Order Rejected',
-            text: `Order ${selectedOrderId} has been rejected successfully.`,
-            confirmButtonText: 'Accept',
-            customClass: { container: 'swal-on-top' }
-        });
-        
-        // Only close modal if we're in orders.php
-        const isInViewOrder = window.location.pathname.includes('viewOrder.php') || 
-                             document.getElementById('svgContent');
-        
-        if (!isInViewOrder) {
-            // We're in orders.php, close modal and regenerate cards
-            hideModal();
-            createCards(window.allOrders);
-        }
-        // If we're in viewOrder.php, do nothing here - viewOrder.js will handle the update
-
-    } catch (error) {
-        // Handle errors during rejection process
-        console.error('Error rejecting order:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Could not reject the order: ' + error.message,
-            confirmButtonText: 'Accept',
-            customClass: { container: 'swal-on-top' }
-        });
+    if (!selectedOrderId) {
+        console.error('No order selected');
+        return;
     }
+    
+    return await rejectOrder(selectedOrderId);
 }
 
 /**

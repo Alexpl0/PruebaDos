@@ -5,14 +5,15 @@
  * - Loading orders data from daoPremiumFreight.php endpoint
  * - Filtering pending orders for current user
  * - Loading and displaying SVG content for multiple orders
- * - Individual order approval/rejection functionality
+ * - Individual order approval/rejection functionality (using approval.js)
  * - Bulk operations (approve all, download all)
  * - PDF generation for individual orders
  * - Navigation controls
  */
 
-// Import required modules - but NOT approval.js since it expects different DOM
+// Import required modules
 import { loadAndPopulateSVG, generatePDF as svgGeneratePDF } from './svgOrders.js';
+import { approveOrder, rejectOrder } from './approval.js';
 
 /**
  * Configuration and global variables
@@ -402,7 +403,7 @@ async function initializeOrderDisplay(order) {
 }
 
 /**
- * CORREGIDO: Handle individual order approval - STANDALONE VERSION for weekOrders
+ * SIMPLIFICADO: Handle individual order approval usando approval.js
  */
 async function handleOrderApprove(orderId) {
     if (isLoading || processedOrders.has(orderId)) {
@@ -412,101 +413,30 @@ async function handleOrderApprove(orderId) {
     try {
         isLoading = true;
         
-        const order = pendingOrders.find(o => o.id === orderId);
-        if (!order) {
-            throw new Error('Order not found');
-        }
-        
-        // Show confirmation dialog
-        const result = await Swal.fire({
-            title: 'Approve Order?',
-            html: `
-                <p>Are you sure you want to approve order <strong>#${order.id}</strong>?</p>
-                <p><small>Created by: ${order.creator_name}</small></p>
-            `,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#10B981',
-            confirmButtonText: 'Yes, approve it!',
-            cancelButtonText: 'Cancel',
-            customClass: { container: 'swal-on-top' }
-        });
-
-        if (!result.isConfirmed) {
-            return;
-        }
-
-        // Show processing dialog
-        Swal.fire({
-            title: 'Processing Approval...',
-            text: 'Please wait while we process your approval.',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
+        const result = await approveOrder(orderId, {
+            autoClose: true,
+            sendNotifications: true,
+            onSuccess: (order, action) => {
+                markOrderAsProcessed(orderId, action);
             },
-            customClass: { container: 'swal-on-top' }
+            onError: (error) => {
+                console.error('Error in approval:', error);
+            }
         });
         
-        // CORREGIDO: Use the correct field names expected by daoStatusUpdate.php
-        const currentApprovalLevel = Number(order.approval_status || 0);
-        const nextLevel = currentApprovalLevel + 1;
-        const currentDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
-        
-        const approvalResponse = await fetch(`${window.PF_CONFIG.baseURL}dao/conections/daoStatusUpdate.php`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            credentials: 'same-origin',
-            body: JSON.stringify({
-                orderId: orderId,
-                newStatusId: nextLevel,
-                userLevel: window.PF_CONFIG.user.authorizationLevel,
-                userID: window.PF_CONFIG.user.id,
-                authDate: currentDate
-            })
-        });
-
-        if (!approvalResponse.ok) {
-            throw new Error(`HTTP error! status: ${approvalResponse.status}`);
+        if (result && result.success) {
+            console.log(`Order ${orderId} approved successfully using approval.js`);
         }
-
-        const approvalResult = await approvalResponse.json();
-        
-        if (!approvalResult.success) {
-            throw new Error(approvalResult.message || 'Failed to approve order');
-        }
-
-        // Mark order as processed
-        markOrderAsProcessed(orderId, 'approve');
-
-        // Show success message
-        Swal.fire({
-            icon: 'success',
-            title: 'Order Approved!',
-            text: `Order #${order.id} has been approved successfully.`,
-            timer: 3000,
-            timerProgressBar: true,
-            customClass: { container: 'swal-on-top' }
-        });
         
     } catch (error) {
         console.error('Error approving order:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Approval Failed',
-            text: error.message || 'Failed to approve order. Please try again.',
-            confirmButtonColor: '#dc3545',
-            customClass: { container: 'swal-on-top' }
-        });
     } finally {
         isLoading = false;
     }
 }
 
 /**
- * CORREGIDO: Handle individual order rejection - STANDALONE VERSION for weekOrders
+ * SIMPLIFICADO: Handle individual order rejection usando approval.js
  */
 async function handleOrderReject(orderId) {
     if (isLoading || processedOrders.has(orderId)) {
@@ -516,107 +446,111 @@ async function handleOrderReject(orderId) {
     try {
         isLoading = true;
         
-        const order = pendingOrders.find(o => o.id === orderId);
-        if (!order) {
-            throw new Error('Order not found');
-        }
-        
-        // Show rejection reason dialog
-        const { value: rejectionReason, isConfirmed } = await Swal.fire({
-            title: 'Reject Order',
-            html: `
-                <p>Please provide a reason for rejecting order <strong>#${order.id}</strong>:</p>
-                <textarea 
-                    id="rejection-reason"
-                    class="swal2-textarea"
-                    placeholder="Enter rejection reason..."
-                    style="min-height: 100px; width: 85%; margin-top: 10px; justify-self: center;"></textarea>
-            `,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            confirmButtonText: 'Reject Order',
-            cancelButtonText: 'Cancel',
-            customClass: { container: 'swal-on-top' },
-            preConfirm: () => {
-                const reason = document.getElementById('rejection-reason').value.trim();
-                if (!reason) {
-                    Swal.showValidationMessage('Please provide a rejection reason');
-                    return false;
-                }
-                return reason;
+        const result = await rejectOrder(orderId, null, {
+            autoClose: true,
+            sendNotifications: true,
+            onSuccess: (order, action) => {
+                markOrderAsProcessed(orderId, action);
+            },
+            onError: (error) => {
+                console.error('Error in rejection:', error);
             }
         });
-
-        if (!isConfirmed || !rejectionReason) {
-            return;
+        
+        if (result && result.success) {
+            console.log(`Order ${orderId} rejected successfully using approval.js`);
         }
+        
+    } catch (error) {
+        console.error('Error rejecting order:', error);
+    } finally {
+        isLoading = false;
+    }
+}
 
-        // Show processing dialog
+/**
+ * SIMPLIFICADO: Handle approve all orders usando approval.js
+ */
+async function handleApproveAll() {
+    const pendingOrdersList = pendingOrders.filter(order => !processedOrders.has(order.id));
+    
+    if (pendingOrdersList.length === 0) {
         Swal.fire({
-            title: 'Processing Rejection...',
-            text: 'Please wait while we process your rejection.',
+            icon: 'info',
+            title: 'No Pending Orders',
+            text: 'All orders have been processed already.',
+            customClass: { container: 'swal-on-top' }
+        });
+        return;
+    }
+    
+    const result = await Swal.fire({
+        title: 'Approve All Orders?',
+        text: `This will approve ${pendingOrdersList.length} remaining orders. This action cannot be undone.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#10B981',
+        confirmButtonText: 'Yes, approve all!',
+        cancelButtonText: 'Cancel',
+        customClass: { container: 'swal-on-top' }
+    });
+
+    if (result.isConfirmed) {
+        // Mostrar progreso
+        Swal.fire({
+            title: 'Approving Orders...',
+            text: `Processing 0 of ${pendingOrdersList.length} orders...`,
             allowOutsideClick: false,
             didOpen: () => {
                 Swal.showLoading();
             },
             customClass: { container: 'swal-on-top' }
         });
-        
-        // CORREGIDO: Use the correct field names expected by daoStatusUpdate.php
-        const currentDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
-        
-        const rejectionResponse = await fetch(`${window.PF_CONFIG.baseURL}dao/conections/daoStatusUpdate.php`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            credentials: 'same-origin',
-            body: JSON.stringify({
-                orderId: orderId,
-                newStatusId: 99, // 99 = rejected status
-                userLevel: window.PF_CONFIG.user.authorizationLevel,
-                userID: window.PF_CONFIG.user.id,
-                authDate: currentDate,
-                rejection_reason: rejectionReason
-            })
-        });
 
-        if (!rejectionResponse.ok) {
-            throw new Error(`HTTP error! status: ${rejectionResponse.status}`);
+        let processed = 0;
+        let successful = 0;
+        
+        for (const order of pendingOrdersList) {
+            try {
+                // SIMPLIFICADO: Usar la función centralizada
+                const result = await approveOrder(order.id, {
+                    showConfirmation: false,
+                    autoClose: false,
+                    sendNotifications: true,
+                    onSuccess: (order, action) => {
+                        markOrderAsProcessed(order.id, action);
+                        successful++;
+                    }
+                });
+                
+                processed++;
+                
+                // Actualizar progreso
+                Swal.update({
+                    text: `Processing ${processed} of ${pendingOrdersList.length} orders...`
+                });
+                
+                // Pequeña pausa entre procesamiento
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+            } catch (error) {
+                console.error(`Error approving order ${order.id}:`, error);
+                processed++;
+            }
         }
 
-        const rejectionResult = await rejectionResponse.json();
-        
-        if (!rejectionResult.success) {
-            throw new Error(rejectionResult.message || 'Failed to reject order');
-        }
-
-        // Mark order as processed
-        markOrderAsProcessed(orderId, 'reject');
-
-        // Show success message
+        // Mostrar resultado final
         Swal.fire({
             icon: 'success',
-            title: 'Order Rejected',
-            text: `Order #${order.id} has been rejected.`,
-            timer: 3000,
+            title: 'Bulk Approval Complete!',
+            html: `
+                <p>Successfully processed <strong>${successful}</strong> out of <strong>${processed}</strong> orders.</p>
+                <p><small>Used centralized approval.js functions</small></p>
+            `,
+            timer: 4000,
             timerProgressBar: true,
             customClass: { container: 'swal-on-top' }
         });
-        
-    } catch (error) {
-        console.error('Error rejecting order:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Rejection Failed',
-            text: error.message || 'Failed to reject order. Please try again.',
-            confirmButtonColor: '#dc3545',
-            customClass: { container: 'swal-on-top' }
-        });
-    } finally {
-        isLoading = false;
     }
 }
 
@@ -678,103 +612,6 @@ async function handleOrderPDF(orderId) {
         });
     } finally {
         isLoading = false;
-    }
-}
-
-/**
- * Handle approve all orders
- */
-async function handleApproveAll() {
-    const pendingOrdersList = pendingOrders.filter(order => !processedOrders.has(order.id));
-    
-    if (pendingOrdersList.length === 0) {
-        Swal.fire({
-            icon: 'info',
-            title: 'No Pending Orders',
-            text: 'All orders have been processed already.',
-            customClass: { container: 'swal-on-top' }
-        });
-        return;
-    }
-    
-    const result = await Swal.fire({
-        title: 'Approve All Orders?',
-        text: `This will approve ${pendingOrdersList.length} remaining orders. This action cannot be undone.`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#10B981',
-        confirmButtonText: 'Yes, approve all!',
-        cancelButtonText: 'Cancel',
-        customClass: { container: 'swal-on-top' }
-    });
-
-    if (result.isConfirmed) {
-        // Mostrar progreso
-        Swal.fire({
-            title: 'Approving Orders...',
-            text: `Processing 0 of ${pendingOrdersList.length} orders...`,
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            },
-            customClass: { container: 'swal-on-top' }
-        });
-
-        let processed = 0;
-        for (const order of pendingOrdersList) {
-            try {
-                // CORREGIDO: Use correct field names for bulk approval
-                const currentApprovalLevel = Number(order.approval_status || 0);
-                const nextLevel = currentApprovalLevel + 1;
-                const currentDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
-                
-                const approvalResponse = await fetch(`${window.PF_CONFIG.baseURL}dao/conections/daoStatusUpdate.php`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    credentials: 'same-origin',
-                    body: JSON.stringify({
-                        orderId: order.id,
-                        newStatusId: nextLevel,
-                        userLevel: window.PF_CONFIG.user.authorizationLevel,
-                        userID: window.PF_CONFIG.user.id,
-                        authDate: currentDate
-                    })
-                });
-
-                if (approvalResponse.ok) {
-                    const result = await approvalResponse.json();
-                    if (result.success) {
-                        markOrderAsProcessed(order.id, 'approve');
-                    }
-                }
-                
-                processed++;
-                
-                // Actualizar progreso
-                Swal.update({
-                    text: `Processing ${processed} of ${pendingOrdersList.length} orders...`
-                });
-                
-                // Pequeña pausa entre procesamiento
-                await new Promise(resolve => setTimeout(resolve, 200));
-                
-            } catch (error) {
-                console.error(`Error approving order ${order.id}:`, error);
-            }
-        }
-
-        // Mostrar resultado final
-        Swal.fire({
-            icon: 'success',
-            title: 'Bulk Approval Complete!',
-            text: `Successfully processed ${processed} orders.`,
-            timer: 3000,
-            timerProgressBar: true,
-            customClass: { container: 'swal-on-top' }
-        });
     }
 }
 
@@ -1061,7 +898,7 @@ window.handleOrderReject = handleOrderReject;
 window.handleOrderPDF = handleOrderPDF;
 window.handleApproveAll = handleApproveAll;
 window.handleDownloadAll = handleDownloadAll;
-window.goBack = handleGoBack; // CORREGIDO: Asignar la función correcta
+window.goBack = handleGoBack;
 
 /**
  * Export functions for use by other modules
@@ -1073,5 +910,5 @@ export {
     handleOrderPDF,
     handleApproveAll,
     handleDownloadAll,
-    handleGoBack // CORREGIDO: Exportar la función definida
+    handleGoBack
 };
