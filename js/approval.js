@@ -1,5 +1,5 @@
 /**
- * Módulo de aprobación para el sistema de Premium Freight
+ * Approval module for the Premium Freight system
  */
 
 import { hideModal } from './modals.js';
@@ -9,190 +9,190 @@ import { createCards } from './cards.js';
 const URL = window.URL_BASE || window.BASE_URL || 'https://grammermx.com/Jesus/PruebaDos/';
 
 /**
- * Variable para controlar el estado de procesamiento
+ * Variable to control processing state
  */
 let isProcessing = false;
 
 /**
- * Maneja el clic en el botón de aprobar
+ * Handles approve button click
  */
 export async function handleApprove() {
-    // Prevenir múltiples clics
+    // Prevent multiple clicks
     if (isProcessing) {
-        console.log('Ya se está procesando una aprobación, por favor espere');
+        console.log('Already processing an approval, please wait');
         return;
     }
     
     isProcessing = true;
     
-    // Obtener datos de la orden seleccionada
+    // Get selected order data
     const selectedOrderId = sessionStorage.getItem('selectedOrderId');
     const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
     
     try {
-        // Validaciones previas del lado del cliente
+        // Client-side validation
         if (!validateOrderForApproval(selectedOrder)) {
             return;
         }
 
-        // Mostrar indicador de progreso
+        // Show progress indicator
         Swal.fire({
-            title: 'Procesando...',
-            text: 'Actualizando estado de la orden',
+            title: 'Processing...',
+            text: 'Updating order status',
             allowOutsideClick: false,
             didOpen: () => { Swal.showLoading(); },
             customClass: { container: 'swal-on-top' }
         });
 
-        // NUEVO: Usar el authorization_level del usuario actual como nuevo act_approv
+        // Use current user's authorization_level as new approval status
         const newApprovalLevel = Number(window.authorizationLevel);
         const requiredLevel = Number(selectedOrder.required_auth_level || 7);
         
-        // Preparar datos para la API
+        // Prepare data for API
         const updateData = {
             orderId: selectedOrder.id,
-            newStatusId: newApprovalLevel, // Usar authorization_level, no act_approv + 1
+            newStatusId: newApprovalLevel,
             userLevel: window.authorizationLevel,
             userID: window.userID,
             authDate: new Date().toISOString().slice(0, 19).replace('T', ' ')
         };
 
-        // Determinar si estará completamente aprobada después de esta aprobación
+        // Determine if will be fully approved after this approval
         const willBeFullyApproved = (newApprovalLevel >= requiredLevel);
         
-        // Determinar el ID de estado textual
-        let updatedStatusTextId = 2; // Por defecto: 'revision'
+        // Determine textual status ID
+        let updatedStatusTextId = 2; // Default: 'under review'
         if (willBeFullyApproved) {
-            updatedStatusTextId = 3; // 'aprobado'
+            updatedStatusTextId = 3; // 'approved'
         }
 
-        // Preparar datos para actualizar texto de estado
+        // Prepare data to update status text
         const updateStatusText = {
             orderId: selectedOrder.id,
             statusid: updatedStatusTextId
         };
 
-        // Actualizar nivel de aprobación en la base de datos
+        // Update approval level in database
         const responseApproval = await fetch(URL + 'dao/conections/daoStatusUpdate.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updateData)
         });
         
-        // Procesar respuesta de actualización de aprobación
+        // Process approval update response
         const resultApproval = await responseApproval.json();
         if (!resultApproval.success) {
-            throw new Error(resultApproval.message || 'Error al actualizar nivel de aprobación.');
+            throw new Error(resultApproval.message || 'Error updating approval level.');
         }
 
-        // Actualizar texto de estado en la base de datos
+        // Update status text in database
         const responseStatusText = await fetch(URL + 'dao/conections/daoStatusText.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updateStatusText)
         });
         
-        // Procesar respuesta de actualización de texto de estado
+        // Process status text update response
         const resultStatusText = await responseStatusText.json();
         if (!resultStatusText.success) {
-            console.error('Error al actualizar texto de estado:', resultStatusText.message);
+            console.error('Error updating status text:', resultStatusText.message);
         }
 
-        // Actualizar datos locales
+        // Update local data
         selectedOrder.approval_status = newApprovalLevel;
         selectedOrder.status_id = updatedStatusTextId;
         
-        // Actualizar nombre de estado para reflejos en UI
-        if (updatedStatusTextId === 3) selectedOrder.status_name = 'aprobado';
-        else if (updatedStatusTextId === 2) selectedOrder.status_name = 'revision';
+        // Update status name for UI reflection
+        if (updatedStatusTextId === 3) selectedOrder.status_name = 'approved';
+        else if (updatedStatusTextId === 2) selectedOrder.status_name = 'under review';
 
-        // CORREGIDO: Enviar notificación según el estado final
+        // Send notification based on final status
         if (willBeFullyApproved) {
-            // Orden completamente aprobada - notificar SOLO al creador
-            console.log(`[APPROVAL DEBUG] Orden completamente aprobada. Enviando notificación final al creador`);
+            // Order fully approved - notify ONLY the creator
+            console.log(`[APPROVAL DEBUG] Order fully approved. Sending final notification to creator`);
             await sendEmailNotification(selectedOrder.id, 'approved');
         } else {
-            // Orden necesita más aprobaciones - enviar correo al SIGUIENTE aprobador (NO al actual)
-            console.log(`[APPROVAL DEBUG] Orden requiere más aprobaciones. Nivel actual: ${newApprovalLevel}, Requerido: ${requiredLevel}`);
+            // Order needs more approvals - send email to NEXT approver (NOT current)
+            console.log(`[APPROVAL DEBUG] Order requires more approvals. Current level: ${newApprovalLevel}, Required: ${requiredLevel}`);
             await sendEmailNotification(selectedOrder.id, 'approval');
         }
 
-        // Mostrar mensaje de éxito con información adicional
+        // Show success message with additional information
         const statusMessage = willBeFullyApproved ? 
-            'La orden ha sido completamente aprobada.' : 
-            'La orden ha sido aprobada para el siguiente nivel.';
+            'The order has been fully approved.' : 
+            'The order has been approved for the next level.';
             
         Swal.fire({
             icon: 'success',
-            title: 'Orden Aprobada',
-            text: `La orden ${selectedOrder.id} ha sido procesada correctamente. ${statusMessage}`,
-            confirmButtonText: 'Aceptar',
+            title: 'Order Approved',
+            text: `Order ${selectedOrder.id} has been processed successfully. ${statusMessage}`,
+            confirmButtonText: 'Accept',
             customClass: { container: 'swal-on-top' }
         });
         
-        // CORREGIDO: Solo cerrar modal si estamos en orders.php
+        // Only close modal if we're in orders.php
         const isInViewOrder = window.location.pathname.includes('viewOrder.php') || 
                              document.getElementById('svgContent');
         
         if (!isInViewOrder) {
-            // Estamos en orders.php, cerrar modal y regenerar tarjetas
+            // We're in orders.php, close modal and regenerate cards
             hideModal();
             createCards(window.allOrders);
         }
-        // Si estamos en viewOrder.php, no hacer nada aquí - viewOrder.js manejará la actualización
+        // If we're in viewOrder.php, do nothing here - viewOrder.js will handle the update
 
     } catch (error) {
-        // Manejar errores durante el proceso de aprobación
-        console.error('Error al aprobar la orden:', error);
+        // Handle errors during approval process
+        console.error('Error approving order:', error);
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'No se pudo actualizar la orden: ' + error.message,
-            confirmButtonText: 'Aceptar',
+            text: 'Could not update the order: ' + error.message,
+            confirmButtonText: 'Accept',
             customClass: { container: 'swal-on-top' }
         });
     } finally {
-        // Siempre restablecer la bandera de procesamiento
+        // Always reset processing flag
         isProcessing = false;
     }
 }
 
 /**
- * Envía notificación por correo según el tipo de acción
+ * Sends email notification based on action type
  */
 async function sendEmailNotification(orderId, notificationType) {
-    console.log(`[EMAIL DEBUG] Iniciando envío de correo - Orden: ${orderId}, Tipo: ${notificationType}`);
+    console.log(`[EMAIL DEBUG] Starting email send - Order: ${orderId}, Type: ${notificationType}`);
     
     try {
         let endpoint = '';
         const emailData = { orderId: orderId };
 
-        // Determinar el endpoint según el tipo de notificación
+        // Determine endpoint based on notification type
         switch (notificationType) {
             case 'approval':
-                // Enviar correo al siguiente aprobador
+                // Send email to next approver
                 endpoint = 'https://grammermx.com/Mailer/PFMailer/PFmailNotification.php';
-                console.log(`[EMAIL DEBUG] Configurando envío al siguiente aprobador`);
+                console.log(`[EMAIL DEBUG] Setting up send to next approver`);
                 break;
             case 'approved':
-                // Enviar correo de estado final (aprobado) al creador
+                // Send final status email (approved) to creator
                 endpoint = 'https://grammermx.com/Mailer/PFMailer/PFmailStatus.php';
                 emailData.status = 'approved';
-                console.log(`[EMAIL DEBUG] Configurando envío de estado final (aprobado) al creador`);
+                console.log(`[EMAIL DEBUG] Setting up final status send (approved) to creator`);
                 break;
             case 'rejected':
-                // Enviar correo de estado final (rechazado) al creador
+                // Send final status email (rejected) to creator
                 endpoint = 'https://grammermx.com/Mailer/PFMailer/PFmailStatus.php';
                 emailData.status = 'rejected';
-                console.log(`[EMAIL DEBUG] Configurando envío de estado final (rechazado) al creador`);
+                console.log(`[EMAIL DEBUG] Setting up final status send (rejected) to creator`);
                 break;
             default:
-                console.warn(`[EMAIL DEBUG] Tipo de notificación no reconocido: ${notificationType}`);
+                console.warn(`[EMAIL DEBUG] Unrecognized notification type: ${notificationType}`);
                 return;
         }
 
-        console.log(`[EMAIL DEBUG] Endpoint seleccionado: ${endpoint}`);
-        console.log(`[EMAIL DEBUG] Datos del correo:`, emailData);
+        console.log(`[EMAIL DEBUG] Selected endpoint: ${endpoint}`);
+        console.log(`[EMAIL DEBUG] Email data:`, emailData);
 
         const response = await fetch(endpoint, {
             method: 'POST',
@@ -200,36 +200,36 @@ async function sendEmailNotification(orderId, notificationType) {
             body: JSON.stringify(emailData)
         });
 
-        console.log(`[EMAIL DEBUG] Respuesta HTTP recibida - Status: ${response.status}, OK: ${response.ok}`);
+        console.log(`[EMAIL DEBUG] HTTP response received - Status: ${response.status}, OK: ${response.ok}`);
 
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
-        // Obtener el texto de la respuesta primero para diagnosticar
+        // Get response text first for diagnosis
         const responseText = await response.text();
-        console.log(`[EMAIL DEBUG] Respuesta del servidor (texto):`, responseText);
+        console.log(`[EMAIL DEBUG] Server response (text):`, responseText);
 
-        // Intentar parsear como JSON
+        // Try to parse as JSON
         let result;
         try {
             result = JSON.parse(responseText);
         } catch (parseError) {
-            console.error(`[EMAIL DEBUG] Error parseando JSON:`, parseError);
-            console.error(`[EMAIL DEBUG] Respuesta recibida:`, responseText);
-            throw new Error(`Respuesta del servidor no es JSON válido: ${responseText.substring(0, 200)}...`);
+            console.error(`[EMAIL DEBUG] Error parsing JSON:`, parseError);
+            console.error(`[EMAIL DEBUG] Response received:`, responseText);
+            throw new Error(`Server response is not valid JSON: ${responseText.substring(0, 200)}...`);
         }
 
-        console.log(`[EMAIL DEBUG] Resultado del servidor (parseado):`, result);
+        console.log(`[EMAIL DEBUG] Server result (parsed):`, result);
 
         if (!result.success) {
-            console.warn(`[EMAIL DEBUG] Error reportado por el servidor: ${result.message}`);
+            console.warn(`[EMAIL DEBUG] Error reported by server: ${result.message}`);
         } else {
-            console.log(`[EMAIL DEBUG] ✅ Correo enviado exitosamente - Orden: ${orderId}, Tipo: ${notificationType}`);
+            console.log(`[EMAIL DEBUG] ✅ Email sent successfully - Order: ${orderId}, Type: ${notificationType}`);
         }
     } catch (error) {
-        console.error(`[EMAIL DEBUG] ❌ Error al enviar correo - Orden: ${orderId}, Tipo: ${notificationType}:`, error);
-        console.error(`[EMAIL DEBUG] Detalles del error:`, {
+        console.error(`[EMAIL DEBUG] ❌ Error sending email - Order: ${orderId}, Type: ${notificationType}:`, error);
+        console.error(`[EMAIL DEBUG] Error details:`, {
             message: error.message,
             stack: error.stack
         });
@@ -237,10 +237,10 @@ async function sendEmailNotification(orderId, notificationType) {
 }
 
 /**
- * Valida si una orden puede ser aprobada por el usuario actual
+ * Validates if an order can be approved by current user
  */
 function validateOrderForApproval(order) {
-    // CORREGIDO: Forzar conversión a enteros para comparar correctamente
+    // Force conversion to integers for correct comparison
     const userPlantInt = window.userPlant !== null && window.userPlant !== undefined ? 
         parseInt(window.userPlant, 10) : null;
     const creatorPlantInt = parseInt(order.creator_plant, 10) || 0;
@@ -255,51 +255,51 @@ function validateOrderForApproval(order) {
         'comparison result': userPlantInt !== null && userPlantInt !== undefined && creatorPlantInt !== userPlantInt
     });
 
-    // Verificar planta: permitir si userPlant es null/undefined O si coincide exactamente con creator_plant
+    // Check plant: allow if userPlant is null/undefined OR if it matches exactly with creator_plant
     if (userPlantInt !== null && userPlantInt !== undefined && 
         creatorPlantInt !== userPlantInt) {
         Swal.fire({
             icon: 'warning',
-            title: 'Sin permisos',
-            text: 'No tienes permisos para aprobar órdenes de otras plantas. El usuario actual está asignado a la planta: ' 
-            + userPlantInt + ' y la orden pertenece a la planta: ' + creatorPlantInt,
+            title: 'No Permissions',
+            text: 'You do not have permissions to approve orders from other plants. Current user is assigned to plant: ' 
+            + userPlantInt + ' and the order belongs to plant: ' + creatorPlantInt,
             customClass: { container: 'swal-on-top' }
         });
         return false;
     }
     
-    // Verificar nivel de autorización: debe ser exactamente (act_approv + 1)
+    // Check authorization level: must be exactly (approval_status + 1)
     const currentApprovalLevel = Number(order.approval_status);
     const nextRequiredLevel = currentApprovalLevel + 1;
     
     if (Number(window.authorizationLevel) !== nextRequiredLevel) {
         Swal.fire({
             icon: 'warning',
-            title: 'Nivel de autorización incorrecto',
-            text: `Tu nivel de autorización (${window.authorizationLevel}) no corresponde al requerido para esta orden (${nextRequiredLevel}).`,
+            title: 'Incorrect Authorization Level',
+            text: `Your authorization level (${window.authorizationLevel}) does not match what's required for this order (${nextRequiredLevel}).`,
             customClass: { container: 'swal-on-top' }
         });
         return false;
     }
     
-    // Verificar que no esté completamente aprobada (act_approv >= required_auth_level)
+    // Check that it's not fully approved (approval_status >= required_auth_level)
     const requiredLevel = Number(order.required_auth_level || 7);
     if (currentApprovalLevel >= requiredLevel) {
         Swal.fire({
             icon: 'warning',
-            title: 'Orden ya aprobada',
-            text: 'Esta orden ya está completamente aprobada.',
+            title: 'Order Already Approved',
+            text: 'This order is already fully approved.',
             customClass: { container: 'swal-on-top' }
         });
         return false;
     }
     
-    // Verificar que no esté rechazada (act_approv = 99)
+    // Check that it's not rejected (approval_status = 99)
     if (currentApprovalLevel === 99) {
         Swal.fire({
             icon: 'warning',
-            title: 'Orden rechazada',
-            text: 'Esta orden fue rechazada previamente.',
+            title: 'Order Rejected',
+            text: 'This order was previously rejected.',
             customClass: { container: 'swal-on-top' }
         });
         return false;
@@ -309,47 +309,47 @@ function validateOrderForApproval(order) {
 }
 
 /**
- * Maneja el clic en el botón de rechazar
+ * Handles reject button click
  */
 export async function handleReject() {
-    // Obtener datos de la orden seleccionada
+    // Get selected order data
     const selectedOrderId = sessionStorage.getItem('selectedOrderId');
     const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
     
     try {
-        // Validaciones previas del lado del cliente
+        // Client-side validation
         if (!validateOrderForApproval(selectedOrder)) {
             return;
         }
 
-        // Solicitar confirmación antes de rechazar
+        // Request confirmation before rejecting
         const confirmation = await Swal.fire({
-            title: '¿Está seguro?',
-            text: `¿Realmente desea rechazar la orden ${selectedOrderId}? Esta acción no se puede deshacer.`,
+            title: 'Are you sure?',
+            text: `Do you really want to reject order ${selectedOrderId}? This action cannot be undone.`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
             cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Sí, rechazar',
-            cancelButtonText: 'Cancelar',
+            confirmButtonText: 'Yes, reject',
+            cancelButtonText: 'Cancel',
             customClass: { container: 'swal-on-top' }
         });
 
-        // Si el usuario cancela, detener el proceso
+        // If user cancels, stop the process
         if (!confirmation.isConfirmed) {
             return;
         }
 
-        // Mostrar indicador de progreso
+        // Show progress indicator
         Swal.fire({
-            title: 'Procesando...',
-            text: 'Rechazando orden',
+            title: 'Processing...',
+            text: 'Rejecting order',
             allowOutsideClick: false,
             didOpen: () => { Swal.showLoading(); },
             customClass: { container: 'swal-on-top' }
         });
 
-        // Configurar estado de rechazo (99)
+        // Configure rejection status (99)
         const newStatusId = 99;
         const updateData = {
             orderId: selectedOrder.id,
@@ -359,98 +359,98 @@ export async function handleReject() {
             authDate: new Date().toISOString().slice(0, 19).replace('T', ' ')
         };
 
-        // Configurar texto de estado a 'rechazado'
+        // Configure status text to 'rejected'
         const updatedStatusTextId = 4;
         const updateStatusText = {
             orderId: selectedOrder.id,
             statusid: updatedStatusTextId
         };
 
-        // Actualizar nivel de aprobación en la base de datos
+        // Update approval level in database
         const responseApproval = await fetch(URL + 'dao/conections/daoStatusUpdate.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updateData)
         });
         
-        // Procesar respuesta de actualización de aprobación
+        // Process approval update response
         const resultApproval = await responseApproval.json();
         if (!resultApproval.success) {
-            throw new Error(resultApproval.message || 'Error al actualizar estado a rechazado.');
+            throw new Error(resultApproval.message || 'Error updating status to rejected.');
         }
 
-        // Actualizar texto de estado en la base de datos
+        // Update status text in database
         const responseStatusText = await fetch(URL + 'dao/conections/daoStatusText.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updateStatusText)
         });
         
-        // Procesar respuesta de actualización de texto de estado
+        // Process status text update response
         const resultStatusText = await responseStatusText.json();
         if (!resultStatusText.success) {
-            console.error('Error al actualizar texto de estado a rechazado:', resultStatusText.message);
+            console.error('Error updating status text to rejected:', resultStatusText.message);
         }
 
-        // Actualizar datos locales
+        // Update local data
         selectedOrder.approval_status = newStatusId;
         selectedOrder.status_id = updatedStatusTextId;
-        selectedOrder.status_name = 'rechazado';
+        selectedOrder.status_name = 'rejected';
 
-        // Enviar notificación de rechazo al creador
-        console.log(`[REJECT DEBUG] Orden rechazada. Enviando notificación al creador`);
+        // Send rejection notification to creator
+        console.log(`[REJECT DEBUG] Order rejected. Sending notification to creator`);
         await sendEmailNotification(selectedOrder.id, 'rejected');
 
-        // Mostrar confirmación
+        // Show confirmation
         Swal.fire({
             icon: 'error',
-            title: 'Orden Rechazada',
-            text: `La orden ${selectedOrderId} ha sido rechazada correctamente.`,
-            confirmButtonText: 'Aceptar',
+            title: 'Order Rejected',
+            text: `Order ${selectedOrderId} has been rejected successfully.`,
+            confirmButtonText: 'Accept',
             customClass: { container: 'swal-on-top' }
         });
         
-        // CORREGIDO: Solo cerrar modal si estamos en orders.php
+        // Only close modal if we're in orders.php
         const isInViewOrder = window.location.pathname.includes('viewOrder.php') || 
                              document.getElementById('svgContent');
         
         if (!isInViewOrder) {
-            // Estamos en orders.php, cerrar modal y regenerar tarjetas
+            // We're in orders.php, close modal and regenerate cards
             hideModal();
             createCards(window.allOrders);
         }
-        // Si estamos en viewOrder.php, no hacer nada aquí - viewOrder.js manejará la actualización
+        // If we're in viewOrder.php, do nothing here - viewOrder.js will handle the update
 
     } catch (error) {
-        // Manejar errores durante el proceso de rechazo
-        console.error('Error al rechazar la orden:', error);
+        // Handle errors during rejection process
+        console.error('Error rejecting order:', error);
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'No se pudo rechazar la orden: ' + error.message,
-            confirmButtonText: 'Aceptar',
+            text: 'Could not reject the order: ' + error.message,
+            confirmButtonText: 'Accept',
             customClass: { container: 'swal-on-top' }
         });
     }
 }
 
 /**
- * Configura los event listeners para los botones de aprobación/rechazo
+ * Sets up event listeners for approval/rejection buttons
  */
 export function setupApprovalEventListeners() {
     const approveBtn = document.getElementById('approveBtn');
     const rejectBtn = document.getElementById('rejectBtn');
 
-    // Verificar y configurar botón de aprobar
+    // Check and configure approve button
     if (!approveBtn) {
-        console.error('Botón de aprobación no encontrado en el DOM');
+        console.error('Approve button not found in DOM');
     } else {
         approveBtn.onclick = handleApprove;
     }
     
-    // Verificar y configurar botón de rechazar
+    // Check and configure reject button
     if (!rejectBtn) {
-        console.error('Botón de rechazo no encontrado en el DOM');
+        console.error('Reject button not found in DOM');
     } else {
         rejectBtn.onclick = handleReject;
     }

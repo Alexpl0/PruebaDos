@@ -1,0 +1,274 @@
+/**
+ * weekOrders.css
+ * Styles for Weekly Orders page - extends view-order.css
+ * Premium Freight Authorization System - Grammer AG
+ */
+
+/* ===== ORDERS CONTAINER ===== */
+.orders-container {
+    padding: var(--spacing-xl);
+    background: var(--gray-50);
+    min-height: 400px;
+}
+
+/* ===== ORDER CARDS ===== */
+.order-card {
+    background: var(--white);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    margin-bottom: var(--spacing-xl);
+    overflow: hidden;
+    transition: var(--transition-normal);
+    border: 1px solid var(--border-color);
+}
+
+.order-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.order-card:last-child {
+    margin-bottom: 0;
+}
+
+/* ===== ORDER CARD HEADER ===== */
+.order-card-header {
+    background: var(--accent-color);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-bottom: 1px solid var(--border-color);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--spacing-xl);
+    align-items: center;
+}
+
+.order-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.order-card-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: var(--body-font);
+}
+
+.order-card-subtitle {
+    margin: 0;
+    font-size: var(--small-font-size);
+    color: var(--text-secondary);
+    font-family: var(--body-font);
+}
+
+.order-card-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+/* ===== NO ORDERS MESSAGE ===== */
+.no-orders-message {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    text-align: center;
+}
+
+.no-orders-content {
+    max-width: 400px;
+    padding: var(--spacing-2xl);
+}
+
+.no-orders-content i {
+    font-size: 4rem;
+    color: var(--success-color);
+    margin-bottom: var(--spacing-lg);
+}
+
+.no-orders-content h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+    font-family: var(--body-font);
+}
+
+.no-orders-content p {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xl);
+    font-family: var(--body-font);
+}
+
+/* ===== BULK ACTION BUTTONS ===== */
+.btn-approve-all {
+    background: linear-gradient(135deg, var(--success), #20c997);
+    color: var(--white);
+}
+
+.btn-approve-all:hover {
+    background: linear-gradient(135deg, #218838, #1ea486);
+}
+
+.btn-download-all {
+    background: linear-gradient(135deg, #6f42c1, #8b5cf6);
+    color: var(--white);
+}
+
+.btn-download-all:hover {
+    background: linear-gradient(135deg, #5a2d91, #7c3aed);
+}
+
+/* ===== ORDER CARD SVG CONTAINER ===== */
+.order-card .svg-container {
+    padding: var(--spacing-xl);
+    min-height: 500px;
+    background: var(--white);
+}
+
+.order-card .svg-content {
+    width: 100%;
+    max-width: none;
+}
+
+.order-card .svg-content svg {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+}
+
+/* ===== PROCESSED ORDER STATES ===== */
+.order-card.processed {
+    opacity: 0.6;
+    transform: scale(0.98);
+    filter: grayscale(0.3);
+}
+
+.order-card.approved .order-card-header {
+    background: linear-gradient(135deg, #d4edda, var(--success));
+    border-color: var(--success);
+}
+
+.order-card.rejected .order-card-header {
+    background: linear-gradient(135deg, #f8d7da, var(--danger));
+    border-color: var(--danger);
+}
+
+/* ===== STATUS INDICATORS ===== */
+.status-indicator {
+    position: absolute;
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-family: var(--body-font);
+}
+
+.status-approved {
+    background: var(--success);
+    color: var(--white);
+}
+
+.status-rejected {
+    background: var(--danger);
+    color: var(--white);
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    .orders-container {
+        padding: var(--spacing-lg);
+    }
+
+    .order-card-header {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+        text-align: center;
+    }
+
+    .order-card-actions {
+        justify-content: center;
+    }
+
+    .action-btn-compact {
+        flex: 1;
+        min-width: 100px;
+        max-width: 120px;
+    }
+
+    .quick-actions {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .order-card .svg-container {
+        padding: var(--spacing-lg);
+        min-height: 400px;
+    }
+}
+
+@media (max-width: 480px) {
+    .order-card-actions {
+        flex-direction: column;
+    }
+
+    .action-btn-compact {
+        width: 100%;
+        max-width: none;
+    }
+}
+
+/* ===== LOADING STATES FOR INDIVIDUAL ORDERS ===== */
+.order-card .loading-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    color: var(--text-secondary);
+    font-size: var(--small-font-size);
+    min-height: 300px;
+    font-family: var(--body-font);
+}
+
+/* ===== ANIMATION ENHANCEMENTS ===== */
+@keyframes cardSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.order-card {
+    animation: cardSlideIn 0.3s ease-out;
+}
+
+/* ===== PROGRESS INDICATOR ===== */
+.progress-indicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gray-200);
+    z-index: 9999;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--grammer-blue), var(--grammer-light-blue));
+    width: 0%;
+    transition: width 0.3s ease;
+}
