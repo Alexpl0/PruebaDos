@@ -92,7 +92,7 @@ $URLM = "https://grammermx.com/Mailer/PFMailer/";
                 </div>
                 <div class="header-right">
                     <h2 class="company-name">GRAMMER AG</h2>
-                    <p class="order-subtitle">Logistics Management System</p>
+                    <p class="order-subtitle">PremiumFreight System</p>
                 </div>
             </div>
         </div>

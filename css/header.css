@@ -323,7 +323,7 @@ img {
     width: 100%;
     height: 100%;
     position: static; /* Ya no es fixed, forma parte del flujo normal */
-    background-color: var(--first-color); /* Fondo transparente para integrarse con el header */
+    background-color: linear-gradient(135deg, var(--grammer-blue) 0%, var(--grammer-light-blue) 100%);; /* Fondo transparente para integrarse con el header */
     padding: 0;
     overflow: visible;
   }
