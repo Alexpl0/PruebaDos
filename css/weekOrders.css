@@ -186,14 +186,46 @@
     filter: grayscale(0.3);
 }
 
-.order-card.approved .order-card-header {
-    background: linear-gradient(135deg, #d4edda, var(--success));
-    border-color: var(--success);
+/* ===== PROCESSED ORDER ANIMATIONS ===== */
+.order-card.processed {
+    transition: all 0.5s ease-out;
 }
 
-.order-card.rejected .order-card-header {
-    background: linear-gradient(135deg, #f8d7da, var(--danger));
-    border-color: var(--danger);
+.order-card.processed.approved {
+    border-left: 4px solid #10B981;
+    background-color: #f0fdf4;
+}
+
+.order-card.processed.rejected {
+    border-left: 4px solid #dc3545;
+    background-color: #fef2f2;
+}
+
+/* Status indicator animations */
+.status-indicator {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Smooth hiding animation */
+.order-card.hiding {
+    transition: all 0.3s ease-out;
+    transform: scale(0.95);
+    opacity: 0;
+    max-height: 0;
+    margin-bottom: 0;
+    padding: 0;
+    overflow: hidden;
 }
 
 /* ===== STATUS INDICATORS ===== */

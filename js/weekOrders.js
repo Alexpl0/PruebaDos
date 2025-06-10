@@ -11,9 +11,8 @@
  * - Navigation controls
  */
 
-// Import required modules - same as view_order.php
+// Import required modules - but NOT approval.js since it expects different DOM
 import { loadAndPopulateSVG, generatePDF as svgGeneratePDF } from './svgOrders.js';
-import { handleApprove, handleReject } from './approval.js';
 
 /**
  * Configuration and global variables
@@ -403,17 +402,7 @@ async function initializeOrderDisplay(order) {
 }
 
 /**
- * Retry loading a specific order's SVG
- */
-window.retryLoadOrder = async function(orderId) {
-    const order = pendingOrders.find(o => o.id === orderId);
-    if (order) {
-        await initializeOrderDisplay(order);
-    }
-};
-
-/**
- * Handle individual order approval - SAME LOGIC AS viewOrder.js
+ * CORREGIDO: Handle individual order approval - STANDALONE VERSION for weekOrders
  */
 async function handleOrderApprove(orderId) {
     if (isLoading || processedOrders.has(orderId)) {
@@ -428,36 +417,90 @@ async function handleOrderApprove(orderId) {
             throw new Error('Order not found');
         }
         
-        // Set up session storage for approval.js
-        sessionStorage.setItem('selectedOrderId', orderId.toString());
-        
-        // Update allOrders for approval.js compatibility
-        if (!window.allOrders) {
-            window.allOrders = [];
+        // Show confirmation dialog
+        const result = await Swal.fire({
+            title: 'Approve Order?',
+            html: `
+                <p>Are you sure you want to approve order <strong>#${order.id}</strong>?</p>
+                <p><small>Created by: ${order.creator_name}</small></p>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#10B981',
+            confirmButtonText: 'Yes, approve it!',
+            cancelButtonText: 'Cancel',
+            customClass: { container: 'swal-on-top' }
+        });
+
+        if (!result.isConfirmed) {
+            return;
         }
+
+        // Show processing dialog
+        Swal.fire({
+            title: 'Processing Approval...',
+            text: 'Please wait while we process your approval.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            },
+            customClass: { container: 'swal-on-top' }
+        });
         
-        const existingOrderIndex = window.allOrders.findIndex(o => o.id === orderId);
-        if (existingOrderIndex >= 0) {
-            window.allOrders[existingOrderIndex] = order;
-        } else {
-            window.allOrders.push(order);
+        // CORREGIDO: Call the approval endpoint directly
+        const approvalResponse = await fetch(`${window.PF_CONFIG.baseURL}dao/approvals/approve_order.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                order_id: orderId,
+                user_id: window.PF_CONFIG.user.id,
+                action: 'approve'
+            })
+        });
+
+        if (!approvalResponse.ok) {
+            throw new Error(`HTTP error! status: ${approvalResponse.status}`);
         }
+
+        const approvalResult = await approvalResponse.json();
         
-        // Call the same approval function as view_order.php
-        await handleApprove();
-        
+        if (approvalResult.status !== 'success') {
+            throw new Error(approvalResult.message || 'Failed to approve order');
+        }
+
         // Mark order as processed
         markOrderAsProcessed(orderId, 'approve');
+
+        // Show success message
+        Swal.fire({
+            icon: 'success',
+            title: 'Order Approved!',
+            text: `Order #${order.id} has been approved successfully.`,
+            timer: 3000,
+            timerProgressBar: true,
+            customClass: { container: 'swal-on-top' }
+        });
         
     } catch (error) {
-        showErrorMessage('Failed to approve order: ' + error.message);
+        console.error('Error approving order:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Approval Failed',
+            text: error.message || 'Failed to approve order. Please try again.',
+            confirmButtonColor: '#dc3545',
+            customClass: { container: 'swal-on-top' }
+        });
     } finally {
         isLoading = false;
     }
 }
 
 /**
- * Handle individual order rejection - SAME LOGIC AS viewOrder.js
+ * CORREGIDO: Handle individual order rejection - STANDALONE VERSION for weekOrders
  */
 async function handleOrderReject(orderId) {
     if (isLoading || processedOrders.has(orderId)) {
@@ -472,33 +515,111 @@ async function handleOrderReject(orderId) {
             throw new Error('Order not found');
         }
         
-        // Set up session storage for approval.js
-        sessionStorage.setItem('selectedOrderId', orderId.toString());
-        
-        // Update allOrders for approval.js compatibility
-        if (!window.allOrders) {
-            window.allOrders = [];
+        // Show rejection reason dialog
+        const { value: rejectionReason, isConfirmed } = await Swal.fire({
+            title: 'Reject Order',
+            html: `
+                <p>Please provide a reason for rejecting order <strong>#${order.id}</strong>:</p>
+                <textarea 
+                    id="rejection-reason" 
+                    class="swal2-textarea" 
+                    placeholder="Enter rejection reason..."
+                    style="min-height: 100px; width: 100%; margin-top: 10px;"
+                ></textarea>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            confirmButtonText: 'Reject Order',
+            cancelButtonText: 'Cancel',
+            customClass: { container: 'swal-on-top' },
+            preConfirm: () => {
+                const reason = document.getElementById('rejection-reason').value.trim();
+                if (!reason) {
+                    Swal.showValidationMessage('Please provide a rejection reason');
+                    return false;
+                }
+                return reason;
+            }
+        });
+
+        if (!isConfirmed || !rejectionReason) {
+            return;
         }
+
+        // Show processing dialog
+        Swal.fire({
+            title: 'Processing Rejection...',
+            text: 'Please wait while we process your rejection.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            },
+            customClass: { container: 'swal-on-top' }
+        });
         
-        const existingOrderIndex = window.allOrders.findIndex(o => o.id === orderId);
-        if (existingOrderIndex >= 0) {
-            window.allOrders[existingOrderIndex] = order;
-        } else {
-            window.allOrders.push(order);
+        // CORREGIDO: Call the rejection endpoint directly
+        const rejectionResponse = await fetch(`${window.PF_CONFIG.baseURL}dao/approvals/reject_order.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                order_id: orderId,
+                user_id: window.PF_CONFIG.user.id,
+                rejection_reason: rejectionReason,
+                action: 'reject'
+            })
+        });
+
+        if (!rejectionResponse.ok) {
+            throw new Error(`HTTP error! status: ${rejectionResponse.status}`);
         }
+
+        const rejectionResult = await rejectionResponse.json();
         
-        // Call the same rejection function as view_order.php
-        await handleReject();
-        
+        if (rejectionResult.status !== 'success') {
+            throw new Error(rejectionResult.message || 'Failed to reject order');
+        }
+
         // Mark order as processed
         markOrderAsProcessed(orderId, 'reject');
+
+        // Show success message
+        Swal.fire({
+            icon: 'success',
+            title: 'Order Rejected',
+            text: `Order #${order.id} has been rejected.`,
+            timer: 3000,
+            timerProgressBar: true,
+            customClass: { container: 'swal-on-top' }
+        });
         
     } catch (error) {
-        showErrorMessage('Failed to reject order: ' + error.message);
+        console.error('Error rejecting order:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Rejection Failed',
+            text: error.message || 'Failed to reject order. Please try again.',
+            confirmButtonColor: '#dc3545',
+            customClass: { container: 'swal-on-top' }
+        });
     } finally {
         isLoading = false;
     }
 }
+
+/**
+ * Retry loading a specific order's SVG
+ */
+window.retryLoadOrder = async function(orderId) {
+    const order = pendingOrders.find(o => o.id === orderId);
+    if (order) {
+        await initializeOrderDisplay(order);
+    }
+};
 
 /**
  * Handle PDF generation for individual order - SAME LOGIC AS viewOrder.js
@@ -569,7 +690,7 @@ async function handleApproveAll() {
     
     const result = await Swal.fire({
         title: 'Approve All Orders?',
-        text: `This will approve ${pendingOrdersList.length} orders. This action cannot be undone.`,
+        text: `This will approve ${pendingOrdersList.length} remaining orders. This action cannot be undone.`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#10B981',
@@ -579,13 +700,66 @@ async function handleApproveAll() {
     });
 
     if (result.isConfirmed) {
+        // Mostrar progreso
+        Swal.fire({
+            title: 'Approving Orders...',
+            text: `Processing 0 of ${pendingOrdersList.length} orders...`,
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            },
+            customClass: { container: 'swal-on-top' }
+        });
+
+        let processed = 0;
         for (const order of pendingOrdersList) {
             try {
-                await handleOrderApprove(order.id);
+                // Procesar la aprobación sin mostrar dialogs individuales
+                const approvalResponse = await fetch(`${window.PF_CONFIG.baseURL}dao/approvals/approve_order.php`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        order_id: order.id,
+                        user_id: window.PF_CONFIG.user.id,
+                        action: 'approve'
+                    })
+                });
+
+                if (approvalResponse.ok) {
+                    const result = await approvalResponse.json();
+                    if (result.status === 'success') {
+                        markOrderAsProcessed(order.id, 'approve');
+                    }
+                }
+                
+                processed++;
+                
+                // Actualizar progreso
+                Swal.update({
+                    text: `Processing ${processed} of ${pendingOrdersList.length} orders...`
+                });
+                
+                // Pequeña pausa entre procesamiento
+                await new Promise(resolve => setTimeout(resolve, 200));
+                
             } catch (error) {
                 console.error(`Error approving order ${order.id}:`, error);
             }
         }
+
+        // Mostrar resultado final
+        Swal.fire({
+            icon: 'success',
+            title: 'Bulk Approval Complete!',
+            text: `Successfully processed ${processed} orders.`,
+            timer: 3000,
+            timerProgressBar: true,
+            customClass: { container: 'swal-on-top' }
+        });
     }
 }
 
@@ -651,94 +825,142 @@ async function handleDownloadAll() {
 }
 
 /**
- * Mark order as processed
+ * Mark order as processed and hide its card
  */
 function markOrderAsProcessed(orderId, action) {
     processedOrders.add(orderId);
     
     const orderCard = document.querySelector(`[data-order-id="${orderId}"]`);
     if (orderCard) {
-        orderCard.classList.add('processed', action === 'approve' ? 'approved' : 'rejected');
-        
-        // Add status indicator
+        // Add status indicator first (visible briefly)
         const orderHeader = orderCard.querySelector('.order-card-header');
         const statusIndicator = document.createElement('div');
         statusIndicator.className = `status-indicator status-${action}d`;
         statusIndicator.textContent = action === 'approve' ? 'APPROVED' : 'REJECTED';
+        statusIndicator.style.cssText = `
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: ${action === 'approve' ? '#10B981' : '#dc3545'};
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            z-index: 10;
+        `;
         orderHeader.style.position = 'relative';
         orderHeader.appendChild(statusIndicator);
         
-        // Disable action buttons
+        // Add processed class for styling
+        orderCard.classList.add('processed', action === 'approve' ? 'approved' : 'rejected');
+        
+        // Disable action buttons immediately
         const actionButtons = orderCard.querySelectorAll('.btn-approve, .btn-reject');
         actionButtons.forEach(btn => {
             btn.disabled = true;
             btn.style.opacity = '0.5';
             btn.style.cursor = 'not-allowed';
         });
+        
+        // NUEVO: Animar la tarjeta y luego ocultarla
+        setTimeout(() => {
+            // Aplicar animación de desvanecimiento
+            orderCard.style.transition = 'all 0.5s ease-out';
+            orderCard.style.transform = 'scale(0.95)';
+            orderCard.style.opacity = '0.7';
+            
+            // Después de la animación, ocultar completamente
+            setTimeout(() => {
+                orderCard.style.maxHeight = orderCard.offsetHeight + 'px';
+                orderCard.style.overflow = 'hidden';
+                
+                setTimeout(() => {
+                    orderCard.style.transition = 'all 0.3s ease-out';
+                    orderCard.style.maxHeight = '0px';
+                    orderCard.style.marginBottom = '0px';
+                    orderCard.style.paddingTop = '0px';
+                    orderCard.style.paddingBottom = '0px';
+                    orderCard.style.opacity = '0';
+                    
+                    // Finalmente, ocultar completamente el elemento
+                    setTimeout(() => {
+                        orderCard.style.display = 'none';
+                        
+                        // Actualizar contadores después de ocultar
+                        updateOrderCountAfterProcessing();
+                        
+                    }, 300);
+                }, 50);
+            }, 500);
+        }, 1500); // Mostrar el indicador por 1.5 segundos antes de ocultar
     }
 }
 
 /**
- * Handle back navigation
+ * NUEVO: Actualizar contadores después de procesar órdenes
  */
-function handleGoBack() {
-    window.location.href = 'orders.php';
-}
-
-/**
- * Show/hide loading spinner for specific order
- */
-function showLoadingSpinner(show, spinnerId, containerId) {
-    const spinner = document.getElementById(spinnerId);
-    const content = document.getElementById(containerId);
+function updateOrderCountAfterProcessing() {
+    const remainingOrders = pendingOrders.filter(order => !processedOrders.has(order.id));
     
-    if (show) {
-        if (spinner) spinner.classList.remove('hidden');
-        if (content) content.classList.add('hidden');
-    } else {
-        if (spinner) spinner.classList.add('hidden');
-        if (content) content.classList.remove('hidden');
+    // Actualizar el contador en el header
+    const orderCountElement = document.getElementById('orderCount');
+    if (orderCountElement) {
+        const count = remainingOrders.length;
+        orderCountElement.textContent = count === 0 ? 
+            'All orders have been processed!' : 
+            `${count} order${count === 1 ? '' : 's'} remaining`;
+    }
+    
+    // Actualizar visibilidad de botones de acción masiva
+    const approveAllBtn = document.querySelector('.btn-approve-all');
+    const downloadAllBtn = document.querySelector('.btn-download-all');
+    
+    if (remainingOrders.length <= 1) {
+        if (approveAllBtn) approveAllBtn.classList.add('hidden');
+    }
+    
+    if (remainingOrders.length === 0) {
+        if (downloadAllBtn) downloadAllBtn.classList.add('hidden');
+        
+        // Mostrar mensaje de completado si no quedan órdenes
+        setTimeout(() => {
+            showAllOrdersProcessedMessage();
+        }, 500);
     }
 }
 
 /**
- * Show error message to user
+ * NUEVO: Mostrar mensaje cuando todas las órdenes han sido procesadas
  */
-function showErrorMessage(message) {
-    Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: message,
-        confirmButtonColor: '#dc3545',
-        customClass: { container: 'swal-on-top' }
-    });
-}
-
-/**
- * Utility functions
- */
-function escapeHtml(text) {
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return text ? text.replace(/[&<>"']/g, function(m) { return map[m]; }) : '';
-}
-
-function formatDate(dateString) {
-    if (!dateString) return 'N/A';
-    try {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'short', 
-            day: 'numeric' 
-        });
-    } catch (error) {
-        return dateString;
+function showAllOrdersProcessedMessage() {
+    const contentElement = document.getElementById('ordersContent');
+    if (contentElement && processedOrders.size === pendingOrders.length) {
+        
+        // Verificar si aún hay tarjetas visibles
+        const visibleCards = contentElement.querySelectorAll('.order-card:not([style*="display: none"])');
+        
+        if (visibleCards.length === 0) {
+            contentElement.innerHTML = `
+                <div class="no-orders-message">
+                    <div class="no-orders-content">
+                        <i class="fas fa-check-circle" style="color: #10B981;"></i>
+                        <h3>All Orders Processed!</h3>
+                        <p>You have successfully processed all pending orders.</p>
+                        <div style="margin-top: 20px;">
+                            <button class="action-btn-compact btn-back" onclick="goBack()" style="margin-right: 10px;">
+                                <i class="fas fa-arrow-left"></i>
+                                Back to Dashboard
+                            </button>
+                            <button class="action-btn-compact" onclick="location.reload()">
+                                <i class="fas fa-refresh"></i>
+                                Refresh Page
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
     }
 }
 
