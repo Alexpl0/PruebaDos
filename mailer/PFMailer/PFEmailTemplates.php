@@ -8,13 +8,23 @@
 
 class PFEmailTemplates {
     private $baseUrl;
+    private $baseUrlPF;  // ✅ AGREGAR esta propiedad
     private $services;
     
     /**
      * Constructor de la clase
      */
-    public function __construct($baseUrl) {
+    public function __construct($baseUrl, $baseUrlPF = null) {
         $this->baseUrl = rtrim($baseUrl, '/') . '/';
+        
+        // ✅ CORREGIDO: Definir baseUrlPF
+        if ($baseUrlPF) {
+            $this->baseUrlPF = rtrim($baseUrlPF, '/') . '/';
+        } else {
+            // Fallback: usar URLPF si está definida, sino asumir que es igual a baseUrl
+            $this->baseUrlPF = defined('URLPF') ? URLPF : $this->baseUrl;
+        }
+        
         // Inicializar servicios para generar tokens
         require_once 'PFEmailServices.php';
         $this->services = new PFEmailServices();

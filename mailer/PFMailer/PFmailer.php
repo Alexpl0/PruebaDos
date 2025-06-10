@@ -46,7 +46,8 @@ class PFMailer {
         
         // 2. Inicializar servicios y plantillas
         $this->services = new PFEmailServices();
-        $this->templates = new PFEmailTemplates($this->baseUrl);
+        // ✅ CORREGIDO: Pasar ambas URLs al constructor
+        $this->templates = new PFEmailTemplates($this->baseUrl, $this->baseUrlPF);
         
         // 3. Inicializar la conexión a la base de datos
         require_once 'PFDB.php';
