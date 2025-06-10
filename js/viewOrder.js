@@ -118,11 +118,14 @@ function checkApprovalPermissions(user, order) {
         return false;
     }
 
+    console.log('[VIEWORDER DEBUG] Datos de la Orden:', order);
+
     // Obtener datos necesarios para validación
     const userAuthLevel = Number(user.authorizationLevel || window.authorizationLevel);
     const userPlant = user.plant || window.userPlant;
+    // CORREGIDO: usar act_approv de la tabla PremiumFreightApprovals
     const currentApprovalLevel = Number(order.approval_status);
-    // CORREGIDO: requiredLevel es act_approv + 1, NO required_auth_level
+    // CORREGIDO: requiredLevel es act_approv + 1
     const requiredLevel = currentApprovalLevel + 1;
     const creatorPlant = order.creator_plant;
 
