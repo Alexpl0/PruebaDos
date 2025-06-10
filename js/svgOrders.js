@@ -7,7 +7,7 @@
 // --- SVG mapping and configuration ---
 // Define the mapping between SVG element IDs and order object properties
 const svgMap = {
-    'RequestingPlantValue': 'creator_plant', // CORREGIDO: usar creator_plant de daoPremiumFreight.php
+    'RequestingPlantValue': 'planta', // CORREGIDO: usar creator_plant de daoPremiumFreight.php
     'PlantCodeValue': 'creator_plant',
     'DateValue': 'date', 
     'TransportValue': 'transport',
