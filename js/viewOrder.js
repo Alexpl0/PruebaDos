@@ -210,9 +210,9 @@ function checkApprovalPermissions(user, order) {
         return false;
     }
 
-    // Extract and log all relevant values
+    // CORREGIDO: Conversiones explícitas a números
     const userAuthLevel = Number(user.authorizationLevel || window.authorizationLevel);
-    const userPlant = parseInt(user.plant || window.userPlant, 10) || null;
+    const userPlant = user.plant !== null && user.plant !== undefined ? parseInt(user.plant, 10) : null;
     const currentApprovalLevel = Number(order.approval_status);
     const requiredLevel = currentApprovalLevel + 1;
     const creatorPlant = parseInt(order.creator_plant, 10) || 0;
@@ -233,7 +233,7 @@ function checkApprovalPermissions(user, order) {
         return false;
     }
 
-    // 4. Verificar planta
+    // 4. Verificar planta - CORREGIDO: Comparación entre enteros
     if (userPlant !== null && userPlant !== undefined && creatorPlant !== userPlant) {
         return false;
     }
