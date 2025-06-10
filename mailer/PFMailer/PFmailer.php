@@ -42,6 +42,7 @@ class PFMailer {
     public function __construct() {
         // 1. Inicializar la URL base desde la constante global
         $this->baseUrl = URLM;
+        $this->baseUrlPF = URLPF;
         
         // 2. Inicializar servicios y plantillas
         $this->services = new PFEmailServices();

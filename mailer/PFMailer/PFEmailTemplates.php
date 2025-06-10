@@ -25,7 +25,7 @@ class PFEmailTemplates {
      */
     public function getApprovalEmailTemplate($orderData, $approvalToken, $rejectToken) {
         // CORREGIDO: URLs actualizadas - ahora apuntan directamente a view_order.php
-        $viewOrderUrl = $this->baseUrl . "view_order.php?order=" . $orderData['id'];
+        $viewOrderUrl = $this->baseUrlPF . "view_order.php?order=" . $orderData['id'];
         
         // URLs directas para acciones rápidas (mantener como alternativa)
         $approveUrl = $this->baseUrl . "PFmailSingleAction.php?action=approve&token=$approvalToken";
@@ -385,7 +385,7 @@ class PFEmailTemplates {
      */
     public function getStatusNotificationTemplate($orderData, $status, $rejectorInfo = null) {
         // CORREGIDO: Cambiar a view_order.php
-        $viewOrderUrl = $this->baseUrl . "view_order.php?order=" . $orderData['id'];
+        $viewOrderUrl = $this->baseUrlPF . "view_order.php?order=" . $orderData['id'];
         $costEuros = number_format((float)($orderData['cost_euros'] ?? 0), 2);
         
         // Formatear datos de manera segura
@@ -564,7 +564,7 @@ class PFEmailTemplates {
      */
     public function getRecoveryCheckTemplate($user, $orders) {
         // CORREGIDO: URLs actualizadas
-        $viewOrdersUrl = $this->baseUrl . "orders.php";
+        $viewOrdersUrl = $this->baseUrlPF . "orders.php";
         $totalOrders = count($orders);
         $userName = htmlspecialchars($user['name'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
         
@@ -575,7 +575,7 @@ class PFEmailTemplates {
             $createdDate = date('M d, Y', strtotime($order['date']));
             $orderDescription = htmlspecialchars($order['description'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
             // CORREGIDO: Cambiar a view_order.php
-            $viewUrl = $this->baseUrl . "view_order.php?order=" . $order['id'];
+            $viewUrl = $this->baseUrlPF . "view_order.php?order=" . $order['id'];
             
             $orderRows .= '
             <tr>
@@ -722,7 +722,7 @@ class PFEmailTemplates {
             
             // Usar siempre view_bulk_orders.php con el token bulk para mayor consistencia
             $fallbackToken = $bulkApproveToken ?: 'MISSING_TOKEN';
-            $viewUrl = $this->baseUrl . "view_bulk_orders.php?user=" . $approverId . "&order=" . $orderId . "&token=" . $fallbackToken;
+            $viewUrl = $this->baseUrlPF . "view_bulk_orders.php?user=" . $approverId . "&order=" . $orderId . "&token=" . $fallbackToken;
             
             $rows .= '
             <tr style="border-bottom: 1px solid #e2e8f0;">
