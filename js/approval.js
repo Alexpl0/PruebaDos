@@ -248,7 +248,8 @@ function validateOrderForApproval(order) {
         Swal.fire({
             icon: 'warning',
             title: 'Sin permisos',
-            text: 'No tienes permisos para aprobar órdenes de otras plantas.',
+            text: 'No tienes permisos para aprobar órdenes de otras plantas. El usuario actual está asignado a la planta: ' 
+            + window.userPlant + ' y la orden pertenece a la planta: ' + order.creator_plant,
             customClass: { container: 'swal-on-top' }
         });
         return false;
