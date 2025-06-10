@@ -270,12 +270,12 @@ body {
 }
 
 .btn-reject {
-    background: linear-gradient(135deg, var(--danger), #e74c3c);
+    background: linear-gradient(135deg, var(--danger), #E41A23);
     color: var(--white);
 }
 
 .btn-reject:hover {
-    background: linear-gradient(135deg, #c82333, #c0392b);
+    background: linear-gradient(135deg, #E41A23, #E41A23);
 }
 
 .btn-pdf {
