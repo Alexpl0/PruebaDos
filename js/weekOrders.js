@@ -447,7 +447,11 @@ async function handleOrderApprove(orderId) {
             customClass: { container: 'swal-on-top' }
         });
         
-        // CORREGIDO: Call the approval endpoint directly
+        // CORREGIDO: Use the correct field names expected by daoStatusUpdate.php
+        const currentApprovalLevel = Number(order.approval_status || 0);
+        const nextLevel = currentApprovalLevel + 1;
+        const currentDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        
         const approvalResponse = await fetch(`${window.PF_CONFIG.baseURL}dao/conections/daoStatusUpdate.php`, {
             method: 'POST',
             headers: {
@@ -456,9 +460,11 @@ async function handleOrderApprove(orderId) {
             },
             credentials: 'same-origin',
             body: JSON.stringify({
-                order_id: orderId,
-                user_id: window.PF_CONFIG.user.id,
-                action: 'approve'
+                orderId: orderId,
+                newStatusId: nextLevel,
+                userLevel: window.PF_CONFIG.user.authorizationLevel,
+                userID: window.PF_CONFIG.user.id,
+                authDate: currentDate
             })
         });
 
@@ -468,7 +474,7 @@ async function handleOrderApprove(orderId) {
 
         const approvalResult = await approvalResponse.json();
         
-        if (approvalResult.status !== 'success') {
+        if (!approvalResult.success) {
             throw new Error(approvalResult.message || 'Failed to approve order');
         }
 
@@ -557,7 +563,9 @@ async function handleOrderReject(orderId) {
             customClass: { container: 'swal-on-top' }
         });
         
-        // CORREGIDO: Call the rejection endpoint directly
+        // CORREGIDO: Use the correct field names expected by daoStatusUpdate.php
+        const currentDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        
         const rejectionResponse = await fetch(`${window.PF_CONFIG.baseURL}dao/conections/daoStatusUpdate.php`, {
             method: 'POST',
             headers: {
@@ -566,10 +574,12 @@ async function handleOrderReject(orderId) {
             },
             credentials: 'same-origin',
             body: JSON.stringify({
-                order_id: orderId,
-                user_id: window.PF_CONFIG.user.id,
-                rejection_reason: rejectionReason,
-                action: 'reject'
+                orderId: orderId,
+                newStatusId: 99, // 99 = rejected status
+                userLevel: window.PF_CONFIG.user.authorizationLevel,
+                userID: window.PF_CONFIG.user.id,
+                authDate: currentDate,
+                rejection_reason: rejectionReason
             })
         });
 
@@ -579,7 +589,7 @@ async function handleOrderReject(orderId) {
 
         const rejectionResult = await rejectionResponse.json();
         
-        if (rejectionResult.status !== 'success') {
+        if (!rejectionResult.success) {
             throw new Error(rejectionResult.message || 'Failed to reject order');
         }
 
@@ -713,7 +723,11 @@ async function handleApproveAll() {
         let processed = 0;
         for (const order of pendingOrdersList) {
             try {
-                // Procesar la aprobación sin mostrar dialogs individuales
+                // CORREGIDO: Use correct field names for bulk approval
+                const currentApprovalLevel = Number(order.approval_status || 0);
+                const nextLevel = currentApprovalLevel + 1;
+                const currentDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
+                
                 const approvalResponse = await fetch(`${window.PF_CONFIG.baseURL}dao/conections/daoStatusUpdate.php`, {
                     method: 'POST',
                     headers: {
@@ -722,15 +736,17 @@ async function handleApproveAll() {
                     },
                     credentials: 'same-origin',
                     body: JSON.stringify({
-                        order_id: order.id,
-                        user_id: window.PF_CONFIG.user.id,
-                        action: 'approve'
+                        orderId: order.id,
+                        newStatusId: nextLevel,
+                        userLevel: window.PF_CONFIG.user.authorizationLevel,
+                        userID: window.PF_CONFIG.user.id,
+                        authDate: currentDate
                     })
                 });
 
                 if (approvalResponse.ok) {
                     const result = await approvalResponse.json();
-                    if (result.status === 'success') {
+                    if (result.success) {
                         markOrderAsProcessed(order.id, 'approve');
                     }
                 }
