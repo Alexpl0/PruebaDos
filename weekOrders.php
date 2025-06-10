@@ -19,53 +19,6 @@ $authorizationLevel = $auth_level;
 // Define base URLs
 $URLBASE = "https://grammermx.com/Jesus/PruebaDos/";
 $URLM = "https://grammermx.com/Mailer/PFMailer/";
-
-// Load all pending orders for this user
-require_once 'dao/conections/LocalConector.php';
-
-$con = new LocalConector();
-$db = $con->conectar();
-
-// Get pending orders that need approval at the user's authorization level
-$ordersSql = "SELECT 
-    pf.id,
-    pf.description,
-    pf.cost_euros,
-    pf.date,
-    pf.user_id as creator_id,
-    pf.required_auth_level,
-    COALESCE(pfa.act_approv, 0) as approval_status,
-    u.name as creator_name,
-    u.plant as creator_plant,
-    ps.name as status_name,
-    ps.id as status_id
-FROM PremiumFreight pf
-LEFT JOIN PremiumFreightApproval pfa ON pf.id = pfa.order_id
-LEFT JOIN User u ON pf.user_id = u.id
-LEFT JOIN PremiumFreightStatus ps ON pf.status_id = ps.id
-WHERE COALESCE(pfa.act_approv, 0) = ? - 1
-AND COALESCE(pfa.act_approv, 0) < pf.required_auth_level
-AND COALESCE(pfa.act_approv, 0) != 99
-ORDER BY pf.date DESC";
-
-$ordersStmt = $db->prepare($ordersSql);
-$ordersStmt->bind_param("i", $authorizationLevel);
-$ordersStmt->execute();
-$ordersResult = $ordersStmt->get_result();
-
-$pendingOrders = [];
-while ($row = $ordersResult->fetch_assoc()) {
-    // Check plant permissions
-    $orderPlant = intval($row['creator_plant']);
-    $userPlantInt = $userPlant !== null ? intval($userPlant) : null;
-    
-    // Include order if user has no plant restriction OR if plants match
-    if ($userPlantInt === null || $orderPlant === $userPlantInt) {
-        $pendingOrders[] = $row;
-    }
-}
-
-$db->close();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -109,14 +62,14 @@ $db->close();
                 plant: <?php echo $userPlant ? "'$userPlant'" : 'null'; ?>,
                 authorizationLevel: <?php echo $authorizationLevel; ?>
             },
-            pendingOrders: <?php echo json_encode($pendingOrders); ?>
+            pendingOrders: [] // Se cargará vía AJAX usando daoPremiumFreight.php
         };
         
         // Legacy support for existing modules
         window.PF_URL = window.PF_CONFIG.baseURL;
         window.URLM = window.PF_CONFIG.mailerURL;
-        window.allOrders = window.PF_CONFIG.pendingOrders;
-        window.originalOrders = window.PF_CONFIG.pendingOrders;
+        window.allOrders = [];
+        window.originalOrders = [];
         window.authorizationLevel = window.PF_CONFIG.user.authorizationLevel;
         window.userName = window.PF_CONFIG.user.name;
         window.userID = window.PF_CONFIG.user.id;
@@ -134,7 +87,7 @@ $db->close();
                     </div>
                     <div class="order-info">
                         <h1 class="order-title-main">Weekly Orders</h1>
-                        <p class="order-subtitle"><?php echo count($pendingOrders); ?> orders pending your approval</p>
+                        <p class="order-subtitle" id="orderCount">Loading orders...</p>
                     </div>
                 </div>
                 <div class="header-right">
@@ -162,76 +115,30 @@ $db->close();
                     Back
                 </button>
                 
-                <?php if (count($pendingOrders) > 1): ?>
-                <button class="action-btn-compact btn-approve-all" onclick="handleApproveAll()">
+                <button class="action-btn-compact btn-approve-all hidden" onclick="handleApproveAll()">
                     <i class="fas fa-check-double"></i>
                     Approve All
                 </button>
                 
-                <button class="action-btn-compact btn-download-all" onclick="handleDownloadAll()">
+                <button class="action-btn-compact btn-download-all hidden" onclick="handleDownloadAll()">
                     <i class="fas fa-download"></i>
                     Download All
                 </button>
-                <?php endif; ?>
             </div>
         </div>
 
         <!-- ===== ORDERS CONTAINER ===== -->
         <div class="orders-container">
-            <?php if (empty($pendingOrders)): ?>
-                <div class="no-orders-message">
-                    <div class="no-orders-content">
-                        <i class="fas fa-check-circle"></i>
-                        <h3>No Pending Orders</h3>
-                        <p>You have no orders pending approval at this time.</p>
-                        <button class="action-btn-compact btn-back" onclick="goBack()">
-                            <i class="fas fa-arrow-left"></i>
-                            Back to Dashboard
-                        </button>
-                    </div>
+            <!-- Loading spinner mientras cargan las órdenes -->
+            <div class="loading-orders" id="loadingOrders">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    Loading your pending orders...
                 </div>
-            <?php else: ?>
-                <?php foreach ($pendingOrders as $order): ?>
-                <div class="order-card" data-order-id="<?php echo $order['id']; ?>">
-                    <!-- Order Header -->
-                    <div class="order-card-header">
-                        <div class="order-card-info">
-                            <h3 class="order-card-title">Order #<?php echo $order['id']; ?></h3>
-                            <p class="order-card-subtitle">
-                                Created by <?php echo htmlspecialchars($order['creator_name']); ?> • 
-                                €<?php echo number_format($order['cost_euros'], 2); ?> • 
-                                <?php echo date('M d, Y', strtotime($order['date'])); ?>
-                            </p>
-                        </div>
-                        <div class="order-card-actions">
-                            <button class="action-btn-compact btn-pdf" onclick="handleOrderPDF(<?php echo $order['id']; ?>)">
-                                <i class="fas fa-file-pdf"></i>
-                                PDF
-                            </button>
-                            <button class="action-btn-compact btn-approve" onclick="handleOrderApprove(<?php echo $order['id']; ?>)">
-                                <i class="fas fa-check-circle"></i>
-                                Approve
-                            </button>
-                            <button class="action-btn-compact btn-reject" onclick="handleOrderReject(<?php echo $order['id']; ?>)">
-                                <i class="fas fa-times-circle"></i>
-                                Reject
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- SVG Container -->
-                    <div class="svg-container">
-                        <div class="svg-content">
-                            <div class="loading-spinner" id="loadingSpinner-<?php echo $order['id']; ?>">
-                                <div class="spinner"></div>
-                                Loading order details...
-                            </div>
-                            <div id="svgContent-<?php echo $order['id']; ?>" class="hidden"></div>
-                        </div>
-                    </div>
-                </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
+            </div>
+            
+            <!-- Container para las órdenes que se generarán dinámicamente -->
+            <div id="ordersContent" class="hidden"></div>
         </div>
     </div>
 
