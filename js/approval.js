@@ -241,15 +241,29 @@ async function sendEmailNotification(orderId, notificationType) {
  * Valida si una orden puede ser aprobada por el usuario actual
  */
 function validateOrderForApproval(order) {
-    // Verificar planta: permitir si userPlant es null/undefined O si coincide exactamente con creator_plant
+    // CORREGIDO: Forzar conversión a enteros para comparar correctamente
+    const userPlantInt = window.userPlant !== null && window.userPlant !== undefined ? 
+        parseInt(window.userPlant, 10) : null;
+    const creatorPlantInt = parseInt(order.creator_plant, 10) || 0;
+    
+    console.log('DEBUG Plant comparison:', {
+        'window.userPlant (original)': window.userPlant,
+        'userPlantInt': userPlantInt,
+        'order.creator_plant (original)': order.creator_plant,
+        'creatorPlantInt': creatorPlantInt,
+        'userPlant type': typeof window.userPlant,
+        'creator_plant type': typeof order.creator_plant,
+        'comparison result': userPlantInt !== null && userPlantInt !== undefined && creatorPlantInt !== userPlantInt
+    });
 
-    if (window.userPlant !== null && window.userPlant !== undefined && 
-        order.creator_plant !== window.userPlant) {
+    // Verificar planta: permitir si userPlant es null/undefined O si coincide exactamente con creator_plant
+    if (userPlantInt !== null && userPlantInt !== undefined && 
+        creatorPlantInt !== userPlantInt) {
         Swal.fire({
             icon: 'warning',
             title: 'Sin permisos',
             text: 'No tienes permisos para aprobar órdenes de otras plantas. El usuario actual está asignado a la planta: ' 
-            + window.userPlant + ' y la orden pertenece a la planta: ' + order.creator_plant,
+            + userPlantInt + ' y la orden pertenece a la planta: ' + creatorPlantInt,
             customClass: { container: 'swal-on-top' }
         });
         return false;
