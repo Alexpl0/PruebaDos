@@ -122,7 +122,8 @@ function checkApprovalPermissions(user, order) {
     const userAuthLevel = Number(user.authorizationLevel || window.authorizationLevel);
     const userPlant = user.plant || window.userPlant;
     const currentApprovalLevel = Number(order.approval_status);
-    const requiredLevel = Number(order.required_auth_level || 7);
+    // CORREGIDO: requiredLevel es act_approv + 1, NO required_auth_level
+    const requiredLevel = currentApprovalLevel + 1;
     const creatorPlant = order.creator_plant;
 
     console.log('[VIEWORDER DEBUG] Validando permisos:', {
@@ -133,8 +134,9 @@ function checkApprovalPermissions(user, order) {
         creatorPlant
     });
 
-    // 1. Verificar que no esté completamente aprobada (act_approv >= required_auth_level)
-    if (currentApprovalLevel >= requiredLevel) {
+    // 1. Verificar que no esté completamente aprobada (comparar con required_auth_level)
+    const maxRequiredLevel = Number(order.required_auth_level || 7);
+    if (currentApprovalLevel >= maxRequiredLevel) {
         console.log('[VIEWORDER DEBUG] Orden ya completamente aprobada');
         return false;
     }
@@ -146,11 +148,10 @@ function checkApprovalPermissions(user, order) {
     }
 
     // 3. Verificar nivel de autorización: debe ser exactamente (act_approv + 1)
-    const nextRequiredLevel = currentApprovalLevel + 1;
-    if (userAuthLevel !== nextRequiredLevel) {
+    if (userAuthLevel !== requiredLevel) {
         console.log('[VIEWORDER DEBUG] Nivel de autorización incorrecto:', {
             userLevel: userAuthLevel,
-            requiredLevel: nextRequiredLevel
+            requiredLevel: requiredLevel
         });
         return false;
     }
