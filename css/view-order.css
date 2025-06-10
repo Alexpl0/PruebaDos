@@ -279,12 +279,12 @@ body {
 }
 
 .btn-pdf {
-    background: linear-gradient(135deg, #6f42c1, #8b5cf6);
+    background: linear-gradient(135deg, #004AAD, #004AAD);
     color: var(--white);
 }
 
 .btn-pdf:hover {
-    background: linear-gradient(135deg, #5a2d91, #7c3aed);
+    background: linear-gradient(135deg, #004AAD, #004AAD);
 }
 
 .btn-back {
