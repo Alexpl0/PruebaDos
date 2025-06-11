@@ -315,15 +315,16 @@ img {
 .nav__link.active::after {
   content: '';
   position: absolute;
-  bottom: 0;
+  bottom: 4;
   left: 50%;
   transform: translateX(-50%);
-  width: 80%;
+  width: 110%;
   height: 4px;
   background-color: var(--grammer-light-blue);
   border-radius: 1px;
   opacity: 1;
   transition: opacity 0.2s ease; /* Transición suave para ocultar/mostrar */
+  justify-content: center;
 }
 
 /* Ocultar línea activa cuando hay hover en otros elementos */
