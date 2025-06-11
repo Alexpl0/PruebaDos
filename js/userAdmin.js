@@ -345,19 +345,17 @@ $(document).ready(function() {
         });
     }
     
-    // Password visibility toggle
-    $(document).on('click', '.password-toggle-btn', function() {
-        const passwordInput = $('#user-password');
-        const icon = $(this).find('i');
+    // Password visibility toggle - ACTUALIZADO para coincidir con el HTML
+    $(document).on('click', '#userPassword', function() {
+        const passwordInput = $('#password'); // Cambié de #user-password a #password
+        const icon = $(this); // El ícono es directamente el elemento clickeado
         
         if (passwordInput.attr('type') === 'password') {
             passwordInput.attr('type', 'text');
-            icon.removeClass('fa-eye').addClass('fa-eye-slash');
-            $(this).attr('aria-label', 'Hide password');
+            icon.removeClass('fa-eye-slash').addClass('fa-eye');
         } else {
             passwordInput.attr('type', 'password');
-            icon.removeClass('fa-eye-slash').addClass('fa-eye');
-            $(this).attr('aria-label', 'Show password');
+            icon.removeClass('fa-eye').addClass('fa-eye-slash');
         }
     });
     
