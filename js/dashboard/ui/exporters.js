@@ -108,7 +108,7 @@ export function exportToCSV() {
     
     // PASO 5.2: CREACIÓN DE URL TEMPORAL
     // Crea una URL temporal que apunta al Blob recién creado
-    const url = URL.createObjectURL(blob);
+    const url = URLPF.createObjectURL(blob);
     
     // PASO 5.3: CREACIÓN DEL ENLACE DE DESCARGA
     // Crea un elemento <a> (enlace) que iniciará la descarga

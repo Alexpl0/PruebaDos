@@ -89,7 +89,7 @@ function getCurrentUserId() {
 
 /**
  * Loads order data from the API
- * Uses the global URL variable to construct the API endpoint
+ * Uses the global URLPF variable to construct the API endpoint
  */
 function loadOrderData() {
     // Get the user ID using the safe method
@@ -113,7 +113,7 @@ function loadOrderData() {
         didOpen: () => { Swal.showLoading(); }
     });
 
-    // Ensure URL is defined
+    // Ensure URLPF is defined
     const apiUrl = getApiBaseUrl() + 'dao/conections/daoOrdersByUser.php';
 
     // Send a POST request with the user ID
@@ -164,13 +164,13 @@ function loadOrderData() {
  */
 function getApiBaseUrl() {
     // Check if URL is defined in the global scope
-    if (typeof URL === 'undefined' || !URL) {
-        console.warn('URL global variable is not defined, using fallback URL');
+    if (typeof URLPF === 'undefined' || !URLPF) {
+        console.warn('URLPF global variable is not defined, using fallback URLPF');
         return 'https://grammermx.com/Jesus/PruebaDos/';
     }
     
-    // Ensure URL ends with a slash
-    return URL.endsWith('/') ? URL : URL + '/';
+    // Ensure URLPF ends with a slash
+    return URLPF.endsWith('/') ? URLPF : URLPF + '/';
 }
 
 /**
@@ -208,10 +208,10 @@ window.addEventListener('error', function(event) {
     });
 });
 
-// Ensure URL is available when needed
+// Ensure URLPF is available when needed
 document.addEventListener('DOMContentLoaded', function() {
-    if (typeof URL === 'undefined') {
-        console.warn('URL global variable is not defined. Setting fallback URL.');
-        window.URL = 'https://grammermx.com/Jesus/PruebaDos/';
+    if (typeof URLPF === 'undefined') {
+        console.warn('URLPF global variable is not defined. Setting fallback URLPF.');
+        window.URLPF = 'https://grammermx.com/Jesus/PruebaDos/';
     }
 });

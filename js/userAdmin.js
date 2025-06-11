@@ -30,7 +30,7 @@ function initializeDataTable() {
     // Initialize the DataTable with configuration for AJAX, columns, buttons, and language
     usersTable = $('#users-table').DataTable({
         ajax: {
-            url: URL + 'dao/users/daoUserAdmin.php', 
+            url: URLPF + 'dao/users/daoUserAdmin.php', 
             dataSrc: 'data', 
             complete: function() {
                 // Close loading indicator when data is loaded
@@ -172,7 +172,7 @@ function initializeDataTable() {
         }).then((result) => {
             if (result.isConfirmed) {
                 // Send DELETE request to the server
-                fetch(URL + 'dao/users/daoUserAdmin.php', {
+                fetch(URLPF + 'dao/users/daoUserAdmin.php', {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
@@ -245,7 +245,7 @@ function initializeDataTable() {
         });
         
         // Send the user data to the server (POST for new, PUT for update)
-        fetch(URL + 'dao/users/daoUserAdmin.php', {
+        fetch(URLPF + 'dao/users/daoUserAdmin.php', {
             method: isNewUser ? 'POST' : 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -367,11 +367,11 @@ $(document).ready(function() {
 });
 
 /**
- * Verificación de disponibilidad de la variable URL
+ * Verificación de disponibilidad de la variable URLPF
  * En caso de que el script se cargue antes que la variable esté definida
  */
-if (typeof URL === 'undefined') {
-    console.warn('URL global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
-    // Fallback a URL hardcodeada solo como último recurso
-    window.URL = window.URL || 'https://grammermx.com/Jesus/PruebaDos/';
+if (typeof URLPF === 'undefined') {
+    console.warn('URLPF global variable is not defined. Make sure this script runs after the URLPF is defined in your PHP page.');
+    // Fallback a URLPF hardcodeada solo como último recurso
+    window.URLPF = window.URLPF || 'https://grammermx.com/Jesus/PruebaDos/';
 }

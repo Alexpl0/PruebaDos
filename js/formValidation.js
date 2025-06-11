@@ -182,7 +182,7 @@ async function processNewCompanies() {
             });
             
             // Realizar la petición POST al servidor
-            const response = await fetch(URL + 'dao/elements/daoAddLocation.php', {
+            const response = await fetch(URLPF + 'dao/elements/daoAddLocation.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -250,7 +250,7 @@ async function processNewCompanies() {
             });
             
             // Realizar la petición POST al servidor
-            const response = await fetch(URL + 'dao/elements/daoAddLocation.php', {
+            const response = await fetch(URLPF + 'dao/elements/daoAddLocation.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -474,8 +474,8 @@ validateCompleteForm = function() {
  * Verificación de disponibilidad de la variable URL
  * En caso de que el script se cargue antes que la variable esté definida
  */
-if (typeof URL === 'undefined') {
-    console.warn('URL global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
-    // Fallback a URL hardcodeada solo como último recurso
-    window.URL = window.URL || 'https://grammermx.com/Jesus/PruebaDos/';
+if (typeof URLPF === 'undefined') {
+    console.warn('URLPF global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
+    // Fallback a URLPF hardcodeada solo como último recurso
+    window.URLPF = window.URLPF || 'https://grammermx.com/Jesus/PruebaDos/';
 }

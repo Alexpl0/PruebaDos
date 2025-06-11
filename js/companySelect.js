@@ -33,8 +33,8 @@ function initializeCompanySelectors() {
 // Inicializa el widget Select2 para el campo de compañía de origen (CompanyShip).
 // Configura la búsqueda AJAX y la opción de agregar una nueva compañía si no se encuentra.
 function showCompanySelect() {
-    console.log("Inicializando selector de compañía de origen con URL:", URL);
-    console.log("Endpoint completo:", URL + 'dao/elements/daoLocation.php');
+    console.log("Inicializando selector de compañía de origen con URL:", URLPF);
+    console.log("Endpoint completo:", URLPF + 'dao/elements/daoLocation.php');
 
     // Los campos de dirección se ponen como solo lectura al inicio.
     $('#inputCityShip').prop('readonly', true);
@@ -47,7 +47,7 @@ function showCompanySelect() {
         allowClear: true,
         minimumInputLength: 0,
         ajax: {
-            url: URL + 'dao/elements/daoLocation.php', // URL para buscar compañías
+            url: URLPF + 'dao/elements/daoLocation.php', // URLPF para buscar compañías
             dataType: 'json',
             delay: 250, // Espera antes de hacer la petición
             data: function (params) {
@@ -142,7 +142,7 @@ function showCompanyDestSelect() {
         allowClear: true,
         minimumInputLength: 0,
         ajax: {
-            url: URL + 'dao/elements/daoLocation.php', // URL para buscar compañías
+            url: URLPF + 'dao/elements/daoLocation.php', // URLPF para buscar compañías
             dataType: 'json',
             delay: 250,
             data: function (params) {
@@ -238,7 +238,7 @@ async function saveNewCompany(companyName, city, state, zip) {
     }
     try {
         // Realiza la petición POST al servidor para guardar la nueva compañía
-        const response = await fetch(URL + 'dao/elements/daoAddLocation.php', {
+        const response = await fetch(URLPF + 'dao/elements/daoAddLocation.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -276,12 +276,12 @@ async function saveNewCompany(companyName, city, state, zip) {
 }
 
 //==========================================================================================
-// Verificación de disponibilidad de la variable URL
+// Verificación de disponibilidad de la variable URLPF
 // En caso de que el script se cargue antes que la variable esté definida
-if (typeof URL === 'undefined') {
-    console.warn('URL global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
-    // Fallback a URL hardcodeada solo como último recurso
-    window.URL = window.URL || 'https://grammermx.com/Jesus/PruebaDos/';
+if (typeof URLPF === 'undefined') {
+    console.warn('URLPF global variable is not defined. Make sure this script runs after the URLPF is defined in your PHP page.');
+    // Fallback a URLPF hardcodeada solo como último recurso
+    window.URLPF = window.URLPF || 'https://grammermx.com/Jesus/PruebaDos/';
 }
 
 // Registra la inicialización en la consola

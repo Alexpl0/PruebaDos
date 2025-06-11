@@ -96,7 +96,7 @@ function loginUsuario() {
     });
 
     // Enviar solicitud de login al servidor usando la URL global
-    fetch(URL + 'dao/users/daoLogin.php', {
+    fetch(URLPF + 'dao/users/daoLogin.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -117,7 +117,7 @@ function loginUsuario() {
             // console.log('==========================');
 
             // Si el login es exitoso, establecer la sesión
-            fetch(URL + 'dao/users/loginSession.php', {
+            fetch(URLPF + 'dao/users/loginSession.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data.data)
@@ -189,8 +189,8 @@ function loginUsuario() {
  * Verificación de disponibilidad de la variable URL
  * En caso de que el script se cargue antes que la variable esté definida
  */
-if (typeof URL === 'undefined') {
-    console.warn('URL global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
-    // Fallback a URL hardcodeada solo como último recurso
-    window.URL = window.URL || 'https://grammermx.com/Jesus/PruebaDos/';
+if (typeof URLPF === 'undefined') {
+    console.warn('URLPF global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
+    // Fallback a URLPF hardcodeada solo como último recurso
+    window.URLPF = window.URLPF || 'https://grammermx.com/Jesus/PruebaDos/';
 }

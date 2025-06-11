@@ -6,7 +6,7 @@
 
 /**
  * Carga una imagen desde una URL y la convierte a formato Base64
- * @param {string} url - URL de la imagen a cargar
+ * @param {string} url - URLPF de la imagen a cargar
  * @returns {Promise<string>} Una promesa que resuelve con la imagen en formato Base64
  */
 function loadImage(url) {
@@ -33,7 +33,7 @@ function loadImage(url) {
 window.addEventListener('load', async () => {
     try {
         // Usa la variable global URL para construir la ruta completa a la imagen
-        const headerImagePath = window.URL + 'assets/media/SPECIAL_FREIGHT_AUTHORIZATION.png';
+        const headerImagePath = window.URLPF + 'assets/media/SPECIAL_FREIGHT_AUTHORIZATION.png';
         const image = await loadImage(headerImagePath);
         console.log('Header image loaded successfully');
         // Almacena la imagen en una variable global para usarla en la generación del PDF
@@ -155,7 +155,7 @@ if (typeof window.jspdf === 'undefined') {
 }
 
 // Verificación de disponibilidad de la variable URL
-if (typeof window.URL === 'undefined') {
+if (typeof window.URLPF === 'undefined') {
     console.warn('⚠️ URL global variable is not defined. Make sure this script runs after the URL is defined.');
 }
 

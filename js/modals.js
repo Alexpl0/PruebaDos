@@ -376,7 +376,7 @@ async function uploadEvidenceFile(orderId, userName, file) {
     formData.append('userName', userName);
     formData.append('evidenceFile', file);
     
-    const response = await fetch(URL + 'dao/conections/daoUploadEvidence.php', {
+    const response = await fetch(URLPF + 'dao/conections/daoUploadEvidence.php', {
         method: 'POST',
         body: formData
     });
@@ -458,8 +458,8 @@ export function setupModalEventListeners() {
  * Verificación de disponibilidad de la variable URL
  * En caso de que el script se cargue antes que la variable esté definida
  */
-if (typeof URL === 'undefined') {
+if (typeof URLPF === 'undefined') {
     console.warn('URL global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
     // Fallback a URL hardcodeada solo como último recurso
-    window.URL = window.URL || 'https://grammermx.com/Jesus/PruebaDos/';
+    window.URLPF = window.URLPF || 'https://grammermx.com/Jesus/PruebaDos/';
 }

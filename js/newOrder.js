@@ -262,9 +262,9 @@ async function submitForm(event) {
 
 // Function to send form data as a promise
 function sendFormDataAsync(payload) {
-    console.log("Sending form data to server: ", URL + 'dao/conections/daoPFpost.php');
+    console.log("Sending form data to server: ", URLPF + 'dao/conections/daoPFpost.php');
     return new Promise((resolve, reject) => {
-        fetch(URL + 'dao/conections/daoPFpost.php', {
+        fetch(URLPF + 'dao/conections/daoPFpost.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -295,7 +295,7 @@ async function uploadRecoveryFile(orderId, userName, file) {
     formData.append('userName', userName);
     formData.append('recoveryFile', file);
     
-    const response = await fetch(URL + 'dao/conections/daoUploadRecovery.php', {
+    const response = await fetch(URLPF + 'dao/conections/daoUploadRecovery.php', {
         method: 'POST',
         body: formData
     });
@@ -580,10 +580,10 @@ function getSelectedCurrency() {
 }
 
 /**
- * Verificación de disponibilidad de la variable URL
+ * Verificación de disponibilidad de la variable URLPF
  * En caso de que el script se cargue antes que la variable esté definida
  */
-if (typeof URL === 'undefined') {
-    console.warn("URL variable not defined. Using default base URL.");
-    window.URL = 'https://grammermx.com/Jesus/PruebaDos/';
+if (typeof URLPF === 'undefined') {
+    console.warn("URLPF variable not defined. Using default base URLPF.");
+    window.URLPF = 'https://grammermx.com/Jesus/PruebaDos/';
 }

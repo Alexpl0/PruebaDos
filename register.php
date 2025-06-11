@@ -9,7 +9,7 @@ include_once 'dao/users/auth_check.php';
     window.userName = <?php echo json_encode(isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null); ?>;
     window.userID = <?php echo json_encode(isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null); ?>;
     // Definimos la variable global de JavaScript con la URL base desde PHP
-    const URL = '<?php echo URL; ?>'; 
+    const URLPF = '<?php echo URLPF; ?>'; 
 </script>
 
 <!DOCTYPE html>

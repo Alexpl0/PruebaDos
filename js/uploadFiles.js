@@ -23,7 +23,7 @@ function uploadRecoveryFile(premiumFreightId, userName, file) {
         formData.append('premium_freight_id', premiumFreightId);
         formData.append('userName', userName);
 
-        fetch(URL + 'dao/conections/daoUploadRecovery.php', {
+        fetch(URLPF + 'dao/conections/daoUploadRecovery.php', {
             method: 'POST',
             body: formData
         })
@@ -66,7 +66,7 @@ function uploadEvidenceFile(premiumFreightId, userName, file) {
         formData.append('premium_freight_id', premiumFreightId);
         formData.append('userName', userName);
 
-        fetch(URL + 'dao/conections/daoUploadEvidence.php', {
+        fetch(URLPF + 'dao/conections/daoUploadEvidence.php', {
             method: 'POST',
             body: formData
         })
@@ -171,10 +171,10 @@ function uploadFileWithProgress(progressElement, file, endpointUrl, formData) {
  * Verificación de disponibilidad de la variable URL
  * En caso de que el script se cargue antes que la variable esté definida
  */
-if (typeof URL === 'undefined') {
-    console.warn('URL global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
-    // Fallback a URL hardcodeada solo como último recurso
-    window.URL = window.URL || 'https://grammermx.com/Jesus/PruebaDos/';
+if (typeof URLPF === 'undefined') {
+    console.warn('URLPF global variable is not defined. Make sure this script runs after the URLPF is defined in your PHP page.');
+    // Fallback a URLPF hardcodeada solo como último recurso
+    window.URLPF = window.URLPF || 'https://grammermx.com/Jesus/PruebaDos/';
 }
 
 // Exportar funciones para su uso en otros módulos

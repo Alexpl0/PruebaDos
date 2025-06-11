@@ -91,7 +91,7 @@ try {
     }
     
     // Usar la constante URL definida en config.php
-    $fileUrl = URL . "assets/files/recovery/{$filename}";
+    $fileUrl = URLPF . "assets/files/recovery/{$filename}";
     
     $stmt->bind_param("si", $fileUrl, $premiumFreightId);
     

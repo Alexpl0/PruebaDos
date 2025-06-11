@@ -9,8 +9,8 @@ import { createCards, setupSearch } from './cards.js';
 import { updateModalButtons, setupModalEventListeners } from './modals.js';
 import { setupApprovalEventListeners } from './approval.js';
 
-// Define the URL variable for this module
-const URL = window.URL_BASE || window.BASE_URL || 'https://grammermx.com/Jesus/PruebaDos/';
+// Define the URLPF variable for this module
+const URLPF = window.URL_BASE || window.BASE_URL || 'https://grammermx.com/Jesus/PruebaDos/';
 
 /**
  * Initialize the application when the DOM is fully loaded
@@ -68,9 +68,9 @@ document.addEventListener('DOMContentLoaded', function() {
  * Uses the global URL variable to construct the API endpoint
  */
 function loadOrderData() {
-    console.log('Loading data from:', URL + 'dao/conections/daoPremiumFreight.php');
+    console.log('Loading data from:', URLPF + 'dao/conections/daoPremiumFreight.php');
     
-    fetch(URL + 'dao/conections/daoPremiumFreight.php')
+    fetch(URLPF + 'dao/conections/daoPremiumFreight.php')
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
@@ -183,5 +183,5 @@ window.addEventListener('error', function(event) {
     });
 });
 
-// Export URL for use by other modules
-export { URL };
+// Export URLPF for use by other modules
+export { URLPF };

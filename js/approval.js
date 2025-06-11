@@ -7,7 +7,7 @@
  */
 
 // Define the URL variable for this module
-const URL = window.URL_BASE || window.BASE_URL || 'https://grammermx.com/Jesus/PruebaDos/';
+const URLPF = window.URL_BASE || window.BASE_URL || 'https://grammermx.com/Jesus/PruebaDos/';
 
 /**
  * Variable to control processing state
@@ -93,7 +93,7 @@ export async function approveOrder(orderId, options = {}) {
         }
 
         // Update approval level in database
-        const responseApproval = await fetch(URL + 'dao/conections/daoStatusUpdate.php', {
+        const responseApproval = await fetch(URLPF + 'dao/conections/daoStatusUpdate.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updateData)
@@ -112,7 +112,7 @@ export async function approveOrder(orderId, options = {}) {
                 statusid: updatedStatusTextId
             };
 
-            const responseStatusText = await fetch(URL + 'dao/conections/daoStatusText.php', {
+            const responseStatusText = await fetch(URLPF + 'dao/conections/daoStatusText.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updateStatusText)
@@ -271,7 +271,7 @@ export async function rejectOrder(orderId, rejectionReason = null, options = {})
         };
 
         // Update approval level in database
-        const responseApproval = await fetch(URL + 'dao/conections/daoStatusUpdate.php', {
+        const responseApproval = await fetch(URLPF + 'dao/conections/daoStatusUpdate.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updateData)
@@ -289,7 +289,7 @@ export async function rejectOrder(orderId, rejectionReason = null, options = {})
                 statusid: 4 // rejected
             };
 
-            const responseStatusText = await fetch(URL + 'dao/conections/daoStatusText.php', {
+            const responseStatusText = await fetch(URLPF + 'dao/conections/daoStatusText.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updateStatusText)

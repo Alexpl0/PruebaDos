@@ -125,8 +125,8 @@ export let API_URL;
 
 // Intenta usar la variable global URL (definida en la página PHP)
 // Si no está disponible, usa un valor por defecto
-if (typeof URL !== 'undefined') {
-    API_URL = URL + 'dao/conections/daoPremiumFreight.php';
+if (typeof URLPF !== 'undefined') {
+    API_URL = URLPF + 'dao/conections/daoPremiumFreight.php';
 } else {
     console.warn('URL global variable is not defined. Using fallback URL.');
     API_URL = 'https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php';
@@ -202,8 +202,8 @@ export const kpiThresholds = {
  * @returns {string} URL completa
  */
 export function buildUrl(relativePath) {
-    if (typeof URL !== 'undefined') {
-        return URL + relativePath;
+    if (typeof URLPF !== 'undefined') {
+        return URLPF + relativePath;
     }
     return 'https://grammermx.com/Jesus/PruebaDos/' + relativePath;
 }

@@ -112,8 +112,8 @@
      * @returns {Promise<Object>} - Server response
      */
     async function saveCarrierToServer(carrierName) {
-        // Usando la variable global URL definida en el archivo PHP
-        const response = await fetch(URL + 'dao/elements/daoAddCarrier.php', {
+        // Usando la variable global URLPF definida en el archivo PHP
+        const response = await fetch(URLPF + 'dao/elements/daoAddCarrier.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -130,10 +130,10 @@
      * Verificación de disponibilidad de la variable URL
      * En caso de que el script se cargue antes que la variable esté definida
      */
-    if (typeof URL === 'undefined') {
-        console.warn('URL global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
-        // Fallback to hard-coded URL only as last resort
-        window.URL = window.URL || 'https://grammermx.com/Jesus/PruebaDos/';
+    if (typeof URLPF === 'undefined') {
+        console.warn('URLPF global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
+        // Fallback to hard-coded URLPF only as last resort
+        window.URLPF = window.URLPF || 'https://grammermx.com/Jesus/PruebaDos/';
     }
 
     // Log initialization to console
