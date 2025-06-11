@@ -283,6 +283,7 @@ img {
   border-radius: var(--border-radius);
   transition: all var(--transition-normal);
   width: 100%;
+  position: relative; /* Añadido para posicionar la línea */
 }
 
 .nav__link:hover {
@@ -291,9 +292,22 @@ img {
 }
 
 .nav__link.active {
-  background-color: var(--grammer-accent);
+  background-color: transparent; /* Elimina el fondo */
   color: var(--white);
-  box-shadow: var(--shadow-sm);
+  box-shadow: none; /* Elimina la sombra */
+}
+
+/* Línea azul para elemento activo */
+.nav__link.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 2px;
+  background-color: var(--grammer-light-blue);
+  border-radius: 1px;
 }
 
 /*============================================================================
@@ -408,6 +422,7 @@ img {
     padding: 0.5rem 0.8rem;
     text-align: center;
     border-radius: 0.25rem;
+    position: relative; /* Asegura que esté presente en desktop también */
   }
   
   /* Hover más sutil para desktop */
@@ -416,10 +431,23 @@ img {
     background-color: rgba(255, 255, 255, 0.2);
   }
   
-  /* Estilo activo para desktop */
+  /* Estilo activo para desktop - solo línea azul */
   .nav__link.active {
-    background-color: var(--dark-color);
+    background-color: transparent; /* Sin fondo */
     color: var(--white-color);
+  }
+  
+  /* Línea azul para elemento activo en desktop */
+  .nav__link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px; /* Ajusta la posición para desktop */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%; /* Ligeramente más ancha en desktop */
+    height: 3px; /* Más gruesa en desktop para mejor visibilidad */
+    background-color: var(--grammer-light-blue);
+    border-radius: 1.5px;
   }
   
   /* Oculta elementos innecesarios en desktop */
