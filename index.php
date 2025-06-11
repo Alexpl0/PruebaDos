@@ -17,7 +17,7 @@ include_once 'dao/users/auth_check.php';
     // Agregar esta línea para el mailer
     const URLM = '<?php echo URLM; ?>'; 
 </script>
-
+ 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -77,7 +77,11 @@ include_once 'dao/users/auth_check.php';
 
     <!-- Archivos JS locales -->
     <script src="js/header.js"></script>
+    <script>
+        // Definir URLPF ANTES de cargar otros scripts
+        const URLPF = '<?php echo URLPF; ?>';
+        console.log('URLPF set to:', URLPF);
+    </script>
     <script src="js/index.js"></script>
-
 </body>
 </html>

@@ -95,8 +95,12 @@ function loginUsuario() {
         }
     });
 
+    // Verificar que URLPF sea un string válido antes de usarlo
+    const baseURL = (typeof URLPF === 'string') ? URLPF : 'https://grammermx.com/Jesus/PruebaDos/';
+    console.log('Using base URL:', baseURL); // Para debugging
+    
     // Enviar solicitud de login al servidor usando la URL global
-    fetch(URLPF + 'dao/users/daoLogin.php', {
+    fetch(baseURL + 'dao/users/daoLogin.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -110,14 +114,8 @@ function loginUsuario() {
     })
     .then(data => {
         if (data.status === 'success') {
-            // // Debug: Log de la información del usuario recibida
-            // console.log('=== LOGIN SUCCESS DATA ===');
-            // console.log('User data received:', data.data);
-            // console.log('User plant:', data.data.plant);
-            // console.log('==========================');
-
             // Si el login es exitoso, establecer la sesión
-            fetch(URLPF + 'dao/users/loginSession.php', {
+            fetch(baseURL + 'dao/users/loginSession.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data.data)
@@ -189,8 +187,9 @@ function loginUsuario() {
  * Verificación de disponibilidad de la variable URL
  * En caso de que el script se cargue antes que la variable esté definida
  */
-if (typeof URLPF === 'undefined') {
-    console.warn('URLPF global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
-    // Fallback a URLPF hardcodeada solo como último recurso
-    window.URLPF = window.URLPF || 'https://grammermx.com/Jesus/PruebaDos/';
+if (typeof URLPF === 'undefined' || typeof URLPF === 'function' || URLPF === null) {
+    console.warn('URLPF global variable is not properly defined. Using fallback URL.');
+    window.URLPF = 'https://grammermx.com/Jesus/PruebaDos/';
+} else {
+    console.log('URLPF correctly defined as:', URLPF);
 }
