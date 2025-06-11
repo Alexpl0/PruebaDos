@@ -304,7 +304,18 @@
     vertical-align: middle; /* Helps align icons with text */
 }
 
-/* Responsive adjustment for mobile */
+/* Enhanced password input styling */
+.password-input-wrapper .form-control:focus {
+    border-color: var(--grammer-blue);
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(3, 76, 140, 0.25);
+}
+
+.password-input-wrapper .form-control:focus + .password-toggle-btn {
+    color: var(--grammer-blue);
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
     .action-buttons {
         flex-direction: row; /* Changed from column to keep buttons side by side */
@@ -328,6 +339,20 @@
     #password-row .toggle-password {
         width: 15% !important;
         flex: 0 0 15%;
+    }
+    
+    .password-input-wrapper .form-control {
+        padding-right: 2.5rem;
+    }
+    
+    .password-toggle-btn {
+        right: 0.5rem;
+        width: 1.75rem;
+        height: 1.75rem;
+    }
+    
+    .password-toggle-btn .fas {
+        font-size: 0.9rem;
     }
 }
 
