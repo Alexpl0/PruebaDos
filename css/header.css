@@ -327,6 +327,13 @@ img {
   height: 4px;
   background-color: var(--grammer-light-blue);
   border-radius: 1px;
+  opacity: 1;
+  transition: opacity 0.2s ease; /* Transición suave para ocultar/mostrar */
+}
+
+/* Ocultar línea activa cuando hay hover en otros elementos */
+.nav__list:hover .nav__link.active:not(:hover)::after {
+  opacity: 0;
 }
 
 /*============================================================================
@@ -449,10 +456,10 @@ img {
   .nav__link::before {
     content: '';
     position: absolute;
-    bottom: -2px; /* Alineada con la línea activa */
+    bottom: 1px; /* Alineada con la línea activa */
     left: -100%;
     width: 100%;
-    height: 3px;
+    height: 4px;
     background-color: var(--grammer-light-blue);
     transition: left 0.3s ease-out; /* Animación más rápida en desktop */
     border-radius: 1.5px;
@@ -480,13 +487,20 @@ img {
   .nav__link.active::after {
     content: '';
     position: absolute;
-    bottom: -2px; /* Ajusta la posición para desktop */
+    bottom: 1px; /* Ajusta la posición para desktop */
     left: 50%;
     transform: translateX(-50%);
     width: 90%; /* Ligeramente más ancha en desktop */
-    height: 3px; /* Más gruesa en desktop para mejor visibilidad */
+    height: 4px; /* Más gruesa en desktop para mejor visibilidad */
     background-color: var(--grammer-light-blue);
     border-radius: 1.5px;
+    opacity: 1;
+    transition: opacity 0.2s ease; /* Transición suave para ocultar/mostrar */
+  }
+  
+  /* Ocultar línea activa cuando hay hover en otros elementos - Desktop */
+  .nav__list:hover .nav__link.active:not(:hover)::after {
+    opacity: 0;
   }
   
   /* Evitar que la animación de hover interfiera con el elemento activo */
