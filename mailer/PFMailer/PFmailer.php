@@ -483,5 +483,66 @@ class PFMailer {
             throw new Exception("SMTP connection failed: " . $e->getMessage());
         }
     }
+
+    /**
+     * Envía correo de recuperación de contraseña
+     * 
+     * @param array $user Datos del usuario
+     * @param string $token Token de recuperación
+     * @return bool True si se envió correctamente
+     */
+    public function sendPasswordResetEmail($user, $token) {
+        try {
+            // Configurar SMTP
+            $this->mail->isSMTP();
+            $this->mail->Host = 'smtp.gmail.com';
+            $this->mail->SMTPAuth = true;
+            $this->mail->Username = 'grammermxsystem@gmail.com';
+            $this->mail->Password = 'ozgf rvhc khje dwzq';
+            $this->mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $this->mail->Port = 587;
+            
+            // Configurar destinatarios
+            $this->mail->setFrom('grammermxsystem@gmail.com', 'GRAMMER Premium Freight System');
+            
+            if ($this->testMode) {
+                // En modo test, enviar a email de prueba
+                $this->mail->addAddress('grammermxsystem@gmail.com', 'Test User');
+                logAction("MODE TEST: Password reset email would be sent to: " . $user['email'], 'PASSWORDRESET');
+            } else {
+                // En producción, enviar al usuario real
+                $this->mail->addAddress($user['email'], $user['name']);
+            }
+            
+            // Configurar correo
+            $this->mail->isHTML(true);
+            $this->mail->Subject = 'Password Reset Request - GRAMMER Premium Freight';
+            
+            // Generar contenido del correo
+            $this->mail->Body = $this->templates->getPasswordResetTemplate($user, $token);
+            $this->mail->AltBody = "Password reset request for " . $user['name'] . ". Please visit the link sent in the HTML version of this email.";
+            
+            // Enviar correo
+            $sent = $this->mail->send();
+            
+            if ($sent) {
+                logAction("Password reset email sent successfully to: " . $user['email'], 'PASSWORDRESET');
+                
+                // Registrar notificación
+                $this->services->logNotification(0, $user['id'], 'password_reset');
+            } else {
+                logAction("Failed to send password reset email to: " . $user['email'] . " - Error: " . $this->mail->ErrorInfo, 'PASSWORDRESET');
+            }
+            
+            return $sent;
+            
+        } catch (Exception $e) {
+            logAction("Exception sending password reset email: " . $e->getMessage(), 'PASSWORDRESET');
+            return false;
+        } finally {
+            $this->mail->clearAddresses();
+            $this->mail->clearAttachments();
+        }
+    }
 }
 ?>

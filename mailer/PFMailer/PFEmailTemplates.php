@@ -716,6 +716,127 @@ class PFEmailTemplates {
     }
 
     /**
+     * Plantilla para correo de recuperación de contraseña
+     * 
+     * @param array $user Datos del usuario
+     * @param string $resetToken Token de recuperación
+     * @return string HTML del correo
+     */
+    public function getPasswordResetTemplate($user, $resetToken) {
+        // URL para restablecer contraseña
+        $resetUrl = $this->baseUrlPF . "password_reset.php?token=" . $resetToken;
+        $userName = htmlspecialchars($user['name'] ?? 'Usuario', ENT_QUOTES, 'UTF-8');
+        $userEmail = htmlspecialchars($user['email'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
+        
+        return '<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Password Reset Request</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
+    <style type="text/css">
+        body { margin: 0; padding: 0; background-color: #f4f4f4; font-family: Georgia, "Times New Roman", serif; }
+        .email-container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+        .header { background-color: #dc2626; padding: 30px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0 0 8px 0; font-size: 22px; font-weight: 700; font-family: Georgia, serif; }
+        .header h2 { color: #fecaca; margin: 0; font-size: 16px; font-weight: 400; font-family: Georgia, serif; }
+        .content { padding: 32px; font-family: Georgia, serif; }
+        .greeting { color: #1e293b; margin: 0 0 16px 0; font-size: 16px; font-weight: 700; font-family: Georgia, serif; }
+        .description { color: #64748b; margin: 0 0 24px 0; line-height: 1.6; font-size: 14px; font-family: Georgia, serif; }
+        .warning-box { background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; padding: 16px; margin: 24px 0; }
+        .warning-text { margin: 0; color: #92400e; font-size: 13px; line-height: 1.4; font-family: Georgia, serif; font-weight: 600; }
+        .action-section { margin: 32px 0; text-align: center; }
+        .reset-button { 
+            display: inline-block; 
+            padding: 16px 32px; 
+            background-color: #dc2626; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 8px; 
+            font-weight: 700; 
+            font-size: 16px; 
+            font-family: Georgia, serif; 
+            transition: background-color 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .reset-button:hover { background-color: #b91c1c; }
+        .info-box { background-color: #dbeafe; border: 1px solid #93c5fd; border-radius: 6px; padding: 16px; margin: 24px 0; }
+        .info-text { margin: 0; color: #1e3a8a; font-size: 12px; line-height: 1.4; font-family: Georgia, serif; }
+        .footer { background-color: #f8fafc; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0; }
+        .footer-text { color: #6b7280; margin: 0 0 6px 0; font-size: 11px; font-family: Georgia, serif; }
+        .footer-copyright { color: #9ca3af; margin: 0; font-size: 10px; font-family: Georgia, serif; }
+    </style>
+</head>
+<body>
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f4f4f4;">
+        <tr>
+            <td style="padding: 20px 0;">
+                <table class="email-container" role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                    <!-- Header -->
+                    <tr>
+                        <td class="header" style="border-radius: 8px 8px 0 0;">
+                            <h1>🔒 Password Reset Request</h1>
+                            <h2>GRAMMER Premium Freight System</h2>
+                        </td>
+                    </tr>
+                    
+                    <!-- Content -->
+                    <tr>
+                        <td class="content">
+                            <div class="greeting">Hello ' . $userName . ',</div>
+                            
+                            <div class="description">
+                                We received a request to reset the password for your account (<strong>' . $userEmail . '</strong>). 
+                                If you made this request, click the button below to reset your password.
+                            </div>
+                            
+                            <div class="warning-box">
+                                <div class="warning-text">
+                                    ⚠️ This link will expire in 24 hours for security reasons.
+                                </div>
+                            </div>
+                            
+                            <!-- Reset Button -->
+                            <div class="action-section">
+                                <a href="' . $resetUrl . '" class="reset-button">
+                                    🔑 Reset My Password
+                                </a>
+                            </div>
+                            
+                            <div class="info-box">
+                                <div class="info-text">
+                                    💡 <strong>Security Note:</strong> If you did not request a password reset, you can safely ignore this email. 
+                                    Your password will remain unchanged. For additional security concerns, please contact your system administrator.
+                                </div>
+                            </div>
+                            
+                            <div class="description" style="margin-top: 24px; font-size: 12px; color: #9ca3af;">
+                                If the button above does not work, copy and paste this link into your browser:<br>
+                                <a href="' . $resetUrl . '" style="color: #dc2626; word-break: break-all;">' . $resetUrl . '</a>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td class="footer" style="border-radius: 0 0 8px 8px;">
+                            <div class="footer-text">This is an automated message from the Premium Freight System</div>
+                            <div class="footer-text">Please do not reply to this email</div>
+                            <div class="footer-copyright">© 2025 GRAMMER AG - Premium Freight System</div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>';
+    }
+
+    /**
      * Generar filas de órdenes - VERSIÓN FINAL CORREGIDA
      */
     private function generateOrderRows($orders, $approverId, $bulkApproveToken = null) {

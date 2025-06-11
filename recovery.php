@@ -1,74 +1,94 @@
 <?php
 session_start();
-require_once 'config.php'; // Include config.php to get URL constant
-$nivel = isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null;
-$name = isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null;
-$userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
-$plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
-include_once 'dao/users/auth_check.php';
+require_once 'config.php';
+
+// Verificar si hay errores de token en la URL
+$error = $_GET['error'] ?? null;
+$errorMessage = '';
+
+switch ($error) {
+    case 'invalid_token':
+        $errorMessage = 'El enlace de recuperación no es válido.';
+        break;
+    case 'token_expired':
+        $errorMessage = 'El enlace de recuperación ha expirado. Los enlaces son válidos por 24 horas.';
+        break;
+    case 'token_used':
+        $errorMessage = 'Este enlace de recuperación ya ha sido utilizado.';
+        break;
+}
 ?>
-<script>
-    window.authorizationLevel = <?php echo json_encode($nivel); ?>;
-    window.userName = <?php echo json_encode($name); ?>;
-    window.userID = <?php echo json_encode($userID); ?>;
-    window.userPlant = <?php echo json_encode($plant); ?>;
-    // Definimos la variable global de JavaScript con la URL base desde PHP
-    const URLPF = '<?php echo URLPF; ?>'; 
-    // Agregar esta línea para el mailer
-    const URLM = '<?php echo URLM; ?>'; 
-</script>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recuperación de Contraseña</title>
+    <title>Password Recovery | Premium Freight</title>
     
     <!-- Favicon -->
     <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
     
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     
-    <!-- Enlace al CDN de Font Awesome -->
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     
-    <!-- Archivos CSS locales -->
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Local CSS -->
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/header.css">
+    <link rel="stylesheet" href="css/password_reset.css">
+    
+    <script>
+        const URLPF = '<?php echo URLPF; ?>';
+        <?php if ($errorMessage): ?>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: '<?php echo addslashes($errorMessage); ?>',
+                confirmButtonText: 'Entendido'
+            });
+        });
+        <?php endif; ?>
+    </script>
 </head>
 <body>
-    <div id="header-container"></div>
-    
-    <div id="recoveryHome">
-        <div class="container">
-            <div class="row">
-                <div>
-                    <h1 id="title1">Recuperación de Contraseña</h1>
-                </div>
+    <div class="reset-container">
+        <div class="reset-card">
+            <!-- Header -->
+            <div class="reset-header">
+                <img src="assets/logo/logo.png" alt="GRAMMER" class="logo">
+                <h1>Recover Your Password</h1>
+                <p class="subtitle">Enter your email address to receive a password reset link</p>
             </div>
-        </div>
-        <div id="recoveryform-container">
-            <div id="recovery">
-                <div>
-                    <form action="recoverPassword.php" method="post" id="recovery-form">
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Correo Electrónico</label>
-                            <input type="email" class="form-control" id="email" name="email" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Recuperar Contraseña</button>
-                    </form>
+            
+            <!-- Form -->
+            <form id="recovery-form" class="reset-form">
+                <div class="form-group">
+                    <label for="email" class="form-label">
+                        <i class="fas fa-envelope"></i> Email Address
+                    </label>
+                    <input type="email" id="email" class="form-control" placeholder="Enter your email address" required>
                 </div>
-            </div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn btn-reset">
+                        <i class="fas fa-paper-plane"></i> Send Recovery Email
+                    </button>
+                </div>
+                
+                <div class="form-footer">
+                    <p><a href="index.php"><i class="fas fa-arrow-left"></i> Back to Login</a></p>
+                </div>
+            </form>
         </div>
     </div>
     
-    <footer class="text-center py-3">
-        <p>© 2025 Grammer. All rights reserved.</p>
-    </footer>
-
-    <!-- Archivos JS locales -->
-    <script src="js/header.js"></script>
+    <!-- Scripts -->
+    <script src="js/password_reset.js"></script>
 </body>
 </html>
