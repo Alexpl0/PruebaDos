@@ -79,7 +79,7 @@ function createHeader(authLevel) {
                         <img src="assets/logo/logo.png" alt="logoGRAMMER">
                     </div>
                     <div>
-                        <a href="#" class="nav__name">SPECIAL FREIGHT</a>
+                        <class="nav__name">SPECIAL FREIGHT</a>
                         ${window.userName ? `<span class="nav__profesion">${window.userName}</span>` : ''}
                     </div>
                 </div> 
