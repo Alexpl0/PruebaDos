@@ -18,6 +18,8 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
     const BASE_URL = '<?php echo URLPF; ?>'; 
     // También mantener URL para compatibilidad
     window.URL_BASE = '<?php echo URLPF; ?>';
+    // Agregar esta línea para el mailer
+    const URLM = '<?php echo URLM; ?>';
     
     // Crear objeto user con json_encode para evitar problemas de comillas
     const user = {

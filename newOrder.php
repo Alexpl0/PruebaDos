@@ -29,6 +29,8 @@ include_once 'dao/users/auth_check.php';
     window.userPlant = <?php echo json_encode($plant); ?>;
     // Definimos la variable global de JavaScript con la URL base desde PHP
     const URLPF = '<?php echo URLPF ?>'; 
+    // Agregar esta línea para el mailer
+    const URLM = '<?php echo URLM ?>'; 
 </script>
 
 <!DOCTYPE html>
