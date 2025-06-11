@@ -153,9 +153,9 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <label for="user-password" class="form-label">Password</label>
-                            <div class="input-group">
+                            <div class="password-input-wrapper">
                                 <input type="password" class="form-control" id="user-password" required>
-                                <button class="btn btn-outline-secondary toggle-password" type="button" aria-label="Toggle password visibility">
+                                <button class="password-toggle-btn" type="button" aria-label="Toggle password visibility">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </div>

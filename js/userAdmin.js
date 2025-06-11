@@ -346,17 +346,18 @@ $(document).ready(function() {
     }
     
     // Password visibility toggle for the user form
-    $(document).on('click', '.toggle-password', function() {
-        const passwordInput = $('#user-password')[0];
-        const type = passwordInput.type === 'password' ? 'text' : 'password';
-        passwordInput.type = type;
-        
-        // Change the icon depending on visibility
+    $(document).on('click', '.password-toggle-btn', function() {
+        const passwordInput = $(this).siblings('input[type="password"], input[type="text"]');
         const icon = $(this).find('i');
-        if (type === 'password') {
-            icon.removeClass('fa-eye-slash').addClass('fa-eye');
-        } else {
+        
+        if (passwordInput.attr('type') === 'password') {
+            passwordInput.attr('type', 'text');
             icon.removeClass('fa-eye').addClass('fa-eye-slash');
+            $(this).attr('aria-label', 'Hide password');
+        } else {
+            passwordInput.attr('type', 'password');
+            icon.removeClass('fa-eye-slash').addClass('fa-eye');
+            $(this).attr('aria-label', 'Show password');
         }
     });
     

@@ -147,27 +147,64 @@
     font-weight: 500;
 }
 
-.input-group .toggle-password {
-    border-radius: 0 var(--border-radius) var(--border-radius) 0;
-    border-color: var(--gray-300);
-    background-color: var(--gray-50);
-    transition: all var(--transition-fast);
+/* Password input with internal toggle button */
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
 }
 
-.input-group .toggle-password:hover {
-    background-color: var(--gray-100);
+.password-input-wrapper .form-control {
+    padding-right: 3rem; /* Make space for the button */
+    width: 100%;
 }
 
-#user-form select.form-select {
-    padding: 0.625rem 0.75rem;
-    border-radius: 6px;
-    background-position: right 0.75rem center;
-}
-
-#user-form .form-text {
+.password-toggle-btn {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
     color: #6c757d;
-    font-size: 0.85rem;
-    margin-top: 0.5rem;
+    padding: 0.25rem;
+    cursor: pointer;
+    z-index: 2;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.25rem;
+}
+
+.password-toggle-btn:hover {
+    color: #495057;
+    background-color: rgba(108, 117, 125, 0.1);
+}
+
+.password-toggle-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(3, 76, 140, 0.25);
+    color: var(--grammer-blue);
+}
+
+.password-toggle-btn .fas {
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+
+/* Remove old input-group styles for password */
+.input-group .toggle-password {
+    display: none; /* Hide old button */
+}
+
+/* Remove old password row specific styles */
+#password-row .input-group,
+#password-row .form-control,
+#password-row .toggle-password {
+    /* Remove these styles as they're no longer needed */
 }
 
 /* Form action buttons */
