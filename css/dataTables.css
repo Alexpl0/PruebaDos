@@ -199,6 +199,9 @@ button i {
     border-color: #b91c1c;
 }
 
-.dt-buttons .btn-outline-primary {
-    margin: 0;
+/* Margen 0 para botones de navegación semanal */
+#prevSemana,
+#nextSemana {
+    margin: 0 !important;
 }
+
