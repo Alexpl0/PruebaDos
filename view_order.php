@@ -35,6 +35,9 @@ $URLM = "https://grammermx.com/Mailer/PFMailer/";
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Premium Freight Order #<?php echo $orderId; ?> - Grammer AG</title>
     
+    <!-- Favicon -->
+    <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
+    
     <!-- SEO and Meta -->
     <meta name="description" content="Premium Freight Order Management System - Grammer AG">
     <meta name="author" content="Grammer AG">

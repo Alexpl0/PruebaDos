@@ -40,6 +40,9 @@ include_once 'dao/users/auth_check.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Special Freight Authorization</title>
 
+    <!-- Favicon -->
+    <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
+
     <!-- Enlace al CDN de Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 

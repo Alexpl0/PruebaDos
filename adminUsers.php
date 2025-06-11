@@ -37,7 +37,7 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
     <title>User Administration | Premium Freight</title>
     
     <!-- Favicon -->
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">

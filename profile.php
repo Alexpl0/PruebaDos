@@ -25,6 +25,8 @@ include_once 'dao/users/auth_check.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Profile - Premium Freight</title>
+    <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
+
 
     <!-- ================== SCRIPTS DE TERCEROS ================== -->
     <!-- Enlace al CDN de Font Awesome -->
