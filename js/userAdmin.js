@@ -345,7 +345,7 @@ $(document).ready(function() {
         });
     }
     
-    // Password visibility toggle for the user form
+    // Password visibility toggle - IGUAL QUE INDEX.PHP
     $(document).on('click', '.password-toggle-btn', function() {
         const passwordInput = $(this).siblings('input[type="password"], input[type="text"]');
         const icon = $(this).find('i');
