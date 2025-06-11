@@ -106,17 +106,17 @@ function calculateAuthorizationRange(quotedCost) {
 
     if (isNaN(cost)) {
         console.warn("Invalid cost value for authorization range calculation:", quotedCost);
-        return 1; // Default to lowest authorization level
+        return 4; // Default to lowest authorization level
     }
 
     if (cost <= 1500) {
-        return 1;
-    } else if (cost <= 3000) {
-        return 2;
-    } else if (cost <= 5000) {
-        return 3;
-    } else {
         return 4;
+    } else if (cost <= 3000) {
+        return 5;
+    } else if (cost <= 5000) {
+        return 6;
+    } else if (cost <= 10000) {
+        return 7;
     }
 }
 

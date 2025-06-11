@@ -218,11 +218,9 @@ class PFEmailServices {
         $orderInfo = $result->fetch_assoc();
         $currentApprovalLevel = (int)$orderInfo['current_approval_level'];
         $requiredAuthLevel = (int)$orderInfo['required_auth_level'];
-        
-        // ✅ CORREGIDO: Convertir ambos valores a int para consistencia
         $orderPlantInt = (int)$orderInfo['order_plant'];
         
-        logAction("getNextApprovers - Orden #{$orderId}: current={$currentApprovalLevel}, required={$requiredAuthLevel}, plant={$orderPlantInt} (convertido a int)", 'GETNEXTAPPROVERS');
+        logAction("getNextApprovers - Orden #{$orderId}: current={$currentApprovalLevel}, required={$requiredAuthLevel}, plant={$orderPlantInt}", 'GETNEXTAPPROVERS');
         
         // Validar estado de la orden
         if ($currentApprovalLevel >= $requiredAuthLevel) {
@@ -238,7 +236,7 @@ class PFEmailServices {
         // Calcular siguiente nivel de autorización
         $nextAuthLevel = $currentApprovalLevel + 1;
         
-        // ✅ CORREGIDO: Buscar aprobadores comparando plant como int
+        // ✅ CORREGIDO: Buscar aprobadores SIN filtro de auto-aprobación
         $approversSql = "SELECT 
                             id, 
                             name, 
@@ -248,7 +246,6 @@ class PFEmailServices {
                         FROM User 
                         WHERE authorization_level = ? 
                         AND (CAST(plant AS UNSIGNED) = ? OR plant IS NULL)
-                        AND id != ? -- Evitar auto-aprobación
                         ORDER BY 
                             CASE WHEN CAST(plant AS UNSIGNED) = ? THEN 0 ELSE 1 END, -- Priorizar misma planta
                             name";
@@ -259,32 +256,31 @@ class PFEmailServices {
             return [];
         }
         
-        $creatorId = (int)$orderInfo['user_id'];
+        logAction("getNextApprovers - Buscando aprobadores: nextAuthLevel={$nextAuthLevel}, orderPlant={$orderPlantInt} (auto-aprobación permitida)", 'GETNEXTAPPROVERS');
         
-        logAction("getNextApprovers - Buscando aprobadores: nextAuthLevel={$nextAuthLevel}, orderPlant={$orderPlantInt}, creatorId={$creatorId}", 'GETNEXTAPPROVERS');
-        
-        $approversStmt->bind_param("iiii", $nextAuthLevel, $orderPlantInt, $creatorId, $orderPlantInt);
+        // ✅ SOLO 3 PARÁMETROS: nivel, planta para filtro, planta para ordenamiento
+        $approversStmt->bind_param("iii", $nextAuthLevel, $orderPlantInt, $orderPlantInt);
         $approversStmt->execute();
         $approversResult = $approversStmt->get_result();
         
         $approvers = $approversResult->fetch_all(MYSQLI_ASSOC);
         
-        // ✅ AGREGAR: Log adicional para debugging con comparación int
+        // Log detallado del resultado
         if (empty($approvers)) {
-            // Verificar cuántos usuarios hay con el nivel requerido
+            // Debugging para entender por qué no hay aprobadores
             $debugSql = "SELECT COUNT(*) as total, 
                             GROUP_CONCAT(CONCAT(name, ' (plant:', plant, ', auth:', authorization_level, ')') SEPARATOR ', ') as users
-                         FROM User 
-                         WHERE authorization_level = ?";
+                     FROM User 
+                     WHERE authorization_level = ?";
             $debugStmt = $this->db->prepare($debugSql);
             $debugStmt->bind_param("i", $nextAuthLevel);
             $debugStmt->execute();
             $debugResult = $debugStmt->get_result();
             $debugInfo = $debugResult->fetch_assoc();
             
-            logAction("getNextApprovers - DEBUG: Usuarios con authorization_level {$nextAuthLevel}: {$debugInfo['total']} usuarios: {$debugInfo['users']}", 'GETNEXTAPPROVERS');
+            logAction("getNextApprovers - DEBUG: Usuarios totales con authorization_level {$nextAuthLevel}: {$debugInfo['total']} - {$debugInfo['users']}", 'GETNEXTAPPROVERS');
             
-            // Verificar usuarios que coincidan con la planta específicamente (como int)
+            // Debug específico para la planta
             $plantDebugSql = "SELECT COUNT(*) as total,
                                  GROUP_CONCAT(CONCAT(name, ' (plant:', plant, ', auth:', authorization_level, ')') SEPARATOR ', ') as users
                           FROM User 
@@ -295,7 +291,10 @@ class PFEmailServices {
             $plantDebugResult = $plantDebugStmt->get_result();
             $plantDebugInfo = $plantDebugResult->fetch_assoc();
             
-            logAction("getNextApprovers - DEBUG: Usuarios con auth_level {$nextAuthLevel} y plant {$orderPlantInt} (int) o NULL: {$plantDebugInfo['total']} usuarios: {$plantDebugInfo['users']}", 'GETNEXTAPPROVERS');
+            logAction("getNextApprovers - DEBUG: Para plant {$orderPlantInt}: {$plantDebugInfo['total']} usuarios - {$plantDebugInfo['users']}", 'GETNEXTAPPROVERS');
+        } else {
+            $approverNames = array_column($approvers, 'name');
+            logAction("getNextApprovers - Aprobadores encontrados: " . implode(', ', $approverNames), 'GETNEXTAPPROVERS');
         }
         
         logAction("getNextApprovers - Encontrados " . count($approvers) . " aprobadores para nivel {$nextAuthLevel}", 'GETNEXTAPPROVERS');
