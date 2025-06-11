@@ -219,7 +219,7 @@ img {
   align-items: center;
   
   /* Fondo blanco y borde circular */
-  background-color: white; /* Asegura el fondo blanco */
+  background-color: transparent; /* Asegura el fondo blanco */
   border-radius: 50%;    /* Círculo perfecto */
   
   /* Elimina desbordamiento y añade margen inferior */
@@ -397,7 +397,7 @@ img {
         width: 4vw !important;
         height: 47px !important;
     /* Propiedades clave para el círculo y fondo blanco (heredadas o reconfirmadas) */
-    background-color: white;
+    background-color: transparent;
     border-radius: 50%;
     border: 1px solid rgba(0, 0, 0, 0.1);
     overflow: hidden; /* Importante para que la imagen no se salga del círculo */

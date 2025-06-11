@@ -76,7 +76,7 @@ function createHeader(authLevel) {
                 <!-- Perfil/Logo de la aplicación -->
                 <div class="nav__perfil">
                     <div class="nav__img">
-                        <img src="assets/logo/logo.png" alt="logoGRAMMER">
+                        <img src="assets/logo/imagen.png" alt="logoGRAMMER">
                     </div>
                     <div>
                         <class="nav__name">SPECIAL FREIGHT</a>
