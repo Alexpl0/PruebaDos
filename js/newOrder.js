@@ -13,257 +13,6 @@
 // by the 'calculateAuthorizationRange' function based on the quoted cost.
 let range = 0;
 
-//==========================================================================================
-// Asynchronous function to validate and submit form data.
-// This function executes when the user clicks the form submit button.
-// It orchestrates validation, processing of new companies, payload preparation,
-// and final data submission to the server.
-async function submitForm(event) {
-    event.preventDefault();
-
-    // 1. Procesar nuevas compañías si las hay
-    let originId = null;
-    let destinyId = null;
-    
-    // Verificar si hay nuevas compañías que guardar utilizando la función de addCompany.js
-    const hasNewCompanies = window.hasNewCompaniesToSave && window.hasNewCompaniesToSave();
-    
-    if (hasNewCompanies) {
-        try {
-            const result = await window.saveNewCompanies();
-            if (result && result.success) {
-                originId = result.originId;
-                destinyId = result.destinyId;
-                console.log("New companies saved successfully. Origin ID:", originId, "Destiny ID:", destinyId);
-            } else {
-                console.error("Failed to save new companies:", result ? result.error : "Unknown error");
-                return;
-            }
-        } catch (error) {
-            console.error("Error saving new companies:", error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Failed to save new company information. Please try again.'
-            });
-            return;
-        }
-    }
-
-    // Process new carrier if needed
-    let carrierId = null;
-    const hasNewCarrier = window.hasNewCarrierToSave && window.hasNewCarrierToSave();
-
-    if (hasNewCarrier) {
-        try {
-            carrierId = await window.saveNewCarrier();
-            if (!carrierId) {
-                console.error("Failed to save new carrier");
-                return;
-            }
-        } catch (error) {
-            console.error("Error saving new carrier:", error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Failed to save new carrier information. Please try again.'
-            });
-            return;
-        }
-    }
-
-    // Get existing carrier ID if needed
-    if (!carrierId) {
-        carrierId = $('#Carrier').val();
-    }
-
-    // 2. Validar el formulario
-    const validationResult = validateCompleteForm();
-    if (!validationResult.isValid) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Validation Error',
-            text: validationResult.message || 'Please check the form for errors.'
-        });
-        return;
-    }
-
-    const formData = validationResult.formData;
-
-    // 3. Obtener los IDs de compañía (nuevos o existentes)
-    const companyValidation = validateCompanyIds();
-    if (!companyValidation.valid && !originId && !destinyId) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Company Error',
-            text: 'Please select valid origin and destination companies.'
-        });
-        return;
-    }
-
-    // Usar IDs de nuevas compañías o de la validación de compañías existentes
-    const finalOriginId = originId || companyValidation.originId;
-    const finalDestinyId = destinyId || companyValidation.destinyId;
-
-    const quotedCost = parseFloat(formData['QuotedCost']);
-    range = calculateAuthorizationRange(quotedCost);
-
-    // 4. Preparar el payload con los IDs correctos
-    const payload = {
-        user_id: window.userID || 1,
-        date: new Date().toISOString().slice(0, 19).replace('T', ' '),
-        planta: formData['planta'],
-        code_planta: formData['codeplanta'],
-        transport: formData['transport'],
-        in_out_bound: formData['InOutBound'],
-        cost_euros: (typeof euros === 'number' && !isNaN(euros)) ? euros : 0,
-        description: formData['Description'],
-        area: formData['Area'],
-        int_ext: formData['IntExt'],
-        paid_by: formData['PaidBy'],
-        category_cause: formData['CategoryCause'],
-        project_status: formData['ProjectStatus'],
-        recovery: formData['Recovery'],
-        weight: formData['Weight'],
-        measures: formData['Measures'],
-        products: formData['Products'],
-        carrier: carrierId,
-        quoted_cost: quotedCost,
-        reference: formData['Reference'],
-        reference_number: formData['ReferenceNumber'],
-        origin_id: finalOriginId,
-        destiny_id: finalDestinyId,
-        status_id: 1,
-        required_auth_level: range,
-        moneda: getSelectedCurrency()
-    };
-
-    // 5. Validaciones finales
-    if (!payload.origin_id || !payload.destiny_id) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Company Error',
-            text: 'Origin and destination company IDs are required.'
-        });
-        return;
-    }
-
-    if (!payload.cost_euros || payload.cost_euros <= 0) {
-        console.warn("Cost in euros is zero or invalid:", payload.cost_euros);
-    }
-
-    console.log("Final payload being sent:", payload);
-
-    // 6. Verificar si se necesita archivo de recuperación
-    const recoverySelect = document.getElementById('Recovery');
-    const recoveryFile = document.getElementById('recoveryFile');
-    const needsFile = !recoverySelect.options[recoverySelect.selectedIndex].text.includes('NO RECOVERY');
-    
-    // 7. Enviar el formulario principal
-    try {
-        const response = await sendFormDataAsync(payload);
-        console.log("Response from server:", response);
-        
-        if (response && response.success) {
-            console.log("Order ID from response:", response.order_id, "Full response:", response);
-            
-            const orderId = response.order_id || response.orderId || response.id || response.premium_freight_id;
-            
-            if (!orderId) {
-                console.error("Order ID is missing in server response:", response);
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Order Status Unknown',
-                    text: 'The order might have been created, but we could not determine its ID. Please check the dashboard.'
-                });
-                return;
-            }
-            
-            // Si se necesita subir un archivo de recuperación y hay un archivo seleccionado
-            if (needsFile && recoveryFile && recoveryFile.files.length > 0) {
-                try {
-                    console.log("Uploading recovery file for order ID:", orderId);
-                    
-                    const fileResponse = await uploadRecoveryFile(
-                        orderId,
-                        window.userName || 'Unknown User',
-                        recoveryFile.files[0]
-                    );
-                    
-                    if (!fileResponse || !fileResponse.success) {
-                        console.error("Error uploading recovery file:", fileResponse ? fileResponse.message : "Unknown error");
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Order Created',
-                            text: 'Order was created successfully, but there was an issue uploading the recovery file.'
-                        });
-                        return;
-                    }
-                } catch (fileError) {
-                    console.error("Exception uploading recovery file:", fileError);
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Order Created',
-                        text: 'Order was created successfully, but there was an error uploading the recovery file.'
-                    });
-                    return;
-                }
-            }
-            
-            // 8. ENVIAR NOTIFICACIÓN DE APROBACIÓN AUTOMÁTICAMENTE DESPUÉS DE CREAR LA ORDEN
-            let notificationSent = false;
-            try {
-                console.log("Sending approval notification for order:", orderId);
-                notificationSent = await sendApprovalNotification(orderId);
-                
-                if (notificationSent) {
-                    console.log("Approval notification sent successfully");
-                } else {
-                    console.warn("Failed to send approval notification");
-                }
-            } catch (notificationError) {
-                console.error("Error sending approval notification:", notificationError);
-                notificationSent = false;
-            }
-
-            // 9. Mostrar mensaje de éxito incluyendo información sobre la notificación
-            Swal.fire({
-                icon: 'success',
-                title: 'Premium Freight Order Created',
-                html: `
-                    Order #${orderId} has been created successfully.<br><br>
-                    ${notificationSent ? 
-                        '<i class="fas fa-envelope-check text-success"></i> Approval notification sent to approvers.' : 
-                        '<i class="fas fa-envelope-exclamation text-warning"></i> Order created but notification failed to send.'
-                    }
-                `,
-                timer: 5000,
-                showConfirmButton: true,
-                confirmButtonText: 'Go to Dashboard'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = 'dashboard.php';
-                }
-            });
-            
-        } else {
-            console.error("Error from server:", response ? response.message : "Unknown error");
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: response && response.message ? response.message : 'Failed to create order. Please try again.'
-            });
-        }
-    } catch (error) {
-        console.error("Exception in order submission:", error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'An unexpected error occurred. Please try again later.'
-        });
-    }
-}
-
 // Función para enviar notificación de aprobación después de crear la orden
 async function sendApprovalNotification(orderId) {
     try {
@@ -619,10 +368,266 @@ function getSelectedCurrency() {
 }
 
 /**
- * Verificación de disponibilidad de la variable URLPF
- * En caso de que el script se cargue antes que la variable esté definida
+ * Verificación de disponibilidad de las variables URLPF y URLM
+ * En caso de que los scripts se carguen antes que las variables estén definidas
  */
 if (typeof URLPF === 'undefined') {
     console.warn("URLPF variable not defined. Using default base URLPF.");
     window.URLPF = 'https://grammermx.com/Jesus/PruebaDos/';
+}
+
+if (typeof URLM === 'undefined') {
+    console.warn("URLM variable not defined. Using default base URLM.");
+    window.URLM = 'https://grammermx.com/Mailer/PFMailer/';
+}
+
+//==========================================================================================
+// Asynchronous function to validate and submit form data.
+// This function executes when the user clicks the form submit button.
+// It orchestrates validation, processing of new companies, payload preparation,
+// and final data submission to the server.
+async function submitForm(event) {
+    event.preventDefault();
+
+    // 1. Procesar nuevas compañías si las hay
+    let originId = null;
+    let destinyId = null;
+    
+    // Verificar si hay nuevas compañías que guardar utilizando la función de addCompany.js
+    const hasNewCompanies = window.hasNewCompaniesToSave && window.hasNewCompaniesToSave();
+    
+    if (hasNewCompanies) {
+        try {
+            const result = await window.saveNewCompanies();
+            if (result && result.success) {
+                originId = result.originId;
+                destinyId = result.destinyId;
+                console.log("New companies saved successfully. Origin ID:", originId, "Destiny ID:", destinyId);
+            } else {
+                console.error("Failed to save new companies:", result ? result.error : "Unknown error");
+                return;
+            }
+        } catch (error) {
+            console.error("Error saving new companies:", error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to save new company information. Please try again.'
+            });
+            return;
+        }
+    }
+
+    // Process new carrier if needed
+    let carrierId = null;
+    const hasNewCarrier = window.hasNewCarrierToSave && window.hasNewCarrierToSave();
+
+    if (hasNewCarrier) {
+        try {
+            carrierId = await window.saveNewCarrier();
+            if (!carrierId) {
+                console.error("Failed to save new carrier");
+                return;
+            }
+        } catch (error) {
+            console.error("Error saving new carrier:", error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to save new carrier information. Please try again.'
+            });
+            return;
+        }
+    }
+
+    // Get existing carrier ID if needed
+    if (!carrierId) {
+        carrierId = $('#Carrier').val();
+    }
+
+    // 2. Validar el formulario
+    const validationResult = validateCompleteForm();
+    if (!validationResult.isValid) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Validation Error',
+            text: validationResult.message || 'Please check the form for errors.'
+        });
+        return;
+    }
+
+    const formData = validationResult.formData;
+
+    // 3. Obtener los IDs de compañía (nuevos o existentes)
+    const companyValidation = validateCompanyIds();
+    if (!companyValidation.valid && !originId && !destinyId) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Company Error',
+            text: 'Please select valid origin and destination companies.'
+        });
+        return;
+    }
+
+    // Usar IDs de nuevas compañías o de la validación de compañías existentes
+    const finalOriginId = originId || companyValidation.originId;
+    const finalDestinyId = destinyId || companyValidation.destinyId;
+
+    const quotedCost = parseFloat(formData['QuotedCost']);
+    range = calculateAuthorizationRange(quotedCost);
+
+    // 4. Preparar el payload con los IDs correctos
+    const payload = {
+        user_id: window.userID || 1,
+        date: new Date().toISOString().slice(0, 19).replace('T', ' '),
+        planta: formData['planta'],
+        code_planta: formData['codeplanta'],
+        transport: formData['transport'],
+        in_out_bound: formData['InOutBound'],
+        cost_euros: (typeof euros === 'number' && !isNaN(euros)) ? euros : 0,
+        description: formData['Description'],
+        area: formData['Area'],
+        int_ext: formData['IntExt'],
+        paid_by: formData['PaidBy'],
+        category_cause: formData['CategoryCause'],
+        project_status: formData['ProjectStatus'],
+        recovery: formData['Recovery'],
+        weight: formData['Weight'],
+        measures: formData['Measures'],
+        products: formData['Products'],
+        carrier: carrierId,
+        quoted_cost: quotedCost,
+        reference: formData['Reference'],
+        reference_number: formData['ReferenceNumber'],
+        origin_id: finalOriginId,
+        destiny_id: finalDestinyId,
+        status_id: 1,
+        required_auth_level: range,
+        moneda: getSelectedCurrency()
+    };
+
+    // 5. Validaciones finales
+    if (!payload.origin_id || !payload.destiny_id) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Company Error',
+            text: 'Origin and destination company IDs are required.'
+        });
+        return;
+    }
+
+    if (!payload.cost_euros || payload.cost_euros <= 0) {
+        console.warn("Cost in euros is zero or invalid:", payload.cost_euros);
+    }
+
+    console.log("Final payload being sent:", payload);
+
+    // 6. Verificar si se necesita archivo de recuperación
+    const recoverySelect = document.getElementById('Recovery');
+    const recoveryFile = document.getElementById('recoveryFile');
+    const needsFile = !recoverySelect.options[recoverySelect.selectedIndex].text.includes('NO RECOVERY');
+    
+    // 7. Enviar el formulario principal
+    try {
+        const response = await sendFormDataAsync(payload);
+        console.log("Response from server:", response);
+        
+        if (response && response.success) {
+            console.log("Order ID from response:", response.order_id, "Full response:", response);
+            
+            const orderId = response.order_id || response.orderId || response.id || response.premium_freight_id;
+            
+            if (!orderId) {
+                console.error("Order ID is missing in server response:", response);
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Order Status Unknown',
+                    text: 'The order might have been created, but we could not determine its ID. Please check the dashboard.'
+                });
+                return;
+            }
+            
+            // Si se necesita subir un archivo de recuperación y hay un archivo seleccionado
+            if (needsFile && recoveryFile && recoveryFile.files.length > 0) {
+                try {
+                    console.log("Uploading recovery file for order ID:", orderId);
+                    
+                    const fileResponse = await uploadRecoveryFile(
+                        orderId,
+                        window.userName || 'Unknown User',
+                        recoveryFile.files[0]
+                    );
+                    
+                    if (!fileResponse || !fileResponse.success) {
+                        console.error("Error uploading recovery file:", fileResponse ? fileResponse.message : "Unknown error");
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Order Created',
+                            text: 'Order was created successfully, but there was an issue uploading the recovery file.'
+                        });
+                        return;
+                    }
+                } catch (fileError) {
+                    console.error("Exception uploading recovery file:", fileError);
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Order Created',
+                        text: 'Order was created successfully, but there was an error uploading the recovery file.'
+                    });
+                    return;
+                }
+            }
+            
+            // 8. ENVIAR NOTIFICACIÓN DE APROBACIÓN AUTOMÁTICAMENTE DESPUÉS DE CREAR LA ORDEN
+            let notificationSent = false;
+            try {
+                console.log("Sending approval notification for order:", orderId);
+                notificationSent = await sendApprovalNotification(orderId);
+                
+                if (notificationSent) {
+                    console.log("Approval notification sent successfully");
+                } else {
+                    console.warn("Failed to send approval notification");
+                }
+            } catch (notificationError) {
+                console.error("Error sending approval notification:", notificationError);
+                notificationSent = false;
+            }
+
+            // 9. Mostrar mensaje de éxito incluyendo información sobre la notificación
+            Swal.fire({
+                icon: 'success',
+                title: 'Premium Freight Order Created',
+                html: `
+                    Order #${orderId} has been created successfully.<br><br>
+                    ${notificationSent ? 
+                        '<i class="fas fa-envelope-check text-success"></i> Approval notification sent to approvers.' : 
+                        '<i class="fas fa-envelope-exclamation text-warning"></i> Order created but notification failed to send.'
+                    }
+                `,
+                timer: 5000,
+                showConfirmButton: true,
+                confirmButtonText: 'Go to Dashboard'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'dashboard.php';
+                }
+            });
+            
+        } else {
+            console.error("Error from server:", response ? response.message : "Unknown error");
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: response && response.message ? response.message : 'Failed to create order. Please try again.'
+            });
+        }
+    } catch (error) {
+        console.error("Exception in order submission:", error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An unexpected error occurred. Please try again later.'
+        });
+    }
 }
