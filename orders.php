@@ -15,9 +15,9 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
     window.role = <?php echo json_encode($role); ?>;
     window.userPlant = <?php echo json_encode($plant); ?>;
     // Definimos la variable global de JavaScript con la URL base desde PHP
-    const BASE_URL = '<?php echo URL; ?>'; 
+    const BASE_URL = '<?php echo URLPF; ?>'; 
     // También mantener URL para compatibilidad
-    window.URL_BASE = '<?php echo URL; ?>';
+    window.URL_BASE = '<?php echo URLPF; ?>';
     
     // Crear objeto user con json_encode para evitar problemas de comillas
     const user = {
