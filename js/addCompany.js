@@ -225,6 +225,21 @@
         window.URLPF = window.URLPF || 'https://grammermx.com/Jesus/PruebaDos/';
     }
 
+    /**
+     * Alias para processNewCompanies para mantener compatibilidad
+     */
+    window.saveNewCompanies = async function() {
+        const result = await window.processNewCompanies();
+        if (result.success) {
+            return {
+                success: true,
+                originId: result.newCompanyIds.origin_id,
+                destinyId: result.newCompanyIds.destiny_id
+            };
+        }
+        return { success: false };
+    };
+
     // Registra la inicialización en la consola
     console.log("Company management functions initialized and ready.");
 })();
