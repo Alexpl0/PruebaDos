@@ -547,8 +547,8 @@ const generarHistoricoSemanal = async (semanasAnteriores = 0) => {
                             <td>${item.required_auth_level || '-'}</td>
                             <td>${item.recovery_file ? 'Yes' : 'No'}</td>
                             <td>${item.recovery_evidence ? 'Yes' : 'No'}</td>
-                            <td>${item.created_at || '-'}</td>
-                            <td>${item.updated_at || '-'}</td>
+                            <td>${item.approval_date || '-'}</td>
+                            <td>${item.approval_status || '-'}</td>
                         </tr>`;
                 } catch (error) {
                     console.error('Error processing record:', error, item);
@@ -725,8 +725,8 @@ const generarHistoricoTotal = async () => {
                         <td>${item.required_auth_level || '-'}</td>
                         <td>${item.recovery_file ? 'Yes' : 'No'}</td>
                         <td>${item.recovery_evidence ? 'Yes' : 'No'}</td>
-                        <td>${item.created_at || '-'}</td>
-                        <td>${item.updated_at || '-'}</td>
+                        <td>${item.approval_date || '-'}</td>
+                        <td>${item.approval_status || '-'}</td>
                     </tr>`;
             } catch (error) {
                 console.error('Error procesando registro:', error, item);
@@ -850,8 +850,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                                         <th>Required Auth Level</th>
                                         <th>Recovery File</th>
                                         <th>Recovery Evidence</th>
-                                        <th>Created At</th>
-                                        <th>Updated At</th>
+                                        <th>Approval Date</th>
+                                        <th>Approval Status</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tableBody_historico_semanal">
@@ -911,8 +911,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                                         <th>Required Auth Level</th>
                                         <th>Recovery File</th>
                                         <th>Recovery Evidence</th>
-                                        <th>Created At</th>
-                                        <th>Updated At</th>
+                                        <th>Approval Date</th>
+                                        <th>Approval Status</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tableBody_historico_total">
