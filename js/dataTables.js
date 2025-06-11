@@ -461,16 +461,15 @@ const generarHistoricoSemanal = async (semanasAnteriores = 0) => {
         let content = '';
         
         if (datosSemanaFiltrada.length === 0) {
-            content = `<tr><td colspan="25" class="text-center">No hay datos disponibles para la semana ${targetWeek} de ${targetYear}</td></tr>`;
+            content = `<tr><td colspan="33" class="text-center">No hay datos disponibles para la semana ${targetWeek} de ${targetYear}</td></tr>`;
         } else {
-            // Generar filas para cada item filtrado
+            // Generate rows for each filtered item with ALL fields
             datosSemanaFiltrada.forEach(item => {
                 try {
-                    // Procesar fecha
                     const dateValue = item.date;
                     const issueDate = dateValue ? parseDate(dateValue) : null;
                     
-                    // Si la fecha es inválida, mostrar con valores por defecto
+                    // If date is invalid, show with default values
                     if (!issueDate) {
                         content += `
                             <tr>
@@ -478,7 +477,7 @@ const generarHistoricoSemanal = async (semanasAnteriores = 0) => {
                                 <td>Grammer AG</td>
                                 <td>${item.code_planta || '-'}</td>
                                 <td>${item.planta || '-'}</td>
-                                <td>${dateValue || 'Fecha inválida'}</td>
+                                <td>${dateValue || 'Invalid Date'}</td>
                                 <td>${item.in_out_bound || '-'}</td>
                                 <td>-</td>
                                 <td>-</td>
@@ -497,13 +496,21 @@ const generarHistoricoSemanal = async (semanasAnteriores = 0) => {
                                 <td>${item.destiny_city || '-'}</td>
                                 <td>${item.weight || '-'}</td>
                                 <td>${item.project_status || '-'}</td>
-                                <td>${item.approver_name || 'Pendiente'}</td>
+                                <td>${item.approver_name || 'Pending'}</td>
                                 <td>${item.recovery || 'N/A'}</td>
+                                <td>${item.paid_by || '-'}</td>
+                                <td>${item.products || '-'}</td>
+                                <td>${item.status_name || '-'}</td>
+                                <td>${item.required_auth_level || '-'}</td>
+                                <td>${item.recovery_file ? 'Yes' : 'No'}</td>
+                                <td>${item.recovery_evidence ? 'Yes' : 'No'}</td>
+                                <td>${item.created_at || '-'}</td>
+                                <td>${item.updated_at || '-'}</td>
                             </tr>`;
                         return;
                     }
                     
-                    // Fecha válida, calcular semana y mes
+                    // Valid date, calculate week and month
                     const issueMonth = getMonthName(issueDate);
                     const issueCW = getWeekNumber(issueDate);
                     
@@ -532,11 +539,19 @@ const generarHistoricoSemanal = async (semanasAnteriores = 0) => {
                             <td>${item.destiny_city || '-'}</td>
                             <td>${item.weight || '-'}</td>
                             <td>${item.project_status || '-'}</td>
-                            <td>${item.approver_name || 'Pendiente'}</td>
+                            <td>${item.approver_name || 'Pending'}</td>
                             <td>${item.recovery || 'N/A'}</td>
+                            <td>${item.paid_by || '-'}</td>
+                            <td>${item.products || '-'}</td>
+                            <td>${item.status_name || '-'}</td>
+                            <td>${item.required_auth_level || '-'}</td>
+                            <td>${item.recovery_file ? 'Yes' : 'No'}</td>
+                            <td>${item.recovery_evidence ? 'Yes' : 'No'}</td>
+                            <td>${item.created_at || '-'}</td>
+                            <td>${item.updated_at || '-'}</td>
                         </tr>`;
                 } catch (error) {
-                    console.error('Error procesando registro:', error, item);
+                    console.error('Error processing record:', error, item);
                 }
             });
         }
@@ -588,7 +603,7 @@ const generarHistoricoSemanal = async (semanasAnteriores = 0) => {
         // Mostrar un mensaje de error en la tabla
         const tableBody_semanal = document.getElementById('tableBody_historico_semanal');
         if (tableBody_semanal) {
-            tableBody_semanal.innerHTML = '<tr><td colspan="25" class="text-center text-danger">Error al cargar los datos</td></tr>';
+            tableBody_semanal.innerHTML = '<tr><td colspan="33" class="text-center text-danger">Error loading data</td></tr>';
         }
     }
 };
@@ -631,22 +646,17 @@ const generarHistoricoTotal = async () => {
         // Ahora itemsArray es siempre un array que podemos recorrer con forEach
         itemsArray.forEach(item => {
             try {
-                // Aquí podemos acceder al campo date de cada item
                 const dateValue = item.date;
-                
-                // Usar nuestra función parseDate en lugar de new Date directamente
                 const issueDate = dateValue ? parseDate(dateValue) : null;
                 
-                // Verificar si la fecha es válida
                 if (!issueDate) {
-                    // Usar valores por defecto para fechas inválidas
                     content += `
                         <tr>
                             <td>${item.id || '-'}</td>
                             <td>Grammer AG</td>
                             <td>${item.code_planta || '-'}</td>
                             <td>${item.planta || '-'}</td>
-                            <td>${dateValue || 'Fecha inválida'}</td>
+                            <td>${dateValue || 'Invalid Date'}</td>
                             <td>${item.in_out_bound || '-'}</td>
                             <td>-</td>
                             <td>-</td>
@@ -665,8 +675,16 @@ const generarHistoricoTotal = async () => {
                             <td>${item.destiny_city || '-'}</td>
                             <td>${item.weight || '-'}</td>
                             <td>${item.project_status || '-'}</td>
-                            <td>${item.approver_name || 'Pendiente'}</td>
+                            <td>${item.approver_name || 'Pending'}</td>
                             <td>${item.recovery || 'N/A'}</td>
+                            <td>${item.paid_by || '-'}</td>
+                            <td>${item.products || '-'}</td>
+                            <td>${item.status_name || '-'}</td>
+                            <td>${item.required_auth_level || '-'}</td>
+                            <td>${item.recovery_file ? 'Yes' : 'No'}</td>
+                            <td>${item.recovery_evidence ? 'Yes' : 'No'}</td>
+                            <td>${item.created_at || '-'}</td>
+                            <td>${item.updated_at || '-'}</td>
                         </tr>`;
                     return;
                 }
@@ -699,17 +717,24 @@ const generarHistoricoTotal = async () => {
                         <td>${item.destiny_city || '-'}</td>
                         <td>${item.weight || '-'}</td>
                         <td>${item.project_status || '-'}</td>
-                        <td>${item.approver_name || 'Pendiente'}</td>
+                        <td>${item.approver_name || 'Pending'}</td>
                         <td>${item.recovery || 'N/A'}</td>
+                        <td>${item.paid_by || '-'}</td>
+                        <td>${item.products || '-'}</td>
+                        <td>${item.status_name || '-'}</td>
+                        <td>${item.required_auth_level || '-'}</td>
+                        <td>${item.recovery_file ? 'Yes' : 'No'}</td>
+                        <td>${item.recovery_evidence ? 'Yes' : 'No'}</td>
+                        <td>${item.created_at || '-'}</td>
+                        <td>${item.updated_at || '-'}</td>
                     </tr>`;
             } catch (error) {
                 console.error('Error procesando registro:', error, item);
             }
         });
         
-        // Si no hay contenido, mostrar un mensaje
         if (!content) {
-            content = '<tr><td colspan="25" class="text-center">No hay datos disponibles</td></tr>';
+            content = '<tr><td colspan="33" class="text-center">No data available</td></tr>';
         }
         
         // Insertar el contenido en la tabla
@@ -727,7 +752,7 @@ const generarHistoricoTotal = async () => {
         // Mostrar un mensaje de error en la tabla
         const tableBody_total = document.getElementById('tableBody_historico_total');
         if (tableBody_total) {
-            tableBody_total.innerHTML = '<tr><td colspan="25" class="text-center text-danger">Error al cargar los datos</td></tr>';
+            tableBody_total.innerHTML = '<tr><td colspan="33" class="text-center text-danger">Error loading data</td></tr>';
         }
     }
 };
@@ -802,23 +827,31 @@ document.addEventListener('DOMContentLoaded', async function() {
                                         <th>Inbound/Outbound</th>
                                         <th>Issue CW</th>
                                         <th>Issue Month</th>
-                                        <th>Order</th>
-                                        <th>Issuer</th>
-                                        <th>Area of Responsibility</th>
-                                        <th>Description & Root Cause</th>
-                                        <th>Root cause category</th>
-                                        <th>Costs [€]</th>
-                                        <th>Transport mode</th>
-                                        <th>Internal/external</th>
-                                        <th>Forwarder</th>
-                                        <th>Shipper Name</th>
-                                        <th>City shipped from</th>
-                                        <th>Consignee Name</th>
-                                        <th>City shipped to</th>
-                                        <th>Chargable weight in kg</th>
-                                        <th>Status of the effected project</th>
-                                        <th>Special freight approved by</th>
-                                        <th>Recovery from whom</th>
+                                        <th>Reference Number</th>
+                                        <th>Creator</th>
+                                        <th>Area</th>
+                                        <th>Description</th>
+                                        <th>Category Cause</th>
+                                        <th>Cost [€]</th>
+                                        <th>Transport</th>
+                                        <th>Int/Ext</th>
+                                        <th>Carrier</th>
+                                        <th>Origin Company</th>
+                                        <th>Origin City</th>
+                                        <th>Destination Company</th>
+                                        <th>Destination City</th>
+                                        <th>Weight [kg]</th>
+                                        <th>Project Status</th>
+                                        <th>Approver</th>
+                                        <th>Recovery</th>
+                                        <th>Paid By</th>
+                                        <th>Products</th>
+                                        <th>Status</th>
+                                        <th>Required Auth Level</th>
+                                        <th>Recovery File</th>
+                                        <th>Recovery Evidence</th>
+                                        <th>Created At</th>
+                                        <th>Updated At</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tableBody_historico_semanal">
@@ -855,23 +888,31 @@ document.addEventListener('DOMContentLoaded', async function() {
                                         <th>Inbound/Outbound</th>
                                         <th>Issue CW</th>
                                         <th>Issue Month</th>
-                                        <th>Order</th>
-                                        <th>Issuer</th>
-                                        <th>Area of Responsibility</th>
-                                        <th>Description & Root Cause</th>
-                                        <th>Root cause category</th>
-                                        <th>Costs [€]</th>
-                                        <th>Transport mode</th>
-                                        <th>Internal/external</th>
-                                        <th>Forwarder</th>
-                                        <th>Shipper Name</th>
-                                        <th>City shipped from</th>
-                                        <th>Consignee Name</th>
-                                        <th>City shipped to</th>
-                                        <th>Chargable weight in kg</th>
-                                        <th>Status of the effected project</th>
-                                        <th>Special freight approved by</th>
-                                        <th>Recovery from whom</th>
+                                        <th>Reference Number</th>
+                                        <th>Creator</th>
+                                        <th>Area</th>
+                                        <th>Description</th>
+                                        <th>Category Cause</th>
+                                        <th>Cost [€]</th>
+                                        <th>Transport</th>
+                                        <th>Int/Ext</th>
+                                        <th>Carrier</th>
+                                        <th>Origin Company</th>
+                                        <th>Origin City</th>
+                                        <th>Destination Company</th>
+                                        <th>Destination City</th>
+                                        <th>Weight [kg]</th>
+                                        <th>Project Status</th>
+                                        <th>Approver</th>
+                                        <th>Recovery</th>
+                                        <th>Paid By</th>
+                                        <th>Products</th>
+                                        <th>Status</th>
+                                        <th>Required Auth Level</th>
+                                        <th>Recovery File</th>
+                                        <th>Recovery Evidence</th>
+                                        <th>Created At</th>
+                                        <th>Updated At</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tableBody_historico_total">
