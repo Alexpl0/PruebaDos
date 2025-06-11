@@ -155,7 +155,7 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
                             <label for="user-password" class="form-label">Password</label>
                             <div style="position: relative; display: block; width: 100%;">
                                     <input type="password" id="password" class="form-control" placeholder="Contraseña" style="padding-right: 45px;">
-                                    <i id="togglePassword" class="fas fa-eye-slash"></i>
+                                    <i id="userPassword" class="fas fa-eye-slash"></i>
                                 </div>
                             <div class="form-text">Password should be at least 8 characters long.</div>
                         </div>

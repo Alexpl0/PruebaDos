@@ -218,6 +218,24 @@
     box-shadow: var(--shadow-sm);
 }
 
+#userPassword {
+    position: absolute;
+    right: 15px; /* Aumentamos un poco la distancia del borde */
+    top: 70%;
+    transform: translateY(-100%);
+    cursor: pointer;
+    color: #6c757d;
+    width: 18px; /* Ancho fijo ligeramente mayor */
+    height: 18px; /* Altura fija también */
+    font-size: 18px !important; /* Tamaño fijo con !important */
+    line-height: 1 !important; /* Línea de altura fija */
+    display: flex; /* Usar flexbox para centrado perfecto */
+    align-items: center; /* Centrado vertical */
+    justify-content: center; /* Centrado horizontal */
+    transition: color 0.3s ease; /* Transición suave para el hover */
+    z-index: 10; /* Asegurar que esté por encima del input */
+}
+
 #user-form button[type="submit"]:hover {
     background-color: var(--grammer-dark-blue);
     transform: translateY(-1px);
