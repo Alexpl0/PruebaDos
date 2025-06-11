@@ -284,11 +284,30 @@ img {
   transition: all var(--transition-normal);
   width: 100%;
   position: relative; /* Añadido para posicionar la línea */
+  overflow: hidden; /* Para que la línea no se salga del elemento */
+}
+
+/* Línea animada para hover */
+.nav__link::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: -100%; /* Comienza fuera del elemento por la izquierda */
+  width: 100%;
+  height: 3px;
+  background-color: var(--grammer-light-blue);
+  transition: left 0.4s ease-out; /* Animación suave */
+  border-radius: 1.5px;
 }
 
 .nav__link:hover {
   background-color: rgba(255, 255, 255, 0.1);
   transform: translateX(4px);
+}
+
+/* Activar animación en hover */
+.nav__link:hover::before {
+  left: 0; /* La línea se desliza hacia su posición final */
 }
 
 .nav__link.active {
@@ -297,7 +316,7 @@ img {
   box-shadow: none; /* Elimina la sombra */
 }
 
-/* Línea azul para elemento activo */
+/* Línea azul para elemento activo (estática) */
 .nav__link.active::after {
   content: '';
   position: absolute;
@@ -423,12 +442,32 @@ img {
     text-align: center;
     border-radius: 0.25rem;
     position: relative; /* Asegura que esté presente en desktop también */
+    overflow: hidden; /* Para que la línea no se salga del elemento */
+  }
+  
+  /* Línea animada para hover en desktop */
+  .nav__link::before {
+    content: '';
+    position: absolute;
+    bottom: -2px; /* Alineada con la línea activa */
+    left: -100%;
+    width: 100%;
+    height: 3px;
+    background-color: var(--grammer-light-blue);
+    transition: left 0.3s ease-out; /* Animación más rápida en desktop */
+    border-radius: 1.5px;
   }
   
   /* Hover más sutil para desktop */
   .nav__link:hover {
     color: var(--white-color);
     background-color: rgba(255, 255, 255, 0.2);
+    transform: none; /* Removemos el translateX en desktop */
+  }
+  
+  /* Activar animación en hover para desktop */
+  .nav__link:hover::before {
+    left: 0;
   }
   
   /* Estilo activo para desktop - solo línea azul */
@@ -437,7 +476,7 @@ img {
     color: var(--white-color);
   }
   
-  /* Línea azul para elemento activo en desktop */
+  /* Línea azul para elemento activo en desktop (estática) */
   .nav__link.active::after {
     content: '';
     position: absolute;
@@ -448,6 +487,11 @@ img {
     height: 3px; /* Más gruesa en desktop para mejor visibilidad */
     background-color: var(--grammer-light-blue);
     border-radius: 1.5px;
+  }
+  
+  /* Evitar que la animación de hover interfiera con el elemento activo */
+  .nav__link.active:hover::before {
+    display: none; /* Oculta la línea de hover en el elemento activo */
   }
   
   /* Oculta elementos innecesarios en desktop */
