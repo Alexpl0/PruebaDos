@@ -16,7 +16,7 @@ switch ($error) {
     case 'token_used':
         $errorMessage = 'Este enlace de recuperación ya ha sido utilizado.';
         break;
-}
+} 
 ?>
 
 <!DOCTYPE html>
