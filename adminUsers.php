@@ -153,12 +153,10 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <label for="user-password" class="form-label">Password</label>
-                            <div class="password-input-wrapper">
-                                <input type="password" class="form-control" id="user-password" required>
-                                <button class="password-toggle-btn" type="button" aria-label="Toggle password visibility">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </div>
+                            <div style="position: relative; display: block; width: 100%;">
+                                    <input type="password" id="password" class="form-control" placeholder="Contraseña" style="padding-right: 45px;">
+                                    <i id="togglePassword" class="fas fa-eye-slash"></i>
+                                </div>
                             <div class="form-text">Password should be at least 8 characters long.</div>
                         </div>
                     </div>
