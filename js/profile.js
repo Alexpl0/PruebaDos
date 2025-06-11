@@ -91,7 +91,7 @@ function setupPasswordValidation() {
  */
 async function loadUserStats() {
     try {
-        const response = await fetch(URL + 'dao/users/daoUserStats.php');
+        const response = await fetch(URLPF + 'dao/users/daoUserStats.php');
         
         if (!response.ok) {
             throw new Error(`Server responded with status: ${response.status}`);
@@ -201,7 +201,7 @@ async function updateProfile() {
     };
     
     try {
-        const response = await fetch(URL + 'dao/users/daoUserUpdate.php', {
+        const response = await fetch(URLPF + 'dao/users/daoUserUpdate.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -254,11 +254,11 @@ async function updateProfile() {
 }
 
 /**
- * Verificación de disponibilidad de la variable URL
+ * Verificación de disponibilidad de la variable URLPF
  * En caso de que el script se cargue antes que la variable esté definida
  */
-if (typeof URL === 'undefined') {
-    console.warn('URL global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
-    // Fallback a URL hardcodeada solo como último recurso
-    window.URL = window.URL || 'https://grammermx.com/Jesus/PruebaDos/';
+if (typeof URLPF === 'undefined') {
+    console.warn('URLPF global variable is not defined. Make sure this script runs after the URLPF is defined in your PHP page.');
+    // Fallback a URLPF hardcodeada solo como último recurso
+    window.URLPF = window.URLPF || 'https://grammermx.com/Jesus/PruebaDos/';
 }
