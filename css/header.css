@@ -207,9 +207,9 @@ img {
   padding-top: 1rem;
 }
 
-/* Contenedor de imagen del logo - Versión circular perfecta (Estilos base para móvil) */
+/* Contenedor de imagen del logo - Versión cuadrada simple (Estilos base para móvil) */
 .nav__img {
-  /* Dimensiones iguales para crear un círculo perfecto */
+  /* Dimensiones cuadradas 1:1 */
   width: 56px;
   height: 56px;
   
@@ -218,24 +218,18 @@ img {
   justify-content: center;
   align-items: center;
   
-  /* Fondo blanco y borde circular */
-  background-color: transparent; /* Asegura el fondo blanco */
-  border-radius: 50%;    /* Círculo perfecto */
+  /* Sin fondo ni bordes */
+  background-color: transparent;
   
-  /* Elimina desbordamiento y añade margen inferior */
-  overflow: hidden;
+  /* Margen inferior para separar del texto */
   margin-bottom: 0.8rem;
-  
-  /* Opcional: borde sutil para definir mejor el círculo */
-  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-/* Imagen del logo - Ajuste para mantener proporción circular (Estilos base para móvil) */
+/* Imagen del logo - Ocupa todo el contenedor */
 .nav__img img {
-  /* Tamaño controlado para mantener proporción y dejar un "marco" blanco */
-  width: 75%; 
-  height: 75%; /* Usar porcentaje también en altura para mantener el aspecto dentro del círculo */
-  object-fit: contain; /* Asegura que la imagen se escale correctamente sin recortarse */
+  width: 100%; 
+  height: 100%;
+  object-fit: contain; /* Mantiene las proporciones sin recortar */
   display: block;
 }
 
@@ -338,7 +332,6 @@ img {
 
 /*============================================================================
  * NAVEGACIÓN - VERSIÓN DESKTOP
- * Header horizontal con navegación centrada
  *============================================================================*/
 @media screen and (min-width: 1000px) {
   body {
@@ -383,40 +376,37 @@ img {
   
   /* Perfil en horizontal */
   .nav__perfil {
-    display: flex; /* Asegura que es un contenedor flex */
+    display: flex;
     flex-direction: row;
-    align-items: center; /* Alinea verticalmente los items (logo y texto) */
+    align-items: center;
     text-align: left;
     padding-top: 0;
-    margin-right: 2rem; /* Espacio a la derecha del perfil */
+    margin-right: 2rem;
   }
   
-  /* Ajustes para el logo circular en DESKTOP */
+  /* Contenedor del logo cuadrado en DESKTOP */
   .nav__img {
-    /* Dimensiones para desktop, deben ser iguales para un círculo */
-        width: 4vw !important;
-        height: 47px !important;
-    /* Propiedades clave para el círculo y fondo blanco (heredadas o reconfirmadas) */
-    background-color: transparent;
-    border-radius: 50%;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    overflow: hidden; /* Importante para que la imagen no se salga del círculo */
+    /* Dimensiones cuadradas para desktop */
+    width: 50px;
+    height: 50px;
     
-    /* Ajustes de layout para desktop */
-    margin-right: 0.8rem; /* Espacio entre el logo y el texto del perfil */
-    margin-bottom: 0;     /* Resetea el margen inferior de la vista móvil */
-    
-    /* Asegura el centrado de la imagen interna */
+    /* Centrado del contenido */
     display: flex;
     justify-content: center;
     align-items: center;
+    
+    /* Sin fondo ni bordes */
+    background-color: transparent;
+    
+    /* Ajustes de layout para desktop */
+    margin-right: 0.8rem;
+    margin-bottom: 0;
   }
   
   /* Imagen del logo en DESKTOP */
   .nav__img img {
-    /* Mantiene la proporción y el "marco" blanco */
-    width: 75%; 
-    height: 75%; 
+    width: 100%;
+    height: 100%;
     object-fit: contain;
     display: block;
   }
@@ -515,14 +505,14 @@ img {
   
   /* Ajusta el tamaño del logo según el tipo de menú */
   .reduced-menu .nav__img {
-        width: 4vw !important;
-        height: calc(4vw * 0.95) !important; /* Mantener proporciones */
-    }
-    
-    .full-menu .nav__img {
-        width: 70px !important;
-        height: 47px !important;
-    }
+    width: 45px !important;
+    height: 45px !important;
+  }
+  
+  .full-menu .nav__img {
+    width: 50px !important;
+    height: 50px !important;
+  }
 }
 
 /*============================================================================
