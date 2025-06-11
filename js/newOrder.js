@@ -153,8 +153,6 @@ async function submitForm(event) {
     }
 
     console.log("Final payload being sent:", payload);
-    // console.log("Origin ID Type:", typeof payload.origin_id, "Value:", payload.origin_id);
-    // console.log("Destination ID Type:", typeof payload.destiny_id, "Value:", payload.destiny_id);
 
     // 6. Verificar si se necesita archivo de recuperación
     const recoverySelect = document.getElementById('Recovery');
@@ -164,14 +162,11 @@ async function submitForm(event) {
     // 7. Enviar el formulario principal
     try {
         const response = await sendFormDataAsync(payload);
-        console.log("Response from server:", response); // Añade este log para depuración
+        console.log("Response from server:", response);
         
         if (response && response.success) {
-            // Verifica exactamente qué estructura tiene la respuesta
             console.log("Order ID from response:", response.order_id, "Full response:", response);
             
-            // El problema puede estar aquí - el ID de la orden podría tener un nombre diferente
-            // Intenta estas alternativas
             const orderId = response.order_id || response.orderId || response.id || response.premium_freight_id;
             
             if (!orderId) {
@@ -215,27 +210,36 @@ async function submitForm(event) {
                 }
             }
             
-            // Enviar notificación de aprobación al siguiente aprobador
+            // 8. ENVIAR NOTIFICACIÓN DE APROBACIÓN AUTOMÁTICAMENTE DESPUÉS DE CREAR LA ORDEN
+            let notificationSent = false;
             try {
-                console.log("Enviando notificación al siguiente aprobador para la orden:", orderId);
+                console.log("Sending approval notification for order:", orderId);
+                notificationSent = await sendApprovalNotification(orderId);
                 
-                // Importar dinámicamente el módulo mailer
-                const mailerModule = await import('./mailer.js');
-                
-                // Llamar a la función de envío de notificación
-                await mailerModule.sendApprovalNotification(orderId);
-                
-                console.log("Notificación enviada exitosamente");
+                if (notificationSent) {
+                    console.log("Approval notification sent successfully");
+                } else {
+                    console.warn("Failed to send approval notification");
+                }
             } catch (notificationError) {
-                console.error("Error al enviar notificación:", notificationError);
-                // No mostramos error al usuario ya que la orden ya se creó correctamente
+                console.error("Error sending approval notification:", notificationError);
+                notificationSent = false;
             }
 
+            // 9. Mostrar mensaje de éxito incluyendo información sobre la notificación
             Swal.fire({
                 icon: 'success',
-                title: 'Success!',
-                text: 'Order created successfully with ID: ' + orderId,
-                confirmButtonText: 'OK'
+                title: 'Premium Freight Order Created',
+                html: `
+                    Order #${orderId} has been created successfully.<br><br>
+                    ${notificationSent ? 
+                        '<i class="fas fa-envelope-check text-success"></i> Approval notification sent to approvers.' : 
+                        '<i class="fas fa-envelope-exclamation text-warning"></i> Order created but notification failed to send.'
+                    }
+                `,
+                timer: 5000,
+                showConfirmButton: true,
+                confirmButtonText: 'Go to Dashboard'
             }).then((result) => {
                 if (result.isConfirmed) {
                     window.location.href = 'dashboard.php';
@@ -257,6 +261,41 @@ async function submitForm(event) {
             title: 'Error',
             text: 'An unexpected error occurred. Please try again later.'
         });
+    }
+}
+
+// Función para enviar notificación de aprobación después de crear la orden
+async function sendApprovalNotification(orderId) {
+    try {
+        console.log("Sending notification to:", URLM + 'PFmailNotification.php');
+        
+        const response = await fetch(URLM + 'PFmailNotification.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                orderId: orderId
+            })
+        });
+
+        if (!response.ok) {
+            console.error(`HTTP error! status: ${response.status}`);
+            return false;
+        }
+
+        const result = await response.json();
+        
+        if (result.success) {
+            console.log(`Approval notification sent for order #${orderId}`);
+            return true;
+        } else {
+            console.error(`Failed to send approval notification for order #${orderId}:`, result.message);
+            return false;
+        }
+    } catch (error) {
+        console.error('Error sending approval notification:', error);
+        return false;
     }
 }
 
