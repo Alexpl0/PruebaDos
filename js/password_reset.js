@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('user_id', userId);
         formData.append('new_password', newPassword);
         
-        fetch(URLPF + 'dao/users/password_recovery_actions.php', {
+        fetch(URLPF + 'dao/users/daoPasswordUpdate.php', {
             method: 'POST',
             body: formData
         })
