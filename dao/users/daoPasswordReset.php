@@ -21,7 +21,7 @@ try {
     require_once('../../config.php');
     debugLog("Config.php cargado");
     
-    require_once('../../db/PFDB.php');
+    require_once('../db/PFDB.php');
     debugLog("PFDB.php cargado");
     
     require_once('../../mailer/PFMailer/PFmailer.php');
