@@ -1,6 +1,9 @@
 /* Eliminamos los estilos del input-group y agregamos el estilo del icono interno */
 
 /* Estilo para el icono del ojo dentro del input */
+#togglePassword{
+    top: 70%;
+}
 .toggle-password-icon {
     position: absolute;
     right: 15px;
