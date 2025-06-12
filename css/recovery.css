@@ -10,7 +10,9 @@
 #recovery {
     width: 100%;
 }
-
+#loginform-container{
+    max-height: 75vh;
+}
 /* Iconos en botones */
 .btn i {
     margin-right: var(--spacing-xs);
