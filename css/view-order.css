@@ -220,6 +220,9 @@ body {
 .quick-actions {
     display: flex;
     gap: var(--spacing-sm);
+    align-items: center; /* Alinea todos los botones verticalmente al centro */
+    justify-content: flex-end; /* Mantiene los botones alineados a la derecha */
+    min-height: 50px; /* Altura mínima del contenedor para consistencia */
 }
 
 .action-btn-compact {
@@ -236,8 +239,12 @@ body {
     overflow: hidden;
     display: flex;
     align-items: center;
+    justify-content: center; /* Centra el contenido del botón */
     gap: var(--spacing-sm);
     font-family: var(--body-font);
+    height: 40px; /* Altura fija para todos los botones */
+    min-width: 100px; /* Ancho mínimo para consistencia */
+    white-space: nowrap; /* Evita que el texto se divida en líneas */
 }
 
 .action-btn-compact:hover {
@@ -351,11 +358,13 @@ body {
     .quick-actions {
         justify-content: center;
         flex-wrap: wrap;
+        align-items: center; /* Mantiene la alineación centrada en móvil */
     }
 
     .action-btn-compact {
         flex: 1;
         min-width: 120px;
+        height: 45px; /* Altura ligeramente mayor en móvil para mejor UX */
     }
 
     .svg-container {
