@@ -226,6 +226,7 @@ body {
 }
 
 .action-btn-compact {
+    margin: 0px;
     padding: var(--spacing-sm) var(--spacing-xl);
     border: none;
     border-radius: var(--border-radius);
