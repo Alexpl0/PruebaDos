@@ -16,6 +16,14 @@
     margin-right: var(--spacing-xs);
 }
 
+#loginform{
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 10% 5% 5% 5%;
+    max-width: 600px;
+}
+
 /* Mejorar espaciado en formulario de recovery */
 #recovery .text-center p {
     margin-bottom: var(--spacing-md);
@@ -34,6 +42,8 @@
 /* Asegurar que el formulario mantenga el estilo */
 #recovery-form {
     width: 100%;
+    border: none;
+    box-shadow: none;
 }
 
 /* Responsive adjustments */
