@@ -275,7 +275,6 @@ function isStrongPassword(password) {
 /**
  * Base URL for AJAX requests
  */
-if (typeof URLPF === 'undefined') {
-    // You can change this URL according to your environment
-    var URLPF = 'https://grammermx.com/Jesus/PruebaDos/';
+if (typeof window.URLPF === 'undefined') {
+    window.URLPF = 'https://grammermx.com/Jesus/PruebaDos/';
 }
