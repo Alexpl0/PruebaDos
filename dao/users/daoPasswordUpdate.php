@@ -23,9 +23,17 @@ try {
     $newPassword = trim($input['newPassword'] ?? '');
     
     // Validaciones
-    if (empty($token) || empty($newPassword) || $userId <= 0) {
+    $missing = [];
+    if (empty($token)) $missing[] = 'token';
+    if (empty($newPassword)) $missing[] = 'newPassword';
+    if ($userId <= 0) $missing[] = 'userId';
+
+    if (!empty($missing)) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Datos incompletos']);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Datos incompletos: falta(n) ' . implode(', ', $missing)
+        ]);
         exit;
     }
     
