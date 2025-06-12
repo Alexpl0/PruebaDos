@@ -220,10 +220,6 @@ body {
 .quick-actions {
     display: flex;
     gap: var(--spacing-sm);
-    align-items: center; /* Alinea todos los botones verticalmente al centro */
-    justify-content: flex-end; /* Mantiene la alineación a la derecha como estaba */
-    flex-wrap: wrap; /* Permite que los botones se ajusten en pantallas pequeñas */
-    min-height: 60px; /* Asegura una altura mínima para que el centrado sea visible */
 }
 
 .action-btn-compact {
@@ -242,7 +238,6 @@ body {
     align-items: center;
     gap: var(--spacing-sm);
     font-family: var(--body-font);
-    height: 40px; /* Altura fija para todos los botones */
 }
 
 .action-btn-compact:hover {
