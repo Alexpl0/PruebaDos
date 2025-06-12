@@ -220,6 +220,9 @@ body {
 .quick-actions {
     display: flex;
     gap: var(--spacing-sm);
+    justify-content: center; /* Centra los botones horizontalmente */
+    align-items: center; /* Centra verticalmente también */
+    flex-wrap: wrap; /* Permite que los botones se ajusten en pantallas pequeñas */
 }
 
 .action-btn-compact {
