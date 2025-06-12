@@ -144,7 +144,7 @@ if (!$tokenValid) {
                     </div>
                 </div>
                 
-                <div class="form-group" style="display: flex; justify-content: center;">
+                <div class="form-group" style="justify-content: center; display: flex;">
                     <button type="submit" id="reset-btn" class="btn btn-reset">
                         <i class="fas fa-key"></i> Reset Password
                     </button>
