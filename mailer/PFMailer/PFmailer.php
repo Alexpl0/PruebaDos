@@ -7,7 +7,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 // 3. Importar los archivos de la librería PHPMailer
-require '../Phpmailer/Exception.php';
+
 require '../Phpmailer/PHPMailer.php';
 require '../Phpmailer/SMTP.php';
 
