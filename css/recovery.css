@@ -17,6 +17,9 @@
 .btn i {
     margin-right: var(--spacing-xs);
 }
+button{
+    margin-top: 0;
+}
 
 #loginform{
     display: grid;
@@ -46,6 +49,7 @@
     width: 100%;
     border: none;
     box-shadow: none;
+    padding: 0;
 }
 
 /* Responsive adjustments */
