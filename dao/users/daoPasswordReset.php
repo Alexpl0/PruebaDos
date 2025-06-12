@@ -24,9 +24,6 @@ try {
     require_once('../db/PFDB.php');
     debugLog("PFDB.php cargado");
     
-    require_once('../../mailer/PFMailer/PFmailer.php');
-    debugLog("PFmailer.php cargado");
-
     header('Content-Type: application/json');
     debugLog("Headers establecidos");
 
@@ -141,14 +138,22 @@ try {
     debugLog("Token insertado exitosamente");
     
     // Enviar correo
-    debugLog("Creando instancia de PFMailer");
-    $mailer = new PFMailer();
-    debugLog("PFMailer creado, enviando email");
+    debugLog("Enviando solicitud a PFmailPasswordReset.php");
+    $response = file_get_contents(URLM . 'PFmailPasswordReset.php', false, stream_context_create([
+        'http' => [
+            'method' => 'POST',
+            'header' => 'Content-Type: application/json',
+            'content' => json_encode([
+                'email' => $email,
+                'token' => $token
+            ])
+        ]
+    ]));
     
-    $emailSent = $mailer->sendPasswordResetEmail($user, $token);
-    debugLog("Resultado envío email: " . ($emailSent ? "exitoso" : "falló"));
+    $result = json_decode($response, true);
+    debugLog("Resultado envío email: " . ($result['success'] ? "exitoso" : "falló"));
     
-    if ($emailSent) {
+    if ($result['success']) {
         debugLog("Email enviado exitosamente, enviando respuesta");
         echo json_encode([
             'success' => true,

@@ -493,53 +493,37 @@ class PFMailer {
      */
     public function sendPasswordResetEmail($user, $token) {
         try {
-            // Configurar SMTP
-            $this->mail->isSMTP();
-            $this->mail->Host = 'smtp.gmail.com';
-            $this->mail->SMTPAuth = true;
-            $this->mail->Username = 'grammermxsystem@gmail.com';
-            $this->mail->Password = 'ozgf rvhc khje dwzq';
-            $this->mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $this->mail->Port = 587;
+            logAction("Iniciando envío de email de recuperación para usuario: " . $user['email'], 'PASSWORD_RESET');
             
-            // Configurar destinatarios
-            $this->mail->setFrom('grammermxsystem@gmail.com', 'GRAMMER Premium Freight System');
+            // Limpiar destinatarios previos
+            $this->mail->clearAddresses();
             
-            if ($this->testMode) {
-                // En modo test, enviar a email de prueba
-                $this->mail->addAddress('grammermxsystem@gmail.com', 'Test User');
-                logAction("MODE TEST: Password reset email would be sent to: " . $user['email'], 'PASSWORDRESET');
+            // Configurar destinatarios según el modo
+            $this->setEmailRecipients($user['email'], $user['name']);
+            
+            // Generar el contenido del correo usando la plantilla
+            $emailContent = $this->templates->getPasswordResetTemplate($user, $token);
+            
+            // Configurar el correo
+            $this->mail->Subject = 'Password Reset Request - Premium Freight System';
+            $this->mail->Body = $emailContent;
+            
+            // Enviar el correo
+            $result = $this->mail->send();
+            
+            if ($result) {
+                logAction("Email de recuperación enviado exitosamente a: " . $user['email'], 'PASSWORD_RESET');
             } else {
-                // En producción, enviar al usuario real
-                $this->mail->addAddress($user['email'], $user['name']);
+                logAction("Error enviando email de recuperación a: " . $user['email'], 'PASSWORD_RESET');
             }
             
-            // Configurar correo
-            $this->mail->isHTML(true);
-            $this->mail->Subject = 'Password Reset Request - GRAMMER Premium Freight';
-            
-            // Generar contenido del correo
-            $this->mail->Body = $this->templates->getPasswordResetTemplate($user, $token);
-            $this->mail->AltBody = "Password reset request for " . $user['name'] . ". Please visit the link sent in the HTML version of this email.";
-            
-            // Enviar correo
-            $sent = $this->mail->send();
-            
-            if ($sent) {
-                logAction("Password reset email sent successfully to: " . $user['email'], 'PASSWORDRESET');
-                
-                // Registrar notificación
-                $this->services->logNotification(0, $user['id'], 'password_reset');
-            } else {
-                logAction("Failed to send password reset email to: " . $user['email'] . " - Error: " . $this->mail->ErrorInfo, 'PASSWORDRESET');
-            }
-            
-            return $sent;
+            return $result;
             
         } catch (Exception $e) {
-            logAction("Exception sending password reset email: " . $e->getMessage(), 'PASSWORDRESET');
+            logAction("Excepción en sendPasswordResetEmail: " . $e->getMessage(), 'PASSWORD_RESET');
             return false;
         } finally {
+            // Limpiar el estado del mailer para próximos envíos
             $this->mail->clearAddresses();
             $this->mail->clearAttachments();
         }

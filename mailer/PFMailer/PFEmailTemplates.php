@@ -723,112 +723,118 @@ class PFEmailTemplates {
      * @return string HTML del correo
      */
     public function getPasswordResetTemplate($user, $resetToken) {
-        // URL para restablecer contraseña
+        // URL para el reset de contraseña
         $resetUrl = $this->baseUrlPF . "password_reset.php?token=" . $resetToken;
-        $userName = htmlspecialchars($user['name'] ?? 'Usuario', ENT_QUOTES, 'UTF-8');
-        $userEmail = htmlspecialchars($user['email'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
+        
+        // Formatear datos de manera segura
+        $userName = htmlspecialchars($user['name'], ENT_QUOTES, 'UTF-8');
+        $userEmail = htmlspecialchars($user['email'], ENT_QUOTES, 'UTF-8');
         
         return '<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Password Reset Request</title>
+    <title>Password Reset Request - Premium Freight</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
     <style type="text/css">
         body { margin: 0; padding: 0; background-color: #f4f4f4; font-family: Georgia, "Times New Roman", serif; }
         .email-container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
-        .header { background-color: #dc2626; padding: 30px; text-align: center; }
-        .header h1 { color: #ffffff; margin: 0 0 8px 0; font-size: 22px; font-weight: 700; font-family: Georgia, serif; }
-        .header h2 { color: #fecaca; margin: 0; font-size: 16px; font-weight: 400; font-family: Georgia, serif; }
-        .content { padding: 32px; font-family: Georgia, serif; }
-        .greeting { color: #1e293b; margin: 0 0 16px 0; font-size: 16px; font-weight: 700; font-family: Georgia, serif; }
-        .description { color: #64748b; margin: 0 0 24px 0; line-height: 1.6; font-size: 14px; font-family: Georgia, serif; }
-        .warning-box { background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; padding: 16px; margin: 24px 0; }
-        .warning-text { margin: 0; color: #92400e; font-size: 13px; line-height: 1.4; font-family: Georgia, serif; font-weight: 600; }
-        .action-section { margin: 32px 0; text-align: center; }
+        .header { background-color: #034C8C; padding: 30px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0 0 8px 0; font-size: 22px; font-weight: 700; }
+        .header h2 { color: #e2e8f0; margin: 0; font-size: 16px; font-weight: 400; }
+        .content { padding: 32px; }
+        .greeting { color: #1e293b; margin: 0 0 16px 0; font-size: 18px; font-weight: 700; }
+        .message { color: #64748b; margin: 0 0 24px 0; line-height: 1.6; font-size: 14px; }
         .reset-button { 
             display: inline-block; 
-            padding: 16px 32px; 
-            background-color: #dc2626; 
-            color: white; 
+            background-color: #034C8C; 
+            color: #ffffff; 
             text-decoration: none; 
-            border-radius: 8px; 
+            padding: 12px 24px; 
+            border-radius: 6px; 
             font-weight: 700; 
-            font-size: 16px; 
-            font-family: Georgia, serif; 
-            transition: background-color 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-size: 14px; 
+            margin: 20px 0; 
         }
-        .reset-button:hover { background-color: #b91c1c; }
-        .info-box { background-color: #dbeafe; border: 1px solid #93c5fd; border-radius: 6px; padding: 16px; margin: 24px 0; }
-        .info-text { margin: 0; color: #1e3a8a; font-size: 12px; line-height: 1.4; font-family: Georgia, serif; }
-        .footer { background-color: #f8fafc; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0; }
-        .footer-text { color: #6b7280; margin: 0 0 6px 0; font-size: 11px; font-family: Georgia, serif; }
-        .footer-copyright { color: #9ca3af; margin: 0; font-size: 10px; font-family: Georgia, serif; }
+        .reset-button:hover { background-color: #023b6a; }
+        .security-note { 
+            background-color: #fef3c7; 
+            border: 1px solid #f59e0b; 
+            border-radius: 6px; 
+            padding: 16px; 
+            margin: 24px 0; 
+        }
+        .security-text { margin: 0; color: #92400e; font-size: 12px; line-height: 1.4; }
+        .footer { background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0; }
+        .footer-text { color: #6b7280; font-size: 12px; margin: 0; }
+        .url-fallback { 
+            word-break: break-all; 
+            color: #6b7280; 
+            font-size: 11px; 
+            margin: 16px 0; 
+            padding: 10px; 
+            background-color: #f8fafc; 
+            border-radius: 4px; 
+        }
     </style>
 </head>
 <body>
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f4f4f4;">
         <tr>
-            <td style="padding: 20px 0;">
-                <table class="email-container" role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+            <td align="center" valign="top">
+                <div class="email-container">
                     <!-- Header -->
-                    <tr>
-                        <td class="header" style="border-radius: 8px 8px 0 0;">
-                            <h1>🔒 Password Reset Request</h1>
-                            <h2>GRAMMER Premium Freight System</h2>
-                        </td>
-                    </tr>
+                    <div class="header">
+                        <h1>Premium Freight System</h1>
+                        <h2>Password Reset Request</h2>
+                    </div>
                     
                     <!-- Content -->
-                    <tr>
-                        <td class="content">
-                            <div class="greeting">Hello ' . $userName . ',</div>
-                            
-                            <div class="description">
-                                We received a request to reset the password for your account (<strong>' . $userEmail . '</strong>). 
-                                If you made this request, click the button below to reset your password.
+                    <div class="content">
+                        <div class="greeting">Hello ' . $userName . ',</div>
+                        
+                        <div class="message">
+                            You have requested to reset your password for the Premium Freight System. 
+                            Click the button below to create a new password for your account.
+                        </div>
+                        
+                        <div style="text-align: center;">
+                            <a href="' . $resetUrl . '" class="reset-button">Reset My Password</a>
+                        </div>
+                        
+                        <div class="message">
+                            If the button above doesn\'t work, you can copy and paste the following link into your browser:
+                        </div>
+                        
+                        <div class="url-fallback">
+                            ' . $resetUrl . '
+                        </div>
+                        
+                        <div class="security-note">
+                            <div class="security-text">
+                                <strong>Security Notice:</strong><br>
+                                • This link will expire in 24 hours<br>
+                                • If you didn\'t request this reset, please ignore this email<br>
+                                • Never share this link with anyone<br>
+                                • For security questions, contact your system administrator
                             </div>
-                            
-                            <div class="warning-box">
-                                <div class="warning-text">
-                                    ⚠️ This link will expire in 24 hours for security reasons.
-                                </div>
-                            </div>
-                            
-                            <!-- Reset Button -->
-                            <div class="action-section">
-                                <a href="' . $resetUrl . '" class="reset-button">
-                                    🔑 Reset My Password
-                                </a>
-                            </div>
-                            
-                            <div class="info-box">
-                                <div class="info-text">
-                                    💡 <strong>Security Note:</strong> If you did not request a password reset, you can safely ignore this email. 
-                                    Your password will remain unchanged. For additional security concerns, please contact your system administrator.
-                                </div>
-                            </div>
-                            
-                            <div class="description" style="margin-top: 24px; font-size: 12px; color: #9ca3af;">
-                                If the button above does not work, copy and paste this link into your browser:<br>
-                                <a href="' . $resetUrl . '" style="color: #dc2626; word-break: break-all;">' . $resetUrl . '</a>
-                            </div>
-                        </td>
-                    </tr>
+                        </div>
+                        
+                        <div class="message">
+                            If you have any questions or concerns, please contact the Premium Freight support team.
+                        </div>
+                    </div>
                     
                     <!-- Footer -->
-                    <tr>
-                        <td class="footer" style="border-radius: 0 0 8px 8px;">
-                            <div class="footer-text">This is an automated message from the Premium Freight System</div>
-                            <div class="footer-text">Please do not reply to this email</div>
-                            <div class="footer-copyright">© 2025 GRAMMER AG - Premium Freight System</div>
-                        </td>
-                    </tr>
-                </table>
+                    <div class="footer">
+                        <div class="footer-text">
+                            © ' . date('Y') . ' GRAMMER AG - Premium Freight System<br>
+                            This is an automated message, please do not reply to this email.
+                        </div>
+                    </div>
+                </div>
             </td>
         </tr>
     </table>
