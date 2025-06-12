@@ -4,7 +4,191 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    initializePasswordReset();
+    // Elementos del DOM
+    const newPasswordInput = document.getElementById('new-password');
+    const confirmPasswordInput = document.getElementById('confirm-password');
+    const resetForm = document.getElementById('reset-form');
+    const resetBtn = document.getElementById('reset-btn');
+    
+    // Elementos de indicadores
+    const strengthFill = document.querySelector('.strength-fill');
+    const strengthLevel = document.querySelector('.strength-level');
+    const matchText = document.querySelector('.match-text');
+    
+    // Funcionalidad de toggle password
+    document.querySelectorAll('.toggle-password-icon').forEach(icon => {
+        icon.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-target');
+            const targetInput = document.getElementById(targetId);
+            
+            if (targetInput.type === 'password') {
+                targetInput.type = 'text';
+                this.classList.remove('fa-eye-slash');
+                this.classList.add('fa-eye');
+            } else {
+                targetInput.type = 'password';
+                this.classList.remove('fa-eye');
+                this.classList.add('fa-eye-slash');
+            }
+        });
+    });
+    
+    // Función para evaluar fortaleza de contraseña
+    function evaluatePasswordStrength(password) {
+        let score = 0;
+        let feedback = [];
+        
+        // Longitud
+        if (password.length >= 8) score += 25;
+        else feedback.push('At least 8 characters');
+        
+        // Mayúsculas
+        if (/[A-Z]/.test(password)) score += 25;
+        else feedback.push('One uppercase letter');
+        
+        // Minúsculas
+        if (/[a-z]/.test(password)) score += 25;
+        else feedback.push('One lowercase letter');
+        
+        // Números o símbolos
+        if (/[0-9]/.test(password) || /[^A-Za-z0-9]/.test(password)) score += 25;
+        else feedback.push('One number or symbol');
+        
+        let level = 'Weak';
+        if (score >= 100) level = 'Strong';
+        else if (score >= 75) level = 'Good';
+        else if (score >= 50) level = 'Fair';
+        
+        return { score, level, feedback };
+    }
+    
+    // Actualizar indicador de fortaleza
+    function updatePasswordStrength() {
+        const password = newPasswordInput.value;
+        const { score, level } = evaluatePasswordStrength(password);
+        
+        strengthFill.style.width = score + '%';
+        strengthFill.setAttribute('aria-valuenow', score);
+        strengthLevel.textContent = level;
+        
+        // Cambiar color según el nivel
+        strengthLevel.className = 'strength-level';
+        if (level === 'Weak') strengthLevel.style.color = 'var(--danger)';
+        else if (level === 'Fair') strengthLevel.style.color = '#f59e0b';
+        else if (level === 'Good') strengthLevel.style.color = '#3b82f6';
+        else if (level === 'Strong') strengthLevel.style.color = 'var(--success)';
+    }
+    
+    // Verificar coincidencia de contraseñas
+    function checkPasswordMatch() {
+        const newPassword = newPasswordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+        
+        if (confirmPassword === '') {
+            matchText.textContent = '';
+            matchText.className = 'match-text';
+            return;
+        }
+        
+        if (newPassword === confirmPassword) {
+            matchText.textContent = '✓ Passwords match';
+            matchText.className = 'match-text match';
+        } else {
+            matchText.textContent = '✗ Passwords do not match';
+            matchText.className = 'match-text no-match';
+        }
+    }
+    
+    // Event listeners para los inputs
+    newPasswordInput.addEventListener('input', function() {
+        updatePasswordStrength();
+        checkPasswordMatch();
+    });
+    
+    confirmPasswordInput.addEventListener('input', checkPasswordMatch);
+    
+    // Manejar envío del formulario
+    resetForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const newPassword = newPasswordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+        const token = document.getElementById('reset-token').value;
+        const userId = document.getElementById('user-id').value;
+        
+        // Validaciones
+        if (!newPassword || !confirmPassword) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Please fill in all fields'
+            });
+            return;
+        }
+        
+        if (newPassword !== confirmPassword) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Passwords do not match'
+            });
+            return;
+        }
+        
+        const { score } = evaluatePasswordStrength(newPassword);
+        if (score < 50) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Weak Password',
+                text: 'Please choose a stronger password'
+            });
+            return;
+        }
+        
+        // Deshabilitar botón durante el proceso
+        resetBtn.disabled = true;
+        resetBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Resetting...';
+        
+        // Enviar solicitud
+        const formData = new FormData();
+        formData.append('action', 'reset_password');
+        formData.append('token', token);
+        formData.append('user_id', userId);
+        formData.append('new_password', newPassword);
+        
+        fetch(URLPF + 'dao/users/password_recovery_actions.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: 'Your password has been reset successfully',
+                    confirmButtonText: 'Go to Login'
+                }).then(() => {
+                    window.location.href = 'index.php';
+                });
+            } else {
+                throw new Error(data.message || 'Failed to reset password');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message || 'An error occurred while resetting your password'
+            });
+        })
+        .finally(() => {
+            // Rehabilitar botón
+            resetBtn.disabled = false;
+            resetBtn.innerHTML = '<i class="fas fa-key"></i> Reset Password';
+        });
+    });
 });
 
 function initializePasswordReset() {
