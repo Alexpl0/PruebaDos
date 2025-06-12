@@ -82,19 +82,36 @@ function initializeResetForm() {
     if (!form || !newPasswordInput || !confirmPasswordInput) return;
 
     form.addEventListener('submit', handleResetSubmit);
+    
+    // Initialize with blank strength (fixed the initial display)
+    resetPasswordStrength();
+    
+    // Add event listeners
     newPasswordInput.addEventListener('input', updatePasswordStrength);
     confirmPasswordInput.addEventListener('input', checkPasswordMatch);
 
-    // Password visibility toggle
-    document.querySelectorAll('.password-toggle').forEach(button => {
-        button.addEventListener('click', togglePasswordVisibility);
+    // Password visibility toggle - FIXED
+    const toggleButtons = document.querySelectorAll('.password-toggle');
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-target');
+            const passwordInput = document.getElementById(targetId);
+            const icon = this.querySelector('i');
+            
+            if (passwordInput && icon) {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    icon.className = 'fas fa-eye-slash';
+                } else {
+                    passwordInput.type = 'password';
+                    icon.className = 'fas fa-eye';
+                }
+            }
+        });
     });
 
     // Check URL parameters for errors
     checkUrlParameters();
-    // Initialize indicators
-    updatePasswordStrength();
-    checkPasswordMatch();
 }
 
 /**
@@ -156,6 +173,25 @@ async function handleResetSubmit(event) {
 }
 
 /**
+ * Reset password strength indicator to blank state
+ */
+function resetPasswordStrength() {
+    const strengthFill = document.querySelector('.strength-fill');
+    const strengthLevel = document.querySelector('.strength-level');
+    
+    if (strengthFill && strengthLevel) {
+        strengthFill.style.width = '0%';
+        strengthFill.style.backgroundColor = '#ccc';
+        strengthLevel.textContent = '';
+    }
+    
+    const matchText = document.querySelector('.match-text');
+    if (matchText) {
+        matchText.textContent = '';
+    }
+}
+
+/**
  * Updates the password strength indicator
  */
 function updatePasswordStrength() {
@@ -164,6 +200,12 @@ function updatePasswordStrength() {
     const strengthLevel = document.querySelector('.strength-level');
 
     if (!strengthFill || !strengthLevel) return;
+    
+    // Handle empty password
+    if (!password) {
+        resetPasswordStrength();
+        return;
+    }
 
     let strength = 0;
     if (password.length >= 8) strength++;
@@ -219,28 +261,6 @@ function checkPasswordMatch() {
     } else {
         matchText.textContent = 'Passwords do not match';
         matchText.style.color = '#e74c3c';
-    }
-}
-
-/**
- * Toggles the visibility of password fields
- */
-function togglePasswordVisibility(event) {
-    const button = event.target.closest('.password-toggle');
-    if (!button) return;
-    const targetId = button.getAttribute('data-target');
-    const input = document.getElementById(targetId);
-    const icon = button.querySelector('i');
-    if (!input || !icon) return;
-
-    if (input.type === 'password') {
-        input.type = 'text';
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
-    } else {
-        input.type = 'password';
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
     }
 }
 
