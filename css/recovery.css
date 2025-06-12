@@ -20,12 +20,15 @@
 button{
     margin-top: 0;
 }
+#home{
+    padding: 0%;
+}
 
 #loginform{
     display: grid;
     grid-template-columns: 1fr;
     gap: 20px;
-    padding: 10% 5% 5% 5%;
+    padding: 5% 5% 5% 5%;
     max-width: 600px;
 }
 
