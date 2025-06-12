@@ -1,6 +1,14 @@
 <?php
 session_start();
 
+// Lista de páginas públicas (solo para usuarios NO logueados)
+$public_pages = [
+    'index.php',
+    'register.php', 
+    'recovery.php',
+    'password_reset.php'
+];
+
 // Lista de páginas permitidas para usuarios con authorization_level 0
 $allowed_pages_level0 = [
     '/newOrder.php',
@@ -22,18 +30,24 @@ $base_name = basename($current_page);
 
 // Comprobar si el usuario ha iniciado sesión
 if (!isset($_SESSION['user'])) {
-    // Páginas públicas permitidas sin sesión
-    $public_pages = ['index.php', 'register.php', 'recovery.php'];
+    // Usuario NO logueado
+    // Solo puede acceder a páginas públicas
     if (!in_array($base_name, $public_pages)) {
         header('Location: index.php');
         exit;
     }
 } else {
-    // Ha iniciado sesión, verificar nivel de autorización
+    // Usuario SÍ está logueado
     $auth_level = isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null;
     $user_plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
     $user_name = isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null;
     $user_id = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
+    
+    // Si intenta acceder a páginas públicas estando logueado, redirigir a profile
+    if (in_array($base_name, $public_pages)) {
+        header('Location: profile.php');
+        exit;
+    }
     
     // Si el usuario tiene authorization_level 0, verificar página
     if ($auth_level === 0 || $auth_level === '0') {

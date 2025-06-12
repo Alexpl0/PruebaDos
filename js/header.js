@@ -6,13 +6,21 @@
  * 2. Navegación responsiva adaptable a diferentes tamaños de pantalla
  * 3. Interactividad del menú móvil con transiciones suaves
  * 4. Manejo dinámico del estado activo de los enlaces
+ * 5. Header simplificado para páginas públicas (login, registro, recuperación)
  */
 
 /**
  * Crea el HTML del header según el nivel de autorización del usuario
  * @param {number} authLevel - Nivel de autorización del usuario (0=usuario regular, >0=administrador)
+ * @param {boolean} isPublicPage - Si es una página pública (login, registro, recuperación)
  */
-function createHeader(authLevel) {
+function createHeader(authLevel, isPublicPage = false) {
+    // Si es una página pública, crear header simplificado
+    if (isPublicPage) {
+        createPublicHeader();
+        return;
+    }
+
     // Detecta la página actual para marcar el enlace correspondiente como activo
     const currentPage = window.location.pathname.split('/').pop() || 'index.php';
 
@@ -41,6 +49,7 @@ function createHeader(authLevel) {
         // Menú para usuario regular
         navItems += navLink('profile.php', 'My Profile', 'fas fa-user');
         navItems += navLink('newOrder.php', 'New Order', 'fas fa-plus-circle');
+        navItems += navLink('myorders.php', 'My Orders', 'fas fa-list-check');
         navItems += navLink('#', 'Manual', 'fas fa-book');
     } else {
         // Menú para administrador con opciones adicionales
@@ -99,20 +108,42 @@ function createHeader(authLevel) {
     document.getElementById('header-container').innerHTML = headerHTML;
 }
 
-// Find where your navigation links are created and add:
-const links = [
-    { url: 'profile.php', text: 'My Profile', icon: 'fas fa-user' },
-    { url: 'newOrder.php', text: 'New Order', icon: 'fas fa-plus-circle' },
-    { url: '#', text: 'Manual', icon: 'fas fa-book' },
-    { url: 'myorders.php', text: 'My Orders', icon: 'fa-list-check' }, // Add this line
-];
+/**
+ * Crea un header simplificado para páginas públicas (login, registro, recuperación)
+ */
+function createPublicHeader() {
+    const headerHTML = `
+    <header class="header public-header">
+        <!-- Solo logo centrado -->
+        <div class="public-header__content">
+            <div class="public-header__logo">
+                <img src="assets/logo/imagen.png" alt="GRAMMER" class="public-header__logo-img">
+                <span class="public-header__logo-text">SPECIAL FREIGHT</span>
+            </div>
+        </div>
+    </header>
+    `;
+
+    // Inserta el header en el contenedor designado
+    document.getElementById('header-container').innerHTML = headerHTML;
+}
 
 /**
  * Inicializa la funcionalidad del header una vez que el DOM está completamente cargado
  */
 document.addEventListener('DOMContentLoaded', function() {
+    // Detectar si es una página pública
+    const currentPage = window.location.pathname.split('/').pop() || 'index.php';
+    const publicPages = ['index.php', 'register.php', 'recovery.php', 'password_reset.php'];
+    const isPublicPage = publicPages.includes(currentPage);
+
     // Crea el header con el nivel de autorización del usuario (o 0 si no está definido)
-    createHeader(window.authorizationLevel || 0);
+    createHeader(window.authorizationLevel || 0, isPublicPage);
+
+    // Si es una página pública, no necesitamos la funcionalidad del menú móvil
+    if (isPublicPage) {
+        return;
+    }
 
     // Pequeño retraso para asegurar que todos los elementos del DOM estén disponibles
     setTimeout(function() {

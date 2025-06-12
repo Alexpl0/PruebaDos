@@ -518,6 +518,80 @@ img {
 }
 
 /*============================================================================
+ * HEADER PÚBLICO - Para páginas de login, registro y recuperación
+ * Header simplificado con solo logo y texto
+ *============================================================================*/
+.public-header {
+  width: 100vw;
+  height: var(--header-height);
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: linear-gradient(135deg, var(--grammer-blue) 0%, var(--grammer-dark-blue) 100%);
+  z-index: var(--z-fixed);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: var(--shadow-md);
+  padding: 0 var(--spacing-lg);
+}
+
+.public-header__content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 1024px;
+}
+
+.public-header__logo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.public-header__logo-img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.public-header__logo-text {
+  color: var(--white);
+  font-family: var(--body-font);
+  font-size: var(--normal-font-size);
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+/* Responsive para header público */
+@media screen and (min-width: 1000px) {
+  .public-header {
+    height: calc(var(--header-height) + 1rem);
+  }
+  
+  .public-header__logo-img {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .public-header__logo-text {
+    font-size: calc(var(--normal-font-size) + 0.2rem);
+  }
+}
+
+/* Ajuste del body para header público */
+body:has(.public-header) {
+  margin: var(--header-height) 0 0 0;
+}
+
+@media screen and (min-width: 1000px) {
+  body:has(.public-header) {
+    margin: calc(var(--header-height) + 1rem) 0 0 0;
+  }
+}
+
+/*============================================================================
  * ESTILOS PARA ICONOS Y UTILIDADES
  * Configuraciones adicionales para mejorar la apariencia
  *============================================================================*/
