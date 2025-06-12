@@ -103,6 +103,6 @@ switch ($error) {
 
     <!-- Scripts -->
     <script src="js/header.js"></script>
-    <script src="js/recovery.js"></script>
+    <script src="js/password_reset.js"></script>
 </body>
 </html>
