@@ -36,11 +36,9 @@ include_once 'dao/users/auth_check.php';
   
     <!-- Archivos CSS locales -->
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/header.css">
     
 </head>
 <body>
-    <div id="header-container"></div>
     
     <div id="home">
         <div class="container">
@@ -80,7 +78,6 @@ include_once 'dao/users/auth_check.php';
     </footer>
 
     <!-- Archivos JS locales -->
-    <script src="js/header.js"></script>
     <script>
         // Definir URLPF ANTES de cargar otros scripts
         const URLPF = '<?php echo URLPF; ?>';
