@@ -36,37 +36,39 @@ include_once 'dao/users/auth_check.php';
   
     <!-- Archivos CSS locales -->
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/header.css">
     
 </head>
 <body>
+    <div id="header-container"></div>
     
     <div id="home">
         <div class="container">
             <div class="row">
                 <div>
-                    <h1 id="title1">Bienvenido a SPECIAL FREIGHT2</h1>
+                    <h1 id="title1">Welcome to SPECIAL FREIGHT</h1>
                 </div>
             </div>
             <div id="loginform-container">
                 <div id="login">
                     <div>
-                        <h2 class="text-center">Ingresar a mi Cuenta</h2>
+                        <h2 class="text-center">Sign In to My Account</h2>
                         <div class="row text-center">
-                            <p class="text-center">Por favor ingresa tu usuario y contraseña</p>
-                            <p class="text-center">Usuario: lunetra029@davomi.com</p>
-                            <p class="text-center">Contraseña: pass123</p>
+                            <p class="text-center">Please enter your username and password</p>
+                            <p class="text-center">User: lunetra029@davomi.com</p>
+                            <p class="text-center">Password: pass123</p>
                             
                             <div id="loginform">
-                                <input type="email" id="email" class="form-control" placeholder="Correo electrónico">
+                                <input type="email" id="email" class="form-control" placeholder="Email address">
                                 <div style="position: relative; display: block; width: 100%;">
-                                    <input type="password" id="password" class="form-control" placeholder="Contraseña" style="padding-right: 45px;">
+                                    <input type="password" id="password" class="form-control" placeholder="Password" style="padding-right: 45px;">
                                     <i id="togglePassword" class="fas fa-eye-slash"></i>
                                 </div>
-                                <button id="btnLogin" class="btn btn-primary" onclick="loginUsuario()">Iniciar Sesión</button>
+                                <button id="btnLogin" class="btn btn-primary" onclick="loginUsuario()">Sign In</button>
                             </div>
                         </div>
-                        <p class="text-center">¿No tienes cuenta? <a href="register.php" style="color: var(--first-color)">Registrate</a></p>
-                        <p class="text-center">¿Olvidaste tu contraseña? <a href="recovery.php" style="color: var(--first-color)">Recuperar</a></p>
+                        <p class="text-center">Don't have an account? <a href="register.php" style="color: var(--first-color)">Sign up</a></p>
+                        <p class="text-center">Forgot your password? <a href="recovery.php" style="color: var(--first-color)">Recover</a></p>
                     </div>
                 </div>
             </div>
@@ -78,6 +80,7 @@ include_once 'dao/users/auth_check.php';
     </footer>
 
     <!-- Archivos JS locales -->
+    <script src="js/header.js"></script>
     <script>
         // Definir URLPF ANTES de cargar otros scripts
         const URLPF = '<?php echo URLPF; ?>';

@@ -1,6 +1,6 @@
 /**
  * Password Reset JavaScript
- * Maneja el envío de solicitudes de reset y el cambio de contraseña
+ * Handles reset requests and password changes
  */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -8,19 +8,19 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializePasswordReset() {
-    // Si estamos en la página de recovery, inicializar envío de email
+    // If we're on the recovery page, initialize email sending
     if (document.getElementById('recovery-form')) {
         initializeRecoveryForm();
     }
     
-    // Si estamos en la página de reset, inicializar cambio de contraseña
+    // If we're on the reset page, initialize password change
     if (document.getElementById('reset-form')) {
         initializeResetForm();
     }
 }
 
 /**
- * Inicializar formulario de solicitud de recuperación
+ * Initialize recovery request form
  */
 function initializeRecoveryForm() {
     const form = document.getElementById('recovery-form');
@@ -30,7 +30,7 @@ function initializeRecoveryForm() {
 }
 
 /**
- * Manejar envío de solicitud de recuperación
+ * Handle recovery request submission
  */
 async function handleRecoverySubmit(event) {
     event.preventDefault();
@@ -41,7 +41,7 @@ async function handleRecoverySubmit(event) {
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'Por favor ingresa tu correo electrónico.'
+            text: 'Please enter your email address.'
         });
         return;
     }
@@ -50,15 +50,15 @@ async function handleRecoverySubmit(event) {
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'Por favor ingresa un correo electrónico válido.'
+            text: 'Please enter a valid email address.'
         });
         return;
     }
     
-    // Mostrar loading
+    // Show loading
     Swal.fire({
-        title: 'Enviando solicitud...',
-        text: 'Por favor espera mientras procesamos tu solicitud',
+        title: 'Sending request...',
+        text: 'Please wait while we process your request',
         allowOutsideClick: false,
         didOpen: () => {
             Swal.showLoading();
@@ -79,35 +79,35 @@ async function handleRecoverySubmit(event) {
         if (data.success) {
             Swal.fire({
                 icon: 'success',
-                title: 'Correo enviado',
+                title: 'Email sent',
                 html: `
-                    <p>Se ha enviado un correo de recuperación a <strong>${email}</strong></p>
-                    <p><small>Revisa tu bandeja de entrada y spam. El enlace expira en 24 horas.</small></p>
+                    <p>A recovery email has been sent to <strong>${email}</strong></p>
+                    <p><small>Check your inbox and spam folder. The link expires in 24 hours.</small></p>
                 `,
-                confirmButtonText: 'Entendido'
+                confirmButtonText: 'Got it'
             }).then(() => {
-                // Limpiar formulario
+                // Clear form
                 document.getElementById('email').value = '';
             });
         } else {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: data.message || 'Error al enviar el correo de recuperación.'
+                text: data.message || 'Error sending recovery email.'
             });
         }
     } catch (error) {
         console.error('Error:', error);
         Swal.fire({
             icon: 'error',
-            title: 'Error de conexión',
-            text: 'No se pudo conectar con el servidor. Intenta nuevamente.'
+            title: 'Connection error',
+            text: 'Could not connect to server. Please try again.'
         });
     }
 }
 
 /**
- * Inicializar formulario de reset de contraseña
+ * Initialize password reset form
  */
 function initializeResetForm() {
     const form = document.getElementById('reset-form');
@@ -131,7 +131,7 @@ function initializeResetForm() {
 }
 
 /**
- * Verificar parámetros de URL para mostrar mensajes de error
+ * Check URL parameters to show error messages
  */
 function checkUrlParameters() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -139,20 +139,20 @@ function checkUrlParameters() {
     
     if (error) {
         let title = 'Error';
-        let message = 'Ha ocurrido un error.';
+        let message = 'An error has occurred.';
         
         switch (error) {
             case 'invalid_token':
-                title = 'Enlace inválido';
-                message = 'El enlace de recuperación no es válido o ha sido modificado.';
+                title = 'Invalid link';
+                message = 'The recovery link is invalid or has been modified.';
                 break;
             case 'token_expired':
-                title = 'Enlace expirado';
-                message = 'El enlace de recuperación ha expirado. Los enlaces son válidos por 24 horas.';
+                title = 'Link expired';
+                message = 'The recovery link has expired. Links are valid for 24 hours.';
                 break;
             case 'token_used':
-                title = 'Enlace ya utilizado';
-                message = 'Este enlace de recuperación ya ha sido utilizado y no puede usarse nuevamente.';
+                title = 'Link already used';
+                message = 'This recovery link has already been used and cannot be used again.';
                 break;
         }
         
@@ -160,7 +160,7 @@ function checkUrlParameters() {
             icon: 'error',
             title: title,
             text: message,
-            confirmButtonText: 'Solicitar nuevo enlace'
+            confirmButtonText: 'Request new link'
         }).then(() => {
             window.location.href = 'recovery.php';
         });
@@ -168,7 +168,7 @@ function checkUrlParameters() {
 }
 
 /**
- * Manejar envío de reset de contraseña
+ * Handle password reset submission
  */
 async function handleResetSubmit(event) {
     event.preventDefault();
@@ -178,12 +178,12 @@ async function handleResetSubmit(event) {
     const token = document.getElementById('reset-token').value;
     const userId = document.getElementById('user-id').value;
     
-    // Validaciones
+    // Validations
     if (!newPassword || !confirmPassword) {
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'Por favor completa todos los campos.'
+            text: 'Please fill in all fields.'
         });
         return;
     }
@@ -192,7 +192,7 @@ async function handleResetSubmit(event) {
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'Las contraseñas no coinciden.'
+            text: 'Passwords do not match.'
         });
         return;
     }
@@ -200,16 +200,16 @@ async function handleResetSubmit(event) {
     if (!isStrongPassword(newPassword)) {
         Swal.fire({
             icon: 'error',
-            title: 'Contraseña débil',
-            text: 'La contraseña debe tener al menos 8 caracteres, incluyendo letras y números.'
+            title: 'Weak password',
+            text: 'Password must be at least 8 characters long and include letters and numbers.'
         });
         return;
     }
     
-    // Mostrar loading
+    // Show loading
     Swal.fire({
-        title: 'Actualizando contraseña...',
-        text: 'Por favor espera',
+        title: 'Updating password...',
+        text: 'Please wait',
         allowOutsideClick: false,
         didOpen: () => {
             Swal.showLoading();
@@ -234,9 +234,9 @@ async function handleResetSubmit(event) {
         if (data.success) {
             Swal.fire({
                 icon: 'success',
-                title: '¡Contraseña actualizada!',
-                text: 'Tu contraseña ha sido cambiada exitosamente.',
-                confirmButtonText: 'Ir al login'
+                title: 'Password updated!',
+                text: 'Your password has been successfully changed.',
+                confirmButtonText: 'Go to login'
             }).then(() => {
                 window.location.href = 'index.php';
             });
@@ -244,21 +244,21 @@ async function handleResetSubmit(event) {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: data.message || 'Error al actualizar la contraseña.'
+                text: data.message || 'Error updating password.'
             });
         }
     } catch (error) {
         console.error('Error:', error);
         Swal.fire({
             icon: 'error',
-            title: 'Error de conexión',
-            text: 'No se pudo conectar con el servidor. Intenta nuevamente.'
+            title: 'Connection error',
+            text: 'Could not connect to server. Please try again.'
         });
     }
 }
 
 /**
- * Alternar visibilidad de contraseña
+ * Toggle password visibility
  */
 function togglePasswordVisibility(event) {
     const button = event.target.closest('.password-toggle');
@@ -278,7 +278,7 @@ function togglePasswordVisibility(event) {
 }
 
 /**
- * Actualizar indicador de fortaleza de contraseña
+ * Update password strength indicator
  */
 function updatePasswordStrength() {
     const password = document.getElementById('new-password').value;
@@ -294,20 +294,20 @@ function updatePasswordStrength() {
     
     let strength = 0;
     
-    // Longitud
+    // Length
     if (password.length >= 8) strength++;
     if (password.length >= 12) strength++;
     
-    // Mayúsculas y minúsculas
+    // Upper and lowercase
     if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
     
-    // Números
+    // Numbers
     if (/\d/.test(password)) strength++;
     
-    // Caracteres especiales
+    // Special characters
     if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength++;
     
-    // Actualizar UI
+    // Update UI
     strengthFill.className = 'strength-fill';
     strengthLevel.className = 'strength-level';
     
@@ -329,12 +329,12 @@ function updatePasswordStrength() {
         strengthLevel.textContent = 'Strong';
     }
     
-    // También verificar coincidencia si hay confirmación
+    // Also check match if there's confirmation
     checkPasswordMatch();
 }
 
 /**
- * Verificar coincidencia de contraseñas
+ * Check password match
  */
 function checkPasswordMatch() {
     const password = document.getElementById('new-password').value;
@@ -357,7 +357,7 @@ function checkPasswordMatch() {
 }
 
 /**
- * Validar email
+ * Validate email
  */
 function isValidEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -365,7 +365,7 @@ function isValidEmail(email) {
 }
 
 /**
- * Verificar si la contraseña es fuerte
+ * Check if password is strong
  */
 function isStrongPassword(password) {
     return password.length >= 8 && 
@@ -374,7 +374,7 @@ function isStrongPassword(password) {
 }
 
 /**
- * Verificar disponibilidad de URLPF
+ * Check URLPF availability
  */
 if (typeof URLPF === 'undefined') {
     console.warn('URLPF not defined. Using fallback.');

@@ -1,21 +1,21 @@
 /**
  * index.js
- * Maneja la funcionalidad de login para la aplicación Premium Freight
- * Incluye validación de formularios y gestión de sesiones
+ * Handles login functionality for the Premium Freight application
+ * Includes form validation and session management
  */
 
-// Funcionalidad para mostrar/ocultar contraseña
+// Functionality to show/hide password
 document.addEventListener('DOMContentLoaded', function() {
     const togglePassword = document.getElementById('togglePassword');
     const passwordInput = document.getElementById('password');
 
     if (togglePassword && passwordInput) {
         togglePassword.addEventListener('click', function() {
-            // Cambiar el tipo de input
+            // Change input type
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
             
-            // Cambiar el icono
+            // Change icon
             if (type === 'text') {
                 togglePassword.classList.remove('fa-eye-slash');
                 togglePassword.classList.add('fa-eye');
@@ -27,9 +27,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Lógica para la interacción del formulario de login al cargar la página
+// Logic for login form interaction when page loads
 document.addEventListener('DOMContentLoaded', function() {
-    // Agregar event listener para enviar el formulario con Enter
+    // Add event listener to submit form with Enter key
     const emailInput = document.getElementById('email');
     if (emailInput) {
         emailInput.addEventListener('keypress', function(e) {
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Configurar el botón de login si existe
+    // Configure login button if it exists
     const loginButton = document.getElementById('loginButton');
     if (loginButton) {
         loginButton.addEventListener('click', loginUsuario);
@@ -56,65 +56,65 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
- * Función para procesar el login de usuario
- * Valida los campos y envía la solicitud al servidor
+ * Function to process user login
+ * Validates fields and sends request to server
  */
 function loginUsuario() {
-    // Obtener valores del formulario
+    // Get form values
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value.trim();
 
-    // Validación básica del lado del cliente
+    // Basic client-side validation
     if (!email || !password) {
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'Por favor ingresa tu correo y contraseña.'
+            text: 'Please enter your email and password.'
         });
         return;
     }
     
-    // Verificar formato de email
+    // Verify email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'Por favor ingresa un correo electrónico válido.'
+            text: 'Please enter a valid email address.'
         });
         return;
     }
 
-    // Mostrar indicador de carga
+    // Show loading indicator
     Swal.fire({
-        title: 'Procesando...',
-        text: 'Verificando credenciales',
+        title: 'Processing...',
+        text: 'Verifying credentials',
         allowOutsideClick: false,
         didOpen: () => {
             Swal.showLoading();
         }
     });
 
-    // Verificar que URLPF sea un string válido antes de usarlo
+    // Verify that URLPF is a valid string before using it
     const baseURL = (typeof URLPF === 'string') ? URLPF : 'https://grammermx.com/Jesus/PruebaDos/';
-    console.log('Using base URL:', baseURL); // Para debugging
+    console.log('Using base URL:', baseURL); // For debugging
     
-    // Enviar solicitud de login al servidor usando la URL global
+    // Send login request to server using global URL
     fetch(baseURL + 'dao/users/daoLogin.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
     })
     .then(response => {
-        // Verificar si la respuesta es exitosa
+        // Check if response is successful
         if (!response.ok) {
-            throw new Error('Error en la conexión con el servidor');
+            throw new Error('Server connection error');
         }
         return response.json();
     })
     .then(data => {
         if (data.status === 'success') {
-            // Si el login es exitoso, establecer la sesión
+            // If login is successful, establish session
             fetch(baseURL + 'dao/users/loginSession.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -122,70 +122,70 @@ function loginUsuario() {
             })
             .then(sessionResponse => {
                 if (!sessionResponse.ok) {
-                    throw new Error('Error al establecer la sesión');
+                    throw new Error('Error establishing session');
                 }
                 return sessionResponse.text();
             })
             .then(() => {
-                // Crear mensaje personalizado con información de la planta
-                const userName = data.data.name || 'Usuario';
+                // Create personalized message with plant information
+                const userName = data.data.name || 'User';
                 const userPlant = data.data.plant;
                 const authLevel = data.data.authorization_level;
                 
-                let welcomeMessage = `¡Bienvenido, ${userName}!`;
+                let welcomeMessage = `Welcome, ${userName}!`;
                 
-                // Agregar información de la planta si existe
+                // Add plant information if it exists
                 if (userPlant && userPlant !== null && userPlant !== '') {
-                    welcomeMessage += `\nPlanta: ${userPlant}`;
+                    welcomeMessage += `\nPlant: ${userPlant}`;
                 } else {
-                    welcomeMessage += '\nAcceso Global (Sin planta asignada)';
+                    welcomeMessage += '\nGlobal Access (No assigned plant)';
                 }
                 
-                // Agregar nivel de autorización
-                welcomeMessage += `\nNivel de autorización: ${authLevel}`;
+                // Add authorization level
+                welcomeMessage += `\nAuthorization level: ${authLevel}`;
 
-                // Mostrar mensaje de éxito con información detallada
+                // Show success message with detailed information
                 Swal.fire({
                     icon: 'success',
-                    title: 'Inicio de Sesión Exitoso',
+                    title: 'Login Successful',
                     html: `
                         <div style="text-align: left; font-size: 14px;">
-                            <p><strong>¡Bienvenido, ${userName}!</strong></p>
-                            <p><i class="fas fa-building"></i> <strong>Planta:</strong> ${userPlant || 'Acceso Global'}</p>
-                            <p><i class="fas fa-user-shield"></i> <strong>Nivel de autorización:</strong> ${authLevel}</p>
+                            <p><strong>Welcome, ${userName}!</strong></p>
+                            <p><i class="fas fa-building"></i> <strong>Plant:</strong> ${userPlant || 'Global Access'}</p>
+                            <p><i class="fas fa-user-shield"></i> <strong>Authorization level:</strong> ${authLevel}</p>
                             <p><i class="fas fa-envelope"></i> <strong>Email:</strong> ${data.data.email}</p>
                         </div>
                     `,
                     timer: 3000,
                     showConfirmButton: true,
-                    confirmButtonText: 'Continuar'
+                    confirmButtonText: 'Continue'
                 }).then(() => {
                     window.location.href = 'newOrder.php';
                 });
             });
         } else {
-            // Mostrar mensaje de error si las credenciales son incorrectas
+            // Show error message if credentials are incorrect
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: data.mensaje || 'Credenciales incorrectas.'
+                text: data.mensaje || 'Incorrect credentials.'
             });
         }
     })
     .catch(error => {
-        // Manejar errores de red o del servidor
-        console.error('Error durante el proceso de login:', error);
+        // Handle network or server errors
+        console.error('Error during login process:', error);
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'Ocurrió un error al iniciar sesión. Por favor, intenta nuevamente.'
+            text: 'An error occurred while logging in. Please try again.'
         });
     });
 }
 
 /**
- * Verificación de disponibilidad de la variable URL
- * En caso de que el script se cargue antes que la variable esté definida
+ * Verification of URL variable availability
+ * In case the script loads before the variable is defined
  */
 if (typeof URLPF === 'undefined' || typeof URLPF === 'function' || URLPF === null) {
     console.warn('URLPF global variable is not properly defined. Using fallback URL.');
