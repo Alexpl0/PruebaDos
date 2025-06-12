@@ -1,0 +1,49 @@
+/* Recovery Page Specific Styles */
+
+/* Mantener consistencia con index.php */
+#title1 {
+    margin-top: var(--spacing-lg);
+    color: var(--gray-800);
+}
+
+/* Ajustes específicos para recovery */
+#recovery {
+    width: 100%;
+}
+
+/* Iconos en botones */
+.btn i {
+    margin-right: var(--spacing-xs);
+}
+
+/* Mejorar espaciado en formulario de recovery */
+#recovery .text-center p {
+    margin-bottom: var(--spacing-md);
+}
+
+/* Links con mejor estilo */
+#recovery a {
+    transition: color var(--transition-fast);
+    text-decoration: none;
+}
+
+#recovery a:hover {
+    text-decoration: underline;
+}
+
+/* Asegurar que el formulario mantenga el estilo */
+#recovery-form {
+    width: 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #loginform-container {
+        margin: var(--spacing-md) auto;
+        padding: var(--spacing-md);
+    }
+    
+    #title1 {
+        font-size: 1.5rem;
+    }
+}

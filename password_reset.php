@@ -2,6 +2,7 @@
 session_start();
 require_once 'config.php';
 require_once 'mailer/PFMailer/PFDB.php';
+include_once 'dao/users/auth_check.php';
 
 // Verificar que se proporcione un token
 if (!isset($_GET['token']) || empty($_GET['token'])) {
@@ -64,19 +65,30 @@ if (!$tokenValid) {
     exit;
 }
 ?>
+<script>
+    window.authorizationLevel = <?php echo json_encode(isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null); ?>;
+    window.userName = <?php echo json_encode(isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null); ?>;
+    window.userID = <?php echo json_encode(isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null); ?>;
+    // Datos del token y usuario
+    window.resetToken = '<?php echo htmlspecialchars($token, ENT_QUOTES); ?>';
+    window.userId = <?php echo $userData['user_id']; ?>;
+    window.resetUserName = '<?php echo htmlspecialchars($userData['name'], ENT_QUOTES); ?>';
+    const URLPF = '<?php echo URLPF; ?>';
+    const URLM = '<?php echo URLM; ?>'; 
+</script>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Password | Premium Freight</title>
+    <title>Reset Password - Premium Freight</title>
     
     <!-- Favicon -->
     <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
     
     <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -86,78 +98,75 @@ if (!$tokenValid) {
     
     <!-- Local CSS -->
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/password_reset.css">
-    
-    <script>
-        // Datos del token y usuario
-        window.resetToken = '<?php echo htmlspecialchars($token, ENT_QUOTES); ?>';
-        window.userId = <?php echo $userData['user_id']; ?>;
-        window.userName = '<?php echo htmlspecialchars($userData['name'], ENT_QUOTES); ?>';
-        const URLPF = '<?php echo URLPF; ?>';
-    </script>
 </head>
 <body>
-    <div class="reset-container">
-        <div class="reset-card">
-            <!-- Header -->
-            <div class="reset-header">
-                <img src="assets/logo/logo.png" alt="GRAMMER" class="logo">
-                <h1>Reset Your Password</h1>
-                <p class="subtitle">Hello <?php echo htmlspecialchars($userData['name']); ?>, enter your new password below</p>
+    <div id="header-container"></div>
+    
+    <div id="home">
+        <div class="container">
+            <div class="row">
+                <div>
+                    <h1 id="title1">Reset Your Password</h1>
+                </div>
             </div>
-            
-            <!-- Form -->
-            <form id="reset-form" class="reset-form">
-                <input type="hidden" id="reset-token" value="<?php echo htmlspecialchars($token); ?>">
-                <input type="hidden" id="user-id" value="<?php echo $userData['user_id']; ?>">
-                
-                <div class="form-group">
-                    <label for="new-password" class="form-label">
-                        <i class="fas fa-lock"></i> New Password
-                    </label>
-                    <div class="password-wrapper">
-                        <input type="password" id="new-password" class="form-control" required>
-                        <button type="button" class="password-toggle" data-target="new-password">
-                            <i class="fas fa-eye-slash"></i>
-                        </button>
-                    </div>
-                    <div class="password-strength">
-                        <div class="strength-bar">
-                            <div class="strength-fill"></div>
+            <div id="loginform-container">
+                <div id="reset">
+                    <div>
+                        <h2 class="text-center">Create New Password</h2>
+                        <div class="row text-center">
+                            <p class="text-center">Hello <strong><?php echo htmlspecialchars($userData['name']); ?></strong>, enter your new password below</p>
+                            
+                            <form id="reset-form">
+                                <input type="hidden" id="reset-token" value="<?php echo htmlspecialchars($token); ?>">
+                                <input type="hidden" id="user-id" value="<?php echo $userData['user_id']; ?>">
+                                
+                                <div id="loginform">
+                                    <!-- New Password -->
+                                    <div class="mb-3">
+                                        <div style="position: relative; display: block; width: 100%;">
+                                            <input type="password" id="new-password" class="form-control" placeholder="New Password" style="padding-right: 45px;" required>
+                                            <i class="fas fa-eye-slash toggle-password-icon" data-target="new-password"></i>
+                                        </div>
+                                        <div class="password-strength mt-2">
+                                            <div class="progress">
+                                                <div class="progress-bar strength-fill" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                            <small class="strength-text text-muted">Password strength: <span class="strength-level">Weak</span></small>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Confirm Password -->
+                                    <div class="mb-3">
+                                        <div style="position: relative; display: block; width: 100%;">
+                                            <input type="password" id="confirm-password" class="form-control" placeholder="Confirm New Password" style="padding-right: 45px;" required>
+                                            <i class="fas fa-eye-slash toggle-password-icon" data-target="confirm-password"></i>
+                                        </div>
+                                        <div class="match-indicator mt-1">
+                                            <small class="match-text"></small>
+                                        </div>
+                                    </div>
+                                    
+                                    <button type="submit" id="reset-btn" class="btn btn-primary">
+                                        <i class="fas fa-key"></i> Reset Password
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-                        <small class="strength-text">Password strength: <span class="strength-level">Weak</span></small>
+                        <p class="text-center">Remember your password? <a href="index.php" style="color: var(--first-color)"><i class="fas fa-arrow-left"></i> Back to Login</a></p>
                     </div>
                 </div>
-                
-                <div class="form-group">
-                    <label for="confirm-password" class="form-label">
-                        <i class="fas fa-lock"></i> Confirm New Password
-                    </label>
-                    <div class="password-wrapper">
-                        <input type="password" id="confirm-password" class="form-control" required>
-                        <button type="button" class="password-toggle" data-target="confirm-password">
-                            <i class="fas fa-eye-slash"></i>
-                        </button>
-                    </div>
-                    <div class="match-indicator">
-                        <small class="match-text"></small>
-                    </div>
-                </div>
-                
-                <div class="form-group" style="justify-content: center; display: flex;">
-                    <button type="submit" id="reset-btn" class="btn btn-reset">
-                        <i class="fas fa-key"></i> Reset Password
-                    </button>
-                </div>
-                
-                <div class="form-footer">
-                    <p><a href="index.php"><i class="fas fa-arrow-left"></i> Back to Login</a></p>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
+
+    <footer class="text-center py-3">
+        <p>© 2025 Grammer. All rights reserved.</p>
+    </footer>
     
     <!-- Scripts -->
+    <script src="js/header.js"></script>
     <script src="js/password_reset.js"></script>
 </body>
 </html>

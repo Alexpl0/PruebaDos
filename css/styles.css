@@ -320,7 +320,7 @@ footer{
 #togglePassword {
     position: absolute;
     right: 15px; /* Aumentamos un poco la distancia del borde */
-    top: 50%;
+    top: 70%;
     transform: translateY(-100%);
     cursor: pointer;
     color: #6c757d;
