@@ -83,28 +83,27 @@ function initializeResetForm() {
 
     form.addEventListener('submit', handleResetSubmit);
     
-    // Initialize with blank strength (fixed the initial display)
+    // Initialize with blank strength
     resetPasswordStrength();
     
     // Add event listeners
     newPasswordInput.addEventListener('input', updatePasswordStrength);
     confirmPasswordInput.addEventListener('input', checkPasswordMatch);
 
-    // Password visibility toggle - FIXED
-    const toggleButtons = document.querySelectorAll('.password-toggle');
-    toggleButtons.forEach(button => {
-        button.addEventListener('click', function() {
+    // FIX: Change class selector to match HTML
+    const toggleIcons = document.querySelectorAll('.toggle-password-icon');
+    toggleIcons.forEach(icon => {
+        icon.addEventListener('click', function() {
             const targetId = this.getAttribute('data-target');
             const passwordInput = document.getElementById(targetId);
-            const icon = this.querySelector('i');
             
-            if (passwordInput && icon) {
+            if (passwordInput) {
                 if (passwordInput.type === 'password') {
                     passwordInput.type = 'text';
-                    icon.className = 'fas fa-eye-slash';
+                    this.className = 'fas fa-eye toggle-password-icon';
                 } else {
                     passwordInput.type = 'password';
-                    icon.className = 'fas fa-eye';
+                    this.className = 'fas fa-eye-slash toggle-password-icon';
                 }
             }
         });
@@ -160,7 +159,8 @@ async function handleResetSubmit(event) {
 
         if (result.success) {
             Swal.fire('Success', result.message, 'success').then(() => {
-                window.location.href = 'login.html';
+                // CHANGED: Redirecting to index.php instead of login.html
+                window.location.href = 'index.php';
             });
         } else {
             Swal.fire('Error', result.message || 'Could not update the password.', 'error');
