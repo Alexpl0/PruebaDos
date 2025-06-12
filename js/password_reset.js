@@ -378,5 +378,5 @@ function isStrongPassword(password) {
  */
 if (typeof URLPF === 'undefined') {
     console.warn('URLPF not defined. Using fallback.');
-    window.URLPF = window.URLPF || 'https://grammermx.com/Jesus/PruebaDos/';
+    const URLPF = 'https://grammermx.com/Jesus/PruebaDos/';
 }
