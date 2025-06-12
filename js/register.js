@@ -15,8 +15,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Set up password visibility toggle
-    const togglePassword = document.querySelector('.toggle-password');
-    const passwordInput = document.querySelector('#password');
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
     
     if (togglePassword && passwordInput) {
         togglePassword.addEventListener('click', function() {
@@ -24,13 +24,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
             
-            // Toggle the icon - cambio a FontAwesome
-            const iconClass = type === 'password' ? 'fa-eye' : 'fa-eye-slash';
-            this.innerHTML = `<i class="fas ${iconClass}"></i>`;
+            // Cambiar el icono
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
         });
-        
-        // Inicializar con el icono FontAwesome
-        togglePassword.innerHTML = '<i class="fas fa-eye"></i>';
     }
     
     // Add password strength validation

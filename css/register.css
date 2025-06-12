@@ -1,3 +1,28 @@
+/* Eliminamos los estilos del input-group y agregamos el estilo del icono interno */
+
+/* Estilo para el icono del ojo dentro del input */
+.toggle-password-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #6c757d;
+    width: 18px;
+    height: 18px;
+    font-size: 18px !important;
+    line-height: 1 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.3s ease;
+    z-index: 10;
+}
+
+.toggle-password-icon:hover {
+    color: var(--grammer-blue);
+}
+
 /* Estilos para el formulario de registro */
 #registerform-container {
     max-width: 600px;
@@ -8,20 +33,7 @@
     box-shadow: var(--shadow-lg);
 }
 
-/* Estilos para el grupo de input de contraseña */
-.input-group {
-    display: flex;
-    align-items: stretch;
-    width: 100%;
-    height: 38px;
-}
-
 .form-control {
-    flex: 0.95;
-    border-right: none;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    margin: 0;
     border: 1px solid var(--gray-300);
     transition: all var(--transition-fast);
     box-shadow: var(--shadow-sm);
@@ -30,35 +42,6 @@
 .form-control:focus {
     border-color: var(--grammer-blue);
     box-shadow: 0 0 0 0.25rem rgba(3, 76, 140, 0.25);
-}
-
-.input-group .toggle-password {
-    flex: 0.05;
-    min-width: 40px;
-    height: 100%;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-    z-index: 0;
-    margin: 0;
-    background-color: var(--gray-50);
-    border: 1px solid var(--gray-300);
-    border-left: none;
-    transition: all var(--transition-fast);
-}
-
-.input-group .toggle-password:hover {
-    background-color: var(--gray-100);
-}
-
-/* Ajuste para pantallas pequeñas */
-@media (max-width: 576px) {
-    .input-group .toggle-password {
-        min-width: 38px;
-    }
 }
 
 #title1{
@@ -81,4 +64,10 @@
 #password:focus, #name:focus {
     border-color: var(--grammer-blue);
     box-shadow: 0 0 0 0.25rem rgba(3, 76, 140, 0.25);
+}
+
+/* Asegurar que el contenedor relativo mantenga su altura */
+div[style*="position: relative"] {
+    display: block;
+    width: 100%;
 }

@@ -42,7 +42,7 @@ include_once 'dao/users/auth_check.php';
         <div class="container">
             <div class="row">
                 <div>
-                    <h1 id="title1">Add New User</h1>
+                    <h1 id="title1">Register New User</h1>
                 </div>
             </div>
         </div>
@@ -70,11 +70,9 @@ include_once 'dao/users/auth_check.php';
                         </div>
                         <div id="passwordInput" class="mb-3">
                             <label for="password" class="form-label">Password</label>
-                            <div class="input-group">
-                                <input type="password" class="form-control" id="password" name="password" required>
-                                <button class="btn btn-outline-secondary toggle-password" type="button">
-                                    <i class="fas fa-eye"></i>
-                                </button>
+                            <div style="position: relative; display: block; width: 100%;">
+                                <input type="password" class="form-control" id="password" name="password" required style="padding-right: 45px;">
+                                <i id="togglePassword" class="fas fa-eye-slash toggle-password-icon"></i>
                             </div>
                             <div id="passwordStrength" class="form-text mt-2">
                                 <div class="progress">
