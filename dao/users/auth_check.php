@@ -6,14 +6,14 @@ $public_pages = [
     'index.php',
     'register.php', 
     'recovery.php',
-    'password_reset.php'
+    'password_reset.php'  // Esta línea ya existe, pero necesitamos agregar más lógica
 ];
 
 // Lista de páginas permitidas para usuarios con authorization_level 0
 $allowed_pages_level0 = [
     '/newOrder.php',
     '/profile.php',
-    '/myorders.php'  // Agregamos myorders.php para que usuarios nivel 0 vean sus órdenes
+    '/myorders.php'
 ];
 
 // Lista de páginas restringidas para usuarios con authorization_level 0
@@ -21,12 +21,12 @@ $restricted_pages_level0 = [
     '/orders.php',
     '/adminUsers.php',
     '/dashboard.php',
-    '/view_order.php'  // Mantenemos view_order.php restringida para usuarios nivel 0
+    '/view_order.php'
 ];
 
 // Obtener la ruta actual
 $current_page = $_SERVER['REQUEST_URI'];
-$base_name = basename($current_page);
+$base_name = basename(parse_url($current_page, PHP_URL_PATH)); // Usar parse_url para manejar parámetros
 
 // Comprobar si el usuario ha iniciado sesión
 if (!isset($_SESSION['user'])) {
@@ -43,8 +43,20 @@ if (!isset($_SESSION['user'])) {
     $user_name = isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null;
     $user_id = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
     
-    // Si intenta acceder a páginas públicas estando logueado, redirigir a profile
-    if (in_array($base_name, $public_pages)) {
+    // EXCEPCIÓN: password_reset.php debe ser accesible independientemente del estado de sesión
+    // si tiene un token válido, ya que puede ser usado por usuarios logueados o no logueados
+    if ($base_name === 'password_reset.php') {
+        // Permitir acceso si hay un token en la URL
+        if (isset($_GET['token']) && !empty($_GET['token'])) {
+            // No hacer nada, permitir que la página procese el token
+        } else {
+            // Si no hay token, redirigir a recovery
+            header('Location: recovery.php');
+            exit;
+        }
+    }
+    // Si intenta acceder a otras páginas públicas estando logueado, redirigir a profile
+    elseif (in_array($base_name, $public_pages) && $base_name !== 'password_reset.php') {
         header('Location: profile.php');
         exit;
     }
