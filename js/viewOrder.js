@@ -98,7 +98,7 @@ async function loadOrderData() {
  */
 async function loadProgressData() {
     try {
-        const response = await fetch(`${window.PF_CONFIG.baseURL}dao/conections/daoOrderProgress.php?orderId=${window.PF_CONFIG.orderId}`, {
+        const response = await fetch(`${window.PF_CONFIG.baseURL}dao/users/daoOrderProgress.php?orderId=${window.PF_CONFIG.orderId}`, {
             method: 'GET',
             credentials: 'same-origin',
             headers: {
