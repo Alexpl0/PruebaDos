@@ -52,6 +52,7 @@ $URLM = "https://grammermx.com/Mailer/PFMailer/";
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/view-order.css">
+    <link rel="stylesheet" href="css/progress-line.css">
     
     <!-- External JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -143,6 +144,27 @@ $URLM = "https://grammermx.com/Mailer/PFMailer/";
                     <i class="fas fa-times-circle"></i>
                     Reject
                 </button>
+            </div>
+        </div>
+
+        <!-- ===== PROGRESS LINE SECTION ===== -->
+        <div id="progressSection" class="progress-section hidden">
+            <div class="progress-header">
+                <h3 class="progress-title">Approval Progress</h3>
+                <p class="progress-subtitle">Track your order through the approval process</p>
+            </div>
+            
+            <div class="progress-line-container">
+                <div class="progress-background-line"></div>
+                <div class="progress-active-line" style="width: 0%"></div>
+                
+                <div class="progress-checkpoints">
+                    <!-- Checkpoints will be populated by JavaScript -->
+                </div>
+                
+                <div class="progress-truck moving" style="left: 0%">
+                    <i class="fa-solid fa-truck-fast"></i>
+                </div>
             </div>
         </div>
 

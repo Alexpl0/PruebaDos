@@ -7,6 +7,7 @@
  * - PDF generation
  * - Navigation controls
  * - Real-time order status updates
+ * - Progress line for order creators
  */
 
 // Import required modules
@@ -19,6 +20,7 @@ import { showLoading } from './utils.js';
  */
 let currentOrder = null;
 let isLoading = false;
+let progressData = null;
 
 /**
  * Initialize the view order page when DOM is loaded
@@ -92,6 +94,137 @@ async function loadOrderData() {
 }
 
 /**
+ * Load progress data for the order (only for creators)
+ */
+async function loadProgressData() {
+    try {
+        const response = await fetch(`${window.PF_CONFIG.baseURL}dao/conections/daoOrderProgress.php?orderId=${window.PF_CONFIG.orderId}`, {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && data.showProgress) {
+            progressData = data;
+            renderProgressLine();
+        }
+        
+    } catch (error) {
+        console.warn('Could not load progress data:', error.message);
+        // No mostrar error al usuario, simplemente no mostrar la línea de progreso
+    }
+}
+
+/**
+ * Render the progress line
+ */
+function renderProgressLine() {
+    if (!progressData || !progressData.showProgress) {
+        return;
+    }
+    
+    const progressSection = document.getElementById('progressSection');
+    const checkpointsContainer = document.querySelector('.progress-checkpoints');
+    const activeLine = document.querySelector('.progress-active-line');
+    const truck = document.querySelector('.progress-truck');
+    
+    if (!progressSection || !checkpointsContainer || !activeLine || !truck) {
+        return;
+    }
+    
+    // Mostrar la sección de progreso
+    progressSection.classList.remove('hidden');
+    
+    // Limpiar checkpoints existentes
+    checkpointsContainer.innerHTML = '';
+    
+    // Crear checkpoints
+    progressData.approvers.forEach((approver, index) => {
+        const checkpoint = document.createElement('div');
+        checkpoint.className = 'checkpoint';
+        
+        let circleClass = 'pending';
+        if (approver.isCompleted) {
+            circleClass = 'completed';
+        } else if (approver.isCurrent) {
+            circleClass = 'current';
+        } else if (approver.isRejectedHere) {
+            circleClass = 'rejected';
+        }
+        
+        checkpoint.innerHTML = `
+            <div class="checkpoint-circle ${circleClass}">
+                ${approver.authorization_level}
+                ${approver.isRejectedHere ? `
+                    <button class="rejection-info-btn" onclick="showRejectionReason('${approver.name}')">
+                        <i class="fas fa-question"></i>
+                    </button>
+                ` : ''}
+            </div>
+            <div class="checkpoint-info">
+                <div class="checkpoint-name">${approver.name}</div>
+                <div class="checkpoint-role">(${approver.role})</div>
+            </div>
+        `;
+        
+        checkpointsContainer.appendChild(checkpoint);
+    });
+    
+    // Configurar línea de progreso
+    const isRejected = progressData.orderInfo.is_rejected;
+    
+    if (isRejected) {
+        activeLine.classList.add('rejected');
+        truck.classList.remove('moving');
+        truck.classList.add('crashed');
+        truck.innerHTML = '<i class="fa-solid fa-car-burst"></i>';
+    } else {
+        activeLine.classList.remove('rejected');
+        truck.classList.add('moving');
+        truck.classList.remove('crashed');
+        truck.innerHTML = '<i class="fa-solid fa-truck-fast"></i>';
+    }
+    
+    // Animar progreso con delay para efecto visual
+    setTimeout(() => {
+        activeLine.style.width = `${progressData.progress.percentage}%`;
+        truck.style.left = `${Math.max(0, progressData.progress.percentage - 2)}%`;
+    }, 500);
+}
+
+/**
+ * Show rejection reason dialog
+ */
+window.showRejectionReason = function(approverName) {
+    const rejectionReason = progressData?.orderInfo?.rejection_reason;
+    
+    let message;
+    if (rejectionReason && rejectionReason.trim() !== '') {
+        message = `<strong>Rejection Reason:</strong><br><br>"${rejectionReason}"<br><br><small>- ${approverName}</small>`;
+    } else {
+        message = `No specific reason was provided for the rejection.<br><br>Please contact <strong>${approverName}</strong> for more information about why this order was rejected.`;
+    }
+    
+    Swal.fire({
+        icon: 'info',
+        title: 'Order Rejection Information',
+        html: message,
+        confirmButtonText: 'Understood',
+        confirmButtonColor: '#6c757d',
+        customClass: { container: 'swal-on-top' }
+    });
+};
+
+/**
  * Main initialization function
  */
 async function initializeViewOrder() {
@@ -101,6 +234,9 @@ async function initializeViewOrder() {
         
         // Set current order for other functions
         currentOrder = orderData;
+        
+        // Load progress data (only shows if user is creator)
+        await loadProgressData();
         
         // Initialize UI components
         await initializeOrderDisplay();
@@ -320,6 +456,9 @@ async function handleApprovalClick(event) {
         
         await refreshOrderData();
         
+        // Refresh progress data after approval
+        await loadProgressData();
+        
     } catch (error) {
         showErrorMessage('Failed to approve order: ' + error.message);
     } finally {
@@ -340,6 +479,9 @@ async function handleRejectionClick(event) {
         sessionStorage.setItem('selectedOrderId', currentOrder.id.toString());
         await handleReject();
         await refreshOrderData();
+        
+        // Refresh progress data after rejection
+        await loadProgressData();
     } catch (error) {
         showErrorMessage('Failed to reject order: ' + error.message);
     } finally {

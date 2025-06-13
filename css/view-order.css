@@ -338,6 +338,232 @@ body {
     100% { transform: rotate(360deg); }
 }
 
+/* ===== PROGRESS LINE STYLES FOR ORDER APPROVAL TRACKING ===== */
+.progress-section {
+    background: var(--white);
+    padding: var(--spacing-xl) var(--spacing-2xl);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 0;
+}
+
+.progress-header {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+}
+
+.progress-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-sm) 0;
+    font-family: var(--body-font);
+}
+
+.progress-subtitle {
+    font-size: var(--small-font-size);
+    color: var(--text-secondary);
+    margin: 0;
+    font-family: var(--body-font);
+}
+
+/* ===== PROGRESS LINE CONTAINER ===== */
+.progress-line-container {
+    position: relative;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: var(--spacing-xl) 0;
+}
+
+/* ===== BACKGROUND LINE ===== */
+.progress-background-line {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gray-200);
+    border-radius: 2px;
+    z-index: 1;
+}
+
+/* ===== ACTIVE PROGRESS LINE ===== */
+.progress-active-line {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--success), #28a745);
+    border-radius: 2px;
+    z-index: 2;
+    transition: width 1s ease-in-out;
+    box-shadow: 0 0 8px rgba(40, 167, 69, 0.3);
+}
+
+.progress-active-line.rejected {
+    background: linear-gradient(90deg, var(--danger), #dc3545);
+    box-shadow: 0 0 8px rgba(220, 53, 69, 0.3);
+}
+
+/* ===== CHECKPOINTS ===== */
+.progress-checkpoints {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.checkpoint {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--white);
+    padding: var(--spacing-sm);
+    border-radius: var(--border-radius-lg);
+    min-width: 120px;
+    text-align: center;
+}
+
+.checkpoint-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--white);
+    margin-bottom: var(--spacing-sm);
+    position: relative;
+    transition: all 0.3s ease;
+    border: 3px solid transparent;
+}
+
+.checkpoint-circle.completed {
+    background: linear-gradient(135deg, var(--success), #28a745);
+    border-color: var(--success);
+    animation: pulse-success 2s infinite;
+}
+
+.checkpoint-circle.current {
+    background: linear-gradient(135deg, var(--warning), #ffc107);
+    border-color: var(--warning);
+    animation: pulse-warning 1.5s infinite;
+}
+
+.checkpoint-circle.pending {
+    background: var(--gray-300);
+    color: var(--gray-600);
+    border-color: var(--gray-300);
+}
+
+.checkpoint-circle.rejected {
+    background: linear-gradient(135deg, var(--danger), #dc3545);
+    border-color: var(--danger);
+    animation: shake 0.5s ease-in-out;
+}
+
+.checkpoint-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.checkpoint-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    font-family: var(--body-font);
+    line-height: 1.2;
+}
+
+.checkpoint-role {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin: 0;
+    font-family: var(--body-font);
+    line-height: 1.2;
+}
+
+/* ===== TRUCK ICON ===== */
+.progress-truck {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 24px;
+    z-index: 4;
+    transition: all 1s ease-in-out;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.progress-truck.moving {
+    color: #007a08;
+}
+
+.progress-truck.crashed {
+    color: #f23636;
+}
+
+/* ===== REJECTION INFO BUTTON ===== */
+.rejection-info-btn {
+    position: absolute;
+    top: -45px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--danger);
+    color: var(--white);
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.rejection-info-btn:hover {
+    background: #c82333;
+    transform: translateX(-50%) scale(1.1);
+    box-shadow: var(--shadow-md);
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes pulse-success {
+    0%, 100% { 
+        box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4);
+        transform: scale(1);
+    }
+    50% { 
+        box-shadow: 0 0 0 8px rgba(40, 167, 69, 0);
+        transform: scale(1.05);
+    }
+}
+
+@keyframes pulse-warning {
+    0%, 100% { 
+        box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4);
+        transform: scale(1);
+    }
+    50% { 
+        box-shadow: 0 0 0 8px rgba(255, 193, 7, 0);
+        transform: scale(1.05);
+    }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
+}
+
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
     body {
@@ -378,6 +604,75 @@ body {
 
     .status-section {
         padding: var(--spacing-xl) var(--spacing-lg);
+    }
+}
+
+@media (max-width: 768px) {
+    .progress-section {
+        padding: var(--spacing-lg);
+    }
+    
+    .progress-line-container {
+        padding: var(--spacing-lg) 0;
+    }
+    
+    .progress-checkpoints {
+        flex-direction: column;
+        gap: var(--spacing-xl);
+    }
+    
+    .progress-background-line,
+    .progress-active-line {
+        top: 0;
+        bottom: 0;
+        left: 50%;
+        right: auto;
+        width: 4px;
+        height: auto;
+        transform: translateX(-50%);
+    }
+    
+    .checkpoint {
+        flex-direction: row;
+        min-width: 200px;
+        text-align: left;
+        gap: var(--spacing-md);
+    }
+    
+    .checkpoint-circle {
+        margin-bottom: 0;
+        flex-shrink: 0;
+    }
+    
+    .checkpoint-info {
+        align-items: flex-start;
+        flex: 1;
+    }
+    
+    .progress-truck {
+        left: 50%;
+        transform: translateX(-50%) translateY(-50%) rotate(90deg);
+    }
+}
+
+@media (max-width: 480px) {
+    .checkpoint {
+        min-width: 180px;
+        padding: var(--spacing-sm);
+    }
+    
+    .checkpoint-name {
+        font-size: 0.8rem;
+    }
+    
+    .checkpoint-role {
+        font-size: 0.7rem;
+    }
+    
+    .checkpoint-circle {
+        width: 35px;
+        height: 35px;
+        font-size: 12px;
     }
 }
 
