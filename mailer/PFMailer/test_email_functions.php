@@ -91,27 +91,27 @@ try {
 
     // Verificar que sea una petición POST
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        sendJsonError('Método no permitido. Use POST.');
+        sendJsonError('Method not allowed. Use POST.');
     }
 
     // Obtener los datos de la petición
     $input = file_get_contents('php://input');
     if (empty($input)) {
-        sendJsonError('No se recibieron datos en la petición');
+        sendJsonError('No data received in request');
     }
 
     $data = json_decode($input, true);
     if (json_last_error() !== JSON_ERROR_NONE) {
-        sendJsonError('Error al decodificar JSON: ' . json_last_error_msg());
+        sendJsonError('Error decoding JSON: ' . json_last_error_msg());
     }
 
     if (!isset($data['action'])) {
-        sendJsonError('Acción no especificada', [
+        sendJsonError('Action not specified', [
             'available_actions' => [
-                'status_notification' => 'Requiere: orderId, status',
-                'weekly_summary' => 'No requiere parámetros adicionales',
-                'recovery_check' => 'No requiere parámetros adicionales',
-                'approval_notification' => 'Requiere: orderId'
+                'status_notification' => 'Requires: orderId, status',
+                'weekly_summary' => 'No additional parameters required',
+                'recovery_check' => 'No additional parameters required',
+                'approval_notification' => 'Requires: orderId'
             ]
         ]);
     }
@@ -119,17 +119,17 @@ try {
     $action = $data['action'];
     
     // Registrar la acción para debugging
-    error_log("Test Email Functions - Acción: " . $action . " - Data: " . json_encode($data));
+    error_log("Test Email Functions - Action: " . $action . " - Data: " . json_encode($data));
 
     // Cargar archivos necesarios (dentro del try-catch)
     if (!file_exists(__DIR__ . '/config.php')) {
-        sendJsonError('Archivo config.php no encontrado');
+        sendJsonError('config.php file not found');
     }
     
     require_once __DIR__ . '/config.php';
     
     if (!file_exists(__DIR__ . '/PFmailer.php')) {
-        sendJsonError('Archivo PFmailer.php no encontrado');
+        sendJsonError('PFmailer.php file not found');
     }
     
     require_once __DIR__ . '/PFmailer.php';
@@ -141,7 +141,7 @@ try {
     switch ($action) {
         case 'status_notification':
             if (!isset($data['orderId']) || !isset($data['status'])) {
-                sendJsonError('orderId y status son requeridos para status_notification', [
+                sendJsonError('orderId and status are required for status_notification', [
                     'required' => ['orderId', 'status'],
                     'received' => array_keys($data)
                 ]);
@@ -151,73 +151,73 @@ try {
             $status = $data['status'];
             
             if (!in_array($status, ['approved', 'rejected'])) {
-                sendJsonError('Status debe ser "approved" o "rejected"', [
+                sendJsonError('Status must be "approved" or "rejected"', [
                     'valid_options' => ['approved', 'rejected'],
                     'received' => $status
                 ]);
             }
             
-            error_log("Enviando notificación de estado: orderId=$orderId, status=$status");
+            error_log("Sending status notification: orderId=$orderId, status=$status");
             
             // Enviar notificación de estado
             $result = $mailer->sendStatusNotification($orderId, $status);
             
             if ($result['success']) {
-                sendJsonSuccess("Notificación de estado '$status' enviada exitosamente para la orden #$orderId", $result);
+                sendJsonSuccess("Status notification '$status' sent successfully for order #$orderId", $result);
             } else {
-                sendJsonError("Error al enviar notificación de estado", $result);
+                sendJsonError("Error sending status notification", $result);
             }
             break;
             
         case 'weekly_summary':
-            error_log("Enviando resumen semanal");
+            error_log("Sending weekly summary");
             
             // Enviar resumen semanal
             $result = $mailer->sendWeeklySummary();
             
             if ($result['success']) {
-                sendJsonSuccess("Resumen semanal enviado exitosamente", $result);
+                sendJsonSuccess("Weekly summary sent successfully", $result);
             } else {
-                sendJsonError("Error al enviar resumen semanal", $result);
+                sendJsonError("Error sending weekly summary", $result);
             }
             break;
             
         case 'recovery_check':
-            error_log("Ejecutando verificación de recuperación");
+            error_log("Executing recovery check");
             
             // Ejecutar verificación de recuperación
             $result = $mailer->sendRecoveryNotifications();
             
             if ($result['success']) {
-                sendJsonSuccess("Verificación de recuperación completada exitosamente", $result);
+                sendJsonSuccess("Recovery check completed successfully", $result);
             } else {
-                sendJsonError("Error en verificación de recuperación", $result);
+                sendJsonError("Error in recovery check", $result);
             }
             break;
             
         case 'approval_notification':
             if (!isset($data['orderId'])) {
-                sendJsonError('orderId es requerido para approval_notification', [
+                sendJsonError('orderId is required for approval_notification', [
                     'required' => ['orderId'],
                     'received' => array_keys($data)
                 ]);
             }
             
             $orderId = intval($data['orderId']);
-            error_log("Enviando notificación de aprobación: orderId=$orderId");
+            error_log("Sending approval notification: orderId=$orderId");
             
             // Enviar notificación de aprobación
             $result = $mailer->sendApprovalNotification($orderId);
             
             if ($result['success']) {
-                sendJsonSuccess("Notificación de aprobación enviada exitosamente para la orden #$orderId", $result);
+                sendJsonSuccess("Approval notification sent successfully for order #$orderId", $result);
             } else {
-                sendJsonError("Error al enviar notificación de aprobación", $result);
+                sendJsonError("Error sending approval notification", $result);
             }
             break;
             
         default:
-            sendJsonError('Acción desconocida: ' . $action, [
+            sendJsonError('Unknown action: ' . $action, [
                 'available_actions' => [
                     'status_notification',
                     'weekly_summary', 
@@ -229,7 +229,7 @@ try {
 
 } catch (ParseError $e) {
     error_log("Parse Error: " . $e->getMessage());
-    sendJsonError('Error de sintaxis PHP', [
+    sendJsonError('PHP syntax error', [
         'error' => $e->getMessage(),
         'file' => basename($e->getFile()),
         'line' => $e->getLine()
@@ -237,7 +237,7 @@ try {
     
 } catch (Error $e) {
     error_log("Fatal Error: " . $e->getMessage());
-    sendJsonError('Error fatal de PHP', [
+    sendJsonError('Fatal PHP error', [
         'error' => $e->getMessage(),
         'file' => basename($e->getFile()),
         'line' => $e->getLine()
@@ -245,7 +245,7 @@ try {
     
 } catch (Exception $e) {
     error_log("Exception: " . $e->getMessage());
-    sendJsonError('Excepción no controlada', [
+    sendJsonError('Unhandled exception', [
         'error' => $e->getMessage(),
         'file' => basename($e->getFile()),
         'line' => $e->getLine()
@@ -255,7 +255,7 @@ try {
 // Asegurar respuesta JSON válida
 echo json_encode([
     'success' => true,
-    'message' => 'Operación completada exitosamente',
+    'message' => 'Operation completed successfully',
     'data' => $result
 ]);
 

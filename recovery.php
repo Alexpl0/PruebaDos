@@ -9,13 +9,13 @@ $errorMessage = '';
 
 switch ($error) {
     case 'invalid_token':
-        $errorMessage = 'El enlace de recuperación no es válido.';
+        $errorMessage = 'The recovery link is not valid.';
         break;
     case 'token_expired':
-        $errorMessage = 'El enlace de recuperación ha expirado. Los enlaces son válidos por 24 horas.';
+        $errorMessage = 'The recovery link has expired. Links are valid for 24 hours.';
         break;
     case 'token_used':
-        $errorMessage = 'Este enlace de recuperación ya ha sido utilizado.';
+        $errorMessage = 'This recovery link has already been used.';
         break;
 } 
 ?>
@@ -33,7 +33,7 @@ switch ($error) {
             icon: 'error',
             title: 'Error',
             text: '<?php echo addslashes($errorMessage); ?>',
-            confirmButtonText: 'Entendido'
+            confirmButtonText: 'Understood'
         });
     });
     <?php endif; ?>

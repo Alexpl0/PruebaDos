@@ -131,7 +131,7 @@
      * En caso de que el script se cargue antes que la variable esté definida
      */
     if (typeof URLPF === 'undefined') {
-        console.warn('URLPF global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
+        console.warn('URLPF global variable is not defined. Make sure this script runs after the URLPF is defined in your PHP page.');
         // Fallback to hard-coded URLPF only as last resort
         window.URLPF = window.URLPF || 'https://grammermx.com/Jesus/PruebaDos/';
     }

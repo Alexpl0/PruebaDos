@@ -34,7 +34,7 @@ if (
     http_response_code(400);
     echo json_encode([
         "success" => false,
-        "message" => "Datos JSON inválidos o incompletos. Se requiere 'orderId', 'newStatusId', 'userLevel', 'userID' y 'authDate'."
+        "message" => "Invalid or incomplete JSON data. Required: 'orderId', 'newStatusId', 'userLevel', 'userID' and 'authDate'."
     ]);
     exit;
 }
@@ -44,7 +44,7 @@ if (!isset($_SESSION['user']) || !isset($_SESSION['user']['authorization_level']
     http_response_code(401);
     echo json_encode([
         "success" => false,
-        "message" => "No autorizado. Debe iniciar sesión."
+        "message" => "Unauthorized. Please log in."
     ]);
     exit;
 }
@@ -67,7 +67,7 @@ if ($newStatusId === 99) {
         http_response_code(400);
         echo json_encode([
             "success" => false,
-            "message" => "Se requiere una razón para rechazar la orden."
+            "message" => "A reason is required to reject the order."
         ]);
         exit;
     }
@@ -77,7 +77,7 @@ if ($newStatusId === 99) {
         http_response_code(400);
         echo json_encode([
             "success" => false,
-            "message" => "La razón de rechazo no puede exceder 999 caracteres."
+            "message" => "Rejection reason cannot exceed 999 characters."
         ]);
         exit;
     }
@@ -91,7 +91,7 @@ if ($sessionLevel !== $userLevel) {
     http_response_code(403);
     echo json_encode([
         "success" => false,
-        "message" => "No autorizado. El nivel de sesión no coincide con el enviado."
+        "message" => "Unauthorized. Session level does not match the sent level."
     ]);
     exit;
 }
@@ -119,7 +119,7 @@ try {
         http_response_code(404);
         echo json_encode([
             "success" => false,
-            "message" => "Orden no encontrada."
+            "message" => "Order not found."
         ]);
         $stmt->close();
         $conex->close();
@@ -133,7 +133,7 @@ try {
             http_response_code(403);
             echo json_encode([
                 "success" => false,
-                "message" => "No tienes permisos para aprobar/rechazar órdenes de otras plantas."
+                "message" => "You do not have permission to approve/reject orders from other plants."
             ]);
             $conex->close();
             exit;
@@ -145,7 +145,7 @@ try {
         http_response_code(403);
         echo json_encode([
             "success" => false,
-            "message" => "No tienes permisos para aprobar/rechazar esta orden en este momento."
+            "message" => "You do not have permission to approve/reject this order at this time."
         ]);
         $conex->close();
         exit;
@@ -156,7 +156,7 @@ try {
         http_response_code(400);
         echo json_encode([
             "success" => false,
-            "message" => "La orden ya ha alcanzado el nivel de aprobación requerido."
+            "message" => "The order has already reached the required approval level."
         ]);
         $conex->close();
         exit;
@@ -184,7 +184,7 @@ try {
     if ($stmt->affected_rows > 0) {
         $response = [
             "success" => true,
-            "message" => $newStatusId === 99 ? "Orden rechazada correctamente" : "Estado actualizado correctamente",
+            "message" => $newStatusId === 99 ? "Order rejected successfully" : "Status updated successfully",
             "new_status" => $newStatusId,
             "required_level" => $requiredAuthLevel
         ];
@@ -198,7 +198,7 @@ try {
     } else {
         echo json_encode([
             "success" => false,
-            "message" => "No se actualizó ningún registro. El ID podría no existir o el estado es el mismo."
+            "message" => "No records updated. The ID might not exist or the status is the same."
         ]);
     }
 

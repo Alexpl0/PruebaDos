@@ -159,7 +159,8 @@ export function renderApprovalTimeChart() {
                 enabled: true,              // Muestra etiquetas con los valores
                 formatter: function(val) {
                     // Formatea el valor a 1 decimal y añade la unidad 'días'
-                    return val.toFixed(1) + ' días';
+                    // FIX: Cambiar 'días' por 'days'
+                    return val.toFixed(1) + ' days';
                 }
             },
             // Configuración del eje X (horizontal, ya que las barras son horizontales)

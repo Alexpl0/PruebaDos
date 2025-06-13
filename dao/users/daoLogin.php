@@ -12,7 +12,7 @@ try {
 
     if (!$email || !$password) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'mensaje' => 'Email y password requeridos']);
+        echo json_encode(['success' => false, 'mensaje' => 'Email and password are required']);
         exit;
     }
 
@@ -41,11 +41,11 @@ try {
             echo json_encode(['status' => 'success', 'data' => $user]);
         } else {
             http_response_code(401);
-            echo json_encode(['success' => false, 'mensaje' => 'Credenciales incorrectas']);
+            echo json_encode(['success' => false, 'mensaje' => 'Incorrect credentials']);
         }
     } else {
         http_response_code(404);
-        echo json_encode(['success' => false, 'mensaje' => 'Usuario no encontrado']);
+        echo json_encode(['success' => false, 'mensaje' => 'User not found']);
     }
 
     $stmt->close();

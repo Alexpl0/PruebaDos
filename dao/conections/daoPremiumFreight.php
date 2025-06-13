@@ -6,7 +6,7 @@ include_once('../db/PFDB.php');
 session_start();
 if (!isset($_SESSION['user'])) {
     http_response_code(401);
-    echo json_encode(['status' => 'error', 'message' => 'Usuario no autenticado']);
+    echo json_encode(['status' => 'error', 'message' => 'User not authenticated']);
     exit;
 }
 

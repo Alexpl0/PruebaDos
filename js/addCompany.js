@@ -79,7 +79,7 @@
             Swal.fire({
                 icon: 'warning',
                 title: 'Incomplete Origin Company Data',
-                text: 'Please complete all origin company fields (Name, City, State and Zip Code).'
+                text: 'Please complete all origin company fields (Name, City, State and ZIP Code).'
             });
             return { success: false };
         }
@@ -144,7 +144,7 @@
             Swal.fire({
                 icon: 'warning',
                 title: 'Incomplete Destination Company Data',
-                text: 'Please complete all destination company fields (Name, City, State and Zip Code).'
+                text: 'Please complete all destination company fields (Name, City, State and ZIP Code).'
             });
             return { success: false };
         }
@@ -220,7 +220,7 @@
      * En caso de que el script se cargue antes que la variable esté definida
      */
     if (typeof URLPF === 'undefined') {
-        console.warn('URLPF global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
+        console.warn('URLPF global variable is not defined. Make sure this script runs after the URLPF is defined in your PHP page.');
         // Fallback a URLPF hardcodeada solo como último recurso
         window.URLPF = window.URLPF || 'https://grammermx.com/Jesus/PruebaDos/';
     }

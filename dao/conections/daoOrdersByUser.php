@@ -16,7 +16,7 @@ try {
 
     // Verificar que el JSON se decodificó correctamente
     if (json_last_error() !== JSON_ERROR_NONE) {
-        throw new Exception('Error decodificando JSON: ' . json_last_error_msg());
+        throw new Exception('Error decoding JSON: ' . json_last_error_msg());
     }
 
     // Validate user ID
@@ -29,7 +29,7 @@ try {
     $conex = $con->conectar();
     
     if (!$conex) {
-        throw new Exception('No se pudo establecer la conexión a la base de datos');
+        throw new Exception('Could not establish database connection');
     }
 
     // Query to fetch orders created by the specified user (usando MySQLi como en tu daoPremiumFreight.php)
@@ -69,7 +69,7 @@ try {
     // Usar prepared statement con MySQLi
     $stmt = $conex->prepare($query);
     if (!$stmt) {
-        throw new Exception('Error preparando la consulta: ' . $conex->error);
+        throw new Exception('Error preparing query: ' . $conex->error);
     }
     
     $stmt->bind_param('i', $userId);

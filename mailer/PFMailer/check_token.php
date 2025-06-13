@@ -12,7 +12,7 @@ $token = $_GET['token'] ?? '';
 if (empty($token)) {
     echo json_encode([
         'success' => false,
-        'message' => 'No se proporcionó ningún token'
+        'message' => 'No token provided'
     ]);
     exit;
 }
@@ -31,7 +31,7 @@ $result = $stmt->get_result();
 if ($result->num_rows === 0) {
     echo json_encode([
         'success' => false,
-        'message' => 'El token no existe en la base de datos',
+        'message' => 'Token does not exist in database',
         'token' => $token
     ]);
     exit;
@@ -64,19 +64,19 @@ if ($orderResult->num_rows > 0) {
 // Función para obtener el texto del estado
 function getStatusText($statusId) {
     $statusMap = [
-        1 => 'Nuevo',
-        2 => 'En Revisión',
-        3 => 'Aprobado',
-        4 => 'Rechazado',
-        5 => 'Completado'
+        1 => 'New',
+        2 => 'Under Review',
+        3 => 'Approved',
+        4 => 'Rejected',
+        5 => 'Completed'
     ];
     
-    return $statusMap[$statusId] ?? 'Desconocido';
+    return $statusMap[$statusId] ?? 'Unknown';
 }
 
 echo json_encode([
     'success' => true,
-    'message' => 'Token encontrado',
+    'message' => 'Token found',
     'data' => [
         'token' => $tokenData['token'],
         'order_id' => $tokenData['order_id'],

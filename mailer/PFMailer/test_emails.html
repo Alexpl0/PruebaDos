@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -187,7 +187,7 @@
                                 font-size: 14px;
                                 color: #666;
                                 text-align: center;
-                            ">Iniciando...</div>
+                            ">Starting...</div>
                         </div>
                     `,
                     allowOutsideClick: false,
@@ -219,11 +219,11 @@
                     return;
                 }
 
-                showLoadingProgress('Enviando Email de Aprobación', 'Procesando solicitud...');
-                updateProgress(25, 'Validando datos...');
+                showLoadingProgress('Sending Approval Email', 'Processing request...');
+                updateProgress(25, 'Validating data...');
 
                 try {
-                    updateProgress(50, 'Conectando con el servidor...');
+                    updateProgress(50, 'Connecting to server...');
                     
                     const response = await fetch('PFmailNotification.php', {
                         method: 'POST',
@@ -231,10 +231,10 @@
                         body: JSON.stringify({ orderId: orderId })
                     });
                     
-                    updateProgress(75, 'Enviando email...');
+                    updateProgress(75, 'Sending email...');
                     const data = await response.json();
                     
-                    updateProgress(100, 'Completado');
+                    updateProgress(100, 'Completed');
                     
                     setTimeout(() => {
                         Swal.close();
@@ -243,8 +243,8 @@
                         if (data.success) {
                             Swal.fire({
                                 icon: 'success',
-                                title: 'Email Enviado',
-                                text: 'El email de aprobación se envió correctamente',
+                                title: 'Email Sent',
+                                text: 'The approval email was sent successfully',
                                 timer: 2000,
                                 showConfirmButton: false
                             });
@@ -252,7 +252,7 @@
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Error',
-                                text: data.message || 'Error al enviar el email'
+                                text: data.message || 'Error sending email'
                             });
                         }
                     }, 500);
@@ -262,7 +262,7 @@
                     showResult('approval-result', { error: error.message }, false);
                     Swal.fire({
                         icon: 'error',
-                        title: 'Error de Conexión',
+                        title: 'Connection Error',
                         text: error.message
                     });
                 }
@@ -278,11 +278,11 @@
                     return;
                 }
 
-                showLoadingProgress('Enviando Notificación de Estado', 'Preparando notificación...');
-                updateProgress(20, 'Validando información...');
+                showLoadingProgress('Sending Status Notification', 'Preparing notification...');
+                updateProgress(20, 'Validating information...');
 
                 try {
-                    updateProgress(40, 'Generando contenido del email...');
+                    updateProgress(40, 'Generating email content...');
                     
                     const response = await fetch('test_email_functions.php', {
                         method: 'POST',
@@ -294,10 +294,10 @@
                         })
                     });
                     
-                    updateProgress(80, 'Enviando notificación...');
+                    updateProgress(80, 'Sending notification...');
                     const data = await response.json();
                     
-                    updateProgress(100, 'Completado');
+                    updateProgress(100, 'Completed');
                     
                     setTimeout(() => {
                         Swal.close();
@@ -306,8 +306,8 @@
                         if (data.success) {
                             Swal.fire({
                                 icon: 'success',
-                                title: 'Notificación Enviada',
-                                text: 'La notificación de estado se envió correctamente',
+                                title: 'Notification Sent',
+                                text: 'The status notification was sent successfully',
                                 timer: 2000,
                                 showConfirmButton: false
                             });
@@ -327,11 +327,11 @@
 
             // Test weekly summary
             document.getElementById('test-weekly-summary').addEventListener('click', async function() {
-                showLoadingProgress('Enviando Resumen Semanal', 'Esta operación puede tardar varios minutos...');
-                updateProgress(10, 'Recopilando datos de la semana...');
+                showLoadingProgress('Sending Weekly Summary', 'This operation may take several minutes...');
+                updateProgress(10, 'Collecting weekly data...');
 
                 try {
-                    updateProgress(25, 'Consultando base de datos...');
+                    updateProgress(25, 'Querying database...');
                     
                     const response = await fetch('test_email_functions.php', {
                         method: 'POST',
@@ -339,18 +339,18 @@
                         body: JSON.stringify({ action: 'weekly_summary' })
                     });
                     
-                    updateProgress(50, 'Generando reportes...');
+                    updateProgress(50, 'Generating reports...');
                     
-                    // Simular progreso adicional para resumen semanal
-                    setTimeout(() => updateProgress(65, 'Procesando estadísticas...'), 1000);
-                    setTimeout(() => updateProgress(80, 'Preparando emails...'), 2000);
+                    // Simulate additional progress for weekly summary
+                    setTimeout(() => updateProgress(65, 'Processing statistics...'), 1000);
+                    setTimeout(() => updateProgress(80, 'Preparing emails...'), 2000);
                     
                     const data = await response.json();
                     
-                    updateProgress(95, 'Enviando a destinatarios...');
+                    updateProgress(95, 'Sending to recipients...');
                     
                     setTimeout(() => {
-                        updateProgress(100, 'Resumen semanal completado');
+                        updateProgress(100, 'Weekly summary completed');
                         
                         setTimeout(() => {
                             Swal.close();
@@ -359,8 +359,8 @@
                             if (data.success) {
                                 Swal.fire({
                                     icon: 'success',
-                                    title: 'Resumen Semanal Enviado',
-                                    text: 'El resumen semanal se ha enviado a todos los destinatarios',
+                                    title: 'Weekly Summary Sent',
+                                    text: 'The weekly summary has been sent to all recipients',
                                     timer: 3000,
                                     showConfirmButton: false
                                 });
@@ -373,7 +373,7 @@
                     showResult('weekly-result', { error: error.message }, false);
                     Swal.fire({
                         icon: 'error',
-                        title: 'Error en Resumen Semanal',
+                        title: 'Weekly Summary Error',
                         text: error.message
                     });
                 }
@@ -381,11 +381,11 @@
 
             // Test recovery check
             document.getElementById('test-recovery-check').addEventListener('click', async function() {
-                showLoadingProgress('Ejecutando Verificación de Recuperación', 'Analizando datos pendientes...');
-                updateProgress(15, 'Escaneando registros...');
+                showLoadingProgress('Executing Recovery Check', 'Analyzing pending data...');
+                updateProgress(15, 'Scanning records...');
 
                 try {
-                    updateProgress(30, 'Identificando elementos pendientes...');
+                    updateProgress(30, 'Identifying pending items...');
                     
                     const response = await fetch('test_email_functions.php', {
                         method: 'POST',
@@ -393,17 +393,17 @@
                         body: JSON.stringify({ action: 'recovery_check' })
                     });
                     
-                    updateProgress(60, 'Procesando recuperaciones...');
+                    updateProgress(60, 'Processing recoveries...');
                     
-                    // Simular progreso para recovery check
-                    setTimeout(() => updateProgress(80, 'Generando reportes de recuperación...'), 1000);
+                    // Simulate progress for recovery check
+                    setTimeout(() => updateProgress(80, 'Generating recovery reports...'), 1000);
                     
                     const data = await response.json();
                     
-                    updateProgress(95, 'Enviando notificaciones...');
+                    updateProgress(95, 'Sending notifications...');
                     
                     setTimeout(() => {
-                        updateProgress(100, 'Verificación completada');
+                        updateProgress(100, 'Verification completed');
                         
                         setTimeout(() => {
                             Swal.close();
@@ -412,8 +412,8 @@
                             if (data.success) {
                                 Swal.fire({
                                     icon: 'success',
-                                    title: 'Verificación Completada',
-                                    text: 'La verificación de recuperación se ejecutó correctamente',
+                                    title: 'Verification Completed',
+                                    text: 'The recovery verification was executed successfully',
                                     timer: 2000,
                                     showConfirmButton: false
                                 });
@@ -426,7 +426,7 @@
                     showResult('recovery-result', { error: error.message }, false);
                     Swal.fire({
                         icon: 'error',
-                        title: 'Error en Verificación',
+                        title: 'Verification Error',
                         text: error.message
                     });
                 }

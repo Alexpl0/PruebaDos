@@ -12,7 +12,7 @@ try {
     // Verificar método
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         http_response_code(405);
-        echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+        echo json_encode(['success' => false, 'message' => 'Method not allowed']);
         exit;
     }
     
@@ -32,14 +32,14 @@ try {
         http_response_code(400);
         echo json_encode([
             'success' => false,
-            'message' => 'Datos incompletos: falta(n) ' . implode(', ', $missing)
+            'message' => 'Incomplete data: missing ' . implode(', ', $missing)
         ]);
         exit;
     }
     
     if (strlen($newPassword) < 8) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'La contraseña debe tener al menos 8 caracteres']);
+        echo json_encode(['success' => false, 'message' => 'Password must be at least 8 characters long']);
         exit;
     }
     
@@ -62,7 +62,7 @@ try {
         $tokenStmt->execute();
         
         if ($tokenStmt->affected_rows === 0) {
-            throw new Exception("Token inválido, expirado o ya utilizado");
+            throw new Exception("Invalid, expired, or already used token");
         }
         
         // Actualizar contraseña del usuario
@@ -71,11 +71,11 @@ try {
         $updateStmt->bind_param("si", $newPassword, $userId);
         
         if (!$updateStmt->execute()) {
-            throw new Exception("Error al actualizar la contraseña");
+            throw new Exception("Error updating password");
         }
         
         if ($updateStmt->affected_rows === 0) {
-            throw new Exception("Usuario no encontrado");
+            throw new Exception("User not found");
         }
         
         // Confirmar transacción
@@ -83,7 +83,7 @@ try {
         
         echo json_encode([
             'success' => true,
-            'message' => 'Contraseña actualizada exitosamente'
+            'message' => 'Password updated successfully'
         ]);
         
     } catch (Exception $e) {
@@ -97,11 +97,11 @@ try {
     error_log("Error en password update: " . $e->getMessage());
     
     $message = $e->getMessage();
-    if (strpos($message, 'Token') !== false) {
+    if (strpos($message, 'Token') !== false || strpos($message, 'token') !== false) {
         http_response_code(400);
     } else {
         http_response_code(500);
-        $message = 'Error interno del servidor';
+        $message = 'Internal server error';
     }
     
     echo json_encode([

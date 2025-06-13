@@ -39,8 +39,8 @@ require_once __DIR__ . '/PFmailAction.php';
 
 // Verificar si se recibieron los parámetros necesarios
 if (!isset($_GET['action']) || !isset($_GET['token'])) {
-    logAction("ERROR: Faltan parámetros requeridos - Action: " . (isset($_GET['action']) ? 'presente' : 'ausente') . ", Token: " . (isset($_GET['token']) ? 'presente' : 'ausente'), 'BULKACTION');
-    showBulkError('Faltan parámetros requeridos. Se necesitan "action" y "token".');
+    logAction("ERROR: Missing required parameters - Action: " . (isset($_GET['action']) ? 'present' : 'missing') . ", Token: " . (isset($_GET['token']) ? 'present' : 'missing'), 'BULKACTION');
+    showBulkError('Required parameters missing. "action" and "token" are needed.');
     exit;
 }
 
@@ -48,24 +48,24 @@ if (!isset($_GET['action']) || !isset($_GET['token'])) {
 $action = filter_var($_GET['action'], FILTER_SANITIZE_SPECIAL_CHARS);
 $token = filter_var($_GET['token'], FILTER_SANITIZE_SPECIAL_CHARS);
 
-logAction("=== Iniciando procesamiento de acción en bloque ===", 'BULKACTION');
-logAction("Acción: $action | Token: $token", 'BULKACTION');
-logAction("Token original recibido: " . $_GET['token'], 'BULKACTION');
-logAction("Token después de sanitización: $token", 'BULKACTION');
-logAction("¿Token cambió después de sanitización?: " . ($_GET['token'] !== $token ? 'SÍ' : 'NO'), 'BULKACTION');
+logAction("=== Starting bulk action processing ===", 'BULKACTION');
+logAction("Action: $action | Token: $token", 'BULKACTION');
+logAction("Original token received: " . $_GET['token'], 'BULKACTION');
+logAction("Token after sanitization: $token", 'BULKACTION');
+logAction("Did token change after sanitization?: " . ($_GET['token'] !== $token ? 'YES' : 'NO'), 'BULKACTION');
 
 // Validar la acción y mostrar error específico
 if ($action !== 'approve' && $action !== 'reject') {
-    logAction("ERROR: Acción inválida: $action", 'BULKACTION');
-    showBulkError("Tipo de acción inválido: '{$action}'. Las acciones permitidas son 'approve' o 'reject'.");
+    logAction("ERROR: Invalid action: $action", 'BULKACTION');
+    showBulkError("Invalid action type: '{$action}'. Allowed actions are 'approve' or 'reject'.");
     exit;
 }
 
 try {
     // Verificar si las clases existen antes de instanciarlas
     if (!class_exists('PFMailAction')) {
-        logAction("ERROR: Clase PFMailAction no encontrada", 'BULKACTION');
-        throw new Exception("La clase PFMailAction no está disponible.");
+        logAction("ERROR: PFMailAction class not found", 'BULKACTION');
+        throw new Exception("The PFMailAction class is not available.");
     }
     
     // Procesar la acción
@@ -73,52 +73,52 @@ try {
     
     // Verificar que el método existe
     if (!method_exists($handler, 'processBulkAction')) {
-        logAction("ERROR: Método processBulkAction no encontrado en PFMailAction", 'BULKACTION');
-        throw new Exception("El método 'processBulkAction' no está implementado en la clase PFMailAction.");
+        logAction("ERROR: processBulkAction method not found in PFMailAction", 'BULKACTION');
+        throw new Exception("The 'processBulkAction' method is not implemented in the PFMailAction class.");
     }
     
     // VALIDACIÓN PREVIA: Verificar el estado del token ANTES de procesarlo
     $tokenInfo = $handler->validateBulkToken($token);
     
     if (!$tokenInfo) {
-        logAction("Token en bloque inválido o expirado: {$token}", 'BULKACTION');
-        showBulkError('Token inválido o expirado. Es posible que este enlace ya no sea válido.');
+        logAction("Invalid or expired bulk token: {$token}", 'BULKACTION');
+        showBulkError('Invalid or expired token. This link may no longer be valid.');
         exit;
     }
     
     // Si el token ya fue usado, mostrar mensaje de éxito apropiado
     if (isset($tokenInfo['is_used']) && $tokenInfo['is_used'] == 1) {
-        logAction("Token en bloque ya utilizado detectado: {$token}", 'BULKACTION');
+        logAction("Used bulk token detected: {$token}", 'BULKACTION');
         
         $totalOrders = $tokenInfo['total_orders'];
         $tokenAction = $tokenInfo['action'];
         
         // Mensaje apropiado según la acción del token
         if ($tokenAction === 'approve') {
-            $statusMessage = "Sus aprobaciones en bloque ya fueron registradas exitosamente para {$totalOrders} órdenes.";
+            $statusMessage = "Your bulk approvals have already been successfully registered for {$totalOrders} orders.";
         } else {
-            $statusMessage = "Sus rechazos en bloque ya fueron registrados exitosamente para {$totalOrders} órdenes.";
+            $statusMessage = "Your bulk rejections have already been successfully registered for {$totalOrders} orders.";
         }
         
-        logAction("Mostrando mensaje de éxito para token en bloque ya usado: {$token}", 'BULKACTION');
+        logAction("Showing success message for already used bulk token: {$token}", 'BULKACTION');
         showBulkSuccess($statusMessage);
         exit;
     }
     
     // Validar que la acción solicitada coincida con la del token
     if ($action !== $tokenInfo['action']) {
-        logAction("Acción no coincide con token en bloque: solicitada={$action}, token={$tokenInfo['action']}", 'BULKACTION');
-        showBulkError("Acción no válida para este enlace.");
+        logAction("Action doesn't match bulk token: requested={$action}, token={$tokenInfo['action']}", 'BULKACTION');
+        showBulkError("Invalid action for this link.");
         exit;
     }
     
-    logAction("=== Ejecutando processBulkAction ===", 'BULKACTION');
-    logAction("Token: $token, Acción: $action", 'BULKACTION');
+    logAction("=== Executing processBulkAction ===", 'BULKACTION');
+    logAction("Token: $token, Action: $action", 'BULKACTION');
     
     // PROCESAR LA ACCIÓN: Solo si el token es válido y no ha sido usado
     $result = $handler->processBulkAction($token, $action);
     
-    logAction("=== Resultado del procesamiento ===", 'BULKACTION');
+    logAction("=== Processing result ===", 'BULKACTION');
     logAction("Success: " . ($result['success'] ? 'true' : 'false'), 'BULKACTION');
     logAction("Message: " . $result['message'], 'BULKACTION');
     if (isset($result['details'])) {
@@ -127,18 +127,18 @@ try {
 
     // Mostrar resultado según éxito o fracaso
     if ($result['success']) {
-        logAction("Procesamiento exitoso - mostrando página de éxito", 'BULKACTION');
+        logAction("Successful processing - showing success page", 'BULKACTION');
         showBulkSuccess($result['message'], $result['details'] ?? null);
     } else {
-        logAction("Procesamiento fallido - mostrando página de error", 'BULKACTION');
+        logAction("Failed processing - showing error page", 'BULKACTION');
         showBulkError($result['message'], $result['details'] ?? null);
     }
     
 } catch (Exception $e) {
-    logAction("=== EXCEPCIÓN CAPTURADA ===", 'BULKACTION');
+    logAction("=== CAUGHT EXCEPTION ===", 'BULKACTION');
     logAction("Error: " . $e->getMessage() . " | File: " . $e->getFile() . " | Line: " . $e->getLine(), 'BULKACTION');
     
-    showBulkError("Ha ocurrido un error inesperado. Por favor contacte al administrador.", ['errors' => [$e->getMessage()]]);
+    showBulkError("An unexpected error occurred. Please contact the administrator.", ['errors' => [$e->getMessage()]]);
 }
 
 /**
@@ -148,14 +148,14 @@ function showBulkSuccess($message, $details = null) {
     $detailsHtml = '';
     if ($details) {
         if (isset($details['total']) && isset($details['successful']) && isset($details['failed'])) {
-            $detailsHtml .= "<p class='summary'>Se procesaron <strong>{$details['total']}</strong> órdenes: " . 
-                "<span class='success-count'>{$details['successful']}</span> exitosas, " . 
-                "<span class='error-count'>{$details['failed']}</span> fallidas.</p>";
+            $detailsHtml .= "<p class='summary'>Processed <strong>{$details['total']}</strong> orders: " . 
+                "<span class='success-count'>{$details['successful']}</span> successful, " . 
+                "<span class='error-count'>{$details['failed']}</span> failed.</p>";
         }
         
         if (!empty($details['errors'])) {
             $detailsHtml .= "<div class='error-details'>";
-            $detailsHtml .= "<p><strong>Errores:</strong></p><ul>";
+            $detailsHtml .= "<p><strong>Errors:</strong></p><ul>";
             foreach ($details['errors'] as $error) {
                 $detailsHtml .= "<li>" . htmlspecialchars($error) . "</li>";
             }
@@ -164,9 +164,9 @@ function showBulkSuccess($message, $details = null) {
     }
     
     echo generateBulkHtmlResponse(
-        'Acción en Bloque Exitosa',
+        'Bulk Action Successful',
         'success',
-        '✓ ¡Éxito!',
+        '✓ Success!',
         $message,
         $detailsHtml
     );
@@ -180,7 +180,7 @@ function showBulkError($message, $details = null) {
     $detailsHtml = '';
     if ($details && !empty($details['errors'])) {
         $detailsHtml .= "<div class='error-details'>";
-        $detailsHtml .= "<p><strong>Detalles:</strong></p><ul>";
+        $detailsHtml .= "<p><strong>Details:</strong></p><ul>";
         foreach ($details['errors'] as $error) {
             $detailsHtml .= "<li>" . htmlspecialchars($error) . "</li>";
         }
@@ -188,7 +188,7 @@ function showBulkError($message, $details = null) {
     }
     
     echo generateBulkHtmlResponse(
-        'Error en Acción en Bloque',
+        'Bulk Action Error',
         'error',
         '✗ Error',
         $message,
@@ -206,7 +206,7 @@ function generateBulkHtmlResponse($title, $type, $heading, $message, $detailsHtm
     $ordersUrl = defined('URLPF') ? URLPF . "orders.php" : "#";
     
     return "<!DOCTYPE html>
-    <html lang='es'>
+    <html lang='en'>
     <head>
         <meta charset='UTF-8'>
         <meta name='viewport' content='width=device-width, initial-scale=1.0'>
@@ -288,11 +288,11 @@ function generateBulkHtmlResponse($title, $type, $heading, $message, $detailsHtm
             <div class='{$type}'>{$heading}</div>
             <div class='message'>" . htmlspecialchars($message) . "</div>
             <div class='details'>{$detailsHtml}</div>
-            <a href='" . htmlspecialchars($ordersUrl) . "' class='btn'>Ver Órdenes</a>
+            <a href='" . htmlspecialchars($ordersUrl) . "' class='btn'>View Orders</a>
         </div>
     </body>
     </html>";
 }
 
-logAction("=== Fin del procesamiento ===", 'BULKACTION');
+logAction("=== End of processing ===", 'BULKACTION');
 ?>

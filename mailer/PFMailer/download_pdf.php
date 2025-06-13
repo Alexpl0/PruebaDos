@@ -9,7 +9,7 @@ require_once 'PFmailUtils.php';
 
 // Verificar parámetros
 if (!isset($_GET['order']) || !isset($_GET['token'])) {
-    showError('Parámetros requeridos faltantes.');
+    showError('Required parameters missing.');
     exit;
 }
 
@@ -28,7 +28,7 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows === 0) {
-    showError('Token inválido o expirado.');
+    showError('Invalid or expired token.');
     exit;
 }
 
@@ -40,14 +40,14 @@ $orderStmt->execute();
 $orderResult = $orderStmt->get_result();
 
 if ($orderResult->num_rows === 0) {
-    showError('Orden no encontrada.');
+    showError('Order not found.');
     exit;
 }
 
 $orderData = $orderResult->fetch_assoc();
 ?>
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

@@ -44,10 +44,10 @@ function collectFormData() {
             // Si el elemento actual es un 'SELECT' y su ID está incluido en 'textFields',
             // se busca obtener el texto de la opción seleccionada en lugar de su valor.
             if (element.tagName === 'SELECT' && textFields.includes(id)) {
-                // 'element.options[element.selectedIndex]' accede a la opción actualmente seleccionada.
-                // El operador de encadenamiento opcional '?.' previene un error si 'element.selectedIndex' es -1 (ninguna opción seleccionada).
-                // Si hay una opción seleccionada, se toma su propiedad 'text'. Si no, se asigna una cadena vacía.
-                value = element.options[element.selectedIndex]?.text || '';
+                const selectedOption = element.options[element.selectedIndex];
+                if (selectedOption) {
+                    value = selectedOption.text;
+                }
             }
 
             // Si el valor obtenido es una cadena de texto, se eliminan los espacios en blanco al inicio y al final.
@@ -59,22 +59,11 @@ function collectFormData() {
 
             // Verifica si el campo está vacío.
             // Un campo se considera vacío si su valor es una cadena vacía, null o undefined.
-            // Es importante notar que el valor numérico 0 se considera válido y no vacío.
-            if (value === '' || value === null || value === undefined) {
-                 // Excepción para el campo 'CostoEuros':
-                 // Este campo se excluye de la verificación de campos vacíos porque
-                 // su valor se calcula automáticamente y, por lo tanto, puede estar vacío inicialmente
-                 // sin que esto represente un error o una omisión por parte del usuario.
-                 if (id !== 'CostoEuros') {
-                    emptyFields.push(id); // Si el campo está vacío y no es 'CostoEuros', se agrega su ID a la lista de campos vacíos.
-                 }
+            if (!value || value === '') {
+                emptyFields.push(id);
             }
         } else {
-             // Si no se encuentra un elemento del formulario con el ID esperado,
-             // se muestra una advertencia en la consola del navegador.
-             // Esto ayuda a identificar problemas como errores tipográficos en los IDs de los campos
-             // o elementos que no se han cargado correctamente en el DOM.
-             console.warn(`No se encontró el elemento del formulario con ID '${id}'.`);
+            console.warn(`Field element with ID '${id}' not found in the DOM.`);
         }
     });
 
@@ -88,38 +77,27 @@ function collectFormData() {
         const originSelect = $('#CompanyShip'); // Selecciona el elemento del DOM con ID 'CompanyShip' usando jQuery. Se espera que sea un campo Select2.
         // Muestra en la consola los datos crudos obtenidos de Select2 para el campo de la compañía de origen.
         // Esto es útil para depuración, para ver qué datos está manejando Select2.
-        console.log("Datos crudos de Select2 para la compañía de origen:", originSelect.select2('data')[0]);
+        console.log("Raw Select2 data for origin company:", originSelect.select2('data')[0]);
         // Verifica si el elemento 'originSelect' fue encontrado (originSelect.length > 0)
         // y si hay datos seleccionados en él (originSelect.select2('data')[0] no es nulo o indefinido).
         if (originSelect.length && originSelect.select2('data')[0]) {
-            const originData = originSelect.select2('data')[0]; // Obtiene el primer objeto de datos del elemento seleccionado en Select2.
-                                                              // Select2 puede devolver un array de selecciones, aquí se asume una sola selección.
-            // Verifica si el objeto de datos 'originData' tiene una propiedad 'id'.
-            // El 'id' es crucial ya que representa el identificador único de la compañía.
-            if (originData.id) {
-                // Almacena el ID de la compañía de origen en el objeto 'formData'.
-                // Se utiliza parseInt para asegurar que el ID se guarde como un número entero (base 10).
-                // Esto es importante si el ID se usa posteriormente en operaciones numéricas o se envía a un backend que espera un tipo numérico.
-                formData['origin_id'] = parseInt(originData.id, 10);
-                // Muestra en la consola el ID de la compañía de origen que se ha capturado.
-                // Esto confirma que el ID se ha procesado y almacenado correctamente.
-                console.log("ID de la compañía de origen capturado:", formData['origin_id']);
+            const originId = parseInt(originSelect.select2('data')[0].id, 10);
+            formData['OriginCompanyID'] = originId;
+            if (!originId || isNaN(originId)) {
+                emptyFields.push('CompanyShip');
             }
         }
         
         // Obtención del ID de la compañía de destino.
         const destSelect = $('#inputCompanyNameDest'); // Selecciona el elemento del DOM con ID 'inputCompanyNameDest' usando jQuery. Se espera que sea un campo Select2.
         // Muestra en la consola los datos crudos obtenidos de Select2 para el campo de la compañía de destino.
-        console.log("Datos crudos de Select2 para la compañía de destino:", destSelect.select2('data')[0]);
+        console.log("Raw Select2 data for destination company:", destSelect.select2('data')[0]);
         // Verifica si el elemento 'destSelect' fue encontrado y si hay datos seleccionados.
         if (destSelect.length && destSelect.select2('data')[0]) {
-            const destData = destSelect.select2('data')[0]; // Obtiene el objeto de datos de la selección.
-            // Verifica si el objeto de datos 'destData' tiene una propiedad 'id'.
-            if (destData.id) {
-                // Almacena el ID de la compañía de destino en 'formData' como un número entero.
-                formData['destiny_id'] = parseInt(destData.id, 10);
-                // Muestra en la consola el ID de la compañía de destino capturado.
-                console.log("ID de la compañía de destino capturado:", formData['destiny_id']);
+            const destId = parseInt(destSelect.select2('data')[0].id, 10);
+            formData['DestinyCompanyID'] = destId;
+            if (!destId || isNaN(destId)) {
+                emptyFields.push('inputCompanyNameDest');
             }
         }
     }
@@ -166,56 +144,22 @@ async function processNewCompanies() {
         if (!companyName || !city || !state || !zip) {
             Swal.fire({
                 icon: 'warning',
-                title: 'Incomplete Origin Company Data',
-                text: 'Please complete all origin company fields (Name, City, State and Zip Code).'
+                title: 'Incomplete Data',
+                text: 'Please complete all origin company fields (Name, City, State and ZIP Code).'
             });
             return { success: false };
         }
         
         try {
-            // Mostrar indicador de carga
-            Swal.fire({
-                title: 'Saving origin company...',
-                text: 'Please wait.',
-                allowOutsideClick: false,
-                didOpen: () => { Swal.showLoading(); }
-            });
-            
-            // Realizar la petición POST al servidor
-            const response = await fetch(URLPF + 'dao/elements/daoAddLocation.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    company_name: companyName,
-                    city: city,
-                    state: state,
-                    zip: zip
-                })
-            });
-            
-            const result = await response.json();
-            if (result.status === 'success') {
-                console.log("Origin company saved successfully. ID:", result.company_id);
-                newCompanyIds.origin_id = parseInt(result.company_id);
-                
-                // Actualizar el Select2 con el nuevo ID
-                const newOption = new Option(companyName, result.company_id, true, true);
-                companyShipElement.append(newOption).trigger('change');
-                
-                // Cerrar el indicador de carga
-                Swal.close();
+            const saveResult = await saveNewCompany(companyName, city, state, zip);
+            if (saveResult && saveResult !== false) {
+                newCompanyIds.origin_id = saveResult;
+                console.log("Origin company saved with ID:", saveResult);
             } else {
-                throw new Error(result.message || 'Error saving origin company');
+                throw new Error("Failed to save origin company");
             }
         } catch (error) {
-            console.error('Error saving new origin company:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Could not save the origin company: ' + error.message
-            });
+            console.error("Error saving origin company:", error);
             return { success: false };
         }
     }
@@ -234,56 +178,22 @@ async function processNewCompanies() {
         if (!companyName || !city || !state || !zip) {
             Swal.fire({
                 icon: 'warning',
-                title: 'Incomplete Destination Company Data',
-                text: 'Please complete all destination company fields (Name, City, State and Zip Code).'
+                title: 'Incomplete Data',
+                text: 'Please complete all destination company fields (Name, City, State and ZIP Code).'
             });
             return { success: false };
         }
         
         try {
-            // Mostrar indicador de carga
-            Swal.fire({
-                title: 'Saving destination company...',
-                text: 'Please wait.',
-                allowOutsideClick: false,
-                didOpen: () => { Swal.showLoading(); }
-            });
-            
-            // Realizar la petición POST al servidor
-            const response = await fetch(URLPF + 'dao/elements/daoAddLocation.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    company_name: companyName,
-                    city: city,
-                    state: state,
-                    zip: zip
-                })
-            });
-            
-            const result = await response.json();
-            if (result.status === 'success') {
-                console.log("Destination company saved successfully. ID:", result.company_id);
-                newCompanyIds.destiny_id = parseInt(result.company_id);
-                
-                // Actualizar el Select2 con el nuevo ID
-                const newOption = new Option(companyName, result.company_id, true, true);
-                companyDestElement.append(newOption).trigger('change');
-                
-                // Cerrar el indicador de carga
-                Swal.close();
+            const saveResult = await saveNewCompany(companyName, city, state, zip);
+            if (saveResult && saveResult !== false) {
+                newCompanyIds.destiny_id = saveResult;
+                console.log("Destination company saved with ID:", saveResult);
             } else {
-                throw new Error(result.message || 'Error saving destination company');
+                throw new Error("Failed to save destination company");
             }
         } catch (error) {
-            console.error('Error saving new destination company:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Could not save the destination company: ' + error.message
-            });
+            console.error("Error saving destination company:", error);
             return { success: false };
         }
     }
@@ -304,14 +214,14 @@ function validateCompleteForm() {
     // Cada sección agrupa un conjunto de IDs de campos relacionados.
     // Esto se usa para generar mensajes de error más contextualizados.
     const sections = {
-        "Información General": ['planta', 'codeplanta', 'transport', 'InOutBound'],
-        "Información de Costo": ['QuotedCost'], // 'CostoEuros' se calcula, por eso no está aquí como obligatorio directo
-        "Responsabilidad": ['Area', 'IntExt', 'PaidBy'],
-        "Detalles del Proyecto": ['CategoryCause', 'ProjectStatus', 'Recovery', 'Description'],
-        "Enviar Desde (Origen)": ['CompanyShip', 'inputCityShip', 'StatesShip', 'inputZipShip'],
-        "Destino": ['inputCompanyNameDest', 'inputCityDest', 'StatesDest', 'inputZipDest'],
-        "Detalles del Envío": ['Weight', 'Measures', 'Products', 'Carrier'],
-        "Información de Referencia": ['Reference', 'ReferenceNumber']
+        "General Information": ['planta', 'codeplanta', 'transport', 'InOutBound'],
+        "Cost Information": ['QuotedCost'], // 'CostoEuros' se calcula, por eso no está aquí como obligatorio directo
+        "Responsibility": ['Area', 'IntExt', 'PaidBy'],
+        "Project Details": ['CategoryCause', 'ProjectStatus', 'Recovery', 'Description'],
+        "Ship From (Origin)": ['CompanyShip', 'inputCityShip', 'StatesShip', 'inputZipShip'],
+        "Destination": ['inputCompanyNameDest', 'inputCityDest', 'StatesDest', 'inputZipDest'],
+        "Shipping Details": ['Weight', 'Measures', 'Products', 'Carrier'],
+        "Reference Information": ['Reference', 'ReferenceNumber']
     };
 
     // Llama a 'collectFormData' para obtener los datos actuales del formulario
@@ -352,20 +262,15 @@ function validateCompleteForm() {
     }
 
     // Construye un mensaje de error detallado para el usuario.
-    let errorMessage = 'Por favor, complete todos los campos requeridos en las siguientes secciones:\n';
+    let errorMessage = 'Please complete all required fields in the following sections:\n';
     // Itera sobre las secciones que tienen campos vacíos.
     for (const [section, fields] of Object.entries(sectionsWithEmptyFields)) {
         // Mapea los IDs de los campos faltantes a sus etiquetas (labels) visibles en el formulario,
         // para que el mensaje sea más comprensible para el usuario.
         const fieldLabels = fields.map(fieldId => {
-            const element = document.getElementById(fieldId); // Obtiene el elemento del campo.
-            if (element) {
-                // Intenta encontrar el elemento <label> asociado al campo mediante el atributo 'for'.
-                const labelElement = document.querySelector(`label[for="${fieldId}"]`);
-                // Si se encuentra la etiqueta, usa su contenido de texto. Si no, usa el ID del campo como fallback.
-                return labelElement ? labelElement.textContent : fieldId;
-            }
-            return fieldId; // Fallback si el elemento no se encuentra (aunque no debería pasar si está en emptyFields).
+            const element = document.getElementById(fieldId);
+            const label = document.querySelector(`label[for="${fieldId}"]`);
+            return label ? label.textContent.replace('*', '').trim() : fieldId;
         });
         
         // Añade la información de la sección y sus campos faltantes (con etiquetas amigables) al mensaje de error.
@@ -378,7 +283,7 @@ function validateCompleteForm() {
     // 'selectedCurrency' se asume que es una variable global o accesible en este ámbito,
     // que almacena la moneda seleccionada por el usuario (ej. 'MXN', 'USD').
     if (!selectedCurrency) { // Si no hay moneda seleccionada.
-        errorMessage += '\n\n• Moneda: Por favor, seleccione una moneda (MXN o USD)';
+        errorMessage += '\n\n• Currency: Please select a currency (MXN or USD)';
     }
     
     // Verifica el costo en euros.
@@ -386,7 +291,7 @@ function validateCompleteForm() {
     // Si el costo en euros es 0 o menor, Y el campo 'QuotedCost' no está vacío (lo que implica que se ingresó un costo),
     // podría indicar un problema con la tasa de cambio o la conexión a internet si la tasa se obtiene de forma remota.
     if (euros <= 0 && !emptyFields.includes('QuotedCost')) {
-        errorMessage += '\n\n• Costo en Euros: El costo en euros no puede ser 0 o negativo. Verifique la tasa de cambio o su conexión a internet.';
+        errorMessage += '\n\n• Cost in Euros: The cost in euros cannot be 0 or negative. Please check the exchange rate or your internet connection.';
     }
 
     // Si se llega a este punto, significa que hay campos faltantes o errores específicos.
@@ -440,17 +345,9 @@ collectFormData = function() {
     $('select').each(function() {
         const id = $(this).attr('id');
         if (id && $(this).hasClass('select2-hidden-accessible')) {
-            // Para selects que necesitan el texto mostrado en lugar del valor
-            const textFields = [
-                'planta', 'codeplanta', 'transport', 'InOutBound', 'Area', 'IntExt', 'PaidBy',
-                'CategoryCause', 'ProjectStatus', 'Recovery', 'Carrier',
-                'StatesShip', 'StatesDest'
-            ];
-            
-            if (textFields.includes(id)) {
-                // Capturar el texto visible seleccionado
-                const selectedText = $(this).find('option:selected').text().trim();
-                formData[id] = selectedText;
+            const value = $(this).val();
+            if (value) {
+                formData[id] = value;
             }
         }
     });

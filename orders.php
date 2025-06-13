@@ -89,6 +89,28 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
         </div>
     </div>
 
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Correlations</h5>
+                    <div id="chartCorrelation" style="height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Forecasts</h5>
+                    <div id="chartForecast" style="height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer class="text-center py-3">
         <p>© 2025 Grammer. All rights reserved.</p>
     </footer>

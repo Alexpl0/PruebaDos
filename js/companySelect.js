@@ -232,7 +232,7 @@ async function saveNewCompany(companyName, city, state, zip) {
         Swal.fire({
             icon: 'warning',
             title: 'Incomplete Data',
-            text: 'Please complete all company fields (Name, City, State and Zip Code).'
+            text: 'Please complete all company fields (Name, City, State and ZIP Code).'
         });
         return false;
     }

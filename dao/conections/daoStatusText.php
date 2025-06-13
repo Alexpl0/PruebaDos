@@ -21,7 +21,7 @@ if (
     http_response_code(400);
     echo json_encode([
         "success" => false,
-        "message" => "Datos JSON inválidos o incompletos. Se requiere 'orderId' y 'statusid'."
+        "message" => "Invalid or incomplete JSON data. Required: 'orderId' and 'statusid'."
     ]);
     exit;
 }
@@ -42,12 +42,12 @@ try {
     if ($stmt->affected_rows > 0) {
         echo json_encode([
             "success" => true,
-            "message" => "Estado actualizado correctamente"
+            "message" => "Status updated successfully"
         ]);
     } else {
         echo json_encode([
             "success" => false,
-            "message" => "No se actualizó ningún registro. El ID podría no existir o el estado es el mismo."
+            "message" => "No records updated. The ID might not exist or the status is the same."
         ]);
     }
 

@@ -32,7 +32,7 @@ try {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         debugLog("Método no es POST, terminando");
         http_response_code(405);
-        echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+        echo json_encode(['success' => false, 'message' => 'Method not allowed']);
         exit;
     }
     
@@ -50,14 +50,14 @@ try {
     if (empty($email)) {
         debugLog("Email vacío");
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Email requerido']);
+        echo json_encode(['success' => false, 'message' => 'Email required']);
         exit;
     }
     
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         debugLog("Email inválido: " . $email);
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Email inválido']);
+        echo json_encode(['success' => false, 'message' => 'Invalid email']);
         exit;
     }
     
@@ -81,7 +81,7 @@ try {
         debugLog("Usuario no encontrado, enviando respuesta de seguridad");
         echo json_encode([
             'success' => true, 
-            'message' => 'Si el email existe, se enviará un correo de recuperación'
+            'message' => 'If the email exists, a recovery email will be sent'
         ]);
         exit;
     }
@@ -157,7 +157,7 @@ try {
         debugLog("Email enviado exitosamente, enviando respuesta");
         echo json_encode([
             'success' => true,
-            'message' => 'Correo de recuperación enviado exitosamente'
+            'message' => 'Recovery email sent successfully'
         ]);
     } else {
         debugLog("Fallo en envío de email, eliminando token");
@@ -167,7 +167,7 @@ try {
         $deleteStmt->bind_param("s", $token);
         $deleteStmt->execute();
         
-        throw new Exception("Error al enviar correo de recuperación");
+        throw new Exception("Error sending recovery email");
     }
     
     $db->close();
@@ -183,7 +183,7 @@ try {
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'message' => 'Error interno del servidor',
+        'message' => 'Internal server error',
         'debug' => $e->getMessage() // Solo para desarrollo
     ]);
 }
