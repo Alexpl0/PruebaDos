@@ -68,7 +68,30 @@ async function loadOrderData() {
         const targetOrder = data.data.find(order => order.id === window.PF_CONFIG.orderId);
         
         if (!targetOrder) {
-            throw new Error(`Order #${window.PF_CONFIG.orderId} not found`);
+            // Verificar si es un problema de permisos de planta
+            const userPlant = window.PF_CONFIG.user.plant;
+            const userAuthLevel = window.PF_CONFIG.user.authorizationLevel;
+            
+            let errorMessage = `Order #${window.PF_CONFIG.orderId} not found`;
+            let errorDetails = 'The order may not exist or you may not have permission to view it.';
+            
+            // Si el usuario tiene nivel de autorización bajo, probablemente es un problema de planta
+            if (userAuthLevel < 4) {
+                errorDetails = `You can only view orders from your plant (Plant ${userPlant}). This order may belong to a different plant.`;
+            }
+            
+            showAccessDeniedError(errorMessage, errorDetails);
+            return null;
+        }
+        
+        // Verificar permisos de planta específicos
+        const orderPlant = targetOrder.creator_plant;
+        const userPlant = window.PF_CONFIG.user.plant;
+        const userAuthLevel = window.PF_CONFIG.user.authorizationLevel;
+        
+        if (userAuthLevel < 4 && userPlant != orderPlant) {
+            showPlantAccessError(userPlant, orderPlant, userAuthLevel);
+            return null;
         }
         
         // Actualizar datos globales
@@ -79,16 +102,7 @@ async function loadOrderData() {
         return targetOrder;
         
     } catch (error) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error Loading Order',
-            text: error.message,
-            confirmButtonText: 'Back to Orders',
-            customClass: { container: 'swal-on-top' }
-        }).then(() => {
-            window.location.href = 'orders.php';
-        });
-        
+        showGenericError('Error Loading Order', error.message);
         throw error;
     }
 }
@@ -113,15 +127,187 @@ async function loadProgressData() {
         
         const data = await response.json();
         
+        // Manejar diferentes tipos de respuesta
+        if (!data.success) {
+            handleProgressError(data);
+            return;
+        }
+        
         if (data.success && data.showProgress) {
             progressData = data;
             renderProgressLine();
+        } else if (data.error_type === 'not_creator') {
+            console.info('Progress line not shown: User is not the creator of this order');
         }
         
     } catch (error) {
         console.warn('Could not load progress data:', error.message);
         // No mostrar error al usuario, simplemente no mostrar la línea de progreso
     }
+}
+
+/**
+ * Handle different types of progress loading errors
+ */
+function handleProgressError(data) {
+    switch (data.error_type) {
+        case 'plant_restriction':
+            showPlantRestrictionError(data);
+            break;
+        case 'incomplete_approver_chain':
+            showApproverChainError(data);
+            break;
+        case 'not_found':
+            showNotFoundError(data);
+            break;
+        case 'server_error':
+            console.error('Server error loading progress:', data.message);
+            // No mostrar al usuario, es un error interno
+            break;
+        default:
+            console.warn('Unknown progress error:', data.message);
+    }
+}
+
+/**
+ * Show plant access restriction error
+ */
+function showPlantAccessError(userPlant, orderPlant, userAuthLevel) {
+    Swal.fire({
+        icon: 'warning',
+        title: 'Access Restricted',
+        html: `
+            <div style="text-align: left;">
+                <p><strong>You don't have permission to view this order.</strong></p>
+                <br>
+                <p><strong>Reason:</strong> Plant restriction</p>
+                <p><strong>Your plant:</strong> ${userPlant}</p>
+                <p><strong>Order plant:</strong> ${orderPlant}</p>
+                <br>
+                <p><small><strong>Note:</strong> Users with authorization level 4 or higher can view orders from other plants. Your current level is ${userAuthLevel}.</small></p>
+            </div>
+        `,
+        confirmButtonText: 'Back to Orders',
+        confirmButtonColor: '#6c757d',
+        customClass: { container: 'swal-on-top' },
+        allowOutsideClick: false,
+        allowEscapeKey: false
+    }).then(() => {
+        window.location.href = 'orders.php';
+    });
+}
+
+/**
+ * Show plant restriction error for progress data
+ */
+function showPlantRestrictionError(data) {
+    const details = data.details || {};
+    Swal.fire({
+        icon: 'info',
+        title: 'Plant Access Restriction',
+        html: `
+            <div style="text-align: left;">
+                <p><strong>Limited access to order information.</strong></p>
+                <br>
+                <p><strong>Your plant:</strong> ${details.user_plant}</p>
+                <p><strong>Order plant:</strong> ${details.order_plant}</p>
+                <p><strong>Your authorization level:</strong> ${details.user_auth_level}</p>
+                <br>
+                <p><small>You can view basic order information, but detailed progress tracking is restricted to orders from your plant or users with authorization level ${details.required_auth_level} or higher.</small></p>
+            </div>
+        `,
+        confirmButtonText: 'Understood',
+        confirmButtonColor: '#007bff',
+        customClass: { container: 'swal-on-top' }
+    });
+}
+
+/**
+ * Show approver chain error
+ */
+function showApproverChainError(data) {
+    const details = data.details || {};
+    Swal.fire({
+        icon: 'error',
+        title: 'System Configuration Error',
+        html: `
+            <div style="text-align: left;">
+                <p><strong>Unable to load approval progress.</strong></p>
+                <br>
+                <p><strong>Issue:</strong> Incomplete approver chain</p>
+                <p><strong>Required levels:</strong> ${details.required_levels}</p>
+                <p><strong>Found approvers:</strong> ${details.found_approvers}</p>
+                <p><strong>Order plant:</strong> ${details.order_plant}</p>
+                <br>
+                <p><small>Please contact the system administrator to resolve this configuration issue.</small></p>
+            </div>
+        `,
+        confirmButtonText: 'Contact Admin',
+        confirmButtonColor: '#dc3545',
+        customClass: { container: 'swal-on-top' }
+    });
+}
+
+/**
+ * Show order not found error
+ */
+function showNotFoundError(data) {
+    Swal.fire({
+        icon: 'error',
+        title: 'Order Not Found',
+        text: data.message || 'The requested order could not be found.',
+        confirmButtonText: 'Back to Orders',
+        confirmButtonColor: '#6c757d',
+        customClass: { container: 'swal-on-top' },
+        allowOutsideClick: false,
+        allowEscapeKey: false
+    }).then(() => {
+        window.location.href = 'orders.php';
+    });
+}
+
+/**
+ * Show access denied error
+ */
+function showAccessDeniedError(title, details) {
+    Swal.fire({
+        icon: 'warning',
+        title: title,
+        html: `
+            <div style="text-align: left;">
+                <p>${details}</p>
+                <br>
+                <p><strong>Your information:</strong></p>
+                <p><strong>Plant:</strong> ${window.PF_CONFIG.user.plant}</p>
+                <p><strong>Authorization Level:</strong> ${window.PF_CONFIG.user.authorizationLevel}</p>
+                <br>
+                <p><small>If you believe this is an error, please contact your administrator.</small></p>
+            </div>
+        `,
+        confirmButtonText: 'Back to Orders',
+        confirmButtonColor: '#6c757d',
+        customClass: { container: 'swal-on-top' },
+        allowOutsideClick: false,
+        allowEscapeKey: false
+    }).then(() => {
+        window.location.href = 'orders.php';
+    });
+}
+
+/**
+ * Show generic error
+ */
+function showGenericError(title, message) {
+    Swal.fire({
+        icon: 'error',
+        title: title,
+        text: message,
+        confirmButtonText: 'Back to Orders',
+        confirmButtonColor: '#dc3545',
+        customClass: { container: 'swal-on-top' }
+    }).then(() => {
+        window.location.href = 'orders.php';
+    });
 }
 
 /**
@@ -165,14 +351,14 @@ function renderProgressLine() {
             <div class="checkpoint-circle ${circleClass}">
                 ${approver.authorization_level}
                 ${approver.isRejectedHere ? `
-                    <button class="rejection-info-btn" onclick="showRejectionReason('${approver.name}')">
+                    <button class="rejection-info-btn" onclick="showRejectionReason('${escapeHtml(approver.name)}')">
                         <i class="fas fa-question"></i>
                     </button>
                 ` : ''}
             </div>
             <div class="checkpoint-info">
-                <div class="checkpoint-name">${approver.name}</div>
-                <div class="checkpoint-role">(${approver.role})</div>
+                <div class="checkpoint-name">${escapeHtml(approver.name)}</div>
+                <div class="checkpoint-role">(${escapeHtml(approver.role)})</div>
             </div>
         `;
         
@@ -202,6 +388,15 @@ function renderProgressLine() {
 }
 
 /**
+ * Utility function to escape HTML
+ */
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+/**
  * Show rejection reason dialog
  */
 window.showRejectionReason = function(approverName) {
@@ -209,9 +404,9 @@ window.showRejectionReason = function(approverName) {
     
     let message;
     if (rejectionReason && rejectionReason.trim() !== '') {
-        message = `<strong>Rejection Reason:</strong><br><br>"${rejectionReason}"<br><br><small>- ${approverName}</small>`;
+        message = `<strong>Rejection Reason:</strong><br><br>"${escapeHtml(rejectionReason)}"<br><br><small>- ${escapeHtml(approverName)}</small>`;
     } else {
-        message = `No specific reason was provided for the rejection.<br><br>Please contact <strong>${approverName}</strong> for more information about why this order was rejected.`;
+        message = `No specific reason was provided for the rejection.<br><br>Please contact <strong>${escapeHtml(approverName)}</strong> for more information about why this order was rejected.`;
     }
     
     Swal.fire({
@@ -232,6 +427,11 @@ async function initializeViewOrder() {
         // Load order data first
         const orderData = await loadOrderData();
         
+        // Si orderData es null, significa que hubo un error de permisos y ya se mostró
+        if (!orderData) {
+            return;
+        }
+        
         // Set current order for other functions
         currentOrder = orderData;
         
@@ -248,7 +448,8 @@ async function initializeViewOrder() {
         setupEventListeners();
         
     } catch (error) {
-        // Error already handled in loadOrderData
+        // Error already handled in individual functions
+        console.error('Failed to initialize view order:', error);
     }
 }
 
@@ -295,7 +496,7 @@ async function initializeOrderDisplay() {
                 <div style="text-align: center; padding: 40px; color: #666;">
                     <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 20px; color: #dc3545;"></i>
                     <h3>Error Loading Order</h3>
-                    <p>${error.message}</p>
+                    <p>${escapeHtml(error.message)}</p>
                     <button onclick="location.reload()" class="btn btn-primary">Retry</button>
                 </div>
             `;
@@ -518,7 +719,7 @@ async function handleGeneratePDF(event) {
         Swal.fire({
             icon: 'success',
             title: 'PDF Generated Successfully!',
-            html: `The file <b>${fileName}</b> has been downloaded successfully.`,
+            html: `The file <b>${escapeHtml(fileName)}</b> has been downloaded successfully.`,
             confirmButtonText: 'OK',
             confirmButtonColor: '#28a745',
             customClass: { container: 'swal-on-top' }

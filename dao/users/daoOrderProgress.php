@@ -1,4 +1,5 @@
 <?php
+// filepath: c:\Users\Ex-Perez-J\OneDrive - GRAMMER AG\Desktop\PruebaDos\dao\users\daoOrderProgress.php
 header('Content-Type: application/json');
 include_once('../db/PFDB.php');
 session_start();
@@ -6,19 +7,28 @@ session_start();
 // Verificar que el usuario esté logueado
 if (!isset($_SESSION['user'])) {
     http_response_code(401);
-    echo json_encode(['success' => false, 'message' => 'Usuario no autenticado']);
+    echo json_encode([
+        'success' => false, 
+        'error_type' => 'authentication',
+        'message' => 'User not authenticated'
+    ]);
     exit;
 }
 
 // Obtener el ID de la orden
 if (!isset($_GET['orderId']) || !is_numeric($_GET['orderId'])) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'ID de orden requerido']);
+    echo json_encode([
+        'success' => false, 
+        'error_type' => 'validation',
+        'message' => 'Order ID is required'
+    ]);
     exit;
 }
 
 $orderId = intval($_GET['orderId']);
 $currentUserId = $_SESSION['user']['id'];
+$currentUserPlant = $_SESSION['user']['plant'] ?? null;
 
 try {
     $con = new LocalConector();
@@ -41,23 +51,53 @@ try {
     
     if ($orderResult->num_rows === 0) {
         http_response_code(404);
-        echo json_encode(['success' => false, 'message' => 'Orden no encontrada']);
-        exit;
-    }
-    
-    $orderInfo = $orderResult->fetch_assoc();
-    
-    // Verificar que el usuario actual sea el creador de la orden
-    if ($orderInfo['user_id'] != $currentUserId) {
         echo json_encode([
-            'success' => true,
-            'showProgress' => false,
-            'message' => 'No eres el creador de esta orden'
+            'success' => false,
+            'error_type' => 'not_found',
+            'message' => "Order #$orderId does not exist in the system"
         ]);
         exit;
     }
     
-    // 2. Obtener estado actual de aprobación
+    $orderInfo = $orderResult->fetch_assoc();
+    $orderPlant = $orderInfo['order_plant'];
+    
+    // 2. Verificar permisos de acceso según planta
+    // Solo usuarios con authorization_level >= 4 pueden ver órdenes de otras plantas
+    $currentUserAuthLevel = $_SESSION['user']['authorization_level'] ?? 0;
+    
+    if ($currentUserAuthLevel < 4 && $currentUserPlant != $orderPlant) {
+        echo json_encode([
+            'success' => false,
+            'error_type' => 'plant_restriction',
+            'message' => "You don't have permission to view orders from plant $orderPlant. You can only view orders from your plant ($currentUserPlant).",
+            'details' => [
+                'user_plant' => $currentUserPlant,
+                'order_plant' => $orderPlant,
+                'user_auth_level' => $currentUserAuthLevel,
+                'required_auth_level' => 4
+            ]
+        ]);
+        exit;
+    }
+    
+    // 3. Verificar que el usuario actual sea el creador de la orden
+    if ($orderInfo['user_id'] != $currentUserId) {
+        echo json_encode([
+            'success' => true,
+            'showProgress' => false,
+            'error_type' => 'not_creator',
+            'message' => 'Progress line is only available for the order creator',
+            'details' => [
+                'creator_name' => $orderInfo['creator_name'],
+                'can_view_order' => true,
+                'can_view_progress' => false
+            ]
+        ]);
+        exit;
+    }
+    
+    // 4. Obtener estado actual de aprobación
     $approvalSql = "SELECT 
                         act_approv, 
                         user_id as last_approver_id,
@@ -83,9 +123,8 @@ try {
         $isRejected = ($currentApprovalLevel === 99);
     }
     
-    // 3. Obtener lista de aprobadores necesarios
+    // 5. Obtener lista de aprobadores necesarios
     $requiredLevel = intval($orderInfo['required_auth_level']);
-    $orderPlant = $orderInfo['order_plant'];
     $approvers = [];
     
     for ($level = 1; $level <= $requiredLevel; $level++) {
@@ -120,10 +159,28 @@ try {
                 'isCurrent' => !$isRejected && $currentApprovalLevel + 1 === $level,
                 'isRejectedHere' => $isRejected && $approver['id'] == $lastApproverId
             ];
+        } else {
+            // No se encontró aprobador para este nivel
+            error_log("No approver found for level $level and plant $orderPlant");
         }
     }
     
-    // 4. Calcular porcentaje de progreso
+    // 6. Verificar que tengamos todos los aprobadores necesarios
+    if (count($approvers) < $requiredLevel) {
+        echo json_encode([
+            'success' => false,
+            'error_type' => 'incomplete_approver_chain',
+            'message' => 'Could not find all required approvers for this order. Please contact the system administrator.',
+            'details' => [
+                'required_levels' => $requiredLevel,
+                'found_approvers' => count($approvers),
+                'order_plant' => $orderPlant
+            ]
+        ]);
+        exit;
+    }
+    
+    // 7. Calcular porcentaje de progreso
     $progressPercentage = 0;
     if ($isRejected) {
         // Si está rechazada, encontrar en qué nivel se rechazó
@@ -145,13 +202,15 @@ try {
     $response = [
         'success' => true,
         'showProgress' => true,
+        'error_type' => null,
         'orderInfo' => [
             'creator_name' => $orderInfo['creator_name'],
             'required_level' => $requiredLevel,
             'current_level' => $currentApprovalLevel,
             'is_rejected' => $isRejected,
             'is_completed' => !$isRejected && $currentApprovalLevel >= $requiredLevel,
-            'rejection_reason' => $rejectionReason
+            'rejection_reason' => $rejectionReason,
+            'order_plant' => $orderPlant
         ],
         'approvers' => $approvers,
         'progress' => [
@@ -167,7 +226,12 @@ try {
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'message' => 'Error interno del servidor'
+        'error_type' => 'server_error',
+        'message' => 'Internal server error',
+        'details' => [
+            'error_message' => $e->getMessage(),
+            'order_id' => $orderId
+        ]
     ]);
 }
 ?>
