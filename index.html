@@ -206,7 +206,7 @@
             const data = encoder.encode(text);
             const key = await crypto.subtle.importKey(
                 'raw',
-                encoder.encode('your-secret-key-32-characters!!'), // 32 characters key
+                generateFixedKey('your-secret-password'), // Cualquier longitud
                 { name: 'AES-GCM' },
                 false,
                 ['encrypt']
@@ -245,6 +245,16 @@
             } catch (e) {
                 return null;
             }
+        }
+
+        function generateFixedKey(password, length = 32) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const key = new Uint8Array(length);
+            for (let i = 0; i < length; i++) {
+                key[i] = data[i % data.length];
+            }
+            return key;
         }
 
         // Encrypt password function
