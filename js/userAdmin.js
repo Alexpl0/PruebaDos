@@ -1,4 +1,3 @@
-// filepath: c:\Users\Ex-Perez-J\OneDrive - GRAMMER AG\Desktop\PruebaDos\js\userAdmin.js
 /**
  * User Administration - JavaScript functionality
  * This file handles the DataTable initialization and CRUD operations for users.

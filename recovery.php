@@ -9,13 +9,13 @@ $errorMessage = '';
 
 switch ($error) {
     case 'invalid_token':
-        $errorMessage = 'The password reset link is invalid or has expired.';
+        $errorMessage = 'The recovery link is not valid.';
         break;
     case 'token_expired':
-        $errorMessage = 'The password reset link has expired. Please request a new one.';
+        $errorMessage = 'The recovery link has expired. Links are valid for 24 hours.';
         break;
     case 'token_used':
-        $errorMessage = 'This password reset link has already been used. Please request a new one if needed.';
+        $errorMessage = 'This recovery link has already been used.';
         break;
 } 
 ?>
@@ -31,9 +31,9 @@ switch ($error) {
     document.addEventListener('DOMContentLoaded', function() {
         Swal.fire({
             icon: 'error',
-            title: 'Password Reset Error',
+            title: 'Error',
             text: '<?php echo addslashes($errorMessage); ?>',
-            confirmButtonText: 'Request New Reset'
+            confirmButtonText: 'Understood'
         });
     });
     <?php endif; ?>
@@ -58,76 +58,52 @@ switch ($error) {
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
-    <!-- Custom CSS -->
+    <!-- Local CSS -->
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/header.css">
+    <link rel="stylesheet" href="css/recovery.css">
 </head>
 <body>
-    <div class="container-fluid vh-100">
-        <div class="row h-100">
-            <!-- Left side - Form -->
-            <div class="col-md-6 d-flex align-items-center justify-content-center bg-light">
-                <div class="recovery-form-container" style="max-width: 400px; width: 100%;">
-                    <div class="text-center mb-4">
-                        <img src="assets/logo/logo.png" alt="Premium Freight Logo" class="login-logo" style="max-height: 60px;">
-                        <h2 class="mt-3 mb-1">Password Recovery</h2>
-                        <p class="text-muted">Enter your email to reset your password</p>
-                    </div>
-                    
-                    <form id="recovery-form" autocomplete="off">
-                        <div class="mb-3">
-                            <label for="email" class="form-label">
-                                <i class="fas fa-envelope me-2"></i>Email Address
-                            </label>
-                            <input type="email" class="form-control" id="email" name="email" required 
-                                   placeholder="Enter your registered email">
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary w-100 mb-3">
-                            <i class="fas fa-paper-plane me-2"></i>Send Recovery Email
-                        </button>
-                        
-                        <div class="text-center">
-                            <p class="mb-0">Remember your password? <a href="index.php" class="text-decoration-none">Sign in here</a></p>
-                        </div>
-                        
-                        <!-- NUEVO: Indicador de seguridad -->
-                        <div class="text-center mt-3">
-                            <small class="text-muted">
-                                <i class="fas fa-shield-alt text-success"></i>
-                                Your new password will be encrypted automatically
-                            </small>
-                        </div>
-                        
-                        <!-- Información adicional -->
-                        <div class="alert alert-info mt-3" role="alert">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <strong>Recovery Instructions:</strong>
-                            <ul class="mb-0">
-                                <li>Enter your registered email address</li>
-                                <li>Check your inbox for the reset link</li>
-                                <li>Reset link expires in 24 hours</li>
-                                <li>Your new password will be encrypted securely</li>
-                            </ul>
-                        </div>
-                    </form>
+    <div id="header-container"></div>
+    
+    <div id="home">
+        <div class="container">
+            <div class="row">
+                <div>
+                    <h1 id="title1">Password Recovery</h1>
                 </div>
             </div>
-            
-            <!-- Right side - Image/Branding -->
-            <div class="col-md-6 d-none d-md-flex align-items-center justify-content-center bg-warning">
-                <div class="text-center text-dark">
-                    <i class="fas fa-key fa-5x mb-4"></i>
-                    <h3>Forgot Your Password?</h3>
-                    <p class="lead">No worries! We'll help you get back in</p>
+            <div id="loginform-container">
+                <div id="recovery">
+                    <div>
+                        <h2 class="text-center">Recover Your Password</h2>
+                        <div class="row text-center">
+                            <p class="text-center">Enter your email address to receive a password reset link</p>
+                            
+                            <form id="recovery-form">
+                                <div id="loginform">
+                                    <input type="email" id="email" class="form-control" placeholder="Enter your email address" required>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane"></i> Send Recovery Email
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        <p class="text-center">Remember your password? <a href="index.php" style="color: var(--first-color)">Sign In</a></p>
+                        <p class="text-center">Don't have an account? <a href="register.php" style="color: var(--first-color)">Sign up</a></p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <footer class="text-center py-3">
+        <p>© 2025 Grammer. All rights reserved.</p>
+    </footer>
+
     <!-- Scripts -->
+    <script src="js/header.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- NUEVO: Cargar PasswordManager -->
-    <script src="js/PasswordManager.js"></script>
     <script src="js/password_reset.js"></script>
 </body>
 </html>
