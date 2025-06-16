@@ -27,6 +27,9 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('PasswordManager loaded for user administration');
             setupPasswordValidation();
         };
+        script.onerror = function() {
+            console.error('Failed to load PasswordManager.js');
+        };
         document.head.appendChild(script);
     } else {
         setupPasswordValidation();
@@ -140,6 +143,9 @@ function initializeDataTable() {
                     if (strengthIndicator) {
                         strengthIndicator.innerHTML = '';
                     }
+                    
+                    // Reset password placeholder
+                    $('#user-password').attr('placeholder', 'Enter password');
                     
                     // Show the user form
                     $('#form-title').text('Add New User');
@@ -279,11 +285,60 @@ function initializeDataTable() {
         const userId = $('#user-id').val();
         const isNewUser = userId === 'New';
         const password = $('#user-password').val().trim();
+        const name = $('#user-name').val().trim();
+        const email = $('#user-email').val().trim();
+        const plant = $('#user-plant').val().trim();
+
+        // Basic validation
+        if (!name) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Name Required',
+                text: 'Please enter the user name'
+            });
+            return;
+        }
+
+        if (!email) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Email Required',
+                text: 'Please enter the email address'
+            });
+            return;
+        }
+
+        if (!plant) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Plant Required',
+                text: 'Please enter the plant'
+            });
+            return;
+        }
 
         // Get the selected role and authorization level from the dropdown
         const roleLevelSelect = $('#user-role-level')[0];
+        if (!roleLevelSelect || !roleLevelSelect.value) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Role Required',
+                text: 'Please select a role and authorization level'
+            });
+            return;
+        }
+
         const selectedValue = roleLevelSelect.value;
         const [authLevel, role] = selectedValue.split(':');
+
+        if (!authLevel || !role) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Role Selection',
+                text: 'Please select a valid role and authorization level'
+            });
+            return;
+        }
 
         // NUEVO: Validar contraseña con PasswordManager si se proporciona
         if (password && typeof PasswordManager !== 'undefined') {
@@ -307,9 +362,9 @@ function initializeDataTable() {
 
         // Build the user data object to send to the server
         const userData = {
-            name: $('#user-name').val(),
-            email: $('#user-email').val(),
-            plant: $('#user-plant').val(),
+            name: name,
+            email: email,
+            plant: plant,
             role: role,
             authorization_level: parseInt(authLevel)
         };
@@ -317,11 +372,21 @@ function initializeDataTable() {
         // NUEVO: Encriptar contraseña si se proporciona
         if (password) {
             if (typeof PasswordManager !== 'undefined') {
-                userData.password = PasswordManager.prepareForSubmission(password);
-                console.log('Password encrypted for user administration');
+                try {
+                    userData.password = PasswordManager.encrypt(password);
+                    console.log('Password encrypted for user administration');
+                } catch (error) {
+                    console.error('Password encryption failed:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Encryption Error',
+                        text: 'Failed to encrypt password. Please try again.'
+                    });
+                    return;
+                }
             } else {
-                userData.password = password;
                 console.warn('PasswordManager not available, sending plain password');
+                userData.password = password;
             }
         }
 
@@ -329,6 +394,12 @@ function initializeDataTable() {
         if (!isNewUser) {
             userData.id = parseInt(userId);
         }
+
+        // Debug: Log the data being sent
+        console.log('Sending user data:', {
+            ...userData,
+            password: userData.password ? '[ENCRYPTED]' : '[NO PASSWORD]'
+        });
 
         // Show loading indicator while saving
         Swal.fire({
@@ -354,8 +425,24 @@ function initializeDataTable() {
             },
             body: JSON.stringify(userData)
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                return response.text().then(text => {
+                    let errorMessage;
+                    try {
+                        const jsonError = JSON.parse(text);
+                        errorMessage = jsonError.message || 'Server error occurred';
+                    } catch (e) {
+                        errorMessage = `Server returned ${response.status}: ${text}`;
+                    }
+                    throw new Error(errorMessage);
+                });
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('Server response:', data);
             if (data.success) {
                 Swal.fire({
                     icon: 'success',
@@ -374,10 +461,11 @@ function initializeDataTable() {
                 // Refresh the table to show changes
                 usersTable.ajax.reload();
             } else {
-                throw new Error(data.message);
+                throw new Error(data.message || 'Operation failed');
             }
         })
         .catch(error => {
+            console.error('Error saving user:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
