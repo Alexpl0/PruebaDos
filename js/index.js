@@ -19,52 +19,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Functionality to show/hide password
 document.addEventListener('DOMContentLoaded', function() {
+    // Toggle password visibility
     const togglePassword = document.getElementById('togglePassword');
     const passwordInput = document.getElementById('password');
-
+    
     if (togglePassword && passwordInput) {
         togglePassword.addEventListener('click', function() {
-            // Change input type
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
             
-            // Change icon
-            if (type === 'text') {
-                togglePassword.classList.remove('fa-eye-slash');
-                togglePassword.classList.add('fa-eye');
-            } else {
-                togglePassword.classList.remove('fa-eye');
-                togglePassword.classList.add('fa-eye-slash');
-            }
+            // Toggle icon
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
         });
     }
-});
-
-// Logic for login form interaction when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    // Add event listener to submit form with Enter key
+    
+    // Add Enter key support for login
     const emailInput = document.getElementById('email');
-    if (emailInput) {
-        emailInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                loginUsuario();
-            }
+    if (emailInput && passwordInput) {
+        [emailInput, passwordInput].forEach(input => {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    loginUsuario();
+                }
+            });
         });
-    }
-    
-    const passwordInput = document.getElementById('password');
-    if (passwordInput) {
-        passwordInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                loginUsuario();
-            }
-        });
-    }
-    
-    // Configure login button if it exists
-    const loginButton = document.getElementById('loginButton');
-    if (loginButton) {
-        loginButton.addEventListener('click', loginUsuario);
     }
 });
 
@@ -72,139 +51,156 @@ document.addEventListener('DOMContentLoaded', function() {
  * Function to process user login
  * Validates fields and sends request to server
  */
-function loginUsuario() {
-    // Get form values
+async function loginUsuario() {
     const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value.trim();
-
-    // Basic client-side validation
-    if (!email || !password) {
+    const password = document.getElementById('password').value;
+    const btnLogin = document.getElementById('btnLogin');
+    
+    // Validaciones básicas
+    if (!email) {
         Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Please enter your email and password.'
+            icon: 'warning',
+            title: 'Email Required',
+            text: 'Please enter your email address',
+            confirmButtonColor: 'var(--first-color)'
         });
         return;
     }
     
-    // Verify email format
+    if (!password) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Password Required',
+            text: 'Please enter your password',
+            confirmButtonColor: 'var(--first-color)'
+        });
+        return;
+    }
+    
+    // Validar formato de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
         Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Please enter a valid email address.'
+            icon: 'warning',
+            title: 'Invalid Email',
+            text: 'Please enter a valid email address',
+            confirmButtonColor: 'var(--first-color)'
         });
         return;
     }
-
-    // Show loading indicator
-    Swal.fire({
-        title: 'Processing...',
-        text: 'Verifying credentials',
-        allowOutsideClick: false,
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    });
-
-    // NUEVO: Encriptar contraseña antes de enviar (si PasswordManager está disponible)
-    let passwordToSend = password;
-    if (typeof PasswordManager !== 'undefined') {
-        passwordToSend = PasswordManager.prepareForSubmission(password);
-        console.log('Password encrypted for transmission');
-    } else {
-        console.warn('PasswordManager not available, sending plain password');
-    }
-
-    // Verify that URLPF is a valid string before using it
-    const baseURL = (typeof URLPF === 'string') ? URLPF : 'https://grammermx.com/Jesus/PruebaDos/';
-    console.log('Using base URL:', baseURL); // For debugging
     
-    // Send login request to server using global URL
-    fetch(baseURL + 'dao/users/daoLogin.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password: passwordToSend }) // Usar contraseña encriptada
-    })
-    .then(response => {
-        // Check if response is successful
-        if (!response.ok) {
-            throw new Error('Server connection error');
+    // Mostrar estado de carga
+    btnLogin.classList.add('loading');
+    btnLogin.disabled = true;
+    
+    try {
+        // Usar PasswordManager para encriptar la contraseña
+        let encryptedPassword = password;
+        if (typeof PasswordManager !== 'undefined') {
+            encryptedPassword = PasswordManager.encryptPassword(password);
         }
-        return response.json();
-    })
-    .then(data => {
-        if (data.status === 'success') {
-            // If login is successful, establish session
-            fetch(baseURL + 'dao/users/loginSession.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data.data)
+        
+        const response = await fetch(`${URLPF}dao/users/loginValidation.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                email: email,
+                password: encryptedPassword
             })
-            .then(sessionResponse => {
-                if (!sessionResponse.ok) {
-                    throw new Error('Error establishing session');
-                }
-                return sessionResponse.text();
-            })
-            .then(() => {
-                // Create personalized message with plant information
-                const userName = data.data.name || 'User';
-                const userPlant = data.data.plant;
-                const authLevel = data.data.authorization_level;
-                
-                let welcomeMessage = `Welcome, ${userName}!`;
-                
-                // Add plant information if it exists
-                if (userPlant && userPlant !== null && userPlant !== '') {
-                    welcomeMessage += `\nPlant: ${userPlant}`;
-                } else {
-                    welcomeMessage += '\nGlobal Access (No assigned plant)';
-                }
-                
-                // Add authorization level
-                welcomeMessage += `\nAuthorization level: ${authLevel}`;
-
-                // Show success message with detailed information
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Login Successful',
-                    html: `
-                        <div style="text-align: left; font-size: 14px;">
-                            <p><strong>Welcome, ${userName}!</strong></p>
-                            <p><i class="fas fa-building"></i> <strong>Plant:</strong> ${userPlant || 'Global Access'}</p>
-                            <p><i class="fas fa-user-shield"></i> <strong>Authorization level:</strong> ${authLevel}</p>
-                            <p><i class="fas fa-envelope"></i> <strong>Email:</strong> ${data.data.email}</p>
-                            <p><i class="fas fa-shield-alt"></i> <strong>Security:</strong> Password encrypted ✓</p>
-                        </div>
-                    `,
-                    timer: 3000,
-                    showConfirmButton: true,
-                    confirmButtonText: 'Continue'
-                }).then(() => {
-                    window.location.href = 'newOrder.php';
-                });
+        });
+        
+        console.log('Response status:', response.status);
+        
+        // Manejar diferentes códigos de estado
+        if (response.status === 401) {
+            throw new Error('Invalid credentials');
+        }
+        
+        if (response.status === 404) {
+            throw new Error('Login service not found');
+        }
+        
+        if (response.status === 500) {
+            throw new Error('Server error');
+        }
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Login response:', data);
+        
+        if (data.success) {
+            // Login exitoso
+            Swal.fire({
+                icon: 'success',
+                title: 'Login Successful!',
+                text: `Welcome back, ${data.user.name}!`,
+                timer: 1500,
+                showConfirmButton: false,
+                confirmButtonColor: 'var(--first-color)'
+            }).then(() => {
+                // Redireccionar después del mensaje
+                window.location.href = 'newOrder.php';
             });
         } else {
-            // Show error message if credentials are incorrect
+            // Login fallido
+            let errorMessage = 'Login failed';
+            
+            if (data.message) {
+                errorMessage = data.message;
+            } else if (data.error) {
+                errorMessage = data.error;
+            }
+            
             Swal.fire({
                 icon: 'error',
-                title: 'Error',
-                text: data.mensaje || 'Incorrect credentials.'
+                title: 'Login Failed',
+                text: errorMessage,
+                confirmButtonColor: 'var(--first-color)'
             });
         }
-    })
-    .catch(error => {
-        // Handle network or server errors
+        
+    } catch (error) {
         console.error('Error during login process:', error);
+        
+        let errorMessage = 'An unexpected error occurred';
+        let errorTitle = 'Login Error';
+        
+        if (error.message === 'Invalid credentials') {
+            errorTitle = 'Invalid Credentials';
+            errorMessage = 'The email or password you entered is incorrect. Please try again.';
+        } else if (error.message === 'Login service not found') {
+            errorTitle = 'Service Unavailable';
+            errorMessage = 'The login service is currently unavailable. Please try again later.';
+        } else if (error.message === 'Server error') {
+            errorTitle = 'Server Error';
+            errorMessage = 'There was a problem with the server. Please try again later.';
+        } else if (error.message.includes('Failed to fetch')) {
+            errorTitle = 'Connection Error';
+            errorMessage = 'Unable to connect to the server. Please check your internet connection.';
+        }
+        
         Swal.fire({
             icon: 'error',
-            title: 'Error',
-            text: 'An error occurred while logging in. Please try again.'
+            title: errorTitle,
+            text: errorMessage,
+            confirmButtonColor: 'var(--first-color)'
         });
-    });
+        
+    } finally {
+        // Restaurar estado del botón
+        btnLogin.classList.remove('loading');
+        btnLogin.disabled = false;
+    }
 }
+
+// Función global para mantener compatibilidad
+window.loginUsuario = loginUsuario;
 
 /**
  * Verification of URL variable availability
