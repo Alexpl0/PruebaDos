@@ -113,6 +113,36 @@
             border-radius: 5px;
             margin-bottom: 20px;
         }
+        
+        .user-item {
+            margin: 10px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .password-preview {
+            font-family: monospace;
+            background-color: #e9ecef;
+            padding: 5px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        
+        .update-button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .update-button:hover {
+            background-color: #218838;
+        }
     </style>
 </head>
 
@@ -164,9 +194,11 @@
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Usuario</th>
-                            <th>Rol</th>
-                            <th>Correo</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Plant</th>
+                            <th>Role</th>
+                            <th>Auth Level</th>
                             <th>Password Status</th>
                         </tr>
                     </thead>
@@ -183,7 +215,7 @@
     </footer>
 
     <script>
-        // Simple encryption/decryption functions (you should use the same method as your PHP)
+        // Simple encryption/decryption functions
         function simpleEncrypt(text, shift = 3) {
             return btoa(text.split('').map(char => 
                 String.fromCharCode(char.charCodeAt(0) + shift)
@@ -200,13 +232,13 @@
             }
         }
 
-        // More secure encryption using built-in crypto (for demonstration)
+        // More secure encryption using built-in crypto
         async function secureEncrypt(text) {
             const encoder = new TextEncoder();
             const data = encoder.encode(text);
             const key = await crypto.subtle.importKey(
                 'raw',
-                generateFixedKey('your-secret-password'), // Cualquier longitud
+                generateFixedKey('your-secret-password'),
                 { name: 'AES-GCM' },
                 false,
                 ['encrypt']
@@ -229,7 +261,7 @@
                 const data = new Uint8Array(atob(encryptedText).split('').map(c => c.charCodeAt(0)));
                 const key = await crypto.subtle.importKey(
                     'raw',
-                    encoder.encode('your-secret-key-32-characters!!'),
+                    generateFixedKey('your-secret-password'),
                     { name: 'AES-GCM' },
                     false,
                     ['decrypt']
@@ -267,10 +299,7 @@
             }
 
             try {
-                // Use simple encryption (you can change this to match your PHP method)
                 const encrypted = simpleEncrypt(plainText);
-                
-                // Also show secure encryption
                 const secureEncrypted = await secureEncrypt(plainText);
                 
                 document.getElementById('encryptResult').innerHTML = `
@@ -296,11 +325,9 @@
             }
 
             try {
-                // Try simple decryption first
                 let decrypted = simpleDecrypt(encryptedText);
                 let method = 'Simple';
                 
-                // If simple fails, try secure decryption
                 if (!decrypted) {
                     decrypted = await secureDecrypt(encryptedText);
                     method = 'Secure';
@@ -323,71 +350,197 @@
             }
         }
 
-        // Load users for encryption
+        // Load users for encryption using your endpoint
         function loadUsersForEncryption() {
             document.getElementById('batchResult').innerHTML = '<div class="result">Loading users...</div>';
             
-            fetch('https://grammermx.com/Jesus/PruebaDos/dao/users/daoUserAdmin.php')
-                .then(response => response.json())
-                .then(data => {
-                    let html = '<div class="result"><h4>Current Users in Database:</h4><ul>';
-                    data.data.forEach(cuenta => {
-                        // Assume we can get password status (you might need to modify your API)
-                        const isEncrypted = cuenta.PASSWORD && cuenta.PASSWORD.length > 20 ? 'Encrypted' : 'Plain Text';
-                        html += `<li><strong>${cuenta.USUARIO}</strong> (${cuenta.CORREO}) - Password: ${isEncrypted}</li>`;
+            fetch('dao/users/daoUserAdmin.php', {
+                method: 'GET',
+                credentials: 'include' // Para mantener la sesión
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    let html = '<div class="result"><h4>Current Users in Database:</h4>';
+                    
+                    data.data.forEach(user => {
+                        // Determinar si la contraseña parece encriptada
+                        const isEncrypted = user.password && user.password.length > 20;
+                        const statusText = isEncrypted ? 'Encrypted' : 'Plain Text';
+                        const statusColor = isEncrypted ? 'green' : 'red';
+                        
+                        html += `
+                            <div class="user-item">
+                                <strong>ID:</strong> ${user.id} | 
+                                <strong>Name:</strong> ${user.name} | 
+                                <strong>Email:</strong> ${user.email}<br>
+                                <strong>Password Status:</strong> <span style="color: ${statusColor};">${statusText}</span><br>
+                                <div class="password-preview">
+                                    <strong>Current Password:</strong> ${user.password.substring(0, 30)}${user.password.length > 30 ? '...' : ''}
+                                </div>
+                                ${!isEncrypted ? `<button class="update-button" onclick="updateUserPassword(${user.id}, '${user.password}')">🔒 Encrypt This Password</button>` : ''}
+                            </div>
+                        `;
                     });
-                    html += '</ul></div>';
+                    
+                    html += '</div>';
                     document.getElementById('batchResult').innerHTML = html;
-                })
-                .catch(error => {
+                } else {
                     document.getElementById('batchResult').innerHTML = 
-                        '<div class="result error">Error loading users: ' + error.message + '</div>';
-                });
+                        `<div class="result error">Error: ${data.message}</div>`;
+                }
+            })
+            .catch(error => {
+                document.getElementById('batchResult').innerHTML = 
+                    `<div class="result error">Error loading users: ${error.message}</div>`;
+            });
         }
 
-        // Update all passwords (this would need a new PHP endpoint)
-        function updateAllPasswords() {
+        // Update individual user password
+        async function updateUserPassword(userId, currentPassword) {
+            try {
+                const encryptedPassword = simpleEncrypt(currentPassword);
+                
+                const response = await fetch('dao/users/daoUserAdmin.php', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        id: userId,
+                        password: encryptedPassword
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('✅ Password encrypted successfully!');
+                    loadUsersForEncryption(); // Recargar lista
+                } else {
+                    alert('❌ Error: ' + result.message);
+                }
+            } catch (error) {
+                alert('❌ Error updating password: ' + error.message);
+            }
+        }
+
+        // Update all passwords at once
+        async function updateAllPasswords() {
             if (!confirm('⚠️ WARNING: This will encrypt all plain text passwords in your database. Are you sure you want to continue?')) {
                 return;
             }
 
-            document.getElementById('batchResult').innerHTML = 
-                '<div class="result error">⚠️ This feature requires a new PHP endpoint to be created. Contact your developer to implement the batch password encryption endpoint.</div>';
+            document.getElementById('batchResult').innerHTML = '<div class="result">Processing all users...</div>';
+
+            try {
+                // Primero obtener todos los usuarios
+                const response = await fetch('dao/users/daoUserAdmin.php', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.message);
+                }
+
+                let updatedCount = 0;
+                let errorCount = 0;
+                
+                // Procesar cada usuario
+                for (const user of data.data) {
+                    const isEncrypted = user.password && user.password.length > 20;
+                    
+                    if (!isEncrypted) {
+                        try {
+                            const encryptedPassword = simpleEncrypt(user.password);
+                            
+                            const updateResponse = await fetch('dao/users/daoUserAdmin.php', {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                credentials: 'include',
+                                body: JSON.stringify({
+                                    id: user.id,
+                                    password: encryptedPassword
+                                })
+                            });
+                            
+                            const updateResult = await updateResponse.json();
+                            
+                            if (updateResult.success) {
+                                updatedCount++;
+                            } else {
+                                errorCount++;
+                                console.error(`Error updating user ${user.id}:`, updateResult.message);
+                            }
+                        } catch (error) {
+                            errorCount++;
+                            console.error(`Error processing user ${user.id}:`, error);
+                        }
+                    }
+                }
+                
+                document.getElementById('batchResult').innerHTML = `
+                    <div class="result">
+                        <h4>Batch Update Complete!</h4>
+                        <p>✅ Successfully updated: ${updatedCount} passwords</p>
+                        ${errorCount > 0 ? `<p>❌ Errors: ${errorCount}</p>` : ''}
+                        <button onclick="loadUsersForEncryption()">🔄 Reload Users</button>
+                    </div>
+                `;
+                
+            } catch (error) {
+                document.getElementById('batchResult').innerHTML = 
+                    `<div class="result error">Error during batch update: ${error.message}</div>`;
+            }
         }
 
-        // Load current users (existing function)
+        // Load current users using your endpoint
         function mostrarProductos() {
-            fetch('https://grammermx.com/Jesus/PruebaDos/dao/users/daoUserAdmin.php')
-                .then(response => response.json())
-                .then(data => {
-                    const userTable = document.getElementById("userTable");
-                    const tableContainer = document.getElementById("usersTableContainer");
-                    
-                    userTable.innerHTML = ""; // Clear table
-                    tableContainer.style.display = "table"; // Show table
+            fetch('dao/users/daoUserAdmin.php', {
+                method: 'GET',
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                const userTable = document.getElementById("userTable");
+                const tableContainer = document.getElementById("usersTableContainer");
+                
+                userTable.innerHTML = "";
+                tableContainer.style.display = "table";
 
-                    data.data.forEach(cuenta => {
-                        // Determine if password looks encrypted
-                        const passwordStatus = cuenta.PASSWORD && cuenta.PASSWORD.length > 20 ? 
+                if (data.success) {
+                    data.data.forEach(user => {
+                        const passwordStatus = user.password && user.password.length > 20 ? 
                             '<span style="color: green;">✅ Encrypted</span>' : 
                             '<span style="color: red;">❌ Plain Text</span>';
                             
                         const row = document.createElement("tr");
                         row.innerHTML = `
-                            <td>${cuenta.ID}</td>
-                            <td>${cuenta.USUARIO}</td>
-                            <td>${cuenta.ROL}</td>
-                            <td>${cuenta.CORREO}</td>
+                            <td>${user.id}</td>
+                            <td>${user.name}</td>
+                            <td>${user.email}</td>
+                            <td>${user.plant}</td>
+                            <td>${user.role}</td>
+                            <td>${user.authorization_level}</td>
                             <td>${passwordStatus}</td>
                         `;
                         userTable.appendChild(row);
                     });
-                })
-                .catch(error => {
-                    console.error('Error al cargar las cuentas:', error);
-                    const userTable = document.getElementById("userTable");
-                    userTable.innerHTML = `<tr><td colspan="5">Error al cargar los datos: ${error.message}</td></tr>`;
-                });
+                } else {
+                    userTable.innerHTML = `<tr><td colspan="7">Error: ${data.message}</td></tr>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading users:', error);
+                const userTable = document.getElementById("userTable");
+                userTable.innerHTML = `<tr><td colspan="7">Error loading data: ${error.message}</td></tr>`;
+            });
         }
 
         // Load users on page load
