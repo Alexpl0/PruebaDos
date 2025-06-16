@@ -94,10 +94,13 @@ async function loginUsuario() {
     btnLogin.disabled = true;
     
     try {
-        // Usar PasswordManager para encriptar la contraseña
+        // CORRECCIÓN: Usar el método correcto del PasswordManager
         let encryptedPassword = password;
-        if (typeof PasswordManager !== 'undefined') {
-            encryptedPassword = PasswordManager.encryptPassword(password);
+        if (typeof PasswordManager !== 'undefined' && PasswordManager.encrypt) {
+            encryptedPassword = PasswordManager.encrypt(password);
+            console.log('Password encrypted for transmission');
+        } else {
+            console.warn('PasswordManager not available, sending plain password');
         }
         
         const response = await fetch(`${URLPF}dao/users/loginValidation.php`, {
@@ -134,12 +137,15 @@ async function loginUsuario() {
         const data = await response.json();
         console.log('Login response:', data);
         
-        if (data.success) {
-            // Login exitoso
+        if (data.status === 'success' || data.success) {
+            // Login exitoso - manejar ambos formatos de respuesta
+            const userData = data.data || data.user || {};
+            const userName = userData.name || 'User';
+            
             Swal.fire({
                 icon: 'success',
                 title: 'Login Successful!',
-                text: `Welcome back, ${data.user.name}!`,
+                text: `Welcome back, ${userName}!`,
                 timer: 1500,
                 showConfirmButton: false,
                 confirmButtonColor: 'var(--first-color)'
@@ -151,7 +157,9 @@ async function loginUsuario() {
             // Login fallido
             let errorMessage = 'Login failed';
             
-            if (data.message) {
+            if (data.mensaje) {
+                errorMessage = data.mensaje;
+            } else if (data.message) {
                 errorMessage = data.message;
             } else if (data.error) {
                 errorMessage = data.error;
