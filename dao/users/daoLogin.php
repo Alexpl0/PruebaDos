@@ -1,6 +1,7 @@
 <?php
 
 include_once('../db/PFDB.php');
+require_once('PasswordManager.php');
 
 header('Content-Type: application/json');
 
@@ -26,15 +27,27 @@ try {
     $result = $stmt->get_result();
 
     if ($user = $result->fetch_assoc()) {
-        // Comparar contraseñas (en producción usa hash)
-        if ($user['password'] === $password) {
+        // NUEVO: Usar PasswordManager para verificar contraseñas
+        if (PasswordManager::verify($password, $user['password'])) {
+            
+            // MIGRACIÓN AUTOMÁTICA: Si la contraseña en BD no está encriptada, encriptarla ahora
+            if (!PasswordManager::isEncrypted($user['password'])) {
+                $encryptedPassword = PasswordManager::encrypt($user['password']);
+                $updateStmt = $conex->prepare("UPDATE `User` SET password = ? WHERE id = ?");
+                $updateStmt->bind_param("si", $encryptedPassword, $user['id']);
+                $updateStmt->execute();
+                $updateStmt->close();
+                
+                error_log("Password migrated to encrypted format for user ID: " . $user['id']);
+            }
+            
             unset($user['password']); // No enviar el password de vuelta
             // Almacenar datos del usuario en la sesión
             $_SESSION['user'] = [
                 'id' => $user['id'],
                 'name' => $user['name'],
                 'email' => $user['email'],
-                'plant' => $user['plant'], // Asegurarse de que este campo exista y tenga datos
+                'plant' => $user['plant'],
                 'authorization_level' => $user['authorization_level'],
                 'role' => $user['role']
             ];
@@ -55,3 +68,4 @@ try {
     http_response_code(500);
     echo json_encode(["success" => false, "mensaje" => $e->getMessage()]);
 }
+?>

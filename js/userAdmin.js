@@ -6,7 +6,7 @@
  * Features:
  * - User listing with DataTable
  * - Add, Edit, Delete user operations
- * - Form validation and AJAX submission
+ * - Form validation and AJAX submission with password encryption
  * - Export to Excel and PDF
  *  
  * @author Alejandro Perez
@@ -16,6 +16,45 @@
 //=====================================================================================================
 // Global variable to store the DataTable instance
 let usersTable;
+
+// Load PasswordManager when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Load PasswordManager if not already loaded
+    if (typeof PasswordManager === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'js/PasswordManager.js';
+        script.onload = function() {
+            console.log('PasswordManager loaded for user administration');
+            setupPasswordValidation();
+        };
+        document.head.appendChild(script);
+    } else {
+        setupPasswordValidation();
+    }
+});
+
+/**
+ * Setup password validation with PasswordManager
+ */
+function setupPasswordValidation() {
+    const passwordField = document.getElementById('user-password');
+    const strengthIndicator = document.getElementById('password-strength-indicator');
+    
+    if (passwordField && strengthIndicator && typeof PasswordManager !== 'undefined') {
+        // Use PasswordManager for strength validation
+        PasswordManager.setupPasswordField(passwordField, strengthIndicator);
+        
+        // Add custom strength indicator HTML if it doesn't exist
+        if (!strengthIndicator.querySelector('.progress-bar')) {
+            strengthIndicator.innerHTML = `
+                <div style="height: 4px; background-color: #e0e0e0; border-radius: 2px; margin-top: 5px;">
+                    <div class="progress-bar" style="height: 100%; border-radius: 2px; transition: all 0.3s ease; width: 0%;"></div>
+                </div>
+                <small class="strength-level" style="font-size: 12px; margin-top: 2px; display: block;"></small>
+            `;
+        }
+    }
+}
 
 /**
  * Initializes the DataTable for user management and sets up all event handlers.
@@ -50,9 +89,20 @@ function initializeDataTable() {
             { data: 'id' },           
             { data: 'name' },        
             { data: 'email' },
-            { data: 'plant' },        // Agregar columna plant
+            { data: 'plant' },        
             { data: 'role' },        
-            { data: 'password' },     
+            { 
+                data: 'password',
+                render: function(data, type, row) {
+                    // NUEVO: Mostrar estado de encriptación con iconos
+                    if (data.includes('🔐 Encrypted')) {
+                        return '<span class="badge bg-success"><i class="fas fa-lock"></i> Encrypted</span>';
+                    } else if (data.includes('⚠️ Plain text')) {
+                        return '<span class="badge bg-warning"><i class="fas fa-exclamation-triangle"></i> Plain Text</span>';
+                    }
+                    return data;
+                }
+            },     
             { data: 'authorization_level' }, 
             {
                 data: null,
@@ -84,6 +134,12 @@ function initializeDataTable() {
                     // Clear the form and set it for a new user
                     $('#user-form').trigger('reset');
                     $('#user-id').val('New');
+                    
+                    // Clear password strength indicator
+                    const strengthIndicator = document.getElementById('password-strength-indicator');
+                    if (strengthIndicator) {
+                        strengthIndicator.innerHTML = '';
+                    }
                     
                     // Show the user form
                     $('#form-title').text('Add New User');
@@ -142,8 +198,17 @@ function initializeDataTable() {
         $('#user-id').val(userData.id);
         $('#user-name').val(userData.name);
         $('#user-email').val(userData.email);
-        $('#user-plant').val(userData.plant);  // Agregar plant
-        $('#user-password').val(userData.password);
+        $('#user-plant').val(userData.plant);
+        
+        // NUEVO: No llenar el campo de contraseña para evitar mostrar datos sensibles
+        $('#user-password').val(''); // Limpiar campo de contraseña
+        $('#user-password').attr('placeholder', 'Enter new password (leave empty to keep current)');
+        
+        // Clear password strength indicator
+        const strengthIndicator = document.getElementById('password-strength-indicator');
+        if (strengthIndicator) {
+            strengthIndicator.innerHTML = '';
+        }
         
         // Show the form for editing
         $('#form-title').text('Edit User');
@@ -213,21 +278,52 @@ function initializeDataTable() {
         // Gather form data
         const userId = $('#user-id').val();
         const isNewUser = userId === 'New';
+        const password = $('#user-password').val().trim();
 
         // Get the selected role and authorization level from the dropdown
         const roleLevelSelect = $('#user-role-level')[0];
         const selectedValue = roleLevelSelect.value;
         const [authLevel, role] = selectedValue.split(':');
 
+        // NUEVO: Validar contraseña con PasswordManager si se proporciona
+        if (password && typeof PasswordManager !== 'undefined') {
+            const passwordValidation = PasswordManager.validateStrength(password);
+            if (!passwordValidation.isValid) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Password',
+                    text: passwordValidation.message
+                });
+                return;
+            }
+        } else if (isNewUser && !password) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Password Required',
+                text: 'Password is required for new users'
+            });
+            return;
+        }
+
         // Build the user data object to send to the server
         const userData = {
             name: $('#user-name').val(),
             email: $('#user-email').val(),
-            plant: $('#user-plant').val(),  // Agregar plant
+            plant: $('#user-plant').val(),
             role: role,
-            password: $('#user-password').val(),
             authorization_level: parseInt(authLevel)
         };
+
+        // NUEVO: Encriptar contraseña si se proporciona
+        if (password) {
+            if (typeof PasswordManager !== 'undefined') {
+                userData.password = PasswordManager.prepareForSubmission(password);
+                console.log('Password encrypted for user administration');
+            } else {
+                userData.password = password;
+                console.warn('PasswordManager not available, sending plain password');
+            }
+        }
 
         // If updating, include the user ID
         if (!isNewUser) {
@@ -237,7 +333,13 @@ function initializeDataTable() {
         // Show loading indicator while saving
         Swal.fire({
             title: isNewUser ? 'Creating User' : 'Updating User',
-            text: 'Please wait...',
+            html: `
+                <div style="text-align: left;">
+                    <p><i class="fas fa-user"></i> Processing user data...</p>
+                    ${password ? '<p><i class="fas fa-shield-alt"></i> Encrypting password...</p>' : ''}
+                    <p><i class="fas fa-database"></i> Saving to database...</p>
+                </div>
+            `,
             allowOutsideClick: false,
             didOpen: () => {
                 Swal.showLoading();
@@ -258,7 +360,12 @@ function initializeDataTable() {
                 Swal.fire({
                     icon: 'success',
                     title: 'Success',
-                    text: data.message
+                    html: `
+                        <div style="text-align: left;">
+                            <p><strong>${data.message}</strong></p>
+                            ${password ? '<p><i class="fas fa-shield-alt text-success"></i> Password encrypted successfully</p>' : ''}
+                        </div>
+                    `
                 });
                 
                 // Hide the form after success
@@ -347,7 +454,7 @@ $(document).ready(function() {
     
     // Password visibility toggle - ACTUALIZADO para coincidir con el HTML
     $(document).on('click', '#userPassword', function() {
-        const passwordInput = $('#password'); // Cambié de #user-password a #password
+        const passwordInput = $('#user-password'); // Campo correcto
         const icon = $(this); // El ícono es directamente el elemento clickeado
         
         if (passwordInput.attr('type') === 'password') {

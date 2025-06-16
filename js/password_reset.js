@@ -1,10 +1,21 @@
 /**
  * Password Reset JavaScript
- * Handles reset requests and password changes
+ * Handles reset requests and password changes with encryption
  */
 
 document.addEventListener('DOMContentLoaded', function () {
-    initializePasswordReset();
+    // Load PasswordManager if not already loaded
+    if (typeof PasswordManager === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'js/PasswordManager.js';
+        script.onload = function() {
+            console.log('PasswordManager loaded for password reset');
+            initializePasswordReset();
+        };
+        document.head.appendChild(script);
+    } else {
+        initializePasswordReset();
+    }
 });
 
 /**
@@ -61,7 +72,17 @@ async function handleRecoverySubmit(event) {
         Swal.close();
 
         if (result.success) {
-            Swal.fire('Done', result.message, 'success');
+            Swal.fire({
+                icon: 'success',
+                title: 'Done',
+                html: `
+                    <div style="text-align: left;">
+                        <p><strong>${result.message}</strong></p>
+                        <p><i class="fas fa-shield-alt"></i> Your new password will be encrypted automatically</p>
+                        <p><i class="fas fa-clock"></i> Reset link expires in 24 hours</p>
+                    </div>
+                `
+            });
         } else {
             Swal.fire('Error', result.message || 'Could not send the recovery email.', 'error');
         }
@@ -86,11 +107,28 @@ function initializeResetForm() {
     // Initialize with blank strength
     resetPasswordStrength();
     
+    // NUEVO: Setup PasswordManager if available
+    if (typeof PasswordManager !== 'undefined') {
+        const strengthIndicator = document.getElementById('password-strength-indicator');
+        if (strengthIndicator) {
+            // Create strength indicator HTML if it doesn't exist
+            if (!strengthIndicator.querySelector('.strength-fill')) {
+                strengthIndicator.innerHTML = `
+                    <div class="strength-bar" style="height: 4px; background-color: #e0e0e0; border-radius: 2px; margin-top: 5px;">
+                        <div class="strength-fill" style="height: 100%; border-radius: 2px; transition: all 0.3s ease; width: 0%; background-color: #ccc;"></div>
+                    </div>
+                    <small class="strength-level" style="font-size: 12px; margin-top: 2px; display: block;"></small>
+                `;
+            }
+            PasswordManager.setupPasswordField(newPasswordInput, strengthIndicator);
+        }
+    }
+    
     // Add event listeners
     newPasswordInput.addEventListener('input', updatePasswordStrength);
     confirmPasswordInput.addEventListener('input', checkPasswordMatch);
 
-    // FIX: Change class selector to match HTML
+    // Password visibility toggle
     const toggleIcons = document.querySelectorAll('.toggle-password-icon');
     toggleIcons.forEach(icon => {
         icon.addEventListener('click', function() {
@@ -132,17 +170,43 @@ async function handleResetSubmit(event) {
         Swal.fire('Error', 'Passwords do not match.', 'error');
         return;
     }
-    if (!isStrongPassword(newPassword)) {
-        Swal.fire('Error', 'Password must be at least 8 characters long and include both letters and numbers.', 'error');
-        return;
+
+    // NUEVO: Usar PasswordManager para validación si está disponible
+    if (typeof PasswordManager !== 'undefined') {
+        const passwordValidation = PasswordManager.validateStrength(newPassword);
+        if (!passwordValidation.isValid) {
+            Swal.fire('Error', passwordValidation.message, 'error');
+            return;
+        }
+    } else {
+        // Fallback validation
+        if (!isStrongPassword(newPassword)) {
+            Swal.fire('Error', 'Password must be at least 8 characters long and include both letters and numbers.', 'error');
+            return;
+        }
     }
 
     Swal.fire({
         title: 'Updating password...',
-        text: 'Please wait.',
+        html: `
+            <div style="text-align: left;">
+                <p><i class="fas fa-key"></i> Validating reset token...</p>
+                <p><i class="fas fa-shield-alt"></i> Encrypting new password...</p>
+                <p><i class="fas fa-database"></i> Updating your account...</p>
+            </div>
+        `,
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading()
     });
+
+    // NUEVO: Encriptar contraseña antes de enviar si PasswordManager está disponible
+    let passwordToSend = newPassword;
+    if (typeof PasswordManager !== 'undefined') {
+        passwordToSend = PasswordManager.prepareForSubmission(newPassword);
+        console.log('Password encrypted for reset');
+    } else {
+        console.warn('PasswordManager not available, sending plain password');
+    }
 
     try {
         const response = await fetch(URLPF + 'dao/users/daoPasswordUpdate.php', {
@@ -151,15 +215,25 @@ async function handleResetSubmit(event) {
             body: JSON.stringify({
                 token: token,
                 userId: userId,
-                newPassword: newPassword
+                newPassword: passwordToSend // Usar contraseña encriptada
             })
         });
         const result = await response.json();
         Swal.close();
 
         if (result.success) {
-            Swal.fire('Success', result.message, 'success').then(() => {
-                // CHANGED: Redirecting to index.php instead of login.html
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                html: `
+                    <div style="text-align: left;">
+                        <p><strong>${result.message}</strong></p>
+                        <p><i class="fas fa-shield-alt text-success"></i> Your password has been encrypted and secured</p>
+                        <p><i class="fas fa-sign-in-alt"></i> You can now log in with your new password</p>
+                    </div>
+                `,
+                confirmButtonText: 'Go to Login'
+            }).then(() => {
                 window.location.href = 'index.php';
             });
         } else {
@@ -195,6 +269,36 @@ function resetPasswordStrength() {
  * Updates the password strength indicator
  */
 function updatePasswordStrength() {
+    const password = document.getElementById('new-password').value;
+    
+    // Use PasswordManager if available, otherwise use fallback
+    if (typeof PasswordManager !== 'undefined' && password) {
+        const validation = PasswordManager.validateStrength(password);
+        const strengthFill = document.querySelector('.strength-fill');
+        const strengthLevel = document.querySelector('.strength-level');
+
+        if (!strengthFill || !strengthLevel) return;
+        
+        const colors = ['#e74c3c', '#f39c12', '#f1c40f', '#27ae60'];
+        const color = colors[validation.score - 1] || colors[0];
+        const width = Math.max(25, (validation.score / 4) * 100);
+
+        strengthFill.style.width = `${width}%`;
+        strengthFill.style.backgroundColor = color;
+        strengthLevel.textContent = validation.message;
+        strengthLevel.style.color = color;
+    } else {
+        // Fallback method
+        updatePasswordStrengthFallback();
+    }
+
+    checkPasswordMatch();
+}
+
+/**
+ * Fallback password strength update
+ */
+function updatePasswordStrengthFallback() {
     const password = document.getElementById('new-password').value;
     const strengthFill = document.querySelector('.strength-fill');
     const strengthLevel = document.querySelector('.strength-level');
@@ -236,8 +340,6 @@ function updatePasswordStrength() {
     strengthFill.style.backgroundColor = color;
     strengthLevel.textContent = level;
     strengthLevel.style.color = color;
-
-    checkPasswordMatch();
 }
 
 /**
@@ -284,7 +386,7 @@ function isValidEmail(email) {
 }
 
 /**
- * Validates that the password is strong
+ * Validates that the password is strong (fallback)
  */
 function isStrongPassword(password) {
     return password.length >= 8 &&

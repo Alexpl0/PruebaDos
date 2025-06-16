@@ -1,8 +1,21 @@
 /**
  * index.js
  * Handles login functionality for the Premium Freight application
- * Includes form validation and session management
+ * Includes form validation and session management with password encryption
  */
+
+// Load PasswordManager
+document.addEventListener('DOMContentLoaded', function() {
+    // Load PasswordManager if not already loaded
+    if (typeof PasswordManager === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'js/PasswordManager.js';
+        script.onload = function() {
+            console.log('PasswordManager loaded for login');
+        };
+        document.head.appendChild(script);
+    }
+});
 
 // Functionality to show/hide password
 document.addEventListener('DOMContentLoaded', function() {
@@ -95,6 +108,15 @@ function loginUsuario() {
         }
     });
 
+    // NUEVO: Encriptar contraseña antes de enviar (si PasswordManager está disponible)
+    let passwordToSend = password;
+    if (typeof PasswordManager !== 'undefined') {
+        passwordToSend = PasswordManager.prepareForSubmission(password);
+        console.log('Password encrypted for transmission');
+    } else {
+        console.warn('PasswordManager not available, sending plain password');
+    }
+
     // Verify that URLPF is a valid string before using it
     const baseURL = (typeof URLPF === 'string') ? URLPF : 'https://grammermx.com/Jesus/PruebaDos/';
     console.log('Using base URL:', baseURL); // For debugging
@@ -103,7 +125,7 @@ function loginUsuario() {
     fetch(baseURL + 'dao/users/daoLogin.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password: passwordToSend }) // Usar contraseña encriptada
     })
     .then(response => {
         // Check if response is successful
@@ -154,6 +176,7 @@ function loginUsuario() {
                             <p><i class="fas fa-building"></i> <strong>Plant:</strong> ${userPlant || 'Global Access'}</p>
                             <p><i class="fas fa-user-shield"></i> <strong>Authorization level:</strong> ${authLevel}</p>
                             <p><i class="fas fa-envelope"></i> <strong>Email:</strong> ${data.data.email}</p>
+                            <p><i class="fas fa-shield-alt"></i> <strong>Security:</strong> Password encrypted ✓</p>
                         </div>
                     `,
                     timer: 3000,

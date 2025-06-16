@@ -5,6 +5,7 @@
 
 require_once('../../config.php');
 require_once('../db/PFDB.php');
+require_once('PasswordManager.php');
 
 header('Content-Type: application/json');
 
@@ -65,10 +66,13 @@ try {
             throw new Exception("Invalid, expired, or already used token");
         }
         
+        // NUEVO: Encriptar nueva contraseña
+        $encryptedPassword = PasswordManager::prepareForStorage($newPassword);
+        
         // Actualizar contraseña del usuario
         $updateSql = "UPDATE User SET password = ? WHERE id = ?";
         $updateStmt = $db->prepare($updateSql);
-        $updateStmt->bind_param("si", $newPassword, $userId);
+        $updateStmt->bind_param("si", $encryptedPassword, $userId);
         
         if (!$updateStmt->execute()) {
             throw new Exception("Error updating password");
@@ -83,7 +87,7 @@ try {
         
         echo json_encode([
             'success' => true,
-            'message' => 'Password updated successfully'
+            'message' => 'Password updated successfully with encryption'
         ]);
         
     } catch (Exception $e) {

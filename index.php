@@ -1,91 +1,121 @@
 <?php
 session_start();
-require_once 'config.php'; // Include config.php to get URL constant
-$nivel = isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null;
-$name = isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null;
-$userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
-$plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
-include_once 'dao/users/auth_check.php';
+require_once 'config.php';
+
+// Redirect to newOrder if already logged in
+if (isset($_SESSION['user'])) {
+    header('Location: newOrder.php');
+    exit;
+}
 ?>
 <script>
-    window.authorizationLevel = <?php echo json_encode($nivel); ?>;
-    window.userName = <?php echo json_encode($name); ?>;
-    window.userID = <?php echo json_encode($userID); ?>;
-    window.userPlant = <?php echo json_encode($plant); ?>;
     // Definimos la variable global de JavaScript con la URL base desde PHP
-    const URLPF = '<?php echo URLPF; ?>'; 
-    // Agregar esta línea para el mailer
-    const URLM = '<?php echo URLM; ?>'; 
+    const URLPF = '<?php echo URLPF; ?>';
+    
+    window.authorizationLevel = null;
+    window.userName = null;
+    window.userID = null;
 </script>
- 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SPECIAL FREIGHT</title>
+    <title>Login - Premium Freight</title>
     
     <!-- Favicon -->
     <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
     
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
-    <!-- Enlace al CDN de Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  
-    <!-- Archivos CSS locales -->
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/header.css">
-    
+    <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
-    <div id="header-container"></div>
-    
-    <div id="home">
-        <div class="container">
-            <div class="row">
-                <div>
-                    <h1 id="title1">Welcome to SPECIAL FREIGHT</h1>
-                </div>
-            </div>
-            <div id="loginform-container">
-                <div id="login">
-                    <div>
-                        <h2 class="text-center">Sign In to My Account</h2>
-                        <div class="row text-center">
-                            <p class="text-center">Please enter your username and password</p>
-                            <p class="text-center">User: lunetra029@davomi.com</p>
-                            <p class="text-center">Password: pass123</p>
-                            
-                            <div id="loginform">
-                                <input type="email" id="email" class="form-control" placeholder="Email address">
-                                <div style="position: relative; display: block; width: 100%;">
-                                    <input type="password" id="password" class="form-control" placeholder="Password" style="padding-right: 45px;">
-                                    <i id="togglePassword" class="fas fa-eye-slash"></i>
-                                </div>
-                                <button id="btnLogin" class="btn btn-primary" onclick="loginUsuario()">Sign In</button>
+    <div class="container-fluid vh-100">
+        <div class="row h-100">
+            <!-- Left side - Form -->
+            <div class="col-md-6 d-flex align-items-center justify-content-center bg-light">
+                <div class="login-form-container">
+                    <div class="text-center mb-4">
+                        <img src="assets/logo/logo.png" alt="Premium Freight Logo" class="login-logo">
+                        <h2 class="mt-3 mb-1">Welcome Back</h2>
+                        <p class="text-muted">Sign in to your Premium Freight account</p>
+                    </div>
+                    
+                    <form id="login-form" autocomplete="off">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">
+                                <i class="fas fa-envelope me-2"></i>Email Address
+                            </label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">
+                                <i class="fas fa-lock me-2"></i>Password
+                            </label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="password" name="password" required>
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="fas fa-eye-slash"></i>
+                                </button>
                             </div>
                         </div>
-                        <p class="text-center">Don't have an account? <a href="register.php" style="color: var(--first-color)">Sign up</a></p>
-                        <p class="text-center">Forgot your password? <a href="recovery.php" style="color: var(--first-color)">Recover</a></p>
-                    </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="rememberMe">
+                                <label class="form-check-label" for="rememberMe">
+                                    Remember me
+                                </label>
+                            </div>
+                            <a href="recovery.php" class="text-decoration-none">Forgot Password?</a>
+                        </div>
+                        
+                        <button type="button" id="loginButton" class="btn btn-primary w-100 mb-3">
+                            <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                        </button>
+                        
+                        <div class="text-center">
+                            <p class="mb-0">Don't have an account? <a href="register.php" class="text-decoration-none">Sign up here</a></p>
+                        </div>
+                        
+                        <!-- NUEVO: Indicador de seguridad -->
+                        <div class="text-center mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-shield-alt text-success"></i>
+                                Password encryption enabled
+                            </small>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Right side - Image/Branding -->
+            <div class="col-md-6 d-none d-md-flex align-items-center justify-content-center bg-primary">
+                <div class="text-center text-white">
+                    <i class="fas fa-truck fa-5x mb-4"></i>
+                    <h3>Premium Freight</h3>
+                    <p class="lead">Streamline your logistics operations</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <footer class="text-center py-3">
-        <p>© 2025 Grammer. All rights reserved.</p>
-    </footer>
-
-    <!-- Archivos JS locales -->
-    <script src="js/header.js"></script>
-    <script>
-        // Definir URLPF ANTES de cargar otros scripts
-        const URLPF = '<?php echo URLPF; ?>';
-        console.log('URLPF set to:', URLPF);
-    </script>
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- NUEVO: Cargar PasswordManager -->
+    <script src="js/PasswordManager.js"></script>
     <script src="js/index.js"></script>
 </body>
 </html>

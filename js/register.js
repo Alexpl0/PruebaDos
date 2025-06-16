@@ -2,10 +2,23 @@
  * Premium Freight - User Registration Module
  * 
  * Handles the user registration process including form submission,
- * validation, and password visibility toggling.
+ * validation, and password visibility toggling with encryption.
  */
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Load PasswordManager if not already loaded
+    if (typeof PasswordManager === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'js/PasswordManager.js';
+        script.onload = function() {
+            console.log('PasswordManager loaded for registration');
+            setupPasswordStrengthIndicator();
+        };
+        document.head.appendChild(script);
+    } else {
+        setupPasswordStrengthIndicator();
+    }
+    
     // Set up form submission handler
     const registerForm = document.getElementById('register-form');
     if (registerForm) {
@@ -29,17 +42,35 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.toggle('fa-eye-slash');
         });
     }
-    
-    // Add password strength validation
+});
+
+/**
+ * Setup password strength indicator with PasswordManager
+ */
+function setupPasswordStrengthIndicator() {
     const passwordField = document.getElementById('password');
     const strengthIndicator = document.getElementById('password-strength');
     
-    if (passwordField && strengthIndicator) {
+    if (passwordField && strengthIndicator && typeof PasswordManager !== 'undefined') {
+        // Use PasswordManager for strength validation
+        PasswordManager.setupPasswordField(passwordField, strengthIndicator);
+        
+        // Add custom strength indicator HTML if it doesn't exist
+        if (!strengthIndicator.querySelector('.progress-bar')) {
+            strengthIndicator.innerHTML = `
+                <div style="height: 4px; background-color: #e0e0e0; border-radius: 2px; margin-top: 5px;">
+                    <div class="progress-bar" style="height: 100%; border-radius: 2px; transition: all 0.3s ease; width: 0%;"></div>
+                </div>
+                <small class="strength-level" style="font-size: 12px; margin-top: 2px; display: block;"></small>
+            `;
+        }
+    } else if (passwordField && strengthIndicator) {
+        // Fallback to basic validation if PasswordManager not available
         passwordField.addEventListener('input', function() {
             validatePasswordStrength(this.value, strengthIndicator);
         });
     }
-});
+}
 
 /**
  * Handles the registration form submission
@@ -77,10 +108,19 @@ function handleRegistration(e) {
         return;
     }
     
-    // Password validation
-    if (password.length < 8) {
-        Swal.fire('Error', 'Password must be at least 8 characters long', 'error');
-        return;
+    // NUEVO: Validación de fortaleza de contraseña usando PasswordManager
+    if (typeof PasswordManager !== 'undefined') {
+        const passwordValidation = PasswordManager.validateStrength(password);
+        if (!passwordValidation.isValid) {
+            Swal.fire('Error', passwordValidation.message, 'error');
+            return;
+        }
+    } else {
+        // Fallback password validation
+        if (password.length < 8) {
+            Swal.fire('Error', 'Password must be at least 8 characters long', 'error');
+            return;
+        }
     }
     
     // Disable form and show loading - DECLARE ORIGINALTEXT OUTSIDE
@@ -93,8 +133,17 @@ function handleRegistration(e) {
         submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
     }
     
-    // Prepare data - NOW INCLUDING PLANT
-    const data = { name, email, plant, password };
+    // NUEVO: Encriptar contraseña antes de enviar
+    let passwordToSend = password;
+    if (typeof PasswordManager !== 'undefined') {
+        passwordToSend = PasswordManager.prepareForSubmission(password);
+        console.log('Password encrypted for registration');
+    } else {
+        console.warn('PasswordManager not available, sending plain password');
+    }
+    
+    // Prepare data - NOW INCLUDING PLANT and encrypted password
+    const data = { name, email, plant, password: passwordToSend };
     
     // Submit registration
     submitRegistration(data)
@@ -103,7 +152,13 @@ function handleRegistration(e) {
                 Swal.fire({
                     icon: 'success',
                     title: 'Success!',
-                    text: response.mensaje || 'Registration successful!',
+                    html: `
+                        <div style="text-align: left;">
+                            <p><strong>${response.mensaje || 'Registration successful!'}</strong></p>
+                            <p><i class="fas fa-shield-alt"></i> Your password has been securely encrypted</p>
+                            <p><i class="fas fa-envelope"></i> Welcome to Premium Freight!</p>
+                        </div>
+                    `,
                     confirmButtonText: 'Login Now'
                 }).then(() => {
                     window.location.href = 'index.php';
@@ -168,7 +223,7 @@ function isValidEmail(email) {
 }
 
 /**
- * Validates password strength
+ * Validates password strength (Fallback function)
  * @param {string} password - The password to validate
  * @param {HTMLElement} indicator - The strength indicator element
  */

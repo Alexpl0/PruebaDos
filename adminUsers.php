@@ -1,17 +1,14 @@
 <?php
 /**
  * User Administration Panel for Premium Freight System
- * 
- * This page allows administrators to manage users, including:
- * - Viewing all users in a datatable
- * - Adding new users
- * - Editing existing users
- * - Deleting users
  */
 
 // Initialize session and authentication
 session_start();
-require_once 'config.php'; // Include config.php to get URL constant
+require_once 'config.php';
+// NUEVO: Agregar PasswordManager para funciones de admin
+require_once 'dao/users/PasswordManager.php';
+
 $nivel = isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null;
 $name = isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null;
 $userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;

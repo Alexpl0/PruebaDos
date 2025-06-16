@@ -1,5 +1,6 @@
 <?php
 include_once('../db/PFDB.php');
+require_once('PasswordManager.php');
 session_start();
 
 header('Content-Type: application/json');
@@ -41,13 +42,13 @@ try {
     
     // Si el usuario está intentando cambiar la contraseña, verificar la contraseña actual
     if (!empty($current_password) && !empty($new_password)) {
-        // Verificación y actualización de nombre + contraseña
+        // NUEVO: Usar PasswordManager para verificar contraseña actual
         $stmt = $conex->prepare("SELECT password FROM `User` WHERE id = ?");
         $stmt->bind_param("i", $userId);
         $stmt->execute();
         $stmt->bind_result($db_password);
         
-        if (!$stmt->fetch() || $db_password !== $current_password) {
+        if (!$stmt->fetch() || !PasswordManager::verify($current_password, $db_password)) {
             $stmt->close();
             http_response_code(400);
             echo json_encode([
@@ -58,9 +59,12 @@ try {
         }
         $stmt->close();
         
+        // NUEVO: Encriptar nueva contraseña
+        $encryptedNewPassword = PasswordManager::prepareForStorage($new_password);
+        
         // Update name and password
         $stmt = $conex->prepare("UPDATE `User` SET name = ?, password = ? WHERE id = ?");
-        $stmt->bind_param("ssi", $name, $new_password, $userId);
+        $stmt->bind_param("ssi", $name, $encryptedNewPassword, $userId);
     } else {
         // Actualizar solo el nombre
         $stmt = $conex->prepare("UPDATE `User` SET name = ? WHERE id = ?");

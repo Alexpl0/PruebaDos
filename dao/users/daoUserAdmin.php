@@ -1,10 +1,11 @@
 <?php
 include_once('../db/PFDB.php');
+require_once('PasswordManager.php');
 session_start();
 
 header('Content-Type: application/json');
 
-// Check if user is logged in and has admin privileges (level 10)
+// Check if user is logged in and has admin privileges
 if (!isset($_SESSION['user']) || $_SESSION['user']['authorization_level'] < 1) {
     http_response_code(403);
     echo json_encode([
@@ -30,7 +31,12 @@ try {
         
         $users = [];
         while ($row = $result->fetch_assoc()) {
-            // Send the actual password to the frontend for admin use
+            // NUEVO: Mostrar indicador de si la contraseña está encriptada
+            if (PasswordManager::isEncrypted($row['password'])) {
+                $row['password'] = '🔐 Encrypted (' . substr($row['password'], 0, 20) . '...)';
+            } else {
+                $row['password'] = '⚠️ Plain text (' . $row['password'] . ')';
+            }
             $users[] = $row;
         }
         
@@ -79,6 +85,9 @@ try {
         }
         $stmt->close();
         
+        // NUEVO: Encriptar contraseña antes de guardar
+        $encryptedPassword = PasswordManager::prepareForStorage($input['password']);
+        
         // Insert new user
         $stmt = $conex->prepare("INSERT INTO `User` (name, email, plant, role, password, authorization_level) VALUES (?, ?, ?, ?, ?, ?)");
         $stmt->bind_param("sssssi", 
@@ -86,14 +95,14 @@ try {
             $input['email'], 
             $input['plant'],
             $input['role'], 
-            $input['password'], 
+            $encryptedPassword,  // Usar contraseña encriptada
             $input['authorization_level']
         );
         
         if ($stmt->execute()) {
             echo json_encode([
                 'success' => true,
-                'message' => 'User created successfully',
+                'message' => 'User created successfully with encrypted password',
                 'user_id' => $stmt->insert_id
             ]);
         } else {
@@ -160,9 +169,14 @@ try {
             $types .= "s";
         }
         
-        if (isset($input['password']) && trim($input['password']) !== '' && $input['password'] !== '••••••••') {
+        // NUEVO: Manejar contraseñas encriptadas para actualización
+        if (isset($input['password']) && trim($input['password']) !== '' && 
+            !str_contains($input['password'], '🔐 Encrypted') && 
+            !str_contains($input['password'], '⚠️ Plain text')) {
+            
+            $encryptedPassword = PasswordManager::prepareForStorage($input['password']);
             $updateFields[] = "password = ?";
-            $params[] = $input['password'];
+            $params[] = $encryptedPassword;
             $types .= "s";
         }
         

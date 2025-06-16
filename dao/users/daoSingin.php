@@ -1,73 +1,95 @@
 <?php
-
 include_once('../db/PFDB.php');
+require_once('PasswordManager.php');
 
 header('Content-Type: application/json');
 
 try {
     // Obtener datos del POST
     $input = json_decode(file_get_contents('php://input'), true);
-    $name = $input['name'] ?? '';
-    $email = $input['email'] ?? '';
-    $plant = $input['plant'] ?? '';
-    $password = $input['password'] ?? '';
-
-    // Verificar cada campo individualmente
-    $missing_fields = [];
     
-    if (empty($name)) {
-        $missing_fields[] = 'Complete Name';
-    }
-    if (empty($email)) {
-        $missing_fields[] = 'Email Address';
-    }
-    if (empty($plant)) {
-        $missing_fields[] = 'Plant';
-    }
-    if (empty($password)) {
-        $missing_fields[] = 'Password';
-    }
-
-    if (!empty($missing_fields)) {
+    $name = trim($input['name'] ?? '');
+    $email = trim($input['email'] ?? '');
+    $plant = trim($input['plant'] ?? '');
+    $password = trim($input['password'] ?? '');
+    
+    // Validaciones básicas
+    if (empty($name) || empty($email) || empty($plant) || empty($password)) {
         http_response_code(400);
-        $missing_fields_str = implode(', ', $missing_fields);
-        echo json_encode(['success' => false, 'mensaje' => 'The following fields are required: ' . $missing_fields_str]);
+        echo json_encode([
+            'success' => false, 
+            'mensaje' => 'All fields are required'
+        ]);
         exit;
     }
-
+    
+    // Validar formato de email
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false, 
+            'mensaje' => 'Invalid email format'
+        ]);
+        exit;
+    }
+    
+    // NUEVO: Validar fortaleza de contraseña
+    $passwordValidation = PasswordManager::validateStrength($password);
+    if (!$passwordValidation['isValid']) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false, 
+            'mensaje' => $passwordValidation['message']
+        ]);
+        exit;
+    }
+    
     $con = new LocalConector();
     $conex = $con->conectar();
-
-    // Verificar si el usuario ya existe
+    
+    // Verificar si el email ya existe
     $stmt = $conex->prepare("SELECT id FROM `User` WHERE email = ?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
-    $stmt->store_result();
-
-    if ($stmt->num_rows > 0) {
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows > 0) {
         http_response_code(409);
-        echo json_encode(['success' => false, 'mensaje' => 'This email is already registered']);
-        $stmt->close();
-        $conex->close();
+        echo json_encode([
+            'success' => false, 
+            'mensaje' => 'Email already registered'
+        ]);
         exit;
     }
     $stmt->close();
-
-    // Insertar nuevo usuario incluyendo el campo plant y role por defecto como "Worker"
-    $role = "Worker"; // Rol por defecto
-    $stmt = $conex->prepare("INSERT INTO `User` (name, email, plant, password, role) VALUES (?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssss", $name, $email, $plant, $password, $role);
+    
+    // NUEVO: Encriptar contraseña antes de guardar
+    $encryptedPassword = PasswordManager::prepareForStorage($password);
+    
+    // Insertar nuevo usuario con valores por defecto
+    $stmt = $conex->prepare("INSERT INTO `User` (name, email, plant, role, password, authorization_level) VALUES (?, ?, ?, 'User', ?, 0)");
+    $stmt->bind_param("ssss", $name, $email, $plant, $encryptedPassword);
+    
     if ($stmt->execute()) {
-        echo json_encode(['success' => true, 'mensaje' => 'User registered successfully']);
+        $userId = $stmt->insert_id;
+        
+        echo json_encode([
+            'success' => true,
+            'mensaje' => 'User registered successfully with encrypted password',
+            'user_id' => $userId
+        ]);
     } else {
-        http_response_code(500);
-        echo json_encode(['success' => false, 'mensaje' => 'Error registering user']);
+        throw new Exception("Error creating user: " . $stmt->error);
     }
-
+    
     $stmt->close();
     $conex->close();
-
+    
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(["success" => false, "mensaje" => $e->getMessage()]);
+    echo json_encode([
+        'success' => false,
+        'mensaje' => 'Registration error: ' . $e->getMessage()
+    ]);
 }
+?>
