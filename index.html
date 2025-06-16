@@ -4,56 +4,371 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Productos Registrados</title>
+    <title>Password Encryptor/Decryptor Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .tool-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        
+        .tool-section h3 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        
+        input, textarea, button {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .result {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            border-left: 4px solid #27ae60;
+            word-break: break-all;
+        }
+        
+        .error {
+            background-color: #ffeaea;
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .users-table {
+            margin-top: 30px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 
 <body>
     <header>
-        <h1>Productos Registrados</h1>
+        <h1>🔐 Password Encryption/Decryption Tool</h1>
+        <div class="warning">
+            <strong>⚠️ Important Security Notice:</strong> This tool is for development and testing purposes only. 
+            Make sure to backup your database before making any changes to encrypted passwords.
+        </div>
     </header>
 
     <main>
-        
-        <section class="users-table">
-            <h2>Lista de Cuentas</h2>
-            <button id="btnMostrar" onclick="mostrarProductos()">Mostrar Productos</button>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Usuario</th>
-                        <th>Rol</th>
-                        <th>Correo</th>
-                    </tr>
-                </thead>
-                <tbody id="userTable">
-                    <!-- Los datos se cargarán dinámicamente aquí -->
-                </tbody>
-            </table>
-        </section>
+        <div class="container">
+            <!-- Password Encryption Tool -->
+            <div class="tool-section">
+                <h3>🔒 Encrypt Password</h3>
+                <p>Enter a plain text password to encrypt it:</p>
+                <input type="text" id="plainPassword" placeholder="Enter plain text password">
+                <button onclick="encryptPassword()">Encrypt Password</button>
+                <div id="encryptResult"></div>
+            </div>
 
+            <!-- Password Decryption Tool -->
+            <div class="tool-section">
+                <h3>🔓 Decrypt Password</h3>
+                <p>Enter an encrypted password to decrypt it:</p>
+                <input type="text" id="encryptedPassword" placeholder="Enter encrypted password">
+                <button onclick="decryptPassword()">Decrypt Password</button>
+                <div id="decryptResult"></div>
+            </div>
+
+            <!-- Batch Password Update Tool -->
+            <div class="tool-section">
+                <h3>🔄 Batch Password Update</h3>
+                <p>Load all users and update their passwords from plain text to encrypted:</p>
+                <button onclick="loadUsersForEncryption()">Load Users & Show Current Passwords</button>
+                <button onclick="updateAllPasswords()" style="background-color: #e74c3c;">⚠️ Update All Passwords to Encrypted</button>
+                <div id="batchResult"></div>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="container">
+            <section class="users-table">
+                <h2>👥 Users Database</h2>
+                <button onclick="mostrarProductos()">Load Current Users</button>
+                <table id="usersTableContainer" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Usuario</th>
+                            <th>Rol</th>
+                            <th>Correo</th>
+                            <th>Password Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTable">
+                        <!-- Los datos se cargarán dinámicamente aquí -->
+                    </tbody>
+                </table>
+            </section>
+        </div>
     </main>
 
     <footer>
-        <p>Help</p>
+        <p>🛡️ Security Tool - Use with caution</p>
     </footer>
 
     <script>
+        // Simple encryption/decryption functions (you should use the same method as your PHP)
+        function simpleEncrypt(text, shift = 3) {
+            return btoa(text.split('').map(char => 
+                String.fromCharCode(char.charCodeAt(0) + shift)
+            ).join(''));
+        }
 
+        function simpleDecrypt(encryptedText, shift = 3) {
+            try {
+                return atob(encryptedText).split('').map(char => 
+                    String.fromCharCode(char.charCodeAt(0) - shift)
+                ).join('');
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // More secure encryption using built-in crypto (for demonstration)
+        async function secureEncrypt(text) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(text);
+            const key = await crypto.subtle.importKey(
+                'raw',
+                encoder.encode('your-secret-key-32-characters!!'), // 32 characters key
+                { name: 'AES-GCM' },
+                false,
+                ['encrypt']
+            );
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const encrypted = await crypto.subtle.encrypt(
+                { name: 'AES-GCM', iv: iv },
+                key,
+                data
+            );
+            const result = new Uint8Array(iv.length + encrypted.byteLength);
+            result.set(iv);
+            result.set(new Uint8Array(encrypted), iv.length);
+            return btoa(String.fromCharCode(...result));
+        }
+
+        async function secureDecrypt(encryptedText) {
+            try {
+                const encoder = new TextEncoder();
+                const data = new Uint8Array(atob(encryptedText).split('').map(c => c.charCodeAt(0)));
+                const key = await crypto.subtle.importKey(
+                    'raw',
+                    encoder.encode('your-secret-key-32-characters!!'),
+                    { name: 'AES-GCM' },
+                    false,
+                    ['decrypt']
+                );
+                const iv = data.slice(0, 12);
+                const encrypted = data.slice(12);
+                const decrypted = await crypto.subtle.decrypt(
+                    { name: 'AES-GCM', iv: iv },
+                    key,
+                    encrypted
+                );
+                return new TextDecoder().decode(decrypted);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // Encrypt password function
+        async function encryptPassword() {
+            const plainText = document.getElementById('plainPassword').value;
+            if (!plainText) {
+                document.getElementById('encryptResult').innerHTML = 
+                    '<div class="result error">Please enter a password to encrypt.</div>';
+                return;
+            }
+
+            try {
+                // Use simple encryption (you can change this to match your PHP method)
+                const encrypted = simpleEncrypt(plainText);
+                
+                // Also show secure encryption
+                const secureEncrypted = await secureEncrypt(plainText);
+                
+                document.getElementById('encryptResult').innerHTML = `
+                    <div class="result">
+                        <strong>Simple Encrypted:</strong> ${encrypted}<br><br>
+                        <strong>Secure Encrypted:</strong> ${secureEncrypted}<br><br>
+                        <small>💡 Copy the encrypted password and use it in your database</small>
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('encryptResult').innerHTML = 
+                    '<div class="result error">Error encrypting password: ' + error.message + '</div>';
+            }
+        }
+
+        // Decrypt password function
+        async function decryptPassword() {
+            const encryptedText = document.getElementById('encryptedPassword').value;
+            if (!encryptedText) {
+                document.getElementById('decryptResult').innerHTML = 
+                    '<div class="result error">Please enter an encrypted password to decrypt.</div>';
+                return;
+            }
+
+            try {
+                // Try simple decryption first
+                let decrypted = simpleDecrypt(encryptedText);
+                let method = 'Simple';
+                
+                // If simple fails, try secure decryption
+                if (!decrypted) {
+                    decrypted = await secureDecrypt(encryptedText);
+                    method = 'Secure';
+                }
+
+                if (decrypted) {
+                    document.getElementById('decryptResult').innerHTML = `
+                        <div class="result">
+                            <strong>Decrypted Password:</strong> ${decrypted}<br>
+                            <small>Method used: ${method} decryption</small>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('decryptResult').innerHTML = 
+                        '<div class="result error">Could not decrypt the password. Please check if it\'s correctly encrypted.</div>';
+                }
+            } catch (error) {
+                document.getElementById('decryptResult').innerHTML = 
+                    '<div class="result error">Error decrypting password: ' + error.message + '</div>';
+            }
+        }
+
+        // Load users for encryption
+        function loadUsersForEncryption() {
+            document.getElementById('batchResult').innerHTML = '<div class="result">Loading users...</div>';
+            
+            fetch('https://grammermx.com/Jesus/PruebaDos/get_PFDB.php')
+                .then(response => response.json())
+                .then(data => {
+                    let html = '<div class="result"><h4>Current Users in Database:</h4><ul>';
+                    data.data.forEach(cuenta => {
+                        // Assume we can get password status (you might need to modify your API)
+                        const isEncrypted = cuenta.PASSWORD && cuenta.PASSWORD.length > 20 ? 'Encrypted' : 'Plain Text';
+                        html += `<li><strong>${cuenta.USUARIO}</strong> (${cuenta.CORREO}) - Password: ${isEncrypted}</li>`;
+                    });
+                    html += '</ul></div>';
+                    document.getElementById('batchResult').innerHTML = html;
+                })
+                .catch(error => {
+                    document.getElementById('batchResult').innerHTML = 
+                        '<div class="result error">Error loading users: ' + error.message + '</div>';
+                });
+        }
+
+        // Update all passwords (this would need a new PHP endpoint)
+        function updateAllPasswords() {
+            if (!confirm('⚠️ WARNING: This will encrypt all plain text passwords in your database. Are you sure you want to continue?')) {
+                return;
+            }
+
+            document.getElementById('batchResult').innerHTML = 
+                '<div class="result error">⚠️ This feature requires a new PHP endpoint to be created. Contact your developer to implement the batch password encryption endpoint.</div>';
+        }
+
+        // Load current users (existing function)
         function mostrarProductos() {
             fetch('https://grammermx.com/Jesus/PruebaDos/get_PFDB.php')
                 .then(response => response.json())
                 .then(data => {
                     const userTable = document.getElementById("userTable");
-                    userTable.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos datos
+                    const tableContainer = document.getElementById("usersTableContainer");
+                    
+                    userTable.innerHTML = ""; // Clear table
+                    tableContainer.style.display = "table"; // Show table
 
-                    data.data.forEach(cuenta => { // Renamed variable to cuenta for clarity
+                    data.data.forEach(cuenta => {
+                        // Determine if password looks encrypted
+                        const passwordStatus = cuenta.PASSWORD && cuenta.PASSWORD.length > 20 ? 
+                            '<span style="color: green;">✅ Encrypted</span>' : 
+                            '<span style="color: red;">❌ Plain Text</span>';
+                            
                         const row = document.createElement("tr");
                         row.innerHTML = `
                             <td>${cuenta.ID}</td>
                             <td>${cuenta.USUARIO}</td>
                             <td>${cuenta.ROL}</td>
                             <td>${cuenta.CORREO}</td>
+                            <td>${passwordStatus}</td>
                         `;
                         userTable.appendChild(row);
                     });
@@ -61,10 +376,15 @@
                 .catch(error => {
                     console.error('Error al cargar las cuentas:', error);
                     const userTable = document.getElementById("userTable");
-                    userTable.innerHTML = `<tr><td colspan="4">Error al cargar los datos: ${error.message}</td></tr>`;
+                    userTable.innerHTML = `<tr><td colspan="5">Error al cargar los datos: ${error.message}</td></tr>`;
                 });
         }
 
+        // Load users on page load
+        window.onload = function() {
+            console.log('🔐 Password Encryption Tool loaded');
+            console.log('⚠️ Remember to backup your database before making changes');
+        };
     </script>
 </body>
 
