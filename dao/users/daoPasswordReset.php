@@ -3,13 +3,20 @@
  * daoPasswordReset.php - Maneja las solicitudes de reset de contraseña
  */
 
-// Agregar PasswordManager
-require_once('PasswordManager.php');
-
-// Agregar debug al inicio
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
+// Disable HTML error output for clean JSON responses
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
 error_reporting(E_ALL);
+
+// Set JSON header immediately
+header('Content-Type: application/json');
+
+// Function to send JSON response and exit
+function sendJsonResponse($success, $message, $httpCode = 200) {
+    http_response_code($httpCode);
+    echo json_encode(['success' => $success, 'message' => $message]);
+    exit;
+}
 
 // Log personalizado para debug
 function debugLog($message) {
@@ -21,56 +28,78 @@ debugLog("Script iniciado");
 try {
     debugLog("Intentando cargar archivos requeridos");
     
+    // Check if required files exist before including
+    if (!file_exists('../../config.php')) {
+        throw new Exception("Config file not found");
+    }
     require_once('../../config.php');
     debugLog("Config.php cargado");
     
+    if (!file_exists('../db/PFDB.php')) {
+        throw new Exception("Database file not found");
+    }
     require_once('../db/PFDB.php');
     debugLog("PFDB.php cargado");
     
-    header('Content-Type: application/json');
-    debugLog("Headers establecidos");
+    if (!file_exists('PasswordManager.php')) {
+        throw new Exception("PasswordManager file not found");
+    }
+    require_once('PasswordManager.php');
+    debugLog("PasswordManager.php cargado");
 
     // Verificar método
     debugLog("Método recibido: " . $_SERVER['REQUEST_METHOD']);
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        http_response_code(405);
-        echo json_encode(['success' => false, 'message' => 'Method not allowed']);
-        exit;
+        sendJsonResponse(false, 'Method not allowed', 405);
     }
     
     // Obtener datos
     debugLog("Obteniendo datos del request");
     $rawInput = file_get_contents('php://input');
-    debugLog("Raw input: " . $rawInput);
+    debugLog("Raw input length: " . strlen($rawInput));
+    
+    if (empty($rawInput)) {
+        sendJsonResponse(false, 'No data received', 400);
+    }
     
     $input = json_decode($rawInput, true);
-    debugLog("JSON decodificado: " . json_encode($input));
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        debugLog("JSON decode error: " . json_last_error_msg());
+        sendJsonResponse(false, 'Invalid JSON data', 400);
+    }
+    
+    debugLog("JSON decodificado correctamente");
     
     $email = trim($input['email'] ?? '');
     debugLog("Email extraído: " . $email);
     
     if (empty($email)) {
-        http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Email is required']);
-        exit;
+        sendJsonResponse(false, 'Email is required', 400);
     }
     
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Invalid email format']);
-        exit;
+        sendJsonResponse(false, 'Invalid email format', 400);
     }
     
     // Conectar a BD
     debugLog("Intentando conectar a BD");
     $con = new LocalConector();
     $db = $con->conectar();
+    
+    if (!$db) {
+        throw new Exception("Database connection failed");
+    }
     debugLog("Conexión a BD establecida");
     
     // Verificar si el usuario existe
     debugLog("Buscando usuario con email: " . $email);
     $sql = "SELECT id, name, email FROM User WHERE email = ? LIMIT 1";
     $stmt = $db->prepare($sql);
+    
+    if (!$stmt) {
+        throw new Exception("Failed to prepare statement: " . $db->error);
+    }
+    
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -78,12 +107,10 @@ try {
     debugLog("Filas encontradas: " . $result->num_rows);
     
     if ($result->num_rows === 0) {
+        $stmt->close();
+        $db->close();
         // Por seguridad, no revelamos si el email existe o no
-        echo json_encode([
-            'success' => true,
-            'message' => 'If the email exists in our system, you will receive a password reset link shortly.'
-        ]);
-        exit;
+        sendJsonResponse(true, 'If the email exists in our system, you will receive a password reset link shortly.');
     }
     
     $user = $result->fetch_assoc();
@@ -118,6 +145,11 @@ try {
     debugLog("Invalidando tokens anteriores");
     $invalidateTokensSql = "UPDATE EmailPasswordTokens SET is_used = 1, used_at = NOW() WHERE user_id = ? AND is_used = 0";
     $invalidateStmt = $db->prepare($invalidateTokensSql);
+    
+    if (!$invalidateStmt) {
+        throw new Exception("Failed to prepare invalidate statement: " . $db->error);
+    }
+    
     $invalidateStmt->bind_param("i", $user['id']);
     $invalidateStmt->execute();
     $invalidateStmt->close();
@@ -126,6 +158,11 @@ try {
     debugLog("Insertando nuevo token");
     $insertTokenSql = "INSERT INTO EmailPasswordTokens (user_id, token) VALUES (?, ?)";
     $tokenStmt = $db->prepare($insertTokenSql);
+    
+    if (!$tokenStmt) {
+        throw new Exception("Failed to prepare token statement: " . $db->error);
+    }
+    
     $tokenStmt->bind_param("is", $user['id'], $token);
     
     if (!$tokenStmt->execute()) {
@@ -133,7 +170,7 @@ try {
     }
     $tokenStmt->close();
     
-    // NUEVO: Log de información de encriptación para debug
+    // Log de información de encriptación para debug
     debugLog("Verificando estado de encriptación de contraseñas en el sistema");
     $encryptionCheckSql = "SELECT 
         COUNT(*) as total_users,
@@ -156,13 +193,16 @@ try {
     // Enviar email
     debugLog("Enviando email de recuperación");
     try {
+        if (!file_exists('../../mailer/PFMailer/PFMailerSender.php')) {
+            throw new Exception("Mailer file not found");
+        }
         require_once('../../mailer/PFMailer/PFMailerSender.php');
         
         $subject = "Password Reset Request - Premium Freight";
         $body = "
             <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
                 <h2 style='color: #2c3e50;'>Password Reset Request</h2>
-                <p>Hello {$user['name']},</p>
+                <p>Hello " . htmlspecialchars($user['name']) . ",</p>
                 <p>You have requested to reset your password for your Premium Freight account.</p>
                 <p>Click the button below to reset your password:</p>
                 <div style='text-align: center; margin: 30px 0;'>
@@ -182,10 +222,9 @@ try {
         
         if ($result['success']) {
             debugLog("Email enviado exitosamente");
-            echo json_encode([
-                'success' => true,
-                'message' => 'Password reset instructions have been sent to your email address. The link will expire in 24 hours.'
-            ]);
+            $stmt->close();
+            $db->close();
+            sendJsonResponse(true, 'Password reset instructions have been sent to your email address. The link will expire in 24 hours.');
         } else {
             debugLog("Error enviando email: " . $result['message']);
             throw new Exception("Failed to send email: " . $result['message']);
@@ -197,9 +236,11 @@ try {
         // Limpiar el token si el email falló
         $deleteTokenSql = "DELETE FROM EmailPasswordTokens WHERE token = ?";
         $deleteStmt = $db->prepare($deleteTokenSql);
-        $deleteStmt->bind_param("s", $token);
-        $deleteStmt->execute();
-        $deleteStmt->close();
+        if ($deleteStmt) {
+            $deleteStmt->bind_param("s", $token);
+            $deleteStmt->execute();
+            $deleteStmt->close();
+        }
         
         throw new Exception("Unable to send password reset email. Please try again later.");
     }
@@ -209,10 +250,6 @@ try {
     
 } catch (Exception $e) {
     debugLog("Error general: " . $e->getMessage());
-    http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'message' => 'An error occurred processing your request: ' . $e->getMessage()
-    ]);
+    sendJsonResponse(false, 'An error occurred processing your request. Please try again later.', 500);
 }
 ?>
