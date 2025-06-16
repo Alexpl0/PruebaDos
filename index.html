@@ -317,7 +317,7 @@
         function loadUsersForEncryption() {
             document.getElementById('batchResult').innerHTML = '<div class="result">Loading users...</div>';
             
-            fetch('https://grammermx.com/Jesus/PruebaDos/get_PFDB.php')
+            fetch('https://grammermx.com/Jesus/PruebaDos/dao/users/daoUserAdmin.php')
                 .then(response => response.json())
                 .then(data => {
                     let html = '<div class="result"><h4>Current Users in Database:</h4><ul>';
@@ -347,7 +347,7 @@
 
         // Load current users (existing function)
         function mostrarProductos() {
-            fetch('https://grammermx.com/Jesus/PruebaDos/get_PFDB.php')
+            fetch('https://grammermx.com/Jesus/PruebaDos/dao/users/daoUserAdmin.php')
                 .then(response => response.json())
                 .then(data => {
                     const userTable = document.getElementById("userTable");
