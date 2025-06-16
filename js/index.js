@@ -94,7 +94,7 @@ async function loginUsuario() {
     btnLogin.disabled = true;
     
     try {
-        // CORRECCIÓN: Usar el método correcto del PasswordManager
+        // Usar PasswordManager para encriptar la contraseña
         let encryptedPassword = password;
         if (typeof PasswordManager !== 'undefined' && PasswordManager.encrypt) {
             encryptedPassword = PasswordManager.encrypt(password);
@@ -103,7 +103,8 @@ async function loginUsuario() {
             console.warn('PasswordManager not available, sending plain password');
         }
         
-        const response = await fetch(`${URLPF}dao/users/loginValidation.php`, {
+        // CAMBIO: Usar daoLogin.php en lugar de loginValidation.php
+        const response = await fetch(`${URLPF}dao/users/daoLogin.php`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
