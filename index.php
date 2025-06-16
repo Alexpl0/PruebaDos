@@ -35,10 +35,13 @@ if (isset($_SESSION['user'])) {
   
     <!-- Archivos CSS locales -->
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/index.css">
     
 </head>
 <body>
+    <div id="header-container"></div>
+    
     <div id="home">
         <div class="container">
             <div class="row">
@@ -82,7 +85,13 @@ if (isset($_SESSION['user'])) {
         <p>© 2025 Grammer. All rights reserved.</p>
     </footer>
 
-    <!-- Scripts -->
+    <!-- Archivos JS locales -->
+    <script src="js/header.js"></script>
+    <script>
+        // Definir URLPF ANTES de cargar otros scripts
+        const URLPF = '<?php echo URLPF; ?>';
+        console.log('URLPF set to:', URLPF);
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Cargar PasswordManager -->
     <script src="js/PasswordManager.js"></script>
