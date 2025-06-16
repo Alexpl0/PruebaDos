@@ -38,7 +38,6 @@ if (isset($_SESSION['user'])) {
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
     <div class="container-fluid vh-100">
