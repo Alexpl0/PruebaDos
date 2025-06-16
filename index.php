@@ -38,6 +38,7 @@ if (isset($_SESSION['user'])) {
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
     <div class="container-fluid vh-100">
@@ -101,13 +102,13 @@ if (isset($_SESSION['user'])) {
             </div>
             
             <!-- Right side - Image/Branding -->
-            <!-- <div class="col-md-6 d-none d-md-flex align-items-center justify-content-center bg-primary">
+            <div class="col-md-6 d-none d-md-flex align-items-center justify-content-center bg-primary">
                 <div class="text-center text-white">
                     <i class="fas fa-truck fa-5x mb-4"></i>
                     <h3>Premium Freight</h3>
                     <p class="lead">Streamline your logistics operations</p>
                 </div>
-            </div> -->
+            </div>
         </div>
     </div>
 

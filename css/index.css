@@ -1,0 +1,124 @@
+/* Login Page Specific Styles */
+.login-form-container {
+    max-width: 400px;
+    width: 100%;
+    padding: 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.login-logo {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+}
+
+.form-control {
+    padding: 12px 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+.form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+.btn-primary {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(13, 110, 253, 0.3);
+}
+
+.btn-outline-secondary {
+    border: 2px solid #e9ecef;
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+}
+
+.input-group .form-control {
+    border-radius: 8px 0 0 8px;
+}
+
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.text-decoration-none {
+    color: #0d6efd;
+    transition: color 0.3s ease;
+}
+
+.text-decoration-none:hover {
+    color: #0056b3;
+}
+
+/* Right side branding */
+.bg-primary {
+    background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%) !important;
+}
+
+.fa-truck {
+    opacity: 0.9;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .login-form-container {
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+    
+    .login-logo {
+        width: 60px;
+        height: 60px;
+    }
+}
+
+/* Animation for form elements */
+.login-form-container {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Security indicator styling */
+.text-success {
+    color: #198754 !important;
+}
+
+/* Additional hover effects */
+.form-control:hover {
+    border-color: #ced4da;
+}
+
+.btn:active {
+    transform: translateY(0);
+}
