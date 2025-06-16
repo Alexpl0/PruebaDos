@@ -72,6 +72,31 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
         window.userName = <?php echo json_encode($name); ?>;
         window.userID = <?php echo json_encode($userID); ?>;
     </script>
+    
+    <style>
+        /* Estilo para el ícono de contraseña */
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #6c757d;
+            z-index: 10;
+        }
+        
+        .password-toggle:hover {
+            color: #495057;
+        }
+        
+        .password-field-container {
+            position: relative;
+        }
+        
+        .password-strength-indicator {
+            margin-top: 5px;
+        }
+    </style>
 </head>
 <body>
     <!-- Header will be loaded dynamically -->
@@ -150,11 +175,12 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <label for="user-password" class="form-label">Password</label>
-                            <div style="position: relative; display: block; width: 100%;">
-                                <input type="password" id="password" class="form-control" placeholder="Password" style="padding-right: 45px;">
-                                <i id="userPassword" class="fas fa-eye-slash"></i>
+                            <div class="password-field-container">
+                                <input type="password" id="user-password" class="form-control" placeholder="Enter password" style="padding-right: 45px;">
+                                <i id="password-toggle" class="fas fa-eye-slash password-toggle"></i>
                             </div>
-                            <div class="form-text">Password should be at least 8 characters long.</div>
+                            <div id="password-strength-indicator" class="password-strength-indicator"></div>
+                            <div class="form-text">Password should be at least 8 characters long with letters and numbers.</div>
                         </div>
                     </div>
                     
@@ -173,6 +199,7 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
 
     <!-- Scripts -->
     <script src="js/header.js"></script>
+    <script src="js/PasswordManager.js"></script>
     <script src="js/userAdmin.js"></script>
 </body>
 </html>

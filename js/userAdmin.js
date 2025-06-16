@@ -279,7 +279,7 @@ function initializeDataTable() {
     $('#submitbtn').on('click', function(e) {
         e.preventDefault();
 
-        console.log('Form submitted');
+        console.log('Form submitted - Debug starting');
 
         // Gather form data
         const userId = $('#user-id').val();
@@ -288,6 +288,15 @@ function initializeDataTable() {
         const name = $('#user-name').val().trim();
         const email = $('#user-email').val().trim();
         const plant = $('#user-plant').val().trim();
+
+        console.log('Form data gathered:', {
+            userId,
+            isNewUser,
+            hasPassword: !!password,
+            name,
+            email,
+            plant
+        });
 
         // Basic validation
         if (!name) {
@@ -331,6 +340,8 @@ function initializeDataTable() {
         const selectedValue = roleLevelSelect.value;
         const [authLevel, role] = selectedValue.split(':');
 
+        console.log('Role data:', { selectedValue, authLevel, role });
+
         if (!authLevel || !role) {
             Swal.fire({
                 icon: 'error',
@@ -343,6 +354,7 @@ function initializeDataTable() {
         // NUEVO: Validar contraseña con PasswordManager si se proporciona
         if (password && typeof PasswordManager !== 'undefined') {
             const passwordValidation = PasswordManager.validateStrength(password);
+            console.log('Password validation:', passwordValidation);
             if (!passwordValidation.isValid) {
                 Swal.fire({
                     icon: 'error',
@@ -369,12 +381,16 @@ function initializeDataTable() {
             authorization_level: parseInt(authLevel)
         };
 
+        console.log('Base userData:', userData);
+
         // NUEVO: Encriptar contraseña si se proporciona
         if (password) {
             if (typeof PasswordManager !== 'undefined') {
                 try {
                     userData.password = PasswordManager.encrypt(password);
-                    console.log('Password encrypted for user administration');
+                    console.log('Password encrypted successfully');
+                    console.log('Original length:', password.length);
+                    console.log('Encrypted length:', userData.password.length);
                 } catch (error) {
                     console.error('Password encryption failed:', error);
                     Swal.fire({
@@ -395,10 +411,10 @@ function initializeDataTable() {
             userData.id = parseInt(userId);
         }
 
-        // Debug: Log the data being sent
-        console.log('Sending user data:', {
+        // Debug: Log the data being sent (without showing actual password)
+        console.log('Final userData to send:', {
             ...userData,
-            password: userData.password ? '[ENCRYPTED]' : '[NO PASSWORD]'
+            password: userData.password ? `[ENCRYPTED - ${userData.password.length} chars]` : '[NO PASSWORD]'
         });
 
         // Show loading indicator while saving
@@ -418,17 +434,33 @@ function initializeDataTable() {
         });
         
         // Send the user data to the server (POST for new, PUT for update)
-        fetch(URLPF + 'dao/users/daoUserAdmin.php', {
-            method: isNewUser ? 'POST' : 'PUT',
+        const requestMethod = isNewUser ? 'POST' : 'PUT';
+        const requestUrl = URLPF + 'dao/users/daoUserAdmin.php';
+        
+        console.log('Making request:', {
+            method: requestMethod,
+            url: requestUrl,
+            bodyLength: JSON.stringify(userData).length
+        });
+
+        fetch(requestUrl, {
+            method: requestMethod,
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
             body: JSON.stringify(userData)
         })
         .then(response => {
-            console.log('Response status:', response.status);
+            console.log('Response received:', {
+                status: response.status,
+                statusText: response.statusText,
+                headers: Object.fromEntries(response.headers.entries())
+            });
+            
             if (!response.ok) {
                 return response.text().then(text => {
+                    console.error('Server error response:', text);
                     let errorMessage;
                     try {
                         const jsonError = JSON.parse(text);
@@ -442,7 +474,7 @@ function initializeDataTable() {
             return response.json();
         })
         .then(data => {
-            console.log('Server response:', data);
+            console.log('Server response data:', data);
             if (data.success) {
                 Swal.fire({
                     icon: 'success',
@@ -526,24 +558,10 @@ $(document).ready(function() {
     // Initialize DataTable after a short delay (for UI smoothness)
     setTimeout(initializeDataTable, 100);
     
-    // Set up event handlers using jQuery for better compatibility
-    
-    // Add User button (outside of DataTable)
-    // Check if button exists before binding
-    if ($('#btnAddUser').length) {
-        $('#btnAddUser').on('click', function() {
-            $('#user-form').trigger('reset');
-            $('#user-id').val('New');
-            $('#form-title').text('Add New User');
-            $('#user-form-container').removeClass('d-none');
-            $('#user-form-container')[0].scrollIntoView({ behavior: 'smooth' });
-        });
-    }
-    
-    // Password visibility toggle - ACTUALIZADO para coincidir con el HTML
-    $(document).on('click', '#userPassword', function() {
-        const passwordInput = $('#user-password'); // Campo correcto
-        const icon = $(this); // El ícono es directamente el elemento clickeado
+    // Password visibility toggle - CORREGIDO para usar el ID correcto
+    $(document).on('click', '#password-toggle', function() {
+        const passwordInput = $('#user-password');
+        const icon = $(this);
         
         if (passwordInput.attr('type') === 'password') {
             passwordInput.attr('type', 'text');
