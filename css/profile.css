@@ -8,6 +8,11 @@
     overflow: hidden;
 }
 
+button{
+    margin: 0px;
+    min-height: 48px;
+}
+
 .profile-header {
     background: linear-gradient(135deg, var(--grammer-blue) 0%, var(--grammer-dark-blue) 100%);
     color: var(--white);
