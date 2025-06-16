@@ -148,7 +148,7 @@ include_once 'dao/users/auth_check.php';
                 <!--=================================================================================================================-->
                 <div id="SectEuros" class="mb-3">
                     <label for="CostoEuros">Cost in Euros €</label>
-                    <input type="text" id="CostoEuros" name="CostoEuros" class="form-control" readonly>
+                    <input style="display: none" type="text" id="CostoEuros" name="CostoEuros" class="form-control" readonly>
                 </div>
                 <!--=================================================================================================================-->
             </div>
