@@ -228,7 +228,7 @@ function populateWeeklyDataTable(orders) {
             if (tableBody) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="34" class="text-center py-5">
+                        <td colspan="33" class="text-center py-5">
                             <div class="text-muted">
                                 <i class="fas fa-inbox fa-3x mb-3"></i>
                                 <h5>No orders found for this week</h5>
@@ -241,7 +241,7 @@ function populateWeeklyDataTable(orders) {
             return;
         }
         
-        // Prepare data for DataTable
+        // Prepare data for DataTable (33 columns - removed Required Auth Level)
         const tableData = orders.map(order => {
             const orderDate = order.date ? new Date(order.date) : null;
             const formattedDate = orderDate ? orderDate.toLocaleDateString('en-US', {
@@ -285,7 +285,6 @@ function populateWeeklyDataTable(orders) {
                 order.paid_by || '-',
                 order.products || '-',
                 order.status_name || '-',
-                order.required_auth_level || '-',
                 `<span class="badge ${order.recovery_file ? 'bg-success' : 'bg-secondary'}">${order.recovery_file ? 'Yes' : 'No'}</span>`,
                 `<span class="badge ${order.recovery_evidence ? 'bg-success' : 'bg-secondary'}">${order.recovery_evidence ? 'Yes' : 'No'}</span>`,
                 order.approval_date ? new Date(order.approval_date).toLocaleDateString('en-US') : '-',

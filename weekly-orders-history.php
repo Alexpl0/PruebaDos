@@ -119,7 +119,6 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
                                         <th>Paid By</th>
                                         <th>Products</th>
                                         <th>Status</th>
-                                        <th>Required Auth Level</th>
                                         <th>Recovery File</th>
                                         <th>Recovery Evidence</th>
                                         <th>Approval Date</th>

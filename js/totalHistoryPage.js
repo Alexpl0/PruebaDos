@@ -26,10 +26,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add notification styles
         addNotificationStyles();
         
-        // Setup advanced filtering
+        // Setup advanced filters
         setupAdvancedFilters();
         
-        // Load all orders data
+        // Load total history data
         loadTotalHistoryData();
         
         // Setup keyboard shortcuts
@@ -46,19 +46,8 @@ document.addEventListener('DOMContentLoaded', function() {
  * Setup advanced filtering options
  */
 function setupAdvancedFilters() {
-    // Create advanced filter panel
-    const filterPanel = createAdvancedFilterPanel();
-    const mainContainer = document.querySelector('.container-fluid');
-    
-    if (mainContainer && filterPanel) {
-        // Insert after the first row (statistics cards)
-        const firstRow = mainContainer.querySelector('.row');
-        if (firstRow && firstRow.nextSibling) {
-            mainContainer.insertBefore(filterPanel, firstRow.nextSibling);
-        } else {
-            mainContainer.appendChild(filterPanel);
-        }
-    }
+    // Add filter panel if it doesn't exist
+    createAdvancedFilterPanel();
     
     // Setup filter event listeners
     setupFilterEventListeners();
@@ -70,71 +59,73 @@ function setupAdvancedFilters() {
  * Create advanced filter panel
  */
 function createAdvancedFilterPanel() {
-    const panel = document.createElement('div');
-    panel.className = 'row mb-4';
-    panel.id = 'advancedFilters';
+    const mainContainer = document.querySelector('main .container-fluid');
+    if (!mainContainer) return;
     
-    panel.innerHTML = `
+    const filterPanel = document.createElement('div');
+    filterPanel.className = 'row mb-4';
+    filterPanel.innerHTML = `
         <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <h6 class="mb-0 d-flex justify-content-between align-items-center">
-                        <span>
-                            <i class="fas fa-filter text-primary"></i> Advanced Filters
-                            <span class="badge bg-secondary ms-2" id="filterCount">0 active</span>
-                        </span>
-                        <button class="btn btn-sm btn-outline-secondary" id="toggleFilters">
-                            <i class="fas fa-chevron-down" id="filterToggleIcon"></i> Show Filters
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-filter me-2"></i>Advanced Filters
+                        <button class="btn btn-sm btn-outline-secondary float-end" id="toggleFilters">
+                            <i class="fas fa-chevron-down"></i>
                         </button>
                     </h6>
                 </div>
-                <div class="card-body collapse" id="filterContent">
+                <div class="card-body" id="filterPanelBody" style="display: none;">
                     <div class="row g-3">
-                        <!-- Date Range Filter -->
                         <div class="col-md-3">
-                            <label class="form-label fw-semibold">
-                                <i class="fas fa-calendar-alt text-muted me-1"></i>Date Range
-                            </label>
-                            <div class="input-group">
-                                <input type="date" class="form-control" id="dateFrom" placeholder="From">
-                                <input type="date" class="form-control" id="dateTo" placeholder="To">
-                            </div>
-                        </div>
-                        
-                        <!-- Status Filter -->
-                        <div class="col-md-2">
-                            <label class="form-label fw-semibold">
-                                <i class="fas fa-tag text-muted me-1"></i>Status
-                            </label>
-                            <select class="form-select" id="statusFilter">
-                                <option value="all">All Status</option>
-                                <option value="nuevo">New</option>
-                                <option value="revision">Under Review</option>
-                                <option value="aprobado">Approved</option>
-                                <option value="rechazado">Rejected</option>
+                            <label for="filterDateRange" class="form-label">Date Range</label>
+                            <select class="form-select" id="filterDateRange">
+                                <option value="all">All Dates</option>
+                                <option value="today">Today</option>
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                                <option value="quarter">This Quarter</option>
+                                <option value="year">This Year</option>
                             </select>
                         </div>
-                        
-                        <!-- Quick Search -->
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">
-                                <i class="fas fa-search text-muted me-1"></i>Quick Search
-                            </label>
-                            <input type="text" class="form-control" id="quickSearch" 
-                                   placeholder="Search by ID, description, reference...">
-                        </div>
-                        
-                        <!-- Action Buttons -->
                         <div class="col-md-3">
-                            <label class="form-label">&nbsp;</label>
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-primary btn-sm" id="applyFilters">
-                                    <i class="fas fa-check"></i> Apply
-                                </button>
-                                <button class="btn btn-outline-secondary btn-sm" id="clearFilters">
-                                    <i class="fas fa-times"></i> Clear
-                                </button>
-                            </div>
+                            <label for="filterStatus" class="form-label">Status</label>
+                            <select class="form-select" id="filterStatus">
+                                <option value="all">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="filterApprovalStatus" class="form-label">Approval Status</label>
+                            <select class="form-select" id="filterApprovalStatus">
+                                <option value="all">All</option>
+                                <option value="approved">Approved</option>
+                                <option value="pending">Pending</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="filterCostRange" class="form-label">Cost Range (€)</label>
+                            <select class="form-select" id="filterCostRange">
+                                <option value="all">All Costs</option>
+                                <option value="0-100">0 - 100€</option>
+                                <option value="100-500">100 - 500€</option>
+                                <option value="500-1000">500 - 1,000€</option>
+                                <option value="1000-5000">1,000 - 5,000€</option>
+                                <option value="5000+">5,000€+</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <button class="btn btn-primary btn-sm me-2" id="applyFilters">
+                                <i class="fas fa-check"></i> Apply Filters
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" id="clearFilters">
+                                <i class="fas fa-times"></i> Clear Filters
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -142,39 +133,39 @@ function createAdvancedFilterPanel() {
         </div>
     `;
     
-    return panel;
+    // Insert before the statistics cards
+    const statsRow = mainContainer.querySelector('.row');
+    mainContainer.insertBefore(filterPanel, statsRow);
 }
 
 /**
  * Setup filter event listeners
  */
 function setupFilterEventListeners() {
-    // Toggle filters
-    document.getElementById('toggleFilters')?.addEventListener('click', function() {
-        const content = document.getElementById('filterContent');
-        const icon = document.getElementById('filterToggleIcon');
-        
-        if (content.classList.contains('show')) {
-            content.classList.remove('show');
-            icon.className = 'fas fa-chevron-down';
-            this.innerHTML = '<i class="fas fa-chevron-down"></i> Show Filters';
-        } else {
-            content.classList.add('show');
-            icon.className = 'fas fa-chevron-up';
-            this.innerHTML = '<i class="fas fa-chevron-up"></i> Hide Filters';
-        }
-    });
+    // Toggle filter panel
+    const toggleBtn = document.getElementById('toggleFilters');
+    const filterBody = document.getElementById('filterPanelBody');
     
-    // Apply filters
-    document.getElementById('applyFilters')?.addEventListener('click', applyFilters);
+    if (toggleBtn && filterBody) {
+        toggleBtn.addEventListener('click', () => {
+            const isVisible = filterBody.style.display !== 'none';
+            filterBody.style.display = isVisible ? 'none' : 'block';
+            toggleBtn.innerHTML = isVisible ? 
+                '<i class="fas fa-chevron-down"></i>' : 
+                '<i class="fas fa-chevron-up"></i>';
+        });
+    }
     
-    // Clear filters
-    document.getElementById('clearFilters')?.addEventListener('click', clearFilters);
+    // Apply filters button
+    const applyBtn = document.getElementById('applyFilters');
+    if (applyBtn) {
+        applyBtn.addEventListener('click', applyAdvancedFilters);
+    }
     
-    // Quick search with debouncing
-    const quickSearchInput = document.getElementById('quickSearch');
-    if (quickSearchInput) {
-        quickSearchInput.addEventListener('input', debounce(performQuickSearch, DEBOUNCE_DELAY));
+    // Clear filters button
+    const clearBtn = document.getElementById('clearFilters');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', clearAdvancedFilters);
     }
 }
 
@@ -188,18 +179,18 @@ function setupKeyboardShortcuts() {
         }
         
         switch (event.key) {
-            case 'f':
-            case 'F':
-                if (event.ctrlKey) {
-                    event.preventDefault();
-                    document.getElementById('quickSearch')?.focus();
-                }
-                break;
             case 'r':
             case 'R':
                 if (event.ctrlKey) {
                     event.preventDefault();
-                    refreshData();
+                    refreshTotalData();
+                }
+                break;
+            case 'f':
+            case 'F':
+                if (event.ctrlKey) {
+                    event.preventDefault();
+                    document.getElementById('toggleFilters')?.click();
                 }
                 break;
         }
@@ -209,7 +200,143 @@ function setupKeyboardShortcuts() {
 }
 
 /**
- * Load all orders data
+ * Apply advanced filters
+ */
+function applyAdvancedFilters() {
+    // Get filter values
+    currentFilters.dateRange = document.getElementById('filterDateRange')?.value || 'all';
+    currentFilters.status = document.getElementById('filterStatus')?.value || 'all';
+    currentFilters.approvalStatus = document.getElementById('filterApprovalStatus')?.value || 'all';
+    currentFilters.costRange = document.getElementById('filterCostRange')?.value || 'all';
+    
+    // Apply filters to data
+    filteredOrdersData = allOrdersData.filter(order => {
+        // Date range filter
+        if (currentFilters.dateRange !== 'all') {
+            const orderDate = new Date(order.date);
+            const now = new Date();
+            
+            switch (currentFilters.dateRange) {
+                case 'today':
+                    if (orderDate.toDateString() !== now.toDateString()) return false;
+                    break;
+                case 'week':
+                    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    if (orderDate < weekAgo) return false;
+                    break;
+                case 'month':
+                    if (orderDate.getMonth() !== now.getMonth() || orderDate.getFullYear() !== now.getFullYear()) return false;
+                    break;
+                case 'quarter':
+                    const currentQuarter = Math.floor(now.getMonth() / 3);
+                    const orderQuarter = Math.floor(orderDate.getMonth() / 3);
+                    if (orderQuarter !== currentQuarter || orderDate.getFullYear() !== now.getFullYear()) return false;
+                    break;
+                case 'year':
+                    if (orderDate.getFullYear() !== now.getFullYear()) return false;
+                    break;
+            }
+        }
+        
+        // Status filter
+        if (currentFilters.status !== 'all') {
+            const orderStatus = (order.status_name || '').toLowerCase();
+            switch (currentFilters.status) {
+                case 'pending':
+                    if (!orderStatus.includes('pending') && !orderStatus.includes('waiting')) return false;
+                    break;
+                case 'approved':
+                    if (!orderStatus.includes('approved') && !order.approval_date) return false;
+                    break;
+                case 'rejected':
+                    if (!orderStatus.includes('reject') && !orderStatus.includes('denied')) return false;
+                    break;
+            }
+        }
+        
+        // Approval status filter
+        if (currentFilters.approvalStatus !== 'all') {
+            const hasApproval = order.approval_date && order.approver_name;
+            const isRejected = (order.status_name || '').toLowerCase().includes('reject');
+            
+            switch (currentFilters.approvalStatus) {
+                case 'approved':
+                    if (!hasApproval) return false;
+                    break;
+                case 'pending':
+                    if (hasApproval || isRejected) return false;
+                    break;
+                case 'rejected':
+                    if (!isRejected) return false;
+                    break;
+            }
+        }
+        
+        // Cost range filter
+        if (currentFilters.costRange !== 'all') {
+            const cost = parseFloat(order.cost_euros) || 0;
+            switch (currentFilters.costRange) {
+                case '0-100':
+                    if (cost < 0 || cost > 100) return false;
+                    break;
+                case '100-500':
+                    if (cost < 100 || cost > 500) return false;
+                    break;
+                case '500-1000':
+                    if (cost < 500 || cost > 1000) return false;
+                    break;
+                case '1000-5000':
+                    if (cost < 1000 || cost > 5000) return false;
+                    break;
+                case '5000+':
+                    if (cost < 5000) return false;
+                    break;
+            }
+        }
+        
+        return true;
+    });
+    
+    // Update table with filtered data
+    populateTotalDataTable(filteredOrdersData);
+    updateStatistics(filteredOrdersData);
+    
+    showInfoToast(`Applied filters - ${filteredOrdersData.length} orders found`);
+}
+
+/**
+ * Clear advanced filters
+ */
+function clearAdvancedFilters() {
+    // Reset filter values
+    currentFilters = {
+        dateRange: 'all',
+        status: 'all',
+        plant: 'all',
+        approvalStatus: 'all',
+        costRange: 'all',
+        creator: 'all',
+        carrier: 'all'
+    };
+    
+    // Reset form controls
+    document.getElementById('filterDateRange').value = 'all';
+    document.getElementById('filterStatus').value = 'all';
+    document.getElementById('filterApprovalStatus').value = 'all';
+    document.getElementById('filterCostRange').value = 'all';
+    
+    // Reset filtered data to all data
+    filteredOrdersData = allOrdersData;
+    
+    // Update table with all data
+    populateTotalDataTable(allOrdersData);
+    updateStatistics(allOrdersData);
+    
+    showInfoToast('Filters cleared - showing all orders');
+}
+
+/**
+ * Load total history data
  */
 async function loadTotalHistoryData() {
     try {
@@ -218,17 +345,17 @@ async function loadTotalHistoryData() {
         // Load all orders
         const orders = await loadOrdersData();
         
+        console.log(`[TotalHistory] 📋 Found ${orders.length} total orders`);
+        
         // Store data globally
         allOrdersData = orders;
         filteredOrdersData = orders;
         
-        // Update statistics
+        // Update UI components
         updateStatistics(orders);
+        populateTotalDataTable(orders);
         
-        // Populate DataTable
-        populateDataTable(orders);
-        
-        showSuccessToast(`Loaded ${orders.length} orders successfully`);
+        showSuccessToast(`Loaded ${orders.length} total orders`);
         
     } catch (error) {
         console.error('[TotalHistory] ❌ Error loading total history data:', error);
@@ -240,186 +367,35 @@ async function loadTotalHistoryData() {
 
 /**
  * Update statistics cards
- * @param {Array} orders - Array of orders
+ * @param {Array} orders - Array of orders to analyze
  */
 function updateStatistics(orders) {
-    try {
-        const stats = calculateStatistics(orders);
-        
-        // Update statistic cards with animation
-        updateStatisticCard('totalOrdersCount', stats.total);
-        updateStatisticCard('approvedOrdersCount', stats.approved);
-        updateStatisticCard('pendingOrdersCount', stats.pending);
-        updateStatisticCard('rejectedOrdersCount', stats.rejected);
-        
-        console.log('[TotalHistory] 📊 Statistics updated:', stats);
-    } catch (error) {
-        console.error('[TotalHistory] ❌ Error updating statistics:', error);
-    }
+    const totalCount = orders.length;
+    const approvedCount = orders.filter(order => 
+        order.approval_date && order.approver_name
+    ).length;
+    const rejectedCount = orders.filter(order => 
+        (order.status_name || '').toLowerCase().includes('reject')
+    ).length;
+    const pendingCount = totalCount - approvedCount - rejectedCount;
+    
+    // Update DOM elements
+    const totalElement = document.getElementById('totalOrdersCount');
+    const approvedElement = document.getElementById('approvedOrdersCount');
+    const pendingElement = document.getElementById('pendingOrdersCount');
+    const rejectedElement = document.getElementById('rejectedOrdersCount');
+    
+    if (totalElement) totalElement.textContent = totalCount.toLocaleString();
+    if (approvedElement) approvedElement.textContent = approvedCount.toLocaleString();
+    if (pendingElement) pendingElement.textContent = pendingCount.toLocaleString();
+    if (rejectedElement) rejectedElement.textContent = rejectedCount.toLocaleString();
 }
 
 /**
- * Update a statistic card with animation
- * @param {string} elementId - Element ID to update
- * @param {number} value - New value
- */
-function updateStatisticCard(elementId, value) {
-    const element = document.getElementById(elementId);
-    if (!element) return;
-    
-    const current = parseInt(element.textContent.replace(/[^\d]/g, '')) || 0;
-    
-    if (current === value) return;
-    
-    // Simple counter animation
-    const increment = Math.ceil((value - current) / 20);
-    const duration = 1000;
-    const stepTime = duration / 20;
-    
-    let currentValue = current;
-    const timer = setInterval(() => {
-        currentValue += increment;
-        if ((increment > 0 && currentValue >= value) || (increment < 0 && currentValue <= value)) {
-            currentValue = value;
-            clearInterval(timer);
-        }
-        element.textContent = currentValue.toLocaleString();
-    }, stepTime);
-}
-
-/**
- * Apply filters to the data
- */
-function applyFilters() {
-    if (!allOrdersData.length) return;
-    
-    try {
-        const filters = collectFilterValues();
-        
-        let filtered = allOrdersData.filter(order => {
-            // Date range filter
-            if (filters.dateFrom || filters.dateTo) {
-                const orderDate = new Date(order.date);
-                if (filters.dateFrom && orderDate < new Date(filters.dateFrom)) return false;
-                if (filters.dateTo && orderDate > new Date(filters.dateTo)) return false;
-            }
-            
-            // Status filter
-            if (filters.status !== 'all') {
-                if ((order.status_name || '').toLowerCase() !== filters.status.toLowerCase()) return false;
-            }
-            
-            return true;
-        });
-        
-        filteredOrdersData = filtered;
-        updateStatistics(filtered);
-        populateDataTable(filtered);
-        updateFilterCount();
-        
-        showInfoToast(`Applied filters: ${filtered.length} orders found`);
-    } catch (error) {
-        console.error('[TotalHistory] ❌ Error applying filters:', error);
-        showErrorMessage('Filter Error', error.message);
-    }
-}
-
-/**
- * Clear all filters
- */
-function clearFilters() {
-    try {
-        // Reset filter inputs
-        document.getElementById('dateFrom').value = '';
-        document.getElementById('dateTo').value = '';
-        document.getElementById('statusFilter').value = 'all';
-        document.getElementById('quickSearch').value = '';
-        
-        // Reset filters object
-        currentFilters = {
-            dateRange: null,
-            status: 'all',
-            plant: 'all',
-            approvalStatus: 'all',
-            costRange: null,
-            creator: 'all',
-            carrier: 'all'
-        };
-        
-        // Reset data
-        filteredOrdersData = allOrdersData;
-        updateStatistics(allOrdersData);
-        populateDataTable(allOrdersData);
-        updateFilterCount();
-        
-        showInfoToast('Filters cleared');
-    } catch (error) {
-        console.error('[TotalHistory] ❌ Error clearing filters:', error);
-    }
-}
-
-/**
- * Perform quick search
- */
-function performQuickSearch() {
-    const query = document.getElementById('quickSearch')?.value?.toLowerCase().trim();
-    
-    if (!query) {
-        filteredOrdersData = allOrdersData;
-    } else {
-        filteredOrdersData = allOrdersData.filter(order => {
-            const idMatch = String(order.id).toLowerCase().includes(query);
-            const descMatch = (order.description || '').toLowerCase().includes(query);
-            const refMatch = (order.reference_number || '').toLowerCase().includes(query);
-            return idMatch || descMatch || refMatch;
-        });
-    }
-    
-    populateDataTable(filteredOrdersData);
-    updateStatistics(filteredOrdersData);
-    
-    if (query) {
-        const count = filteredOrdersData.length;
-        showInfoToast(`Found ${count} order${count !== 1 ? 's' : ''} matching "${query}"`);
-    }
-}
-
-/**
- * Collect current filter values
- */
-function collectFilterValues() {
-    return {
-        dateFrom: document.getElementById('dateFrom')?.value || '',
-        dateTo: document.getElementById('dateTo')?.value || '',
-        status: document.getElementById('statusFilter')?.value || 'all'
-    };
-}
-
-/**
- * Update filter count display
- */
-function updateFilterCount() {
-    const filters = collectFilterValues();
-    let activeCount = 0;
-    
-    Object.entries(filters).forEach(([key, value]) => {
-        if (value && value !== 'all' && value !== '') {
-            activeCount++;
-        }
-    });
-    
-    const countBadge = document.getElementById('filterCount');
-    if (countBadge) {
-        countBadge.textContent = `${activeCount} active`;
-        countBadge.className = activeCount > 0 ? 'badge bg-primary ms-2' : 'badge bg-secondary ms-2';
-    }
-}
-
-/**
- * Populate the DataTable with orders
+ * Populate the DataTable with total orders
  * @param {Array} orders - Array of orders to display
  */
-function populateDataTable(orders) {
+function populateTotalDataTable(orders) {
     try {
         // Destroy existing DataTable if it exists
         if (totalDataTable && $.fn.DataTable.isDataTable('#totalHistoryTable')) {
@@ -432,7 +408,7 @@ function populateDataTable(orders) {
             if (tableBody) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="34" class="text-center py-5">
+                        <td colspan="33" class="text-center py-5">
                             <div class="text-muted">
                                 <i class="fas fa-inbox fa-3x mb-3"></i>
                                 <h5>No orders found</h5>
@@ -445,7 +421,7 @@ function populateDataTable(orders) {
             return;
         }
         
-        // Prepare data for DataTable
+        // Prepare data for DataTable (33 columns - removed Required Auth Level)
         const tableData = orders.map(order => {
             const orderDate = order.date ? new Date(order.date) : null;
             const formattedDate = orderDate ? orderDate.toLocaleDateString('en-US', {
@@ -489,7 +465,6 @@ function populateDataTable(orders) {
                 order.paid_by || '-',
                 order.products || '-',
                 order.status_name || '-',
-                order.required_auth_level || '-',
                 `<span class="badge ${order.recovery_file ? 'bg-success' : 'bg-secondary'}">${order.recovery_file ? 'Yes' : 'No'}</span>`,
                 `<span class="badge ${order.recovery_evidence ? 'bg-success' : 'bg-secondary'}">${order.recovery_evidence ? 'Yes' : 'No'}</span>`,
                 order.approval_date ? new Date(order.approval_date).toLocaleDateString('en-US') : '-',
@@ -502,9 +477,9 @@ function populateDataTable(orders) {
             ];
         });
         
-        // Get base configuration and customize for total
+        // Get base configuration and customize for total history
         const config = getDataTableConfig(
-            'Total_Premium_Freight_Report',
+            'Total_Premium_Freight_History',
             'Total Premium Freight Historical Report'
         );
         
@@ -516,7 +491,7 @@ function populateDataTable(orders) {
                 const visibleData = dt.rows({search: 'applied'}).data().toArray();
                 const visibleOrderIds = visibleData.map(row => parseInt(row[0]));
                 const visibleOrders = orders.filter(order => visibleOrderIds.includes(order.id));
-                await handleBatchSVGGeneration(visibleOrders, 'Total History');
+                await handleBatchSVGGeneration(visibleOrders, 'All Orders History');
             }
         });
         
@@ -535,16 +510,14 @@ function populateDataTable(orders) {
 }
 
 /**
- * Refresh data from server
+ * Refresh total data
  */
-async function refreshData() {
-    if (isLoading) return;
-    
+async function refreshTotalData() {
     // Clear cache
     dataCache.clear();
     
-    showInfoToast('Refreshing data...');
+    showInfoToast('Refreshing total data...');
     await loadTotalHistoryData();
 }
 
-console.log('[TotalHistory] 📋 Module loaded successfully');
+console.log('[TotalHistory] 📋 Total history module loaded successfully');
