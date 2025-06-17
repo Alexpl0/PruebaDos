@@ -1,14 +1,13 @@
 /**
- * Premium Freight - Weekly History Page Handler
- * Maneja la página de histórico semanal con navegación mejorada
+ * Premium Freight - Weekly History Page
+ * Manages the weekly orders history page functionality
  */
 
 import { generatePDF } from './svgOrders.js';
 
-// Variables globales
-let weeklyHistoryTable;
-let currentWeekOffset = 0; // 0 = semana actual, 1 = semana anterior, etc.
-let allOrdersData = [];
+// Variables específicas para la página semanal
+let currentWeekOffset = 0;
+let weeklyDataTable = null;
 
 /**
  * Funciones auxiliares reutilizadas de dataTables.js
@@ -129,6 +128,7 @@ const generateWeeklyTable = async (weeksBack = 0) => {
             didOpen: () => { Swal.showLoading(); }
         });
 
+        // Cargar datos de la API si es la primera carga
         if (allOrdersData.length === 0) {
             allOrdersData = await loadPremiumFreightData();
         }
@@ -374,20 +374,367 @@ const setupPDFEventListeners = () => {
  * Inicialización cuando el DOM esté listo
  */
 document.addEventListener('DOMContentLoaded', function() {
-    // Crear header
-    createHeader(window.authorizationLevel || 0);
+    console.log('[WeeklyHistory] 🚀 Initializing weekly history page...');
     
-    // Configurar navegación de semanas
-    document.getElementById('prevWeek').addEventListener('click', () => {
-        generateWeeklyTable(currentWeekOffset + 1);
-    });
+    try {
+        // Crear header
+        createHeader(window.authorizationLevel || 0);
+        
+        // Agregar estilos de notificación
+        addNotificationStyles();
+        
+        // Cargar datos de la semana actual
+        loadWeeklyData(currentWeekOffset);
+        
+        // Configurar navegación de semanas
+        setupWeekNavigation();
+        
+        // Configurar atajos de teclado
+        setupKeyboardShortcuts();
+        
+        console.log('[WeeklyHistory] ✅ Initialization completed successfully');
+    } catch (error) {
+        console.error('[WeeklyHistory] ❌ Error during initialization:', error);
+        showErrorMessage('Initialization Error', 'Failed to initialize the weekly history page.');
+    }
+});
+
+/**
+ * Setup week navigation buttons
+ */
+function setupWeekNavigation() {
+    const prevBtn = document.getElementById('prevWeek');
+    const nextBtn = document.getElementById('nextWeek');
     
-    document.getElementById('nextWeek').addEventListener('click', () => {
-        if (currentWeekOffset > 0) {
-            generateWeeklyTable(currentWeekOffset - 1);
+    if (prevBtn) {
+        prevBtn.addEventListener('click', async () => {
+            if (!isLoading) {
+                currentWeekOffset++;
+                await loadWeeklyData(currentWeekOffset);
+            }
+        });
+    }
+    
+    if (nextBtn) {
+        nextBtn.addEventListener('click', async () => {
+            if (!isLoading && currentWeekOffset > 0) {
+                currentWeekOffset--;
+                await loadWeeklyData(currentWeekOffset);
+            }
+        });
+    }
+    
+    console.log('[WeeklyHistory] 🔄 Week navigation setup completed');
+}
+
+/**
+ * Setup keyboard shortcuts
+ */
+function setupKeyboardShortcuts() {
+    document.addEventListener('keydown', (event) => {
+        if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+            return;
+        }
+        
+        switch (event.key) {
+            case 'ArrowLeft':
+                event.preventDefault();
+                document.getElementById('prevWeek')?.click();
+                break;
+            case 'ArrowRight':
+                event.preventDefault();
+                document.getElementById('nextWeek')?.click();
+                break;
+            case 'r':
+            case 'R':
+                if (event.ctrlKey) {
+                    event.preventDefault();
+                    refreshCurrentWeek();
+                }
+                break;
         }
     });
+    
+    console.log('[WeeklyHistory] ⌨️ Keyboard shortcuts enabled');
+}
 
-    // Cargar datos de la semana actual
-    generateWeeklyTable(0);
-});
+/**
+ * Load weekly data from API
+ * @param {number} weekOffset - Number of weeks to go back from current week
+ */
+async function loadWeeklyData(weekOffset = 0) {
+    try {
+        const loadingMessage = weekOffset === 0 ? 'Loading Current Week' : `Loading Week Data (${Math.abs(weekOffset)} weeks ago)`;
+        showLoading(loadingMessage, 'Please wait while we fetch the orders...');
+        
+        // Load all orders
+        const allOrders = await loadOrdersData();
+        
+        // Process the data for the specific week
+        processWeeklyData(allOrders, weekOffset);
+        
+    } catch (error) {
+        console.error('[WeeklyHistory] ❌ Error loading weekly data:', error);
+        showErrorMessage('Data Loading Error', `Could not load weekly orders data: ${error.message}`);
+    } finally {
+        Swal.close();
+    }
+}
+
+/**
+ * Process and filter weekly data
+ * @param {Array} allOrders - All orders from API
+ * @param {number} weekOffset - Week offset from current week
+ */
+function processWeeklyData(allOrders, weekOffset) {
+    try {
+        // Calculate target week
+        const currentDate = new Date();
+        currentDate.setDate(currentDate.getDate() - (weekOffset * 7));
+        const targetWeek = getWeekNumber(currentDate);
+        const targetYear = currentDate.getFullYear();
+        
+        console.log(`[WeeklyHistory] 📅 Filtering for week ${targetWeek} of year ${targetYear}`);
+        
+        // Filter orders for target week
+        const weeklyOrders = allOrders.filter(order => {
+            if (!order || !order.date) return false;
+            
+            try {
+                const orderDate = new Date(order.date);
+                if (isNaN(orderDate.getTime())) return false;
+                
+                const orderWeek = getWeekNumber(orderDate);
+                const orderYear = orderDate.getFullYear();
+                
+                return orderWeek === targetWeek && orderYear === targetYear;
+            } catch (error) {
+                console.error('[WeeklyHistory] Error processing order date:', error, order);
+                return false;
+            }
+        });
+        
+        console.log(`[WeeklyHistory] 📋 Found ${weeklyOrders.length} orders for week ${targetWeek}`);
+        
+        // Store data globally
+        allOrdersData = weeklyOrders;
+        
+        // Update UI components
+        updateWeekInfo(targetWeek, targetYear, weeklyOrders.length, currentDate);
+        updateNavigationButtons();
+        populateDataTable(weeklyOrders);
+        
+        // Show success notification
+        if (weekOffset === currentWeekOffset && weeklyOrders.length > 0) {
+            showInfoToast(`Loaded ${weeklyOrders.length} orders for week ${targetWeek}`);
+        }
+        
+    } catch (error) {
+        console.error('[WeeklyHistory] ❌ Error processing weekly data:', error);
+        showErrorMessage('Data Processing Error', error.message);
+    }
+}
+
+/**
+ * Update week information display
+ * @param {number} weekNumber - Week number
+ * @param {number} year - Year
+ * @param {number} orderCount - Number of orders
+ * @param {Date} weekDate - Date representing the week
+ */
+function updateWeekInfo(weekNumber, year, orderCount, weekDate) {
+    const currentWeekDisplay = document.getElementById('currentWeekDisplay');
+    const weeklySubtitle = document.getElementById('weeklySubtitle');
+    
+    // Calculate week date range
+    const startOfWeek = new Date(weekDate);
+    const dayOfWeek = startOfWeek.getDay();
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    startOfWeek.setDate(startOfWeek.getDate() + mondayOffset);
+    
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(endOfWeek.getDate() + 6);
+    
+    const formatOptions = { month: 'short', day: 'numeric' };
+    const startStr = startOfWeek.toLocaleDateString('en-US', formatOptions);
+    const endStr = endOfWeek.toLocaleDateString('en-US', formatOptions);
+    
+    if (currentWeekDisplay) {
+        currentWeekDisplay.innerHTML = `
+            <div class="text-center">
+                <h5 class="mb-1">Week ${weekNumber}, ${year}</h5>
+                <small class="text-muted">${startStr} - ${endStr}</small>
+            </div>
+        `;
+    }
+    
+    if (weeklySubtitle) {
+        const statusText = orderCount === 0 ? 'No orders found' : 
+                          orderCount === 1 ? '1 order found' : 
+                          `${orderCount.toLocaleString()} orders found`;
+        
+        weeklySubtitle.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center">
+                <span>Premium Freight Weekly Report</span>
+                <span class="badge bg-primary">${statusText}</span>
+            </div>
+        `;
+    }
+}
+
+/**
+ * Update navigation buttons state
+ */
+function updateNavigationButtons() {
+    const nextBtn = document.getElementById('nextWeek');
+    const prevBtn = document.getElementById('prevWeek');
+    
+    if (nextBtn) {
+        nextBtn.disabled = currentWeekOffset === 0 || isLoading;
+        nextBtn.innerHTML = isLoading ? 
+            '<i class="fas fa-spinner fa-spin"></i> Loading...' : 
+            'Next Week <i class="fas fa-chevron-right"></i>';
+    }
+    
+    if (prevBtn) {
+        prevBtn.disabled = isLoading;
+        prevBtn.innerHTML = isLoading ? 
+            '<i class="fas fa-spinner fa-spin"></i> Loading...' : 
+            '<i class="fas fa-chevron-left"></i> Previous Week';
+    }
+}
+
+/**
+ * Populate the DataTable with weekly orders
+ * @param {Array} orders - Array of order objects
+ */
+function populateDataTable(orders) {
+    // Destroy existing DataTable if it exists
+    if (weeklyDataTable && $.fn.DataTable.isDataTable('#weeklyHistoryTable')) {
+        weeklyDataTable.destroy();
+        weeklyDataTable = null;
+    }
+    
+    if (orders.length === 0) {
+        const tableBody = document.querySelector('#weeklyHistoryTable tbody');
+        if (tableBody) {
+            const noDataMessage = currentWeekOffset === 0 ? 
+                'No orders found for the current week' : 
+                `No orders found for the selected week`;
+                
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="34" class="text-center py-5">
+                        <div class="text-muted">
+                            <i class="fas fa-inbox fa-3x mb-3"></i>
+                            <h5>${noDataMessage}</h5>
+                            <p>Try selecting a different week or check back later.</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+        return;
+    }
+    
+    // Prepare data for DataTable
+    const tableData = orders.map(order => {
+        const orderDate = order.date ? new Date(order.date) : null;
+        const formattedDate = orderDate ? orderDate.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }) : '-';
+        
+        const monthName = orderDate ? orderDate.toLocaleDateString('en-US', { 
+            month: 'long' 
+        }) : '-';
+        
+        const weekNumber = orderDate ? getWeekNumber(orderDate) : '-';
+        
+        return [
+            order.id || '-',
+            'Grammer AG',
+            order.creator_plant || '-',
+            order.creator_plant || '-',
+            formattedDate,
+            `<span class="badge ${order.in_out_bound === 'Inbound' ? 'bg-info' : 'bg-secondary'}">${order.in_out_bound || '-'}</span>`,
+            weekNumber,
+            monthName,
+            order.reference_number || '-',
+            formatCreatorName(order.creator_name),
+            order.area || '-',
+            order.description || '-',
+            order.category_cause || '-',
+            formatCost(order.cost_euros),
+            order.transport || '-',
+            `<span class="badge ${order.int_ext === 'Internal' ? 'bg-primary' : 'bg-secondary'}">${order.int_ext || '-'}</span>`,
+            order.carrier || '-',
+            order.origin_company_name || '-',
+            order.origin_city || '-',
+            order.destiny_company_name || '-',
+            order.destiny_city || '-',
+            formatWeight(order.weight),
+            order.project_status || '-',
+            order.approver_name || '-',
+            order.recovery || '-',
+            order.paid_by || '-',
+            order.products || '-',
+            order.status_name || '-',
+            order.required_auth_level || '-',
+            `<span class="badge ${order.recovery_file ? 'bg-success' : 'bg-secondary'}">${order.recovery_file ? 'Yes' : 'No'}</span>`,
+            `<span class="badge ${order.recovery_evidence ? 'bg-success' : 'bg-secondary'}">${order.recovery_evidence ? 'Yes' : 'No'}</span>`,
+            order.approval_date ? new Date(order.approval_date).toLocaleDateString('en-US') : '-',
+            getApprovalStatus(order),
+            `<button class="btn btn-sm btn-outline-primary generate-pdf-btn" 
+                    onclick="generateSinglePDF(${order.id})" 
+                    title="Generate PDF for Order ${order.id}">
+                <i class="fas fa-file-pdf"></i>
+            </button>`
+        ];
+    });
+    
+    // Get current week info for export filenames
+    const currentDate = new Date();
+    currentDate.setDate(currentDate.getDate() - (currentWeekOffset * 7));
+    const targetWeek = getWeekNumber(currentDate);
+    const targetYear = currentDate.getFullYear();
+    
+    // Get base configuration and customize for weekly
+    const config = getDataTableConfig(
+        `Weekly_Premium_Freight_W${targetWeek}_${targetYear}`,
+        `Weekly Premium Freight Report - Week ${targetWeek}, ${targetYear}`
+    );
+    
+    // Add batch PDF generation button
+    config.buttons.splice(2, 0, {
+        text: '<i class="fas fa-file-pdf"></i> Generate All PDFs',
+        className: 'btn btn-info btn-sm',
+        action: async function(e, dt, node, config) {
+            await handleBatchSVGGeneration(orders, `Week ${targetWeek} ${targetYear}`);
+        }
+    });
+    
+    // Initialize DataTable
+    weeklyDataTable = $('#weeklyHistoryTable').DataTable({
+        ...config,
+        data: tableData
+    });
+    
+    console.log(`[WeeklyHistory] 📊 Populated table with ${orders.length} orders`);
+}
+
+/**
+ * Refresh current week data
+ */
+async function refreshCurrentWeek() {
+    if (isLoading) return;
+    
+    // Clear cache
+    dataCache.clear();
+    
+    showInfoToast('Refreshing data...');
+    await loadWeeklyData(currentWeekOffset);
+}
+
+console.log('[WeeklyHistory] 📋 Module loaded successfully');

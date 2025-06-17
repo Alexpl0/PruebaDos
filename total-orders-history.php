@@ -182,7 +182,7 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
 
     <!-- Custom scripts -->
     <script src="js/header.js"></script>
-    <script src="js/svgOrders.js" type="module"></script>
+    <script src="js/dataTables.js"></script>
     <script src="js/totalHistoryPage.js"></script>
 </body>
 </html>

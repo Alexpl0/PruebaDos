@@ -1,742 +1,686 @@
 /**
- * Premium Freight - Manejo de DataTables para históricos
- * Este módulo gestiona la visualización de datos históricos en tablas interactivas
+ * Premium Freight - Shared DataTables Utilities
+ * Funciones compartidas para las páginas de histórico semanal y total
  */
 
-// Variables globales para las instancias de DataTable
-let dataTableHistoricoSemanal;
-let dataTableHistoricoTotal;
-let dataTableSemanalInitialized = false;
-let dataTableTotalInitialized = false;
+// Variables globales compartidas
+let isLoading = false;
+let allOrdersData = [];
+let dataCache = new Map();
 
-// Global variable to track initialization state
-let dataTableInitialized = false;
+// Configuración común
+const BATCH_SIZE = 50;
+const DEBOUNCE_DELAY = 300;
+const AUTO_REFRESH_INTERVAL = 10 * 60 * 1000; // 10 minutes
 
 /**
- * Opciones comunes para ambas DataTables
+ * Get base URL helper function with fallback
+ * @returns {string} The base URL for API calls
  */
-const dataTableOptions = {
-    lengthMenu: [10, 25, 50, 100, 200, 500],
-    columnDefs: [
-        { className: "centered", targets: "_all" } // Todas las columnas centradas
-    ],
-    pageLength: 10,
-    destroy: true,
-    language: {
-        lengthMenu: "Show _MENU_ records per page",
-        zeroRecords: "No records found",
-        info: "Showing _START_ to _END_ of _TOTAL_ records",
-        infoEmpty: "No records available",
-        infoFiltered: "(filtered from _MAX_ total records)",
-        search: "Search:",
-        loadingRecords: "Loading...",
-        paginate: {
-            first: "First",
-            last: "Last",
-            next: "Next",
-            previous: "Previous"
-        }
-    },
-    dom: 'Bfrtip',
-    buttons: [
-        {
-            extend: 'excel',
-            text: '<i class="fas fa-file-excel"></i> Excel',
-            className: 'btn-success',
-            title: 'Premium_Freight_Report',
-            filename: 'Premium_Freight_Report',
-            exportOptions: {
-                columns: ':visible'
-            }
-        },
-        {
-            extend: 'pdf',
-            text: '<i class="fas fa-file-pdf"></i> PDF',
-            className: 'btn-danger',
-            orientation: 'landscape',
-            pageSize: 'LEGAL',
-            title: 'Premium Freight Report',
-            filename: 'Premium Freight Report',
-            customize: function(doc) {
-                doc.defaultStyle.fontSize = 7;
-                doc.styles.tableHeader.fontSize = 8;
-                doc.styles.tableHeader.fillColor = '#A7CAC3';
-
-                // Márgenes más pequeños para aprovechar el espacio
-                doc.pageMargins = [10, 15, 10, 15];
-
-                // Distribuir el ancho de las columnas uniformemente
-                if (doc.content[1] && doc.content[1].table && doc.content[1].table.body[0]) {
-                    doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
-                }
-
-                // Título personalizado
-                doc.content.splice(0, 0, {
-                    margin: [0, 0, 0, 12],
-                    alignment: 'center',
-                    text: 'GRAMMER Premium Freight Report',
-                    style: {
-                        fontSize: 14,
-                        bold: true,
-                        color: '#1c4481'
-                    }
-                });
-
-                // Pie de página con fecha y número de página
-                const now = new Date();
-                doc.footer = function(currentPage, pageCount) {
-                    return {
-                        columns: [
-                            { text: 'Generated: ' + now.toLocaleDateString(), alignment: 'left', margin: [10, 0], fontSize: 8 },
-                            { text: 'Page ' + currentPage.toString() + ' of ' + pageCount, alignment: 'right', margin: [0, 0, 10, 0], fontSize: 8 }
-                        ],
-                        margin: [10, 0]
-                    };
-                };
-            },
-            exportOptions: {
-                columns: ':visible'
-            }
-        },
-        {
-            text: '<i class="fas fa-code"></i> SVG',
-            className: 'btn-info',
-            action: async function(e, dt, node, config) {
-                try {
-                    Swal.fire({
-                        title: 'Preparing documents',
-                        html: 'Generating SVGs for each record. This may take a moment...',
-                        allowOutsideClick: false,
-                        didOpen: () => { Swal.showLoading(); }
-                    });
-
-                    const exportData = dt.rows({search: 'applied'}).data().toArray();
-                    if (exportData.length === 0) {
-                        Swal.fire({
-                            icon: 'info',
-                            title: 'No data',
-                            text: 'There are no records to export'
-                        });
-                        return;
-                    }
-
-                    if (exportData.length > 10) {
-                        const confirm = await Swal.fire({
-                            icon: 'warning',
-                            title: 'Many records',
-                            html: `You are about to generate ${exportData.length} SVG/PDF documents. Do you want to continue?`,
-                            showCancelButton: true,
-                            confirmButtonText: 'Yes, generate all',
-                            cancelButtonText: 'Cancel',
-                        });
-
-                        if (!confirm.isConfirmed) return;
-                    }
-
-                    const { loadAndPopulateSVG, generatePDF } = await import('./svgOrders.js');
-                    const ids = exportData.map(row => row[0]);
-                    const ordersResponse = await fetch(URLPF + 'dao/conections/daoPremiumFreight.php');
-                    const ordersData = await ordersResponse.json();
-                    const allOrders = ordersData.data || [];
-                    const visibleOrders = allOrders.filter(order => ids.includes(String(order.id)));
-
-                    const container = document.createElement('div');
-                    container.style.position = 'absolute';
-                    container.style.left = '-9999px';
-                    document.body.appendChild(container);
-
-                    for (let i = 0; i < visibleOrders.length; i++) {
-                        const order = visibleOrders[i];
-                        const orderId = order.id;
-
-                        Swal.update({
-                            html: `Processing document ${i+1} of ${visibleOrders.length}...`
-                        });
-
-                        try {
-                            const fileName = await generatePDF(order, `PF_${orderId}_Order`);
-                            console.log(`Generated PDF for order ${orderId}: ${fileName}`);
-                        } catch (error) {
-                            console.error(`Error generating PDF for order ${orderId}:`, error);
-                        }
-
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                    }
-
-                    document.body.removeChild(container);
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Documents generated',
-                        html: `${visibleOrders.length} PDF documents have been generated.<br>Check your downloads folder.`
-                    });
-
-                } catch (error) {
-                    console.error('Error generating documents:', error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'An error occurred while generating the documents: ' + error.message
-                    });
-                }
-            }
-        }
-    ]
-};
+function getBaseURL() {
+    return window.URLPF || window.URL_BASE || window.BASE_URL || 'https://grammermx.com/Jesus/PruebaDos/';
+}
 
 /**
- * Función para cargar los datos de Premium Freight desde la API
- * @returns {Promise<Array|Object>} Datos de Premium Freight
+ * Calculate ISO 8601 week number from a date
+ * @param {Date|string} date - Date object or string
+ * @returns {number|string} Week number or 'N/A' if invalid
  */
-const cargarDatosPremiumFreight = async () => {
+function getWeekNumber(date) {
+    if (!date) return 'N/A';
+    
     try {
-        const response = await fetch(URLPF + 'dao/conections/daoPremiumFreight.php');
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error("Error al cargar datos de Premium Freight:", error);
+        const dateObj = date instanceof Date ? date : new Date(date);
+        if (isNaN(dateObj.getTime())) {
+            return 'N/A';
+        }
+        
+        const dayNum = dateObj.getDay() || 7;
+        dateObj.setDate(dateObj.getDate() + 4 - dayNum);
+        const yearStart = new Date(dateObj.getFullYear(), 0, 1);
+        const weekNum = Math.ceil((((dateObj - yearStart) / 86400000) + 1) / 7);
+        return weekNum;
+    } catch (e) {
+        console.error("Error calculating week number:", e);
+        return 'N/A';
+    }
+}
+
+/**
+ * Shows a loading indicator with SweetAlert
+ * @param {string} title - Title of the loading indicator
+ * @param {string} text - Descriptive text
+ * @param {number} timer - Optional auto-close timer in ms
+ */
+function showLoading(title = 'Loading', text = 'Please wait...', timer = null) {
+    const options = {
+        title,
+        text,
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); },
+        customClass: { container: 'swal-on-top' }
+    };
+    
+    if (timer) {
+        options.timer = timer;
+        options.timerProgressBar = true;
+    }
+    
+    return Swal.fire(options);
+}
+
+/**
+ * Add notification badge styles to document
+ */
+function addNotificationStyles() {
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 24px;
+            height: 24px;
+            background-color: #ff4444;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+        .exclamation-icon {
+            font-style: normal;
+            font-weight: bold;
+            font-size: 14px;
+        }
+    `;
+    document.head.appendChild(styleElement);
+}
+
+/**
+ * Load orders data from API with caching
+ * @param {boolean} useCache - Whether to use cached data
+ * @returns {Promise<Array>} Orders data
+ */
+async function loadOrdersData(useCache = true) {
+    if (isLoading) {
+        console.log('[DataTables] Already loading data, skipping request');
         return [];
     }
-};
-
-/**
- * Función para convertir cadena de texto de fecha a objeto Date
- * @param {string} dateString - Cadena de fecha en formato "YYYY-MM-DD HH:MM:SS"
- * @returns {Date|null} Objeto Date o null si la fecha es inválida
- */
-const parseDate = (dateString) => {
+    
+    isLoading = true;
+    const cacheKey = 'orders_data';
+    
     try {
-        if (!dateString) return null;
-        
-        // Formato esperado: "2025-04-28 20:59:18"
-        const parts = dateString.split(' ');
-        if (parts.length !== 2) return null;
-        
-        const dateParts = parts[0].split('-');
-        const timeParts = parts[1].split(':');
-        
-        if (dateParts.length !== 3 || timeParts.length !== 3) return null;
-        
-        // El formato es: new Date(año, mes-1, día, hora, minuto, segundo)
-        // Mes es 0-indexed en JavaScript (0-11)
-        const year = parseInt(dateParts[0], 10);
-        const month = parseInt(dateParts[1], 10) - 1; // Restar 1 porque los meses van de 0-11
-        const day = parseInt(dateParts[2], 10);
-        const hour = parseInt(timeParts[0], 10);
-        const minute = parseInt(timeParts[1], 10);
-        const second = parseInt(timeParts[2], 10);
-        
-        const date = new Date(year, month, day, hour, minute, second);        
-        // Verificar si la fecha es válida
-        if (isNaN(date.getTime())) {
-            console.warn('parseDate: Fecha resultante inválida:', dateString);
-            return null;
-        }
-        
-        return date;
-    } catch (error) {
-        console.error('Error en parseDate:', error, dateString);
-        return null;
-    }
-};
-
-/**
- * Función para obtener el número de semana de una fecha (ISO 8601)
- * @param {Date} date - Objeto Date
- * @returns {number|string} Número de semana o "-" si la fecha es inválida
- */
-const getWeekNumber = (date) => {
-    try {
-        if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
-            return '-';
-        }
-        
-        // Crear una copia de la fecha para no modificar la original
-        const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-        
-        // Configurar al primer día de la semana (lunes en ISO 8601)
-        const dayNum = d.getUTCDay() || 7;
-        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-        
-        // Primer día del año
-        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-        
-        // Calcular el número de semana
-        const weekNumber = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-        
-        return weekNumber;
-    } catch (error) {
-        console.error('Error en getWeekNumber:', error);
-        return '-';
-    }
-};
-
-/**
- * Función para obtener el nombre del mes de una fecha
- * @param {Date} date - Objeto Date
- * @returns {string} Nombre del mes o "-" si la fecha es inválida
- */
-const getMonthName = (date) => {
-    try {
-        if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
-            return '-';
-        }
-        
-        const months = ['January', 'February', 'March', 'April', 'May', 'June', 
-                        'July', 'August', 'September', 'October', 'November', 'December'];
-        return months[date.getMonth()];
-    } catch (error) {
-        console.error('Error en getMonthName:', error);
-        return '-';
-    }
-};
-
-/**
- * Formats creator name to show first initial + specified last name
- * @param {string} fullName - Full name of the creator
- * @returns {string} Formatted name (initial + last name) or original value if can't be parsed
- */
-const formatCreatorName = (fullName) => {
-    try {
-        if (!fullName || typeof fullName !== 'string') return fullName || '-';
-        
-        // Split the name into parts
-        const nameParts = fullName.trim().split(' ');
-        
-        // If only one part, return it as is
-        if (nameParts.length === 1) return fullName;
-        
-        // Get the first initial from the first word (always considered first name)
-        const firstInitial = nameParts[0].charAt(0).toUpperCase();
-        
-        // Handle different cases based on number of name parts
-        if (nameParts.length === 2) {
-            // Simple case: first name + last name
-            return `${firstInitial}. ${nameParts[1]}`;
-        } else if (nameParts.length >= 3) {
-            // Multiple parts: take the last word as surname
-            // This handles cases like "María José García" -> "M. García"
-            const lastName = nameParts[nameParts.length - 1];
-            return `${firstInitial}. ${lastName}`;
-        }
-        
-        // Fallback (shouldn't reach here)
-        return fullName;
-    } catch (error) {
-        console.error('Error en formatCreatorName:', error, fullName);
-        return fullName || '-';
-    }
-};
-
-/**
- * Inicializar o reinicializar las DataTables
- * @param {string} tableType - Tipo de tabla a inicializar ('semanal', 'total', o 'both')
- */
-const initDataTables = (tableType = 'both') => {
-    try {
-        // Configuración común con orden descendente por ID (primera columna)
-        const commonConfig = {
-            ...dataTableOptions,
-            scrollX: true,
-            scrollCollapse: true,
-            order: [[0, 'desc']] // Ordenar por ID (columna 0) en orden descendente
-        };
-        
-        // Inicializar DataTable para histórico semanal
-        if (tableType === 'semanal' || tableType === 'both') {
-            // Asegurarse de que la tabla existe en el DOM
-            const semanalTable = document.getElementById('datatable_historico_semanal');
-            if (!semanalTable) {
-                console.error('Elemento datatable_historico_semanal no encontrado en el DOM');
-                return;
+        // Check cache first
+        if (useCache && dataCache.has(cacheKey)) {
+            const cached = dataCache.get(cacheKey);
+            const cacheAge = Date.now() - cached.timestamp;
+            if (cacheAge < 5 * 60 * 1000) { // 5 minutes
+                console.log('[DataTables] Using cached data');
+                isLoading = false;
+                return cached.data;
             }
-            
-            // Destruir instancia anterior si existe
-            if (dataTableSemanalInitialized && $.fn.DataTable.isDataTable('#datatable_historico_semanal')) {
-                $('#datatable_historico_semanal').DataTable().destroy();
-                dataTableSemanalInitialized = false;
-            }
-            
-            dataTableHistoricoSemanal = $("#datatable_historico_semanal").DataTable(commonConfig);
-            dataTableSemanalInitialized = true;
-            console.log("DataTable semanal inicializada correctamente");
         }
         
-        // Inicializar DataTable para histórico total
-        if (tableType === 'total' || tableType === 'both') {
-            // Asegurarse de que la tabla existe en el DOM
-            const totalTable = document.getElementById('datatable_historico_total');
-            if (!totalTable) {
-                console.error('Elemento datatable_historico_total no encontrado en el DOM');
-                return;
-            }
-            
-            // Destruir instancia anterior si existe
-            if (dataTableTotalInitialized && $.fn.DataTable.isDataTable('#datatable_historico_total')) {
-                $('#datatable_historico_total').DataTable().destroy();
-                dataTableTotalInitialized = false;
-            }
-            
-            dataTableHistoricoTotal = $("#datatable_historico_total").DataTable(commonConfig);
-            dataTableTotalInitialized = true;
-            console.log("DataTable total inicializada correctamente");
-        }
-    } catch (error) {
-        console.error("Error al inicializar DataTables:", error);
-    }
-};
-
-/**
- * Función para generar tabla histórico semanal
- * @param {number} semanasAnteriores - Número de semanas para retroceder desde la actual
- */
-const generarHistoricoSemanal = async (semanasAnteriores = 0) => {
-    try {
-        const response = await cargarDatosPremiumFreight();
-        console.log("Datos recibidos de la API:", response);
+        const baseURL = getBaseURL();
+        console.log(`[DataTables] Loading data from: ${baseURL}dao/conections/daoPremiumFreight.php`);
         
-        // Obtener referencia al elemento de la tabla
-        const tableBody_semanal = document.getElementById('tableBody_historico_semanal');
-        if (!tableBody_semanal) {
-            console.error('No se encontró el elemento tableBody_historico_semanal');
-            return;
+        const response = await fetch(`${baseURL}dao/conections/daoPremiumFreight.php`, {
+            method: 'GET',
+            headers: {
+                'Cache-Control': 'no-cache',
+                'Accept': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-
-        // Extraer el array de datos
-        let itemsArray = [];
-        if (response && response.status === 'success' && Array.isArray(response.data)) {
-            itemsArray = response.data;
-        } else if (Array.isArray(response)) {
-            itemsArray = response;
+        
+        const data = await response.json();
+        console.log('[DataTables] Raw API response received:', { 
+            hasData: !!data, 
+            dataType: typeof data,
+            recordCount: data?.data?.length || 0 
+        });
+        
+        // Extract orders array
+        let orders = [];
+        if (data && data.status === 'success' && Array.isArray(data.data)) {
+            orders = data.data;
+        } else if (Array.isArray(data)) {
+            orders = data;
         } else {
-            console.error('Estructura de datos inesperada:', response);
+            console.warn('[DataTables] Unexpected data format:', data);
+            return [];
+        }
+        
+        // Cache the response
+        dataCache.set(cacheKey, {
+            data: orders,
+            timestamp: Date.now()
+        });
+        
+        return orders;
+        
+    } catch (error) {
+        console.error('[DataTables] Error loading orders data:', error);
+        throw error;
+    } finally {
+        isLoading = false;
+    }
+}
+
+/**
+ * Calculate comprehensive statistics
+ * @param {Array} orders - Array of orders
+ * @returns {Object} Statistics object
+ */
+function calculateStatistics(orders) {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const currentWeek = getWeekNumber(now);
+    
+    const stats = {
+        total: orders.length,
+        approved: 0,
+        pending: 0,
+        rejected: 0,
+        totalCost: 0,
+        avgCost: 0,
+        thisMonth: 0,
+        thisWeek: 0,
+        byStatus: {},
+        byPlant: {},
+        byCarrier: {},
+        costByMonth: {}
+    };
+    
+    orders.forEach(order => {
+        // Count by approval status
+        const approvalStatus = order.approval_status;
+        const requiredAuthLevel = order.required_auth_level || 7;
+        
+        if (approvalStatus === null || approvalStatus >= requiredAuthLevel) {
+            if (order.status_name?.toLowerCase() === 'rechazado') {
+                stats.rejected++;
+            } else {
+                stats.approved++;
+            }
+        } else if (approvalStatus === 99) {
+            stats.rejected++;
+        } else {
+            stats.pending++;
+        }
+        
+        // Total cost
+        const cost = parseFloat(order.cost_euros) || 0;
+        stats.totalCost += cost;
+        
+        // This month count
+        const orderDate = new Date(order.date);
+        if (orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear) {
+            stats.thisMonth++;
+        }
+        
+        // This week count
+        const orderWeek = getWeekNumber(orderDate);
+        if (orderWeek === currentWeek && orderDate.getFullYear() === currentYear) {
+            stats.thisWeek++;
+        }
+        
+        // Group by status
+        const status = order.status_name || 'Unknown';
+        stats.byStatus[status] = (stats.byStatus[status] || 0) + 1;
+        
+        // Group by plant
+        const plant = order.creator_plant || 'Unknown';
+        stats.byPlant[plant] = (stats.byPlant[plant] || 0) + 1;
+        
+        // Group by carrier
+        const carrier = order.carrier || 'Unknown';
+        stats.byCarrier[carrier] = (stats.byCarrier[carrier] || 0) + 1;
+    });
+    
+    // Calculate average cost
+    stats.avgCost = stats.total > 0 ? stats.totalCost / stats.total : 0;
+    
+    return stats;
+}
+
+/**
+ * Format creator name (first initial + last name)
+ * @param {string} fullName - Full name of the creator
+ * @returns {string} Formatted name
+ */
+function formatCreatorName(fullName) {
+    if (!fullName || typeof fullName !== 'string') return fullName || '-';
+    
+    const parts = fullName.trim().split(' ');
+    if (parts.length < 2) return fullName;
+    
+    return `${parts[0].charAt(0).toUpperCase()}. ${parts[parts.length - 1]}`;
+}
+
+/**
+ * Format cost with proper currency
+ * @param {string|number} cost - Cost value
+ * @returns {string} Formatted cost
+ */
+function formatCost(cost) {
+    if (!cost || cost === '0') return '-';
+    const numCost = parseFloat(cost);
+    return isNaN(numCost) ? '-' : `€${numCost.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    })}`;
+}
+
+/**
+ * Format weight
+ * @param {string|number} weight - Weight value
+ * @returns {string} Formatted weight
+ */
+function formatWeight(weight) {
+    if (!weight || weight === '0') return '-';
+    const numWeight = parseFloat(weight);
+    return isNaN(numWeight) ? '-' : `${numWeight.toLocaleString()} kg`;
+}
+
+/**
+ * Get approval status with formatting
+ * @param {Object} order - Order object
+ * @returns {string} HTML string for approval status
+ */
+function getApprovalStatus(order) {
+    const approvalStatus = order.approval_status;
+    const requiredLevel = order.required_auth_level || 7;
+    
+    if (approvalStatus === null || approvalStatus >= requiredLevel) {
+        if (order.status_name?.toLowerCase() === 'rechazado') {
+            return '<span class="badge bg-danger">Rejected</span>';
+        } else {
+            return '<span class="badge bg-success">Fully Approved</span>';
+        }
+    } else if (approvalStatus === 99) {
+        return '<span class="badge bg-danger">Rejected</span>';
+    } else {
+        return '<span class="badge bg-warning">Pending</span>';
+    }
+}
+
+/**
+ * Common DataTable configuration
+ * @param {string} exportPrefix - Prefix for export filenames
+ * @param {string} title - Title for exports
+ * @returns {Object} DataTable configuration
+ */
+function getDataTableConfig(exportPrefix, title) {
+    return {
+        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+        pageLength: 25,
+        destroy: true,
+        responsive: true,
+        processing: true,
+        order: [[0, 'desc']], // Sort by ID descending
+        columnDefs: [
+            { 
+                className: "text-center", 
+                targets: [0, 2, 4, 5, 6, 7, 8, 10, 12, 15, 22, 27, 28, 29, 30, 31, 32, 33] 
+            },
+            { 
+                className: "text-end", 
+                targets: [13, 21] // Cost and Weight columns
+            },
+            {
+                targets: [11, 26], // Description and Products columns
+                render: function(data, type, row) {
+                    if (type === 'display' && data && data.length > 50) {
+                        return '<span title="' + data.replace(/"/g, '&quot;') + '">' + 
+                               data.substr(0, 50) + '...</span>';
+                    }
+                    return data;
+                }
+            }
+        ],
+        language: {
+            lengthMenu: "Show _MENU_ records per page",
+            zeroRecords: "No matching records found",
+            info: "Showing _START_ to _END_ of _TOTAL_ records",
+            infoEmpty: "No records available",
+            infoFiltered: "(filtered from _MAX_ total records)",
+            search: "Search orders:",
+            searchPlaceholder: "Type to search...",
+            loadingRecords: "Loading orders...",
+            processing: "Processing...",
+            paginate: {
+                first: "First",
+                last: "Last",
+                next: "Next",
+                previous: "Previous"
+            }
+        },
+        dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
+             '<"row"<"col-sm-12"<"dt-buttons-wrapper"B>>>' +
+             '<"row"<"col-sm-12"tr>>' +
+             '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+        buttons: [
+            {
+                extend: 'excel',
+                text: '<i class="fas fa-file-excel"></i> Export Excel',
+                className: 'btn btn-success btn-sm',
+                title: title,
+                filename: function() {
+                    return `${exportPrefix}_${new Date().toISOString().split('T')[0]}`;
+                },
+                exportOptions: {
+                    columns: ':visible:not(:last-child)' // Exclude actions column
+                }
+            },
+            {
+                extend: 'pdf',
+                text: '<i class="fas fa-file-pdf"></i> Export PDF',
+                className: 'btn btn-danger btn-sm',
+                orientation: 'landscape',
+                pageSize: 'A3',
+                title: title,
+                filename: function() {
+                    return `${exportPrefix}_${new Date().toISOString().split('T')[0]}`;
+                },
+                customize: function(doc) {
+                    doc.defaultStyle.fontSize = 8;
+                    doc.styles.tableHeader.fontSize = 9;
+                    doc.styles.tableHeader.fillColor = '#A7CAC3';
+                    doc.styles.tableHeader.color = '#000';
+                    doc.pageMargins = [15, 40, 15, 40];
+                    
+                    // Custom header
+                    doc.content.splice(0, 0, {
+                        margin: [0, 0, 0, 20],
+                        alignment: 'center',
+                        stack: [
+                            {
+                                text: 'GRAMMER Premium Freight',
+                                style: { fontSize: 16, bold: true, color: '#1c4481' }
+                            },
+                            {
+                                text: title,
+                                style: { fontSize: 12, color: '#666' },
+                                margin: [0, 5, 0, 0]
+                            }
+                        ]
+                    });
+                    
+                    // Enhanced footer
+                    doc.footer = function(currentPage, pageCount) {
+                        return {
+                            columns: [
+                                { 
+                                    text: 'Generated: ' + new Date().toLocaleDateString(), 
+                                    alignment: 'left', 
+                                    margin: [15, 0], 
+                                    fontSize: 8 
+                                },
+                                { 
+                                    text: 'Page ' + currentPage + ' of ' + pageCount, 
+                                    alignment: 'right', 
+                                    margin: [0, 0, 15, 0], 
+                                    fontSize: 8 
+                                }
+                            ],
+                            margin: [15, 0]
+                        };
+                    };
+                },
+                exportOptions: {
+                    columns: ':visible:not(:last-child)' // Exclude actions column
+                }
+            },
+            {
+                text: '<i class="fas fa-sync-alt"></i> Refresh',
+                className: 'btn btn-outline-primary btn-sm',
+                action: function(e, dt, node, config) {
+                    window.location.reload();
+                }
+            }
+        ],
+        scrollX: true,
+        scrollCollapse: true,
+        stateSave: true,
+        stateDuration: 60 * 60 * 24, // 24 hours
+        initComplete: function(settings, json) {
+            console.log('[DataTables] DataTable initialized successfully');
+            
+            // Add custom styling to buttons
+            $('.dt-buttons-wrapper .btn').addClass('me-2 mb-2');
+            
+            // Add tooltips to action buttons
+            $('[data-bs-toggle="tooltip"]').tooltip();
+        }
+    };
+}
+
+/**
+ * Generate PDF for a single order
+ * @param {number} orderId - The order ID
+ */
+async function generateSinglePDF(orderId) {
+    try {
+        // Show loading
+        Swal.fire({
+            title: 'Generating PDF',
+            text: 'Please wait while the document is being processed...',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+        
+        // Find the order
+        const selectedOrder = allOrdersData.find(order => order.id === parseInt(orderId));
+        if (!selectedOrder) {
+            throw new Error('Order not found');
+        }
+        
+        // Import SVG module dynamically
+        const { generatePDF } = await import('./svgOrders.js');
+        
+        // Generate PDF
+        const fileName = await generatePDF(selectedOrder);
+        
+        Swal.fire({
+            icon: 'success',
+            title: 'PDF Generated Successfully!',
+            text: `The file ${fileName} has been downloaded.`,
+            confirmButtonText: 'OK'
+        });
+        
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error Generating PDF',
+            text: error.message || 'An unexpected error occurred.',
+            confirmButtonText: 'OK'
+        });
+    }
+}
+
+/**
+ * Handle batch SVG generation
+ * @param {Array} orders - Orders to generate PDFs for
+ * @param {string} contextTitle - Title for the context (e.g., "Weekly Orders")
+ */
+async function handleBatchSVGGeneration(orders, contextTitle = 'Orders') {
+    try {
+        if (!orders || orders.length === 0) {
+            Swal.fire({
+                icon: 'info',
+                title: 'No Data',
+                text: 'No orders available to generate PDFs.'
+            });
             return;
         }
-
-        console.log("Total de registros obtenidos:", itemsArray.length);
         
-        // Calcular la semana objetivo (actual - semanasAnteriores)
-        const currentDate = new Date();
-        // Si queremos ver semanas anteriores, restamos días
-        currentDate.setDate(currentDate.getDate() - (semanasAnteriores * 7));
+        // Show confirmation dialog
+        const result = await Swal.fire({
+            icon: 'question',
+            title: 'Generate All PDFs',
+            html: `You are about to generate <strong>${orders.length}</strong> PDF documents for ${contextTitle}.<br><br>This process may take several minutes. Do you want to continue?`,
+            showCancelButton: true,
+            confirmButtonText: 'Yes, Generate All',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#034C8C',
+            cancelButtonColor: '#6c757d'
+        });
         
-        const targetWeek = getWeekNumber(currentDate);
-        const targetYear = currentDate.getFullYear();
+        if (!result.isConfirmed) return;
         
-        console.log(`Mostrando datos de la semana ${targetWeek} del año ${targetYear}`);
+        // Import SVG module
+        const { generatePDF } = await import('./svgOrders.js');
         
-        // Actualizar el título del modal para reflejar la semana mostrada
-        const modalTitle = document.getElementById('tituloModalHistoricoSemanal');
-        if (modalTitle) {
-            modalTitle.textContent = `Histórico Semanal de Premium Freight - Semana ${targetWeek} de ${targetYear}`;
-        }
+        let successCount = 0;
+        let errorCount = 0;
         
-        // Log de los primeros 5 registros para inspección
-        console.log("Muestra de datos (primeros 5 registros):", itemsArray.slice(0, 5));
+        // Show progress
+        Swal.fire({
+            title: 'Generating PDFs',
+            html: `Processing document <strong>1</strong> of <strong>${orders.length}</strong>...`,
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
         
-        // Filtrar datos para la semana objetivo
-        const datosSemanaFiltrada = itemsArray.filter(item => {
-            if (!item || !item.date) return false;
+        // Process each order
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            
+            // Update progress
+            Swal.update({
+                html: `Processing document <strong>${i + 1}</strong> of <strong>${orders.length}</strong>...<br>
+                       <small>Order ID: ${order.id}</small>`
+            });
             
             try {
-                const itemDate = parseDate(item.date);
-                if (!itemDate) return false;
-                
-                const itemWeek = getWeekNumber(itemDate);
-                const itemYear = itemDate.getFullYear();
-                
-                return itemWeek === targetWeek && itemYear === targetYear;
+                await generatePDF(order, `PF_${order.id}_${contextTitle.replace(/ /g, '_')}`);
+                successCount++;
             } catch (error) {
-                console.error('Error procesando fecha del item:', item.date, error);
-                return false;
-            }
-        });
-        
-        console.log(`Registros filtrados para semana ${targetWeek}: ${datosSemanaFiltrada.length}`, datosSemanaFiltrada);
-        
-        // Generar el contenido HTML para la tabla
-        let content = '';
-        
-        if (datosSemanaFiltrada.length === 0) {
-            content = `<tr><td colspan="33" class="text-center">No hay datos disponibles para la semana ${targetWeek} de ${targetYear}</td></tr>`;
-        } else {
-            // Generate rows for each filtered item with ALL fields
-            datosSemanaFiltrada.forEach(item => {
-                const issueDate = parseDate(item.date);
-                content += `
-                    <tr>
-                        <td>${item.id || '-'}</td>
-                        <td>Grammer AG</td>
-                        <td>${item.creator_plant || '-'}</td>
-                        <td>${item.creator_plant || '-'}</td>
-                        <td>${issueDate ? issueDate.toLocaleDateString('en-US') : '-'}</td>
-                        <td>${item.in_out_bound || '-'}</td>
-                        <td>${issueDate ? getWeekNumber(issueDate) : '-'}</td>
-                        <td>${issueDate ? getMonthName(issueDate) : '-'}</td>
-                        <td>${item.reference_number || '-'}</td>
-                        <td>${formatCreatorName(item.creator_name)}</td>
-                        <td>${item.area || '-'}</td>
-                        <td>${item.description || '-'}</td>
-                        <td>${item.category_cause || '-'}</td>
-                        <td>${item.cost_euros ? `€${parseFloat(item.cost_euros).toFixed(2)}` : '-'}</td>
-                        <td>${item.transport || '-'}</td>
-                        <td>${item.int_ext || '-'}</td>
-                        <td>${item.carrier || '-'}</td>
-                        <td>${item.origin_company_name || '-'}</td>
-                        <td>${item.origin_city || '-'}</td>
-                        <td>${item.destiny_company_name || '-'}</td>
-                        <td>${item.destiny_city || '-'}</td>
-                        <td>${item.weight ? `${item.weight} kg` : '-'}</td>
-                        <td>${item.project_status || '-'}</td>
-                        <td>${item.approver_name || '-'}</td>
-                        <td>${item.recovery || '-'}</td>
-                        <td>${item.paid_by || '-'}</td>
-                        <td>${item.products || '-'}</td>
-                        <td>${item.status_name || '-'}</td>
-                        <td>${item.required_auth_level || '-'}</td>
-                        <td>${item.recovery_file ? 'Yes' : 'No'}</td>
-                        <td>${item.recovery_evidence ? 'Yes' : 'No'}</td>
-                        <td>${item.approval_date || '-'}</td>
-                        <td>${item.approval_status || '-'}</td>
-                    </tr>
-                `;
-            });
-        }
-        
-        // Insertar el contenido en la tabla
-        tableBody_semanal.innerHTML = content;
-        console.log("Contenido HTML generado para la tabla");
-        
-        // Agregar controles de navegación para semanas anteriores/siguientes
-        const modalFooter = document.querySelector('#modalHistoricoSemanal .modal-footer');
-        if (modalFooter) {
-            // Eliminar controles anteriores si existen
-            const existingControls = modalFooter.querySelector('.semana-navigation');
-            if (existingControls) {
-                existingControls.remove();
+                console.error(`Error generating PDF for order ${order.id}:`, error);
+                errorCount++;
             }
             
-            // Crear controles de navegación
-            const navControls = document.createElement('div');
-            navControls.className = 'semana-navigation me-auto';
-            navControls.innerHTML = `
-                <button class="btn btn-outline-primary me-2" id="prevSemana">« Semana Anterior</button>
-                <button class="btn btn-outline-primary" id="nextSemana" ${semanasAnteriores === 0 ? 'disabled' : ''}>Semana Siguiente »</button>
-            `;
-            
-            // Insertar antes del botón de cerrar
-            modalFooter.insertBefore(navControls, modalFooter.firstChild);
-            
-            // Agregar event listeners
-            document.getElementById('prevSemana').addEventListener('click', () => {
-                generarHistoricoSemanal(semanasAnteriores + 1);
-            });
-            
-            document.getElementById('nextSemana').addEventListener('click', () => {
-                if (semanasAnteriores > 0) {
-                    generarHistoricoSemanal(semanasAnteriores - 1);
-                }
-            });
+            // Small delay to prevent overwhelming the browser
+            await new Promise(resolve => setTimeout(resolve, 200));
         }
         
-        // Inicializar o reinicializar la DataTable semanal DESPUÉS de agregar contenido
-        setTimeout(() => {
-            initDataTables('semanal');
-        }, 100);
-        
-    } catch (ex) {
-        console.error("Error en generarHistoricoSemanal:", ex);
-        
-        // Mostrar un mensaje de error en la tabla
-        const tableBody_semanal = document.getElementById('tableBody_historico_semanal');
-        if (tableBody_semanal) {
-            tableBody_semanal.innerHTML = '<tr><td colspan="33" class="text-center text-danger">Error loading data</td></tr>';
-        }
-    }
-};
-
-/**
- * Función para generar tabla histórico total
- */
-const generarHistoricoTotal = async () => {
-    try {
-        const response = await cargarDatosPremiumFreight();
-        
-        // Obtener referencia al elemento de la tabla
-        const tableBody_total = document.getElementById('tableBody_historico_total');
-        if (!tableBody_total) {
-            console.error('No se encontró el elemento tableBody_historico_total');
-            return;
-        }
-
-        // Extraer el array de datos de la respuesta
-        // La estructura esperada es { status: 'success', data: [...] }
-        let itemsArray = [];
-        
-        if (response && response.status === 'success' && Array.isArray(response.data)) {
-            // Caso correcto: la respuesta tiene la estructura esperada
-            itemsArray = response.data;
-        } else if (Array.isArray(response)) {
-            // Caso alternativo: la respuesta es directamente un array
-            itemsArray = response;
-        } else {
-            console.error('Estructura de datos inesperada en generarHistoricoTotal:', response);
-            return;
-        }
-        
-        console.log("Total de registros para histórico total:", itemsArray.length);
-        
-        let content = ``;
-        
-        // Ahora itemsArray es siempre un array que podemos recorrer con forEach
-        itemsArray.forEach(item => {
-            const issueDate = parseDate(item.date);
-            content += `
-                <tr>
-                    <td>${item.id || '-'}</td>
-                    <td>Grammer AG</td>
-                    <td>${item.creator_plant || '-'}</td>
-                    <td>${item.creator_plant || '-'}</td>
-                    <td>${issueDate ? issueDate.toLocaleDateString('en-US') : '-'}</td>
-                    <td>${item.in_out_bound || '-'}</td>
-                    <td>${issueDate ? getWeekNumber(issueDate) : '-'}</td>
-                    <td>${issueDate ? getMonthName(issueDate) : '-'}</td>
-                    <td>${item.reference_number || '-'}</td>
-                    <td>${formatCreatorName(item.creator_name)}</td>
-                    <td>${item.area || '-'}</td>
-                    <td>${item.description || '-'}</td>
-                    <td>${item.category_cause || '-'}</td>
-                    <td>${item.cost_euros ? `€${parseFloat(item.cost_euros).toFixed(2)}` : '-'}</td>
-                    <td>${item.transport || '-'}</td>
-                    <td>${item.int_ext || '-'}</td>
-                    <td>${item.carrier || '-'}</td>
-                    <td>${item.origin_company_name || '-'}</td>
-                    <td>${item.origin_city || '-'}</td>
-                    <td>${item.destiny_company_name || '-'}</td>
-                    <td>${item.destiny_city || '-'}</td>
-                    <td>${item.weight ? `${item.weight} kg` : '-'}</td>
-                    <td>${item.project_status || '-'}</td>
-                    <td>${item.approver_name || '-'}</td>
-                    <td>${item.recovery || '-'}</td>
-                    <td>${item.paid_by || '-'}</td>
-                    <td>${item.products || '-'}</td>
-                    <td>${item.status_name || '-'}</td>
-                    <td>${item.required_auth_level || '-'}</td>
-                    <td>${item.recovery_file ? 'Yes' : 'No'}</td>
-                    <td>${item.recovery_evidence ? 'Yes' : 'No'}</td>
-                    <td>${item.approval_date || '-'}</td>
-                    <td>${item.approval_status || '-'}</td>
-                </tr>
-            `;
+        // Show completion message
+        Swal.fire({
+            icon: successCount > 0 ? 'success' : 'error',
+            title: 'PDF Generation Complete',
+            html: `
+                <div class="text-center">
+                    <p><strong>Generation Summary:</strong></p>
+                    <p>✅ Successfully generated: <strong>${successCount}</strong> PDFs</p>
+                    ${errorCount > 0 ? `<p>❌ Failed: <strong>${errorCount}</strong> PDFs</p>` : ''}
+                    <p><small>Check your downloads folder for the generated files.</small></p>
+                </div>
+            `,
+            confirmButtonText: 'OK'
         });
         
-        if (!content) {
-            content = '<tr><td colspan="33" class="text-center">No data available</td></tr>';
-        }
-        
-        // Insertar el contenido en la tabla
-        tableBody_total.innerHTML = content;
-        console.log("Contenido HTML generado para la tabla de histórico total");
-        
-        // Inicializar o reinicializar la DataTable total DESPUÉS de agregar contenido
-        setTimeout(() => {
-            initDataTables('total');
-        }, 100);
-        
-    } catch (ex) {
-        console.error("Error en generarHistoricoTotal:", ex);
-        
-        // Mostrar un mensaje de error en la tabla
-        const tableBody_total = document.getElementById('tableBody_historico_total');
-        if (tableBody_total) {
-            tableBody_total.innerHTML = '<tr><td colspan="33" class="text-center text-danger">Error loading data</td></tr>';
-        }
+    } catch (error) {
+        console.error('Error in batch PDF generation:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Generation Error',
+            text: 'An error occurred while generating PDFs: ' + error.message
+        });
     }
-};
+}
 
 /**
- * Función para inicializar la DataTable para usuarios
+ * Debounce function to limit the rate of function calls
+ * @param {Function} func - Function to debounce
+ * @param {number} wait - Wait time in milliseconds
+ * @returns {Function} Debounced function
  */
-function initializeDataTable() {
-    // If already initialized, don't initialize again
-    if (dataTableInitialized) {
-        console.log('DataTable already initialized');
-        return;
-    }
-    
-    // Check if DataTable already exists and destroy it first
-    if ($.fn.DataTable.isDataTable('#users-table')) {
-        $('#users-table').DataTable().destroy();
-    }
-    
-    // Now initialize the DataTable
-    const usersTable = $('#users-table').DataTable({
-        ajax: {
-            url: URLPF + 'dao/users/daoUserAdmin.php',
-            dataSrc: 'data',
-            // rest of your configuration
-        },
-        // rest of your DataTable options
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+/**
+ * Utility function to show error messages
+ * @param {string} title - Error title
+ * @param {string} message - Error message
+ */
+function showErrorMessage(title, message) {
+    Swal.fire({
+        icon: 'error',
+        title: title,
+        text: message,
+        confirmButtonText: 'OK',
+        customClass: { container: 'swal-on-top' }
     });
-
-    dataTableInitialized = true;
-    
-    // Rest of your initialization code
 }
 
 /**
- * Event listeners y preparación inicial
+ * Utility function to show success toast
+ * @param {string} message - Success message
  */
-document.addEventListener('DOMContentLoaded', async function() {
-    // Agregar botones al DOM
-    const buttonsContainer = document.getElementById('mainOrders');
-    if (buttonsContainer) {
-        const buttonHTML = `
-            <div class="buttons-container">
-                <button id="btnHistoricoSemanal" class="btn btn-primary">View Weekly History</button>
-                <button id="btnHistoricoTotal" class="btn btn-success">View Total History</button>
-                <input type="text" id="searchInput" placeholder="Search by ID or description...">
-            </div>
-        `;
-        buttonsContainer.insertAdjacentHTML('beforeend', buttonHTML);
-        
-        // CONFIGURAR LOS BOTONES PARA REDIRIGIR A LAS NUEVAS PÁGINAS INMEDIATAMENTE
-        document.getElementById('btnHistoricoSemanal').addEventListener('click', function() {
-            console.log('Redirecting to weekly history page...');
-            window.location.href = 'weekly-orders-history.php';
-        });
-
-        document.getElementById('btnHistoricoTotal').addEventListener('click', function() {
-            console.log('Redirecting to total history page...');
-            window.location.href = 'total-orders-history.php';
-        });
-    }
-    
-    // COMENTAMOS LA CREACIÓN DE MODALES YA QUE AHORA REDIRIGIMOS A PÁGINAS SEPARADAS
-    /*
-    // Crear modales en el DOM
-    const modalsHTML = `
-        <!-- Weekly History Modal -->
-        <div id="modalHistoricoSemanal" class="modal fade" aria-labelledby="tituloModalHistoricoSemanal" aria-modal="true" role="dialog">
-            ...modal content...
-        </div>
-
-        <!-- Total History Modal -->
-        <div id="modalHistoricoTotal" class="modal fade" aria-labelledby="tituloModalHistoricoTotal" aria-modal="true" role="dialog">
-            ...modal content...
-        </div>
-    `;
-    
-    document.body.insertAdjacentHTML('beforeend', modalsHTML);
-    */
-});
+function showSuccessToast(message) {
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: message,
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true
+    });
+}
 
 /**
- * Verificación de disponibilidad de la variable URLPF
- * En caso de que el script se cargue antes que la variable esté definida
+ * Utility function to show info toast
+ * @param {string} message - Info message
  */
-if (typeof URLPF === 'undefined') {
-    console.warn('URLPF global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
-    // Fallback a URL hardcodeada solo como último recurso
-    window.URLPF = window.URLPF || 'https://grammermx.com/Jesus/PruebaDos/';
+function showInfoToast(message) {
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'info',
+        title: message,
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+    });
 }
+
+// Make functions available globally
+window.generateSinglePDF = generateSinglePDF;
+window.getWeekNumber = getWeekNumber;
+window.formatCreatorName = formatCreatorName;
+window.formatCost = formatCost;
+window.formatWeight = formatWeight;
+window.getApprovalStatus = getApprovalStatus;
+window.calculateStatistics = calculateStatistics;
+window.loadOrdersData = loadOrdersData;
+window.getDataTableConfig = getDataTableConfig;
+window.handleBatchSVGGeneration = handleBatchSVGGeneration;
+window.showLoading = showLoading;
+window.showErrorMessage = showErrorMessage;
+window.showSuccessToast = showSuccessToast;
+window.showInfoToast = showInfoToast;
+window.debounce = debounce;
+window.addNotificationStyles = addNotificationStyles;
+
+console.log('[DataTables] Shared utilities loaded successfully');
