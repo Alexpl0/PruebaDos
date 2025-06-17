@@ -1,397 +1,406 @@
 /**
- * Premium Freight - Weekly Orders Module
- * Manages weekly order history display and navigation
+ * Premium Freight - Weekly Orders History Page
+ * Manages the weekly orders history page functionality
  */
 
-import { getWeekNumber, showLoading } from './utils.js';
+import { getWeekNumber, showLoading, addNotificationStyles } from './utils.js';
 import { loadAndPopulateSVG, generatePDF } from './svgOrders.js';
 
 /**
  * Configuration and global variables
  */
-let ordersData = [];
 let currentWeekOffset = 0;
-let dataTableWeekly = null;
+let allOrdersData = [];
 
 /**
  * Initialize the weekly orders page when DOM is loaded
  */
-document.addEventListener('DOMContentLoaded', async function() {
-    console.log('Initializing weekly orders page...');
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('[WeekOrders] Initializing weekly orders page...');
     
-    try {
-        await initializeWeeklyOrders();
-    } catch (error) {
-        console.error('Error initializing weekly orders:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Initialization Error',
-            text: 'Failed to initialize the weekly orders page: ' + error.message
-        });
-    }
+    // Add notification styles
+    addNotificationStyles();
+    
+    // Load initial data
+    loadWeeklyData(currentWeekOffset);
+    
+    // Setup navigation buttons
+    setupWeekNavigation();
+    
+    // Setup export functionality
+    setupExportButtons();
 });
 
 /**
- * Load orders data from the existing daoPremiumFreight.php endpoint
+ * Setup week navigation buttons
  */
-async function loadOrdersData() {
-    try {
-        const baseURL = getBaseURL(); // USAR LA FUNCIÓN HELPER
-        const apiUrl = baseURL + 'dao/conections/daoPremiumFreight.php';
-        
-        console.log('Loading orders from:', apiUrl);
-        
-        const response = await fetch(apiUrl);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (!data || data.status !== 'success' || !Array.isArray(data.data)) {
-            throw new Error('Invalid data format received from API');
-        }
-        
-        ordersData = data.data;
-        console.log(`Loaded ${ordersData.length} orders successfully`);
-        
-        return ordersData;
-        
-    } catch (error) {
-        console.error('Error loading orders data:', error);
-        throw error;
-    }
-}
-
-/**
- * Calculate week number using ISO 8601 standard
- */
-function getISOWeekNumber(date) {
-    if (!date) return null;
+function setupWeekNavigation() {
+    const prevBtn = document.getElementById('prevWeek');
+    const nextBtn = document.getElementById('nextWeek');
     
-    try {
-        const targetDate = new Date(date);
-        if (isNaN(targetDate.getTime())) return null;
-        
-        // Copy date so we don't modify original
-        const d = new Date(Date.UTC(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate()));
-        
-        // Set to nearest Thursday: current date + 4 - current day number
-        const dayNum = d.getUTCDay() || 7;
-        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-        
-        // Get first day of year
-        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-        
-        // Calculate full weeks to nearest Thursday
-        const weekNum = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-        
-        return weekNum;
-    } catch (error) {
-        console.error('Error calculating week number:', error);
-        return null;
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            currentWeekOffset++;
+            loadWeeklyData(currentWeekOffset);
+        });
     }
-}
-
-/**
- * Get target week based on current week and offset
- */
-function getTargetWeek() {
-    const currentDate = new Date();
-    currentDate.setDate(currentDate.getDate() - (currentWeekOffset * 7));
     
-    return {
-        week: getISOWeekNumber(currentDate),
-        year: currentDate.getFullYear(),
-        date: currentDate
-    };
-}
-
-/**
- * Filter orders by target week
- */
-function filterOrdersByWeek(orders, targetWeek, targetYear) {
-    return orders.filter(order => {
-        if (!order.date) return false;
-        
-        const orderWeek = getISOWeekNumber(order.date);
-        const orderYear = new Date(order.date).getFullYear();
-        
-        return orderWeek === targetWeek && orderYear === targetYear;
-    });
-}
-
-/**
- * Generate the weekly table with filtered data
- */
-async function generateWeeklyTable() {
-    try {
-        console.log(`Generating weekly table for week offset: ${currentWeekOffset}`);
-        
-        // Show loading
-        showLoading('Loading Weekly Data', 'Preparing weekly orders table...');
-        
-        // Get target week information
-        const target = getTargetWeek();
-        console.log(`Target week: ${target.week} of ${target.year}`);
-        
-        // Filter orders for the target week
-        const filteredOrders = filterOrdersByWeek(ordersData, target.week, target.year);
-        console.log(`Found ${filteredOrders.length} orders for week ${target.week}`);
-        
-        // Update page title
-        updatePageTitle(target.week, target.year);
-        
-        // Update navigation buttons
-        updateNavigationButtons();
-        
-        // Generate table content
-        await populateWeeklyTable(filteredOrders);
-        
-        // Initialize DataTable
-        initializeWeeklyDataTable();
-        
-        // Close loading
-        Swal.close();
-        
-        console.log('Weekly table generated successfully');
-        
-    } catch (error) {
-        console.error('Error generating weekly table:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Failed to generate weekly table: ' + error.message
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            if (currentWeekOffset > 0) {
+                currentWeekOffset--;
+                loadWeeklyData(currentWeekOffset);
+            }
         });
     }
 }
 
 /**
- * Update page title with week information
+ * Load weekly data from API
+ * @param {number} weekOffset - Number of weeks to go back from current week
  */
-function updatePageTitle(week, year) {
-    const titleElement = document.querySelector('.history-title');
-    if (titleElement) {
-        titleElement.textContent = `Weekly Premium Freight History - Week ${week} of ${year}`;
-    }
-    
-    const subtitleElement = document.querySelector('.history-subtitle');
-    if (subtitleElement) {
-        const weekText = currentWeekOffset === 0 ? 'Current Week' : `${currentWeekOffset} week(s) ago`;
-        subtitleElement.textContent = `Showing orders from ${weekText}`;
+async function loadWeeklyData(weekOffset = 0) {
+    try {
+        showLoading('Loading Weekly Data', 'Please wait while we fetch the orders...');
+        
+        const baseURL = getBaseURL(); // USAR LA FUNCIÓN HELPER
+        console.log(`[WeekOrders] Loading data from: ${baseURL}dao/conections/daoPremiumFreight.php`);
+        
+        const response = await fetch(`${baseURL}dao/conections/daoPremiumFreight.php`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('[WeekOrders] Raw API response:', data);
+        
+        // Extract orders array from response
+        let orders = [];
+        if (data && data.status === 'success' && Array.isArray(data.data)) {
+            orders = data.data;
+        } else if (Array.isArray(data)) {
+            orders = data;
+        } else {
+            throw new Error('Invalid data format received from API');
+        }
+        
+        // Calculate target week
+        const currentDate = new Date();
+        currentDate.setDate(currentDate.getDate() - (weekOffset * 7));
+        const targetWeek = getWeekNumber(currentDate);
+        const targetYear = currentDate.getFullYear();
+        
+        console.log(`[WeekOrders] Filtering for week ${targetWeek} of year ${targetYear}`);
+        
+        // Filter orders for target week
+        const weeklyOrders = orders.filter(order => {
+            if (!order || !order.date) return false;
+            
+            try {
+                const orderDate = new Date(order.date);
+                if (isNaN(orderDate.getTime())) return false;
+                
+                const orderWeek = getWeekNumber(orderDate);
+                const orderYear = orderDate.getFullYear();
+                
+                return orderWeek === targetWeek && orderYear === targetYear;
+            } catch (error) {
+                console.error('[WeekOrders] Error processing order date:', order.date, error);
+                return false;
+            }
+        });
+        
+        console.log(`[WeekOrders] Found ${weeklyOrders.length} orders for week ${targetWeek}`);
+        
+        // Store data globally
+        allOrdersData = weeklyOrders;
+        
+        // Update UI
+        updateWeekInfo(targetWeek, targetYear, weeklyOrders.length);
+        populateDataTable(weeklyOrders);
+        updateNavigationButtons();
+        
+        Swal.close();
+        
+    } catch (error) {
+        console.error('[WeekOrders] Error loading weekly data:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error Loading Data',
+            text: 'Could not load weekly orders data: ' + error.message
+        });
     }
 }
 
 /**
- * Update navigation button states
+ * Update week information display
+ */
+function updateWeekInfo(weekNumber, year, orderCount) {
+    const weekInfo = document.getElementById('weekInfo');
+    const orderCount_display = document.getElementById('orderCount');
+    
+    if (weekInfo) {
+        weekInfo.textContent = `Week ${weekNumber} of ${year}`;
+    }
+    
+    if (orderCount_display) {
+        orderCount_display.textContent = `${orderCount} orders found`;
+    }
+}
+
+/**
+ * Update navigation buttons state
  */
 function updateNavigationButtons() {
     const nextBtn = document.getElementById('nextWeek');
-    const prevBtn = document.getElementById('prevWeek');
-    
     if (nextBtn) {
         nextBtn.disabled = currentWeekOffset === 0;
-    }
-    
-    // Previous week button is always enabled (we can go back indefinitely)
-    if (prevBtn) {
-        prevBtn.disabled = false;
     }
 }
 
 /**
- * Populate the weekly table with order data
+ * Populate the DataTable with weekly orders
  */
-async function populateWeeklyTable(orders) {
+function populateDataTable(orders) {
     const tableBody = document.getElementById('weeklyTableBody');
     if (!tableBody) {
-        throw new Error('Weekly table body element not found');
+        console.error('[WeekOrders] Table body element not found');
+        return;
     }
+    
+    // Clear existing content
+    tableBody.innerHTML = '';
     
     if (orders.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="33" class="text-center">No orders found for this week</td></tr>';
         return;
     }
     
-    let content = '';
-    
+    // Generate table rows
     orders.forEach(order => {
-        const issueDate = order.date ? new Date(order.date) : null;
-        const formattedDate = issueDate ? issueDate.toLocaleDateString('en-US') : '-';
-        const weekNum = issueDate ? getISOWeekNumber(order.date) : '-';
-        const monthName = issueDate ? issueDate.toLocaleDateString('en-US', { month: 'long' }) : '-';
-        
-        content += `
-            <tr>
-                <td>${order.id || '-'}</td>
-                <td>Grammer AG</td>
-                <td>${order.creator_plant || '-'}</td>
-                <td>${order.creator_plant || '-'}</td>
-                <td>${formattedDate}</td>
-                <td>${order.in_out_bound || '-'}</td>
-                <td>${weekNum}</td>
-                <td>${monthName}</td>
-                <td>${order.reference_number || '-'}</td>
-                <td>${formatCreatorName(order.creator_name)}</td>
-                <td>${order.area || '-'}</td>
-                <td class="truncated-text" title="${order.description || ''}">${truncateText(order.description, 50)}</td>
-                <td>${order.category_cause || '-'}</td>
-                <td>${order.cost_euros ? `€${parseFloat(order.cost_euros).toFixed(2)}` : '-'}</td>
-                <td>${order.transport || '-'}</td>
-                <td>${order.int_ext || '-'}</td>
-                <td>${order.carrier || '-'}</td>
-                <td>${order.origin_company_name || '-'}</td>
-                <td>${order.origin_city || '-'}</td>
-                <td>${order.destiny_company_name || '-'}</td>
-                <td>${order.destiny_city || '-'}</td>
-                <td>${order.weight ? `${order.weight} kg` : '-'}</td>
-                <td>${order.project_status || '-'}</td>
-                <td>${order.approver_name || '-'}</td>
-                <td>${order.recovery || '-'}</td>
-                <td>${order.paid_by || '-'}</td>
-                <td>${order.products || '-'}</td>
-                <td>${order.status_name || '-'}</td>
-                <td>${order.required_auth_level || '-'}</td>
-                <td>${order.recovery_file ? 'Yes' : 'No'}</td>
-                <td>${order.recovery_evidence ? 'Yes' : 'No'}</td>
-                <td>${order.approval_date || '-'}</td>
-                <td>${order.approval_status !== null ? order.approval_status : '-'}</td>
-            </tr>
-        `;
+        const row = createTableRow(order);
+        tableBody.appendChild(row);
     });
     
-    tableBody.innerHTML = content;
+    // Initialize or refresh DataTable
+    initializeDataTable();
 }
 
 /**
- * Initialize or reinitialize the weekly DataTable
+ * Create a table row for an order
  */
-function initializeWeeklyDataTable() {
+function createTableRow(order) {
+    const row = document.createElement('tr');
+    
+    const orderDate = new Date(order.date);
+    const formattedDate = orderDate.toLocaleDateString('en-US');
+    
+    // Format creator name (first initial + last name)
+    const formatCreatorName = (fullName) => {
+        if (!fullName) return '-';
+        const parts = fullName.trim().split(' ');
+        if (parts.length < 2) return fullName;
+        return `${parts[0].charAt(0).toUpperCase()}. ${parts[parts.length - 1]}`;
+    };
+    
+    row.innerHTML = `
+        <td>${order.id || '-'}</td>
+        <td>Grammer AG</td>
+        <td>${order.creator_plant || '-'}</td>
+        <td>${order.creator_plant || '-'}</td>
+        <td>${formattedDate}</td>
+        <td>${order.in_out_bound || '-'}</td>
+        <td>${getWeekNumber(orderDate)}</td>
+        <td>${orderDate.toLocaleDateString('en-US', { month: 'long' })}</td>
+        <td>${order.reference_number || '-'}</td>
+        <td>${formatCreatorName(order.creator_name)}</td>
+        <td>${order.area || '-'}</td>
+        <td class="truncated-text" title="${order.description || ''}">${order.description || '-'}</td>
+        <td>${order.category_cause || '-'}</td>
+        <td>${order.cost_euros ? `€${parseFloat(order.cost_euros).toFixed(2)}` : '-'}</td>
+        <td>${order.transport || '-'}</td>
+        <td>${order.int_ext || '-'}</td>
+        <td>${order.carrier || '-'}</td>
+        <td>${order.origin_company_name || '-'}</td>
+        <td>${order.origin_city || '-'}</td>
+        <td>${order.destiny_company_name || '-'}</td>
+        <td>${order.destiny_city || '-'}</td>
+        <td>${order.weight ? `${order.weight} kg` : '-'}</td>
+        <td>${order.project_status || '-'}</td>
+        <td>${order.approver_name || '-'}</td>
+        <td>${order.recovery || '-'}</td>
+        <td>${order.paid_by || '-'}</td>
+        <td>${order.products || '-'}</td>
+        <td>${order.status_name || '-'}</td>
+        <td>${order.required_auth_level || '-'}</td>
+        <td>${order.recovery_file ? 'Yes' : 'No'}</td>
+        <td>${order.recovery_evidence ? 'Yes' : 'No'}</td>
+        <td>${order.approval_date || '-'}</td>
+        <td>${order.approval_status || '-'}</td>
+    `;
+    
+    return row;
+}
+
+/**
+ * Initialize DataTable with export functionality
+ */
+function initializeDataTable() {
     // Destroy existing DataTable if it exists
-    if (dataTableWeekly) {
-        try {
-            dataTableWeekly.destroy();
-            dataTableWeekly = null;
-        } catch (error) {
-            console.warn('Error destroying existing DataTable:', error);
-        }
+    if ($.fn.DataTable.isDataTable('#weeklyOrdersTable')) {
+        $('#weeklyOrdersTable').DataTable().destroy();
     }
     
     // Initialize new DataTable
-    try {
-        const baseURL = getBaseURL(); // USAR LA FUNCIÓN HELPER
-        
-        dataTableWeekly = $('#weeklyOrdersTable').DataTable({
-            lengthMenu: [10, 25, 50, 100],
-            pageLength: 10,
-            scrollX: true,
-            scrollCollapse: true,
-            order: [[0, 'desc']], // Order by ID descending
-            language: {
-                lengthMenu: "Show _MENU_ records per page",
-                zeroRecords: "No records found",
-                info: "Showing _START_ to _END_ of _TOTAL_ records",
-                infoEmpty: "No records available",
-                infoFiltered: "(filtered from _MAX_ total records)",
-                search: "Search:",
-                paginate: {
-                    first: "First",
-                    last: "Last",
-                    next: "Next",
-                    previous: "Previous"
+    $('#weeklyOrdersTable').DataTable({
+        lengthMenu: [10, 25, 50, 100, 200, 500],
+        columnDefs: [
+            { className: "centered", targets: "_all" }
+        ],
+        pageLength: 25,
+        destroy: true,
+        order: [[0, 'desc']], // Sort by ID descending
+        language: {
+            lengthMenu: "Show _MENU_ records per page",
+            zeroRecords: "No records found",
+            info: "Showing _START_ to _END_ of _TOTAL_ records",
+            infoEmpty: "No records available",
+            infoFiltered: "(filtered from _MAX_ total records)",
+            search: "Search:",
+            loadingRecords: "Loading...",
+            paginate: {
+                first: "First",
+                last: "Last",
+                next: "Next",
+                previous: "Previous"
+            }
+        },
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'excel',
+                text: '<i class="fas fa-file-excel"></i> Excel',
+                className: 'btn-success',
+                title: 'Weekly_Premium_Freight_Report',
+                filename: function() {
+                    const weekInfo = document.getElementById('weekInfo')?.textContent || 'Weekly_Report';
+                    return `Weekly_Premium_Freight_${weekInfo.replace(/\s+/g, '_')}`;
+                },
+                exportOptions: {
+                    columns: ':visible'
                 }
             },
-            dom: 'Bfrtip',
-            buttons: [
-                {
-                    extend: 'excel',
-                    text: '<i class="fas fa-file-excel"></i> Excel',
-                    className: 'btn-success',
-                    title: 'Weekly_Premium_Freight_Report',
-                    filename: function() {
-                        const target = getTargetWeek();
-                        return `Weekly_Premium_Freight_W${target.week}_${target.year}`;
-                    }
+            {
+                extend: 'pdf',
+                text: '<i class="fas fa-file-pdf"></i> PDF',
+                className: 'btn-danger',
+                orientation: 'landscape',
+                pageSize: 'LEGAL',
+                title: 'Weekly Premium Freight Report',
+                filename: function() {
+                    const weekInfo = document.getElementById('weekInfo')?.textContent || 'Weekly_Report';
+                    return `Weekly_Premium_Freight_${weekInfo.replace(/\s+/g, '_')}`;
                 },
-                {
-                    extend: 'pdf',
-                    text: '<i class="fas fa-file-pdf"></i> PDF',
-                    className: 'btn-danger',
-                    orientation: 'landscape',
-                    pageSize: 'LEGAL',
-                    title: function() {
-                        const target = getTargetWeek();
-                        return `Weekly Premium Freight Report - Week ${target.week} of ${target.year}`;
-                    },
-                    filename: function() {
-                        const target = getTargetWeek();
-                        return `Weekly_Premium_Freight_W${target.week}_${target.year}`;
+                customize: function(doc) {
+                    doc.defaultStyle.fontSize = 7;
+                    doc.styles.tableHeader.fontSize = 8;
+                    doc.styles.tableHeader.fillColor = '#A7CAC3';
+                    doc.pageMargins = [10, 15, 10, 15];
+                    
+                    if (doc.content[1] && doc.content[1].table && doc.content[1].table.body[0]) {
+                        doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
                     }
+                    
+                    const weekInfo = document.getElementById('weekInfo')?.textContent || 'Weekly Report';
+                    doc.content.splice(0, 0, {
+                        margin: [0, 0, 0, 12],
+                        alignment: 'center',
+                        text: `GRAMMER Premium Freight - ${weekInfo}`,
+                        style: {
+                            fontSize: 14,
+                            bold: true,
+                            color: '#1c4481'
+                        }
+                    });
+                    
+                    const now = new Date();
+                    doc.footer = function(currentPage, pageCount) {
+                        return {
+                            columns: [
+                                { text: 'Generated: ' + now.toLocaleDateString(), alignment: 'left', margin: [10, 0], fontSize: 8 },
+                                { text: 'Page ' + currentPage.toString() + ' of ' + pageCount, alignment: 'right', margin: [0, 0, 10, 0], fontSize: 8 }
+                            ],
+                            margin: [10, 0]
+                        };
+                    };
                 },
-                {
-                    text: '<i class="fas fa-file-image"></i> Generate SVGs',
-                    className: 'btn-info',
-                    action: async function(e, dt, node, config) {
-                        await handleBulkSVGGeneration(dt);
-                    }
+                exportOptions: {
+                    columns: ':visible'
                 }
-            ]
-        });
-        
-        console.log('Weekly DataTable initialized successfully');
-        
-    } catch (error) {
-        console.error('Error initializing weekly DataTable:', error);
-    }
+            },
+            {
+                text: '<i class="fas fa-file-pdf"></i> Generate SVGs',
+                className: 'btn-info',
+                action: async function(e, dt, node, config) {
+                    await handleBatchSVGGeneration();
+                }
+            }
+        ],
+        scrollX: true,
+        scrollCollapse: true
+    });
 }
 
 /**
- * Handle bulk SVG/PDF generation
+ * Setup export buttons functionality
  */
-async function handleBulkSVGGeneration(dataTable) {
+function setupExportButtons() {
+    // Additional export functionality can be added here if needed
+    console.log('[WeekOrders] Export buttons setup completed');
+}
+
+/**
+ * Handle batch SVG generation for visible orders
+ */
+async function handleBatchSVGGeneration() {
     try {
-        const exportData = dataTable.rows({search: 'applied'}).data().toArray();
-        
-        if (exportData.length === 0) {
+        if (allOrdersData.length === 0) {
             Swal.fire({
                 icon: 'info',
                 title: 'No Data',
-                text: 'There are no records to export'
+                text: 'There are no orders to export for this week'
             });
             return;
         }
         
-        if (exportData.length > 10) {
+        if (allOrdersData.length > 10) {
             const confirm = await Swal.fire({
                 icon: 'warning',
                 title: 'Many Records',
-                html: `You are about to generate ${exportData.length} PDF documents. Do you want to continue?`,
+                html: `You are about to generate ${allOrdersData.length} SVG/PDF documents. Do you want to continue?`,
                 showCancelButton: true,
                 confirmButtonText: 'Yes, generate all',
-                cancelButtonText: 'Cancel'
+                cancelButtonText: 'Cancel',
             });
             
             if (!confirm.isConfirmed) return;
         }
         
-        showLoading('Generating PDFs', 'Please wait while documents are being generated...');
+        showLoading('Generating Documents', 'Please wait while we generate PDF documents for all orders...');
         
-        const ids = exportData.map(row => row[0]);
-        const visibleOrders = ordersData.filter(order => ids.includes(String(order.id)));
-        
-        for (let i = 0; i < visibleOrders.length; i++) {
-            const order = visibleOrders[i];
+        for (let i = 0; i < allOrdersData.length; i++) {
+            const order = allOrdersData[i];
             
             Swal.update({
-                html: `Processing document ${i + 1} of ${visibleOrders.length}...`
+                html: `Processing document ${i + 1} of ${allOrdersData.length}...<br>Order ID: ${order.id}`
             });
             
             try {
-                const fileName = await generatePDF(order, `PF_Weekly_${order.id}`);
-                console.log(`Generated PDF for order ${order.id}: ${fileName}`);
+                const fileName = await generatePDF(order, `Weekly_PF_${order.id}_Order`);
+                console.log(`[WeekOrders] Generated PDF for order ${order.id}: ${fileName}`);
             } catch (error) {
-                console.error(`Error generating PDF for order ${order.id}:`, error);
+                console.error(`[WeekOrders] Error generating PDF for order ${order.id}:`, error);
             }
             
             // Small delay between generations
@@ -401,91 +410,21 @@ async function handleBulkSVGGeneration(dataTable) {
         Swal.fire({
             icon: 'success',
             title: 'Documents Generated',
-            html: `${visibleOrders.length} PDF documents have been generated.<br>Check your downloads folder.`
+            html: `${allOrdersData.length} PDF documents have been generated.<br>Check your downloads folder.`
         });
         
     } catch (error) {
-        console.error('Error in bulk SVG generation:', error);
+        console.error('[WeekOrders] Error in batch SVG generation:', error);
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'An error occurred while generating documents: ' + error.message
+            text: 'An error occurred while generating the documents: ' + error.message
         });
     }
 }
 
-/**
- * Initialize the weekly orders functionality
- */
-async function initializeWeeklyOrders() {
-    try {
-        console.log('Loading orders data...');
-        await loadOrdersData();
-        
-        console.log('Setting up navigation...');
-        setupNavigation();
-        
-        console.log('Generating initial weekly table...');
-        await generateWeeklyTable();
-        
-        console.log('Weekly orders initialized successfully');
-        
-    } catch (error) {
-        console.error('Error initializing weekly orders:', error);
-        throw error;
-    }
-}
-
-/**
- * Setup navigation button event listeners
- */
-function setupNavigation() {
-    const prevBtn = document.getElementById('prevWeek');
-    const nextBtn = document.getElementById('nextWeek');
-    
-    if (prevBtn) {
-        prevBtn.addEventListener('click', async () => {
-            currentWeekOffset++;
-            await generateWeeklyTable();
-        });
-    }
-    
-    if (nextBtn) {
-        nextBtn.addEventListener('click', async () => {
-            if (currentWeekOffset > 0) {
-                currentWeekOffset--;
-                await generateWeeklyTable();
-            }
-        });
-    }
-}
-
-/**
- * Helper function to format creator names
- */
-function formatCreatorName(fullName) {
-    if (!fullName || typeof fullName !== 'string') return fullName || '-';
-    
-    const nameParts = fullName.trim().split(' ');
-    if (nameParts.length === 1) return fullName;
-    
-    const firstInitial = nameParts[0].charAt(0).toUpperCase();
-    const lastName = nameParts[nameParts.length - 1];
-    
-    return `${firstInitial}. ${lastName}`;
-}
-
-/**
- * Helper function to truncate text
- */
-function truncateText(text, maxLength) {
-    if (!text || text.length <= maxLength) return text || '';
-    return text.substring(0, maxLength) + '...';
-}
-
-// Export functions for potential use by other modules
-export { 
-    initializeWeeklyOrders, 
-    generateWeeklyTable, 
-    getISOWeekNumber 
+// Export functions if needed by other modules
+export {
+    loadWeeklyData,
+    handleBatchSVGGeneration
 };
