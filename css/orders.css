@@ -12,6 +12,7 @@ body {
 main {
     padding: 5%;
 }
+
 /* === ESTILOS GENERALES PARA TARJETAS === */
 .card {
     max-width: 260px !important;
@@ -90,6 +91,69 @@ main {
 .card-body {
     flex: 1 1 auto;
     padding: 0 1rem 0 1rem; /* top right bottom left - quitamos el padding inferior */
+}
+
+/* === ESTILOS PARA ESTADÍSTICAS DE CARDS === */
+/* Tarjetas de estadísticas para páginas de histórico */
+.card {
+    border: none;
+    box-shadow: var(--shadow-md);
+    border-radius: var(--border-radius-lg);
+    transition: all var(--transition-normal);
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.card-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+}
+
+.card-text {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* Contenedor de cards en grid */
+#card {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+    justify-items: center;
+    align-items: stretch;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* === ESTILOS PARA NOTIFICACIONES === */
+/* Add notification badge styles to cards */
+.notification-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    background-color: #ff4444;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+}
+
+.exclamation-icon {
+    font-style: normal;
+    font-weight: bold;
+    font-size: 14px;
 }
 
 /* === ESTILOS GENERALES PARA MODALES === */
@@ -306,41 +370,6 @@ main {
 .moneda-activa {
     background-color: #007bff !important;
     color: #fff !important;
-}
-
-#card {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 24px;
-    justify-items: center;
-    align-items: stretch;
-    width: 100%;
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
-/* Add these styles to your orders.css file */
-.notification-badge {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    width: 24px;
-    height: 24px;
-    background-color: #ff4444;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    z-index: 10;
-}
-
-.exclamation-icon {
-    font-style: normal;
-    font-weight: bold;
-    font-size: 14px;
 }
 
 /* Modal styles for evidence upload */
@@ -620,6 +649,13 @@ main {
     color: #6c757d;
     font-size: 0.875rem;
     margin-top: 0.25rem;
+}
+
+/* Responsive design para cards */
+@media (max-width: 768px) {
+    .card-text {
+        font-size: 2rem;
+    }
 }
 
 /* Corregir el comportamiento en pantallas más pequeñas */

@@ -70,31 +70,6 @@
     cursor: not-allowed;
 }
 
-/* Tarjetas de estadísticas */
-.card {
-    border: none;
-    box-shadow: var(--shadow-md);
-    border-radius: var(--border-radius-lg);
-    transition: all var(--transition-normal);
-}
-
-.card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-}
-
-.card-title {
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin-bottom: var(--spacing-sm);
-}
-
-.card-text {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin: 0;
-}
-
 /* Ajustes para modales grandes */
 .modal-xl {
     max-width: 90%;
@@ -342,10 +317,6 @@ button i {
     .dt-buttons .dt-button {
         margin: 0.25rem;
         min-width: 80px;
-    }
-    
-    .card-text {
-        font-size: 2rem;
     }
 }
 
