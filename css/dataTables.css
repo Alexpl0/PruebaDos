@@ -31,26 +31,56 @@
 }
 
 /* === ESTILOS PARA PÁGINAS DE HISTÓRICO === */
+/* Body styling for history pages */
+body {
+    margin: 0;
+    padding: 20px 0;
+    background-color: #f8f9fa;
+}
+
+/* Header styling for history pages */
 .history-header {
-    background: linear-gradient(135deg, var(--grammer-blue) 0%, var(--grammer-dark-blue) 100%);
-    color: var(--white);
-    padding: var(--spacing-xl) 0;
-    margin-top: var(--header-height);
-    box-shadow: var(--shadow-md);
+    background: linear-gradient(135deg, #034C8C 0%, #002856 100%);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .history-title {
     font-size: 2.5rem;
     font-weight: 700;
-    margin-bottom: var(--spacing-sm);
-    color: var(--white);
+    margin-bottom: 0.5rem;
 }
 
 .history-subtitle {
     font-size: 1.1rem;
     opacity: 0.9;
     margin-bottom: 0;
-    color: var(--white);
+}
+
+/* Back button styling */
+.btn-back {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.btn-back:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* Statistics cards styling */
+.stats-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
 }
 
 /* Navegación de semanas */
