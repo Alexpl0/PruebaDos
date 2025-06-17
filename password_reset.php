@@ -2,7 +2,6 @@
 session_start();
 require_once 'config.php';
 require_once 'mailer/PFMailer/PFDB.php';
-// NUEVO: Agregar PasswordManager
 require_once 'dao/users/PasswordManager.php';
 include_once 'dao/users/auth_check.php';
 
@@ -63,14 +62,6 @@ if (!$tokenValid) {
     exit;
 }
 ?>
-<script>
-    window.authorizationLevel = <?php echo json_encode(isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null); ?>;
-    window.userName = <?php echo json_encode(isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null); ?>;
-    window.userID = <?php echo json_encode(isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null); ?>;
-    const URLPF = '<?php echo URLPF; ?>'; 
-    const URLM = '<?php echo URLM; ?>'; 
-</script>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -93,7 +84,19 @@ if (!$tokenValid) {
     <!-- Local CSS -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
-    <link rel="stylesheet" href="css/recovery.css">
+    <link rel="stylesheet" href="css/password_reset.css">
+    
+    <!-- Variables JavaScript -->
+    <script>
+        window.authorizationLevel = <?php echo json_encode(isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null); ?>;
+        window.userName = <?php echo json_encode(isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null); ?>;
+        window.userID = <?php echo json_encode(isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null); ?>;
+        window.resetToken = '<?php echo htmlspecialchars($token, ENT_QUOTES); ?>';
+        window.userId = <?php echo $userData['user_id']; ?>;
+        window.resetUserName = '<?php echo htmlspecialchars($userData['name'], ENT_QUOTES); ?>';
+        const URLPF = '<?php echo URLPF; ?>'; 
+        const URLM = '<?php echo URLM; ?>'; 
+    </script>
 </head>
 <body>
     <div id="header-container"></div>
@@ -123,8 +126,8 @@ if (!$tokenValid) {
                                             <input type="password" id="new-password" class="form-control" placeholder="New Password" style="padding-right: 45px;" required>
                                             <i class="fas fa-eye-slash toggle-password-icon" data-target="new-password"></i>
                                         </div>
-                                        <!-- NUEVO: Indicador de fortaleza -->
-                                        <div id="password-strength-indicator" class="mt-2">
+                                        <!-- Password Strength Indicator -->
+                                        <div class="password-strength mt-2">
                                             <div class="progress">
                                                 <div class="progress-bar strength-fill" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                                             </div>
@@ -138,7 +141,7 @@ if (!$tokenValid) {
                                             <input type="password" id="confirm-password" class="form-control" placeholder="Confirm New Password" style="padding-right: 45px;" required>
                                             <i class="fas fa-eye-slash toggle-password-icon" data-target="confirm-password"></i>
                                         </div>
-                                        <!-- NUEVO: Indicador de coincidencia -->
+                                        <!-- Password Match Indicator -->
                                         <div class="match-indicator mt-1">
                                             <small class="match-text"></small>
                                         </div>
@@ -176,7 +179,6 @@ if (!$tokenValid) {
     <!-- Scripts -->
     <script src="js/header.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- NUEVO: Cargar PasswordManager -->
     <script src="js/PasswordManager.js"></script>
     <script src="js/password_reset.js"></script>
 </body>

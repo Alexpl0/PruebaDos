@@ -4,6 +4,8 @@
  */
 
 document.addEventListener('DOMContentLoaded', function () {
+    console.log('Password Reset JS loaded');
+    
     // Load PasswordManager if not already loaded
     if (typeof PasswordManager === 'undefined') {
         const script = document.createElement('script');
@@ -22,6 +24,8 @@ document.addEventListener('DOMContentLoaded', function () {
  * Initialize logic depending on the present form
  */
 function initializePasswordReset() {
+    console.log('Initializing password reset functionality');
+    
     if (document.getElementById('recovery-form')) {
         initializeRecoveryForm();
     }
@@ -34,9 +38,88 @@ function initializePasswordReset() {
  * Initialize the recovery form
  */
 function initializeRecoveryForm() {
+    console.log('Initializing recovery form');
     const form = document.getElementById('recovery-form');
     if (!form) return;
     form.addEventListener('submit', handleRecoverySubmit);
+}
+
+/**
+ * Initialize the password reset form
+ */
+function initializeResetForm() {
+    console.log('Initializing reset form');
+    const form = document.getElementById('reset-form');
+    const newPasswordInput = document.getElementById('new-password');
+    const confirmPasswordInput = document.getElementById('confirm-password');
+    
+    if (!form || !newPasswordInput || !confirmPasswordInput) {
+        console.error('Reset form elements not found');
+        return;
+    }
+
+    // Add form submit handler
+    form.addEventListener('submit', handleResetSubmit);
+    
+    // Initialize password strength and match indicators
+    initializePasswordIndicators();
+    
+    // Setup password visibility toggles
+    setupPasswordToggles();
+    
+    // Add real-time validation
+    newPasswordInput.addEventListener('input', function() {
+        updatePasswordStrength();
+        if (confirmPasswordInput.value) {
+            checkPasswordMatch();
+        }
+    });
+    
+    confirmPasswordInput.addEventListener('input', checkPasswordMatch);
+    
+    console.log('Reset form initialized successfully');
+}
+
+/**
+ * Initialize password strength and match indicators
+ */
+function initializePasswordIndicators() {
+    // Ensure password strength indicator exists with proper structure
+    const strengthContainer = document.querySelector('.password-strength');
+    if (strengthContainer && !strengthContainer.querySelector('.strength-fill')) {
+        strengthContainer.innerHTML = `
+            <div class="progress">
+                <div class="progress-bar strength-fill" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <small class="strength-text text-muted">Password strength: <span class="strength-level">Weak</span></small>
+        `;
+    }
+    
+    // Initialize with blank state
+    resetPasswordStrength();
+}
+
+/**
+ * Setup password visibility toggles
+ */
+function setupPasswordToggles() {
+    const toggleIcons = document.querySelectorAll('.toggle-password-icon');
+    toggleIcons.forEach(icon => {
+        icon.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-target');
+            const passwordInput = document.getElementById(targetId);
+            
+            if (passwordInput) {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    this.className = 'fas fa-eye toggle-password-icon';
+                } else {
+                    passwordInput.type = 'password';
+                    this.className = 'fas fa-eye-slash toggle-password-icon';
+                }
+            }
+        });
+    });
 }
 
 /**
@@ -94,74 +177,18 @@ async function handleRecoverySubmit(event) {
 }
 
 /**
- * Initialize the password reset form
- */
-function initializeResetForm() {
-    const form = document.getElementById('reset-form');
-    const newPasswordInput = document.getElementById('new-password');
-    const confirmPasswordInput = document.getElementById('confirm-password');
-    if (!form || !newPasswordInput || !confirmPasswordInput) return;
-
-    form.addEventListener('submit', handleResetSubmit);
-    
-    // Initialize with blank strength
-    resetPasswordStrength();
-    
-    // NUEVO: Setup PasswordManager if available
-    if (typeof PasswordManager !== 'undefined') {
-        const strengthIndicator = document.getElementById('password-strength-indicator');
-        if (strengthIndicator) {
-            // Create strength indicator HTML if it doesn't exist
-            if (!strengthIndicator.querySelector('.strength-fill')) {
-                strengthIndicator.innerHTML = `
-                    <div class="strength-bar" style="height: 4px; background-color: #e0e0e0; border-radius: 2px; margin-top: 5px;">
-                        <div class="strength-fill" style="height: 100%; border-radius: 2px; transition: all 0.3s ease; width: 0%; background-color: #ccc;"></div>
-                    </div>
-                    <small class="strength-level" style="font-size: 12px; margin-top: 2px; display: block;"></small>
-                `;
-            }
-            PasswordManager.setupPasswordField(newPasswordInput, strengthIndicator);
-        }
-    }
-    
-    // Add event listeners
-    newPasswordInput.addEventListener('input', updatePasswordStrength);
-    confirmPasswordInput.addEventListener('input', checkPasswordMatch);
-
-    // Password visibility toggle
-    const toggleIcons = document.querySelectorAll('.toggle-password-icon');
-    toggleIcons.forEach(icon => {
-        icon.addEventListener('click', function() {
-            const targetId = this.getAttribute('data-target');
-            const passwordInput = document.getElementById(targetId);
-            
-            if (passwordInput) {
-                if (passwordInput.type === 'password') {
-                    passwordInput.type = 'text';
-                    this.className = 'fas fa-eye toggle-password-icon';
-                } else {
-                    passwordInput.type = 'password';
-                    this.className = 'fas fa-eye-slash toggle-password-icon';
-                }
-            }
-        });
-    });
-
-    // Check URL parameters for errors
-    checkUrlParameters();
-}
-
-/**
  * Handles the password reset form submission
  */
 async function handleResetSubmit(event) {
     event.preventDefault();
+    console.log('Handling reset form submission');
 
     const newPassword = document.getElementById('new-password').value;
     const confirmPassword = document.getElementById('confirm-password').value;
     const token = document.getElementById('reset-token').value;
     const userId = document.getElementById('user-id').value;
 
+    // Validation
     if (!newPassword || !confirmPassword) {
         Swal.fire('Error', 'Please enter and confirm your new password.', 'error');
         return;
@@ -171,7 +198,7 @@ async function handleResetSubmit(event) {
         return;
     }
 
-    // NUEVO: Usar PasswordManager para validación si está disponible
+    // Password strength validation
     if (typeof PasswordManager !== 'undefined') {
         const passwordValidation = PasswordManager.validateStrength(newPassword);
         if (!passwordValidation.isValid) {
@@ -186,6 +213,7 @@ async function handleResetSubmit(event) {
         }
     }
 
+    // Show progress
     Swal.fire({
         title: 'Updating password...',
         html: `
@@ -199,7 +227,7 @@ async function handleResetSubmit(event) {
         didOpen: () => Swal.showLoading()
     });
 
-    // NUEVO: Encriptar contraseña antes de enviar si PasswordManager está disponible
+    // Encrypt password before sending
     let passwordToSend = newPassword;
     if (typeof PasswordManager !== 'undefined') {
         passwordToSend = PasswordManager.prepareForSubmission(newPassword);
@@ -215,9 +243,10 @@ async function handleResetSubmit(event) {
             body: JSON.stringify({
                 token: token,
                 userId: userId,
-                newPassword: passwordToSend // Usar contraseña encriptada
+                newPassword: passwordToSend
             })
         });
+        
         const result = await response.json();
         Swal.close();
 
@@ -242,7 +271,7 @@ async function handleResetSubmit(event) {
     } catch (error) {
         Swal.close();
         Swal.fire('Error', 'An error occurred while updating the password.', 'error');
-        console.error(error);
+        console.error('Reset error:', error);
     }
 }
 
@@ -253,15 +282,21 @@ function resetPasswordStrength() {
     const strengthFill = document.querySelector('.strength-fill');
     const strengthLevel = document.querySelector('.strength-level');
     
-    if (strengthFill && strengthLevel) {
+    if (strengthFill) {
         strengthFill.style.width = '0%';
-        strengthFill.style.backgroundColor = '#ccc';
-        strengthLevel.textContent = '';
+        strengthFill.style.backgroundColor = '#e74c3c';
+        strengthFill.setAttribute('aria-valuenow', '0');
+    }
+    
+    if (strengthLevel) {
+        strengthLevel.textContent = 'Weak';
+        strengthLevel.style.color = '#e74c3c';
     }
     
     const matchText = document.querySelector('.match-text');
     if (matchText) {
         matchText.textContent = '';
+        matchText.className = 'match-text';
     }
 }
 
@@ -269,36 +304,6 @@ function resetPasswordStrength() {
  * Updates the password strength indicator
  */
 function updatePasswordStrength() {
-    const password = document.getElementById('new-password').value;
-    
-    // Use PasswordManager if available, otherwise use fallback
-    if (typeof PasswordManager !== 'undefined' && password) {
-        const validation = PasswordManager.validateStrength(password);
-        const strengthFill = document.querySelector('.strength-fill');
-        const strengthLevel = document.querySelector('.strength-level');
-
-        if (!strengthFill || !strengthLevel) return;
-        
-        const colors = ['#e74c3c', '#f39c12', '#f1c40f', '#27ae60'];
-        const color = colors[validation.score - 1] || colors[0];
-        const width = Math.max(25, (validation.score / 4) * 100);
-
-        strengthFill.style.width = `${width}%`;
-        strengthFill.style.backgroundColor = color;
-        strengthLevel.textContent = validation.message;
-        strengthLevel.style.color = color;
-    } else {
-        // Fallback method
-        updatePasswordStrengthFallback();
-    }
-
-    checkPasswordMatch();
-}
-
-/**
- * Fallback password strength update
- */
-function updatePasswordStrengthFallback() {
     const password = document.getElementById('new-password').value;
     const strengthFill = document.querySelector('.strength-fill');
     const strengthLevel = document.querySelector('.strength-level');
@@ -311,6 +316,38 @@ function updatePasswordStrengthFallback() {
         return;
     }
 
+    // Use PasswordManager if available
+    if (typeof PasswordManager !== 'undefined') {
+        const validation = PasswordManager.validateStrength(password);
+        const colors = ['#e74c3c', '#f39c12', '#f1c40f', '#27ae60'];
+        const labels = ['Weak', 'Fair', 'Good', 'Strong'];
+        
+        const colorIndex = Math.min(validation.score - 1, colors.length - 1);
+        const color = colors[Math.max(0, colorIndex)];
+        const label = labels[Math.max(0, colorIndex)];
+        const width = Math.max(25, (validation.score / 4) * 100);
+
+        strengthFill.style.width = `${width}%`;
+        strengthFill.style.backgroundColor = color;
+        strengthFill.setAttribute('aria-valuenow', validation.score * 25);
+        strengthLevel.textContent = label;
+        strengthLevel.style.color = color;
+    } else {
+        // Fallback method
+        updatePasswordStrengthFallback();
+    }
+}
+
+/**
+ * Fallback password strength update
+ */
+function updatePasswordStrengthFallback() {
+    const password = document.getElementById('new-password').value;
+    const strengthFill = document.querySelector('.strength-fill');
+    const strengthLevel = document.querySelector('.strength-level');
+
+    if (!strengthFill || !strengthLevel) return;
+    
     let strength = 0;
     if (password.length >= 8) strength++;
     if (password.length >= 12) strength++;
@@ -320,24 +357,29 @@ function updatePasswordStrengthFallback() {
 
     let level = 'Weak';
     let color = '#e74c3c';
-    let width = '20%';
+    let width = '25%';
+    let ariaValue = 25;
 
     if (strength >= 4) {
         level = 'Strong';
         color = '#27ae60';
         width = '100%';
+        ariaValue = 100;
     } else if (strength >= 3) {
-        level = 'Medium';
+        level = 'Good';
         color = '#f1c40f';
-        width = '60%';
+        width = '75%';
+        ariaValue = 75;
     } else if (strength >= 2) {
-        level = 'Low';
+        level = 'Fair';
         color = '#f39c12';
-        width = '40%';
+        width = '50%';
+        ariaValue = 50;
     }
 
     strengthFill.style.width = width;
     strengthFill.style.backgroundColor = color;
+    strengthFill.setAttribute('aria-valuenow', ariaValue);
     strengthLevel.textContent = level;
     strengthLevel.style.color = color;
 }
@@ -354,26 +396,16 @@ function checkPasswordMatch() {
 
     if (!confirmPassword) {
         matchText.textContent = '';
+        matchText.className = 'match-text';
         return;
     }
 
     if (password === confirmPassword) {
         matchText.textContent = 'Passwords match';
-        matchText.style.color = '#27ae60';
+        matchText.className = 'match-text match';
     } else {
         matchText.textContent = 'Passwords do not match';
-        matchText.style.color = '#e74c3c';
-    }
-}
-
-/**
- * Checks URL parameters to show error messages
- */
-function checkUrlParameters() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const error = urlParams.get('error');
-    if (error) {
-        Swal.fire('Error', decodeURIComponent(error), 'error');
+        matchText.className = 'match-text no-match';
     }
 }
 
@@ -395,8 +427,14 @@ function isStrongPassword(password) {
 }
 
 /**
- * Base URL for AJAX requests
+ * Set base URLs if not defined
  */
 if (typeof window.URLPF === 'undefined') {
     window.URLPF = 'https://grammermx.com/Jesus/PruebaDos/';
 }
+
+if (typeof window.URLM === 'undefined') {
+    window.URLM = 'https://grammermx.com/Jesus/Mailer/';
+}
+
+console.log('Password Reset JS fully loaded');
