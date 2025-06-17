@@ -342,3 +342,22 @@ div[style*="position: relative"] {
     display: block;
     width: 100%;
 }
+
+/* Ocultar botones nativos del navegador para passwords */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-webkit-credentials-auto-fill-button,
+input[type="password"]::-webkit-textfield-decoration-container {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* Asegurar que solo nuestros botones aparezcan */
+input[type="password"] {
+    -webkit-text-security: disc;
+    -webkit-appearance: none;
+}
+
+/* Prevenir auto-completado agresivo del navegador */
+input[type="password"] {
+    autocomplete: new-password;
+}
