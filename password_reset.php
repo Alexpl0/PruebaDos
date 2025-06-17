@@ -82,7 +82,7 @@ if (!$tokenValid) {
     <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
     
     <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -90,68 +90,67 @@ if (!$tokenValid) {
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
-    <!-- Custom CSS -->
+    <!-- Local CSS -->
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/header.css">
+    <link rel="stylesheet" href="css/recovery.css">
 </head>
 <body>
-    <div class="container-fluid vh-100">
-        <div class="row h-100">
-            <!-- Left side - Form -->
-            <div class="col-md-6 d-flex align-items-center justify-content-center bg-light">
-                <div class="reset-form-container" style="max-width: 400px; width: 100%;">
-                    <div class="text-center mb-4">
-                        <img src="assets/logo/logo.png" alt="Premium Freight Logo" class="login-logo" style="max-height: 60px;">
-                        <h2 class="mt-3 mb-1">Reset Password</h2>
-                        <p class="text-muted">Hello <?php echo htmlspecialchars($userData['name']); ?>, create your new password</p>
-                    </div>
-                    
-                    <form id="reset-form" autocomplete="off">
-                        <input type="hidden" id="reset-token" value="<?php echo htmlspecialchars($token); ?>">
-                        <input type="hidden" id="user-id" value="<?php echo htmlspecialchars($userData['user_id']); ?>">
-                        
-                        <div class="mb-3">
-                            <label for="new-password" class="form-label">
-                                <i class="fas fa-lock me-2"></i>New Password
-                            </label>
-                            <div class="input-group">
-                                <input type="password" class="form-control" id="new-password" name="new-password" required>
-                                <button class="btn btn-outline-secondary" type="button">
-                                    <i class="fas fa-eye-slash toggle-password-icon" data-target="new-password"></i>
-                                </button>
-                            </div>
-                            <!-- NUEVO: Indicador de fortaleza -->
-                            <div id="password-strength-indicator" class="mt-2"></div>
+    <div id="header-container"></div>
+    
+    <div id="home">
+        <div class="container">
+            <div class="row">
+                <div>
+                    <h1 id="title1">Reset Your Password</h1>
+                </div>
+            </div>
+            <div id="loginform-container">
+                <div id="reset">
+                    <div>
+                        <h2 class="text-center">Create New Password</h2>
+                        <div class="row text-center">
+                            <p class="text-center">Hello <strong><?php echo htmlspecialchars($userData['name']); ?></strong>, enter your new password below</p>
+                            
+                            <form id="reset-form">
+                                <input type="hidden" id="reset-token" value="<?php echo htmlspecialchars($token); ?>">
+                                <input type="hidden" id="user-id" value="<?php echo htmlspecialchars($userData['user_id']); ?>">
+                                
+                                <div id="loginform">
+                                    <!-- New Password -->
+                                    <div class="mb-3">
+                                        <div style="position: relative; display: block; width: 100%;">
+                                            <input type="password" id="new-password" class="form-control" placeholder="New Password" style="padding-right: 45px;" required>
+                                            <i class="fas fa-eye-slash toggle-password-icon" data-target="new-password"></i>
+                                        </div>
+                                        <!-- NUEVO: Indicador de fortaleza -->
+                                        <div id="password-strength-indicator" class="mt-2">
+                                            <div class="progress">
+                                                <div class="progress-bar strength-fill" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                            <small class="strength-text text-muted">Password strength: <span class="strength-level">Weak</span></small>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Confirm Password -->
+                                    <div class="mb-3">
+                                        <div style="position: relative; display: block; width: 100%;">
+                                            <input type="password" id="confirm-password" class="form-control" placeholder="Confirm New Password" style="padding-right: 45px;" required>
+                                            <i class="fas fa-eye-slash toggle-password-icon" data-target="confirm-password"></i>
+                                        </div>
+                                        <!-- NUEVO: Indicador de coincidencia -->
+                                        <div class="match-indicator mt-1">
+                                            <small class="match-text"></small>
+                                        </div>
+                                    </div>
+                                    
+                                    <button type="submit" id="reset-btn" class="btn btn-primary">
+                                        <i class="fas fa-key"></i> Reset Password
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-                        
-                        <div class="mb-3">
-                            <label for="confirm-password" class="form-label">
-                                <i class="fas fa-lock me-2"></i>Confirm New Password
-                            </label>
-                            <div class="input-group">
-                                <input type="password" class="form-control" id="confirm-password" name="confirm-password" required>
-                                <button class="btn btn-outline-secondary" type="button">
-                                    <i class="fas fa-eye-slash toggle-password-icon" data-target="confirm-password"></i>
-                                </button>
-                            </div>
-                            <!-- NUEVO: Indicador de coincidencia -->
-                            <div class="match-text mt-2"></div>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-success w-100 mb-3">
-                            <i class="fas fa-check me-2"></i>Update Password
-                        </button>
-                        
-                        <div class="text-center">
-                            <p class="mb-0">Remember your password? <a href="index.php" class="text-decoration-none">Sign in here</a></p>
-                        </div>
-                        
-                        <!-- NUEVO: Indicador de seguridad -->
-                        <div class="text-center mt-3">
-                            <small class="text-muted">
-                                <i class="fas fa-shield-alt text-success"></i>
-                                Your password will be encrypted securely
-                            </small>
-                        </div>
+                        <p class="text-center">Remember your password? <a href="index.php" style="color: var(--first-color)"><i class="fas fa-arrow-left"></i> Back to Login</a></p>
                         
                         <!-- Información del token -->
                         <div class="alert alert-info mt-3" role="alert">
@@ -164,22 +163,18 @@ if (!$tokenValid) {
                                 <li>This reset link will expire soon</li>
                             </ul>
                         </div>
-                    </form>
-                </div>
-            </div>
-            
-            <!-- Right side - Image/Branding -->
-            <div class="col-md-6 d-none d-md-flex align-items-center justify-content-center bg-success">
-                <div class="text-center text-white">
-                    <i class="fas fa-shield-alt fa-5x mb-4"></i>
-                    <h3>Secure Reset</h3>
-                    <p class="lead">Your new password will be encrypted and protected</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <footer class="text-center py-3">
+        <p>© 2025 Grammer. All rights reserved.</p>
+    </footer>
+
     <!-- Scripts -->
+    <script src="js/header.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <!-- NUEVO: Cargar PasswordManager -->
     <script src="js/PasswordManager.js"></script>
