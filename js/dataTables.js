@@ -154,7 +154,8 @@ const dataTableOptions = {
                         });
 
                         try {
-                            await generatePDF(order, `PF_${orderId}`);
+                            const fileName = await generatePDF(order, `PF_${orderId}_Order`);
+                            console.log(`Generated PDF for order ${orderId}: ${fileName}`);
                         } catch (error) {
                             console.error(`Error generating PDF for order ${orderId}:`, error);
                         }
@@ -313,9 +314,10 @@ const formatCreatorName = (fullName) => {
             // Simple case: first name + last name
             return `${firstInitial}. ${nameParts[1]}`;
         } else if (nameParts.length >= 3) {
-            // For 3+ words: first word is first name, third word is last name
-            // This works for both 3-word and 4-word names according to requirements
-            return `${firstInitial}. ${nameParts[2]}`;
+            // Multiple parts: take the last word as surname
+            // This handles cases like "María José García" -> "M. García"
+            const lastName = nameParts[nameParts.length - 1];
+            return `${firstInitial}. ${lastName}`;
         }
         
         // Fallback (shouldn't reach here)
@@ -345,13 +347,14 @@ const initDataTables = (tableType = 'both') => {
             // Asegurarse de que la tabla existe en el DOM
             const semanalTable = document.getElementById('datatable_historico_semanal');
             if (!semanalTable) {
-                console.error('Tabla de histórico semanal no encontrada en el DOM');
+                console.error('Elemento datatable_historico_semanal no encontrado en el DOM');
                 return;
             }
             
             // Destruir instancia anterior si existe
             if (dataTableSemanalInitialized && $.fn.DataTable.isDataTable('#datatable_historico_semanal')) {
-                dataTableHistoricoSemanal.destroy();
+                $('#datatable_historico_semanal').DataTable().destroy();
+                dataTableSemanalInitialized = false;
             }
             
             dataTableHistoricoSemanal = $("#datatable_historico_semanal").DataTable(commonConfig);
@@ -364,13 +367,14 @@ const initDataTables = (tableType = 'both') => {
             // Asegurarse de que la tabla existe en el DOM
             const totalTable = document.getElementById('datatable_historico_total');
             if (!totalTable) {
-                console.error('Tabla de histórico total no encontrada en el DOM');
+                console.error('Elemento datatable_historico_total no encontrado en el DOM');
                 return;
             }
             
             // Destruir instancia anterior si existe
             if (dataTableTotalInitialized && $.fn.DataTable.isDataTable('#datatable_historico_total')) {
-                dataTableHistoricoTotal.destroy();
+                $('#datatable_historico_total').DataTable().destroy();
+                dataTableTotalInitialized = false;
             }
             
             dataTableHistoricoTotal = $("#datatable_historico_total").DataTable(commonConfig);
@@ -405,8 +409,7 @@ const generarHistoricoSemanal = async (semanasAnteriores = 0) => {
         } else if (Array.isArray(response)) {
             itemsArray = response;
         } else {
-            console.error('Formato de respuesta inesperado:', response);
-            tableBody_semanal.innerHTML = '<tr><td colspan="25" class="text-center">No hay datos disponibles o formato inválido</td></tr>';
+            console.error('Estructura de datos inesperada:', response);
             return;
         }
 
@@ -437,20 +440,14 @@ const generarHistoricoSemanal = async (semanasAnteriores = 0) => {
             
             try {
                 const itemDate = parseDate(item.date);
-                if (!itemDate) {
-                    console.log(`Fecha inválida en item ID ${item.id}: ${item.date}`);
-                    return false;
-                }
+                if (!itemDate) return false;
                 
                 const itemWeek = getWeekNumber(itemDate);
                 const itemYear = itemDate.getFullYear();
                 
-                // Log para depuración
-                console.log(`Item ID ${item.id}: Fecha ${item.date}, Semana calculada ${itemWeek}, Año ${itemYear}`);
-                
                 return itemWeek === targetWeek && itemYear === targetYear;
             } catch (error) {
-                console.error('Error procesando fecha:', error);
+                console.error('Error procesando fecha del item:', item.date, error);
                 return false;
             }
         });
@@ -465,94 +462,44 @@ const generarHistoricoSemanal = async (semanasAnteriores = 0) => {
         } else {
             // Generate rows for each filtered item with ALL fields
             datosSemanaFiltrada.forEach(item => {
-                try {
-                    const dateValue = item.date;
-                    const issueDate = dateValue ? parseDate(dateValue) : null;
-                    
-                    // If date is invalid, show with default values
-                    if (!issueDate) {
-                        content += `
-                            <tr>
-                                <td>${item.id || '-'}</td>
-                                <td>Grammer AG</td>
-                                <td>${item.code_planta || '-'}</td>
-                                <td>${item.planta || '-'}</td>
-                                <td>${dateValue || 'Invalid Date'}</td>
-                                <td>${item.in_out_bound || '-'}</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td>${item.reference_number || '-'}</td>
-                                <td>${formatCreatorName(item.creator_name)}</td>
-                                <td>${item.area || '-'}</td>
-                                <td>${item.description || '-'}</td>
-                                <td>${item.category_cause || '-'}</td>
-                                <td>${item.cost_euros || '-'}</td>
-                                <td>${item.transport || '-'}</td>
-                                <td>${item.int_ext || '-'}</td>
-                                <td>${item.carrier || '-'}</td>
-                                <td>${item.origin_company_name || '-'}</td>
-                                <td>${item.origin_city || '-'}</td>
-                                <td>${item.destiny_company_name || '-'}</td>
-                                <td>${item.destiny_city || '-'}</td>
-                                <td>${item.weight || '-'}</td>
-                                <td>${item.project_status || '-'}</td>
-                                <td>${item.approver_name || 'Pending'}</td>
-                                <td>${item.recovery || 'N/A'}</td>
-                                <td>${item.paid_by || '-'}</td>
-                                <td>${item.products || '-'}</td>
-                                <td>${item.status_name || '-'}</td>
-                                <td>${item.required_auth_level || '-'}</td>
-                                <td>${item.recovery_file ? 'Yes' : 'No'}</td>
-                                <td>${item.recovery_evidence ? 'Yes' : 'No'}</td>
-                                <td>${item.created_at || '-'}</td>
-                                <td>${item.updated_at || '-'}</td>
-                            </tr>`;
-                        return;
-                    }
-                    
-                    // Valid date, calculate week and month
-                    const issueMonth = getMonthName(issueDate);
-                    const issueCW = getWeekNumber(issueDate);
-                    
-                    content += `
-                        <tr>
-                            <td>${item.id || '-'}</td>
-                            <td>Grammer AG</td>
-                            <td>${item.code_planta || '-'}</td>
-                            <td>${item.planta || '-'}</td>
-                            <td>${dateValue || '-'}</td>
-                            <td>${item.in_out_bound || '-'}</td>
-                            <td>${issueCW}</td>
-                            <td>${issueMonth}</td>
-                            <td>${item.reference_number || '-'}</td>
-                            <td>${formatCreatorName(item.creator_name)}</td>
-                            <td>${item.area || '-'}</td>
-                            <td>${item.description || '-'}</td>
-                            <td>${item.category_cause || '-'}</td>
-                            <td>${item.cost_euros || '-'}</td>
-                            <td>${item.transport || '-'}</td>
-                            <td>${item.int_ext || '-'}</td>
-                            <td>${item.carrier || '-'}</td>
-                            <td>${item.origin_company_name || '-'}</td>
-                            <td>${item.origin_city || '-'}</td>
-                            <td>${item.destiny_company_name || '-'}</td>
-                            <td>${item.destiny_city || '-'}</td>
-                            <td>${item.weight || '-'}</td>
-                            <td>${item.project_status || '-'}</td>
-                            <td>${item.approver_name || 'Pending'}</td>
-                            <td>${item.recovery || 'N/A'}</td>
-                            <td>${item.paid_by || '-'}</td>
-                            <td>${item.products || '-'}</td>
-                            <td>${item.status_name || '-'}</td>
-                            <td>${item.required_auth_level || '-'}</td>
-                            <td>${item.recovery_file ? 'Yes' : 'No'}</td>
-                            <td>${item.recovery_evidence ? 'Yes' : 'No'}</td>
-                            <td>${item.approval_date || '-'}</td>
-                            <td>${item.approval_status || '-'}</td>
-                        </tr>`;
-                } catch (error) {
-                    console.error('Error processing record:', error, item);
-                }
+                const issueDate = parseDate(item.date);
+                content += `
+                    <tr>
+                        <td>${item.id || '-'}</td>
+                        <td>Grammer AG</td>
+                        <td>${item.creator_plant || '-'}</td>
+                        <td>${item.creator_plant || '-'}</td>
+                        <td>${issueDate ? issueDate.toLocaleDateString('en-US') : '-'}</td>
+                        <td>${item.in_out_bound || '-'}</td>
+                        <td>${issueDate ? getWeekNumber(issueDate) : '-'}</td>
+                        <td>${issueDate ? getMonthName(issueDate) : '-'}</td>
+                        <td>${item.reference_number || '-'}</td>
+                        <td>${formatCreatorName(item.creator_name)}</td>
+                        <td>${item.area || '-'}</td>
+                        <td>${item.description || '-'}</td>
+                        <td>${item.category_cause || '-'}</td>
+                        <td>${item.cost_euros ? `€${parseFloat(item.cost_euros).toFixed(2)}` : '-'}</td>
+                        <td>${item.transport || '-'}</td>
+                        <td>${item.int_ext || '-'}</td>
+                        <td>${item.carrier || '-'}</td>
+                        <td>${item.origin_company_name || '-'}</td>
+                        <td>${item.origin_city || '-'}</td>
+                        <td>${item.destiny_company_name || '-'}</td>
+                        <td>${item.destiny_city || '-'}</td>
+                        <td>${item.weight ? `${item.weight} kg` : '-'}</td>
+                        <td>${item.project_status || '-'}</td>
+                        <td>${item.approver_name || '-'}</td>
+                        <td>${item.recovery || '-'}</td>
+                        <td>${item.paid_by || '-'}</td>
+                        <td>${item.products || '-'}</td>
+                        <td>${item.status_name || '-'}</td>
+                        <td>${item.required_auth_level || '-'}</td>
+                        <td>${item.recovery_file ? 'Yes' : 'No'}</td>
+                        <td>${item.recovery_evidence ? 'Yes' : 'No'}</td>
+                        <td>${item.approval_date || '-'}</td>
+                        <td>${item.approval_status || '-'}</td>
+                    </tr>
+                `;
             });
         }
         
@@ -633,9 +580,7 @@ const generarHistoricoTotal = async () => {
             // Caso alternativo: la respuesta es directamente un array
             itemsArray = response;
         } else {
-            // Si no podemos encontrar un array, mostrar un error
-            console.error('Formato de respuesta inesperado:', response);
-            tableBody_total.innerHTML = '<tr><td colspan="25" class="text-center">No hay datos disponibles o formato inválido</td></tr>';
+            console.error('Estructura de datos inesperada en generarHistoricoTotal:', response);
             return;
         }
         
@@ -645,92 +590,44 @@ const generarHistoricoTotal = async () => {
         
         // Ahora itemsArray es siempre un array que podemos recorrer con forEach
         itemsArray.forEach(item => {
-            try {
-                const dateValue = item.date;
-                const issueDate = dateValue ? parseDate(dateValue) : null;
-                
-                if (!issueDate) {
-                    content += `
-                        <tr>
-                            <td>${item.id || '-'}</td>
-                            <td>Grammer AG</td>
-                            <td>${item.code_planta || '-'}</td>
-                            <td>${item.planta || '-'}</td>
-                            <td>${dateValue || 'Invalid Date'}</td>
-                            <td>${item.in_out_bound || '-'}</td>
-                            <td>-</td>
-                            <td>-</td>
-                            <td>${item.reference_number || '-'}</td>
-                            <td>${formatCreatorName(item.creator_name)}</td>
-                            <td>${item.area || '-'}</td>
-                            <td>${item.description || '-'}</td>
-                            <td>${item.category_cause || '-'}</td>
-                            <td>${item.cost_euros || '-'}</td>
-                            <td>${item.transport || '-'}</td>
-                            <td>${item.int_ext || '-'}</td>
-                            <td>${item.carrier || '-'}</td>
-                            <td>${item.origin_company_name || '-'}</td>
-                            <td>${item.origin_city || '-'}</td>
-                            <td>${item.destiny_company_name || '-'}</td>
-                            <td>${item.destiny_city || '-'}</td>
-                            <td>${item.weight || '-'}</td>
-                            <td>${item.project_status || '-'}</td>
-                            <td>${item.approver_name || 'Pending'}</td>
-                            <td>${item.recovery || 'N/A'}</td>
-                            <td>${item.paid_by || '-'}</td>
-                            <td>${item.products || '-'}</td>
-                            <td>${item.status_name || '-'}</td>
-                            <td>${item.required_auth_level || '-'}</td>
-                            <td>${item.recovery_file ? 'Yes' : 'No'}</td>
-                            <td>${item.recovery_evidence ? 'Yes' : 'No'}</td>
-                            <td>${item.created_at || '-'}</td>
-                            <td>${item.updated_at || '-'}</td>
-                        </tr>`;
-                    return;
-                }
-                
-                const issueMonth = getMonthName(issueDate);
-                const issueCW = getWeekNumber(issueDate);
-                
-                content += `
-                    <tr>
-                        <td>${item.id || '-'}</td>
-                        <td>Grammer AG</td>
-                        <td>${item.code_planta || '-'}</td>
-                        <td>${item.planta || '-'}</td>
-                        <td>${dateValue || '-'}</td>
-                        <td>${item.in_out_bound || '-'}</td>
-                        <td>${issueCW}</td>
-                        <td>${issueMonth}</td>
-                        <td>${item.reference_number || '-'}</td>
-                        <td>${formatCreatorName(item.creator_name)}</td>
-                        <td>${item.area || '-'}</td>
-                        <td>${item.description || '-'}</td>
-                        <td>${item.category_cause || '-'}</td>
-                        <td>${item.cost_euros || '-'}</td>
-                        <td>${item.transport || '-'}</td>
-                        <td>${item.int_ext || '-'}</td>
-                        <td>${item.carrier || '-'}</td>
-                        <td>${item.origin_company_name || '-'}</td>
-                        <td>${item.origin_city || '-'}</td>
-                        <td>${item.destiny_company_name || '-'}</td>
-                        <td>${item.destiny_city || '-'}</td>
-                        <td>${item.weight || '-'}</td>
-                        <td>${item.project_status || '-'}</td>
-                        <td>${item.approver_name || 'Pending'}</td>
-                        <td>${item.recovery || 'N/A'}</td>
-                        <td>${item.paid_by || '-'}</td>
-                        <td>${item.products || '-'}</td>
-                        <td>${item.status_name || '-'}</td>
-                        <td>${item.required_auth_level || '-'}</td>
-                        <td>${item.recovery_file ? 'Yes' : 'No'}</td>
-                        <td>${item.recovery_evidence ? 'Yes' : 'No'}</td>
-                        <td>${item.approval_date || '-'}</td>
-                        <td>${item.approval_status || '-'}</td>
-                    </tr>`;
-            } catch (error) {
-                console.error('Error procesando registro:', error, item);
-            }
+            const issueDate = parseDate(item.date);
+            content += `
+                <tr>
+                    <td>${item.id || '-'}</td>
+                    <td>Grammer AG</td>
+                    <td>${item.creator_plant || '-'}</td>
+                    <td>${item.creator_plant || '-'}</td>
+                    <td>${issueDate ? issueDate.toLocaleDateString('en-US') : '-'}</td>
+                    <td>${item.in_out_bound || '-'}</td>
+                    <td>${issueDate ? getWeekNumber(issueDate) : '-'}</td>
+                    <td>${issueDate ? getMonthName(issueDate) : '-'}</td>
+                    <td>${item.reference_number || '-'}</td>
+                    <td>${formatCreatorName(item.creator_name)}</td>
+                    <td>${item.area || '-'}</td>
+                    <td>${item.description || '-'}</td>
+                    <td>${item.category_cause || '-'}</td>
+                    <td>${item.cost_euros ? `€${parseFloat(item.cost_euros).toFixed(2)}` : '-'}</td>
+                    <td>${item.transport || '-'}</td>
+                    <td>${item.int_ext || '-'}</td>
+                    <td>${item.carrier || '-'}</td>
+                    <td>${item.origin_company_name || '-'}</td>
+                    <td>${item.origin_city || '-'}</td>
+                    <td>${item.destiny_company_name || '-'}</td>
+                    <td>${item.destiny_city || '-'}</td>
+                    <td>${item.weight ? `${item.weight} kg` : '-'}</td>
+                    <td>${item.project_status || '-'}</td>
+                    <td>${item.approver_name || '-'}</td>
+                    <td>${item.recovery || '-'}</td>
+                    <td>${item.paid_by || '-'}</td>
+                    <td>${item.products || '-'}</td>
+                    <td>${item.status_name || '-'}</td>
+                    <td>${item.required_auth_level || '-'}</td>
+                    <td>${item.recovery_file ? 'Yes' : 'No'}</td>
+                    <td>${item.recovery_evidence ? 'Yes' : 'No'}</td>
+                    <td>${item.approval_date || '-'}</td>
+                    <td>${item.approval_status || '-'}</td>
+                </tr>
+            `;
         });
         
         if (!content) {
@@ -802,204 +699,36 @@ document.addEventListener('DOMContentLoaded', async function() {
             </div>
         `;
         buttonsContainer.insertAdjacentHTML('beforeend', buttonHTML);
+        
+        // CONFIGURAR LOS BOTONES PARA REDIRIGIR A LAS NUEVAS PÁGINAS INMEDIATAMENTE
+        document.getElementById('btnHistoricoSemanal').addEventListener('click', function() {
+            console.log('Redirecting to weekly history page...');
+            window.location.href = 'weekly-orders-history.php';
+        });
+
+        document.getElementById('btnHistoricoTotal').addEventListener('click', function() {
+            console.log('Redirecting to total history page...');
+            window.location.href = 'total-orders-history.php';
+        });
     }
     
+    // COMENTAMOS LA CREACIÓN DE MODALES YA QUE AHORA REDIRIGIMOS A PÁGINAS SEPARADAS
+    /*
     // Crear modales en el DOM
     const modalsHTML = `
         <!-- Weekly History Modal -->
         <div id="modalHistoricoSemanal" class="modal fade" aria-labelledby="tituloModalHistoricoSemanal" aria-modal="true" role="dialog">
-            <div id="modaldiv" class="modal-dialog modal-xl"> 
-                <div id="modalContent" class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="tituloModalHistoricoSemanal">Premium Freight Weekly History</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="table-responsive">
-                            <table id="datatable_historico_semanal" class="table table-striped table-bordered" style="width:100%">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Division</th>
-                                        <th>Plant Code</th>
-                                        <th>Plant Name</th>
-                                        <th>Issue Date</th>
-                                        <th>Inbound/Outbound</th>
-                                        <th>Issue CW</th>
-                                        <th>Issue Month</th>
-                                        <th>Reference Number</th>
-                                        <th>Creator</th>
-                                        <th>Area</th>
-                                        <th>Description</th>
-                                        <th>Category Cause</th>
-                                        <th>Cost [€]</th>
-                                        <th>Transport</th>
-                                        <th>Int/Ext</th>
-                                        <th>Carrier</th>
-                                        <th>Origin Company</th>
-                                        <th>Origin City</th>
-                                        <th>Destination Company</th>
-                                        <th>Destination City</th>
-                                        <th>Weight [kg]</th>
-                                        <th>Project Status</th>
-                                        <th>Approver</th>
-                                        <th>Recovery</th>
-                                        <th>Paid By</th>
-                                        <th>Products</th>
-                                        <th>Status</th>
-                                        <th>Required Auth Level</th>
-                                        <th>Recovery File</th>
-                                        <th>Recovery Evidence</th>
-                                        <th>Approval Date</th>
-                                        <th>Approval Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tableBody_historico_semanal">
-                                    <!-- Data will be loaded here -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    </div>
-                </div>
-            </div>
+            ...modal content...
         </div>
 
         <!-- Total History Modal -->
         <div id="modalHistoricoTotal" class="modal fade" aria-labelledby="tituloModalHistoricoTotal" aria-modal="true" role="dialog">
-            <div id="modaldiv" class="modal-dialog modal-xl">
-                <div id="modalContent" class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="tituloModalHistoricoTotal">Premium Freight Total History</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="table-responsive">
-                            <table id="datatable_historico_total" class="table table-striped table-bordered" style="width:100%">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Division</th>
-                                        <th>Plant Code</th>
-                                        <th>Plant Name</th>
-                                        <th>Issue Date</th>
-                                        <th>Inbound/Outbound</th>
-                                        <th>Issue CW</th>
-                                        <th>Issue Month</th>
-                                        <th>Reference Number</th>
-                                        <th>Creator</th>
-                                        <th>Area</th>
-                                        <th>Description</th>
-                                        <th>Category Cause</th>
-                                        <th>Cost [€]</th>
-                                        <th>Transport</th>
-                                        <th>Int/Ext</th>
-                                        <th>Carrier</th>
-                                        <th>Origin Company</th>
-                                        <th>Origin City</th>
-                                        <th>Destination Company</th>
-                                        <th>Destination City</th>
-                                        <th>Weight [kg]</th>
-                                        <th>Project Status</th>
-                                        <th>Approver</th>
-                                        <th>Recovery</th>
-                                        <th>Paid By</th>
-                                        <th>Products</th>
-                                        <th>Status</th>
-                                        <th>Required Auth Level</th>
-                                        <th>Recovery File</th>
-                                        <th>Recovery Evidence</th>
-                                        <th>Approval Date</th>
-                                        <th>Approval Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tableBody_historico_total">
-                                    <!-- Data will be loaded here -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    </div>
-                </div>
-            </div>
+            ...modal content...
         </div>
     `;
     
     document.body.insertAdjacentHTML('beforeend', modalsHTML);
-    
-    // Añadir event listeners a los botones
-    let lastFocusedElement;
-
-    document.getElementById('btnHistoricoSemanal').addEventListener('click', async function() {
-        // Guardar elemento con foco antes de abrir el modal
-        lastFocusedElement = document.activeElement;
-        
-        // Mostrar el modal primero para que esté en el DOM
-        const modalElement = document.getElementById('modalHistoricoSemanal');
-        const modalHistoricoSemanal = new bootstrap.Modal(modalElement);
-        modalHistoricoSemanal.show();
-        
-        // Luego cargar los datos (esto asegura que la tabla exista en el DOM)
-        await generarHistoricoSemanal(0);
-        
-        // Manejar eventos de accesibilidad
-        modalElement.addEventListener('hidden.bs.modal', function () {
-            // Restaurar el foco al elemento anterior cuando se cierra el modal
-            if (lastFocusedElement) {
-                lastFocusedElement.focus();
-            }
-        }, { once: true });
-        
-        // Establecer el foco en el primer elemento interactivo del modal
-        setTimeout(() => {
-            const firstFocusableElement = modalElement.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-            if (firstFocusableElement) {
-                firstFocusableElement.focus();
-            }
-        }, 300);
-    });
-
-    document.getElementById('btnHistoricoTotal').addEventListener('click', async function() {
-        // Guardar elemento con foco antes de abrir el modal
-        lastFocusedElement = document.activeElement;
-        
-        // Mostrar el modal primero para que esté en el DOM
-        const modalElement = document.getElementById('modalHistoricoTotal');
-        const modalHistoricoTotal = new bootstrap.Modal(modalElement);
-        modalHistoricoTotal.show();
-        
-        // Luego cargar los datos (esto asegura que la tabla exista en el DOM)
-        await generarHistoricoTotal();
-        
-        // Manejar eventos de accesibilidad
-        modalElement.addEventListener('hidden.bs.modal', function () {
-            // Restaurar el foco al elemento anterior cuando se cierra el modal
-            if (lastFocusedElement) {
-                lastFocusedElement.focus();
-            }
-        }, { once: true });
-        
-        // Establecer el foco en el primer elemento interactivo del modal
-        setTimeout(() => {
-            const firstFocusableElement = modalElement.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-            if (firstFocusableElement) {
-                firstFocusableElement.focus();
-            }
-        }, 300);
-    });
-});
-
-// Actualizar botones para redirigir a las nuevas páginas
-document.getElementById('btnHistoricoSemanal').addEventListener('click', function() {
-    window.location.href = 'weekly-orders-history.php';
-});
-
-document.getElementById('btnHistoricoTotal').addEventListener('click', function() {
-    window.location.href = 'total-orders-history.php';
+    */
 });
 
 /**
