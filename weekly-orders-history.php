@@ -39,16 +39,54 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
     
     <!-- Local CSS files -->
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/dataTables.css">
 
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 20px 0;
+            background-color: #f8f9fa;
+        }
+        
+        .history-header {
+            background: linear-gradient(135deg, #034C8C 0%, #002856 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .history-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .history-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 0;
+        }
+        
+        .btn-back {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-back:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            transform: translateY(-1px);
+        }
+    </style>
 </head>
 <body>
-    <div id="header-container"></div>
-    
     <div class="history-header">
         <div class="container">
             <div class="row align-items-center">
@@ -57,7 +95,7 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
                     <p class="history-subtitle" id="weeklySubtitle">Premium Freight Weekly Report</p>
                 </div>
                 <div class="col-md-4 text-end">
-                    <button class="btn btn-outline-primary" onclick="history.back()">
+                    <button class="btn btn-back" onclick="history.back()">
                         <i class="fas fa-arrow-left"></i> Back to Orders
                     </button>
                 </div>
@@ -65,7 +103,7 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
         </div>
     </div>
 
-    <main class="container-fluid my-4">
+    <main class="container-fluid">
         <!-- Navegación de semanas -->
         <div class="row mb-4">
             <div class="col-12">
@@ -164,7 +202,6 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
 
     <!-- Custom scripts -->
-    <script src="js/header.js"></script>
     <script src="js/dataTables.js"></script>
     <script src="js/weeklyHistoryPage.js"></script>
 </body>
