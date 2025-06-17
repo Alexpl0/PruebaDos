@@ -64,6 +64,16 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
     <div id="mainOrders">
         <h1 id="title1">Generated Orders History</h1>
         <h1 id="title2"></h1>
+        
+        <!-- Botones de Histórico -->
+        <div class="buttons-container">
+            <button type="button" class="btn btn-primary" onclick="window.location.href='weekly-orders-history.php'">
+                <i class="fas fa-calendar-week"></i> Weekly History
+            </button>
+            <button type="button" class="btn btn-success" onclick="window.location.href='total-orders-history.php'">
+                <i class="fas fa-history"></i> Total History
+            </button>
+        </div>
     </div>
 
     <main id="main"> 
