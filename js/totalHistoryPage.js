@@ -1,224 +1,333 @@
 /**
- * Premium Freight - Total History Page Handler
- * Maneja la página de histórico total con estadísticas mejoradas
+ * Premium Freight - Total History Page Module
+ * Manages the total history page display and statistics
  */
 
-import { generatePDF } from './svgOrders.js';
+import { getWeekNumber, showLoading } from './utils.js';
+import { loadAndPopulateSVG, generatePDF } from './svgOrders.js';
 
-// Variables globales
-let totalHistoryTable;
+// CORRECCIÓN: Obtener la URL base de múltiples fuentes posibles
+const getBaseURL = () => {
+    // Intentar múltiples fuentes para la URL base
+    if (typeof window.BASE_URL !== 'undefined') return window.BASE_URL;
+    if (typeof window.URL_BASE !== 'undefined') return window.URL_BASE;
+    if (typeof URLPF !== 'undefined') return URLPF;
+    if (typeof window.URLPF !== 'undefined') return window.URLPF;
+    
+    // Fallback URL hardcodeada
+    console.warn('Base URL not found, using fallback URL');
+    return 'https://grammermx.com/Jesus/PruebaDos/';
+};
+
+// Variables globales del módulo
 let allOrdersData = [];
+let dataTableTotal = null;
 
 /**
- * Funciones auxiliares reutilizadas de dataTables.js
+ * Initialize the total history page
  */
-const parseDate = (dateString) => {
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('Initializing total history page...');
+    
     try {
-        if (!dateString || dateString.trim() === '') return null;
-        
-        let parsedDate;
-        if (dateString.includes('T')) {
-            parsedDate = new Date(dateString);
-        } else if (dateString.includes('-')) {
-            const parts = dateString.split(' ')[0].split('-');
-            parsedDate = new Date(parts[0], parts[1] - 1, parts[2]);
-        } else {
-            parsedDate = new Date(dateString);
-        }
-        
-        return isNaN(parsedDate.getTime()) ? null : parsedDate;
+        await initializeTotalHistory();
     } catch (error) {
-        console.error('Error parsing date:', dateString, error);
-        return null;
+        console.error('Error initializing total history:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Initialization Error',
+            text: 'Failed to initialize the total history page: ' + error.message
+        });
     }
-};
-
-const getWeekNumber = (date) => {
-    try {
-        if (!date || isNaN(date.getTime())) return "-";
-        
-        const dayNum = date.getDay() || 7;
-        date.setDate(date.getDate() + 4 - dayNum);
-        const yearStart = new Date(date.getFullYear(), 0, 1);
-        const weekNum = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
-        return weekNum;
-    } catch (error) {
-        console.error("Error calculating week number:", error);
-        return "-";
-    }
-};
-
-const getMonthName = (date) => {
-    try {
-        if (!date || isNaN(date.getTime())) return "-";
-        
-        const months = [
-            'January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December'
-        ];
-        return months[date.getMonth()];
-    } catch (error) {
-        console.error("Error getting month name:", error);
-        return "-";
-    }
-};
-
-const formatCreatorName = (fullName) => {
-    try {
-        if (!fullName || typeof fullName !== 'string') return fullName || '-';
-        
-        const nameParts = fullName.trim().split(/\s+/);
-        if (nameParts.length < 2) return fullName;
-        
-        const firstName = nameParts[0];
-        const lastName = nameParts[nameParts.length - 1];
-        return `${firstName.charAt(0)}. ${lastName}`;
-    } catch (error) {
-        console.error('Error formatting creator name:', error);
-        return fullName || '-';
-    }
-};
+});
 
 /**
- * Carga datos de Premium Freight desde la API
+ * CORREGIDO: Load all orders data from API
  */
-const loadPremiumFreightData = async () => {
+async function loadAllOrdersData() {
     try {
-        const response = await fetch(URLPF + 'dao/conections/daoPremiumFreight.php');
+        const baseURL = getBaseURL(); // USAR LA FUNCIÓN HELPER
+        const apiUrl = baseURL + 'dao/conections/daoPremiumFreight.php';
+        
+        console.log('Loading all orders from:', apiUrl);
+        
+        const response = await fetch(apiUrl);
+        
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
+        
         const data = await response.json();
         
-        if (data && data.status === 'success' && Array.isArray(data.data)) {
-            return data.data;
-        } else if (Array.isArray(data)) {
-            return data;
-        } else {
-            throw new Error('Invalid data format received');
+        if (!data || data.status !== 'success' || !Array.isArray(data.data)) {
+            throw new Error('Invalid data format received from API');
         }
+        
+        allOrdersData = data.data;
+        console.log(`Loaded ${allOrdersData.length} total orders successfully`);
+        
+        return allOrdersData;
+        
     } catch (error) {
-        console.error('Error loading Premium Freight data:', error);
+        console.error('Error loading all orders data:', error);
         throw error;
     }
-};
+}
 
 /**
- * Trunca texto con puntos suspensivos
+ * Calculate comprehensive statistics from all orders
  */
-const truncateText = (text, maxLength = 50) => {
-    if (!text || typeof text !== 'string') return '-';
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
-};
+function calculateStatistics(orders) {
+    if (!Array.isArray(orders) || orders.length === 0) {
+        return {
+            totalOrders: 0,
+            totalCost: 0,
+            averageCost: 0,
+            ordersThisMonth: 0,
+            ordersThisYear: 0,
+            approvedOrders: 0,
+            pendingOrders: 0,
+            rejectedOrders: 0,
+            topCarrier: 'N/A',
+            topPlant: 'N/A'
+        };
+    }
 
-/**
- * Calcula y actualiza las estadísticas
- */
-const updateStatistics = (data) => {
-    const total = data.length;
-    
-    // Contar aprobadas: approval_status no es null y no es 99 (rechazado)
-    const approved = data.filter(item => {
-        const status = item.approval_status;
-        return status !== null && status !== '99' && Number(status) >= (Number(item.required_auth_level) || 7);
-    }).length;
-    
-    // Contar rechazadas: approval_status es 99
-    const rejected = data.filter(item => item.approval_status === '99' || item.approval_status === 99).length;
-    
-    // Contar pendientes: el resto
-    const pending = total - approved - rejected;
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
 
-    // Actualizar elementos del DOM
-    document.getElementById('totalOrdersCount').textContent = total.toLocaleString();
-    document.getElementById('approvedOrdersCount').textContent = approved.toLocaleString();
-    document.getElementById('pendingOrdersCount').textContent = pending.toLocaleString();
-    document.getElementById('rejectedOrdersCount').textContent = rejected.toLocaleString();
-};
+    let totalCost = 0;
+    let ordersThisMonth = 0;
+    let ordersThisYear = 0;
+    let approvedOrders = 0;
+    let pendingOrders = 0;
+    let rejectedOrders = 0;
 
-/**
- * Genera la tabla de histórico total
- */
-const generateTotalTable = async () => {
-    try {
-        // Mostrar loading
-        Swal.fire({
-            title: 'Loading Total History',
-            text: 'Please wait...',
-            allowOutsideClick: false,
-            didOpen: () => { Swal.showLoading(); }
-        });
+    const carrierCounts = {};
+    const plantCounts = {};
 
-        allOrdersData = await loadPremiumFreightData();
-        console.log(`Total orders loaded: ${allOrdersData.length}`);
+    orders.forEach(order => {
+        // Calculate costs
+        const cost = parseFloat(order.cost_euros) || 0;
+        totalCost += cost;
 
-        // Actualizar estadísticas
-        updateStatistics(allOrdersData);
-
-        // Destruir tabla existente si existe
-        if (totalHistoryTable) {
-            totalHistoryTable.destroy();
-            totalHistoryTable = null;
+        // Calculate date-based statistics
+        if (order.date) {
+            const orderDate = new Date(order.date);
+            if (orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear) {
+                ordersThisMonth++;
+            }
+            if (orderDate.getFullYear() === currentYear) {
+                ordersThisYear++;
+            }
         }
 
-        // Limpiar tabla
-        $('#totalHistoryTable tbody').empty();
+        // Calculate status-based statistics
+        const status = (order.status_name || '').toLowerCase();
+        if (status === 'aprobado' || status === 'approved') {
+            approvedOrders++;
+        } else if (status === 'rechazado' || status === 'rejected') {
+            rejectedOrders++;
+        } else {
+            pendingOrders++;
+        }
 
-        // Generar filas de datos
-        const tableData = allOrdersData.map(item => {
-            const issueDate = parseDate(item.date);
-            return [
-                item.id || '-',
-                'Grammer AG',
-                item.creator_plant || '-',
-                item.creator_plant || '-', // Usando creator_plant como plant name
-                issueDate ? issueDate.toLocaleDateString('en-US') : '-',
-                item.in_out_bound || '-',
-                issueDate ? getWeekNumber(issueDate) : '-',
-                issueDate ? getMonthName(issueDate) : '-',
-                item.reference_number || '-',
-                formatCreatorName(item.creator_name),
-                item.area || '-',
-                truncateText(item.description, 60), // Descripción truncada
-                item.category_cause || '-',
-                item.cost_euros ? `€${parseFloat(item.cost_euros).toFixed(2)}` : '-',
-                item.transport || '-',
-                item.int_ext || '-',
-                item.carrier || '-',
-                item.origin_company_name || '-',
-                item.origin_city || '-',
-                item.destiny_company_name || '-',
-                item.destiny_city || '-',
-                item.weight ? `${item.weight} kg` : '-',
-                item.project_status || '-',
-                item.approver_name || '-',
-                item.recovery || '-',
-                item.paid_by || '-',
-                item.products || '-',
-                item.status_name || '-',
-                item.required_auth_level || '-',
-                item.recovery_file ? 'Yes' : 'No',
-                item.recovery_evidence ? 'Yes' : 'No',
-                item.approval_date || '-',
-                item.approval_status || '-',
-                `<button class="btn btn-sm btn-primary generate-pdf-btn" data-order-id="${item.id}" title="Generate PDF">
-                    <i class="fas fa-file-pdf"></i>
-                </button>`
-            ];
+        // Count carriers
+        if (order.carrier) {
+            carrierCounts[order.carrier] = (carrierCounts[order.carrier] || 0) + 1;
+        }
+
+        // Count plants
+        if (order.creator_plant) {
+            plantCounts[order.creator_plant] = (plantCounts[order.creator_plant] || 0) + 1;
+        }
+    });
+
+    // Find top carrier and plant
+    const topCarrier = Object.keys(carrierCounts).reduce((a, b) => 
+        carrierCounts[a] > carrierCounts[b] ? a : b, 'N/A');
+    const topPlant = Object.keys(plantCounts).reduce((a, b) => 
+        plantCounts[a] > plantCounts[b] ? a : b, 'N/A');
+
+    return {
+        totalOrders: orders.length,
+        totalCost: totalCost,
+        averageCost: orders.length > 0 ? totalCost / orders.length : 0,
+        ordersThisMonth: ordersThisMonth,
+        ordersThisYear: ordersThisYear,
+        approvedOrders: approvedOrders,
+        pendingOrders: pendingOrders,
+        rejectedOrders: rejectedOrders,
+        topCarrier: topCarrier,
+        topPlant: topPlant
+    };
+}
+
+/**
+ * CORREGIDO: Update statistics display on the page
+ */
+function updateStatistics(stats) {
+    console.log('Updating statistics with:', stats);
+    
+    // CORRECCIÓN: Verificar que los elementos existan antes de asignar valores
+    const elements = {
+        totalOrders: document.getElementById('totalOrders'),
+        totalCost: document.getElementById('totalCost'),
+        averageCost: document.getElementById('averageCost'),
+        ordersThisMonth: document.getElementById('ordersThisMonth'),
+        ordersThisYear: document.getElementById('ordersThisYear'),
+        approvedOrders: document.getElementById('approvedOrders'),
+        pendingOrders: document.getElementById('pendingOrders'),
+        rejectedOrders: document.getElementById('rejectedOrders'),
+        topCarrier: document.getElementById('topCarrier'),
+        topPlant: document.getElementById('topPlant')
+    };
+    
+    // Update each element if it exists
+    Object.keys(elements).forEach(key => {
+        const element = elements[key];
+        if (element) {
+            switch (key) {
+                case 'totalCost':
+                    element.textContent = `€${stats.totalCost.toFixed(2)}`;
+                    break;
+                case 'averageCost':
+                    element.textContent = `€${stats.averageCost.toFixed(2)}`;
+                    break;
+                default:
+                    element.textContent = stats[key];
+            }
+        } else {
+            console.warn(`Element with ID '${key}' not found for statistics update`);
+        }
+    });
+}
+
+/**
+ * Generate the total history table with all data
+ */
+async function generateTotalTable() {
+    try {
+        console.log('Generating total history table...');
+        
+        // Show loading
+        showLoading('Loading Total History', 'Preparing complete orders history...');
+        
+        // Calculate and update statistics
+        const statistics = calculateStatistics(allOrdersData);
+        updateStatistics(statistics);
+        
+        // Populate the table
+        await populateTotalTable(allOrdersData);
+        
+        // Initialize DataTable
+        initializeTotalDataTable();
+        
+        // Close loading
+        Swal.close();
+        
+        console.log('Total history table generated successfully');
+        
+    } catch (error) {
+        console.error('Error generating total table:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to generate total history table: ' + error.message
         });
+    }
+}
 
-        // Inicializar DataTable
-        totalHistoryTable = $('#totalHistoryTable').DataTable({
-            data: tableData,
-            destroy: true,
+/**
+ * CORREGIDO: Populate the total table with all order data
+ */
+async function populateTotalTable(orders) {
+    const tableBody = document.getElementById('totalTableBody');
+    if (!tableBody) {
+        console.error('Total table body element not found');
+        return;
+    }
+    
+    if (orders.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="33" class="text-center">No orders found</td></tr>';
+        return;
+    }
+    
+    let content = '';
+    
+    orders.forEach(order => {
+        const issueDate = order.date ? new Date(order.date) : null;
+        const formattedDate = issueDate ? issueDate.toLocaleDateString('en-US') : '-';
+        const weekNum = issueDate ? getWeekNumber(order.date) : '-';
+        const monthName = issueDate ? issueDate.toLocaleDateString('en-US', { month: 'long' }) : '-';
+        
+        content += `
+            <tr>
+                <td>${order.id || '-'}</td>
+                <td>Grammer AG</td>
+                <td>${order.creator_plant || '-'}</td>
+                <td>${order.creator_plant || '-'}</td>
+                <td>${formattedDate}</td>
+                <td>${order.in_out_bound || '-'}</td>
+                <td>${weekNum}</td>
+                <td>${monthName}</td>
+                <td>${order.reference_number || '-'}</td>
+                <td>${formatCreatorName(order.creator_name)}</td>
+                <td>${order.area || '-'}</td>
+                <td class="truncated-text" title="${order.description || ''}">${truncateText(order.description, 50)}</td>
+                <td>${order.category_cause || '-'}</td>
+                <td>${order.cost_euros ? `€${parseFloat(order.cost_euros).toFixed(2)}` : '-'}</td>
+                <td>${order.transport || '-'}</td>
+                <td>${order.int_ext || '-'}</td>
+                <td>${order.carrier || '-'}</td>
+                <td>${order.origin_company_name || '-'}</td>
+                <td>${order.origin_city || '-'}</td>
+                <td>${order.destiny_company_name || '-'}</td>
+                <td>${order.destiny_city || '-'}</td>
+                <td>${order.weight ? `${order.weight} kg` : '-'}</td>
+                <td>${order.project_status || '-'}</td>
+                <td>${order.approver_name || '-'}</td>
+                <td>${order.recovery || '-'}</td>
+                <td>${order.paid_by || '-'}</td>
+                <td>${order.products || '-'}</td>
+                <td>${order.status_name || '-'}</td>
+                <td>${order.required_auth_level || '-'}</td>
+                <td>${order.recovery_file ? 'Yes' : 'No'}</td>
+                <td>${order.recovery_evidence ? 'Yes' : 'No'}</td>
+                <td>${order.approval_date || '-'}</td>
+                <td>${order.approval_status !== null ? order.approval_status : '-'}</td>
+            </tr>
+        `;
+    });
+    
+    tableBody.innerHTML = content;
+}
+
+/**
+ * Initialize or reinitialize the total DataTable
+ */
+function initializeTotalDataTable() {
+    // Destroy existing DataTable if it exists
+    if (dataTableTotal) {
+        try {
+            dataTableTotal.destroy();
+            dataTableTotal = null;
+        } catch (error) {
+            console.warn('Error destroying existing DataTable:', error);
+        }
+    }
+    
+    // Initialize new DataTable
+    try {
+        const baseURL = getBaseURL(); // USAR LA FUNCIÓN HELPER
+        
+        dataTableTotal = $('#totalOrdersTable').DataTable({
             lengthMenu: [10, 25, 50, 100, 200, 500],
             pageLength: 25,
-            columnDefs: [
-                { className: "text-center", targets: "_all" },
-                { orderable: false, targets: -1 } // Columna de acciones no ordenable
-            ],
-            order: [[0, 'desc']], // Ordenar por ID descendente
+            scrollX: true,
+            scrollCollapse: true,
+            order: [[0, 'desc']], // Order by ID descending
             language: {
                 lengthMenu: "Show _MENU_ records per page",
                 zeroRecords: "No records found",
@@ -226,6 +335,7 @@ const generateTotalTable = async () => {
                 infoEmpty: "No records available",
                 infoFiltered: "(filtered from _MAX_ total records)",
                 search: "Search:",
+                loadingRecords: "Loading...",
                 paginate: {
                     first: "First",
                     last: "Last",
@@ -239,9 +349,11 @@ const generateTotalTable = async () => {
                     extend: 'excel',
                     text: '<i class="fas fa-file-excel"></i> Excel',
                     className: 'btn-success',
-                    title: 'Premium_Freight_Total_History',
-                    filename: 'Premium_Freight_Total_History',
-                    exportOptions: { columns: ':visible:not(:last-child)' }
+                    title: 'Complete_Premium_Freight_Report',
+                    filename: function() {
+                        const date = new Date().toISOString().split('T')[0];
+                        return `Complete_Premium_Freight_Report_${date}`;
+                    }
                 },
                 {
                     extend: 'pdf',
@@ -249,11 +361,12 @@ const generateTotalTable = async () => {
                     className: 'btn-danger',
                     orientation: 'landscape',
                     pageSize: 'LEGAL',
-                    title: 'Premium Freight Total History Report',
-                    filename: 'Premium_Freight_Total_History',
-                    exportOptions: { columns: ':visible:not(:last-child)' },
+                    title: 'Complete Premium Freight Report',
+                    filename: function() {
+                        const date = new Date().toISOString().split('T')[0];
+                        return `Complete_Premium_Freight_Report_${date}`;
+                    },
                     customize: function(doc) {
-                        // Aplicar estilos personalizados del PDF
                         doc.defaultStyle.fontSize = 7;
                         doc.styles.tableHeader.fontSize = 8;
                         doc.styles.tableHeader.fillColor = '#A7CAC3';
@@ -262,90 +375,160 @@ const generateTotalTable = async () => {
                         if (doc.content[1] && doc.content[1].table && doc.content[1].table.body[0]) {
                             doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
                         }
+                        
+                        doc.content.splice(0, 0, {
+                            margin: [0, 0, 0, 12],
+                            alignment: 'center',
+                            text: 'GRAMMER Complete Premium Freight Report',
+                            style: {
+                                fontSize: 14,
+                                bold: true,
+                                color: '#1c4481'
+                            }
+                        });
+                        
+                        const now = new Date();
+                        doc.footer = function(currentPage, pageCount) {
+                            return {
+                                columns: [
+                                    { text: 'Generated: ' + now.toLocaleDateString(), alignment: 'left', margin: [10, 0], fontSize: 8 },
+                                    { text: 'Page ' + currentPage.toString() + ' of ' + pageCount, alignment: 'right', margin: [0, 0, 10, 0], fontSize: 8 }
+                                ],
+                                margin: [10, 0]
+                            };
+                        };
                     }
                 },
                 {
-                    text: '<i class="fas fa-print"></i> Print',
+                    text: '<i class="fas fa-file-image"></i> Generate All SVGs',
                     className: 'btn-info',
-                    extend: 'print',
-                    title: 'Premium Freight Total History Report',
-                    exportOptions: { columns: ':visible:not(:last-child)' }
+                    action: async function(e, dt, node, config) {
+                        await handleBulkSVGGeneration(dt);
+                    }
                 }
             ]
         });
-
-        // Configurar event listeners para botones de PDF
-        setupPDFEventListeners();
-
-        Swal.close();
-
+        
+        console.log('Total DataTable initialized successfully');
+        
     } catch (error) {
-        console.error('Error generating total table:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error Loading Data',
-            text: 'Could not load total history data. Please try again.'
-        });
+        console.error('Error initializing total DataTable:', error);
     }
-};
+}
 
 /**
- * Configura event listeners para los botones de PDF
+ * Handle bulk SVG/PDF generation for total history
  */
-const setupPDFEventListeners = () => {
-    // Remover listeners existentes
-    $('.generate-pdf-btn').off('click');
-    
-    // Agregar nuevos listeners
-    $('.generate-pdf-btn').on('click', async function() {
-        const orderId = $(this).data('order-id');
-        const orderData = allOrdersData.find(order => order.id == orderId);
+async function handleBulkSVGGeneration(dataTable) {
+    try {
+        const exportData = dataTable.rows({search: 'applied'}).data().toArray();
         
-        if (!orderData) {
+        if (exportData.length === 0) {
             Swal.fire({
-                icon: 'error',
-                title: 'Order Not Found',
-                text: 'Could not find order data for PDF generation.'
+                icon: 'info',
+                title: 'No Data',
+                text: 'There are no records to export'
             });
             return;
         }
-
-        try {
-            Swal.fire({
-                title: 'Generating PDF',
-                text: 'Please wait while the document is being processed...',
-                allowOutsideClick: false,
-                didOpen: () => { Swal.showLoading(); }
+        
+        if (exportData.length > 20) {
+            const confirm = await Swal.fire({
+                icon: 'warning',
+                title: 'Many Records',
+                html: `You are about to generate ${exportData.length} PDF documents. This may take several minutes. Do you want to continue?`,
+                showCancelButton: true,
+                confirmButtonText: 'Yes, generate all',
+                cancelButtonText: 'Cancel'
             });
-
-            const fileName = await generatePDF(orderData, `PF_${orderId}_Total_Report`);
-
-            Swal.fire({
-                icon: 'success',
-                title: 'PDF Generated Successfully!',
-                text: `The file ${fileName} has been downloaded.`,
-                timer: 3000,
-                timerProgressBar: true
-            });
-
-        } catch (error) {
-            console.error('Error generating PDF:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error Generating PDF',
-                text: error.message || 'An unexpected error occurred.'
-            });
+            
+            if (!confirm.isConfirmed) return;
         }
-    });
-};
+        
+        showLoading('Generating PDFs', 'Please wait while documents are being generated...');
+        
+        const ids = exportData.map(row => row[0]);
+        const visibleOrders = allOrdersData.filter(order => ids.includes(String(order.id)));
+        
+        for (let i = 0; i < visibleOrders.length; i++) {
+            const order = visibleOrders[i];
+            
+            Swal.update({
+                html: `Processing document ${i + 1} of ${visibleOrders.length}...<br>Order ID: ${order.id}`
+            });
+            
+            try {
+                const fileName = await generatePDF(order, `PF_Complete_${order.id}`);
+                console.log(`Generated PDF for order ${order.id}: ${fileName}`);
+            } catch (error) {
+                console.error(`Error generating PDF for order ${order.id}:`, error);
+            }
+            
+            // Small delay between generations
+            await new Promise(resolve => setTimeout(resolve, 300));
+        }
+        
+        Swal.fire({
+            icon: 'success',
+            title: 'Documents Generated',
+            html: `${visibleOrders.length} PDF documents have been generated.<br>Check your downloads folder.`
+        });
+        
+    } catch (error) {
+        console.error('Error in bulk SVG generation:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An error occurred while generating documents: ' + error.message
+        });
+    }
+}
 
 /**
- * Inicialización cuando el DOM esté listo
+ * Initialize the total history functionality
  */
-document.addEventListener('DOMContentLoaded', function() {
-    // Crear header
-    createHeader(window.authorizationLevel || 0);
+async function initializeTotalHistory() {
+    try {
+        console.log('Loading all orders data...');
+        await loadAllOrdersData();
+        
+        console.log('Generating total history table...');
+        await generateTotalTable();
+        
+        console.log('Total history initialized successfully');
+        
+    } catch (error) {
+        console.error('Error initializing total history:', error);
+        throw error;
+    }
+}
+
+/**
+ * Helper function to format creator names
+ */
+function formatCreatorName(fullName) {
+    if (!fullName || typeof fullName !== 'string') return fullName || '-';
     
-    // Cargar datos totales
-    generateTotalTable();
-});
+    const nameParts = fullName.trim().split(' ');
+    if (nameParts.length === 1) return fullName;
+    
+    const firstInitial = nameParts[0].charAt(0).toUpperCase();
+    const lastName = nameParts[nameParts.length - 1];
+    
+    return `${firstInitial}. ${lastName}`;
+}
+
+/**
+ * Helper function to truncate text
+ */
+function truncateText(text, maxLength) {
+    if (!text || text.length <= maxLength) return text || '';
+    return text.substring(0, maxLength) + '...';
+}
+
+// Export functions for potential use by other modules
+export { 
+    initializeTotalHistory, 
+    generateTotalTable, 
+    calculateStatistics 
+};

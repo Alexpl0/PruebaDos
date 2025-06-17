@@ -1,32 +1,34 @@
 /**
- * weekOrders.js - Premium Freight Weekly Orders Viewer
- * 
- * This module handles the weekly orders view functionality including:
- * - Loading orders data from daoPremiumFreight.php endpoint
- * - Filtering pending orders for current user
- * - Loading and displaying SVG content for multiple orders
- * - Individual order approval/rejection functionality (using approval.js)
- * - Bulk operations (approve all, download all)
- * - PDF generation for individual orders
- * - Navigation controls
+ * Premium Freight - Weekly Orders Module
+ * Manages weekly order history display and navigation
  */
 
-// Import required modules
-import { loadAndPopulateSVG, generatePDF as svgGeneratePDF } from './svgOrders.js';
-import { approveOrder, rejectOrder } from './approval.js';
+import { getWeekNumber, showLoading } from './utils.js';
+import { loadAndPopulateSVG, generatePDF } from './svgOrders.js';
 
 /**
  * Configuration and global variables
  */
-let pendingOrders = [];
-let isLoading = false;
-let processedOrders = new Set();
+let ordersData = [];
+let currentWeekOffset = 0;
+let dataTableWeekly = null;
 
 /**
  * Initialize the weekly orders page when DOM is loaded
  */
-document.addEventListener('DOMContentLoaded', function() {
-    initializeWeeklyOrders();
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('Initializing weekly orders page...');
+    
+    try {
+        await initializeWeeklyOrders();
+    } catch (error) {
+        console.error('Error initializing weekly orders:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Initialization Error',
+            text: 'Failed to initialize the weekly orders page: ' + error.message
+        });
+    }
 });
 
 /**
@@ -34,881 +36,456 @@ document.addEventListener('DOMContentLoaded', function() {
  */
 async function loadOrdersData() {
     try {
-        const response = await fetch(`${window.PF_CONFIG.baseURL}dao/conections/daoPremiumFreight.php`, {
-            method: 'GET',
-            credentials: 'same-origin',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        });
+        const baseURL = getBaseURL(); // USAR LA FUNCIÓN HELPER
+        const apiUrl = baseURL + 'dao/conections/daoPremiumFreight.php';
+        
+        console.log('Loading orders from:', apiUrl);
+        
+        const response = await fetch(apiUrl);
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
         
-        const responseText = await response.text();
+        const data = await response.json();
         
-        if (!responseText || responseText.trim() === '') {
-            throw new Error('Empty response from server');
+        if (!data || data.status !== 'success' || !Array.isArray(data.data)) {
+            throw new Error('Invalid data format received from API');
         }
         
-        let data;
-        try {
-            data = JSON.parse(responseText);
-        } catch (parseError) {
-            throw new Error('Invalid JSON response from server: ' + parseError.message);
-        }
+        ordersData = data.data;
+        console.log(`Loaded ${ordersData.length} orders successfully`);
         
-        if (!data.status || data.status !== 'success' || !Array.isArray(data.data)) {
-            throw new Error('Invalid data structure received from server');
-        }
-        
-        return data.data;
+        return ordersData;
         
     } catch (error) {
-        console.error('Error loading orders:', error);
+        console.error('Error loading orders data:', error);
         throw error;
     }
 }
 
 /**
- * Filter and sort orders to show only those pending approval by current user
+ * Calculate week number using ISO 8601 standard
  */
-function filterPendingOrders(allOrders) {
-    const user = window.PF_CONFIG.user;
-    const userAuthLevel = user.authorizationLevel;
-    const userPlant = user.plant !== null && user.plant !== undefined ? parseInt(user.plant, 10) : null;
+function getISOWeekNumber(date) {
+    if (!date) return null;
     
-    console.log('[Filter Debug] Filtering orders:', {
-        totalOrders: allOrders.length,
-        userAuthLevel,
-        userPlant,
-        sampleOrder: allOrders[0] ? {
-            id: allOrders[0].id,
-            approval_status: allOrders[0].approval_status,
-            required_auth_level: allOrders[0].required_auth_level,
-            creator_plant: allOrders[0].creator_plant,
-            hasDescription: !!allOrders[0].description,
-            hasCarrier: !!allOrders[0].carrier,
-            hasLocations: !!(allOrders[0].origin_company_name && allOrders[0].destiny_company_name)
-        } : 'No orders'
-    });
-    
-    const filtered = allOrders.filter(order => {
-        // Convert to numbers for proper comparison
-        const currentApprovalLevel = Number(order.approval_status || 0);
-        const requiredLevel = Number(order.required_auth_level || 7);
-        const creatorPlant = parseInt(order.creator_plant, 10) || 0;
-        const nextRequiredLevel = currentApprovalLevel + 1;
+    try {
+        const targetDate = new Date(date);
+        if (isNaN(targetDate.getTime())) return null;
         
-        // Debug individual order
-        const reasons = [];
+        // Copy date so we don't modify original
+        const d = new Date(Date.UTC(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate()));
         
-        // 1. Check if order needs approval at user's authorization level
-        if (userAuthLevel !== nextRequiredLevel) {
-            reasons.push(`Auth level mismatch: user(${userAuthLevel}) !== required(${nextRequiredLevel})`);
-        }
+        // Set to nearest Thursday: current date + 4 - current day number
+        const dayNum = d.getUTCDay() || 7;
+        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
         
-        // 2. Check if not fully approved yet
-        if (currentApprovalLevel >= requiredLevel) {
-            reasons.push(`Already approved: current(${currentApprovalLevel}) >= required(${requiredLevel})`);
-        }
+        // Get first day of year
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
         
-        // 3. Check if not rejected
-        if (currentApprovalLevel === 99) {
-            reasons.push('Order is rejected (status 99)');
-        }
+        // Calculate full weeks to nearest Thursday
+        const weekNum = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
         
-        // 4. Check plant permissions
-        if (userPlant !== null && userPlant !== undefined && creatorPlant !== userPlant) {
-            reasons.push(`Plant mismatch: user(${userPlant}) !== creator(${creatorPlant})`);
-        }
-        
-        const include = reasons.length === 0;
-        
-        if (!include) {
-            console.log(`[Filter Debug] Excluding order ${order.id}:`, reasons);
-        }
-        
-        return include;
-    });
-    
-    // NUEVO: Ordenar las órdenes filtradas por fecha (más antigua primero)
-    const sorted = filtered.sort((a, b) => {
-        // Convertir fechas a objetos Date para comparación
-        const dateA = new Date(a.date || '1970-01-01');
-        const dateB = new Date(b.date || '1970-01-01');
-        
-        // Ordenar por fecha ascendente (más antigua primero)
-        if (dateA.getTime() !== dateB.getTime()) {
-            return dateA.getTime() - dateB.getTime();
-        }
-        
-        // Si las fechas son iguales, ordenar por ID ascendente
-        return (a.id || 0) - (b.id || 0);
-    });
-    
-    console.log('[Filter Debug] Filter and sort result:', {
-        originalCount: allOrders.length,
-        filteredCount: sorted.length,
-        filteredIds: sorted.map(o => ({ id: o.id, date: o.date })),
-        sortOrder: 'Oldest first (ASC)'
-    });
-    
-    return sorted;
+        return weekNum;
+    } catch (error) {
+        console.error('Error calculating week number:', error);
+        return null;
+    }
 }
 
 /**
- * Main initialization function
+ * Get target week based on current week and offset
+ */
+function getTargetWeek() {
+    const currentDate = new Date();
+    currentDate.setDate(currentDate.getDate() - (currentWeekOffset * 7));
+    
+    return {
+        week: getISOWeekNumber(currentDate),
+        year: currentDate.getFullYear(),
+        date: currentDate
+    };
+}
+
+/**
+ * Filter orders by target week
+ */
+function filterOrdersByWeek(orders, targetWeek, targetYear) {
+    return orders.filter(order => {
+        if (!order.date) return false;
+        
+        const orderWeek = getISOWeekNumber(order.date);
+        const orderYear = new Date(order.date).getFullYear();
+        
+        return orderWeek === targetWeek && orderYear === targetYear;
+    });
+}
+
+/**
+ * Generate the weekly table with filtered data
+ */
+async function generateWeeklyTable() {
+    try {
+        console.log(`Generating weekly table for week offset: ${currentWeekOffset}`);
+        
+        // Show loading
+        showLoading('Loading Weekly Data', 'Preparing weekly orders table...');
+        
+        // Get target week information
+        const target = getTargetWeek();
+        console.log(`Target week: ${target.week} of ${target.year}`);
+        
+        // Filter orders for the target week
+        const filteredOrders = filterOrdersByWeek(ordersData, target.week, target.year);
+        console.log(`Found ${filteredOrders.length} orders for week ${target.week}`);
+        
+        // Update page title
+        updatePageTitle(target.week, target.year);
+        
+        // Update navigation buttons
+        updateNavigationButtons();
+        
+        // Generate table content
+        await populateWeeklyTable(filteredOrders);
+        
+        // Initialize DataTable
+        initializeWeeklyDataTable();
+        
+        // Close loading
+        Swal.close();
+        
+        console.log('Weekly table generated successfully');
+        
+    } catch (error) {
+        console.error('Error generating weekly table:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to generate weekly table: ' + error.message
+        });
+    }
+}
+
+/**
+ * Update page title with week information
+ */
+function updatePageTitle(week, year) {
+    const titleElement = document.querySelector('.history-title');
+    if (titleElement) {
+        titleElement.textContent = `Weekly Premium Freight History - Week ${week} of ${year}`;
+    }
+    
+    const subtitleElement = document.querySelector('.history-subtitle');
+    if (subtitleElement) {
+        const weekText = currentWeekOffset === 0 ? 'Current Week' : `${currentWeekOffset} week(s) ago`;
+        subtitleElement.textContent = `Showing orders from ${weekText}`;
+    }
+}
+
+/**
+ * Update navigation button states
+ */
+function updateNavigationButtons() {
+    const nextBtn = document.getElementById('nextWeek');
+    const prevBtn = document.getElementById('prevWeek');
+    
+    if (nextBtn) {
+        nextBtn.disabled = currentWeekOffset === 0;
+    }
+    
+    // Previous week button is always enabled (we can go back indefinitely)
+    if (prevBtn) {
+        prevBtn.disabled = false;
+    }
+}
+
+/**
+ * Populate the weekly table with order data
+ */
+async function populateWeeklyTable(orders) {
+    const tableBody = document.getElementById('weeklyTableBody');
+    if (!tableBody) {
+        throw new Error('Weekly table body element not found');
+    }
+    
+    if (orders.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="33" class="text-center">No orders found for this week</td></tr>';
+        return;
+    }
+    
+    let content = '';
+    
+    orders.forEach(order => {
+        const issueDate = order.date ? new Date(order.date) : null;
+        const formattedDate = issueDate ? issueDate.toLocaleDateString('en-US') : '-';
+        const weekNum = issueDate ? getISOWeekNumber(order.date) : '-';
+        const monthName = issueDate ? issueDate.toLocaleDateString('en-US', { month: 'long' }) : '-';
+        
+        content += `
+            <tr>
+                <td>${order.id || '-'}</td>
+                <td>Grammer AG</td>
+                <td>${order.creator_plant || '-'}</td>
+                <td>${order.creator_plant || '-'}</td>
+                <td>${formattedDate}</td>
+                <td>${order.in_out_bound || '-'}</td>
+                <td>${weekNum}</td>
+                <td>${monthName}</td>
+                <td>${order.reference_number || '-'}</td>
+                <td>${formatCreatorName(order.creator_name)}</td>
+                <td>${order.area || '-'}</td>
+                <td class="truncated-text" title="${order.description || ''}">${truncateText(order.description, 50)}</td>
+                <td>${order.category_cause || '-'}</td>
+                <td>${order.cost_euros ? `€${parseFloat(order.cost_euros).toFixed(2)}` : '-'}</td>
+                <td>${order.transport || '-'}</td>
+                <td>${order.int_ext || '-'}</td>
+                <td>${order.carrier || '-'}</td>
+                <td>${order.origin_company_name || '-'}</td>
+                <td>${order.origin_city || '-'}</td>
+                <td>${order.destiny_company_name || '-'}</td>
+                <td>${order.destiny_city || '-'}</td>
+                <td>${order.weight ? `${order.weight} kg` : '-'}</td>
+                <td>${order.project_status || '-'}</td>
+                <td>${order.approver_name || '-'}</td>
+                <td>${order.recovery || '-'}</td>
+                <td>${order.paid_by || '-'}</td>
+                <td>${order.products || '-'}</td>
+                <td>${order.status_name || '-'}</td>
+                <td>${order.required_auth_level || '-'}</td>
+                <td>${order.recovery_file ? 'Yes' : 'No'}</td>
+                <td>${order.recovery_evidence ? 'Yes' : 'No'}</td>
+                <td>${order.approval_date || '-'}</td>
+                <td>${order.approval_status !== null ? order.approval_status : '-'}</td>
+            </tr>
+        `;
+    });
+    
+    tableBody.innerHTML = content;
+}
+
+/**
+ * Initialize or reinitialize the weekly DataTable
+ */
+function initializeWeeklyDataTable() {
+    // Destroy existing DataTable if it exists
+    if (dataTableWeekly) {
+        try {
+            dataTableWeekly.destroy();
+            dataTableWeekly = null;
+        } catch (error) {
+            console.warn('Error destroying existing DataTable:', error);
+        }
+    }
+    
+    // Initialize new DataTable
+    try {
+        const baseURL = getBaseURL(); // USAR LA FUNCIÓN HELPER
+        
+        dataTableWeekly = $('#weeklyOrdersTable').DataTable({
+            lengthMenu: [10, 25, 50, 100],
+            pageLength: 10,
+            scrollX: true,
+            scrollCollapse: true,
+            order: [[0, 'desc']], // Order by ID descending
+            language: {
+                lengthMenu: "Show _MENU_ records per page",
+                zeroRecords: "No records found",
+                info: "Showing _START_ to _END_ of _TOTAL_ records",
+                infoEmpty: "No records available",
+                infoFiltered: "(filtered from _MAX_ total records)",
+                search: "Search:",
+                paginate: {
+                    first: "First",
+                    last: "Last",
+                    next: "Next",
+                    previous: "Previous"
+                }
+            },
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    extend: 'excel',
+                    text: '<i class="fas fa-file-excel"></i> Excel',
+                    className: 'btn-success',
+                    title: 'Weekly_Premium_Freight_Report',
+                    filename: function() {
+                        const target = getTargetWeek();
+                        return `Weekly_Premium_Freight_W${target.week}_${target.year}`;
+                    }
+                },
+                {
+                    extend: 'pdf',
+                    text: '<i class="fas fa-file-pdf"></i> PDF',
+                    className: 'btn-danger',
+                    orientation: 'landscape',
+                    pageSize: 'LEGAL',
+                    title: function() {
+                        const target = getTargetWeek();
+                        return `Weekly Premium Freight Report - Week ${target.week} of ${target.year}`;
+                    },
+                    filename: function() {
+                        const target = getTargetWeek();
+                        return `Weekly_Premium_Freight_W${target.week}_${target.year}`;
+                    }
+                },
+                {
+                    text: '<i class="fas fa-file-image"></i> Generate SVGs',
+                    className: 'btn-info',
+                    action: async function(e, dt, node, config) {
+                        await handleBulkSVGGeneration(dt);
+                    }
+                }
+            ]
+        });
+        
+        console.log('Weekly DataTable initialized successfully');
+        
+    } catch (error) {
+        console.error('Error initializing weekly DataTable:', error);
+    }
+}
+
+/**
+ * Handle bulk SVG/PDF generation
+ */
+async function handleBulkSVGGeneration(dataTable) {
+    try {
+        const exportData = dataTable.rows({search: 'applied'}).data().toArray();
+        
+        if (exportData.length === 0) {
+            Swal.fire({
+                icon: 'info',
+                title: 'No Data',
+                text: 'There are no records to export'
+            });
+            return;
+        }
+        
+        if (exportData.length > 10) {
+            const confirm = await Swal.fire({
+                icon: 'warning',
+                title: 'Many Records',
+                html: `You are about to generate ${exportData.length} PDF documents. Do you want to continue?`,
+                showCancelButton: true,
+                confirmButtonText: 'Yes, generate all',
+                cancelButtonText: 'Cancel'
+            });
+            
+            if (!confirm.isConfirmed) return;
+        }
+        
+        showLoading('Generating PDFs', 'Please wait while documents are being generated...');
+        
+        const ids = exportData.map(row => row[0]);
+        const visibleOrders = ordersData.filter(order => ids.includes(String(order.id)));
+        
+        for (let i = 0; i < visibleOrders.length; i++) {
+            const order = visibleOrders[i];
+            
+            Swal.update({
+                html: `Processing document ${i + 1} of ${visibleOrders.length}...`
+            });
+            
+            try {
+                const fileName = await generatePDF(order, `PF_Weekly_${order.id}`);
+                console.log(`Generated PDF for order ${order.id}: ${fileName}`);
+            } catch (error) {
+                console.error(`Error generating PDF for order ${order.id}:`, error);
+            }
+            
+            // Small delay between generations
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        
+        Swal.fire({
+            icon: 'success',
+            title: 'Documents Generated',
+            html: `${visibleOrders.length} PDF documents have been generated.<br>Check your downloads folder.`
+        });
+        
+    } catch (error) {
+        console.error('Error in bulk SVG generation:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An error occurred while generating documents: ' + error.message
+        });
+    }
+}
+
+/**
+ * Initialize the weekly orders functionality
  */
 async function initializeWeeklyOrders() {
     try {
-        // Show initial loading
-        showMainLoading(true);
+        console.log('Loading orders data...');
+        await loadOrdersData();
         
-        // Load all orders from endpoint
-        const allOrders = await loadOrdersData();
+        console.log('Setting up navigation...');
+        setupNavigation();
         
-        // Filter to get only pending orders for current user
-        pendingOrders = filterPendingOrders(allOrders);
+        console.log('Generating initial weekly table...');
+        await generateWeeklyTable();
         
-        // Update global variables for compatibility
-        window.PF_CONFIG.pendingOrders = pendingOrders;
-        window.allOrders = pendingOrders;
-        window.originalOrders = pendingOrders;
-        
-        // Update UI
-        updateOrderCount();
-        updateActionButtons();
-        
-        if (pendingOrders.length === 0) {
-            showNoOrdersMessage();
-        } else {
-            // Render orders
-            await renderOrders();
-            
-            // Initialize SVG content for all orders
-            await initializeAllOrderDisplays();
-        }
-        
-        // Hide main loading
-        showMainLoading(false);
+        console.log('Weekly orders initialized successfully');
         
     } catch (error) {
         console.error('Error initializing weekly orders:', error);
-        showMainLoading(false);
-        showErrorMessage('Error loading orders: ' + error.message);
+        throw error;
     }
 }
 
 /**
- * Update order count in header
+ * Setup navigation button event listeners
  */
-function updateOrderCount() {
-    const orderCountElement = document.getElementById('orderCount');
-    if (orderCountElement) {
-        const count = pendingOrders.length;
-        orderCountElement.textContent = count === 0 ? 
-            'No orders pending your approval' : 
-            `${count} order${count === 1 ? '' : 's'} pending your approval`;
-    }
-}
-
-/**
- * Update action buttons visibility
- */
-function updateActionButtons() {
-    const approveAllBtn = document.querySelector('.btn-approve-all');
-    const downloadAllBtn = document.querySelector('.btn-download-all');
+function setupNavigation() {
+    const prevBtn = document.getElementById('prevWeek');
+    const nextBtn = document.getElementById('nextWeek');
     
-    if (pendingOrders.length > 1) {
-        if (approveAllBtn) approveAllBtn.classList.remove('hidden');
-        if (downloadAllBtn) downloadAllBtn.classList.remove('hidden');
-    } else {
-        if (approveAllBtn) approveAllBtn.classList.add('hidden');
-        if (downloadAllBtn) downloadAllBtn.classList.add('hidden');
-    }
-}
-
-/**
- * Show main loading spinner
- */
-function showMainLoading(show) {
-    const loadingElement = document.getElementById('loadingOrders');
-    const contentElement = document.getElementById('ordersContent');
-    
-    if (show) {
-        if (loadingElement) loadingElement.classList.remove('hidden');
-        if (contentElement) contentElement.classList.add('hidden');
-    } else {
-        if (loadingElement) loadingElement.classList.add('hidden');
-        if (contentElement) contentElement.classList.remove('hidden');
-    }
-}
-
-/**
- * Show no orders message
- */
-function showNoOrdersMessage() {
-    const contentElement = document.getElementById('ordersContent');
-    if (contentElement) {
-        contentElement.innerHTML = `
-            <div class="no-orders-message">
-                <div class="no-orders-content">
-                    <i class="fas fa-check-circle"></i>
-                    <h3>No Pending Orders</h3>
-                    <p>You have no orders pending approval at this time.</p>
-                    <button class="action-btn-compact btn-back" onclick="goBack()">
-                        <i class="fas fa-arrow-left"></i>
-                        Back to Dashboard
-                    </button>
-                </div>
-            </div>
-        `;
-        contentElement.classList.remove('hidden');
-    }
-}
-
-/**
- * Render all orders
- */
-async function renderOrders() {
-    const contentElement = document.getElementById('ordersContent');
-    if (!contentElement) return;
-    
-    let html = '';
-    
-    for (const order of pendingOrders) {
-        // CORREGIDO: Usar los campos correctos del endpoint daoPremiumFreight.php
-        const creatorName = escapeHtml(order.creator_name || 'Unknown');
-        const creatorRole = escapeHtml(order.creator_role || '');
-        const costEuros = Number(order.cost_euros || 0).toFixed(2);
-        const orderDate = formatDate(order.date);
-        const area = escapeHtml(order.area || '');
-        
-        html += `
-            <div class="order-card" data-order-id="${order.id}">
-                <!-- Order Header -->
-                <div class="order-card-header">
-                    <div class="order-card-info">
-                        <h3 class="order-card-title">Order #${order.id}</h3>
-                        <p class="order-card-subtitle">
-                            Created by ${creatorName} (${area}) • 
-                            ${orderDate}
-                        </p>
-                    </div>
-                    <div class="order-card-actions">
-                        <button class="action-btn-compact btn-pdf" onclick="handleOrderPDF(${order.id})">
-                            <i class="fas fa-file-pdf"></i>
-                            <span>PDF</span>
-                        </button>
-                        <button class="action-btn-compact btn-approve" onclick="handleOrderApprove(${order.id})">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Approve</span>
-                        </button>
-                        <button class="action-btn-compact btn-reject" onclick="handleOrderReject(${order.id})">
-                            <i class="fas fa-times-circle"></i>
-                            <span>Reject</span>
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- SVG Container -->
-                <div class="svg-container">
-                    <div class="svg-content">
-                        <div class="loading-spinner" id="loadingSpinner-${order.id}">
-                            <div class="spinner"></div>
-                            Loading order details...
-                        </div>
-                        <div id="svgContent-${order.id}" class="hidden"></div>
-                    </div>
-                </div>
-            </div>
-        `;
+    if (prevBtn) {
+        prevBtn.addEventListener('click', async () => {
+            currentWeekOffset++;
+            await generateWeeklyTable();
+        });
     }
     
-    contentElement.innerHTML = html;
-    contentElement.classList.remove('hidden');
-}
-
-/**
- * Initialize SVG content for all orders
- */
-async function initializeAllOrderDisplays() {
-    const promises = pendingOrders.map(order => initializeOrderDisplay(order));
-    await Promise.all(promises);
-}
-
-/**
- * Initialize SVG display for a single order
- */
-async function initializeOrderDisplay(order) {
-    try {
-        const containerId = `svgContent-${order.id}`;
-        const spinnerId = `loadingSpinner-${order.id}`;
-        
-        console.log(`[SVG Debug] Inicializando SVG para orden ${order.id}:`, {
-            containerId,
-            orderData: {
-                id: order.id,
-                creator_name: order.creator_name,
-                cost_euros: order.cost_euros,
-                date: order.date,
-                description: order.description?.substring(0, 50) + '...',
-                carrier: order.carrier,
-                origin_company_name: order.origin_company_name,
-                destiny_company_name: order.destiny_company_name
+    if (nextBtn) {
+        nextBtn.addEventListener('click', async () => {
+            if (currentWeekOffset > 0) {
+                currentWeekOffset--;
+                await generateWeeklyTable();
             }
         });
-        
-        // Show loading spinner
-        showLoadingSpinner(true, spinnerId, containerId);
-        
-        // CORREGIDO: Verificar que el contenedor existe antes de cargar
-        const container = document.getElementById(containerId);
-        if (!container) {
-            throw new Error(`Container ${containerId} not found in DOM`);
-        }
-        
-        // Load SVG content using the same function as view_order.php
-        await loadAndPopulateSVG(order, containerId);
-        
-        console.log(`[SVG Debug] SVG cargado exitosamente para orden ${order.id}`);
-        
-        // Hide loading spinner and show content
-        showLoadingSpinner(false, spinnerId, containerId);
-        
-    } catch (error) {
-        console.error(`[SVG Error] Error loading SVG for order ${order.id}:`, error);
-        
-        const container = document.getElementById(`svgContent-${order.id}`);
-        if (container) {
-            container.innerHTML = `
-                <div style="text-align: center; padding: 40px; color: #666;">
-                    <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 20px; color: #dc3545;"></i>
-                    <h3>Error Loading Order</h3>
-                    <p>${error.message}</p>
-                    <button onclick="retryLoadOrder(${order.id})" class="btn btn-primary">Retry</button>
-                </div>
-            `;
-            container.classList.remove('hidden');
-        }
-        
-        const spinner = document.getElementById(`loadingSpinner-${order.id}`);
-        if (spinner) {
-            spinner.classList.add('hidden');
-        }
     }
 }
 
 /**
- * SIMPLIFICADO: Handle individual order approval usando approval.js
+ * Helper function to format creator names
  */
-async function handleOrderApprove(orderId) {
-    if (isLoading || processedOrders.has(orderId)) {
-        return;
-    }
+function formatCreatorName(fullName) {
+    if (!fullName || typeof fullName !== 'string') return fullName || '-';
     
-    try {
-        isLoading = true;
-        
-        const result = await approveOrder(orderId, {
-            autoClose: true,
-            sendNotifications: true,
-            onSuccess: (order, action) => {
-                markOrderAsProcessed(orderId, action);
-            },
-            onError: (error) => {
-                console.error('Error in approval:', error);
-            }
-        });
-        
-        if (result && result.success) {
-            console.log(`Order ${orderId} approved successfully using approval.js`);
-        }
-        
-    } catch (error) {
-        console.error('Error approving order:', error);
-    } finally {
-        isLoading = false;
-    }
-}
-
-/**
- * SIMPLIFICADO: Handle individual order rejection usando approval.js
- */
-async function handleOrderReject(orderId) {
-    if (isLoading || processedOrders.has(orderId)) {
-        return;
-    }
+    const nameParts = fullName.trim().split(' ');
+    if (nameParts.length === 1) return fullName;
     
-    try {
-        isLoading = true;
-        
-        const result = await rejectOrder(orderId, null, {
-            autoClose: true,
-            sendNotifications: true,
-            onSuccess: (order, action) => {
-                markOrderAsProcessed(orderId, action);
-            },
-            onError: (error) => {
-                console.error('Error in rejection:', error);
-            }
-        });
-        
-        if (result && result.success) {
-            console.log(`Order ${orderId} rejected successfully using approval.js`);
-        }
-        
-    } catch (error) {
-        console.error('Error rejecting order:', error);
-    } finally {
-        isLoading = false;
-    }
-}
-
-/**
- * SIMPLIFICADO: Handle approve all orders usando approval.js
- */
-async function handleApproveAll() {
-    const pendingOrdersList = pendingOrders.filter(order => !processedOrders.has(order.id));
+    const firstInitial = nameParts[0].charAt(0).toUpperCase();
+    const lastName = nameParts[nameParts.length - 1];
     
-    if (pendingOrdersList.length === 0) {
-        Swal.fire({
-            icon: 'info',
-            title: 'No Pending Orders',
-            text: 'All orders have been processed already.',
-            customClass: { container: 'swal-on-top' }
-        });
-        return;
-    }
-    
-    const result = await Swal.fire({
-        title: 'Approve All Orders?',
-        text: `This will approve ${pendingOrdersList.length} remaining orders. This action cannot be undone.`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#10B981',
-        confirmButtonText: 'Yes, approve all!',
-        cancelButtonText: 'Cancel',
-        customClass: { container: 'swal-on-top' }
-    });
-
-    if (result.isConfirmed) {
-        // Mostrar progreso
-        Swal.fire({
-            title: 'Approving Orders...',
-            text: `Processing 0 of ${pendingOrdersList.length} orders...`,
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            },
-            customClass: { container: 'swal-on-top' }
-        });
-
-        let processed = 0;
-        let successful = 0;
-        
-        for (const order of pendingOrdersList) {
-            try {
-                // SIMPLIFICADO: Usar la función centralizada
-                const result = await approveOrder(order.id, {
-                    showConfirmation: false,
-                    autoClose: false,
-                    sendNotifications: true,
-                    onSuccess: (order, action) => {
-                        markOrderAsProcessed(order.id, action);
-                        successful++;
-                    }
-                });
-                
-                processed++;
-                
-                // Actualizar progreso
-                Swal.update({
-                    text: `Processing ${processed} of ${pendingOrdersList.length} orders...`
-                });
-                
-                // Pequeña pausa entre procesamiento
-                await new Promise(resolve => setTimeout(resolve, 300));
-                
-            } catch (error) {
-                console.error(`Error approving order ${order.id}:`, error);
-                processed++;
-            }
-        }
-
-        // Mostrar resultado final
-        Swal.fire({
-            icon: 'success',
-            title: 'Bulk Approval Complete!',
-            html: `
-                <p>Successfully processed <strong>${successful}</strong> out of <strong>${processed}</strong> orders.</p>
-                <p><small>Used centralized approval.js functions</small></p>
-            `,
-            timer: 4000,
-            timerProgressBar: true,
-            customClass: { container: 'swal-on-top' }
-        });
-    }
+    return `${firstInitial}. ${lastName}`;
 }
 
 /**
- * Retry loading a specific order's SVG
+ * Helper function to truncate text
  */
-window.retryLoadOrder = async function(orderId) {
-    const order = pendingOrders.find(o => o.id === orderId);
-    if (order) {
-        await initializeOrderDisplay(order);
-    }
-};
-
-/**
- * Handle PDF generation for individual order - SAME LOGIC AS viewOrder.js
- */
-async function handleOrderPDF(orderId) {
-    if (isLoading) return;
-    
-    try {
-        isLoading = true;
-        
-        const order = pendingOrders.find(o => o.id === orderId);
-        if (!order) {
-            throw new Error('Order not found');
-        }
-        
-        Swal.fire({
-            title: 'Generating PDF',
-            html: 'Please wait while the document is being processed...',
-            timerProgressBar: true,
-            didOpen: () => { Swal.showLoading(); },
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            allowEnterKey: false,
-            customClass: { container: 'swal-on-top' }
-        });
-
-        // Use the same PDF generation function as view_order.php
-        const fileName = await svgGeneratePDF(order);
-
-        Swal.fire({
-            icon: 'success',
-            title: 'PDF Generated Successfully!',
-            html: `The file <b>${fileName}</b> has been downloaded successfully.`,
-            confirmButtonText: 'OK',
-            confirmButtonColor: '#28a745',
-            customClass: { container: 'swal-on-top' }
-        });
-        
-    } catch (error) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error Generating PDF',
-            text: error.message || 'An unexpected error occurred.',
-            confirmButtonText: 'OK',
-            confirmButtonColor: '#dc3545',
-            customClass: { container: 'swal-on-top' }
-        });
-    } finally {
-        isLoading = false;
-    }
+function truncateText(text, maxLength) {
+    if (!text || text.length <= maxLength) return text || '';
+    return text.substring(0, maxLength) + '...';
 }
 
-/**
- * Handle download all PDFs
- */
-async function handleDownloadAll() {
-    if (pendingOrders.length === 0) {
-        return;
-    }
-    
-    const result = await Swal.fire({
-        title: 'Download All Orders?',
-        text: `This will generate PDFs for ${pendingOrders.length} orders. This may take a few moments.`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#034C8C',
-        confirmButtonText: 'Yes, download all!',
-        cancelButtonText: 'Cancel',
-        customClass: { container: 'swal-on-top' }
-    });
-
-    if (result.isConfirmed) {
-        try {
-            Swal.fire({
-                title: 'Generating PDFs...',
-                text: 'Please wait while we generate all PDFs.',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-                customClass: { container: 'swal-on-top' }
-            });
-
-            for (let i = 0; i < pendingOrders.length; i++) {
-                const order = pendingOrders[i];
-                await svgGeneratePDF(order);
-                
-                const progress = ((i + 1) / pendingOrders.length) * 100;
-                Swal.update({
-                    text: `Generated ${i + 1} of ${pendingOrders.length} PDFs (${Math.round(progress)}%)`
-                });
-            }
-
-            Swal.fire({
-                icon: 'success',
-                title: 'All PDFs Downloaded!',
-                text: `Successfully generated ${pendingOrders.length} PDF files.`,
-                timer: 3000,
-                timerProgressBar: true,
-                customClass: { container: 'swal-on-top' }
-            });
-        } catch (error) {
-            console.error('Error generating PDFs:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Failed to generate some PDFs. Please try again.',
-                customClass: { container: 'swal-on-top' }
-            });
-        }
-    }
-}
-
-/**
- * Mark order as processed and hide its card
- */
-function markOrderAsProcessed(orderId, action) {
-    processedOrders.add(orderId);
-    
-    const orderCard = document.querySelector(`[data-order-id="${orderId}"]`);
-    if (orderCard) {
-        // Add status indicator first (visible briefly)
-        const orderHeader = orderCard.querySelector('.order-card-header');
-        const statusIndicator = document.createElement('div');
-        statusIndicator.className = `status-indicator status-${action}d`;
-        statusIndicator.textContent = action === 'approve' ? 'APPROVED' : 'REJECTED';
-        statusIndicator.style.cssText = `
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: ${action === 'approve' ? '#10B981' : '#dc3545'};
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            z-index: 10;
-        `;
-        orderHeader.style.position = 'relative';
-        orderHeader.appendChild(statusIndicator);
-        
-        // Add processed class for styling
-        orderCard.classList.add('processed', action === 'approve' ? 'approved' : 'rejected');
-        
-        // Disable action buttons immediately
-        const actionButtons = orderCard.querySelectorAll('.btn-approve, .btn-reject');
-        actionButtons.forEach(btn => {
-            btn.disabled = true;
-            btn.style.opacity = '0.5';
-            btn.style.cursor = 'not-allowed';
-        });
-        
-        // NUEVO: Animar la tarjeta y luego ocultarla
-        setTimeout(() => {
-            // Aplicar animación de desvanecimiento
-            orderCard.style.transition = 'all 0.5s ease-out';
-            orderCard.style.transform = 'scale(0.95)';
-            orderCard.style.opacity = '0.7';
-            
-            // Después de la animación, ocultar completamente
-            setTimeout(() => {
-                orderCard.style.maxHeight = orderCard.offsetHeight + 'px';
-                orderCard.style.overflow = 'hidden';
-                
-                setTimeout(() => {
-                    orderCard.style.transition = 'all 0.3s ease-out';
-                    orderCard.style.maxHeight = '0px';
-                    orderCard.style.marginBottom = '0px';
-                    orderCard.style.paddingTop = '0px';
-                    orderCard.style.paddingBottom = '0px';
-                    orderCard.style.opacity = '0';
-                    
-                    // Finalmente, ocultar completamente el elemento
-                    setTimeout(() => {
-                        orderCard.style.display = 'none';
-                        
-                        // Actualizar contadores después de ocultar
-                        updateOrderCountAfterProcessing();
-                        
-                    }, 300);
-                }, 50);
-            }, 500);
-        }, 1500); // Mostrar el indicador por 1.5 segundos antes de ocultar
-    }
-}
-
-/**
- * NUEVO: Actualizar contadores después de procesar órdenes
- */
-function updateOrderCountAfterProcessing() {
-    const remainingOrders = pendingOrders.filter(order => !processedOrders.has(order.id));
-    
-    // Actualizar el contador en el header
-    const orderCountElement = document.getElementById('orderCount');
-    if (orderCountElement) {
-        const count = remainingOrders.length;
-        orderCountElement.textContent = count === 0 ? 
-            'All orders have been processed!' : 
-            `${count} order${count === 1 ? '' : 's'} remaining`;
-    }
-    
-    // Actualizar visibilidad de botones de acción masiva
-    const approveAllBtn = document.querySelector('.btn-approve-all');
-    const downloadAllBtn = document.querySelector('.btn-download-all');
-    
-    if (remainingOrders.length <= 1) {
-        if (approveAllBtn) approveAllBtn.classList.add('hidden');
-    }
-    
-    if (remainingOrders.length === 0) {
-        if (downloadAllBtn) downloadAllBtn.classList.add('hidden');
-        
-        // Mostrar mensaje de completado si no quedan órdenes
-        setTimeout(() => {
-            showAllOrdersProcessedMessage();
-        }, 500);
-    }
-}
-
-/**
- * NUEVO: Mostrar mensaje cuando todas las órdenes han sido procesadas
- */
-function showAllOrdersProcessedMessage() {
-    const contentElement = document.getElementById('ordersContent');
-    if (contentElement && processedOrders.size === pendingOrders.length) {
-        
-        // Verificar si aún hay tarjetas visibles
-        const visibleCards = contentElement.querySelectorAll('.order-card:not([style*="display: none"])');
-        
-        if (visibleCards.length === 0) {
-            contentElement.innerHTML = `
-                <div class="no-orders-message">
-                    <div class="no-orders-content">
-                        <i class="fas fa-check-circle" style="color: #10B981;"></i>
-                        <h3>All Orders Processed!</h3>
-                        <p>You have successfully processed all pending orders.</p>
-                        <div style="margin-top: 20px;">
-                            <button class="action-btn-compact btn-back" onclick="goBack()" style="margin-right: 10px;">
-                                <i class="fas fa-arrow-left"></i>
-                                Back to Dashboard
-                            </button>
-                            <button class="action-btn-compact" onclick="location.reload()">
-                                <i class="fas fa-refresh"></i>
-                                Refresh Page
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-    }
-}
-
-/**
- * AGREGADO: Handle back navigation
- */
-function handleGoBack() {
-    try {
-        // Intentar ir al dashboard de órdenes
-        if (window.history.length > 1) {
-            window.history.back();
-        } else {
-            // Fallback: ir directamente al dashboard
-            window.location.href = 'orders.php';
-        }
-    } catch (error) {
-        console.error('Error navigating back:', error);
-        // Fallback de emergencia
-        window.location.href = 'index.php';
-    }
-}
-
-/**
- * Show/hide loading spinner for specific order
- */
-function showLoadingSpinner(show, spinnerId, containerId) {
-    const spinner = document.getElementById(spinnerId);
-    const content = document.getElementById(containerId);
-    
-    if (show) {
-        if (spinner) spinner.classList.remove('hidden');
-        if (content) content.classList.add('hidden');
-    } else {
-        if (spinner) spinner.classList.add('hidden');
-        if (content) content.classList.remove('hidden');
-    }
-}
-
-/**
- * Show error message to user
- */
-function showErrorMessage(message) {
-    Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: message,
-        confirmButtonColor: '#dc3545',
-        customClass: { container: 'swal-on-top' }
-    });
-}
-
-/**
- * Utility functions
- */
-function escapeHtml(text) {
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return text ? text.replace(/[&<>"']/g, function(m) { return map[m]; }) : '';
-}
-
-function formatDate(dateString) {
-    if (!dateString) return 'N/A';
-    try {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'short', 
-            day: 'numeric' 
-        });
-    } catch (error) {
-        return dateString;
-    }
-}
-
-// Assign to window for onclick handlers in HTML
-window.handleOrderApprove = handleOrderApprove;
-window.handleOrderReject = handleOrderReject;
-window.handleOrderPDF = handleOrderPDF;
-window.handleApproveAll = handleApproveAll;
-window.handleDownloadAll = handleDownloadAll;
-window.goBack = handleGoBack;
-
-/**
- * Export functions for use by other modules
- */
-export {
-    initializeWeeklyOrders,
-    handleOrderApprove,
-    handleOrderReject,
-    handleOrderPDF,
-    handleApproveAll,
-    handleDownloadAll,
-    handleGoBack
+// Export functions for potential use by other modules
+export { 
+    initializeWeeklyOrders, 
+    generateWeeklyTable, 
+    getISOWeekNumber 
 };
