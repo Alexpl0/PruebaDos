@@ -993,6 +993,15 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
 });
 
+// Actualizar botones para redirigir a las nuevas páginas
+document.getElementById('btnHistoricoSemanal').addEventListener('click', function() {
+    window.location.href = 'weekly-orders-history.php';
+});
+
+document.getElementById('btnHistoricoTotal').addEventListener('click', function() {
+    window.location.href = 'total-orders-history.php';
+});
+
 /**
  * Verificación de disponibilidad de la variable URLPF
  * En caso de que el script se cargue antes que la variable esté definida

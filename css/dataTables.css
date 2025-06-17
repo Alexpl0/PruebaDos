@@ -30,6 +30,71 @@
     box-shadow: var(--shadow-md);
 }
 
+/* === ESTILOS PARA PÁGINAS DE HISTÓRICO === */
+.history-header {
+    background: linear-gradient(135deg, var(--grammer-blue) 0%, var(--grammer-dark-blue) 100%);
+    color: var(--white);
+    padding: var(--spacing-xl) 0;
+    margin-top: var(--header-height);
+    box-shadow: var(--shadow-md);
+}
+
+.history-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: var(--spacing-sm);
+    color: var(--white);
+}
+
+.history-subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin-bottom: 0;
+    color: var(--white);
+}
+
+/* Navegación de semanas */
+.week-navigation {
+    background-color: var(--gray-50);
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius);
+    margin-bottom: var(--spacing-lg);
+}
+
+.week-navigation button {
+    min-width: 150px;
+}
+
+.week-navigation button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Tarjetas de estadísticas */
+.card {
+    border: none;
+    box-shadow: var(--shadow-md);
+    border-radius: var(--border-radius-lg);
+    transition: all var(--transition-normal);
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.card-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+}
+
+.card-text {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+}
+
 /* Ajustes para modales grandes */
 .modal-xl {
     max-width: 90%;
@@ -49,10 +114,10 @@
 
 /* Ajuste para encabezados de tabla */
 table.dataTable thead th {
-    position: sticky !important; /* Hace la cabecera de la tabla pegajosa */
-    top: 0; /* Se pega justo debajo de los .dt-buttons si ambos son sticky top:0 en el mismo scroll container y .dt-buttons tiene mayor z-index, o al inicio del scroll si no hay botones sticky arriba. */
-    background-color: var(--gray-50); /* Fondo para la cabecera pegajosa */
-    z-index: 10; /* Asegura que esté sobre el contenido de la tabla */
+    position: sticky !important;
+    top: 0;
+    background-color: var(--gray-50);
+    z-index: 10;
     border-bottom: 2px solid var(--gray-200);
     color: var(--gray-700);
     font-weight: 600;
@@ -72,23 +137,23 @@ table.dataTable thead th {
 /* Estilos para botones de exportación de DataTables */
 .dt-buttons {
     margin-bottom: var(--spacing-lg);
-    position: sticky; /* Hace los botones de DataTables pegajosos */
-    top: 0; /* Se pegan en la parte superior del .modal-body */
+    position: sticky;
+    top: 0;
     background-color: var(--white);
-    z-index: 11; /* Asegura que estén sobre las cabeceras de la tabla si ambas son sticky top:0 */
-    padding: var(--spacing-md) 0; /* Espacio arriba y abajo de los botones */
-    display: flex;           /* Alinea los botones en fila */
-    flex-wrap: nowrap;       /* Evita que se vayan a otra línea */
-    gap: var(--spacing-md);               /* Espacio entre botones */
-    justify-content: flex-start; /* Opcional: puedes usar center si prefieres */
+    z-index: 11;
+    padding: var(--spacing-md) 0;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: var(--spacing-md);
+    justify-content: flex-start;
     border-bottom: 1px solid var(--gray-200);
 }
 
 .dt-buttons .btn, 
 .dt-buttons button, 
 .dt-buttons .dt-button {
-    white-space: nowrap;     /* Evita que el texto se divida en varias líneas */
-    min-width: 100px;        /* Opcional: ancho mínimo para uniformidad */
+    white-space: nowrap;
+    min-width: 100px;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-sm);
     transition: all var(--transition-normal);
@@ -101,25 +166,51 @@ table.dataTable thead th {
     box-shadow: var(--shadow-md);
 }
 
-#modaldiv { /* Estilo para el .modal-dialog */
-    margin: 1.75rem auto; /* Margen estándar de Bootstrap para modales grandes */
-    min-width: 90%; /* Esto ya lo tenías, parece correcto para modal-xl */
+/* Botón de generar PDF individual */
+.generate-pdf-btn {
+    background-color: var(--grammer-blue) !important;
+    border-color: var(--grammer-blue) !important;
+    color: var(--white) !important;
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.875rem !important;
+    border-radius: var(--border-radius) !important;
+    transition: all var(--transition-fast) !important;
 }
 
-#modalContent { /* Estilo para el .modal-content específico de los modales de DataTables */
+.generate-pdf-btn:hover {
+    background-color: var(--grammer-dark-blue) !important;
+    border-color: var(--grammer-dark-blue) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+
+.generate-pdf-btn i {
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+/* Texto truncado con tooltip */
+.truncated-text {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: help;
+}
+
+#modaldiv {
+    margin: 1.75rem auto;
+    min-width: 90%;
+}
+
+#modalContent {
     background-color: #f8f9fa;
-    /* Las propiedades de flex y overflow deben ser manejadas por el .modal-content general en orders.css */
-    /* Si #modalContent necesita overrides específicos de max-height o similar, pueden ir aquí,
-       pero es mejor mantener la estructura del modal consistente. */
 }
 
 /* Asegurar que el modal-body dentro de los modales de DataTable permita el posicionamiento sticky */
 #modalHistoricoSemanal .modal-body,
 #modalHistoricoTotal .modal-body {
-    /* El padding-top en .dt-buttons debería crear suficiente espacio.
-       Si la cabecera de la tabla (thead th) se pega en top:0 y los .dt-buttons también,
-       el z-index se encargará de que los botones estén encima. La tabla comenzará
-       visualmente debajo de los botones. */
+    /* El padding-top en .dt-buttons debería crear suficiente espacio */
 }
 
 /* Font Awesome icon styling for DataTables */
@@ -199,9 +290,78 @@ button i {
     border-color: #b91c1c;
 }
 
+.dt-buttons .btn-info {
+    background-color: var(--info);
+    color: var(--white);
+    border-color: var(--info);
+}
+
+.dt-buttons .btn-info:hover {
+    background-color: #2563eb;
+    border-color: #1d4ed8;
+}
+
 /* Margen 0 para botones de navegación semanal */
 #prevSemana,
 #nextSemana {
     margin: 0 !important;
+}
+
+/* Responsive design para páginas de histórico */
+@media (max-width: 768px) {
+    .history-header {
+        padding: var(--spacing-lg) 0;
+        text-align: center;
+    }
+    
+    .history-title {
+        font-size: 2rem;
+    }
+    
+    .history-subtitle {
+        font-size: 1rem;
+    }
+    
+    .week-navigation {
+        flex-direction: column;
+        gap: var(--spacing-md);
+        text-align: center;
+    }
+    
+    .week-navigation button {
+        min-width: 100%;
+    }
+    
+    .dt-buttons {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .dt-buttons .btn,
+    .dt-buttons button,
+    .dt-buttons .dt-button {
+        margin: 0.25rem;
+        min-width: 80px;
+    }
+    
+    .card-text {
+        font-size: 2rem;
+    }
+}
+
+/* Mejoras para tabla responsive */
+@media (max-width: 992px) {
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .generate-pdf-btn {
+        padding: 0.125rem 0.25rem !important;
+        font-size: 0.75rem !important;
+    }
+    
+    .generate-pdf-btn i {
+        font-size: 0.75rem;
+    }
 }
 
