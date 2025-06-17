@@ -144,7 +144,7 @@ include_once 'dao/users/auth_check.php';
                                                 <i class="fas fa-eye-slash"></i>
                                             </button>
                                         </div>
-                                        <!-- NUEVO: Indicador de fortaleza -->
+                                        <!-- Indicador de fortaleza -->
                                         <div id="password-strength-indicator" class="mt-2"></div>
                                     </div>
                                 </div>
@@ -158,7 +158,7 @@ include_once 'dao/users/auth_check.php';
                                                 <i class="fas fa-eye-slash"></i>
                                             </button>
                                         </div>
-                                        <!-- NUEVO: Feedback de coincidencia -->
+                                        <!-- Feedback de coincidencia -->
                                         <div id="password-feedback" class="mt-2"></div>
                                     </div>
                                 </div>
@@ -170,7 +170,7 @@ include_once 'dao/users/auth_check.php';
                                 </button>
                             </div>
                             
-                            <!-- NUEVO: Indicador de seguridad -->
+                            <!-- Indicador de seguridad -->
                             <div class="text-center mt-3">
                                 <small class="text-muted">
                                     <i class="fas fa-shield-alt text-success"></i>
@@ -242,7 +242,7 @@ include_once 'dao/users/auth_check.php';
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/utils.js" type="module"></script>
-    <!-- NUEVO: Cargar PasswordManager -->
+    <!-- Cargar PasswordManager -->
     <script src="js/PasswordManager.js"></script>
     <script src="js/profile.js"></script>
 </body>
