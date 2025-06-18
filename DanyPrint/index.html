@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Impresora Web</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Luckysheet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/luckysheet@latest/dist/plugins/css/pluginsCss.css" />
+    <link rel="stylesheet" href="https://unpkg.com/luckysheet@latest/dist/plugins/plugins.css" />
+    <link rel="stylesheet" href="https://unpkg.com/luckysheet@latest/dist/css/luckysheet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/luckysheet@latest/dist/assets/iconfont/iconfont.css" />
+    
+    <!-- XLSX -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- Luckysheet JS -->
+    <script src="https://unpkg.com/luckysheet@latest/dist/plugins/js/plugin.js"></script>
+    <script src="https://unpkg.com/luckysheet@latest/dist/luckysheet.umd.js"></script>
+</head>
+<body class="letter">
+    <div id="app">
+        <h1>Impresora de Archivos Excel</h1>
+        <div id="controls">
+            <!-- Los controles se generan dinámicamente -->
+        </div>
+        
+        <div id="loading" style="display: none;">
+            <!-- El loading se genera dinámicamente -->
+        </div>
+        
+        <div id="sheetSelector" style="display: none;">
+            <!-- El selector de hojas se genera dinámicamente -->
+        </div>
+    </div>
+    <div id="luckysheet" style="margin:0px;padding:0px;position:absolute;width:100%;height:100vh;left: 0px;top: 0px;display:none;"></div>
+    
+    <!-- Cargar SOLO los archivos modulares (REMOVER script.js) -->
+    <script src="js/logger.js"></script>
+    <script src="js/fileHandler.js"></script>
+    <script src="js/excelProcessor.js"></script>
+    <script src="js/uiController.js"></script>
+    <script src="js/luckysheetManager.js"></script>
+    <script src="js/main.js"></script>
+    
+    <!-- NO CARGAR script.js - está causando conflictos -->
+    <!-- <script src="script.js"></script> -->
+</body>
+</html>
