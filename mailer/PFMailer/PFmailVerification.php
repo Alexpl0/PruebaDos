@@ -56,8 +56,8 @@ try {
             showSuccess(
                 '¡Cuenta verificada exitosamente! Ya puedes usar todas las funciones del sistema Premium Freight.',
                 'Verificación Completada',
-                'Continuar al Sistema',
-                URLPF . 'profile.php'
+                'Ir a Nueva Orden',
+                URLPF . 'newOrder.php'
             );
         } else {
             showError('Error al verificar la cuenta. Por favor contacta al administrador.');
