@@ -546,6 +546,12 @@ class PFMailer {
                 return false;
             }
             
+            // ✅ Verificar si ya está verificado
+            if ($user['verified'] == 1) {
+                logAction("Usuario ya verificado: " . $userId, 'VERIFICATION');
+                return true; // No es error, ya está verificado
+            }
+            
             // Generar token de verificación
             $token = $this->generateVerificationToken($userId);
             if (!$token) {
@@ -569,7 +575,7 @@ class PFMailer {
             if ($result) {
                 logAction("Email de verificación enviado exitosamente a: " . $user['email'], 'VERIFICATION');
             } else {
-                logAction("Error enviando email de verificación a: " . $user['email'], 'VERIFICATION');
+                logAction("Error enviando email de verificación: " . $this->mail->ErrorInfo, 'VERIFICATION');
             }
             
             return $result;
@@ -578,9 +584,8 @@ class PFMailer {
             logAction("Excepción en sendVerificationEmail: " . $e->getMessage(), 'VERIFICATION');
             return false;
         } finally {
-            // Limpiar el estado del mailer
+            // Limpiar direcciones para el próximo correo
             $this->mail->clearAddresses();
-            $this->mail->clearAttachments();
         }
     }
 

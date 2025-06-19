@@ -149,26 +149,38 @@ function handleRegistration(e) {
     submitRegistration(data)
         .then(response => {
             if (response.success) {
+                // ✅ MEJORAR: Manejo basado en email_status
+                let message = response.mensaje;
+                let icon = 'success';
+                
+                if (response.email_status === 'sent') {
+                    message += '\n\nPlease check your email (including spam folder) for the verification link.';
+                } else if (response.email_status === 'pending' || response.email_status === 'error') {
+                    message += '\n\nIf you don\'t receive the verification email, you can request a new one from the login page.';
+                    icon = 'warning';
+                }
+                
                 Swal.fire({
-                    icon: 'success',
-                    title: 'Success!',
-                    html: `
-                        <div style="text-align: left;">
-                            <p><strong>${response.mensaje || 'Registration successful!'}</strong></p>
-                            <p><i class="fas fa-shield-alt"></i> Your password has been securely encrypted</p>
-                            <p><i class="fas fa-envelope"></i> Welcome to Premium Freight!</p>
-                            <p><i class="fas fa-info-circle"></i> Please check your spam folder for an email from <strong>premium_freight@grammermx.com</strong> to verify your account.</p>
-                        </div>
-                    `,
-                    confirmButtonText: 'Login Now'
-                }).then(() => {
-                    window.location.href = 'index.php';
+                    icon: icon,
+                    title: 'Registration Successful!',
+                    text: message,
+                    confirmButtonText: 'Go to Login',
+                    allowOutsideClick: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Redirigir al login o página de verificación
+                        window.location.href = URLPF + 'index.php';
+                    }
                 });
+                
+                // Limpiar formulario
+                document.getElementById('register-form').reset();
+                
             } else {
                 Swal.fire({
                     icon: 'error',
                     title: 'Registration Failed',
-                    text: response.mensaje || 'Unable to register the user.'
+                    text: response.mensaje || 'Please try again.'
                 });
             }
         })
@@ -176,12 +188,12 @@ function handleRegistration(e) {
             console.error('Registration error:', error);
             Swal.fire({
                 icon: 'error',
-                title: 'Error',
-                text: 'Unable to register the user. Please try again later.'
+                title: 'Server Error',
+                text: 'Please try again later.'
             });
         })
         .finally(() => {
-            // Re-enable form - NOW ORIGINALTEXT IS ACCESSIBLE
+            // ✅ Re-habilitar botón
             if (submitButton) {
                 submitButton.disabled = false;
                 submitButton.innerHTML = originalText;
@@ -273,3 +285,5 @@ if (typeof URLPF === 'undefined') {
     // Fallback a URLPF hardcodeada solo como último recurso
     window.URLPF = window.URLPF || 'https://grammermx.com/Jesus/PruebaDos/';
 }
+
+const endpoint = 'https://grammermx.com/Mailer/PFMailer/PFmailVerification.php';

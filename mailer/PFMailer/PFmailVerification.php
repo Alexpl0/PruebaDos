@@ -65,33 +65,80 @@ try {
         exit;
     }
     
-    // Si es POST, procesar solicitud de reenvío
+    // Si es POST, procesar solicitud de envío
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $input = file_get_contents('php://input');
         $data = json_decode($input, true);
         
-        if (!isset($data['user_id'])) {
-            echo json_encode(['success' => false, 'message' => 'User ID requerido']);
-            exit;
+        // Soporte para diferentes acciones
+        $action = $data['action'] ?? 'send';
+        
+        if ($action === 'send' && isset($data['user_id'])) {
+            $userId = intval($data['user_id']);
+            
+            // Verificar que el usuario existe y no está verificado
+            $con = new LocalConector();
+            $db = $con->conectar();
+            
+            $userSql = "SELECT id, name, email, verified FROM User WHERE id = ?";
+            $userStmt = $db->prepare($userSql);
+            $userStmt->bind_param("i", $userId);
+            $userStmt->execute();
+            $userResult = $userStmt->get_result();
+            
+            if ($userResult->num_rows === 0) {
+                echo json_encode([
+                    'success' => false, 
+                    'message' => 'User not found'
+                ]);
+                exit;
+            }
+            
+            $user = $userResult->fetch_assoc();
+            
+            if ($user['verified'] == 1) {
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'User already verified'
+                ]);
+                exit;
+            }
+            
+            // Enviar correo de verificación
+            $mailer = new PFMailer();
+            $result = $mailer->sendVerificationEmail($userId);
+            
+            echo json_encode([
+                'success' => $result,
+                'message' => $result ? 'Verification email sent successfully' : 'Error sending verification email'
+            ]);
+            
+        } elseif ($action === 'resend' && isset($data['user_id'])) {
+            // Para reenvío desde verification_required.php
+            $userId = intval($data['user_id']);
+            
+            $mailer = new PFMailer();
+            $result = $mailer->sendVerificationEmail($userId);
+            
+            echo json_encode([
+                'success' => $result,
+                'message' => $result ? 'Verification email resent successfully' : 'Error resending verification email'
+            ]);
+            
+        } else {
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Invalid request parameters'
+            ]);
         }
-        
-        $userId = intval($data['user_id']);
-        
-        // Enviar correo de verificación
-        $mailer = new PFMailer();
-        $result = $mailer->sendVerificationEmail($userId);
-        
-        echo json_encode([
-            'success' => $result,
-            'message' => $result ? 'Correo de verificación enviado exitosamente' : 'Error al enviar correo'
-        ]);
         exit;
     }
     
 } catch (Exception $e) {
+    error_log("Error in PFmailVerification: " . $e->getMessage());
     echo json_encode([
         'success' => false,
-        'message' => 'Error interno del servidor'
+        'message' => 'Internal server error'
     ]);
 }
 ?>
