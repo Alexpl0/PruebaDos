@@ -94,7 +94,7 @@ function handleRegistration(e) {
     const name = nameInput.value.trim();
     const email = emailInput.value.trim();
     const plant = plantsInput.value.trim();
-    const password = passwordInput.value.trim();
+    const password = passwordInput.value.trim(); // ✅ MANTENER CONTRASEÑA ORIGINAL
     
     // Basic validation
     if (!name || !email || !plant || !password) {
@@ -133,16 +133,11 @@ function handleRegistration(e) {
         submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
     }
     
-    // NUEVO: Encriptar contraseña antes de enviar
-    let passwordToSend = password;
-    if (typeof PasswordManager !== 'undefined') {
-        passwordToSend = PasswordManager.prepareForSubmission(password);
-        console.log('Password encrypted for registration');
-    } else {
-        console.warn('PasswordManager not available, sending plain password');
-    }
+    // ✅ CRÍTICO: NO ENCRIPTAR EN FRONTEND - Solo enviar contraseña original
+    const passwordToSend = password; // ✅ Enviar contraseña sin encriptar
+    console.log('Sending plain password to backend for encryption');
     
-    // Prepare data - NOW INCLUDING PLANT and encrypted password
+    // Prepare data - NOW INCLUDING PLANT and plain password
     const data = { name, email, plant, password: passwordToSend };
     
     // Submit registration
