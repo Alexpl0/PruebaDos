@@ -43,18 +43,25 @@ window.MiImpresoraWeb.UIController = class UIController {
         this.logger.info('Creating controls HTML', 'uiController');
         
         const controlsHTML = `
-            <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+            <input type="file" id="fileInput" accept=".xlsx,.xlsm,.xlsb,.xltx,.xltm,.xlam,.xls,.xlt,.xla,.xlw,.csv,.xml,.prn,.txt,.slk,.dif,.ods">
             
             <label for="paperSizeSelect">Tamaño de papel:</label>
             <select id="paperSizeSelect">
                 <option value="letter">Carta (Letter)</option>
-                <option value="a4">A4</option>
+                <option value="tabloid">Tabloid (11x17")</option>
+                <option value="a3">A3</option>
                 <option value="legal">Legal</option>
-                <option value="tabloid">Tabloid</option>
             </select>
             
-            <button id="printButton" disabled>Imprimir</button>
-            <button id="resetButton">Reiniciar</button>
+            <label for="orientationSelect">Orientación:</label>
+            <select id="orientationSelect">
+                <option value="portrait">Vertical (Portrait)</option>
+                <option value="landscape">Horizontal (Landscape)</option>
+            </select>
+            
+            <button id="editButton" disabled>✏️ Editar</button>
+            <button id="printButton" disabled>🖨️ Imprimir</button>
+            <button id="resetButton">🔄 Reiniciar</button>
         `;
         
         this.elements.controls.innerHTML = controlsHTML;
@@ -62,16 +69,10 @@ window.MiImpresoraWeb.UIController = class UIController {
         // Update element references AFTER creating HTML
         this.elements.fileInput = document.getElementById('fileInput');
         this.elements.paperSizeSelect = document.getElementById('paperSizeSelect');
+        this.elements.orientationSelect = document.getElementById('orientationSelect');
+        this.elements.editButton = document.getElementById('editButton');
         this.elements.printButton = document.getElementById('printButton');
         this.elements.resetButton = document.getElementById('resetButton');
-        
-        this.logger.info('Controls created and elements updated', 'uiController', {
-            fileInputExists: !!this.elements.fileInput,
-            paperSizeSelectExists: !!this.elements.paperSizeSelect,
-            printButtonExists: !!this.elements.printButton,
-            resetButtonExists: !!this.elements.resetButton,
-            printButtonDisabled: this.elements.printButton ? this.elements.printButton.disabled : 'N/A'
-        });
     }
     
     setupEventListeners() {
@@ -173,6 +174,35 @@ window.MiImpresoraWeb.UIController = class UIController {
             this.logger.success('Paper size select event listener added successfully', 'uiController');
         } else {
             this.logger.error('Paper size select not found!', 'uiController');
+        }
+        
+        // Edit button - AGREGAR ESTE
+        if (this.elements.editButton) {
+            this.logger.info('Adding event listener to edit button', 'uiController');
+            
+            this.elements.editButton.addEventListener('click', (event) => {
+                this.logger.info('✏️ EDIT BUTTON CLICKED!', 'uiController', {
+                    event: event.type,
+                    disabled: event.target.disabled,
+                    onEditExists: !!this.onEdit
+                });
+                
+                if (event.target.disabled) {
+                    this.logger.warning('Edit button is disabled', 'uiController');
+                    return;
+                }
+                
+                if (this.onEdit) {
+                    this.logger.info('Calling onEdit callback', 'uiController');
+                    this.onEdit();
+                } else {
+                    this.logger.error('onEdit callback not set!', 'uiController');
+                }
+            });
+            
+            this.logger.success('Edit button event listener added successfully', 'uiController');
+        } else {
+            this.logger.error('Edit button not found!', 'uiController');
         }
         
         this.logger.success('All event listeners setup completed', 'uiController');
@@ -327,57 +357,72 @@ window.MiImpresoraWeb.UIController = class UIController {
     }
     
     showSpreadsheet() {
-        this.logger.info('Showing spreadsheet and enabling print button', 'uiController');
+        this.logger.info('Showing spreadsheet', 'uiController');
         
         this.elements.body.classList.add('showing-spreadsheet');
         this.elements.luckysheet.style.display = 'block';
         
-        // Función para habilitar el botón con reintentos
-        const enablePrintButton = (attempts = 0) => {
-            if (attempts > 10) {
-                this.logger.error('Failed to enable print button after 10 attempts', 'uiController');
-                return;
+        // Enable edit and print buttons
+        if (this.elements.editButton) {
+            this.elements.editButton.disabled = false;
+        }
+        if (this.elements.printButton) {
+            this.elements.printButton.disabled = false;
+        }
+        
+        this.logger.info('Spreadsheet shown, buttons enabled', 'uiController');
+    }
+    
+    showPDFConfigPanel() {
+        const panelHTML = `
+            <div class="pdf-config-container">
+                <h3>Configuración de PDF e Impresión</h3>
+                
+                <div class="config-info">
+                    <p><strong>Configuraciones aplicadas automáticamente:</strong></p>
+                    <ul>
+                        <li>✅ Márgenes: 0 en todos los lados</li>
+                        <li>✅ Centrado: Horizontal y vertical</li>
+                        <li>✅ Escalado: Ajustar a 1 página de ancho por 1 de alto</li>
+                    </ul>
+                </div>
+                
+                <div class="config-warning">
+                    <p><strong>⚠️ Importante:</strong> Asegúrate de que todo el contenido se vea correctamente antes de generar el PDF.</p>
+                </div>
+                
+                <div class="config-controls">
+                    <button id="confirmPDFButton" type="button">📄 Generar PDF e Imprimir</button>
+                    <button id="cancelPDFButton" type="button">❌ Cancelar</button>
+                </div>
+            </div>
+        `;
+        
+        this.elements.pdfConfigPanel = document.getElementById('pdfConfigPanel');
+        if (this.elements.pdfConfigPanel) {
+            this.elements.pdfConfigPanel.innerHTML = panelHTML;
+            this.elements.pdfConfigPanel.style.display = 'block';
+            
+            // Setup event listeners
+            const confirmBtn = document.getElementById('confirmPDFButton');
+            const cancelBtn = document.getElementById('cancelPDFButton');
+            
+            if (confirmBtn && this.onConfirmPDF) {
+                confirmBtn.addEventListener('click', this.onConfirmPDF);
             }
             
-            const printButton = document.getElementById('printButton');
-            if (printButton) {
-                printButton.disabled = false;
-                this.logger.success('Print button enabled successfully', 'uiController', {
-                    attempt: attempts + 1,
-                    disabled: printButton.disabled
-                });
-            } else {
-                this.logger.warning(`Print button not found, attempt ${attempts + 1}`, 'uiController');
-                setTimeout(() => enablePrintButton(attempts + 1), 100);
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', () => this.hidePDFConfigPanel());
             }
-        };
-        
-        // Intentar habilitar inmediatamente y con delay
-        enablePrintButton();
-        setTimeout(() => enablePrintButton(), 500);
-    }
-    
-    hideSpreadsheet() {
-        this.logger.info('Hiding spreadsheet and disabling print button', 'uiController');
-        
-        this.elements.body.classList.remove('showing-spreadsheet');
-        this.elements.luckysheet.style.display = 'none';
-        
-        if (this.elements.printButton) {
-            this.elements.printButton.disabled = true;
-            this.logger.info('Print button disabled', 'uiController');
         }
     }
-    
-    setPaperSize(size) {
-        // Remove existing paper size classes
-        this.elements.body.classList.remove('letter', 'a4', 'legal', 'tabloid');
-        // Add new paper size class
-        this.elements.body.classList.add(size);
-        
-        this.logger.info(`Paper size changed to: ${size}`, 'uiController');
+
+    hidePDFConfigPanel() {
+        if (this.elements.pdfConfigPanel) {
+            this.elements.pdfConfigPanel.style.display = 'none';
+        }
     }
-    
+
     reset() {
         this.hideLoading();
         this.hideSheetSelector();
@@ -394,5 +439,25 @@ window.MiImpresoraWeb.UIController = class UIController {
         this.setPaperSize('letter');
         
         this.logger.info('UI reset completed', 'uiController');
+    }
+    
+    setPaperSize(size) {
+        document.body.className = size;
+        this.logger.info(`Paper size set to: ${size}`, 'uiController');
+    }
+
+    hideSpreadsheet() {
+        this.elements.body.classList.remove('showing-spreadsheet');
+        this.elements.luckysheet.style.display = 'none';
+        
+        // Disable buttons
+        if (this.elements.editButton) {
+            this.elements.editButton.disabled = true;
+        }
+        if (this.elements.printButton) {
+            this.elements.printButton.disabled = true;
+        }
+        
+        this.logger.info('Spreadsheet hidden, buttons disabled', 'uiController');
     }
 };

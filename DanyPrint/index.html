@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Impresora Web</title>
+    <title>Dany Print</title>
     <link rel="stylesheet" href="style.css">
     
     <!-- Luckysheet CSS -->
@@ -12,8 +12,12 @@
     <link rel="stylesheet" href="https://unpkg.com/luckysheet@latest/dist/css/luckysheet.css" />
     <link rel="stylesheet" href="https://unpkg.com/luckysheet@latest/dist/assets/iconfont/iconfont.css" />
     
-    <!-- XLSX -->
+    <!-- XLSX.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- PDF Generation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
     <!-- Luckysheet JS -->
     <script src="https://unpkg.com/luckysheet@latest/dist/plugins/js/plugin.js"></script>
@@ -21,7 +25,10 @@
 </head>
 <body class="letter">
     <div id="app">
-        <h1>Impresora de Archivos Excel</h1>
+        <h1>Dany Print</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 20px;">
+            Soporta: Excel (.xlsx, .xlsm, .xlsb, .xls), CSV, XML, ODS y más formatos
+        </p>
         <div id="controls">
             <!-- Los controles se generan dinámicamente -->
         </div>
@@ -33,18 +40,30 @@
         <div id="sheetSelector" style="display: none;">
             <!-- El selector de hojas se genera dinámicamente -->
         </div>
+        
+        <!-- PDF Configuration Panel -->
+        <div id="pdfConfigPanel" style="display: none;">
+            <!-- Se genera dinámicamente -->
+        </div>
     </div>
     <div id="luckysheet" style="margin:0px;padding:0px;position:absolute;width:100%;height:100vh;left: 0px;top: 0px;display:none;"></div>
     
-    <!-- Cargar SOLO los archivos modulares (REMOVER script.js) -->
+    <!-- Animated Bear Helper -->
+    <div id="bearHelper" class="bear-helper">
+      <div class="bear-message"></div>
+      <div class="bear-frame">
+        <img src="images/Capibara3.png" class="bear-img" alt="Capibara">
+      </div>
+    </div>
+    
+    <!-- Load modular files -->
     <script src="js/logger.js"></script>
     <script src="js/fileHandler.js"></script>
     <script src="js/excelProcessor.js"></script>
     <script src="js/uiController.js"></script>
     <script src="js/luckysheetManager.js"></script>
+    <script src="js/pdfGenerator.js"></script>
+    <script src="js/bearAnimation.js"></script> <!-- New animation script -->
     <script src="js/main.js"></script>
-    
-    <!-- NO CARGAR script.js - está causando conflictos -->
-    <!-- <script src="script.js"></script> -->
 </body>
 </html>

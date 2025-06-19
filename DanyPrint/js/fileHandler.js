@@ -29,25 +29,69 @@ window.MiImpresoraWeb.FileHandler = class FileHandler {
     }
     
     validateFile(file) {
+        // Expanded list of supported file types
         const validTypes = [
+            // Excel formats
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+            'application/vnd.ms-excel.sheet.macroEnabled.12', // .xlsm
+            'application/vnd.ms-excel.sheet.binary.macroEnabled.12', // .xlsb
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.template', // .xltx
+            'application/vnd.ms-excel.template.macroEnabled.12', // .xltm
+            'application/vnd.ms-excel.addin.macroEnabled.12', // .xlam
             'application/vnd.ms-excel', // .xls
-            'text/csv' // .csv
+            'application/vnd.ms-excel.template', // .xlt
+            'application/vnd.ms-excel.addin', // .xla
+            'application/vnd.ms-excel.workspace', // .xlw
+            
+            // Other formats
+            'text/csv', // .csv
+            'application/xml', // .xml
+            'text/xml', // .xml
+            'text/plain', // .txt, .prn
+            'application/vnd.ms-excel.prn', // .prn
+            'application/vnd.sun.xml.calc', // .slk
+            'application/x-dif', // .dif
+            'application/vnd.oasis.opendocument.spreadsheet', // .ods
+            
+            // Generic types that might be used
+            'application/octet-stream', // Sometimes used for Excel files
+            'application/x-msexcel'
         ];
         
-        if (!validTypes.includes(file.type)) {
+        // Check MIME type first
+        let isValidType = validTypes.includes(file.type);
+        
+        // If MIME type check fails, check file extension
+        if (!isValidType) {
             const extension = file.name.split('.').pop().toLowerCase();
-            if (!['xlsx', 'xls', 'csv'].includes(extension)) {
-                this.logger.error('Invalid file type', 'fileHandler', { 
+            const validExtensions = [
+                'xlsx', 'xlsm', 'xlsb', 'xltx', 'xltm', 'xlam',
+                'xls', 'xlt', 'xla', 'xlw',
+                'csv', 'xml', 'prn', 'txt', 'slk', 'dif', 'ods'
+            ];
+            
+            isValidType = validExtensions.includes(extension);
+            
+            if (isValidType) {
+                this.logger.info('File validated by extension', 'fileHandler', { 
                     fileName: file.name, 
-                    fileType: file.type 
+                    extension: extension,
+                    mimeType: file.type 
                 });
-                return false;
             }
         }
         
-        // Check file size (max 50MB)
-        const maxSize = 50 * 1024 * 1024;
+        if (!isValidType) {
+            this.logger.error('Invalid file type', 'fileHandler', { 
+                fileName: file.name, 
+                fileType: file.type,
+                extension: file.name.split('.').pop().toLowerCase()
+            });
+            return false;
+        }
+        
+        // Check file size (max 100MB for larger files)
+        const maxSize = 100 * 1024 * 1024;
         if (file.size > maxSize) {
             this.logger.error('File too large', 'fileHandler', { 
                 fileName: file.name, 
@@ -56,6 +100,12 @@ window.MiImpresoraWeb.FileHandler = class FileHandler {
             });
             return false;
         }
+        
+        this.logger.success('File validation passed', 'fileHandler', { 
+            fileName: file.name,
+            fileType: file.type,
+            fileSize: file.size
+        });
         
         return true;
     }
