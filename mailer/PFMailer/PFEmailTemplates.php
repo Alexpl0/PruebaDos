@@ -843,6 +843,134 @@ class PFEmailTemplates {
     }
 
     /**
+     * Plantilla para correo de verificación de cuenta
+     */
+    public function getVerificationTemplate($user, $token) {
+        $verificationUrl = $this->baseUrl . "PFmailVerification.php?token=" . urlencode($token) . "&user=" . $user['id'];
+        $userName = htmlspecialchars($user['name'] ?? 'Usuario', ENT_QUOTES, 'UTF-8');
+        $userEmail = htmlspecialchars($user['email'] ?? '', ENT_QUOTES, 'UTF-8');
+
+        return '<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verificación de Cuenta - Premium Freight</title>
+    <style type="text/css">
+        body { margin: 0; padding: 0; background-color: #f4f4f4; font-family: Georgia, "Times New Roman", serif; }
+        .email-container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+        .header { background-color: #034C8C; padding: 30px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0 0 8px 0; font-size: 22px; font-weight: 700; }
+        .content { padding: 40px; }
+        .welcome-text { color: #1e293b; font-size: 18px; margin-bottom: 20px; text-align: center; }
+        .instruction-box { background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 20px; margin: 25px 0; }
+        .instruction-title { color: #92400e; font-size: 16px; font-weight: 700; margin-bottom: 15px; }
+        .step { margin: 10px 0; color: #92400e; }
+        .step-number { background: #f59e0b; color: white; width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 10px; }
+        .email-highlight { background: #e3f2fd; padding: 8px 12px; border-radius: 4px; font-family: monospace; color: #034C8C; font-weight: bold; display: inline-block; margin: 0 5px; }
+        .verification-button { display: inline-block; background-color: #10B981; color: #ffffff; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; margin: 20px 0; text-align: center; transition: all 0.3s ease; }
+        .verification-button:hover { background-color: #059669; }
+        .warning-box { background: #fee2e2; border: 1px solid #dc2626; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .warning-text { color: #991b1b; font-size: 14px; margin: 0; }
+        .footer { background-color: #f8fafc; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0; }
+        .footer-text { color: #6b7280; margin: 0; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f4f4f4;">
+        <tr>
+            <td style="padding: 20px 0;">
+                <div class="email-container">
+                    <div class="header">
+                        <h1>🛡️ Verificación de Cuenta</h1>
+                        <p style="color: #e2e8f0; margin: 0; font-size: 14px;">Premium Freight System</p>
+                    </div>
+                    
+                    <div class="content">
+                        <div class="welcome-text">
+                            ¡Bienvenido ' . $userName . '!
+                        </div>
+                        
+                        <p style="color: #374151; line-height: 1.6; margin-bottom: 25px;">
+                            Gracias por registrarte en el sistema Premium Freight. Para completar tu registro 
+                            y poder usar todas las funciones, necesitas verificar tu dirección de correo electrónico:
+                        </p>
+                        
+                        <p style="text-align: center; margin: 20px 0;">
+                            <span class="email-highlight">📧 ' . $userEmail . '</span>
+                        </p>
+                        
+                        <div class="instruction-box">
+                            <div class="instruction-title">
+                                ⚠️ IMPORTANTE: Antes de verificar tu cuenta
+                            </div>
+                            <p style="color: #92400e; margin-bottom: 15px; font-size: 14px;">
+                                Para asegurar que recibas todas nuestras notificaciones importantes, 
+                                <strong>debes seguir estos pasos PRIMERO</strong>:
+                            </p>
+                            
+                            <div class="step">
+                                <span class="step-number">1</span>
+                                <strong>Marca este correo como "No es SPAM"</strong> en tu bandeja de entrada
+                            </div>
+                            
+                            <div class="step">
+                                <span class="step-number">2</span>
+                                <strong>Añade a contactos seguros:</strong> <span class="email-highlight">pruebasjesus@grammermx.com</span>
+                            </div>
+                            
+                            <div class="step">
+                                <span class="step-number">3</span>
+                                <strong>Configura tu correo</strong> para permitir correos de nuestro dominio
+                            </div>
+                            
+                            <div class="step">
+                                <span class="step-number">4</span>
+                                <strong>Solo después</strong> haz clic en el botón de verificación
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; margin: 30px 0;">
+                            <a href="' . $verificationUrl . '" class="verification-button">
+                                ✅ Verificar Mi Cuenta
+                            </a>
+                        </div>
+                        
+                        <div class="warning-box">
+                            <p class="warning-text">
+                                <strong>🚨 ATENCIÓN:</strong> Si no sigues los pasos anteriores, 
+                                es posible que nuestros correos de notificación sean marcados como SPAM 
+                                y no puedas recibir alertas importantes sobre tus órdenes de Premium Freight.
+                            </p>
+                        </div>
+                        
+                        <p style="color: #6b7280; font-size: 14px; line-height: 1.6;">
+                            <strong>¿Por qué es necesario?</strong> Los sistemas de correo corporativo 
+                            suelen filtrar correos automáticos. Estos pasos garantizan que recibas 
+                            notificaciones de aprobaciones, rechazos y actualizaciones de estado.
+                        </p>
+                        
+                        <p style="color: #6b7280; font-size: 12px; margin-top: 30px;">
+                            Si tienes problemas con la verificación, contacta al equipo de soporte o 
+                            solicita ayuda a tu administrador de TI.
+                        </p>
+                    </div>
+                    
+                    <div class="footer">
+                        <p class="footer-text">
+                            © 2025 GRAMMER AG - Premium Freight System<br>
+                            Este es un correo automático, por favor no respondas a esta dirección.
+                        </p>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>';
+}
+    
+    /**
      * Generar filas de órdenes - VERSIÓN FINAL CORREGIDA
      */
     private function generateOrderRows($orders, $approverId, $bulkApproveToken = null) {

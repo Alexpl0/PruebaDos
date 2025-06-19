@@ -528,5 +528,103 @@ class PFMailer {
             $this->mail->clearAttachments();
         }
     }
+
+    /**
+     * Envía correo de verificación de cuenta
+     * 
+     * @param int $userId ID del usuario
+     * @return bool True si se envió correctamente
+     */
+    public function sendVerificationEmail($userId) {
+        try {
+            logAction("Iniciando envío de email de verificación para usuario: " . $userId, 'VERIFICATION');
+            
+            // Obtener datos del usuario
+            $user = $this->services->getUser($userId);
+            if (!$user) {
+                logAction("Usuario no encontrado: " . $userId, 'VERIFICATION');
+                return false;
+            }
+            
+            // Generar token de verificación
+            $token = $this->generateVerificationToken($userId);
+            if (!$token) {
+                logAction("Error generando token para usuario: " . $userId, 'VERIFICATION');
+                return false;
+            }
+            
+            // Configurar destinatarios según el modo
+            $this->setEmailRecipients($user['email'], $user['name']);
+            
+            // Generar contenido del correo
+            $emailContent = $this->templates->getVerificationTemplate($user, $token);
+            
+            // Configurar el correo
+            $this->mail->Subject = 'Verificación de Cuenta - Premium Freight System';
+            $this->mail->Body = $emailContent;
+            
+            // Enviar el correo
+            $result = $this->mail->send();
+            
+            if ($result) {
+                logAction("Email de verificación enviado exitosamente a: " . $user['email'], 'VERIFICATION');
+            } else {
+                logAction("Error enviando email de verificación a: " . $user['email'], 'VERIFICATION');
+            }
+            
+            return $result;
+            
+        } catch (Exception $e) {
+            logAction("Excepción en sendVerificationEmail: " . $e->getMessage(), 'VERIFICATION');
+            return false;
+        } finally {
+            // Limpiar el estado del mailer
+            $this->mail->clearAddresses();
+            $this->mail->clearAttachments();
+        }
+    }
+
+    /**
+     * Genera token de verificación único
+     * 
+     * @param int $userId ID del usuario
+     * @return string|null Token generado o null en caso de error
+     */
+    private function generateVerificationToken($userId) {
+        try {
+            // Generar token único
+            $token = bin2hex(random_bytes(32));
+            
+            // Crear tabla si no existe
+            $createTableSql = "CREATE TABLE IF NOT EXISTS EmailVerificationTokens (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                token VARCHAR(64) NOT NULL UNIQUE,
+                user_id INT NOT NULL,
+                is_used TINYINT(1) DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                used_at TIMESTAMP NULL,
+                INDEX idx_token (token),
+                INDEX idx_user_id (user_id),
+                FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+            
+            $this->db->query($createTableSql);
+            
+            // Insertar token
+            $sql = "INSERT INTO EmailVerificationTokens (token, user_id) VALUES (?, ?)";
+            $stmt = $this->db->prepare($sql);
+            $stmt->bind_param("si", $token, $userId);
+            
+            if ($stmt->execute()) {
+                return $token;
+            }
+            
+            return null;
+            
+        } catch (Exception $e) {
+            logAction("Error generando token de verificación: " . $e->getMessage(), 'VERIFICATION');
+            return null;
+        }
+    }
 }
 ?>

@@ -1,0 +1,97 @@
+<?php
+/**
+ * PFmailVerification.php - Endpoint para verificación de cuentas de usuario
+ */
+
+require_once __DIR__ . '/config.php';
+require_once 'PFmailer.php';
+require_once 'PFDB.php';
+require_once 'PFmailUtils.php';
+
+// Configurar headers
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+
+// Manejar preflight requests
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
+try {
+    // Si es GET con token, procesar verificación
+    if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['token']) && isset($_GET['user'])) {
+        $token = $_GET['token'];
+        $userId = intval($_GET['user']);
+        
+        // Conectar a la base de datos
+        $con = new LocalConector();
+        $db = $con->conectar();
+        
+        // Verificar token
+        $sql = "SELECT * FROM EmailVerificationTokens WHERE token = ? AND user_id = ? AND is_used = 0 AND created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)";
+        $stmt = $db->prepare($sql);
+        $stmt->bind_param("si", $token, $userId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows === 0) {
+            showError('Token inválido o expirado. Solicita un nuevo correo de verificación.');
+            exit;
+        }
+        
+        // Verificar usuario
+        $updateSql = "UPDATE User SET verified = 1 WHERE id = ?";
+        $updateStmt = $db->prepare($updateSql);
+        $updateStmt->bind_param("i", $userId);
+        
+        if ($updateStmt->execute()) {
+            // Marcar token como usado
+            $markUsedSql = "UPDATE EmailVerificationTokens SET is_used = 1, used_at = NOW() WHERE token = ?";
+            $markStmt = $db->prepare($markUsedSql);
+            $markStmt->bind_param("s", $token);
+            $markStmt->execute();
+            
+            showSuccess(
+                '¡Cuenta verificada exitosamente! Ya puedes usar todas las funciones del sistema Premium Freight.',
+                'Verificación Completada',
+                'Continuar al Sistema',
+                URLPF . 'profile.php'
+            );
+        } else {
+            showError('Error al verificar la cuenta. Por favor contacta al administrador.');
+        }
+        exit;
+    }
+    
+    // Si es POST, procesar solicitud de reenvío
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $input = file_get_contents('php://input');
+        $data = json_decode($input, true);
+        
+        if (!isset($data['user_id'])) {
+            echo json_encode(['success' => false, 'message' => 'User ID requerido']);
+            exit;
+        }
+        
+        $userId = intval($data['user_id']);
+        
+        // Enviar correo de verificación
+        $mailer = new PFMailer();
+        $result = $mailer->sendVerificationEmail($userId);
+        
+        echo json_encode([
+            'success' => $result,
+            'message' => $result ? 'Correo de verificación enviado exitosamente' : 'Error al enviar correo'
+        ]);
+        exit;
+    }
+    
+} catch (Exception $e) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Error interno del servidor'
+    ]);
+}
+?>
