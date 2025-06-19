@@ -157,6 +157,7 @@ function handleRegistration(e) {
                             <p><strong>${response.mensaje || 'Registration successful!'}</strong></p>
                             <p><i class="fas fa-shield-alt"></i> Your password has been securely encrypted</p>
                             <p><i class="fas fa-envelope"></i> Welcome to Premium Freight!</p>
+                            <p><i class="fas fa-info-circle"></i> Please check your spam folder for an email from <strong>premium_freight@grammermx.com</strong> to verify your account.</p>
                         </div>
                     `,
                     confirmButtonText: 'Login Now'

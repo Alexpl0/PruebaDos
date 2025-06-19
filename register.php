@@ -49,6 +49,10 @@ include_once 'dao/users/auth_check.php';
         <div id="registerform-container">
             <div id="register">
                 <div>
+                    <!-- Mensaje de notificación -->
+                    <div class="alert alert-info" role="alert" id="email-notification">
+                        Please check your spam folder for an email from <strong>premium_freight@grammermx.com</strong> to verify your account.
+                    </div>
                     <form id="register-form" autocomplete="off">
                         <div class="mb-3">
                             <label for="email" class="form-label">Email Address</label>

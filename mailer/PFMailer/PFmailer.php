@@ -560,7 +560,7 @@ class PFMailer {
             $emailContent = $this->templates->getVerificationTemplate($user, $token);
             
             // Configurar el correo
-            $this->mail->Subject = 'Verificación de Cuenta - Premium Freight System';
+            $this->mail->Subject = 'Account Verification - Premium Freight System';
             $this->mail->Body = $emailContent;
             
             // Enviar el correo
