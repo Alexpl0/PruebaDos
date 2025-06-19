@@ -1,54 +1,46 @@
 <?php
 /**
- * PFEmailTemplates.php - Plantillas HTML para correos de Premium Freight
+ * PFEmailTemplates.php - HTML Templates for Premium Freight emails
  * 
  * @author GRAMMER AG
- * @version 2.3 - Corregido generación de tokens individuales
+ * @version 2.4 - All texts in English
  */
 
 class PFEmailTemplates {
     private $baseUrl;
-    private $baseUrlPF;  // ✅ AGREGAR esta propiedad
+    private $baseUrlPF;
     private $services;
     
     /**
-     * Constructor de la clase
+     * Class constructor
      */
     public function __construct($baseUrl, $baseUrlPF = null) {
         $this->baseUrl = rtrim($baseUrl, '/') . '/';
         
-        // ✅ CORREGIDO: Definir baseUrlPF
         if ($baseUrlPF) {
             $this->baseUrlPF = rtrim($baseUrlPF, '/') . '/';
         } else {
-            // Fallback: usar URLPF si está definida, sino asumir que es igual a baseUrl
             $this->baseUrlPF = defined('URLPF') ? URLPF : $this->baseUrl;
         }
         
-        // Inicializar servicios para generar tokens
         require_once 'PFEmailServices.php';
         $this->services = new PFEmailServices();
     }
     
     /**
-     * Plantilla para correo de aprobación individual
+     * Template for individual approval email
      */
     public function getApprovalEmailTemplate($orderData, $approvalToken, $rejectToken) {
-        // CORREGIDO: URLs actualizadas - ahora apuntan directamente a view_order.php
         $viewOrderUrl = $this->baseUrlPF . "view_order.php?order=" . $orderData['id'];
-        
-        // URLs directas para acciones rápidas (mantener como alternativa)
         $approveUrl = $this->baseUrl . "PFmailSingleAction.php?action=approve&token=$approvalToken";
         $rejectUrl = $this->baseUrl . "PFmailSingleAction.php?action=reject&token=$rejectToken";
         
-        // Formatear datos de manera segura
         $costEuros = number_format((float)($orderData['cost_euros'] ?? 0), 2);
         $orderDescription = htmlspecialchars($orderData['description'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
         $creatorName = htmlspecialchars($orderData['creator_name'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
         $plantaName = htmlspecialchars($orderData['planta'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
         $areaName = htmlspecialchars($orderData['area'] ?? '', ENT_QUOTES, 'UTF-8');
         
-        // Formatear el nombre con área si está disponible
         $requestedBy = $creatorName;
         if (!empty($areaName)) {
             $requestedBy .= ' (' . $areaName . ')';
@@ -62,19 +54,8 @@ class PFEmailTemplates {
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Premium Freight Approval Required</title>
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
-    <!--[if mso]>
-    <noscript>
-        <xml>
-            <o:OfficeDocumentSettings>
-                <o:PixelsPerInch>96</o:PixelsPerInch>
-            </o:OfficeDocumentSettings>
-        </xml>
-    </noscript>
-    <![endif]-->
     <style type="text/css">
-        /* Estilos corporativos optimizados */
         body { margin: 0; padding: 0; background-color: #f4f4f4; font-family: Georgia, "Times New Roman", serif; }
         .email-container { max-width: 650px; margin: 0 auto; background-color: #ffffff; }
         .header { background-color: #034C8C; padding: 30px; text-align: center; }
@@ -94,7 +75,6 @@ class PFEmailTemplates {
         .actions-section { margin: 32px 0; text-align: center; }
         .actions-title { color: #1e293b; margin: 0 0 16px 0; font-size: 16px; font-weight: 700; font-family: Georgia, serif; }
         .actions-subtitle { color: #6b7280; margin: 0 0 20px 0; font-size: 12px; font-family: Georgia, serif; }
-        .button-container { display: inline-block; margin: 0 4px; vertical-align: top; }
         .action-button { 
             display: inline-block; 
             padding: 12px 18px; 
@@ -109,34 +89,8 @@ class PFEmailTemplates {
             font-family: Georgia, serif;
             min-width: 90px;
         }
-        .approve-btn { 
-            background-color: #059669 !important; 
-            color: #ffffff !important; 
-            border-color: #047857 !important;
-        }
-        .approve-btn:hover { 
-            background-color: #047857 !important; 
-        }
-        .reject-btn { 
-            background-color: #dc2626 !important; 
-            color: #ffffff !important; 
-            border-color: #b91c1c !important;
-        }
-        .reject-btn:hover { 
-            background-color: #b91c1c !important; 
-        }
-        .view-btn { 
-            background-color: #1e40af !important; 
-            color: #ffffff !important; 
-            border-color: #1d4ed8 !important;
-        }
-        .view-btn:hover { 
-            background-color: #1d4ed8 !important; 
-        }
-        /* Estilos específicos para Outlook */
-        .action-button[style*="background"] {
-            color: #ffffff !important;
-        }
+        .approve-btn { background-color: #059669 !important; color: #ffffff !important; border-color: #047857 !important; }
+        .reject-btn { background-color: #dc2626 !important; color: #ffffff !important; border-color: #b91c1c !important; }
         .info-box { background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; padding: 16px; margin: 24px 0; }
         .info-text { margin: 0; color: #92400e; font-size: 12px; line-height: 1.4; font-family: Georgia, serif; }
         .footer { background-color: #f8fafc; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0; }
@@ -149,8 +103,6 @@ class PFEmailTemplates {
         <tr>
             <td style="padding: 20px 0;">
                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="650" class="email-container" style="margin: 0 auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" align="center">
-                    
-                    <!-- Header -->
                     <tr>
                         <td class="header" style="border-radius: 8px 8px 0 0;">
                             <h1>Approval Required</h1>
@@ -158,13 +110,11 @@ class PFEmailTemplates {
                         </td>
                     </tr>
                     
-                    <!-- Content -->
                     <tr>
                         <td class="content">
                             <h2 class="section-title">Premium Freight Authorization Request</h2>
                             <p class="description">A new Premium Freight order requires your approval. Please review the details below and take the appropriate action.</p>
                             
-                            <!-- Order Details -->
                             <div class="details-card">
                                 <h3 class="details-title">Order Information</h3>
                                 
@@ -199,39 +149,22 @@ class PFEmailTemplates {
                                 </div>
                             </div>
                             
-                            <!-- New: Single View Order Button -->
                             <div style="text-align: center; margin: 30px 0;">
                                 <a href="' . $viewOrderUrl . '" style="background-color: #034C8C !important; color: #ffffff !important; padding: 16px 32px; text-decoration: none; font-weight: bold; border-radius: 8px; border: 2px solid #023b6a; text-transform: uppercase; display: inline-block; font-size: 16px;">
                                     📋 VIEW ORDER & TAKE ACTION
                                 </a>
                             </div>
                             
-                            <!-- Quick Actions Section -->
                             <div class="actions-section">
                                 <h3 class="actions-title">Quick Actions</h3>
                                 <p class="actions-subtitle">Click the button above to view full details, or use these quick action buttons:</p>
                                 
                                 <div style="text-align: center;">
-                                    <!--[if mso]>
-                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
-                                        <tr>
-                                            <td style="padding: 0 8px;">
-                                    <![endif]-->
                                     <a href="' . $approveUrl . '" class="action-button approve-btn" style="background-color: #28a745 !important; color: #ffffff !important; padding: 14px 24px; text-decoration: none; font-weight: bold; border-radius: 6px; border: 2px solid #1e7e34 !important; text-transform: uppercase; display: inline-block; margin: 8px;">✓ APPROVE</a>
-                                    <!--[if mso]>
-                                            </td>
-                                            <td style="padding: 0 8px;">
-                                    <![endif]-->
                                     <a href="' . $rejectUrl . '" class="action-button reject-btn" style="background-color: #dc3545 !important; color: #ffffff !important; padding: 14px 24px; text-decoration: none; font-weight: bold; border-radius: 6px; border: 2px solid #bd2130 !important; text-transform: uppercase; display: inline-block; margin: 8px;">✗ REJECT</a>
-                                    <!--[if mso]>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                    <![endif]-->
                                 </div>
                             </div>
                             
-                            <!-- Info Box -->
                             <div class="info-box">
                                 <p class="info-text">
                                     <strong>Note:</strong> This approval request will expire in 7 days. 
@@ -241,7 +174,6 @@ class PFEmailTemplates {
                         </td>
                     </tr>
                     
-                    <!-- Footer -->
                     <tr>
                         <td class="footer" style="border-radius: 0 0 8px 8px;">
                             <p class="footer-text">This is an automated notification from the Premium Freight Management System.</p>
@@ -258,25 +190,18 @@ class PFEmailTemplates {
     }
 
     /**
-     * Plantilla para correo resumen semanal - CORREGIDA
+     * Template for weekly summary email
      */
     public function getWeeklySummaryTemplate($orders, $approver, $approveAllToken, $rejectAllToken) {
-        // URLs para acciones en bloque
         $approveAllUrl = $this->baseUrl . "PFmailBulkAction.php?action=approve&token=$approveAllToken";
         $rejectAllUrl = $this->baseUrl . "PFmailBulkAction.php?action=reject&token=$rejectAllToken";
-        
-        // URL para ver todas las órdenes en modo bulk
         $viewAllOrdersUrl = $this->baseUrl . "view_bulk_orders.php?user=" . $approver['id'] . "&token=$approveAllToken";
         
-        // Calcular estadísticas
         $totalOrders = count($orders);
         $totalCost = array_sum(array_column($orders, 'cost_euros'));
         $avgCost = $totalOrders > 0 ? $totalCost / $totalOrders : 0;
         
-        // Formatear datos del aprobador
         $approverName = htmlspecialchars($approver['name'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
-        
-        // Generar filas de órdenes con token bulk como fallback
         $orderRows = $this->generateOrderRows($orders, $approver['id'], $approveAllToken);
 
         return '<!DOCTYPE html>
@@ -286,7 +211,6 @@ class PFEmailTemplates {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Weekly Premium Freight Summary</title>
     <style type="text/css">
-        /* Estilos corporativos para resumen semanal */
         body { margin: 0; padding: 0; background-color: #f4f4f4; font-family: Georgia, "Times New Roman", serif; }
         .email-container { max-width: 850px; margin: 0 auto; background-color: #ffffff; }
         .header { background-color: #034C8C; padding: 30px; text-align: center; }
@@ -296,8 +220,6 @@ class PFEmailTemplates {
         .content { padding: 32px; font-family: Georgia, serif; }
         .stats-card { background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border: 1px solid #cbd5e1; border-radius: 8px; padding: 24px; margin: 20px 0; }
         .stats-title { color: #0f172a; margin: 0 0 20px 0; font-size: 16px; font-weight: 700; border-bottom: 2px solid #034C8C; padding-bottom: 8px; font-family: Georgia, serif; }
-        
-        /* Estadísticas en una fila */
         .stats-row { width: 100%; }
         .stats-row table { width: 100%; border-collapse: collapse; }
         .stats-cell { width: 33.33%; text-align: center; padding: 0 15px; vertical-align: top; }
@@ -305,17 +227,13 @@ class PFEmailTemplates {
         .stat-label { color: #374151; font-size: 12px; font-weight: 500; margin-bottom: 6px; font-family: Georgia, serif; text-transform: uppercase; letter-spacing: 0.5px; }
         .stat-value { color: #034C8C; font-size: 22px; font-weight: 700; margin: 0; font-family: Georgia, serif; }
         .stat-value.cost { color: #059669; font-family: Georgia, serif; }
-        
         .bulk-actions { background-color: #ffffff; border: 2px solid #e2e8f0; border-radius: 8px; padding: 24px; margin: 24px 0; text-align: center; }
         .bulk-title { color: #1e293b; margin: 0 0 12px 0; font-size: 16px; font-weight: 700; font-family: Georgia, serif; }
         .bulk-subtitle { color: #6b7280; margin: 0 0 20px 0; font-size: 13px; font-family: Georgia, serif; }
         .bulk-button { display: inline-block; margin: 0 8px; padding: 14px 28px; font-size: 14px; font-weight: 600; text-decoration: none; border-radius: 6px; transition: all 0.2s ease; font-family: Georgia, serif; }
         .approve-all-btn { background-color: #059669; color: #ffffff; border: 2px solid #059669; }
-        .approve-all-btn:hover { background-color: #047857; border-color: #047857; }
         .reject-all-btn { background-color: #dc2626; color: #ffffff; border: 2px solid #dc2626; }
-        .reject-all-btn:hover { background-color: #b91c1c; border-color: #b91c1c; }
         .view-all-btn { background-color: #034C8C; color: #ffffff; border: 2px solid #034C8C; }
-        .view-all-btn:hover { background-color: #023b6a; border-color: #023b6a; }
         .bulk-warning { color: #6b7280; font-size: 11px; margin: 12px 0 0 0; font-family: Georgia, serif; }
         .orders-section { margin: 30px 0; }
         .section-title { color: #1e293b; margin: 0 0 12px 0; font-size: 16px; font-weight: 700; font-family: Georgia, serif; }
@@ -326,16 +244,13 @@ class PFEmailTemplates {
         <tr>
             <td align="center">
                 <div class="email-container">
-                    <!-- Header -->
                     <div class="header">
                         <h1>Weekly Premium Freight Summary</h1>
                         <div class="header-subtitle">Pending Approvals for ' . $approverName . '</div>
                         <div class="header-date">' . date('F j, Y') . '</div>
                     </div>
 
-                    <!-- Content -->
                     <div class="content">
-                        <!-- Statistics -->
                         <div class="stats-card">
                             <div class="stats-title">📊 Summary Statistics</div>
                             <div class="stats-row">
@@ -364,7 +279,6 @@ class PFEmailTemplates {
                             </div>
                         </div>
 
-                        <!-- Bulk Actions -->
                         <div class="bulk-actions">
                             <div class="bulk-title">⚡ Quick Actions</div>
                             <div class="bulk-subtitle">Process all orders at once or review them individually</div>
@@ -376,7 +290,6 @@ class PFEmailTemplates {
                             </div>
                         </div>
 
-                        <!-- Orders List -->
                         <div class="orders-section">
                             <div class="section-title">📋 Orders Requiring Your Approval</div>
                             ' . $orderRows . '
@@ -391,14 +304,12 @@ class PFEmailTemplates {
     }
 
     /**
-     * Plantilla para notificación de estado (aprobado/rechazado)
+     * Template for status notification (approved/rejected)
      */
     public function getStatusNotificationTemplate($orderData, $status, $rejectorInfo = null) {
-        // CORREGIDO: Cambiar a view_order.php
         $viewOrderUrl = $this->baseUrlPF . "view_order.php?order=" . $orderData['id'];
         $costEuros = number_format((float)($orderData['cost_euros'] ?? 0), 2);
         
-        // Formatear datos de manera segura
         $orderDescription = htmlspecialchars($orderData['description'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
         $creatorName = htmlspecialchars($orderData['creator_name'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
         $plantaName = htmlspecialchars($orderData['planta'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
@@ -433,10 +344,8 @@ class PFEmailTemplates {
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Premium Freight Order Status Update</title>
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
     <style type="text/css">
-        /* Estilos corporativos para notificación de estado */
         body { margin: 0; padding: 0; background-color: #f4f4f4; font-family: Georgia, "Times New Roman", serif; }
         .email-container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
         .header { background-color: ' . $statusColor . '; padding: 30px; text-align: center; }
@@ -455,19 +364,6 @@ class PFEmailTemplates {
         .detail-value { color: #1f2937; float: right; font-weight: 400; font-family: Georgia, serif; }
         .detail-value.highlight { color: #034C8C; font-weight: 700; font-family: Georgia, serif; }
         .detail-value.cost { color: #059669; font-weight: 700; font-size: 16px; font-family: Georgia, serif; }
-        .view-button { 
-            display: inline-block; 
-            padding: 14px 24px; 
-            background-color: #3b82f6 !important; 
-            color: #ffffff !important; 
-            text-decoration: none; 
-            font-weight: bold; 
-            border-radius: 6px;
-            margin: 20px 0;
-            border: 2px solid #2563eb !important;
-            text-transform: uppercase;
-            font-family: Georgia, serif;
-        }
         .next-steps { background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 16px; margin: 24px 0; }
         .next-steps-title { margin: 0 0 8px 0; color: #1e40af; font-size: 14px; font-weight: 700; font-family: Georgia, serif; }
         .next-steps-text { margin: 0; color: #1e40af; font-size: 12px; line-height: 1.4; font-family: Georgia, serif; }
@@ -481,8 +377,6 @@ class PFEmailTemplates {
         <tr>
             <td style="padding: 20px 0;">
                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" class="email-container" style="margin: 0 auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" align="center">
-                    
-                    <!-- Header -->
                     <tr>
                         <td class="header" style="border-radius: 8px 8px 0 0; background-color: ' . $statusColor . ';">
                             <h1 style="font-family: Georgia, serif; color: #ffffff; margin: 0 0 8px 0; font-size: 22px; font-weight: 700;">' . $statusTitle . '</h1>
@@ -490,18 +384,15 @@ class PFEmailTemplates {
                         </td>
                     </tr>
                     
-                    <!-- Content -->
                     <tr>
                         <td class="content" style="font-family: Georgia, serif;">
                             <h2 class="section-title" style="font-family: Georgia, serif;">Order Status Update</h2>
                             
-                            <!-- Status Message -->
                             <div class="status-card">
                                 <p class="status-message" style="font-family: Georgia, serif;">' . $statusMessage . '</p>
                                 <p class="status-detail" style="font-family: Georgia, serif;">' . $statusDetail . '</p>
                             </div>
                             
-                            <!-- Order Details -->
                             <div class="details-card">
                                 <h3 class="details-title" style="font-family: Georgia, serif;">Order Details</h3>
                                 
@@ -536,12 +427,10 @@ class PFEmailTemplates {
                                 </div>
                             </div>
                             
-                            <!-- View Order Button -->
                             <div style="text-align: center;">
                                 <a href="' . $viewOrderUrl . '" style="background-color: #3b82f6 !important; color: #ffffff !important; padding: 14px 24px; text-decoration: none; font-weight: bold; border-radius: 6px; border: 2px solid #2563eb; text-transform: uppercase; display: inline-block; font-family: Georgia, serif;">VIEW ORDER DETAILS</a>
                             </div>
                             
-                            <!-- Next Steps -->
                             <div class="next-steps">
                                 <h4 class="next-steps-title" style="font-family: Georgia, serif;">Next Steps:</h4>
                                 <p class="next-steps-text" style="font-family: Georgia, serif;">' . $nextSteps . '</p>
@@ -549,7 +438,6 @@ class PFEmailTemplates {
                         </td>
                     </tr>
                     
-                    <!-- Footer -->
                     <tr>
                         <td class="footer" style="border-radius: 0 0 8px 8px;">
                             <p class="footer-text" style="font-family: Georgia, serif;">This is an automated notification from the Premium Freight Management System.</p>
@@ -566,25 +454,18 @@ class PFEmailTemplates {
     }
 
     /**
-     * Plantilla para correo de verificación de recovery evidence
-     * 
-     * @param array $user Datos del usuario
-     * @param array $orders Órdenes que necesitan recovery evidence
-     * @return string HTML del correo
+     * Template for recovery evidence verification email
      */
     public function getRecoveryCheckTemplate($user, $orders) {
-        // CORREGIDO: URLs actualizadas
         $viewOrdersUrl = $this->baseUrlPF . "orders.php";
         $totalOrders = count($orders);
         $userName = htmlspecialchars($user['name'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
         
-        // Generar filas de órdenes
         $orderRows = '';
         foreach ($orders as $order) {
             $costFormatted = number_format((float)($order['cost_euros'] ?? 0), 2);
             $createdDate = date('M d, Y', strtotime($order['date']));
             $orderDescription = htmlspecialchars($order['description'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
-            // CORREGIDO: Cambiar a view_order.php
             $viewUrl = $this->baseUrlPF . "view_order.php?order=" . $order['id'];
             
             $orderRows .= '
@@ -605,10 +486,8 @@ class PFEmailTemplates {
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Premium Freight Recovery Evidence Required</title>
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
     <style type="text/css">
-        /* Estilos corporativos */
         body { margin: 0; padding: 0; background-color: #f4f4f4; font-family: Georgia, "Times New Roman", serif; }
         .email-container { max-width: 650px; margin: 0 auto; background-color: #ffffff; }
         .header { background-color: #dc2626; padding: 30px; text-align: center; }
@@ -626,7 +505,6 @@ class PFEmailTemplates {
         .orders-table td { padding: 12px 8px; border-bottom: 1px solid #e2e8f0; font-size: 12px; font-family: Georgia, serif; }
         .action-section { margin: 32px 0; text-align: center; }
         .action-button { display: inline-block; padding: 14px 28px; background-color: #034C8C; color: white; text-decoration: none; border-radius: 6px; font-weight: 700; font-size: 14px; font-family: Georgia, serif; transition: background-color 0.3s; }
-        .action-button:hover { background-color: #023b6a; }
         .info-box { background-color: #dbeafe; border: 1px solid #93c5fd; border-radius: 6px; padding: 16px; margin: 24px 0; }
         .info-text { margin: 0; color: #1e3a8a; font-size: 12px; line-height: 1.4; font-family: Georgia, serif; }
         .footer { background-color: #f8fafc; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0; }
@@ -639,7 +517,6 @@ class PFEmailTemplates {
         <tr>
             <td style="padding: 20px 0;">
                 <table class="email-container" role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
-                    <!-- Header -->
                     <tr>
                         <td class="header">
                             <h1>⚠️ Recovery Evidence Required</h1>
@@ -647,7 +524,6 @@ class PFEmailTemplates {
                         </td>
                     </tr>
                     
-                    <!-- Content -->
                     <tr>
                         <td class="content">
                             <div class="greeting">Hello ' . $userName . ',</div>
@@ -663,7 +539,6 @@ class PFEmailTemplates {
                                 </div>
                             </div>
                             
-                            <!-- Orders Table -->
                             <div class="orders-section">
                                 <div class="section-title">Orders Requiring Recovery Evidence:</div>
                                 
@@ -683,7 +558,6 @@ class PFEmailTemplates {
                                 </table>
                             </div>
                             
-                            <!-- Action Button -->
                             <div class="action-section">
                                 <a href="' . $viewOrdersUrl . '" class="action-button">
                                     📁 View My Orders
@@ -699,7 +573,6 @@ class PFEmailTemplates {
                         </td>
                     </tr>
                     
-                    <!-- Footer -->
                     <tr>
                         <td class="footer">
                             <div class="footer-text">This is an automated message from the Premium Freight System</div>
@@ -716,17 +589,10 @@ class PFEmailTemplates {
     }
 
     /**
-     * Plantilla para correo de recuperación de contraseña
-     * 
-     * @param array $user Datos del usuario
-     * @param string $resetToken Token de recuperación
-     * @return string HTML del correo
+     * Template for password reset email
      */
     public function getPasswordResetTemplate($user, $resetToken) {
-        // URL para el reset de contraseña
         $resetUrl = $this->baseUrlPF . "password_reset.php?token=" . $resetToken;
-        
-        // Formatear datos de manera segura
         $userName = htmlspecialchars($user['name'], ENT_QUOTES, 'UTF-8');
         $userEmail = htmlspecialchars($user['email'], ENT_QUOTES, 'UTF-8');
         
@@ -736,7 +602,6 @@ class PFEmailTemplates {
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Password Reset Request - Premium Freight</title>
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
     <style type="text/css">
         body { margin: 0; padding: 0; background-color: #f4f4f4; font-family: Georgia, "Times New Roman", serif; }
@@ -758,7 +623,6 @@ class PFEmailTemplates {
             font-size: 14px; 
             margin: 20px 0; 
         }
-        .reset-button:hover { background-color: #023b6a; }
         .security-note { 
             background-color: #fef3c7; 
             border: 1px solid #f59e0b; 
@@ -785,13 +649,11 @@ class PFEmailTemplates {
         <tr>
             <td align="center" valign="top">
                 <div class="email-container">
-                    <!-- Header -->
                     <div class="header">
                         <h1>Premium Freight System</h1>
                         <h2>Password Reset Request</h2>
                     </div>
                     
-                    <!-- Content -->
                     <div class="content">
                         <div class="greeting">Hello ' . $userName . ',</div>
                         
@@ -827,7 +689,6 @@ class PFEmailTemplates {
                         </div>
                     </div>
                     
-                    <!-- Footer -->
                     <div class="footer">
                         <div class="footer-text">
                             © ' . date('Y') . ' GRAMMER AG - Premium Freight System<br>
@@ -843,11 +704,11 @@ class PFEmailTemplates {
     }
 
     /**
-     * Plantilla para correo de verificación de cuenta
+     * Template for account verification email - CORRECTED to English
      */
     public function getVerificationTemplate($user, $token) {
         $verificationUrl = $this->baseUrl . "PFmailVerification.php?token=" . urlencode($token) . "&user=" . $user['id'];
-        $userName = htmlspecialchars($user['name'] ?? 'Usuario', ENT_QUOTES, 'UTF-8');
+        $userName = htmlspecialchars($user['name'] ?? 'User', ENT_QUOTES, 'UTF-8');
         $userEmail = htmlspecialchars($user['email'] ?? '', ENT_QUOTES, 'UTF-8');
 
         return '<!DOCTYPE html>
@@ -855,7 +716,7 @@ class PFEmailTemplates {
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Verificación de Cuenta - Premium Freight</title>
+    <title>Account Verification - Premium Freight</title>
     <style type="text/css">
         body { margin: 0; padding: 0; background-color: #f4f4f4; font-family: Georgia, "Times New Roman", serif; }
         .email-container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
@@ -882,18 +743,18 @@ class PFEmailTemplates {
             <td style="padding: 20px 0;">
                 <div class="email-container">
                     <div class="header">
-                        <h1>🛡️ Verificación de Cuenta</h1>
+                        <h1>🛡️ Account Verification</h1>
                         <p style="color: #e2e8f0; margin: 0; font-size: 14px;">Premium Freight System</p>
                     </div>
                     
                     <div class="content">
                         <div class="welcome-text">
-                            ¡Bienvenido ' . $userName . '!
+                            Welcome ' . $userName . '!
                         </div>
                         
                         <p style="color: #374151; line-height: 1.6; margin-bottom: 25px;">
-                            Gracias por registrarte en el sistema Premium Freight. Para completar tu registro 
-                            y poder usar todas las funciones, necesitas verificar tu dirección de correo electrónico:
+                            Thank you for registering in the Premium Freight system. To complete your registration 
+                            and be able to use all functions, you need to verify your email address:
                         </p>
                         
                         <p style="text-align: center; margin: 20px 0;">
@@ -902,64 +763,64 @@ class PFEmailTemplates {
                         
                         <div class="instruction-box">
                             <div class="instruction-title">
-                                ⚠️ IMPORTANTE: Antes de verificar tu cuenta
+                                ⚠️ IMPORTANT: Before verifying your account
                             </div>
                             <p style="color: #92400e; margin-bottom: 15px; font-size: 14px;">
-                                Para asegurar que recibas todas nuestras notificaciones importantes, 
-                                <strong>debes seguir estos pasos PRIMERO</strong>:
+                                To ensure you receive all our important notifications, 
+                                <strong>you must follow these steps FIRST</strong>:
                             </p>
                             
                             <div class="step">
                                 <span class="step-number">1</span>
-                                <strong>Marca este correo como "No es SPAM"</strong> en tu bandeja de entrada
+                                <strong>Mark this email as "Not SPAM"</strong> in your inbox
                             </div>
                             
                             <div class="step">
                                 <span class="step-number">2</span>
-                                <strong>Añade a contactos seguros:</strong> <span class="email-highlight">pruebasjesus@grammermx.com</span>
+                                <strong>Add to safe contacts:</strong> <span class="email-highlight">pruebasjesus@grammermx.com</span>
                             </div>
                             
                             <div class="step">
                                 <span class="step-number">3</span>
-                                <strong>Configura tu correo</strong> para permitir correos de nuestro dominio
+                                <strong>Configure your email</strong> to allow emails from our domain
                             </div>
                             
                             <div class="step">
                                 <span class="step-number">4</span>
-                                <strong>Solo después</strong> haz clic en el botón de verificación
+                                <strong>Only after</strong> click the verification button
                             </div>
                         </div>
                         
                         <div style="text-align: center; margin: 30px 0;">
                             <a href="' . $verificationUrl . '" class="verification-button">
-                                ✅ Verificar Mi Cuenta
+                                ✅ Verify My Account
                             </a>
                         </div>
                         
                         <div class="warning-box">
                             <p class="warning-text">
-                                <strong>🚨 ATENCIÓN:</strong> Si no sigues los pasos anteriores, 
-                                es posible que nuestros correos de notificación sean marcados como SPAM 
-                                y no puedas recibir alertas importantes sobre tus órdenes de Premium Freight.
+                                <strong>🚨 ATTENTION:</strong> If you don\'t follow the steps above, 
+                                our notification emails might be marked as SPAM 
+                                and you won\'t receive important alerts about your Premium Freight orders.
                             </p>
                         </div>
                         
                         <p style="color: #6b7280; font-size: 14px; line-height: 1.6;">
-                            <strong>¿Por qué es necesario?</strong> Los sistemas de correo corporativo 
-                            suelen filtrar correos automáticos. Estos pasos garantizan que recibas 
-                            notificaciones de aprobaciones, rechazos y actualizaciones de estado.
+                            <strong>Why is this necessary?</strong> Corporate email systems 
+                            usually filter automatic emails. These steps guarantee you receive 
+                            notifications about approvals, rejections, and status updates.
                         </p>
                         
                         <p style="color: #6b7280; font-size: 12px; margin-top: 30px;">
-                            Si tienes problemas con la verificación, contacta al equipo de soporte o 
-                            solicita ayuda a tu administrador de TI.
+                            If you have problems with verification, contact the support team or 
+                            ask your IT administrator for help.
                         </p>
                     </div>
                     
                     <div class="footer">
                         <p class="footer-text">
                             © 2025 GRAMMER AG - Premium Freight System<br>
-                            Este es un correo automático, por favor no respondas a esta dirección.
+                            This is an automatic email, please do not reply to this address.
                         </p>
                     </div>
                 </div>
@@ -968,24 +829,21 @@ class PFEmailTemplates {
     </table>
 </body>
 </html>';
-}
+    }
     
     /**
-     * Generar filas de órdenes - VERSIÓN FINAL CORREGIDA
+     * Generate order rows for templates
      */
     private function generateOrderRows($orders, $approverId, $bulkApproveToken = null) {
         $rows = '<table style="width: 100%; border-collapse: collapse; margin-top: 16px;">';
         
         foreach ($orders as $order) {
-            // VALIDACIÓN CRÍTICA: Verificar que la orden tenga ID válido
             if (!isset($order['id']) || empty($order['id']) || !is_numeric($order['id'])) {
-                logAction("generateOrderRows - Orden con ID inválido omitida: " . json_encode($order), 'GENERATEORDERROWS');
+                logAction("generateOrderRows - Order with invalid ID omitted: " . json_encode($order), 'GENERATEORDERROWS');
                 continue;
             }
             
             $orderId = (int)$order['id'];
-            
-            // Usar siempre view_bulk_orders.php con el token bulk para mayor consistencia
             $fallbackToken = $bulkApproveToken ?: 'MISSING_TOKEN';
             $viewUrl = $this->baseUrlPF . "view_bulk_orders.php?user=" . $approverId . "&order=" . $orderId . "&token=" . $fallbackToken;
             

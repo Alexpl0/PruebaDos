@@ -3,25 +3,582 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hola Mundo</title>
+    <title>Premium Freight Mailer - Panel de Control</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
-        }
-        h1 {
+            background: linear-gradient(135deg, #034C8C 0%, #023b6a 100%);
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
             color: #333;
-            font-size: 3rem;
+        }
+        
+        .main-container {
+            padding: 30px 20px;
+        }
+        
+        .header-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
             text-align: center;
+        }
+        
+        .logo {
+            font-size: 4rem;
+            color: #034C8C;
+            margin-bottom: 20px;
+        }
+        
+        .main-title {
+            color: #034C8C;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #6b7280;
+            font-size: 1.2rem;
+            margin-bottom: 0;
+        }
+        
+        .control-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            color: #034C8C;
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .service-card {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            border-color: #034C8C;
+        }
+        
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #034C8C, #10B981);
+            transition: left 0.3s ease;
+        }
+        
+        .service-card:hover::before {
+            left: 0;
+        }
+        
+        .service-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: #034C8C;
+        }
+        
+        .service-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 15px;
+        }
+        
+        .service-description {
+            color: #6b7280;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .service-button {
+            background: linear-gradient(135deg, #034C8C 0%, #023b6a 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        
+        .service-button:hover {
+            background: linear-gradient(135deg, #023b6a 0%, #01234a 100%);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .test-button {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        }
+        
+        .test-button:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+        
+        .danger-button {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        }
+        
+        .danger-button:hover {
+            background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+        }
+        
+        .info-section {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 1px solid #0ea5e9;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+        
+        .info-title {
+            color: #0369a1;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .info-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .info-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            color: #0369a1;
+        }
+        
+        .info-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #10B981;
+            font-weight: bold;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-online {
+            background: #10B981;
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+        }
+        
+        .status-warning {
+            background: #f59e0b;
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+        }
+        
+        .footer-info {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 2rem;
+            }
+            
+            .logo {
+                font-size: 3rem;
+            }
+            
+            .service-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-section,
+            .control-panel {
+                padding: 25px;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>¡Hola Mundo!</h1>
+    <div class="container main-container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <div class="logo">
+                <i class="fas fa-shipping-fast"></i>
+            </div>
+            <h1 class="main-title">Premium Freight Mailer</h1>
+            <p class="subtitle">Sistema de Gestión de Correos Electrónicos</p>
+            <div class="mt-3">
+                <span class="status-indicator status-online"></span>
+                <small>Sistema en línea</small>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <h2 class="section-title">
+                <i class="fas fa-control-panel"></i> Panel de Control
+            </h2>
+
+            <!-- Services Grid -->
+            <div class="service-grid">
+                <!-- Email Testing -->
+                <div class="service-card" onclick="window.open('PFmailTest.php', '_blank')">
+                    <div class="service-icon">
+                        <i class="fas fa-flask"></i>
+                    </div>
+                    <h3 class="service-title">Sistema de Pruebas</h3>
+                    <p class="service-description">
+                        Herramientas completas para probar el envío de correos, 
+                        verificar configuración y gestionar usuarios de prueba.
+                    </p>
+                    <a href="PFmailTest.php" class="service-button test-button" target="_blank">
+                        <i class="fas fa-play"></i> Ejecutar Pruebas
+                    </a>
+                </div>
+
+                <!-- Email Verification -->
+                <div class="service-card" onclick="showEmailForm('verification')">
+                    <div class="service-icon">
+                        <i class="fas fa-envelope-circle-check"></i>
+                    </div>
+                    <h3 class="service-title">Verificación de Cuentas</h3>
+                    <p class="service-description">
+                        Enviar correos de verificación para nuevos usuarios 
+                        y gestionar el proceso de activación de cuentas.
+                    </p>
+                    <button class="service-button" onclick="showEmailForm('verification')">
+                        <i class="fas fa-paper-plane"></i> Enviar Verificación
+                    </button>
+                </div>
+
+                <!-- Order Notifications -->
+                <div class="service-card" onclick="showEmailForm('notification')">
+                    <div class="service-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <h3 class="service-title">Notificaciones de Órdenes</h3>
+                    <p class="service-description">
+                        Enviar notificaciones de aprobación y rechazo de órdenes 
+                        Premium Freight a los usuarios correspondientes.
+                    </p>
+                    <button class="service-button" onclick="showEmailForm('notification')">
+                        <i class="fas fa-envelope"></i> Enviar Notificación
+                    </button>
+                </div>
+
+                <!-- Weekly Summary -->
+                <div class="service-card" onclick="executeWeeklySummary()">
+                    <div class="service-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="service-title">Resumen Semanal</h3>
+                    <p class="service-description">
+                        Generar y enviar reportes semanales automáticos 
+                        con estadísticas y resúmenes del sistema.
+                    </p>
+                    <button class="service-button" onclick="executeWeeklySummary()">
+                        <i class="fas fa-calendar-week"></i> Enviar Resumen
+                    </button>
+                </div>
+
+                <!-- Recovery Check -->
+                <div class="service-card" onclick="executeRecoveryCheck()">
+                    <div class="service-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="service-title">Verificación de Recovery</h3>
+                    <p class="service-description">
+                        Enviar recordatorios para completar evidencia de recovery 
+                        en órdenes pendientes del sistema.
+                    </p>
+                    <button class="service-button" onclick="executeRecoveryCheck()">
+                        <i class="fas fa-search"></i> Verificar Recovery
+                    </button>
+                </div>
+
+                <!-- Password Reset -->
+                <div class="service-card" onclick="showEmailForm('password')">
+                    <div class="service-icon">
+                        <i class="fas fa-key"></i>
+                    </div>
+                    <h3 class="service-title">Recuperación de Contraseña</h3>
+                    <p class="service-description">
+                        Procesar solicitudes de recuperación de contraseña 
+                        y enviar enlaces de restablecimiento seguros.
+                    </p>
+                    <button class="service-button" onclick="showEmailForm('password')">
+                        <i class="fas fa-unlock"></i> Recuperar Contraseña
+                    </button>
+                </div>
+            </div>
+
+            <!-- Information Section -->
+            <div class="info-section">
+                <h4 class="info-title">
+                    <i class="fas fa-info-circle"></i> Información del Sistema
+                </h4>
+                <ul class="info-list">
+                    <li>Correos configurados con autenticación SMTP segura</li>
+                    <li>Sistema de tokens único para acciones de email</li>
+                    <li>Plantillas HTML responsivas y profesionales</li>
+                    <li>Modo de prueba integrado para desarrollo</li>
+                    <li>Logs automáticos de todas las operaciones</li>
+                    <li>Verificación obligatoria de cuentas nuevas</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer-info">
+            <p class="mb-1">
+                <i class="fas fa-copyright"></i> 2025 GRAMMER AG - Premium Freight System
+            </p>
+            <p class="mb-0">
+                <small>Sistema de gestión de correos electrónicos | Versión 2.0</small>
+            </p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        // Función para mostrar formulario de email
+        function showEmailForm(type) {
+            let title, placeholder, endpoint;
+            
+            switch(type) {
+                case 'verification':
+                    title = 'Enviar Correo de Verificación';
+                    placeholder = 'ID del usuario';
+                    endpoint = 'PFmailVerification.php';
+                    break;
+                case 'notification':
+                    title = 'Enviar Notificación de Orden';
+                    placeholder = 'ID de la orden';
+                    endpoint = 'PFmailNotification.php';
+                    break;
+                case 'password':
+                    title = 'Recuperación de Contraseña';
+                    placeholder = 'Correo electrónico';
+                    endpoint = 'PFmailPasswordReset.php';
+                    break;
+                default:
+                    return;
+            }
+            
+            Swal.fire({
+                title: title,
+                input: 'text',
+                inputPlaceholder: placeholder,
+                showCancelButton: true,
+                confirmButtonText: 'Enviar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#034C8C',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'Este campo es obligatorio';
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    sendEmail(endpoint, result.value, type);
+                }
+            });
+        }
+        
+        // Función para enviar email
+        function sendEmail(endpoint, value, type) {
+            Swal.fire({
+                title: 'Enviando correo...',
+                text: 'Por favor espera mientras procesamos tu solicitud',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                willOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            let data = {};
+            switch(type) {
+                case 'verification':
+                    data = { user_id: parseInt(value) };
+                    break;
+                case 'notification':
+                    data = { orderId: parseInt(value) };
+                    break;
+                case 'password':
+                    data = { email: value };
+                    break;
+            }
+            
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Correo Enviado!',
+                        text: data.message || 'El correo se ha enviado exitosamente',
+                        confirmButtonColor: '#034C8C'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'Error al enviar el correo',
+                        confirmButtonColor: '#dc2626'
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error de conexión. Por favor intenta de nuevo.',
+                    confirmButtonColor: '#dc2626'
+                });
+            });
+        }
+        
+        // Función para ejecutar resumen semanal
+        function executeWeeklySummary() {
+            Swal.fire({
+                title: '¿Enviar Resumen Semanal?',
+                text: 'Esto enviará el resumen semanal a todos los usuarios autorizados',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, Enviar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#034C8C'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.open('PFmailWeeklySummary.php?force=1', '_blank');
+                    
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Proceso Iniciado',
+                        text: 'El resumen semanal se está procesando. Revisa la nueva ventana para ver el progreso.',
+                        confirmButtonColor: '#034C8C'
+                    });
+                }
+            });
+        }
+        
+        // Función para ejecutar verificación de recovery
+        function executeRecoveryCheck() {
+            Swal.fire({
+                title: '¿Verificar Recovery Evidence?',
+                text: 'Esto enviará recordatorios a usuarios con órdenes pendientes de recovery',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, Verificar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#034C8C'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.open('PFmailRecoveryCheck.php?force=1', '_blank');
+                    
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Verificación Iniciada',
+                        text: 'La verificación de recovery se está procesando. Revisa la nueva ventana para ver el progreso.',
+                        confirmButtonColor: '#034C8C'
+                    });
+                }
+            });
+        }
+        
+        // Función para abrir documentación
+        function openDocumentation() {
+            Swal.fire({
+                title: 'Documentación del Sistema',
+                html: `
+                    <div style="text-align: left;">
+                        <h5>Endpoints Disponibles:</h5>
+                        <ul>
+                            <li><strong>PFmailTest.php</strong> - Sistema de pruebas</li>
+                            <li><strong>PFmailVerification.php</strong> - Verificación de cuentas</li>
+                            <li><strong>PFmailNotification.php</strong> - Notificaciones de órdenes</li>
+                            <li><strong>PFmailPasswordReset.php</strong> - Recuperación de contraseña</li>
+                            <li><strong>PFmailWeeklySummary.php</strong> - Resumen semanal</li>
+                            <li><strong>PFmailRecoveryCheck.php</strong> - Verificación de recovery</li>
+                        </ul>
+                        <p><small>Todos los endpoints soportan tanto GET como POST según su funcionalidad.</small></p>
+                    </div>
+                `,
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#034C8C',
+                width: '600px'
+            });
+        }
+        
+        // Efectos de hover para las tarjetas
+        document.querySelectorAll('.service-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-8px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+        
+        // Mostrar información de carga al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            // Simular verificación de estado del sistema
+            setTimeout(() => {
+                const statusIndicator = document.querySelector('.status-indicator');
+                statusIndicator.classList.add('status-online');
+            }, 500);
+        });
+    </script>
 </body>
 </html>
