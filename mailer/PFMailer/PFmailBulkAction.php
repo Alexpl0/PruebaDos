@@ -10,9 +10,12 @@
  */
 
 // Configurar manejo de errores para mejor diagnóstico
-ini_set('display_errors', 0);  // No mostrar errores al usuario final
+ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/action_debug.log');
+
+// ✅ AGREGAR: Establecer Content-Type correcto desde el inicio
+header('Content-Type: text/html; charset=utf-8');
 
 // Importar la configuración global para usar la constante URL
 require_once __DIR__ . '/config.php';
@@ -145,6 +148,7 @@ try {
  * Muestra un mensaje de éxito con formato mejorado para acciones en bloque
  */
 function showBulkSuccess($message, $details = null) {
+    // ✅ NO necesario aquí ya que se estableció al inicio del archivo
     $detailsHtml = '';
     if ($details) {
         if (isset($details['total']) && isset($details['successful']) && isset($details['failed'])) {
@@ -177,6 +181,7 @@ function showBulkSuccess($message, $details = null) {
  * Muestra un mensaje de error con formato mejorado para acciones en bloque
  */
 function showBulkError($message, $details = null) {
+    // ✅ NO necesario aquí ya que se estableció al inicio del archivo
     $detailsHtml = '';
     if ($details && !empty($details['errors'])) {
         $detailsHtml .= "<div class='error-details'>";

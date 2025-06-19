@@ -80,25 +80,34 @@ class PFMailAction {
         try {
             logAction("Iniciando processAction para token={$token}, acción={$action}", 'PROCESSACTION');
             
-            // PASO 1: Verificar y marcar el token como usado EN UNA SOLA OPERACIÓN ATÓMICA
+            // ✅ MEJORADO: Operación atómica más robusta
             $sql = "UPDATE EmailActionTokens 
                     SET is_used = 1, used_at = NOW() 
-                    WHERE token = ? AND is_used = 0";
+                    WHERE token = ? 
+                    AND is_used = 0 
+                    AND created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)";
             
             $stmt = $this->db->prepare($sql);
+            if (!$stmt) {
+                logAction("Error preparando actualización de token: " . $this->db->error, 'PROCESSACTION');
+                return ['success' => false, 'message' => 'Error interno del sistema.'];
+            }
+            
             $stmt->bind_param("s", $token);
             $result = $stmt->execute();
             
-            // Si no se actualizó ninguna fila, significa que el token ya fue usado o no existe
+            // ✅ CRÍTICO: Si no se actualizó ninguna fila, el token ya fue usado o expiró
             if ($stmt->affected_rows === 0) {
-                logAction("Token ya procesado o no existe: {$token}", 'PROCESSACTION');
+                logAction("Token ya usado o expirado en processAction: {$token}", 'PROCESSACTION');
                 return [
-                    'success' => false,
-                    'message' => 'Este enlace ya fue procesado o no es válido.'
+                    'success' => false, 
+                    'message' => 'Este enlace ya fue utilizado o ha expirado.'
                 ];
             }
             
-            // PASO 2: Ahora obtener los datos del token (ya marcado como usado)
+            logAction("Token marcado como usado exitosamente: {$token}", 'PROCESSACTION');
+            
+            // Ahora obtener los datos del token (ya marcado como usado)
             $dataSql = "SELECT order_id, user_id, action FROM EmailActionTokens WHERE token = ?";
             $dataStmt = $this->db->prepare($dataSql);
             $dataStmt->bind_param("s", $token);
@@ -106,11 +115,8 @@ class PFMailAction {
             $dataResult = $dataStmt->get_result();
             
             if ($dataResult->num_rows === 0) {
-                logAction("Error: Token no encontrado después de marcarlo como usado: {$token}", 'PROCESSACTION');
-                return [
-                    'success' => false,
-                    'message' => 'Error interno del sistema.'
-                ];
+                logAction("No se encontraron datos del token después de marcar como usado: {$token}", 'PROCESSACTION');
+                return ['success' => false, 'message' => 'Error recuperando datos del token.'];
             }
             
             $tokenData = $dataResult->fetch_assoc();
@@ -118,18 +124,15 @@ class PFMailAction {
             $userId = $tokenData['user_id'];
             $tokenAction = $tokenData['action'];
             
-            // PASO 3: Validar que la acción coincida
+            // Validar que la acción coincida
             if ($action !== $tokenAction) {
-                logAction("Acción no coincide: esperada={$tokenAction}, recibida={$action}", 'PROCESSACTION');
-                return [
-                    'success' => false,
-                    'message' => "Acción no válida. Se esperaba '{$tokenAction}' pero se recibió '{$action}'."
-                ];
+                logAction("Acción no coincide: solicitada={$action}, token={$tokenAction}", 'PROCESSACTION');
+                return ['success' => false, 'message' => 'Acción no válida para este enlace.'];
             }
             
             logAction("Token procesado exitosamente. Ejecutando acción {$action} para orden #{$orderId}", 'PROCESSACTION');
             
-            // PASO 4: Procesar la acción
+            // Procesar la acción
             if ($action === 'approve') {
                 $result = $this->approveOrder($orderId, $userId);
             } else {
@@ -139,7 +142,7 @@ class PFMailAction {
             if ($result['success']) {
                 logAction("Acción {$action} completada exitosamente para orden #{$orderId}", 'PROCESSACTION');
             } else {
-                logAction("Error en acción {$action}: " . $result['message'], 'PROCESSACTION');
+                logAction("Error ejecutando acción {$action}: {$result['message']}", 'PROCESSACTION');
             }
             
             return $result;
@@ -148,7 +151,7 @@ class PFMailAction {
             logAction("Excepción en processAction: " . $e->getMessage(), 'PROCESSACTION');
             return [
                 'success' => false,
-                'message' => 'Error interno del sistema.'
+                'message' => 'Error interno del sistema: ' . $e->getMessage()
             ];
         }
     }

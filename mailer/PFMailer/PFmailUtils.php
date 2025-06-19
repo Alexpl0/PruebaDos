@@ -48,6 +48,9 @@ if (!function_exists('logAction')) {
  * @param string $buttonUrl - URL del botón (opcional)
  */
 function showSuccess($message, $title = 'Operación Exitosa', $buttonText = 'Continuar', $buttonUrl = null) {
+    // ✅ AGREGAR: Establecer Content-Type correcto ANTES de cualquier output
+    header('Content-Type: text/html; charset=utf-8');
+    
     // Usar la URL base para el botón si no se especifica una
     if ($buttonUrl === null) {
         $buttonUrl = URLPF . 'orders.php';
@@ -66,6 +69,9 @@ function showSuccess($message, $title = 'Operación Exitosa', $buttonText = 'Con
  * @param string $buttonUrl - URL del botón (opcional)
  */
 function showError($message, $title = 'Error', $buttonText = 'Volver', $buttonUrl = null) {
+    // ✅ AGREGAR: Establecer Content-Type correcto ANTES de cualquier output
+    header('Content-Type: text/html; charset=utf-8');
+    
     // Usar la URL base para el botón si no se especifica una
     if ($buttonUrl === null) {
         $buttonUrl = URLPF . 'orders.php';

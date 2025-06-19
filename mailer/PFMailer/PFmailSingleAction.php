@@ -8,6 +8,9 @@ ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/action_debug.log');
 
+// ✅ AGREGAR: Establecer Content-Type por defecto desde el inicio
+header('Content-Type: text/html; charset=utf-8');
+
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/PFmailUtils.php';
 require_once __DIR__ . '/PFmailer.php';
@@ -59,7 +62,7 @@ try {
         
         logAction("Mostrando mensaje de éxito para token ya usado: {$token}", 'SINGLEACTION');
         showSuccess($statusMessage);
-        exit;
+        exit; // ✅ CRÍTICO: Terminar aquí para evitar procesamiento adicional
     }
     
     // Validar que la acción solicitada coincida con la del token
@@ -69,7 +72,7 @@ try {
         exit;
     }
     
-    // PROCESAR LA ACCIÓN: Solo si el token es válido y no ha sido usado
+    // ✅ SOLO procesar si el token es válido y NO ha sido usado
     $result = $handler->processAction($token, $action);
 
     if ($result && isset($result['success']) && $result['success']) {
@@ -85,4 +88,7 @@ try {
     logAction("Excepción en procesamiento: " . $e->getMessage(), 'SINGLEACTION');
     showError("Ha ocurrido un error inesperado. Por favor contacte al administrador.<br><small>{$e->getMessage()}</small>");
 }
+
+// ✅ AGREGAR: Asegurar que no haya output adicional
+exit;
 ?>
