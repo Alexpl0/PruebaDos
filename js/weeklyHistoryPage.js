@@ -219,25 +219,32 @@ function populateWeeklyDataTable(orders) {
     const tableData = orders.map(order => {
         return [
             order.id || '-', // ID
-            order.code_planta || '-', // Plant Code
             order.planta || '-', // Plant Name
+            order.code_planta || '-', // Plant Code
             order.date || '-', // Issue Date
             order.in_out_bound || '-', // Inbound/Outbound
             getWeekNumber(order.date) || '-', // Issue CW (calculated)
+            new Date(order.date).toLocaleString('default', { month: 'long' }) || '-', // Issue Month
             order.reference_number || '-', // Reference Number
             order.creator_name || '-', // Creator Name
+            order.area || '-', // Area
             `<span class="table-description" title="${order.description}">${order.description}</span>`, // Description
             order.category_cause || '-', // Category Cause
             formatCost(order.cost_euros) || '-', // Cost (€)
             order.transport || '-', // Transport
+            order.int_ext || '-', // Int/Ext
             order.carrier || '-', // Carrier
             order.origin_company_name || '-', // Origin Company
             order.origin_city || '-', // Origin City
             order.destiny_company_name || '-', // Destination Company
             order.destiny_city || '-', // Destination City
             formatWeight(order.weight) || '-', // Weight (kg)
-            order.status_name || '-', // Status Name
-            order.approver_name || '-', // Approver Name
+            order.project_status || '-', // Project Status
+            order.approver_name || '-', // Approver
+            order.recovery || '-', // Recovery
+            order.paid_by || '-', // Paid By
+            order.products || '-', // Products
+            order.status_name || '-', // Status
             order.approval_date || '-', // Approval Date
             `<button class="btn btn-sm btn-outline-primary generate-pdf-btn" onclick="generateSinglePDF(${order.id})">
                 <i class="fas fa-file-pdf"></i>

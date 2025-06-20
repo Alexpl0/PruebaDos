@@ -143,7 +143,7 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
                                         <th>Products</th>
                                         <th>Status</th>
                                         <th>Approval Date</th>
-                                        <th>Approval Status</th>
+                                        <!-- <th>Approval Status</th> -->
                                         <th>Actions</th>
                                     </tr>
                                 </thead>

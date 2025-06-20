@@ -426,7 +426,7 @@ function populateTotalDataTable(orders) {
             order.products || '-', // Products
             order.status_name || '-', // Status
             order.approval_date || '-', // Approval Date
-            order.approval_status || '-', // Approval Status
+            // order.approval_status || '-', // Approval Status
             `<button class="btn btn-sm btn-outline-primary generate-pdf-btn" onclick="generateSinglePDF(${order.id})">
                 <i class="fas fa-file-pdf"></i>
             </button>` // Actions
