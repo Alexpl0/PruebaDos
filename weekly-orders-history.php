@@ -82,6 +82,15 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
             </div>
         </div>
 
+        <!-- Filtro semanal resumen -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert alert-info" id="weeklyFilterSummary">
+                    No filters applied
+                </div>
+            </div>
+        </div>
+
         <!-- Tabla de histórico semanal -->
         <div class="row">
             <div class="col-12">

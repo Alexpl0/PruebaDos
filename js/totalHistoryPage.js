@@ -464,6 +464,7 @@ async function refreshTotalData() {
 function applyTotalFilters() {
     filteredOrdersData = applyFilters(allOrdersData, currentFilters);
     populateTotalDataTable(filteredOrdersData);
+    updateFilterSummary(currentFilters, 'totalFilterSummary'); // Mostrar filtros aplicados
     showInfoToast(`Applied filters - ${filteredOrdersData.length} orders found`);
 }
 
@@ -483,7 +484,29 @@ function clearTotalFilters() {
 
     filteredOrdersData = allOrdersData;
     populateTotalDataTable(allOrdersData);
+    updateFilterSummary(currentFilters, 'totalFilterSummary'); // Limpiar resumen de filtros
     showInfoToast('Filters cleared - showing all orders');
+}
+
+/**
+ * Update filter summary display
+ * @param {Object} filters - Current filters
+ * @param {string} summaryElementId - ID of the summary element
+ */
+function updateFilterSummary(filters, summaryElementId) {
+    const summaryElement = document.getElementById(summaryElementId);
+    if (!summaryElement) return;
+
+    const filterDescriptions = [];
+    if (filters.dateRange !== 'all') filterDescriptions.push(`Date Range: ${filters.dateRange}`);
+    if (filters.status !== 'all') filterDescriptions.push(`Status: ${filters.status}`);
+    if (filters.plant !== 'all') filterDescriptions.push(`Plant: ${filters.plant}`);
+    if (filters.approvalStatus !== 'all') filterDescriptions.push(`Approval Status: ${filters.approvalStatus}`);
+    if (filters.costRange !== 'all') filterDescriptions.push(`Cost Range: ${filters.costRange}`);
+    if (filters.creator !== 'all') filterDescriptions.push(`Creator: ${filters.creator}`);
+    if (filters.carrier !== 'all') filterDescriptions.push(`Carrier: ${filters.carrier}`);
+
+    summaryElement.textContent = filterDescriptions.length > 0 ? filterDescriptions.join(', ') : 'No filters applied';
 }
 
 console.log('[TotalHistory] 📋 Total history module loaded successfully');

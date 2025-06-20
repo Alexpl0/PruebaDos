@@ -106,6 +106,15 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
             </div>
         </div>
 
+        <!-- Filter summary -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert alert-info" id="totalFilterSummary">
+                    No filters applied
+                </div>
+            </div>
+        </div>
+
         <!-- Tabla de histórico total -->
         <div class="row">
             <div class="col-12">
