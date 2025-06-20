@@ -186,7 +186,7 @@ async function loadOrdersData() {
         }
         
         const baseUrl = getBaseURL();
-        const response = await fetch(`${baseUrl}daoPremiumFreight.php`, {
+        const response = await fetch(`${baseUrl}dao/conections/daoPremiumFreight.php.php`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
