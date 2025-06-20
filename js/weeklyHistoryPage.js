@@ -219,19 +219,25 @@ function populateWeeklyDataTable(orders) {
     const tableData = orders.map(order => {
         return [
             order.id || '-',
-            order.division || '-',
-            order.plant_code || '-',
-            order.plant_name || '-',
-            order.issue_date || '-',
+            order.code_planta || '-', // Corrected column for Plant Code
+            order.planta || '-', // Corrected column for Plant Name
+            order.date || '-', // Corrected column for Issue Date
+            order.in_out_bound || '-', // Corrected column for Inbound/Outbound
+            getWeekNumber(order.date) || '-', // Calculated Issue CW
+            order.reference_number || '-',
+            order.creator_name || '-', // Corrected column for Creator
             `<span class="table-description" title="${order.description}">${order.description}</span>`,
             order.category_cause || '-',
             order.cost_euros || '-',
             order.transport || '-',
             order.carrier || '-',
             order.origin_company_name || '-',
+            order.origin_city || '-',
             order.destiny_company_name || '-',
+            order.destiny_city || '-',
             order.weight || '-',
-            order.status_name || '-',
+            order.status_name || '-', // Corrected column for Status
+            order.approver || '-',
             order.approval_date || '-',
             `<button class="btn btn-sm btn-outline-primary generate-pdf-btn" onclick="generateSinglePDF(${order.id})">
                 <i class="fas fa-file-pdf"></i>
@@ -240,7 +246,13 @@ function populateWeeklyDataTable(orders) {
     });
 
     const config = getDataTableConfig('Weekly_Premium_Freight', 'Weekly Premium Freight Report');
-    weeklyDataTable = $('#weeklyHistoryTable').DataTable({ ...config, data: tableData });
+    weeklyDataTable = $('#weeklyHistoryTable').DataTable({
+        ...config,
+        data: tableData,
+        scrollX: true, // Enable horizontal scrolling
+        scrollY: '400px', // Enable vertical scrolling with fixed height
+        responsive: false // Disable responsive mode for better scrolling
+    });
 }
 
 /**
