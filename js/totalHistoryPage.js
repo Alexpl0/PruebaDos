@@ -426,12 +426,16 @@ function populateTotalDataTable(orders) {
             order.products || '-', // Products
             order.status_name || '-', // Status
             order.approval_date || '-', // Approval Date
-            // order.approval_status || '-', // Approval Status
             `<button class="btn btn-sm btn-outline-primary generate-pdf-btn" onclick="generateSinglePDF(${order.id})">
                 <i class="fas fa-file-pdf"></i>
             </button>` // Actions
         ];
     });
+
+    // Destroy existing DataTable instance if it exists
+    if ($.fn.DataTable.isDataTable('#totalHistoryTable')) {
+        $('#totalHistoryTable').DataTable().clear().destroy();
+    }
 
     const config = getDataTableConfig('Total_Premium_Freight', 'Total Premium Freight Report');
     totalDataTable = $('#totalHistoryTable').DataTable({
