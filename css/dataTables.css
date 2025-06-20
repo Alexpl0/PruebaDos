@@ -503,3 +503,68 @@ table.dataTable tbody tr:hover {
     }
 }
 
+/* Estilo para los botones de filtros */
+.btn {
+    font-size: 0.875rem; /* Tamaño de fuente más pequeño */
+    padding: 0.5rem 1rem; /* Ajustar el padding */
+    border-radius: var(--border-radius); /* Bordes redondeados */
+    box-shadow: var(--shadow-sm); /* Sombra ligera */
+    transition: all 0.3s ease; /* Animación suave */
+}
+
+.btn:hover {
+    box-shadow: var(--shadow-md); /* Sombra más pronunciada al pasar el mouse */
+    transform: translateY(-2px); /* Efecto de elevación */
+}
+
+/* Estilo para los filtros */
+.card {
+    border: 1px solid var(--gray-300); /* Borde ligero */
+    border-radius: var(--border-radius-lg); /* Bordes redondeados */
+    box-shadow: var(--shadow-sm); /* Sombra ligera */
+}
+
+.card-header {
+    background-color: var(--grammer-light-blue); /* Fondo azul claro */
+    color: var(--white); /* Texto blanco */
+    font-weight: bold; /* Texto en negrita */
+    padding: var(--spacing-sm); /* Espaciado interno */
+    border-bottom: 1px solid var(--gray-300); /* Línea divisoria */
+}
+
+.card-body {
+    background-color: var(--white); /* Fondo blanco */
+    padding: var(--spacing-md); /* Espaciado interno */
+}
+
+/* Estilo para los select y inputs */
+.form-select, .form-control {
+    font-size: 0.875rem; /* Tamaño de fuente más pequeño */
+    border-radius: var(--border-radius); /* Bordes redondeados */
+    border: 1px solid var(--gray-300); /* Borde ligero */
+    box-shadow: var(--shadow-sm); /* Sombra ligera */
+    transition: all 0.3s ease; /* Animación suave */
+}
+
+.form-select:focus, .form-control:focus {
+    border-color: var(--grammer-blue); /* Color de borde al enfocar */
+    box-shadow: 0 0 0 3px rgba(0, 163, 224, 0.25); /* Sombra azul clara */
+}
+
+/* Estilo para los botones de estadísticas rápidas */
+.stats-card {
+    background-color: var(--gray-100); /* Fondo gris claro */
+    border-radius: var(--border-radius-lg); /* Bordes redondeados */
+    box-shadow: var(--shadow-sm); /* Sombra ligera */
+    padding: var(--spacing-md); /* Espaciado interno */
+    text-align: center; /* Centrar texto */
+    transition: all 0.3s ease; /* Animación suave */
+}
+
+.stats-card:hover {
+    background-color: var(--grammer-light-blue); /* Fondo azul claro al pasar el mouse */
+    color: var(--white); /* Texto blanco */
+    box-shadow: var(--shadow-md); /* Sombra más pronunciada */
+    transform: translateY(-2px); /* Efecto de elevación */
+}
+

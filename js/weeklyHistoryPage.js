@@ -8,13 +8,10 @@ let weeklyDataTable = null;
 let filteredOrdersData = [];
 let currentWeekOffset = 0;
 let currentFilters = {
-    dateRange: 'all',
-    status: 'all',
+    date: 'all',
     plant: 'all',
     approvalStatus: 'all',
-    costRange: 'all',
-    creator: 'all',
-    carrier: 'all'
+    costRange: 'all'
 };
 
 /**
@@ -33,21 +30,14 @@ document.addEventListener('DOMContentLoaded', function () {
         // Load current week data
         loadWeeklyHistoryData(currentWeekOffset);
 
-        // Setup keyboard shortcuts
-        setupKeyboardShortcuts();
+        // Setup filter event listeners
+        setupFilterEventListeners();
 
         console.log('[WeeklyHistory] ✅ Initialization completed successfully');
     } catch (error) {
         console.error('[WeeklyHistory] ❌ Error during initialization:', error);
         showErrorMessage('Initialization Error', 'Failed to initialize the weekly history page.');
     }
-});
-
-// Toggle filter panel
-document.getElementById('toggleWeeklyFilters').addEventListener('click', () => {
-    const filterBody = document.getElementById('weeklyFilterPanelBody');
-    const isVisible = filterBody.style.display !== 'none';
-    filterBody.style.display = isVisible ? 'none' : 'block';
 });
 
 /**
@@ -79,38 +69,92 @@ function setupWeekNavigation() {
 }
 
 /**
- * Setup keyboard shortcuts
+ * Setup filter event listeners
  */
-function setupKeyboardShortcuts() {
-    document.addEventListener('keydown', (event) => {
-        if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
-            return;
-        }
+function setupFilterEventListeners() {
+    // Toggle filter panel
+    const toggleBtn = document.getElementById('toggleFilters');
+    const filterBody = document.getElementById('filterPanelBody');
 
-        switch (event.key) {
-            case 'ArrowLeft':
-                if (currentWeekOffset < 52) {
-                    currentWeekOffset++;
-                    loadWeeklyHistoryData(currentWeekOffset);
-                }
-                break;
-            case 'ArrowRight':
-                if (currentWeekOffset > 0) {
-                    currentWeekOffset--;
-                    loadWeeklyHistoryData(currentWeekOffset);
-                }
-                break;
-            case 'r':
-            case 'R':
-                if (event.ctrlKey) {
-                    event.preventDefault();
-                    refreshWeeklyData();
-                }
-                break;
+    if (toggleBtn && filterBody) {
+        toggleBtn.addEventListener('click', () => {
+            const isVisible = filterBody.style.display !== 'none';
+            filterBody.style.display = isVisible ? 'none' : 'block';
+            toggleBtn.innerHTML = isVisible ?
+                '<i class="fas fa-chevron-down"></i>' :
+                '<i class="fas fa-chevron-up"></i>';
+        });
+    }
+
+    // Apply filters button
+    const applyBtn = document.getElementById('applyFilters');
+    if (applyBtn) {
+        applyBtn.addEventListener('click', applyWeeklyFilters);
+    }
+
+    // Clear filters button
+    const clearBtn = document.getElementById('clearFilters');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', clearWeeklyFilters);
+    }
+}
+
+/**
+ * Apply weekly filters
+ */
+function applyWeeklyFilters() {
+    const date = document.getElementById('filterDate').value;
+    const plant = document.getElementById('filterPlant').value;
+    const approvalStatus = document.getElementById('filterApprovalStatus').value;
+    const costRange = document.getElementById('filterCostRange').value;
+
+    currentFilters = { date, plant, approvalStatus, costRange };
+
+    filteredOrdersData = allOrdersData.filter(order => {
+        if (currentFilters.date !== 'all' && order.date !== currentFilters.date) return false;
+        if (currentFilters.plant !== 'all' && order.planta !== currentFilters.plant) return false;
+        if (currentFilters.approvalStatus !== 'all' && order.approval_status !== currentFilters.approvalStatus) return false;
+        if (currentFilters.costRange !== 'all') {
+            const cost = parseFloat(order.cost_euros) || 0;
+            switch (currentFilters.costRange) {
+                case '0-100':
+                    if (cost < 0 || cost > 100) return false;
+                    break;
+                case '100-500':
+                    if (cost < 100 || cost > 500) return false;
+                    break;
+                case '500-1000':
+                    if (cost < 500 || cost > 1000) return false;
+                    break;
+                case '1000-5000':
+                    if (cost < 1000 || cost > 5000) return false;
+                    break;
+                case '5000+':
+                    if (cost < 5000) return false;
+                    break;
+            }
         }
+        return true;
     });
 
-    console.log('[WeeklyHistory] ⌨️ Keyboard shortcuts enabled');
+    populateWeeklyDataTable(filteredOrdersData);
+    showInfoToast(`Applied filters - ${filteredOrdersData.length} orders found`);
+}
+
+/**
+ * Clear weekly filters
+ */
+function clearWeeklyFilters() {
+    currentFilters = {
+        date: 'all',
+        plant: 'all',
+        approvalStatus: 'all',
+        costRange: 'all'
+    };
+
+    filteredOrdersData = allOrdersData;
+    populateWeeklyDataTable(allOrdersData);
+    showInfoToast('Filters cleared - showing all orders');
 }
 
 /**
@@ -224,115 +268,48 @@ function updateNavigationButtons() {
 function populateWeeklyDataTable(orders) {
     const tableData = orders.map(order => {
         return [
-            order.id || '-', // ID
-            order.planta || '-', // Plant Name
-            order.code_planta || '-', // Plant Code
-            order.date || '-', // Issue Date
-            order.in_out_bound || '-', // Inbound/Outbound
-            getWeekNumber(order.date) || '-', // Issue CW (calculated)
-            new Date(order.date).toLocaleString('default', { month: 'long' }) || '-', // Issue Month
-            order.reference_number || '-', // Reference Number
-            order.creator_name || '-', // Creator Name
-            order.area || '-', // Area
-            `<span class="table-description" title="${order.description}">${order.description}</span>`, // Description
-            order.category_cause || '-', // Category Cause
-            formatCost(order.cost_euros) || '-', // Cost (€)
-            order.transport || '-', // Transport
-            order.int_ext || '-', // Int/Ext
-            order.carrier || '-', // Carrier
-            order.origin_company_name || '-', // Origin Company
-            order.origin_city || '-', // Origin City
-            order.destiny_company_name || '-', // Destination Company
-            order.destiny_city || '-', // Destination City
-            formatWeight(order.weight) || '-', // Weight (kg)
-            order.project_status || '-', // Project Status
-            order.approver_name || '-', // Approver
-            order.recovery || '-', // Recovery
-            order.paid_by || '-', // Paid By
-            order.products || '-', // Products
-            order.status_name || '-', // Status
-            order.approval_date || '-', // Approval Date
+            order.id || '-',
+            order.planta || '-',
+            order.code_planta || '-',
+            order.date || '-',
+            order.in_out_bound || '-',
+            order.reference_number || '-',
+            order.creator_name || '-',
+            order.area || '-',
+            order.description || '-',
+            order.category_cause || '-',
+            order.cost_euros || '-',
+            order.transport || '-',
+            order.carrier || '-',
+            order.origin_company_name || '-',
+            order.origin_city || '-',
+            order.destiny_company_name || '-',
+            order.destiny_city || '-',
             `<button class="btn btn-sm btn-outline-primary generate-pdf-btn" onclick="generateSinglePDF(${order.id})">
                 <i class="fas fa-file-pdf"></i>
-            </button>` // Actions
+            </button>`
         ];
     });
 
-    // Destroy existing DataTable instance if it exists
     if ($.fn.DataTable.isDataTable('#weeklyHistoryTable')) {
         $('#weeklyHistoryTable').DataTable().clear().destroy();
     }
 
-    const config = getDataTableConfig('Weekly_Premium_Freight', 'Weekly Premium Freight Report');
     weeklyDataTable = $('#weeklyHistoryTable').DataTable({
-        ...config,
         data: tableData,
-        scrollX: true, // Enable horizontal scrolling
-        scrollY: '400px', // Enable vertical scrolling with fixed height
-        responsive: false // Disable responsive mode for better scrolling
+        scrollX: true,
+        scrollY: '400px',
+        responsive: false
     });
 }
 
 /**
- * Refresh weekly data
+ * Generate PDFs for all filtered orders
  */
-async function refreshWeeklyData() {
-    // Clear cache
-    dataCache.clear();
-
-    showInfoToast('Refreshing weekly data...');
-    await loadWeeklyHistoryData(currentWeekOffset);
-}
-
-/**
- * Apply filters and update the weekly DataTable
- */
-function applyWeeklyFilters() {
-    filteredOrdersData = applyFilters(allOrdersData, currentFilters);
-    populateWeeklyDataTable(filteredOrdersData);
-    updateFilterSummary(currentFilters, 'weeklyFilterSummary'); // Mostrar filtros aplicados
-    showInfoToast(`Applied filters - ${filteredOrdersData.length} orders found`);
-}
-
-/**
- * Clear filters and reset the weekly DataTable
- */
-function clearWeeklyFilters() {
-    currentFilters = {
-        dateRange: 'all',
-        status: 'all',
-        plant: 'all',
-        approvalStatus: 'all',
-        costRange: 'all',
-        creator: 'all',
-        carrier: 'all'
-    };
-
-    filteredOrdersData = allOrdersData;
-    populateWeeklyDataTable(allOrdersData);
-    updateFilterSummary(currentFilters, 'weeklyFilterSummary'); // Limpiar resumen de filtros
-    showInfoToast('Filters cleared - showing all orders');
-}
-
-/**
- * Update filter summary display
- * @param {Object} filters - Current filters
- * @param {string} summaryElementId - ID of the summary element
- */
-function updateFilterSummary(filters, summaryElementId) {
-    const summaryElement = document.getElementById(summaryElementId);
-    if (!summaryElement) return;
-
-    const filterDescriptions = [];
-    if (filters.dateRange !== 'all') filterDescriptions.push(`Date Range: ${filters.dateRange}`);
-    if (filters.status !== 'all') filterDescriptions.push(`Status: ${filters.status}`);
-    if (filters.plant !== 'all') filterDescriptions.push(`Plant: ${filters.plant}`);
-    if (filters.approvalStatus !== 'all') filterDescriptions.push(`Approval Status: ${filters.approvalStatus}`);
-    if (filters.costRange !== 'all') filterDescriptions.push(`Cost Range: ${filters.costRange}`);
-    if (filters.creator !== 'all') filterDescriptions.push(`Creator: ${filters.creator}`);
-    if (filters.carrier !== 'all') filterDescriptions.push(`Carrier: ${filters.carrier}`);
-
-    summaryElement.textContent = filterDescriptions.length > 0 ? filterDescriptions.join(', ') : 'No filters applied';
-}
-
-console.log('[WeeklyHistory] 📋 Weekly history module loaded successfully');
+document.querySelector('.buttons-svg').addEventListener('click', async () => {
+    const ordersToExport = filteredOrdersData.length ? filteredOrdersData : allOrdersData;
+    for (const order of ordersToExport) {
+        await generatePDF(order);
+    }
+    showSuccessToast('PDFs generated successfully!');
+});

@@ -82,43 +82,36 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
             </div>
         </div>
 
-        <!-- Filtro semanal resumen -->
+        <!-- Filtros actualizados -->
         <div class="row mb-4">
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
                         <h6 class="mb-0">
-                            <i class="fas fa-filter me-2"></i>Weekly Filters
-                            <button class="btn btn-sm btn-outline-secondary float-end" id="toggleWeeklyFilters">
+                            <i class="fas fa-filter me-2"></i>Filters
+                            <button class="btn btn-sm btn-outline-secondary float-end" id="toggleFilters">
                                 <i class="fas fa-chevron-down"></i>
                             </button>
                         </h6>
                     </div>
-                    <div class="card-body" id="weeklyFilterPanelBody" style="display: none;">
+                    <div class="card-body" id="filterPanelBody" style="display: none;">
                         <div class="row g-3">
                             <div class="col-md-3">
-                                <label for="weeklyFilterDateRange" class="form-label">Date Range</label>
-                                <select class="form-select" id="weeklyFilterDateRange">
-                                    <option value="all">All Dates</option>
-                                    <option value="today">Today</option>
-                                    <option value="week">This Week</option>
-                                    <option value="month">This Month</option>
-                                    <option value="quarter">This Quarter</option>
-                                    <option value="year">This Year</option>
+                                <label for="filterDate" class="form-label">Date</label>
+                                <input type="date" class="form-control" id="filterDate">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="filterPlant" class="form-label">Plant</label>
+                                <select class="form-select" id="filterPlant">
+                                    <option value="all">All Plants</option>
+                                    <option value="Querétaro">Querétaro</option>
+                                    <option value="Puebla">Puebla</option>
+                                    <!-- Agrega más plantas según sea necesario -->
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label for="weeklyFilterStatus" class="form-label">Status</label>
-                                <select class="form-select" id="weeklyFilterStatus">
-                                    <option value="all">All Status</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="approved">Approved</option>
-                                    <option value="rejected">Rejected</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="weeklyFilterApprovalStatus" class="form-label">Approval Status</label>
-                                <select class="form-select" id="weeklyFilterApprovalStatus">
+                                <label for="filterApprovalStatus" class="form-label">Approval Status</label>
+                                <select class="form-select" id="filterApprovalStatus">
                                     <option value="all">All</option>
                                     <option value="approved">Approved</option>
                                     <option value="pending">Pending</option>
@@ -126,8 +119,8 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label for="weeklyFilterCostRange" class="form-label">Cost Range (€)</label>
-                                <select class="form-select" id="weeklyFilterCostRange">
+                                <label for="filterCostRange" class="form-label">Cost Range (€)</label>
+                                <select class="form-select" id="filterCostRange">
                                     <option value="all">All Costs</option>
                                     <option value="0-100">0 - 100€</option>
                                     <option value="100-500">100 - 500€</option>
@@ -139,10 +132,10 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
                         </div>
                         <div class="row mt-3">
                             <div class="col-12">
-                                <button class="btn btn-primary btn-sm me-2" id="applyWeeklyFilters">
+                                <button class="btn btn-primary btn-sm me-2" id="applyFilters">
                                     <i class="fas fa-check"></i> Apply Filters
                                 </button>
-                                <button class="btn btn-outline-secondary btn-sm" id="clearWeeklyFilters">
+                                <button class="btn btn-outline-secondary btn-sm" id="clearFilters">
                                     <i class="fas fa-times"></i> Clear Filters
                                 </button>
                             </div>
@@ -166,8 +159,6 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
                                         <th>Plant Code</th>
                                         <th>Issue Date</th>
                                         <th>Inbound/Outbound</th>
-                                        <th>Issue CW</th>
-                                        <th>Issue Month</th>
                                         <th>Reference Number</th>
                                         <th>Creator</th>
                                         <th>Area</th>
@@ -175,20 +166,11 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
                                         <th>Category Cause</th>
                                         <th>Cost [€]</th>
                                         <th>Transport</th>
-                                        <th>Int/Ext</th>
                                         <th>Carrier</th>
                                         <th>Origin Company</th>
                                         <th>Origin City</th>
                                         <th>Destination Company</th>
                                         <th>Destination City</th>
-                                        <th>Weight [kg]</th>
-                                        <th>Project Status</th>
-                                        <th>Approver</th>
-                                        <th>Recovery</th>
-                                        <th>Paid By</th>
-                                        <th>Products</th>
-                                        <th>Status</th>
-                                        <th>Approval Date</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>

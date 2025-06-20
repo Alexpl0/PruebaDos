@@ -92,6 +92,17 @@ function getDataTableConfig(filename, title) {
                 className: 'btn btn-secondary btn-sm buttons-print',
                 title: title,
                 exportOptions: { columns: ':not(:last-child)' }
+            },
+            {
+                text: '<i class="fas fa-file-pdf"></i> SVG',
+                className: 'btn btn-danger btn-sm buttons-svg',
+                action: async function () {
+                    const ordersToExport = filteredOrdersData.length ? filteredOrdersData : allOrdersData;
+                    for (const order of ordersToExport) {
+                        await generatePDF(order);
+                    }
+                    showSuccessToast('PDFs generated successfully!');
+                }
             }
         ],
         pageLength: 25,
@@ -215,82 +226,6 @@ function formatWeight(weight) {
 }
 
 /**
- * Get approval status badge
- * @param {Object} order - Order object
- * @returns {string} HTML for approval status badge
- */
-function getApprovalStatus(order) {
-    if (!order) return '<span class="badge bg-secondary">Unknown</span>';
-    
-    // Check if order has approval data
-    if (order.approval_date && order.approver_name) {
-        return '<span class="badge bg-success">Approved</span>';
-    }
-    
-    // Check approval status text
-    if (order.approval_status_text) {
-        switch (order.approval_status_text.toLowerCase()) {
-            case 'approved':
-                return '<span class="badge bg-success">Approved</span>';
-            case 'rejected':
-                return '<span class="badge bg-danger">Rejected</span>';
-            case 'pending':
-            default:
-                return '<span class="badge bg-warning">Pending</span>';
-        }
-    }
-    
-    // Check status for pending states
-    if (order.status_name) {
-        const status = order.status_name.toLowerCase();
-        if (status.includes('pending') || status.includes('waiting')) {
-            return '<span class="badge bg-warning">Pending</span>';
-        }
-        if (status.includes('approved')) {
-            return '<span class="badge bg-success">Approved</span>';
-        }
-        if (status.includes('reject') || status.includes('denied')) {
-            return '<span class="badge bg-danger">Rejected</span>';
-        }
-    }
-    
-    return '<span class="badge bg-warning">Pending</span>';
-}
-
-/**
- * Generate single PDF for an order
- * @param {number} orderId - Order ID
- */
-async function generateSinglePDF(orderId) {
-    try {
-        console.log(`[DataTables] 📄 Generating PDF for order ${orderId}`);
-        
-        // Find the order in the current data
-        const order = allOrdersData.find(o => o.id == orderId);
-        if (!order) {
-            throw new Error(`Order ${orderId} not found in current data`);
-        }
-        
-        showLoading('Generating PDF', `Creating PDF for order ${orderId}...`);
-        
-        // Call the SVG generation function (assuming it's available globally)
-        if (typeof handleBatchSVGGeneration === 'function') {
-            await handleBatchSVGGeneration([order], `Order_${orderId}`);
-        } else {
-            throw new Error('PDF generation function not available');
-        }
-        
-        Swal.close();
-        showSuccessToast(`PDF generated successfully for order ${orderId}`);
-        
-    } catch (error) {
-        console.error(`[DataTables] ❌ Error generating PDF for order ${orderId}:`, error);
-        Swal.close();
-        showErrorMessage('PDF Generation Error', `Failed to generate PDF for order ${orderId}: ${error.message}`);
-    }
-}
-
-/**
  * Show loading message
  * @param {string} title - Loading title
  * @param {string} text - Loading text
@@ -325,22 +260,6 @@ function showSuccessToast(message) {
 }
 
 /**
- * Show info toast
- * @param {string} message - Info message
- */
-function showInfoToast(message) {
-    Swal.fire({
-        toast: true,
-        position: 'top-end',
-        icon: 'info',
-        title: message,
-        showConfirmButton: false,
-        timer: 2000,
-        timerProgressBar: true
-    });
-}
-
-/**
  * Show error message
  * @param {string} title - Error title
  * @param {string} message - Error message
@@ -352,127 +271,6 @@ function showErrorMessage(title, message) {
         text: message,
         confirmButtonText: 'OK',
         confirmButtonColor: '#034C8C'
-    });
-}
-
-/**
- * Add notification styles to document
- */
-function addNotificationStyles() {
-    if (document.getElementById('notification-styles')) return;
-    
-    const styles = document.createElement('style');
-    styles.id = 'notification-styles';
-    styles.textContent = `
-        .swal2-toast {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-            border-radius: 8px !important;
-        }
-        
-        .swal2-toast .swal2-title {
-            font-size: 14px !important;
-            font-weight: 500 !important;
-        }
-        
-        .swal2-timer-progress-bar {
-            background: rgba(3, 76, 140, 0.8) !important;
-        }
-    `;
-    document.head.appendChild(styles);
-}
-
-/**
- * Apply filters to orders data
- * @param {Array} orders - Array of orders to filter
- * @param {Object} filters - Filters to apply
- * @returns {Array} Filtered orders
- */
-function applyFilters(orders, filters) {
-    return orders.filter(order => {
-        // Date range filter
-        if (filters.dateRange !== 'all') {
-            const orderDate = new Date(order.date || order.issue_date);
-            const now = new Date();
-
-            switch (filters.dateRange) {
-                case 'today':
-                    if (orderDate.toDateString() !== now.toDateString()) return false;
-                    break;
-                case 'week':
-                    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-                    if (orderDate < weekAgo) return false;
-                    break;
-                case 'month':
-                    if (orderDate.getMonth() !== now.getMonth() || orderDate.getFullYear() !== now.getFullYear()) return false;
-                    break;
-                case 'quarter':
-                    const currentQuarter = Math.floor(now.getMonth() / 3);
-                    const orderQuarter = Math.floor(orderDate.getMonth() / 3);
-                    if (orderQuarter !== currentQuarter || orderDate.getFullYear() !== now.getFullYear()) return false;
-                    break;
-                case 'year':
-                    if (orderDate.getFullYear() !== now.getFullYear()) return false;
-                    break;
-            }
-        }
-
-        // Status filter
-        if (filters.status !== 'all') {
-            const orderStatus = (order.status_name || '').toLowerCase();
-            switch (filters.status) {
-                case 'pending':
-                    if (!orderStatus.includes('pending') && !orderStatus.includes('waiting')) return false;
-                    break;
-                case 'approved':
-                    if (!orderStatus.includes('approved') && !order.approval_date) return false;
-                    break;
-                case 'rejected':
-                    if (!orderStatus.includes('reject') && !orderStatus.includes('denied')) return false;
-                    break;
-            }
-        }
-
-        // Approval status filter
-        if (filters.approvalStatus !== 'all') {
-            const hasApproval = order.approval_date && order.approver_name;
-            const isRejected = (order.status_name || '').toLowerCase().includes('reject');
-
-            switch (filters.approvalStatus) {
-                case 'approved':
-                    if (!hasApproval) return false;
-                    break;
-                case 'pending':
-                    if (hasApproval || isRejected) return false;
-                    break;
-                case 'rejected':
-                    if (!isRejected) return false;
-                    break;
-            }
-        }
-
-        // Cost range filter
-        if (filters.costRange !== 'all') {
-            const cost = parseFloat(order.cost_euros) || 0;
-            switch (filters.costRange) {
-                case '0-100':
-                    if (cost < 0 || cost > 100) return false;
-                    break;
-                case '100-500':
-                    if (cost < 100 || cost > 500) return false;
-                    break;
-                case '500-1000':
-                    if (cost < 500 || cost > 1000) return false;
-                    break;
-                case '1000-5000':
-                    if (cost < 1000 || cost > 5000) return false;
-                    break;
-                case '5000+':
-                    if (cost < 5000) return false;
-                    break;
-            }
-        }
-
-        return true;
     });
 }
 
