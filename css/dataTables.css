@@ -153,7 +153,7 @@ table.dataTable {
 /* Encabezados de tabla */
 table.dataTable thead th {
     background: linear-gradient(135deg, #034C8C 0%, #002856 100%);
-    color: white;
+    color: var(--grammer-dark-blue);
     font-weight: 700;
     font-size: 0.875rem;
     text-transform: uppercase;
