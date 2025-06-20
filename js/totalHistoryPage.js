@@ -285,10 +285,10 @@ function populateTotalDataTable(orders) {
 /**
  * Generate PDFs for all filtered orders
  */
-document.querySelector('.buttons-svg').addEventListener('click', async () => {
-    const ordersToExport = filteredOrdersData.length ? filteredOrdersData : allOrdersData;
-    for (const order of ordersToExport) {
-        await generatePDF(order);
-    }
-    showSuccessToast('PDFs generated successfully!');
-});
+// document.querySelector('.buttons-svg').addEventListener('click', async () => {
+//     const ordersToExport = filteredOrdersData.length ? filteredOrdersData : allOrdersData;
+//     for (const order of ordersToExport) {
+//         await generatePDF(order);
+//     }
+//     showSuccessToast('PDFs generated successfully!');
+// });
