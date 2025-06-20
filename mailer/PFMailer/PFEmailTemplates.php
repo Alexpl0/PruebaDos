@@ -727,6 +727,9 @@ class PFEmailTemplates {
         .email-highlight { background: #e3f2fd; padding: 8px 12px; border-radius: 6px; font-family: monospace; color: #034C8C; font-weight: bold; display: inline-block; margin: 0 5px; border: 1px solid #90caf9; }
         .verification-button { display: inline-block; background-color: #10B981; color: #ffffff; padding: 18px 36px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 16px; margin: 25px 0; text-align: center; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
         .verification-button:hover { background-color: #059669; transform: translateY(-2px); }
+        .spam-warning { background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 18px 22px; margin: 32px 0 18px 0; color: #92400e; font-size: 14px; }
+        .spam-warning-title { font-weight: bold; color: #92400e; margin-bottom: 8px; }
+        .spam-warning-list { margin: 10px 0 0 18px; padding: 0; color: #92400e; font-size: 13px; }
         .footer { background-color: #f8fafc; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0; }
         .footer-text { color: #6b7280; margin: 0; font-size: 12px; }
     </style>
@@ -758,6 +761,23 @@ class PFEmailTemplates {
                             <a href="' . $verificationUrl . '" class="verification-button">
                                 Verify My Account
                             </a>
+                        </div>
+
+                        <div class="spam-warning">
+                            <div class="spam-warning-title">Important: Ensure You Receive Our Emails</div>
+                            <div>
+                                If you found this message in your <strong>Junk</strong> or <strong>Spam</strong> folder, please follow these steps to ensure you receive all notifications:
+                                <ul class="spam-warning-list">
+                                    <li><strong>1.</strong> Go to the notification that says: <em>"This message was identified as junk"</em>.</li>
+                                    <li><strong>2.</strong> Click on <strong>"It’s not junk"</strong> or <strong>"Not Spam"</strong>.</li>
+                                    <li><strong>3.</strong> Confirm that the email moves to your Inbox.</li>
+                                    <li><strong>4.</strong> Add <b>premium.freight@grammer.com</b> to your contacts or safe senders list.</li>
+                                    <li><strong>5.</strong> Mark this sender as trusted in your email settings.</li>
+                                </ul>
+                                <div style="margin-top:10px;">
+                                    These steps will help ensure you receive all important system notifications and avoid missing critical updates.
+                                </div>
+                            </div>
                         </div>
                         
                         <p style="color: #6b7280; font-size: 12px; margin-top: 30px; text-align: center; font-style: italic;">

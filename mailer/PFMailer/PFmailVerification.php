@@ -14,6 +14,13 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
+// Validar Referer para acceso exclusivo desde el correo
+$allowedReferer = URLPF . 'PFmailVerification.php';
+if (!isset($_SERVER['HTTP_REFERER']) || strpos($_SERVER['HTTP_REFERER'], $allowedReferer) === false) {
+    showError('Unauthorized access. This endpoint can only be accessed via the verification email.');
+    exit;
+}
+
 // Manejar preflight requests
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
@@ -37,7 +44,7 @@ try {
         $result = $stmt->get_result();
         
         if ($result->num_rows === 0) {
-            showError('Token inválido o expirado. Solicita un nuevo correo de verificación.');
+            showError('Invalid or expired link. Please request a new verification email.');
             exit;
         }
         
@@ -54,13 +61,13 @@ try {
             $markStmt->execute();
             
             showSuccess(
-                '¡Cuenta verificada exitosamente! Ya puedes usar todas las funciones del sistema Premium Freight.',
-                'Verificación Completada',
-                'Ir a Nueva Orden',
+                'Your account has been successfully verified! You can now use all Premium Freight features.',
+                'Verification Completed',
+                'Go to New Order',
                 URLPF . 'newOrder.php'
             );
         } else {
-            showError('Error al verificar la cuenta. Por favor contacta al administrador.');
+            showError('Error verifying the account. Please contact the administrator.');
         }
         exit;
     }
