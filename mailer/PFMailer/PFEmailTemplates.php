@@ -724,24 +724,11 @@ class PFEmailTemplates {
         .header h1 { color: #ffffff; margin: 0 0 8px 0; font-size: 22px; font-weight: 700; }
         .content { padding: 40px; }
         .welcome-text { color: #1e293b; font-size: 18px; margin-bottom: 20px; text-align: center; font-weight: 600; }
-        .instruction-box { background: #fef3c7; border: 2px solid #f59e0b; border-radius: 10px; padding: 25px; margin: 25px 0; }
-        .instruction-title { color: #92400e; font-size: 18px; font-weight: 700; margin-bottom: 15px; text-align: center; }
-        .step { margin: 15px 0; color: #92400e; display: flex; align-items: flex-start; }
-        .step-number { background: #f59e0b; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; margin-right: 15px; flex-shrink: 0; }
-        .step-content { flex: 1; line-height: 1.5; }
-        .step-highlight { background: #fbbf24; padding: 3px 8px; border-radius: 4px; color: #92400e; font-weight: bold; }
         .email-highlight { background: #e3f2fd; padding: 8px 12px; border-radius: 6px; font-family: monospace; color: #034C8C; font-weight: bold; display: inline-block; margin: 0 5px; border: 1px solid #90caf9; }
         .verification-button { display: inline-block; background-color: #10B981; color: #ffffff; padding: 18px 36px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 16px; margin: 25px 0; text-align: center; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
         .verification-button:hover { background-color: #059669; transform: translateY(-2px); }
-        .warning-box { background: #fee2e2; border: 2px solid #dc2626; border-radius: 10px; padding: 25px; margin: 25px 0; }
-        .warning-text { color: #991b1b; font-size: 15px; margin: 0; line-height: 1.6; }
-        .critical-box { background: #ddd6fe; border: 2px solid #8b5cf6; border-radius: 10px; padding: 25px; margin: 25px 0; }
-        .critical-text { color: #5b21b6; font-size: 15px; margin: 0; line-height: 1.6; font-weight: 600; }
         .footer { background-color: #f8fafc; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0; }
         .footer-text { color: #6b7280; margin: 0; font-size: 12px; }
-        .spam-example { background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 8px; padding: 15px; margin: 10px 0; font-family: monospace; font-size: 13px; color: #374151; }
-        .action-sequence { background: #ecfdf5; border: 1px solid #22c55e; border-radius: 8px; padding: 20px; margin: 15px 0; }
-        .sequence-title { color: #15803d; font-weight: 700; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -750,8 +737,7 @@ class PFEmailTemplates {
             <td style="padding: 20px 0;">
                 <div class="email-container">
                     <div class="header">
-                        <h1>🛡️ Account Verification Required</h1>
-                        <p style="color: #e2e8f0; margin: 0; font-size: 14px;">Premium Freight System</p>
+                        <h1>Account Verification Required</h1>
                     </div>
                     
                     <div class="content">
@@ -765,108 +751,13 @@ class PFEmailTemplates {
                         </p>
                         
                         <p style="text-align: center; margin: 20px 0;">
-                            <span class="email-highlight">📧 ' . $userEmail . '</span>
+                            <span class="email-highlight">' . $userEmail . '</span>
                         </p>
-                        
-                        <div class="critical-box">
-                            <p class="critical-text">
-                                🚨 <strong>CRITICAL:</strong> This email may have been marked as SPAM by your corporate email system. 
-                                You MUST follow the steps below to ensure you receive all Premium Freight notifications.
-                            </p>
-                        </div>
-                        
-                        <div class="instruction-box">
-                            <div class="instruction-title">
-                                ⚠️ MANDATORY STEPS - Complete Before Verification
-                            </div>
-                            
-                            <div class="step">
-                                <span class="step-number">1</span>
-                                <div class="step-content">
-                                    <strong>Check if this email was marked as SPAM:</strong><br>
-                                    Look for a notification that says <span class="step-highlight">"This message was identified as junk"</span> 
-                                    at the top of this email.
-                                </div>
-                            </div>
-                            
-                            <div class="step">
-                                <span class="step-number">2</span>
-                                <div class="step-content">
-                                    <strong>Mark as "Not SPAM":</strong><br>
-                                    If you see the junk notification, click <span class="step-highlight">"It\'s not junk"</span> 
-                                    to move this email to your inbox and mark our sender as safe.
-                                </div>
-                            </div>
-                            
-                            <div class="action-sequence">
-                                <div class="sequence-title">📧 Outlook/Corporate Email Users:</div>
-                                <div style="color: #059669; font-size: 14px; line-height: 1.5;">
-                                    1. Right-click on this email<br>
-                                    2. Select "Junk" → "Not Junk"<br>
-                                    3. Choose "Always trust email from pruebasjesus@grammermx.com"<br>
-                                    4. Click "OK"
-                                </div>
-                            </div>
-                            
-                            <div class="step">
-                                <span class="step-number">3</span>
-                                <div class="step-content">
-                                    <strong>Add to Safe Senders List:</strong><br>
-                                    Add <span class="email-highlight">pruebasjesus@grammermx.com</span> to your safe senders list 
-                                    or trusted contacts to prevent future emails from being blocked.
-                                </div>
-                            </div>
-                            
-                            <div class="step">
-                                <span class="step-number">4</span>
-                                <div class="step-content">
-                                    <strong>Whitelist Our Domain:</strong><br>
-                                    Configure your email settings to allow all emails from <span class="email-highlight">@grammermx.com</span> domain.
-                                </div>
-                            </div>
-                            
-                            <div class="step">
-                                <span class="step-number">5</span>
-                                <div class="step-content">
-                                    <strong>Only AFTER completing steps 1-4:</strong><br>
-                                    Click the verification button below to activate your account.
-                                </div>
-                            </div>
-                        </div>
                         
                         <div style="text-align: center; margin: 35px 0;">
                             <a href="' . $verificationUrl . '" class="verification-button">
-                                ✅ VERIFY MY ACCOUNT NOW
+                                Verify My Account
                             </a>
-                        </div>
-                        
-                        <div class="warning-box">
-                            <p class="warning-text">
-                                <strong>🚨 WARNING:</strong> If you skip the anti-SPAM steps above, you will NOT receive:
-                                <br>• Order approval notifications
-                                <br>• Status update alerts
-                                <br>• Weekly summary reports
-                                <br>• Recovery evidence reminders
-                                <br>• Password reset emails
-                            </p>
-                        </div>
-                        
-                        <div style="background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px; padding: 20px; margin: 25px 0;">
-                            <p style="color: #0369a1; font-size: 14px; line-height: 1.6; margin: 0;">
-                                <strong>💡 Why is this necessary?</strong><br>
-                                Corporate email systems (Outlook, Exchange, etc.) automatically filter emails from automated systems. 
-                                By following these steps, you ensure that all Premium Freight notifications reach your inbox 
-                                instead of being blocked or sent to spam.
-                            </p>
-                        </div>
-                        
-                        <div style="background: #fffbeb; border: 1px solid #f59e0b; border-radius: 8px; padding: 20px; margin: 25px 0;">
-                            <p style="color: #92400e; font-size: 13px; line-height: 1.6; margin: 0;">
-                                <strong>🆘 Need Help?</strong><br>
-                                If you\'re having trouble with these steps or need IT assistance, 
-                                contact your system administrator or IT support team. They can help you 
-                                whitelist our email domain and configure your spam filters properly.
-                            </p>
                         </div>
                         
                         <p style="color: #6b7280; font-size: 12px; margin-top: 30px; text-align: center; font-style: italic;">
@@ -877,7 +768,7 @@ class PFEmailTemplates {
                     
                     <div class="footer">
                         <p class="footer-text">
-                            © 2025 GRAMMER AG - Premium Freight System<br>
+                            © ' . date('Y') . ' GRAMMER AG - Premium Freight System<br>
                             This is an automated email - Please do not reply to this address
                         </p>
                     </div>

@@ -227,14 +227,9 @@ async function handleResetSubmit(event) {
         didOpen: () => Swal.showLoading()
     });
 
-    // Encrypt password before sending
+    // Send password as plain text for backend encryption
     let passwordToSend = newPassword;
-    if (typeof PasswordManager !== 'undefined') {
-        passwordToSend = PasswordManager.prepareForSubmission(newPassword);
-        console.log('Password encrypted for reset');
-    } else {
-        console.warn('PasswordManager not available, sending plain password');
-    }
+    console.log('Sending plain password to backend for encryption');
 
     try {
         const response = await fetch(URLPF + 'dao/users/daoPasswordUpdate.php', {
@@ -243,7 +238,7 @@ async function handleResetSubmit(event) {
             body: JSON.stringify({
                 token: token,
                 userId: userId,
-                newPassword: passwordToSend
+                newPassword: passwordToSend // ✅ Sin encriptar
             })
         });
         

@@ -134,7 +134,7 @@ function handleRegistration(e) {
     }
     
     // ✅ CRÍTICO: NO ENCRIPTAR EN FRONTEND - Solo enviar contraseña original
-    const passwordToSend = password; // ✅ Enviar contraseña sin encriptar
+    const passwordToSend = password; // ✅ CORRECTO
     console.log('Sending plain password to backend for encryption');
     
     // Prepare data - NOW INCLUDING PLANT and plain password

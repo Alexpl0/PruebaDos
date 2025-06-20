@@ -228,21 +228,11 @@ async function updateProfile() {
         }
     }
     
-    // NUEVO: Encriptar contraseñas antes de enviar
+    // NUEVO: NO encriptar contraseñas antes de enviar
     let currentPasswordToSend = currentPassword;
     let newPasswordToSend = newPassword;
     
-    if (currentPassword && typeof PasswordManager !== 'undefined') {
-        currentPasswordToSend = PasswordManager.prepareForSubmission(currentPassword);
-        console.log('Current password encrypted for verification');
-    }
-    
-    if (newPassword && typeof PasswordManager !== 'undefined') {
-        newPasswordToSend = PasswordManager.prepareForSubmission(newPassword);
-        console.log('New password encrypted for update');
-    }
-    
-    // Prepare data for update
+    // ✅ Enviar contraseñas sin encriptar al backend
     const updateData = {
         name: username,
         current_password: currentPasswordToSend,

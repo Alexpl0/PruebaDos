@@ -353,22 +353,16 @@ function initializeDataTable() {
         // NUEVO: Validar contraseña con PasswordManager si se proporciona
         if (password && typeof PasswordManager !== 'undefined') {
             const passwordValidation = PasswordManager.validateStrength(password);
-            console.log('Password validation:', passwordValidation);
             if (!passwordValidation.isValid) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Invalid Password',
-                    text: passwordValidation.message
-                });
+                Swal.fire('Error', passwordValidation.message, 'error');
                 return;
             }
-        } else if (isNewUser && !password) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Password Required',
-                text: 'Password is required for new users'
-            });
-            return;
+        } else if (password) {
+            // Fallback validation
+            if (password.length < 8) {
+                Swal.fire('Error', 'Password must be at least 8 characters long', 'error');
+                return;
+            }
         }
 
         // Build the user data object to send to the server
@@ -384,25 +378,7 @@ function initializeDataTable() {
 
         // NUEVO: Encriptar contraseña si se proporciona
         if (password) {
-            if (typeof PasswordManager !== 'undefined') {
-                try {
-                    userData.password = PasswordManager.encrypt(password);
-                    console.log('Password encrypted successfully');
-                    console.log('Original length:', password.length);
-                    console.log('Encrypted length:', userData.password.length);
-                } catch (error) {
-                    console.error('Password encryption failed:', error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Encryption Error',
-                        text: 'Failed to encrypt password. Please try again.'
-                    });
-                    return;
-                }
-            } else {
-                console.warn('PasswordManager not available, sending plain password');
-                userData.password = password;
-            }
+            userData.password = password; // ✅ Enviar sin encriptar
         }
 
         // If updating, include the user ID
