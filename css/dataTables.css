@@ -142,17 +142,14 @@ table.dataTable thead th {
 
 /* Estilos para botones de exportación de DataTables */
 .dt-buttons {
-    margin-bottom: var(--spacing-lg);
-    position: sticky;
-    top: 0;
-    background-color: var(--white);
-    z-index: 11;
-    padding: var(--spacing-md) 0;
     display: flex;
-    flex-wrap: nowrap;
-    gap: var(--spacing-md);
-    justify-content: flex-start;
-    border-bottom: 1px solid var(--gray-200);
+    justify-content: center;
+    gap: 1rem;
+    margin: 1rem auto;
+    padding: 0.5rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .dt-buttons .btn, 
@@ -163,6 +160,12 @@ table.dataTable thead th {
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-sm);
     transition: all var(--transition-normal);
+    background-color: #034C8C;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: bold;
 }
 
 .dt-buttons .btn:hover,
@@ -170,6 +173,7 @@ table.dataTable thead th {
 .dt-buttons .dt-button:hover {
     transform: translateY(-1px);
     box-shadow: var(--shadow-md);
+    background-color: #002856;
 }
 
 /* Botón de generar PDF individual */
@@ -202,6 +206,25 @@ table.dataTable thead th {
     text-overflow: ellipsis;
     white-space: nowrap;
     cursor: help;
+}
+
+.table-description {
+    max-width: 300px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Tooltip para texto truncado */
+.table-description:hover {
+    overflow: visible;
+    white-space: normal;
+    position: relative;
+    z-index: 10;
+    background-color: #fff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem;
+    border-radius: 0.5rem;
 }
 
 #modaldiv {
