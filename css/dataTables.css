@@ -1,44 +1,361 @@
-/* Estilos para los botones de histórico */
-.buttons-container {
-    display: flex;
-    justify-content: center;
-    gap: var(--spacing-xl);
-    margin: var(--spacing-xl) auto;
+/* === ESTILOS PARA DATATABLES === */
+
+/* Configuración base del DataTable */
+.dataTables_wrapper {
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(3, 76, 140, 0.1);
+}
+
+/* Estilo profesional para botones */
+.dt-buttons .btn {
+    white-space: nowrap;
+    min-width: 120px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    background-color: #034C8C;
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.dt-buttons .btn:hover {
+    background-color: #002856;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Texto truncado con puntos suspensivos */
+.table-description {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: help;
+}
+
+/* Tooltip para texto truncado */
+.table-description:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    white-space: normal;
+    max-width: 300px;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Botones específicos con colores profesionales */
+.dt-buttons .btn-success,
+.dt-buttons .buttons-excel {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
+.dt-buttons .btn-success:hover,
+.dt-buttons .buttons-excel:hover {
+    background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
+}
+
+.dt-buttons .btn-info,
+.dt-buttons .buttons-csv {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+}
+
+.dt-buttons .btn-info:hover,
+.dt-buttons .buttons-csv:hover {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+}
+
+.dt-buttons .btn-secondary,
+.dt-buttons .buttons-print {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+}
+
+.dt-buttons .btn-secondary:hover,
+.dt-buttons .buttons-print:hover {
+    background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(107, 114, 128, 0.4);
+}
+
+.dt-buttons .btn-primary {
+    background: linear-gradient(135deg, #034C8C 0%, #002856 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(3, 76, 140, 0.3);
+}
+
+.dt-buttons .btn-primary:hover {
+    background: linear-gradient(135deg, #002856 0%, #001a3d 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(3, 76, 140, 0.4);
+}
+
+/* Iconos en los botones */
+.dt-buttons .btn i,
+.dt-buttons button i, 
+.dt-buttons .dt-button i {
+    margin-right: 8px;
+    font-size: 1rem;
+    vertical-align: middle;
+}
+
+/* Efectos de hover animados */
+.dt-buttons .btn::before,
+.dt-buttons button::before,
+.dt-buttons .dt-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
     width: 100%;
-    max-width: 800px;
-    align-items: stretch;
-    flex-direction: row;
-    flex-wrap: wrap;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
 }
 
-.buttons-container .btn,
-.buttons-container input {
-    flex: 1;
-    min-width: 200px;
-    height: 45px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-sm);
-    transition: all var(--transition-normal);
+.dt-buttons .btn:hover::before,
+.dt-buttons button:hover::before,
+.dt-buttons .dt-button:hover::before {
+    left: 100%;
 }
 
-.buttons-container .btn:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+/* Estilo de la tabla */
+table.dataTable {
+    width: 100% !important;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
-/* === ESTILOS PARA PÁGINAS DE HISTÓRICO === */
-/* Body styling for history pages */
-body {
-    margin: 0;
-    padding: 20px 0;
+/* Encabezados de tabla */
+table.dataTable thead th {
+    background: linear-gradient(135deg, #034C8C 0%, #002856 100%);
+    color: white;
+    font-weight: 700;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 1rem 0.75rem;
+    border: none;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+table.dataTable thead th:first-child {
+    border-top-left-radius: 8px;
+}
+
+table.dataTable thead th:last-child {
+    border-top-right-radius: 8px;
+}
+
+/* Celdas de la tabla */
+table.dataTable tbody td {
+    padding: 0.875rem 0.75rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 0.875rem;
+    text-align: center;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Filas alternadas */
+table.dataTable tbody tr:nth-child(even) {
     background-color: #f8f9fa;
 }
 
-/* Header styling for history pages */
+table.dataTable tbody tr:hover {
+    background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+    transform: scale(1.01);
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(3, 76, 140, 0.15);
+}
+
+/* Columna de descripción con truncado */
+.table-description {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: help;
+    position: relative;
+}
+
+/* Tooltip para descripción */
+.table-description:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    white-space: normal;
+    max-width: 300px;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Botón PDF individual */
+.generate-pdf-btn {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    border: none;
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.generate-pdf-btn:hover {
+    background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    color: white;
+}
+
+.generate-pdf-btn i {
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+/* Controles de DataTable */
+.dataTables_length,
+.dataTables_filter,
+.dataTables_info,
+.dataTables_paginate {
+    margin: 1rem 0;
+}
+
+.dataTables_length select,
+.dataTables_filter input {
+    border: 2px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    transition: border-color 0.3s ease;
+}
+
+.dataTables_length select:focus,
+.dataTables_filter input:focus {
+    border-color: #034C8C;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(3, 76, 140, 0.1);
+}
+
+/* Paginación */
+.dataTables_paginate .paginate_button {
+    border: 1px solid #034C8C;
+    background: white;
+    color: #034C8C;
+    padding: 0.5rem 0.75rem;
+    margin: 0 2px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.dataTables_paginate .paginate_button:hover {
+    background: #034C8C;
+    color: white;
+}
+
+.dataTables_paginate .paginate_button.current {
+    background: #034C8C;
+    color: white;
+}
+
+/* Badges */
+.badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.35rem 0.65rem;
+    border-radius: 4px;
+}
+
+.badge.bg-success {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+}
+
+.badge.bg-warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+}
+
+.badge.bg-danger {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+}
+
+.badge.bg-secondary {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%) !important;
+}
+
+.badge.bg-primary {
+    background: linear-gradient(135deg, #034C8C 0%, #002856 100%) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .dataTables_wrapper {
+        padding: 1rem;
+    }
+    
+    .dt-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .dt-buttons .btn,
+    .dt-buttons button,
+    .dt-buttons .dt-button {
+        margin: 0.25rem 0;
+        min-width: 100%;
+    }
+    
+    table.dataTable tbody td {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.75rem;
+    }
+    
+    .table-description {
+        max-width: 120px;
+    }
+}
+
+/* Estilos para páginas de histórico */
 .history-header {
     background: linear-gradient(135deg, #034C8C 0%, #002856 100%);
     color: white;
@@ -60,7 +377,6 @@ body {
     margin-bottom: 0;
 }
 
-/* Back button styling */
 .btn-back {
     background-color: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.3);
@@ -74,7 +390,6 @@ body {
     transform: translateY(-1px);
 }
 
-/* Statistics cards styling */
 .stats-card {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
@@ -86,10 +401,10 @@ body {
 
 /* Navegación de semanas */
 .week-navigation {
-    background-color: var(--gray-50);
-    padding: var(--spacing-lg);
-    border-radius: var(--border-radius);
-    margin-bottom: var(--spacing-lg);
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
 }
 
 .week-navigation button {
@@ -101,239 +416,36 @@ body {
     cursor: not-allowed;
 }
 
-/* Ajustes para modales grandes */
-.modal-xl {
-    max-width: 90%;
-}
-
-/* Estilos para DataTables */
-.dataTables_wrapper {
-    padding: var(--spacing-md);
-    background-color: var(--white);
-    border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-md);
-}
-
-.centered {
-    text-align: center;
-}
-
-/* Ajuste para encabezados de tabla */
-table.dataTable thead th {
-    position: sticky !important;
-    top: 0;
-    background-color: var(--gray-50);
-    z-index: 10;
-    border-bottom: 2px solid var(--gray-200);
-    color: var(--gray-700);
-    font-weight: 600;
-}
-
-/* Mejoras de legibilidad */
-.table-striped>tbody>tr:nth-of-type(odd) {
-    background-color: var(--gray-50);
-}
-
-.table-striped>tbody>tr:hover {
-    background-color: var(--grammer-light-blue);
-    color: var(--white);
-    transition: all var(--transition-fast);
-}
-
-/* Estilos para botones de exportación de DataTables */
-.dt-buttons {
+/* Botones de histórico */
+.buttons-container {
     display: flex;
     justify-content: center;
-    gap: 1rem;
-    margin: 1rem auto;
-    padding: 0.5rem;
-    background-color: #f8f9fa;
-    border-radius: 0.5rem;
+    gap: 2rem;
+    margin: 2rem auto;
+    width: 100%;
+    max-width: 800px;
+    align-items: stretch;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.buttons-container .btn,
+.buttons-container input {
+    flex: 1;
+    min-width: 200px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
 }
 
-.dt-buttons .btn, 
-.dt-buttons button, 
-.dt-buttons .dt-button {
-    white-space: nowrap;
-    min-width: 120px;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-sm);
-    transition: all var(--transition-normal);
-    background-color: #034C8C;
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    font-weight: bold;
-}
-
-.dt-buttons .btn:hover,
-.dt-buttons button:hover,
-.dt-buttons .dt-button:hover {
+.buttons-container .btn:hover {
     transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-    background-color: #002856;
-}
-
-/* Botón de generar PDF individual */
-.generate-pdf-btn {
-    background-color: var(--grammer-blue) !important;
-    border-color: var(--grammer-blue) !important;
-    color: var(--white) !important;
-    padding: 0.25rem 0.5rem !important;
-    font-size: 0.875rem !important;
-    border-radius: var(--border-radius) !important;
-    transition: all var(--transition-fast) !important;
-}
-
-.generate-pdf-btn:hover {
-    background-color: var(--grammer-dark-blue) !important;
-    border-color: var(--grammer-dark-blue) !important;
-    transform: translateY(-1px) !important;
-    box-shadow: var(--shadow-sm) !important;
-}
-
-.generate-pdf-btn i {
-    font-size: 0.875rem;
-    margin: 0;
-}
-
-/* Texto truncado con tooltip */
-.truncated-text {
-    max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    cursor: help;
-}
-
-/* Texto truncado con puntos suspensivos */
-.table-description {
-    max-width: 300px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* Tooltip para texto truncado */
-.table-description:hover {
-    overflow: visible;
-    white-space: normal;
-    position: relative;
-    z-index: 10;
-    background-color: #fff;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 0.5rem;
-    border-radius: 0.5rem;
-}
-
-#modaldiv {
-    margin: 1.75rem auto;
-    min-width: 90%;
-}
-
-#modalContent {
-    background-color: #f8f9fa;
-}
-
-/* Asegurar que el modal-body dentro de los modales de DataTable permita el posicionamiento sticky */
-#modalHistoricoSemanal .modal-body,
-#modalHistoricoTotal .modal-body {
-    /* El padding-top en .dt-buttons debería crear suficiente espacio */
-}
-
-/* Font Awesome icon styling for DataTables */
-.fa, .fas, .far, .fal, .fab {
-    vertical-align: middle;
-}
-
-/* Icon styles for DataTable buttons */
-.dt-buttons .btn i,
-.dt-buttons button i, 
-.dt-buttons .dt-button i {
-    margin-right: 5px;
-    font-size: 1rem;
-}
-
-/* Icon-only buttons */
-.icon-only-btn i {
-    font-size: 18px;
-    margin: 0;
-}
-
-/* Button colors with Font Awesome icons */
-.btn-success i {
-    color: white;
-}
-
-.btn-danger i {
-    color: white;
-}
-
-.btn-info i {
-    color: white;
-}
-
-.btn-primary i {
-    color: white;
-}
-
-/* Ensure Font Awesome icons maintain proper alignment in buttons */
-button i {
-    line-height: 1;
-    position: relative;
-    top: -1px;
-}
-
-/* Button colors */
-.dt-buttons .btn-primary {
-    background-color: var(--grammer-blue);
-    color: var(--white);
-    border-color: var(--grammer-blue);
-}
-
-.dt-buttons .btn-primary:hover {
-    background-color: var(--grammer-dark-blue);
-    border-color: var(--grammer-dark-blue);
-}
-
-.dt-buttons .btn-success {
-    background-color: var(--success);
-    color: var(--white);
-    border-color: var(--success);
-}
-
-.dt-buttons .btn-success:hover {
-    background-color: #059669;
-    border-color: #047857;
-}
-
-.dt-buttons .btn-danger {
-    background-color: var(--danger);
-    color: var(--white);
-    border-color: var(--danger);
-}
-
-.dt-buttons .btn-danger:hover {
-    background-color: #dc2626;
-    border-color: #b91c1c;
-}
-
-.dt-buttons .btn-info {
-    background-color: var(--info);
-    color: var(--white);
-    border-color: var(--info);
-}
-
-.dt-buttons .btn-info:hover {
-    background-color: #2563eb;
-    border-color: #1d4ed8;
-}
-
-/* Margen 0 para botones de navegación semanal */
-#prevSemana,
-#nextSemana {
-    margin: 0 !important;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* Responsive design para páginas de histórico */

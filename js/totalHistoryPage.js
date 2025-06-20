@@ -213,7 +213,7 @@ function applyAdvancedFilters() {
     filteredOrdersData = allOrdersData.filter(order => {
         // Date range filter
         if (currentFilters.dateRange !== 'all') {
-            const orderDate = new Date(order.date);
+            const orderDate = new Date(order.issue_date);
             const now = new Date();
             
             switch (currentFilters.dateRange) {
@@ -396,111 +396,31 @@ function updateStatistics(orders) {
  * @param {Array} orders - Array of orders to display
  */
 function populateTotalDataTable(orders) {
-    try {
-        // Destroy existing DataTable if it exists
-        if (totalDataTable && $.fn.DataTable.isDataTable('#totalHistoryTable')) {
-            totalDataTable.destroy();
-            totalDataTable = null;
-        }
-        
-        if (orders.length === 0) {
-            const tableBody = document.querySelector('#totalHistoryTable tbody');
-            if (tableBody) {
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="33" class="text-center py-5">
-                            <div class="text-muted">
-                                <i class="fas fa-inbox fa-3x mb-3"></i>
-                                <h5>No orders found</h5>
-                                <p>Try adjusting your filters or check back later.</p>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }
-            return;
-        }
-        
-        // Prepare data for DataTable (33 columns - removed Required Auth Level)
-        const tableData = orders.map(order => {
-            const orderDate = order.date ? new Date(order.date) : null;
-            const formattedDate = orderDate ? orderDate.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit'
-            }) : '-';
-            
-            const monthName = orderDate ? orderDate.toLocaleDateString('en-US', { 
-                month: 'long' 
-            }) : '-';
-            
-            const weekNumber = orderDate ? getWeekNumber(orderDate) : '-';
-            
-            return [
-                order.id || '-',
-                order.division || '-',
-                order.plant_code || '-',
-                order.plant_name || '-',
-                order.issue_date || '-',
-                `<span class="table-description" title="${order.description}">${order.description}</span>`,
-                order.category_cause || '-',
-                formatCost(order.cost_euros),
-                order.transport || '-',
-                `<span class="badge ${order.int_ext === 'Internal' ? 'bg-primary' : 'bg-secondary'}">${order.int_ext || '-'}</span>`,
-                order.carrier || '-',
-                order.origin_company_name || '-',
-                order.origin_city || '-',
-                order.destiny_company_name || '-',
-                order.destiny_city || '-',
-                formatWeight(order.weight),
-                order.project_status || '-',
-                order.approver_name || '-',
-                order.recovery || '-',
-                order.paid_by || '-',
-                order.products || '-',
-                order.status_name || '-',
-                `<span class="badge ${order.recovery_file ? 'bg-success' : 'bg-secondary'}">${order.recovery_file ? 'Yes' : 'No'}</span>`,
-                `<span class="badge ${order.recovery_evidence ? 'bg-success' : 'bg-secondary'}">${order.recovery_evidence ? 'Yes' : 'No'}</span>`,
-                order.approval_date ? new Date(order.approval_date).toLocaleDateString('en-US') : '-',
-                getApprovalStatus(order),
-                `<button class="btn btn-sm btn-outline-primary generate-pdf-btn" 
-                        onclick="generateSinglePDF(${order.id})" 
-                        title="Generate PDF for Order ${order.id}">
-                    <i class="fas fa-file-pdf"></i>
-                </button>`
-            ];
-        });
-        
-        // Get base configuration and customize for total history
-        const config = getDataTableConfig(
-            'Total_Premium_Freight_History',
-            'Total Premium Freight Historical Report'
-        );
-        
-        // Add batch PDF generation button
-        config.buttons.splice(2, 0, {
-            text: '<i class="fas fa-file-pdf"></i> Generate All PDFs',
-            className: 'btn btn-info btn-sm',
-            action: async function(e, dt, node, config) {
-                const visibleData = dt.rows({search: 'applied'}).data().toArray();
-                const visibleOrderIds = visibleData.map(row => parseInt(row[0]));
-                const visibleOrders = orders.filter(order => visibleOrderIds.includes(order.id));
-                await handleBatchSVGGeneration(visibleOrders, 'All Orders History');
-            }
-        });
-        
-        // Initialize DataTable
-        totalDataTable = $('#totalHistoryTable').DataTable({
-            ...config,
-            data: tableData
-        });
-        
-        console.log(`[TotalHistory] 📊 Populated table with ${orders.length} orders`);
-        
-    } catch (error) {
-        console.error('[TotalHistory] ❌ Error populating DataTable:', error);
-        showErrorMessage('Table Error', error.message);
-    }
+    const tableData = orders.map(order => {
+        return [
+            order.id || '-',
+            order.division || '-',
+            order.plant_code || '-',
+            order.plant_name || '-',
+            order.issue_date || '-',
+            `<span class="table-description" title="${order.description}">${order.description}</span>`,
+            order.category_cause || '-',
+            order.cost_euros || '-',
+            order.transport || '-',
+            order.carrier || '-',
+            order.origin_company_name || '-',
+            order.destiny_company_name || '-',
+            order.weight || '-',
+            order.status_name || '-',
+            order.approval_date || '-',
+            `<button class="btn btn-sm btn-outline-primary generate-pdf-btn" onclick="generateSinglePDF(${order.id})">
+                <i class="fas fa-file-pdf"></i>
+            </button>`
+        ];
+    });
+
+    const config = getDataTableConfig('Total_Premium_Freight', 'Total Premium Freight Report');
+    totalDataTable = $('#totalHistoryTable').DataTable({ ...config, data: tableData });
 }
 
 /**

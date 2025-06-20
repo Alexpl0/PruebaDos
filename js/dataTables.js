@@ -24,7 +24,7 @@ function getBaseURL() {
     if (typeof window !== 'undefined' && window.URLPF) {
         return window.URLPF;
     }
-    return '/dao/conections/';
+    return '/';
 }
 
 /**
@@ -73,105 +73,52 @@ function getDataTableConfig(filename, title) {
             {
                 extend: 'excel',
                 text: '<i class="fas fa-file-excel"></i> Excel',
-                className: 'btn btn-success btn-sm',
+                className: 'btn btn-success btn-sm buttons-excel',
                 filename: `${filename}_${new Date().toISOString().split('T')[0]}`,
                 title: title,
-                exportOptions: {
-                    columns: ':not(:last-child)' // Exclude Actions column
-                }
+                exportOptions: { columns: ':not(:last-child)' }
             },
             {
                 extend: 'csv',
                 text: '<i class="fas fa-file-csv"></i> CSV',
-                className: 'btn btn-info btn-sm',
+                className: 'btn btn-info btn-sm buttons-csv',
                 filename: `${filename}_${new Date().toISOString().split('T')[0]}`,
                 title: title,
-                exportOptions: {
-                    columns: ':not(:last-child)'
-                }
+                exportOptions: { columns: ':not(:last-child)' }
             },
             {
                 extend: 'print',
                 text: '<i class="fas fa-print"></i> Print',
-                className: 'btn btn-secondary btn-sm',
+                className: 'btn btn-secondary btn-sm buttons-print',
                 title: title,
-                exportOptions: {
-                    columns: ':not(:last-child)'
-                }
+                exportOptions: { columns: ':not(:last-child)' }
             }
         ],
         pageLength: 25,
-        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
         responsive: true,
-        scrollX: true,
         columnDefs: [
+            { targets: [0], width: "80px", className: "text-center" }, // ID
+            { targets: [1, 2, 3], width: "100px", className: "text-center" }, // Division, Plant Code, Plant Name
+            { targets: [4], width: "120px", className: "text-center" }, // Issue Date
             {
-                targets: [0], // ID column
-                width: "60px"
-            },
-            {
-                targets: [13], // Cost column
-                render: function(data, type, row) {
-                    if (type === 'display' || type === 'type') {
-                        return formatCost(data);
-                    }
-                    return data;
-                }
-            },
-            {
-                targets: [21], // Weight column
-                render: function(data, type, row) {
-                    if (type === 'display' || type === 'type') {
-                        return formatWeight(data);
-                    }
-                    return data;
-                }
-            },
-            {
-                targets: [31], // Approval Date column
-                render: function(data, type, row) {
-                    if (type === 'display' || type === 'type') {
-                        return data && data !== '-' ? new Date(data).toLocaleDateString('en-US') : '-';
-                    }
-                    return data;
-                }
-            },
-            {
-                targets: [11], // Description column
+                targets: [10], // Description column
+                width: "200px",
+                className: "text-left",
                 render: function(data, type, row) {
                     if (type === 'display') {
                         return `<span class="table-description" title="${data}">${data}</span>`;
                     }
                     return data;
                 }
-            },
-            {
-                targets: [-1], // Actions column (last column)
-                orderable: false,
-                searchable: false,
-                width: "80px"
             }
         ],
-        order: [[0, 'desc']], // Order by ID descending
         language: {
             search: "Search orders:",
             lengthMenu: "Show _MENU_ orders per page",
             info: "Showing _START_ to _END_ of _TOTAL_ orders",
             infoEmpty: "No orders found",
-            infoFiltered: "(filtered from _MAX_ total orders)",
-            paginate: {
-                first: "First",
-                last: "Last",
-                next: "Next",
-                previous: "Previous"
-            },
-            emptyTable: "No orders data available",
-            zeroRecords: "No matching orders found"
-        },
-        processing: true,
-        stateSave: true,
-        stateDuration: 60 * 60 * 24, // 24 hours
-        searchHighlight: true
+            infoFiltered: "(filtered from _MAX_ total orders)"
+        }
     };
 }
 
@@ -268,18 +215,6 @@ function formatWeight(weight) {
 }
 
 /**
- * Format creator name for display
- * @param {string} creatorName - Creator name
- * @returns {string} Formatted creator name
- */
-function formatCreatorName(creatorName) {
-    if (!creatorName || creatorName === '-') return '-';
-    
-    // Capitalize first letter of each word
-    return creatorName.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
-}
-
-/**
  * Get approval status badge
  * @param {Object} order - Order object
  * @returns {string} HTML for approval status badge
@@ -292,9 +227,17 @@ function getApprovalStatus(order) {
         return '<span class="badge bg-success">Approved</span>';
     }
     
-    // Check if order was rejected
-    if (order.status_name && order.status_name.toLowerCase().includes('reject')) {
-        return '<span class="badge bg-danger">Rejected</span>';
+    // Check approval status text
+    if (order.approval_status_text) {
+        switch (order.approval_status_text.toLowerCase()) {
+            case 'approved':
+                return '<span class="badge bg-success">Approved</span>';
+            case 'rejected':
+                return '<span class="badge bg-danger">Rejected</span>';
+            case 'pending':
+            default:
+                return '<span class="badge bg-warning">Pending</span>';
+        }
     }
     
     // Check status for pending states
@@ -311,7 +254,7 @@ function getApprovalStatus(order) {
         }
     }
     
-    return '<span class="badge bg-secondary">Pending</span>';
+    return '<span class="badge bg-warning">Pending</span>';
 }
 
 /**
