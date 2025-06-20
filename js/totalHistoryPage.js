@@ -167,6 +167,28 @@ function setupFilterEventListeners() {
     if (clearBtn) {
         clearBtn.addEventListener('click', clearAdvancedFilters);
     }
+    
+    // Toggle filter panel
+    document.getElementById('toggleTotalFilters').addEventListener('click', () => {
+        const filterBody = document.getElementById('totalFilterPanelBody');
+        const isVisible = filterBody.style.display !== 'none';
+        filterBody.style.display = isVisible ? 'none' : 'block';
+    });
+
+    // Apply filters
+    document.getElementById('applyTotalFilters').addEventListener('click', () => {
+        currentFilters.dateRange = document.getElementById('totalFilterDateRange').value;
+        currentFilters.status = document.getElementById('totalFilterStatus').value;
+        currentFilters.approvalStatus = document.getElementById('totalFilterApprovalStatus').value;
+        currentFilters.costRange = document.getElementById('totalFilterCostRange').value;
+
+        applyTotalFilters();
+    });
+
+    // Clear filters
+    document.getElementById('clearTotalFilters').addEventListener('click', () => {
+        clearTotalFilters();
+    });
 }
 
 /**

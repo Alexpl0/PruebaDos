@@ -85,8 +85,69 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
         <!-- Filtro semanal resumen -->
         <div class="row mb-4">
             <div class="col-12">
-                <div class="alert alert-info" id="weeklyFilterSummary">
-                    No filters applied
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-filter me-2"></i>Weekly Filters
+                            <button class="btn btn-sm btn-outline-secondary float-end" id="toggleWeeklyFilters">
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                        </h6>
+                    </div>
+                    <div class="card-body" id="weeklyFilterPanelBody" style="display: none;">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label for="weeklyFilterDateRange" class="form-label">Date Range</label>
+                                <select class="form-select" id="weeklyFilterDateRange">
+                                    <option value="all">All Dates</option>
+                                    <option value="today">Today</option>
+                                    <option value="week">This Week</option>
+                                    <option value="month">This Month</option>
+                                    <option value="quarter">This Quarter</option>
+                                    <option value="year">This Year</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="weeklyFilterStatus" class="form-label">Status</label>
+                                <select class="form-select" id="weeklyFilterStatus">
+                                    <option value="all">All Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="weeklyFilterApprovalStatus" class="form-label">Approval Status</label>
+                                <select class="form-select" id="weeklyFilterApprovalStatus">
+                                    <option value="all">All</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="weeklyFilterCostRange" class="form-label">Cost Range (€)</label>
+                                <select class="form-select" id="weeklyFilterCostRange">
+                                    <option value="all">All Costs</option>
+                                    <option value="0-100">0 - 100€</option>
+                                    <option value="100-500">100 - 500€</option>
+                                    <option value="500-1000">500 - 1,000€</option>
+                                    <option value="1000-5000">1,000 - 5,000€</option>
+                                    <option value="5000+">5,000€+</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <button class="btn btn-primary btn-sm me-2" id="applyWeeklyFilters">
+                                    <i class="fas fa-check"></i> Apply Filters
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm" id="clearWeeklyFilters">
+                                    <i class="fas fa-times"></i> Clear Filters
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

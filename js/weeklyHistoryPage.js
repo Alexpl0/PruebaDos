@@ -43,6 +43,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
+// Toggle filter panel
+document.getElementById('toggleWeeklyFilters').addEventListener('click', () => {
+    const filterBody = document.getElementById('weeklyFilterPanelBody');
+    const isVisible = filterBody.style.display !== 'none';
+    filterBody.style.display = isVisible ? 'none' : 'block';
+});
+
 /**
  * Setup week navigation buttons
  */
