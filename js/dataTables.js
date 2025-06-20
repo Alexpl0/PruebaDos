@@ -137,6 +137,15 @@ function getDataTableConfig(filename, title) {
                 }
             },
             {
+                targets: [11], // Description column
+                render: function(data, type, row) {
+                    if (type === 'display') {
+                        return `<span class="table-description" title="${data}">${data}</span>`;
+                    }
+                    return data;
+                }
+            },
+            {
                 targets: [-1], // Actions column (last column)
                 orderable: false,
                 searchable: false,
