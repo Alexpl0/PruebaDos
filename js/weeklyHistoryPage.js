@@ -218,30 +218,30 @@ function updateNavigationButtons() {
 function populateWeeklyDataTable(orders) {
     const tableData = orders.map(order => {
         return [
-            order.id || '-',
-            order.code_planta || '-', // Corrected column for Plant Code
-            order.planta || '-', // Corrected column for Plant Name
-            order.date || '-', // Corrected column for Issue Date
-            order.in_out_bound || '-', // Corrected column for Inbound/Outbound
-            getWeekNumber(order.date) || '-', // Calculated Issue CW
-            order.reference_number || '-',
-            order.creator_name || '-', // Corrected column for Creator
-            `<span class="table-description" title="${order.description}">${order.description}</span>`,
-            order.category_cause || '-',
-            order.cost_euros || '-',
-            order.transport || '-',
-            order.carrier || '-',
-            order.origin_company_name || '-',
-            order.origin_city || '-',
-            order.destiny_company_name || '-',
-            order.destiny_city || '-',
-            order.weight || '-',
-            order.status_name || '-', // Corrected column for Status
-            order.approver || '-',
-            order.approval_date || '-',
+            order.id || '-', // ID
+            order.code_planta || '-', // Plant Code
+            order.planta || '-', // Plant Name
+            order.date || '-', // Issue Date
+            order.in_out_bound || '-', // Inbound/Outbound
+            getWeekNumber(order.date) || '-', // Issue CW (calculated)
+            order.reference_number || '-', // Reference Number
+            order.creator_name || '-', // Creator Name
+            `<span class="table-description" title="${order.description}">${order.description}</span>`, // Description
+            order.category_cause || '-', // Category Cause
+            formatCost(order.cost_euros) || '-', // Cost (€)
+            order.transport || '-', // Transport
+            order.carrier || '-', // Carrier
+            order.origin_company_name || '-', // Origin Company
+            order.origin_city || '-', // Origin City
+            order.destiny_company_name || '-', // Destination Company
+            order.destiny_city || '-', // Destination City
+            formatWeight(order.weight) || '-', // Weight (kg)
+            order.status_name || '-', // Status Name
+            order.approver_name || '-', // Approver Name
+            order.approval_date || '-', // Approval Date
             `<button class="btn btn-sm btn-outline-primary generate-pdf-btn" onclick="generateSinglePDF(${order.id})">
                 <i class="fas fa-file-pdf"></i>
-            </button>`
+            </button>` // Actions
         ];
     });
 
