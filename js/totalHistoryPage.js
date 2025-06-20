@@ -454,4 +454,32 @@ async function refreshTotalData() {
     await loadTotalHistoryData();
 }
 
+/**
+ * Apply filters and update the total DataTable
+ */
+function applyTotalFilters() {
+    filteredOrdersData = applyFilters(allOrdersData, currentFilters);
+    populateTotalDataTable(filteredOrdersData);
+    showInfoToast(`Applied filters - ${filteredOrdersData.length} orders found`);
+}
+
+/**
+ * Clear filters and reset the total DataTable
+ */
+function clearTotalFilters() {
+    currentFilters = {
+        dateRange: 'all',
+        status: 'all',
+        plant: 'all',
+        approvalStatus: 'all',
+        costRange: 'all',
+        creator: 'all',
+        carrier: 'all'
+    };
+
+    filteredOrdersData = allOrdersData;
+    populateTotalDataTable(allOrdersData);
+    showInfoToast('Filters cleared - showing all orders');
+}
+
 console.log('[TotalHistory] 📋 Total history module loaded successfully');

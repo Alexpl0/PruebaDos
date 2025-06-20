@@ -252,6 +252,11 @@ function populateWeeklyDataTable(orders) {
         ];
     });
 
+    // Destroy existing DataTable instance if it exists
+    if ($.fn.DataTable.isDataTable('#weeklyHistoryTable')) {
+        $('#weeklyHistoryTable').DataTable().clear().destroy();
+    }
+
     const config = getDataTableConfig('Weekly_Premium_Freight', 'Weekly Premium Freight Report');
     weeklyDataTable = $('#weeklyHistoryTable').DataTable({
         ...config,
@@ -271,6 +276,34 @@ async function refreshWeeklyData() {
     
     showInfoToast('Refreshing weekly data...');
     await loadWeeklyHistoryData(currentWeekOffset);
+}
+
+/**
+ * Apply filters and update the weekly DataTable
+ */
+function applyWeeklyFilters() {
+    filteredOrdersData = applyFilters(allOrdersData, currentFilters);
+    populateWeeklyDataTable(filteredOrdersData);
+    showInfoToast(`Applied filters - ${filteredOrdersData.length} orders found`);
+}
+
+/**
+ * Clear filters and reset the weekly DataTable
+ */
+function clearWeeklyFilters() {
+    currentFilters = {
+        dateRange: 'all',
+        status: 'all',
+        plant: 'all',
+        approvalStatus: 'all',
+        costRange: 'all',
+        creator: 'all',
+        carrier: 'all'
+    };
+
+    filteredOrdersData = allOrdersData;
+    populateWeeklyDataTable(allOrdersData);
+    showInfoToast('Filters cleared - showing all orders');
 }
 
 console.log('[WeeklyHistory] 📋 Weekly history module loaded successfully');

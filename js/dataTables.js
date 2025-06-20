@@ -381,4 +381,99 @@ function addNotificationStyles() {
     document.head.appendChild(styles);
 }
 
+/**
+ * Apply filters to orders data
+ * @param {Array} orders - Array of orders to filter
+ * @param {Object} filters - Filters to apply
+ * @returns {Array} Filtered orders
+ */
+function applyFilters(orders, filters) {
+    return orders.filter(order => {
+        // Date range filter
+        if (filters.dateRange !== 'all') {
+            const orderDate = new Date(order.date || order.issue_date);
+            const now = new Date();
+
+            switch (filters.dateRange) {
+                case 'today':
+                    if (orderDate.toDateString() !== now.toDateString()) return false;
+                    break;
+                case 'week':
+                    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    if (orderDate < weekAgo) return false;
+                    break;
+                case 'month':
+                    if (orderDate.getMonth() !== now.getMonth() || orderDate.getFullYear() !== now.getFullYear()) return false;
+                    break;
+                case 'quarter':
+                    const currentQuarter = Math.floor(now.getMonth() / 3);
+                    const orderQuarter = Math.floor(orderDate.getMonth() / 3);
+                    if (orderQuarter !== currentQuarter || orderDate.getFullYear() !== now.getFullYear()) return false;
+                    break;
+                case 'year':
+                    if (orderDate.getFullYear() !== now.getFullYear()) return false;
+                    break;
+            }
+        }
+
+        // Status filter
+        if (filters.status !== 'all') {
+            const orderStatus = (order.status_name || '').toLowerCase();
+            switch (filters.status) {
+                case 'pending':
+                    if (!orderStatus.includes('pending') && !orderStatus.includes('waiting')) return false;
+                    break;
+                case 'approved':
+                    if (!orderStatus.includes('approved') && !order.approval_date) return false;
+                    break;
+                case 'rejected':
+                    if (!orderStatus.includes('reject') && !orderStatus.includes('denied')) return false;
+                    break;
+            }
+        }
+
+        // Approval status filter
+        if (filters.approvalStatus !== 'all') {
+            const hasApproval = order.approval_date && order.approver_name;
+            const isRejected = (order.status_name || '').toLowerCase().includes('reject');
+
+            switch (filters.approvalStatus) {
+                case 'approved':
+                    if (!hasApproval) return false;
+                    break;
+                case 'pending':
+                    if (hasApproval || isRejected) return false;
+                    break;
+                case 'rejected':
+                    if (!isRejected) return false;
+                    break;
+            }
+        }
+
+        // Cost range filter
+        if (filters.costRange !== 'all') {
+            const cost = parseFloat(order.cost_euros) || 0;
+            switch (filters.costRange) {
+                case '0-100':
+                    if (cost < 0 || cost > 100) return false;
+                    break;
+                case '100-500':
+                    if (cost < 100 || cost > 500) return false;
+                    break;
+                case '500-1000':
+                    if (cost < 500 || cost > 1000) return false;
+                    break;
+                case '1000-5000':
+                    if (cost < 1000 || cost > 5000) return false;
+                    break;
+                case '5000+':
+                    if (cost < 5000) return false;
+                    break;
+            }
+        }
+
+        return true;
+    });
+}
+
 console.log('[DataTables] 📊 DataTables utilities module loaded successfully');
