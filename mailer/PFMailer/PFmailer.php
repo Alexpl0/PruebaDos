@@ -27,7 +27,7 @@ if(!defined('URLPF')) {
 // 6. CONFIGURACIÓN DE MODO DE PRUEBA
 // Cambiar a false para producción
 define('TEST_MODE', true);
-define('TEST_EMAIL', 'extern.jesus.perez@grammer.com');
+define('TEST_EMAIL', 'premium_freight@grammermx.com');
 
 class PFMailer {
     private $mail;

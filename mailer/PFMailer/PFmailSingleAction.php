@@ -18,7 +18,7 @@ require_once __DIR__ . '/PFmailAction.php';
 
 // Verificar parámetros básicos
 if (!isset($_GET['action']) || !isset($_GET['token'])) {
-    showError('Faltan parámetros requeridos. Se necesitan "action" y "token".');
+    showError('Faltan parámetros requeridos.');
     exit;
 }
 
@@ -27,7 +27,7 @@ $token = $_GET['token'];
 
 // Validar tipo de acción
 if ($action !== 'approve' && $action !== 'reject') {
-    showError("Tipo de acción inválido: '{$action}'. Las acciones permitidas son 'approve' o 'reject'.");
+    showError("Tipo de acción inválido: '{$action}'.");
     exit;
 }
 
