@@ -116,9 +116,8 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
                                 <thead>
                                     <tr>
                                         <th>ID</th>
-                                        <th>Division</th>
-                                        <th>Plant Code</th>
                                         <th>Plant Name</th>
+                                        <th>Plant Code</th>
                                         <th>Issue Date</th>
                                         <th>Inbound/Outbound</th>
                                         <th>Issue CW</th>
@@ -143,8 +142,6 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
                                         <th>Paid By</th>
                                         <th>Products</th>
                                         <th>Status</th>
-                                        <th>Recovery File</th>
-                                        <th>Recovery Evidence</th>
                                         <th>Approval Date</th>
                                         <th>Approval Status</th>
                                         <th>Actions</th>
