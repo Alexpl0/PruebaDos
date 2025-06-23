@@ -505,20 +505,21 @@ async function generatePDFsForVisibleOrders(ordersData) {
         let completedOrders = 0;
         let failedOrders = [];
 
-        // Show loading modal with progress bar
-        Swal.fire({
+        // Show loading modal with progress bar (no Swal.showLoading here!)
+        await Swal.fire({
             title: 'Generating PDFs',
             html: `
-                <p>Generating <strong>0/${totalOrders}</strong></p>
+
+                <p id="swal-progress-text" style="margin-bottom: 1rem;">Generating <strong>0/${totalOrders}</strong></p>
                 <div id="progress-bar" style="width: 100%; height: 20px; background: var(--gray-200); border-radius: 8px;">
-                    <div id="progress-bar-fill" style="width: 0%; height: 100%; background: var(--grammer-blue); border-radius: 8px;"></div>
+                    <div id="progress-bar-fill" style="width: 0%; height: 100%; background: var(--grammer-blue); border-radius: 8px; transition: width 0.3s;"></div>
                 </div>
             `,
             allowOutsideClick: false,
             allowEscapeKey: false,
             showConfirmButton: false,
             didOpen: () => {
-                Swal.showLoading();
+                // No spinner, just the progress bar
             }
         });
 
@@ -534,10 +535,12 @@ async function generatePDFsForVisibleOrders(ordersData) {
                 failedOrders.push(customFileName);
             }
 
-            // Update progress bar
+            // Update progress bar and text
             const progressPercentage = Math.round((completedOrders / totalOrders) * 100);
-            document.getElementById('progress-bar-fill').style.width = `${progressPercentage}%`;
-            Swal.getHtmlContainer().querySelector('p').innerHTML = `Generating <strong>${completedOrders}/${totalOrders}</strong>`;
+            const progressBarFill = document.getElementById('progress-bar-fill');
+            const progressText = document.getElementById('swal-progress-text');
+            if (progressBarFill) progressBarFill.style.width = `${progressPercentage}%`;
+            if (progressText) progressText.innerHTML = `Generating <strong>${completedOrders}/${totalOrders}</strong>`;
         }
 
         // Close loading modal
@@ -545,17 +548,17 @@ async function generatePDFsForVisibleOrders(ordersData) {
 
         // Show success or error summary
         if (failedOrders.length === 0) {
-            Swal.fire({
+            await Swal.fire({
                 icon: 'success',
                 title: 'PDF Generation Complete',
                 text: `All PDFs generated successfully (${completedOrders}/${totalOrders}).`,
                 confirmButtonColor: 'var(--grammer-blue)'
             });
         } else {
-            Swal.fire({
+            await Swal.fire({
                 icon: 'error',
                 title: 'PDF Generation Complete with Errors',
-                html: `Generated ${completedOrders}/${totalOrders} PDFs.<br>Failed: ${failedOrders.join(', ')}`,
+                html: `Generated ${completedOrders}/${totalOrders} PDFs.<br><b>Failed:</b> ${failedOrders.join(', ')}`,
                 confirmButtonColor: 'var(--grammer-blue)'
             });
         }
