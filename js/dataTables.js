@@ -412,11 +412,14 @@ async function generateFilters(endpoint) {
 function applyFilters(data, filters) {
     const today = new Date();
 
+    console.log('[DataTables] Applying filters:', filters);
+
     return data.filter(order => {
         const orderDate = new Date(order.date);
         const cost = parseFloat(order.cost_euros) || 0;
 
         // Date filter logic
+        console.log(`[DataTables] Date filter selected: ${filters.date}`);
         const dateMatch = (filters.date === 'week' && (today - orderDate) / (1000 * 60 * 60 * 24) <= 7) ||
                           (filters.date === 'month' && today.getMonth() === orderDate.getMonth() && today.getFullYear() === orderDate.getFullYear()) ||
                           (filters.date === 'four-month' && (today - orderDate) / (1000 * 60 * 60 * 24) <= 120) ||
@@ -425,11 +428,15 @@ function applyFilters(data, filters) {
                           (filters.date === '5-year' && today.getFullYear() - orderDate.getFullYear() <= 5) ||
                           (filters.date === '10-year' && today.getFullYear() - orderDate.getFullYear() <= 10) ||
                           filters.date === 'all';
+        console.log(`[DataTables] Date filter result for order ${order.id}: ${dateMatch}`);
 
         // Plant filter logic
+        console.log(`[DataTables] Plant filter selected: ${filters.plant}`);
         const plantMatch = filters.plant === 'all' || order.planta === filters.plant;
+        console.log(`[DataTables] Plant filter result for order ${order.id}: ${plantMatch}`);
 
         // Approval status filter logic
+        console.log(`[DataTables] Approval status filter selected: ${filters.approvalStatus}`);
         const statusTranslations = {
             nuevo: 'New',
             revision: 'Review',
@@ -437,14 +444,19 @@ function applyFilters(data, filters) {
             rechazado: 'Rejected'
         };
         const approvalStatusMatch = filters.approvalStatus === 'all' || statusTranslations[order.status_name] === filters.approvalStatus;
+        console.log(`[DataTables] Approval status filter result for order ${order.id}: ${approvalStatusMatch}`);
 
         // Cost range filter logic
+        console.log(`[DataTables] Cost range filter selected: ${filters.costRange}`);
         const costMatch = filters.costRange === '<1500' ? cost < 1500 :
                           filters.costRange === '1501-5000' ? cost >= 1501 && cost <= 5000 :
                           filters.costRange === '5001-10000' ? cost >= 5001 && cost <= 10000 :
                           filters.costRange === '>10000' ? cost > 10000 : true;
+        console.log(`[DataTables] Cost range filter result for order ${order.id}: ${costMatch}`);
 
-        return dateMatch && plantMatch && approvalStatusMatch && costMatch;
+        const result = dateMatch && plantMatch && approvalStatusMatch && costMatch;
+        console.log(`[DataTables] Final filter result for order ${order.id}: ${result}`);
+        return result;
     });
 }
 
