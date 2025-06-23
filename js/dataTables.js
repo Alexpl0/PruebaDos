@@ -275,6 +275,22 @@ function showErrorMessage(title, message) {
 }
 
 /**
+ * Show informational toast
+ * @param {string} message - Informational message
+ */
+function showInfoToast(message) {
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'info',
+        title: message,
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+    });
+}
+
+/**
  * Add notification styles
  */
 function addNotificationStyles() {
@@ -295,6 +311,22 @@ function addNotificationStyles() {
         }
     `;
     document.head.appendChild(style);
+}
+
+/**
+ * Setup keyboard shortcuts
+ */
+function setupKeyboardShortcuts() {
+    console.log('[TotalHistory] Setting up keyboard shortcuts...');
+    document.addEventListener('keydown', (event) => {
+        if (event.ctrlKey && event.key === 'f') {
+            event.preventDefault();
+            const filterPanel = document.getElementById('filterPanelBody');
+            if (filterPanel) {
+                filterPanel.style.display = filterPanel.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+    });
 }
 
 console.log('[DataTables] 📊 DataTables utilities module loaded successfully');
