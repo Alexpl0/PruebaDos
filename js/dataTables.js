@@ -23,6 +23,42 @@ function getBaseURL() {
 }
 
 /**
+ * Add notification styles dynamically
+ */
+function addNotificationStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .swal2-popup {
+            font-size: 1rem !important;
+        }
+        .swal2-title {
+            color: var(--grammer-blue) !important;
+        }
+        .swal2-confirm {
+            background-color: var(--grammer-blue) !important;
+            color: white !important;
+        }
+    `;
+    document.head.appendChild(style);
+    console.log('[DataTables] ✅ Notification styles added');
+}
+
+/**
+ * Show error message using SweetAlert2
+ * @param {string} title - Title of the error message
+ * @param {string} message - Detailed error message
+ */
+function showErrorMessage(title, message) {
+    Swal.fire({
+        icon: 'error',
+        title: title,
+        text: message,
+        confirmButtonColor: 'var(--grammer-blue)'
+    });
+    console.log(`[DataTables] ❌ Error: ${title} - ${message}`);
+}
+
+/**
  * Generate PDFs for all visible orders in the DataTable
  * @param {Array} ordersData - Array of orders currently visible in the DataTable
  */

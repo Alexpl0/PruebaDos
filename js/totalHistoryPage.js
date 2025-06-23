@@ -31,12 +31,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         await generateFilters(`${baseUrl}dao/conections/daoPremiumFreight.php`);
 
         // Load total history data
-        await loadTotalHistoryData();
-
-        // Usa las funciones globales de svgOrders.js para cargar y poblar el SVG
-        const selectedOrder = filteredOrdersData[0]; // Ejemplo: selecciona el primer pedido visible
-        const containerId = 'svgPreview'; // ID del contenedor donde se renderizará el SVG
-        await window.svgOrders.loadAndPopulateSVG(selectedOrder, containerId);
+        loadTotalHistoryData();
 
         console.log('[TotalHistory] ✅ Initialization completed successfully');
     } catch (error) {
