@@ -349,4 +349,58 @@ function setupKeyboardShortcuts() {
     });
 }
 
+/**
+ * Generate dynamic filters for the filter panel
+ * @param {string} endpoint - API endpoint to fetch data
+ */
+async function generateFilters(endpoint) {
+    try {
+        const response = await fetch(endpoint, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            credentials: 'same-origin'
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const orders = data.data || [];
+
+        // Populate Plant filter
+        const plantSelect = document.getElementById('filterPlant');
+        const uniquePlants = [...new Set(orders.map(order => order.planta))];
+        uniquePlants.forEach(plant => {
+            const option = document.createElement('option');
+            option.value = plant;
+            option.textContent = plant;
+            plantSelect.appendChild(option);
+        });
+
+        // Populate Approval Status filter
+        const statusSelect = document.getElementById('filterApprovalStatus');
+        const uniqueStatuses = [...new Set(orders.map(order => order.status_name))];
+        const statusTranslations = {
+            nuevo: 'New',
+            revision: 'Review',
+            aprobado: 'Approved',
+            rechazado: 'Rejected'
+        };
+        uniqueStatuses.forEach(status => {
+            const option = document.createElement('option');
+            option.value = statusTranslations[status] || status;
+            option.textContent = statusTranslations[status] || status;
+            statusSelect.appendChild(option);
+        });
+
+        console.log('[DataTables] Filters generated successfully');
+    } catch (error) {
+        console.error('[DataTables] Error generating filters:', error);
+    }
+}
+
 console.log('[DataTables] 📊 DataTables utilities module loaded successfully');

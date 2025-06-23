@@ -510,6 +510,7 @@ table.dataTable tbody tr:hover {
     border-radius: var(--border-radius); /* Bordes redondeados */
     box-shadow: var(--shadow-sm); /* Sombra ligera */
     transition: all 0.3s ease; /* Animación suave */
+    max-width: 190px;
 }
 
 .btn:hover {
