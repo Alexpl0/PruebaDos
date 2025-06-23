@@ -475,6 +475,16 @@ async function generatePDF(selectedOrder, customFileName) {
     }
 }
 
+// Define the global object for svgOrders
+window.svgOrders = {
+    svgMap,
+    formatDate,
+    wrapSVGText,
+    loadAndPopulateSVG,
+    prepareOffscreenSVG,
+    generatePDF
+};
+
 // Export the module functions
 export {
     svgMap,

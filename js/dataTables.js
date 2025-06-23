@@ -10,11 +10,6 @@ let isLoading = false;
 let allOrdersData = [];
 let dataCache = new Map();
 
-// Configuración común  
-const BATCH_SIZE = 50;
-const DEBOUNCE_DELAY = 300;
-const AUTO_REFRESH_INTERVAL = 10 * 60 * 1000; // 10 minutes
-
 /**
  * Get base URL helper function with fallback
  * @returns {string} The base URL for API calls
@@ -522,7 +517,7 @@ async function generatePDFsForVisibleOrders(ordersData) {
             const orderId = order.id;
             const customFileName = `PF_${orderId}`;
             try {
-                await generatePDF(orderId, customFileName); // Directly use the imported function
+                await window.svgOrders.generatePDF(orderId, customFileName); // Use the global object
                 completedOrders++;
             } catch (error) {
                 console.error(`[DataTables] Error generating PDF for order ${orderId}:`, error);
