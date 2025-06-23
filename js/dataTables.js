@@ -501,14 +501,19 @@ function setupToggleFilters(toggleButtonId, filterPanelId) {
  */
 async function generatePDFsForVisibleOrders(ordersData) {
     try {
-        // Show loading modal with progress bar
-        let totalOrders = ordersData.length;
+        const totalOrders = ordersData.length;
         let completedOrders = 0;
         let failedOrders = [];
 
+        // Show loading modal with progress bar
         Swal.fire({
             title: 'Generating PDFs',
-            html: `<p>Generating <strong>0/${totalOrders}</strong></p><div id="progress-bar" style="width: 100%; height: 20px; background: var(--gray-200); border-radius: 8px;"><div id="progress-bar-fill" style="width: 0%; height: 100%; background: var(--grammer-blue); border-radius: 8px;"></div></div>`,
+            html: `
+                <p>Generating <strong>0/${totalOrders}</strong></p>
+                <div id="progress-bar" style="width: 100%; height: 20px; background: var(--gray-200); border-radius: 8px;">
+                    <div id="progress-bar-fill" style="width: 0%; height: 100%; background: var(--grammer-blue); border-radius: 8px;"></div>
+                </div>
+            `,
             allowOutsideClick: false,
             allowEscapeKey: false,
             showConfirmButton: false,
