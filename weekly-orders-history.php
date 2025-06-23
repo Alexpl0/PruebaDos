@@ -217,7 +217,7 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
 
     <!-- Custom scripts -->
     <script type="module" src="js/svgOrders.js"></script>
-    <script src="js/dataTables.js"></script>
-    <script src="js/weeklyHistoryPage.js"></script>
+    <script type="module" src="js/dataTables.js"></script>
+    <script type="module" src="js/weeklyHistoryPage.js"></script>
 </body>
 </html>
