@@ -485,12 +485,12 @@ window.svgOrders = {
     generatePDF
 };
 
-// Export the module functions
-export {
-    svgMap,
-    formatDate,
-    wrapSVGText,
-    loadAndPopulateSVG,
-    prepareOffscreenSVG,
-    generatePDF
-};
+// // Export the module functions
+// export {
+//     svgMap,
+//     formatDate,
+//     wrapSVGText,
+//     loadAndPopulateSVG,
+//     prepareOffscreenSVG,
+//     generatePDF
+// };
