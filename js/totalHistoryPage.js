@@ -142,6 +142,25 @@ function populateTotalDataTable(orders) {
         scrollY: '400px',
         responsive: false
     });
+
+    // Actualiza las estadísticas rápidas
+    updateQuickStats(orders);
+}
+
+/**
+ * Update quick stats cards based on current orders
+ * @param {Array} orders - Array of orders to analyze
+ */
+function updateQuickStats(orders) {
+    const total = orders.length;
+    const approved = orders.filter(o => (o.status_name === 'aprobado' || o.status_name === 'Approved')).length;
+    const pending = orders.filter(o => (o.status_name === 'revision' || o.status_name === 'Review' || o.status_name === 'pending' || o.status_name === 'Pending')).length;
+    const rejected = orders.filter(o => (o.status_name === 'rechazado' || o.status_name === 'Rejected')).length;
+
+    document.getElementById('totalOrdersCount').textContent = total;
+    document.getElementById('approvedOrdersCount').textContent = approved;
+    document.getElementById('pendingOrdersCount').textContent = pending;
+    document.getElementById('rejectedOrdersCount').textContent = rejected;
 }
 
 /**
