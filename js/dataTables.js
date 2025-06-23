@@ -274,4 +274,27 @@ function showErrorMessage(title, message) {
     });
 }
 
+/**
+ * Add notification styles
+ */
+function addNotificationStyles() {
+    console.log('[DataTables] Adding notification styles...');
+    const style = document.createElement('style');
+    style.innerHTML = `
+        .toast-success {
+            background-color: #28a745;
+            color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .toast-error {
+            background-color: #dc3545;
+            color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 console.log('[DataTables] 📊 DataTables utilities module loaded successfully');
