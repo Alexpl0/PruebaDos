@@ -122,6 +122,7 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
                             <div class="col-md-3">
                                 <label for="filterDate" class="form-label">Date</label>
                                 <select class="form-select" id="filterDate">
+                                    <option value="all">All</option>
                                     <option value="week">Week</option>
                                     <option value="month">Month</option>
                                     <option value="four-month">Four-Month Period</option>
@@ -146,6 +147,7 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
                             <div class="col-md-3">
                                 <label for="filterCostRange" class="form-label">Cost Range (€)</label>
                                 <select class="form-select" id="filterCostRange">
+                                    <option value="all">All</option>
                                     <option value="<1500">< 1500€</option>
                                     <option value="1501-5000">1501 - 5000€</option>
                                     <option value="5001-10000">5001 - 10000€</option>

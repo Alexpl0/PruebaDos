@@ -427,7 +427,7 @@ function applyFilters(data, filters) {
                           (filters.date === 'year' && today.getFullYear() === orderDate.getFullYear()) ||
                           (filters.date === '5-year' && today.getFullYear() - orderDate.getFullYear() <= 5) ||
                           (filters.date === '10-year' && today.getFullYear() - orderDate.getFullYear() <= 10) ||
-                          filters.date === 'all';
+                          filters.date === 'all'; // Match all dates if "All" is selected
         console.log(`[DataTables] Date filter result for order ${order.id}: ${dateMatch}`);
 
         // Plant filter logic
@@ -451,7 +451,8 @@ function applyFilters(data, filters) {
         const costMatch = filters.costRange === '<1500' ? cost < 1500 :
                           filters.costRange === '1501-5000' ? cost >= 1501 && cost <= 5000 :
                           filters.costRange === '5001-10000' ? cost >= 5001 && cost <= 10000 :
-                          filters.costRange === '>10000' ? cost > 10000 : true;
+                          filters.costRange === '>10000' ? cost > 10000 :
+                          filters.costRange === 'all'; // Match all costs if "All" is selected
         console.log(`[DataTables] Cost range filter result for order ${order.id}: ${costMatch}`);
 
         const result = dateMatch && plantMatch && approvalStatusMatch && costMatch;
@@ -466,6 +467,7 @@ function applyFilters(data, filters) {
  * @returns {Array} Reset data
  */
 function clearFilters(data) {
+    console.log('[DataTables] Clearing filters and resetting data');
     return data; // Return the original data without filters
 }
 

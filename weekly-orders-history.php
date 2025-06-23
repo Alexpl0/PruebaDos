@@ -98,7 +98,16 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
                         <div class="row g-3">
                             <div class="col-md-3">
                                 <label for="filterDate" class="form-label">Date</label>
-                                <input type="date" class="form-control" id="filterDate">
+                                <select class="form-select" id="filterDate">
+                                    <option value="all">All</option>
+                                    <option value="week">Week</option>
+                                    <option value="month">Month</option>
+                                    <option value="four-month">Four-Month Period</option>
+                                    <option value="semester">Semester</option>
+                                    <option value="year">Year</option>
+                                    <option value="5-year">5 Year</option>
+                                    <option value="10-year">10 Year</option>
+                                </select>
                             </div>
                             <div class="col-md-3">
                                 <label for="filterPlant" class="form-label">Plant</label>
@@ -121,12 +130,11 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
                             <div class="col-md-3">
                                 <label for="filterCostRange" class="form-label">Cost Range (€)</label>
                                 <select class="form-select" id="filterCostRange">
-                                    <option value="all">All Costs</option>
-                                    <option value="0-100">0 - 100€</option>
-                                    <option value="100-500">100 - 500€</option>
-                                    <option value="500-1000">500 - 1,000€</option>
-                                    <option value="1000-5000">1,000 - 5,000€</option>
-                                    <option value="5000+">5,000€+</option>
+                                    <option value="all">All</option>
+                                    <option value="<1500">< 1500€</option>
+                                    <option value="1501-5000">1501 - 5000€</option>
+                                    <option value="5001-10000">5001 - 10000€</option>
+                                    <option value=">10000">> 10000€</option>
                                 </select>
                             </div>
                         </div>
