@@ -485,6 +485,8 @@ window.svgOrders = {
     generatePDF
 };
 
+window.generatePDF = generatePDF;
+
 // // Export the module functions
 // export {
 //     svgMap,
