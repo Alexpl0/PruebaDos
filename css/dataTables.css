@@ -571,9 +571,9 @@ table.dataTable tbody tr:hover {
 
 /* --- Custom style for the toggleFilters button --- */
 #toggleFilters {
-    background: linear-gradient(135deg, var(--grammer-light-blue) 0%, var(--grammer-blue) 100%);
+    background: var(--grammer-blue);
     color: var(--white);
-    border: none;
+    border: 2px dotted var(--white);
     border-radius: 6px;
     box-shadow: 0 2px 8px rgba(3, 76, 140, 0.10);
     padding: 0.35rem 0.8rem;
@@ -586,8 +586,9 @@ table.dataTable tbody tr:hover {
 }
 
 #toggleFilters:hover, #toggleFilters:focus {
-    background: linear-gradient(135deg, var(--grammer-blue) 0%, var(--grammer-dark-blue) 100%);
+    background: var(--grammer-dark-blue);
     color: var(--white);
+    border: 2px dotted var(--white);
     box-shadow: 0 4px 16px rgba(3, 76, 140, 0.18);
     transform: translateY(-2px) scale(1.04);
     outline: none;
