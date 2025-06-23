@@ -1,3 +1,5 @@
+import { generatePDF } from './svgOrders.js';
+
 /**
  * Premium Freight - Shared DataTables Utilities
  * Functions shared between TotalHistory and WeeklyHistory pages
@@ -501,7 +503,6 @@ function setupToggleFilters(toggleButtonId, filterPanelId) {
  */
 async function generatePDFsForVisibleOrders(ordersData) {
     try {
-        // Show loading modal with progress bar
         let totalOrders = ordersData.length;
         let completedOrders = 0;
         let failedOrders = [];
@@ -517,28 +518,24 @@ async function generatePDFsForVisibleOrders(ordersData) {
             }
         });
 
-        // Iterate through each order and generate PDF
         for (const order of ordersData) {
             const orderId = order.id;
             const customFileName = `PF_${orderId}`;
             try {
-                await generatePDF(orderId, customFileName); // Call the function from svgOrders.js
+                await generatePDF(orderId, customFileName); // Directly use the imported function
                 completedOrders++;
             } catch (error) {
                 console.error(`[DataTables] Error generating PDF for order ${orderId}:`, error);
                 failedOrders.push(customFileName);
             }
 
-            // Update progress bar
             const progressPercentage = Math.round((completedOrders / totalOrders) * 100);
             document.getElementById('progress-bar-fill').style.width = `${progressPercentage}%`;
             Swal.getHtmlContainer().querySelector('p').innerHTML = `Generating <strong>${completedOrders}/${totalOrders}</strong>`;
         }
 
-        // Close loading modal
         Swal.close();
 
-        // Show success or error summary
         if (failedOrders.length === 0) {
             Swal.fire({
                 icon: 'success',

@@ -216,7 +216,7 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
 
     <!-- Custom scripts -->
-    <script src="js/svgOrders.js"></script>
+    <script type="module" src="js/svgOrders.js"></script>
     <script src="js/dataTables.js"></script>
     <script src="js/weeklyHistoryPage.js"></script>
 </body>
