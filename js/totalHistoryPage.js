@@ -156,6 +156,33 @@ function setupFilterEventListeners() {
     if (clearBtn) {
         clearBtn.addEventListener('click', clearAdvancedFilters);
     }
+
+    document.getElementById('totalOrdersCount').addEventListener('click', () => {
+        currentFilters = { date: 'all', plant: 'all', approvalStatus: 'all', costRange: 'all' };
+        populateTotalDataTable(allOrdersData);
+        showInfoToast('Showing all orders');
+    });
+
+    document.getElementById('approvedOrdersCount').addEventListener('click', () => {
+        currentFilters = { approvalStatus: 'approved' };
+        const filteredData = allOrdersData.filter(order => order.approval_status === 'approved');
+        populateTotalDataTable(filteredData);
+        showInfoToast(`Showing ${filteredData.length} approved orders`);
+    });
+
+    document.getElementById('pendingOrdersCount').addEventListener('click', () => {
+        currentFilters = { approvalStatus: 'pending' };
+        const filteredData = allOrdersData.filter(order => order.approval_status === 'pending');
+        populateTotalDataTable(filteredData);
+        showInfoToast(`Showing ${filteredData.length} pending orders`);
+    });
+
+    document.getElementById('rejectedOrdersCount').addEventListener('click', () => {
+        currentFilters = { approvalStatus: 'rejected' };
+        const filteredData = allOrdersData.filter(order => order.approval_status === 'rejected');
+        populateTotalDataTable(filteredData);
+        showInfoToast(`Showing ${filteredData.length} rejected orders`);
+    });
 }
 
 /**
@@ -275,7 +302,8 @@ function populateTotalDataTable(orders) {
     }
 
     totalDataTable = $('#totalHistoryTable').DataTable({
-        data: tableData,
+        dom: 'Bfrtip',
+        buttons: getDataTableButtons(orders),
         scrollX: true,
         scrollY: '400px',
         responsive: false

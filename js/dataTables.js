@@ -134,6 +134,43 @@ function getDataTableConfig(filename, title) {
 }
 
 /**
+ * Get DataTable buttons configuration
+ * @param {Array} ordersData - Array of orders to export
+ * @returns {Array} Buttons configuration
+ */
+function getDataTableButtons(ordersData) {
+    return [
+        {
+            extend: 'excel',
+            text: '<i class="fas fa-file-excel"></i> Excel',
+            className: 'btn btn-success btn-sm buttons-excel',
+            filename: `Orders_${new Date().toISOString().split('T')[0]}`,
+            title: 'Orders History',
+            exportOptions: { columns: ':not(:last-child)' }
+        },
+        {
+            extend: 'csv',
+            text: '<i class="fas fa-file-csv"></i> CSV',
+            className: 'btn btn-info btn-sm buttons-csv',
+            filename: `Orders_${new Date().toISOString().split('T')[0]}`,
+            title: 'Orders History',
+            exportOptions: { columns: ':not(:last-child)' }
+        },
+        {
+            text: '<i class="fas fa-file-pdf"></i> SVG',
+            className: 'btn btn-danger btn-sm buttons-svg',
+            action: async function () {
+                const ordersToExport = ordersData.length ? ordersData : [];
+                for (const order of ordersToExport) {
+                    await generatePDF(order);
+                }
+                showSuccessToast('PDFs generated successfully!');
+            }
+        }
+    ];
+}
+
+/**
  * Load orders data from API
  * @returns {Promise<Array>} Promise resolving to orders array
  */
