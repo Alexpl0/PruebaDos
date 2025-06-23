@@ -272,6 +272,8 @@ async function loadTotalHistoryData() {
  * @param {Array} orders - Array of orders to display
  */
 function populateTotalDataTable(orders) {
+    console.log('[TotalHistory] 📋 Populating DataTable with orders:', orders);
+
     const tableData = orders.map(order => {
         return [
             order.id || '-',
@@ -297,11 +299,14 @@ function populateTotalDataTable(orders) {
         ];
     });
 
+    console.log('[TotalHistory] 📋 Table data:', tableData);
+
     if ($.fn.DataTable.isDataTable('#totalHistoryTable')) {
         $('#totalHistoryTable').DataTable().clear().destroy();
     }
 
     totalDataTable = $('#totalHistoryTable').DataTable({
+        data: tableData,
         dom: 'Bfrtip',
         buttons: getDataTableButtons(orders),
         scrollX: true,

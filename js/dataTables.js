@@ -178,17 +178,6 @@ async function loadOrdersData() {
     try {
         console.log('[DataTables] 🔄 Loading orders data...');
         
-        // Check cache first
-        const cacheKey = 'all_orders';
-        if (dataCache.has(cacheKey)) {
-            const cachedData = dataCache.get(cacheKey);
-            const now = Date.now();
-            if (now - cachedData.timestamp < 5 * 60 * 1000) { // 5 minutes cache
-                console.log('[DataTables] 📋 Using cached data');
-                return cachedData.data;
-            }
-        }
-        
         const baseUrl = getBaseURL();
         const response = await fetch(`${baseUrl}dao/conections/daoPremiumFreight.php`, {
             method: 'GET',
@@ -204,22 +193,16 @@ async function loadOrdersData() {
         }
         
         const data = await response.json();
+        console.log('[DataTables] 📋 Server response:', data);
         
         if (data.status === 'error') {
             throw new Error(data.message || 'Unknown server error');
         }
         
         const orders = Array.isArray(data) ? data : (data.data || []);
+        console.log('[DataTables] ✅ Orders loaded:', orders);
         
-        // Cache the data
-        dataCache.set(cacheKey, {
-            data: orders,
-            timestamp: Date.now()
-        });
-        
-        console.log(`[DataTables] ✅ Loaded ${orders.length} orders successfully`);
         return orders;
-        
     } catch (error) {
         console.error('[DataTables] ❌ Error loading orders data:', error);
         throw error;
