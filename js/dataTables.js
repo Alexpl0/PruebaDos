@@ -599,4 +599,42 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
+/**
+ * Generate a single PDF for the given order ID
+ * @param {number|string} orderId - The ID of the order to export
+ */
+window.generateSinglePDF = async function(orderId) {
+    try {
+        // Busca la orden en los datos actuales (filtrados o todos)
+        const order = (typeof filteredOrdersData !== 'undefined' && filteredOrdersData.length > 0
+            ? filteredOrdersData
+            : (typeof allOrdersData !== 'undefined' ? allOrdersData : [])
+        ).find(o => String(o.id) === String(orderId));
+        if (!order) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Order Not Found',
+                text: `Could not find order with ID ${orderId}.`,
+                confirmButtonColor: 'var(--grammer-blue)'
+            });
+            return;
+        }
+        const customFileName = `PF_${order.id}`;
+        await window.svgOrders.generatePDF(order, customFileName);
+        Swal.fire({
+            icon: 'success',
+            title: 'PDF Generated',
+            text: `PDF for order ${order.id} generated successfully.`,
+            confirmButtonColor: 'var(--grammer-blue)'
+        });
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'PDF Generation Failed',
+            text: error.message || 'An error occurred while generating the PDF.',
+            confirmButtonColor: 'var(--grammer-blue)'
+        });
+    }
+};
+
 console.log('[DataTables] 📊 DataTables utilities module updated successfully');
