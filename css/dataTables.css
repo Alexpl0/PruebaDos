@@ -569,3 +569,27 @@ table.dataTable tbody tr:hover {
     transform: translateY(-2px); /* Efecto de elevación */
 }
 
+/* --- Custom style for the toggleFilters button --- */
+#toggleFilters {
+    background: linear-gradient(135deg, var(--grammer-light-blue) 0%, var(--grammer-blue) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(3, 76, 140, 0.10);
+    padding: 0.35rem 0.8rem;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background 0.3s, color 0.3s, box-shadow 0.3s, transform 0.2s;
+    outline: none;
+    position: relative;
+    z-index: 2;
+}
+
+#toggleFilters:hover, #toggleFilters:focus {
+    background: linear-gradient(135deg, var(--grammer-blue) 0%, var(--grammer-dark-blue) 100%);
+    color: var(--white);
+    box-shadow: 0 4px 16px rgba(3, 76, 140, 0.18);
+    transform: translateY(-2px) scale(1.04);
+    outline: none;
+}
+
