@@ -24,14 +24,14 @@ document.addEventListener('DOMContentLoaded', function () {
         // Add notification styles
         addNotificationStyles();
 
+        // Setup toggle filters functionality
+        setupToggleFilters('toggleFilters', 'filterPanelBody');
+
         // Setup week navigation
         setupWeekNavigation();
 
         // Load current week data
         loadWeeklyHistoryData(currentWeekOffset);
-
-        // Setup filter event listeners
-        setupFilterEventListeners();
 
         console.log('[WeeklyHistory] ✅ Initialization completed successfully');
     } catch (error) {
@@ -103,40 +103,14 @@ function setupFilterEventListeners() {
  * Apply weekly filters
  */
 function applyWeeklyFilters() {
-    const date = document.getElementById('filterDate').value;
-    const plant = document.getElementById('filterPlant').value;
-    const approvalStatus = document.getElementById('filterApprovalStatus').value;
-    const costRange = document.getElementById('filterCostRange').value;
+    const filters = {
+        date: document.getElementById('filterDate').value,
+        plant: document.getElementById('filterPlant').value,
+        approvalStatus: document.getElementById('filterApprovalStatus').value,
+        costRange: document.getElementById('filterCostRange').value
+    };
 
-    currentFilters = { date, plant, approvalStatus, costRange };
-
-    filteredOrdersData = allOrdersData.filter(order => {
-        if (currentFilters.date !== 'all' && order.date !== currentFilters.date) return false;
-        if (currentFilters.plant !== 'all' && order.planta !== currentFilters.plant) return false;
-        if (currentFilters.approvalStatus !== 'all' && order.approval_status !== currentFilters.approvalStatus) return false;
-        if (currentFilters.costRange !== 'all') {
-            const cost = parseFloat(order.cost_euros) || 0;
-            switch (currentFilters.costRange) {
-                case '0-100':
-                    if (cost < 0 || cost > 100) return false;
-                    break;
-                case '100-500':
-                    if (cost < 100 || cost > 500) return false;
-                    break;
-                case '500-1000':
-                    if (cost < 500 || cost > 1000) return false;
-                    break;
-                case '1000-5000':
-                    if (cost < 1000 || cost > 5000) return false;
-                    break;
-                case '5000+':
-                    if (cost < 5000) return false;
-                    break;
-            }
-        }
-        return true;
-    });
-
+    filteredOrdersData = applyFilters(allOrdersData, filters);
     populateWeeklyDataTable(filteredOrdersData);
     showInfoToast(`Applied filters - ${filteredOrdersData.length} orders found`);
 }
@@ -145,14 +119,14 @@ function applyWeeklyFilters() {
  * Clear weekly filters
  */
 function clearWeeklyFilters() {
-    currentFilters = {
-        date: 'all',
-        plant: 'all',
-        approvalStatus: 'all',
-        costRange: 'all'
-    };
+    // Reset filters in the UI
+    document.getElementById('filterDate').value = 'all';
+    document.getElementById('filterPlant').value = 'all';
+    document.getElementById('filterApprovalStatus').value = 'all';
+    document.getElementById('filterCostRange').value = 'all';
 
-    filteredOrdersData = allOrdersData;
+    // Reset filtered data
+    filteredOrdersData = clearFilters(allOrdersData);
     populateWeeklyDataTable(allOrdersData);
     showInfoToast('Filters cleared - showing all orders');
 }

@@ -403,4 +403,82 @@ async function generateFilters(endpoint) {
     }
 }
 
+/**
+ * Apply filters to the data
+ * @param {Array} data - Array of data to filter
+ * @param {Object} filters - Filters to apply
+ * @returns {Array} Filtered data
+ */
+function applyFilters(data, filters) {
+    const today = new Date();
+
+    return data.filter(order => {
+        const orderDate = new Date(order.date);
+        const cost = parseFloat(order.cost_euros) || 0;
+
+        // Date filter logic
+        const dateMatch = (filters.date === 'week' && (today - orderDate) / (1000 * 60 * 60 * 24) <= 7) ||
+                          (filters.date === 'month' && today.getMonth() === orderDate.getMonth() && today.getFullYear() === orderDate.getFullYear()) ||
+                          (filters.date === 'four-month' && (today - orderDate) / (1000 * 60 * 60 * 24) <= 120) ||
+                          (filters.date === 'semester' && (today - orderDate) / (1000 * 60 * 60 * 24) <= 180) ||
+                          (filters.date === 'year' && today.getFullYear() === orderDate.getFullYear()) ||
+                          (filters.date === '5-year' && today.getFullYear() - orderDate.getFullYear() <= 5) ||
+                          (filters.date === '10-year' && today.getFullYear() - orderDate.getFullYear() <= 10) ||
+                          filters.date === 'all';
+
+        // Plant filter logic
+        const plantMatch = filters.plant === 'all' || order.planta === filters.plant;
+
+        // Approval status filter logic
+        const statusTranslations = {
+            nuevo: 'New',
+            revision: 'Review',
+            aprobado: 'Approved',
+            rechazado: 'Rejected'
+        };
+        const approvalStatusMatch = filters.approvalStatus === 'all' || statusTranslations[order.status_name] === filters.approvalStatus;
+
+        // Cost range filter logic
+        const costMatch = filters.costRange === '<1500' ? cost < 1500 :
+                          filters.costRange === '1501-5000' ? cost >= 1501 && cost <= 5000 :
+                          filters.costRange === '5001-10000' ? cost >= 5001 && cost <= 10000 :
+                          filters.costRange === '>10000' ? cost > 10000 : true;
+
+        return dateMatch && plantMatch && approvalStatusMatch && costMatch;
+    });
+}
+
+/**
+ * Clear filters and reset data
+ * @param {Array} data - Original data
+ * @returns {Array} Reset data
+ */
+function clearFilters(data) {
+    return data; // Return the original data without filters
+}
+
+/**
+ * Setup toggle functionality for filter panel
+ * @param {string} toggleButtonId - ID of the toggle button
+ * @param {string} filterPanelId - ID of the filter panel
+ */
+function setupToggleFilters(toggleButtonId, filterPanelId) {
+    const toggleBtn = document.getElementById(toggleButtonId);
+    const filterPanel = document.getElementById(filterPanelId);
+
+    if (toggleBtn && filterPanel) {
+        toggleBtn.addEventListener('click', () => {
+            const isVisible = filterPanel.style.display !== 'none';
+            filterPanel.style.display = isVisible ? 'none' : 'block';
+            toggleBtn.innerHTML = isVisible ?
+                '<i class="fas fa-chevron-down"></i>' :
+                '<i class="fas fa-chevron-up"></i>';
+        });
+
+        console.log(`[DataTables] Toggle functionality set up for ${toggleButtonId}`);
+    } else {
+        console.warn(`[DataTables] Toggle button or filter panel not found: ${toggleButtonId}, ${filterPanelId}`);
+    }
+}
+
 console.log('[DataTables] 📊 DataTables utilities module loaded successfully');

@@ -23,6 +23,9 @@ document.addEventListener('DOMContentLoaded', async function () {
         // Add notification styles
         addNotificationStyles();
 
+        // Setup toggle filters functionality
+        setupToggleFilters('toggleFilters', 'filterPanelBody');
+
         // Generate dynamic filters
         const baseUrl = getBaseURL();
         await generateFilters(`${baseUrl}dao/conections/daoPremiumFreight.php`);
@@ -41,25 +44,14 @@ document.addEventListener('DOMContentLoaded', async function () {
  * Apply advanced filters
  */
 function applyAdvancedFilters() {
-    const date = document.getElementById('filterDate').value;
-    const plant = document.getElementById('filterPlant').value;
-    const approvalStatus = document.getElementById('filterApprovalStatus').value;
-    const costRange = document.getElementById('filterCostRange').value;
+    const filters = {
+        date: document.getElementById('filterDate').value,
+        plant: document.getElementById('filterPlant').value,
+        approvalStatus: document.getElementById('filterApprovalStatus').value,
+        costRange: document.getElementById('filterCostRange').value
+    };
 
-    filteredOrdersData = allOrdersData.filter(order => {
-        const cost = parseFloat(order.cost_euros) || 0;
-
-        return (
-            (date === 'all' || order.date.includes(date)) &&
-            (plant === 'all' || order.planta === plant) &&
-            (approvalStatus === 'all' || order.status_name === approvalStatus) &&
-            (costRange === '<1500' ? cost < 1500 :
-             costRange === '1501-5000' ? cost >= 1501 && cost <= 5000 :
-             costRange === '5001-10000' ? cost >= 5001 && cost <= 10000 :
-             costRange === '>10000' ? cost > 10000 : true)
-        );
-    });
-
+    filteredOrdersData = applyFilters(allOrdersData, filters);
     populateTotalDataTable(filteredOrdersData);
     showInfoToast(`Applied filters - ${filteredOrdersData.length} orders found`);
 }
@@ -68,14 +60,14 @@ function applyAdvancedFilters() {
  * Clear advanced filters
  */
 function clearAdvancedFilters() {
-    currentFilters = {
-        date: 'all',
-        plant: 'all',
-        approvalStatus: 'all',
-        costRange: 'all'
-    };
+    // Reset filters in the UI
+    document.getElementById('filterDate').value = 'all';
+    document.getElementById('filterPlant').value = 'all';
+    document.getElementById('filterApprovalStatus').value = 'all';
+    document.getElementById('filterCostRange').value = 'all';
 
-    filteredOrdersData = allOrdersData;
+    // Reset filtered data
+    filteredOrdersData = clearFilters(allOrdersData);
     populateTotalDataTable(allOrdersData);
     showInfoToast('Filters cleared - showing all orders');
 }
@@ -151,3 +143,11 @@ function populateTotalDataTable(orders) {
         responsive: false
     });
 }
+
+/**
+ * Attach event listeners to filter buttons
+ */
+document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('applyFilters').addEventListener('click', applyAdvancedFilters);
+    document.getElementById('clearFilters').addEventListener('click', clearAdvancedFilters);
+});
