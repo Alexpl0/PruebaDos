@@ -59,6 +59,29 @@ function showErrorMessage(title, message) {
 }
 
 /**
+ * Setup toggle filters functionality
+ * @param {string} toggleButtonId - ID of the toggle button
+ * @param {string} filterPanelId - ID of the filter panel
+ */
+function setupToggleFilters(toggleButtonId, filterPanelId) {
+    const toggleButton = document.getElementById(toggleButtonId);
+    const filterPanel = document.getElementById(filterPanelId);
+
+    if (toggleButton && filterPanel) {
+        toggleButton.addEventListener('click', () => {
+            const isVisible = filterPanel.style.display !== 'none';
+            filterPanel.style.display = isVisible ? 'none' : 'block';
+            toggleButton.innerHTML = isVisible ?
+                '<i class="fas fa-chevron-down"></i>' :
+                '<i class="fas fa-chevron-up"></i>';
+        });
+        console.log('[DataTables] ✅ Toggle filters setup completed');
+    } else {
+        console.warn('[DataTables] ⚠️ Toggle filters elements not found');
+    }
+}
+
+/**
  * Generate PDFs for all visible orders in the DataTable
  * @param {Array} ordersData - Array of orders currently visible in the DataTable
  */
