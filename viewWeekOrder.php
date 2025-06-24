@@ -24,14 +24,31 @@ $URLPF = "https://grammermx.com/PremiumFreight/";
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Premium Freight - Weekly Orders</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Bootstrap, FontAwesome, SweetAlert2 -->
+    <title>Premium Freight Weekly<?php echo $orderId; ?> - Grammer PF</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
+    
+    <!-- SEO and Meta -->
+    <meta name="description" content="Premium Freight Order Management System - Grammer AG">
+    <meta name="author" content="Grammer AG">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- External CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/view-order.css">
+    
+    <!-- External JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- Estilos personalizados -->
-    <link rel="stylesheet" href="viewWeekorder.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
         window.PF_WEEK_CONFIG = {
             userId: <?php echo $userId; ?>,
