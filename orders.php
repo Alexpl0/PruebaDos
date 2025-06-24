@@ -126,7 +126,5 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
     <script src="js/uploadFiles.js"></script>
     <script src="js/dataTables.js" type="module"></script>
     <script src="js/orders.js" type="module"></script>
-    <script src="js/totalHistoryPage.js" type="module"></script>
-    <script src="js/weekOrders.js" type="module"></script>
 </body>
 </html>
