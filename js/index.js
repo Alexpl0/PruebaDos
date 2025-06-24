@@ -101,6 +101,7 @@ async function loginUsuario() {
     try {
         // Usar PasswordManager para encriptar la contraseña
         let encryptedPassword = password;
+        
         if (typeof PasswordManager !== 'undefined' && PasswordManager.encrypt) {
             encryptedPassword = PasswordManager.encrypt(password);
             console.log('Password encrypted for transmission');

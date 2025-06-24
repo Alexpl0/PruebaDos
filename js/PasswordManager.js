@@ -1,9 +1,40 @@
 /**
  * Password Manager - Client Side
- * Handles password validation only (no encryption/decryption).
+ * Handles password encryption/decryption for login
  */
 
 class PasswordManager {
+    /**
+     * Simple encryption (same as PHP version)
+     * @param {string} text - Plain text password
+     * @param {number} shift - Encryption shift (default: 3)
+     * @returns {string} - Encrypted password (base64)
+     */
+    static encrypt(text, shift = 3) {
+        if (!text) return '';
+        let shifted = '';
+        for (let i = 0; i < text.length; i++) {
+            shifted += String.fromCharCode(text.charCodeAt(i) + shift);
+        }
+        return btoa(shifted);
+    }
+
+    /**
+     * Simple decryption (same as PHP version)
+     * @param {string} encryptedText - Encrypted password (base64)
+     * @param {number} shift - Decryption shift (default: 3)
+     * @returns {string} - Decrypted password
+     */
+    static decrypt(encryptedText, shift = 3) {
+        if (!encryptedText) return '';
+        let decoded = atob(encryptedText);
+        let original = '';
+        for (let i = 0; i < decoded.length; i++) {
+            original += String.fromCharCode(decoded.charCodeAt(i) - shift);
+        }
+        return original;
+    }
+
     /**
      * Validates password strength
      * @param {string} password - The password to validate
