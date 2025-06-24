@@ -518,26 +518,6 @@ table.dataTable tbody tr:hover {
     transform: translateY(-2px); /* Efecto de elevación */
 }
 
-/* Estilo para los filtros */
-.card {
-    border: 1px solid var(--gray-300); /* Borde ligero */
-    border-radius: var(--border-radius-lg); /* Bordes redondeados */
-    box-shadow: var(--shadow-sm); /* Sombra ligera */
-}
-
-.card-header {
-    background-color: var(--grammer-light-blue); /* Fondo azul claro */
-    color: var(--white); /* Texto blanco */
-    font-weight: bold; /* Texto en negrita */
-    padding: var(--spacing-sm); /* Espaciado interno */
-    border-bottom: 1px solid var(--gray-300); /* Línea divisoria */
-}
-
-.card-body {
-    background-color: var(--white); /* Fondo blanco */
-    padding: var(--spacing-md); /* Espaciado interno */
-}
-
 /* Estilo para los select y inputs */
 .form-select, .form-control {
     font-size: 0.875rem; /* Tamaño de fuente más pequeño */
