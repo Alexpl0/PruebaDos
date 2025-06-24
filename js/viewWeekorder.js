@@ -1,9 +1,44 @@
 // Lógica principal para la vista semanal de órdenes
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const config = window.PF_WEEK_CONFIG;
-    let filteredOrders = [...config.orders];
+    let filteredOrders = [];
 
+    // Nueva función para obtener órdenes desde el endpoint
+    async function fetchOrdersForApprover() {
+        try {
+            const response = await fetch(`${config.urls.pf}dao/conections/daoPremiumFreight.php`, {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            if (data.status !== 'success' || !Array.isArray(data.data)) {
+                throw new Error('Invalid data format received');
+            }
+
+            // Filtrar órdenes donde el siguiente aprobador es el usuario logeado
+            const userAuthLevel = config.authorizationLevel;
+            filteredOrders = data.data.filter(order => {
+                const approvalStatus = Number(order.approval_status);
+                return userAuthLevel === approvalStatus + 1;
+            });
+
+            renderOrders(filteredOrders);
+        } catch (error) {
+            console.error('Error fetching orders:', error.message);
+        }
+    }
+
+    // Actualizar renderOrders para incluir botones y SVG dinámico
     function renderOrders(orders) {
         const list = document.getElementById('orders-list');
         list.innerHTML = '';
@@ -23,31 +58,35 @@ document.addEventListener('DOMContentLoaded', () => {
                         <button class="btn btn-outline-primary btn-sm btn-download" data-id="${order.id}"><i class="fas fa-download"></i> PDF</button>
                     </div>
                 </div>
-                <div>
-                    <strong>Creator:</strong> ${order.creator_name || '-'}
-                </div>
-                <div class="mt-2">
-                    <span class="status-badge status-pending">PENDING</span>
+                <div class="order-svg-container" id="svg-container-${order.id}">
+                    <div class="loading-spinner"></div>
                 </div>
             `;
             list.appendChild(card);
+
+            // Cargar SVG dinámico
+            loadAndPopulateSVG(order, `svg-container-${order.id}`);
         });
     }
 
-    // Filtros
-    document.getElementById('apply-filters').addEventListener('click', () => {
-        const orderVal = document.getElementById('filter-order').value.trim();
-        const creatorVal = document.getElementById('filter-creator').value.trim().toLowerCase();
-        filteredOrders = config.orders.filter(order => {
-            let match = true;
-            if (orderVal) match = match && order.id.toString().includes(orderVal);
-            if (creatorVal) match = match && (order.creator_name || '').toLowerCase().includes(creatorVal);
-            return match;
-        });
-        renderOrders(filteredOrders);
-    });
+    // Función para cargar SVG dinámico
+    async function loadAndPopulateSVG(order, containerId) {
+        try {
+            const container = document.getElementById(containerId);
+            if (!container) throw new Error('SVG container not found');
 
-    // Acciones
+            // Simulación de carga de SVG dinámico
+            container.innerHTML = `<svg width="100%" height="200"><text x="10" y="20" font-size="16">Order #${order.id} - ${order.creator_name}</text></svg>`;
+        } catch (error) {
+            console.error(`Error loading SVG for order ${order.id}:`, error.message);
+            const container = document.getElementById(containerId);
+            if (container) {
+                container.innerHTML = `<div style="text-align: center; color: #ef4444;">Error loading visualization</div>`;
+            }
+        }
+    }
+
+    // Acciones de botones
     document.getElementById('orders-list').addEventListener('click', async (e) => {
         const btn = e.target.closest('button');
         if (!btn) return;
@@ -61,11 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Descargar todos
-    document.getElementById('download-all-btn').addEventListener('click', () => {
-        Swal.fire('Download', `All PDFs downloaded!`, 'success');
-    });
-
-    // Render inicial
-    renderOrders(filteredOrders);
+    // Inicializar la vista
+    await fetchOrdersForApprover();
 });
