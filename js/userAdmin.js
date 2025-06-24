@@ -295,49 +295,22 @@ function initializeDataTable() {
 
         const userId = $('#user-id').val();
         const isNewUser = userId === 'New';
-        const password = $userPassword.val().trim();
-        const name = $userName.val().trim();
-        const email = $userEmail.val().trim();
-        const plant = $userPlant.val().trim();
+        const password = $userPassword.val() ? $userPassword.val().trim() : '';
+        const name = $userName.val() ? $userName.val().trim() : '';
+        const email = $userEmail.val() ? $userEmail.val().trim() : '';
+        const plant = $userPlant.val() ? $userPlant.val().trim() : '';
 
-        console.log('Form data gathered:', {
-            userId,
-            isNewUser,
-            hasPassword: !!password,
-            name,
-            email,
-            plant
-        });
-
-        // Basic validation
-        if (!name) {
+        // Validaciones básicas (puedes agregar más si lo deseas)
+        if (!name || !email || !plant) {
             Swal.fire({
                 icon: 'error',
-                title: 'Name Required',
-                text: 'Please enter the user name'
+                title: 'Missing Data',
+                text: 'Please fill in all required fields.'
             });
             return;
         }
 
-        if (!email) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Email Required',
-                text: 'Please enter the email address'
-            });
-            return;
-        }
-
-        if (!plant) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Plant Required',
-                text: 'Please enter the plant'
-            });
-            return;
-        }
-
-        // Get the selected role and authorization level from the dropdown
+        // Obtener rol y nivel de autorización
         const roleLevelSelect = $('#user-role-level')[0];
         if (!roleLevelSelect || !roleLevelSelect.value) {
             Swal.fire({
@@ -347,22 +320,10 @@ function initializeDataTable() {
             });
             return;
         }
-
         const selectedValue = roleLevelSelect.value;
         const [authLevel, role] = selectedValue.split(':');
 
-        console.log('Role data:', { selectedValue, authLevel, role });
-
-        if (!authLevel || !role) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Invalid Role Selection',
-                text: 'Please select a valid role and authorization level'
-            });
-            return;
-        }
-
-        // NUEVO: Validar contraseña con PasswordManager si se proporciona
+        // Validar contraseña si se proporciona
         if (password && typeof PasswordManager !== 'undefined') {
             const passwordValidation = PasswordManager.validateStrength(password);
             if (!passwordValidation.isValid) {
@@ -370,14 +331,13 @@ function initializeDataTable() {
                 return;
             }
         } else if (password) {
-            // Fallback validation
             if (password.length < 8) {
                 Swal.fire('Error', 'Password must be at least 8 characters long', 'error');
                 return;
             }
         }
 
-        // Build the user data object to send to the server
+        // Construir el objeto de datos
         const userData = {
             name: name,
             email: email,
@@ -385,113 +345,68 @@ function initializeDataTable() {
             role: role,
             authorization_level: parseInt(authLevel)
         };
+        if (password) userData.password = password;
+        if (!isNewUser) userData.id = parseInt(userId);
 
-        console.log('Base userData:', userData);
-
-        // NUEVO: Encriptar contraseña si se proporciona
-        if (password) {
-            userData.password = password; // ✅ Enviar sin encriptar
-        }
-
-        // If updating, include the user ID
-        if (!isNewUser) {
-            userData.id = parseInt(userId);
-        }
-
-        // Debug: Log the data being sent (without showing actual password)
-        console.log('Final userData to send:', {
-            ...userData,
-            password: userData.password ? `[ENCRYPTED - ${userData.password.length} chars]` : '[NO PASSWORD]'
-        });
-
-        // Show loading indicator while saving
+        // Mostrar loading
         Swal.fire({
             title: isNewUser ? 'Creating User' : 'Updating User',
-            html: `
-                <div style="text-align: left;">
+            html: `<div style="text-align: left;">
                     <p><i class="fas fa-user"></i> Processing user data...</p>
                     ${password ? '<p><i class="fas fa-shield-alt"></i> Encrypting password...</p>' : ''}
                     <p><i class="fas fa-database"></i> Saving to database...</p>
-                </div>
-            `,
+                </div>`,
             allowOutsideClick: false,
             didOpen: () => {
                 Swal.showLoading();
             }
         });
-        
-        // Send the user data to the server (POST for new, PUT for update)
-        const requestMethod = isNewUser ? 'POST' : 'PUT';
-        const requestUrl = URLPF + 'dao/users/daoUserAdmin.php';
-        
-        console.log('Making request:', {
-            method: requestMethod,
-            url: requestUrl,
-            bodyLength: JSON.stringify(userData).length
-        });
 
-        fetch(requestUrl, {
-            method: requestMethod,
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(userData)
-        })
-        .then(response => {
-            console.log('Response received:', {
-                status: response.status,
-                statusText: response.statusText,
-                headers: Object.fromEntries(response.headers.entries())
-            });
-            
-            if (!response.ok) {
-                return response.text().then(text => {
-                    console.error('Server error response:', text);
-                    let errorMessage;
-                    try {
-                        const jsonError = JSON.parse(text);
-                        errorMessage = jsonError.message || 'Server error occurred';
-                    } catch (e) {
-                        errorMessage = `Server returned ${response.status}: ${text}`;
-                    }
-                    throw new Error(errorMessage);
-                });
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Server response data:', data);
-            if (data.success) {
+        // Enviar datos al endpoint usando la función
+        sendUserDataToEndpoint(userData, isNewUser ? 'POST' : 'PUT')
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        html: `<div style="text-align: left;">
+                                <p><strong>${data.message}</strong></p>
+                                ${password ? '<p><i class="fas fa-shield-alt text-success"></i> Password encrypted successfully</p>' : ''}
+                            </div>`
+                    });
+                    $('#user-form-container').addClass('d-none');
+                    usersTable.ajax.reload();
+                } else {
+                    throw new Error(data.message || 'Operation failed');
+                }
+            })
+            .catch(error => {
                 Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    html: `
-                        <div style="text-align: left;">
-                            <p><strong>${data.message}</strong></p>
-                            ${password ? '<p><i class="fas fa-shield-alt text-success"></i> Password encrypted successfully</p>' : ''}
-                        </div>
-                    `
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'An error occurred while saving the user'
                 });
-                
-                // Hide the form after success
-                $('#user-form-container').addClass('d-none');
-                
-                // Refresh the table to show changes
-                usersTable.ajax.reload();
-            } else {
-                throw new Error(data.message || 'Operation failed');
-            }
-        })
-        .catch(error => {
-            console.error('Error saving user:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: error.message || 'An error occurred while saving the user'
             });
-        });
     });
+}
+
+/**
+ * Envía los datos del usuario al endpoint para crear o editar.
+ * @param {Object} userData - Objeto con los datos del usuario (incluyendo password en texto plano)
+ * @param {string} method - 'POST' para crear, 'PUT' para editar
+ * @returns {Promise<Object>} - Respuesta del servidor
+ */
+function sendUserDataToEndpoint(userData, method = 'POST') {
+    const url = URLPF + 'dao/users/daoUserAdmin.php';
+    return fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(userData)
+    })
+    .then(response => response.json());
 }
 
 /**

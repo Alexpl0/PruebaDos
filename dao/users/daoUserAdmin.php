@@ -173,7 +173,7 @@ try {
         if (isset($input['password']) && trim($input['password']) !== '' && 
             !str_contains($input['password'], '🔐 Encrypted') && 
             !str_contains($input['password'], '⚠️ Plain text')) {
-            
+
             $encryptedPassword = PasswordManager::prepareForStorage($input['password']);
             $updateFields[] = "password = ?";
             $params[] = $encryptedPassword;
