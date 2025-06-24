@@ -10,6 +10,7 @@ import { showErrorMessage, showInfoToast, showSuccessToast, showLoading, setupTo
 // Variables específicas para la página total
 let totalDataTable = null;
 let filteredOrdersData = [];
+let allOrdersData = [];
 let currentFilters = {
     date: 'all',
     plant: 'all',

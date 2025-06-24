@@ -22,6 +22,7 @@ import {
 // Variables específicas para la página semanal
 let weeklyDataTable = null;
 let filteredOrdersData = [];
+let allOrdersData = []; // <-- Agrega esta línea
 let currentWeekOffset = 0;
 let currentFilters = {
     date: 'all',
