@@ -50,18 +50,6 @@ try {
         }
         
         if ($passwordMatch) {
-            // Eliminar migración automática: ya no encriptar la contraseña en la base de datos aquí
-            /*
-            if (!PasswordManager::isEncrypted($user['password'])) {
-                $encryptedPassword = PasswordManager::encrypt($user['password']);
-                $updateStmt = $conex->prepare("UPDATE `User` SET password = ? WHERE id = ?");
-                $updateStmt->bind_param("si", $encryptedPassword, $user['id']);
-                $updateStmt->execute();
-                $updateStmt->close();
-                
-                error_log("Password migrated to encrypted format for user ID: " . $user['id']);
-            }
-            */
             
             // Almacenar datos del usuario en la sesión
             $_SESSION['user'] = [

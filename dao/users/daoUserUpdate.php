@@ -42,14 +42,19 @@ try {
     
     // Si el usuario está intentando cambiar la contraseña, verificar la contraseña actual
     if (!empty($current_password) && !empty($new_password)) {
-        // NUEVO: Usar PasswordManager para verificar contraseña actual
+        // 1. Obtener la contraseña encriptada de la base de datos
         $stmt = $conex->prepare("SELECT password FROM `User` WHERE id = ?");
         $stmt->bind_param("i", $userId);
         $stmt->execute();
         $stmt->bind_result($db_password);
-        
-        if (!$stmt->fetch() || !PasswordManager::verify($current_password, $db_password)) {
-            $stmt->close();
+        $stmt->fetch();
+        $stmt->close();
+
+        // 2. Encriptar la contraseña ingresada por el usuario
+        $encryptedCurrentPassword = PasswordManager::prepareForStorage($current_password);
+
+        // 3. Comparar ambas versiones encriptadas
+        if ($encryptedCurrentPassword !== $db_password) {
             http_response_code(400);
             echo json_encode([
                 'success' => false,
@@ -57,12 +62,11 @@ try {
             ]);
             exit;
         }
-        $stmt->close();
-        
-        // NUEVO: Encriptar nueva contraseña
+
+        // 4. Encriptar la nueva contraseña
         $encryptedNewPassword = PasswordManager::prepareForStorage($new_password);
-        
-        // Update name and password
+
+        // Actualizar nombre y contraseña
         $stmt = $conex->prepare("UPDATE `User` SET name = ?, password = ? WHERE id = ?");
         $stmt->bind_param("ssi", $name, $encryptedNewPassword, $userId);
     } else {
