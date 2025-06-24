@@ -4,16 +4,21 @@
  * Includes form validation and session management with password encryption
  */
 
-// Load PasswordManager
+// Al inicio del archivo index.js
 document.addEventListener('DOMContentLoaded', function() {
-    // Load PasswordManager if not already loaded
+    const btnLogin = document.getElementById('btnLogin');
+    if (btnLogin) btnLogin.disabled = true;
+
     if (typeof PasswordManager === 'undefined') {
         const script = document.createElement('script');
         script.src = 'js/PasswordManager.js';
         script.onload = function() {
             console.log('PasswordManager loaded for login');
+            if (btnLogin) btnLogin.disabled = false;
         };
         document.head.appendChild(script);
+    } else {
+        if (btnLogin) btnLogin.disabled = false;
     }
 });
 
