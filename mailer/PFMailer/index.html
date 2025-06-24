@@ -6,6 +6,7 @@
     <title>Premium Freight Mailer - Panel de Control</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body {
             background: linear-gradient(135deg, #034C8C 0%, #023b6a 100%);
@@ -262,7 +263,7 @@
             <!-- Services Grid -->
             <div class="service-grid">
                 <!-- Email Testing -->
-                <div class="service-card" onclick="window.open('PFmailTest.php', '_blank')">
+                <div class="service-card" onclick="openEmailTestModal();">
                     <div class="service-icon">
                         <i class="fas fa-flask"></i>
                     </div>
@@ -271,7 +272,7 @@
                         Herramientas completas para probar el envío de correos, 
                         verificar configuración y gestionar usuarios de prueba.
                     </p>
-                    <a href="PFmailTest.php" class="service-button test-button" target="_blank">
+                    <a href="#" class="service-button test-button" onclick="openEmailTestModal();return false;">
                         <i class="fas fa-play"></i> Ejecutar Pruebas
                     </a>
                 </div>
@@ -382,12 +383,98 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
     <script>
-        // Función para mostrar formulario de email
+        // Modal simple para pruebas de email
+        function openEmailTestModal() {
+            Swal.fire({
+                title: 'Pruebas de Emails',
+                html: `
+                    <div style="text-align:left">
+                        <label>Tipo de prueba:</label>
+                        <select id="test-action" class="form-control mb-2">
+                            <option value="approval_notification">Aprobación de Orden</option>
+                            <option value="status_notification">Notificación de Estado</option>
+                            <option value="weekly_summary">Resumen Semanal</option>
+                            <option value="recovery_check">Verificación Recovery</option>
+                        </select>
+                        <div id="order-fields" class="mb-2">
+                            <label>ID de Orden:</label>
+                            <input type="number" id="test-order-id" class="form-control" placeholder="Ej: 12345">
+                        </div>
+                        <div id="status-fields" class="mb-2" style="display:none;">
+                            <label>Estado:</label>
+                            <select id="test-status" class="form-control">
+                                <option value="approved">Aprobado</option>
+                                <option value="rejected">Rechazado</option>
+                            </select>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Ejecutar',
+                cancelButtonText: 'Cancelar',
+                preConfirm: () => {
+                    const action = Swal.getPopup().querySelector('#test-action').value;
+                    const orderId = Swal.getPopup().querySelector('#test-order-id')?.value;
+                    const status = Swal.getPopup().querySelector('#test-status')?.value;
+                    if ((action === 'approval_notification' || action === 'status_notification') && !orderId) {
+                        Swal.showValidationMessage('Debes ingresar un ID de orden');
+                        return false;
+                    }
+                    if (action === 'status_notification' && !status) {
+                        Swal.showValidationMessage('Debes seleccionar un estado');
+                        return false;
+                    }
+                    return { action, orderId, status };
+                },
+                didOpen: () => {
+                    const actionSel = Swal.getPopup().querySelector('#test-action');
+                    const orderFields = Swal.getPopup().querySelector('#order-fields');
+                    const statusFields = Swal.getPopup().querySelector('#status-fields');
+                    function updateFields() {
+                        const action = actionSel.value;
+                        orderFields.style.display = (action === 'approval_notification' || action === 'status_notification') ? '' : 'none';
+                        statusFields.style.display = (action === 'status_notification') ? '' : 'none';
+                    }
+                    actionSel.addEventListener('change', updateFields);
+                    updateFields();
+                }
+            }).then(async (result) => {
+                if (result.isConfirmed && result.value) {
+                    await sendTestEmail(result.value);
+                }
+            });
+        }
+
+        // Función para enviar la prueba al endpoint
+        async function sendTestEmail({action, orderId, status}) {
+            let payload = { action };
+            if (action === 'approval_notification') payload.orderId = orderId;
+            if (action === 'status_notification') { payload.orderId = orderId; payload.status = status; }
+
+            Swal.fire({title:'Enviando...', text:'Procesando solicitud', allowOutsideClick:false, showConfirmButton:false, didOpen:()=>Swal.showLoading()});
+            try {
+                const res = await fetch('test_email_functions.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                Swal.close();
+                if (data.success) {
+                    Swal.fire({icon:'success',title:'¡Enviado!', text:data.message || 'Correo enviado correctamente'});
+                } else {
+                    Swal.fire({icon:'error',title:'Error', text:data.message || 'Error en la prueba'});
+                }
+            } catch (e) {
+                Swal.close();
+                Swal.fire({icon:'error',title:'Error de conexión', text:e.message});
+            }
+        }
+
+        // El resto de funciones de tu panel (no cambian)
         function showEmailForm(type) {
             let title, placeholder, endpoint;
-            
             switch(type) {
                 case 'verification':
                     title = 'Enviar Correo de Verificación';
@@ -407,7 +494,6 @@
                 default:
                     return;
             }
-            
             Swal.fire({
                 title: title,
                 input: 'text',
@@ -417,9 +503,7 @@
                 cancelButtonText: 'Cancelar',
                 confirmButtonColor: '#034C8C',
                 inputValidator: (value) => {
-                    if (!value) {
-                        return 'Este campo es obligatorio';
-                    }
+                    if (!value) return 'Este campo es obligatorio';
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
@@ -427,68 +511,41 @@
                 }
             });
         }
-        
-        // Función para enviar email
+
         function sendEmail(endpoint, value, type) {
             Swal.fire({
                 title: 'Enviando correo...',
                 text: 'Por favor espera mientras procesamos tu solicitud',
                 allowOutsideClick: false,
                 showConfirmButton: false,
-                willOpen: () => {
-                    Swal.showLoading();
-                }
+                willOpen: () => { Swal.showLoading(); }
             });
-            
             let data = {};
             switch(type) {
-                case 'verification':
-                    data = { user_id: parseInt(value) };
-                    break;
-                case 'notification':
-                    data = { orderId: parseInt(value) };
-                    break;
-                case 'password':
-                    data = { email: value };
-                    break;
+                case 'verification': data = { user_id: parseInt(value) }; break;
+                case 'notification': data = { orderId: parseInt(value) }; break;
+                case 'password': data = { email: value }; break;
             }
-            
             fetch(endpoint, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             })
             .then(response => response.json())
             .then(data => {
+                Swal.close();
                 if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: '¡Correo Enviado!',
-                        text: data.message || 'El correo se ha enviado exitosamente',
-                        confirmButtonColor: '#034C8C'
-                    });
+                    Swal.fire({icon:'success',title:'¡Correo Enviado!',text:data.message || 'El correo se ha enviado exitosamente',confirmButtonColor:'#034C8C'});
                 } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: data.message || 'Error al enviar el correo',
-                        confirmButtonColor: '#dc2626'
-                    });
+                    Swal.fire({icon:'error',title:'Error',text:data.message || 'Error al enviar el correo',confirmButtonColor:'#dc2626'});
                 }
             })
             .catch(error => {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Error de conexión. Por favor intenta de nuevo.',
-                    confirmButtonColor: '#dc2626'
-                });
+                Swal.close();
+                Swal.fire({icon:'error',title:'Error',text:'Error de conexión. Por favor intenta de nuevo.',confirmButtonColor:'#dc2626'});
             });
         }
-        
-        // Función para ejecutar resumen semanal
+
         function executeWeeklySummary() {
             Swal.fire({
                 title: '¿Enviar Resumen Semanal?',
@@ -500,19 +557,12 @@
                 confirmButtonColor: '#034C8C'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    window.open('PFmailWeeklySummary.php?force=1', '_blank');
-                    
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Proceso Iniciado',
-                        text: 'El resumen semanal se está procesando. Revisa la nueva ventana para ver el progreso.',
-                        confirmButtonColor: '#034C8C'
-                    });
+                    // Ahora usa el endpoint de pruebas
+                    sendTestEmail({action:'weekly_summary'});
                 }
             });
         }
-        
-        // Función para ejecutar verificación de recovery
+
         function executeRecoveryCheck() {
             Swal.fire({
                 title: '¿Verificar Recovery Evidence?',
@@ -524,56 +574,23 @@
                 confirmButtonColor: '#034C8C'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    window.open('PFmailRecoveryCheck.php?force=1', '_blank');
-                    
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Verificación Iniciada',
-                        text: 'La verificación de recovery se está procesando. Revisa la nueva ventana para ver el progreso.',
-                        confirmButtonColor: '#034C8C'
-                    });
+                    // Ahora usa el endpoint de pruebas
+                    sendTestEmail({action:'recovery_check'});
                 }
             });
         }
-        
-        // Función para abrir documentación
-        function openDocumentation() {
-            Swal.fire({
-                title: 'Documentación del Sistema',
-                html: `
-                    <div style="text-align: left;">
-                        <h5>Endpoints Disponibles:</h5>
-                        <ul>
-                            <li><strong>PFmailTest.php</strong> - Sistema de pruebas</li>
-                            <li><strong>PFmailVerification.php</strong> - Verificación de cuentas</li>
-                            <li><strong>PFmailNotification.php</strong> - Notificaciones de órdenes</li>
-                            <li><strong>PFmailPasswordReset.php</strong> - Recuperación de contraseña</li>
-                            <li><strong>PFmailWeeklySummary.php</strong> - Resumen semanal</li>
-                            <li><strong>PFmailRecoveryCheck.php</strong> - Verificación de recovery</li>
-                        </ul>
-                        <p><small>Todos los endpoints soportan tanto GET como POST según su funcionalidad.</small></p>
-                    </div>
-                `,
-                confirmButtonText: 'Entendido',
-                confirmButtonColor: '#034C8C',
-                width: '600px'
-            });
-        }
-        
+
         // Efectos de hover para las tarjetas
         document.querySelectorAll('.service-card').forEach(card => {
             card.addEventListener('mouseenter', function() {
                 this.style.transform = 'translateY(-8px) scale(1.02)';
             });
-            
             card.addEventListener('mouseleave', function() {
                 this.style.transform = 'translateY(0) scale(1)';
             });
         });
-        
-        // Mostrar información de carga al iniciar
+
         document.addEventListener('DOMContentLoaded', function() {
-            // Simular verificación de estado del sistema
             setTimeout(() => {
                 const statusIndicator = document.querySelector('.status-indicator');
                 statusIndicator.classList.add('status-online');
