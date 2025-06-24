@@ -21,7 +21,8 @@ $restricted_pages_level0 = [
     '/orders.php',
     '/adminUsers.php',
     '/dashboard.php',
-    '/view_order.php'
+    '/view_order.php',
+    '/viewWeekOrder.php',
 ];
 
 // Obtener la ruta actual
