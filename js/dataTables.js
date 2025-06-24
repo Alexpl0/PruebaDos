@@ -637,4 +637,26 @@ window.generateSinglePDF = async function(orderId) {
     }
 };
 
+export {
+    getBaseURL,
+    getWeekNumber,
+    getDataTableConfig,
+    getDataTableButtons,
+    loadOrdersData,
+    formatCost,
+    formatWeight,
+    showLoading,
+    showSuccessToast,
+    showErrorMessage,
+    showInfoToast,
+    addNotificationStyles,
+    setupKeyboardShortcuts,
+    generateFilters,
+    applyFilters,
+    clearFilters,
+    setupToggleFilters,
+    generatePDFsForVisibleOrders,
+    getVisibleOrdersFromDataTable
+};
+
 console.log('[DataTables] 📊 DataTables utilities module updated successfully');
