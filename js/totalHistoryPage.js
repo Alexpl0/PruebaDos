@@ -1,6 +1,6 @@
 import { generatePDF } from './svgOrders.js';
 import { addNotificationStyles } from './utils.js';
-import { showErrorMessage, showInfoToast, showSuccessToast, showLoading } from './dataTables.js';
+import { showErrorMessage, showInfoToast, showSuccessToast, showLoading, setupToggleFilters, getBaseURL, generateFilters, applyFilters, clearFilters, loadOrdersData, getDataTableButtons } from './dataTables.js';
 
 /**
  * Premium Freight - Total History Page
