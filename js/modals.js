@@ -3,7 +3,7 @@
  * Handles all modal-related operations
  */
 
-import { loadAndPopulateSVG, generatePDF } from './svgOrders.js';
+// Quitar imports de svgOrders.js y usar funciones globales
 import { createCards } from './cards.js';
 
 // Variables to track modal state
@@ -81,7 +81,8 @@ function configureActionButtons(selectedOrder) {
  */
 async function loadSvgContent(selectedOrder) {
     try {
-        await loadAndPopulateSVG(selectedOrder, 'svgPreview');
+        // Usar función global
+        await window.loadAndPopulateSVG(selectedOrder, 'svgPreview');
     } catch (error) {
         console.error('Error loading or processing SVG:', error);
         Swal.fire({
@@ -407,7 +408,8 @@ export async function handleSavePDF() {
         const selectedOrderId = sessionStorage.getItem('selectedOrderId');
         const selectedOrder = window.allOrders.find(order => order.id === parseInt(selectedOrderId)) || {};
         
-        const fileName = await generatePDF(selectedOrder);
+        // Usar función global
+        const fileName = await window.generatePDF(selectedOrder);
 
         Swal.fire({
             icon: 'success',
