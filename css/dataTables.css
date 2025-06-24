@@ -577,9 +577,11 @@ table.dataTable tbody tr:hover {
 .dt-buttons {
     display: flex !important;
     flex-direction: row !important;
+    float: unset !important;
     gap: 0.5rem;
     flex-wrap: wrap;
     align-items: center;
     justify-content: flex-start;
+    max-width: 500px;
 }
 
