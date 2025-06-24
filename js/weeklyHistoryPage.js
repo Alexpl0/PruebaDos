@@ -1,5 +1,7 @@
 import { generatePDF } from './svgOrders.js';
-import { addNotificationStyles } from './utils.js';
+import {
+    addNotificationStyles
+} from './utils.js';
 import {
     showErrorMessage,
     showInfoToast,
@@ -306,10 +308,13 @@ function populateWeeklyDataTable(orders) {
 /**
  * Generate PDFs for all filtered orders
  */
-document.querySelector('.buttons-svg').addEventListener('click', async () => {
-    const ordersToExport = filteredOrdersData.length ? filteredOrdersData : allOrdersData;
-    for (const order of ordersToExport) {
-        await generatePDF(order);
-    }
-    showSuccessToast('PDFs generated successfully!');
-});
+const svgBtn = document.querySelector('.buttons-svg');
+if (svgBtn) {
+    svgBtn.addEventListener('click', async () => {
+        const ordersToExport = filteredOrdersData.length ? filteredOrdersData : allOrdersData;
+        for (const order of ordersToExport) {
+            await generatePDF(order);
+        }
+        showSuccessToast('PDFs generated successfully!');
+    });
+}
