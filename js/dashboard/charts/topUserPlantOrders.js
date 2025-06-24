@@ -24,7 +24,7 @@ export function renderTopUserPlantOrdersChart(containerId = 'topUserPlantOrdersC
     const plantCounts = {};
 
     data.forEach(item => {
-        const user = item.created_by_name || 'Desconocido';
+        const user = item.creator_name || 'Desconocido';
         const plant = item.planta || 'Desconocida';
 
         userCounts[user] = (userCounts[user] || 0) + 1;
