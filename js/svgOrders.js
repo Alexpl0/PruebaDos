@@ -475,8 +475,8 @@ async function generatePDF(selectedOrder, customFileName) {
     }
 }
 
-// Define the global object for svgOrders
-window.svgOrders = {
+// Exporta las funciones y objetos que quieras usar en otros módulos
+export {
     svgMap,
     formatDate,
     wrapSVGText,
@@ -484,15 +484,3 @@ window.svgOrders = {
     prepareOffscreenSVG,
     generatePDF
 };
-
-window.generatePDF = generatePDF;
-
-// // Export the module functions
-// export {
-//     svgMap,
-//     formatDate,
-//     wrapSVGText,
-//     loadAndPopulateSVG,
-//     prepareOffscreenSVG,
-//     generatePDF
-// };

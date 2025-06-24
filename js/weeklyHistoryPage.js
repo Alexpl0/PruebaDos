@@ -1,3 +1,5 @@
+import { generatePDF } from './svgOrders.js';
+
 /**
  * Premium Freight - Weekly History Page
  * Manages the weekly orders history page
@@ -259,7 +261,7 @@ function populateWeeklyDataTable(orders) {
             order.origin_city || '-',
             order.destiny_company_name || '-',
             order.destiny_city || '-',
-            `<button class="btn btn-sm btn-outline-primary generate-pdf-btn" onclick="generateSinglePDF(${order.id})">
+            `<button class="btn btn-sm btn-outline-primary generate-pdf-btn" data-order-id="${order.id}">
                 <i class="fas fa-file-pdf"></i>
             </button>`
         ];
@@ -274,6 +276,15 @@ function populateWeeklyDataTable(orders) {
         scrollX: true,
         scrollY: '400px',
         responsive: false
+    });
+
+    // Después de poblar la DataTable, agrega:
+    document.querySelectorAll('.generate-pdf-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const orderId = btn.getAttribute('data-order-id');
+            const order = allOrdersData.find(o => o.id == orderId);
+            if (order) await generatePDF(order);
+        });
     });
 }
 

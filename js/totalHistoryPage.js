@@ -1,3 +1,5 @@
+import { generatePDF } from './svgOrders.js';
+
 /**
  * Premium Freight - Total History Page
  * Manages the complete orders history page
@@ -145,6 +147,15 @@ function populateTotalDataTable(orders) {
 
     // Actualiza las estadísticas rápidas
     updateQuickStats(orders);
+
+    // Después de poblar la DataTable, agrega:
+    document.querySelectorAll('.generate-pdf-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const orderId = btn.getAttribute('onclick').match(/\d+/)[0];
+            const order = allOrdersData.find(o => o.id == orderId);
+            if (order) await generatePDF(order);
+        });
+    });
 }
 
 /**

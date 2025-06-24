@@ -13,7 +13,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const script = document.createElement('script');
         script.src = 'js/PasswordManager.js';
         script.onload = function() {
-            console.log('PasswordManager loaded for login');
             if (btnLogin) btnLogin.disabled = false;
         };
         document.head.appendChild(script);
@@ -104,17 +103,8 @@ async function loginUsuario() {
         
         if (typeof PasswordManager !== 'undefined' && PasswordManager.encrypt) {
             encryptedPassword = PasswordManager.encrypt(password);
-            console.log('Password encrypted for transmission');
-        } else {
-            console.warn('PasswordManager not available, sending plain password');
         }
 
-        // LOG de los datos que se enviarán al backend
-        console.log('Datos enviados al backend:', {
-            email: email,
-            password: encryptedPassword
-        });
-        
         // CAMBIO: Usar daoLogin.php en lugar de loginValidation.php
         const response = await fetch(`${URLPF}dao/users/daoLogin.php`, {
             method: 'POST',
@@ -127,8 +117,6 @@ async function loginUsuario() {
                 password: encryptedPassword
             })
         });
-        
-        console.log('Response status:', response.status);
         
         // Manejar diferentes códigos de estado
         if (response.status === 401) {
@@ -148,7 +136,6 @@ async function loginUsuario() {
         }
         
         const data = await response.json();
-        console.log('Login response:', data);
         
         if (data.status === 'success' || data.success) {
             // Login exitoso - manejar ambos formatos de respuesta
@@ -187,8 +174,6 @@ async function loginUsuario() {
         }
         
     } catch (error) {
-        console.error('Error during login process:', error);
-        
         let errorMessage = 'An unexpected error occurred';
         let errorTitle = 'Login Error';
         
@@ -228,8 +213,5 @@ window.loginUsuario = loginUsuario;
  * In case the script loads before the variable is defined
  */
 if (typeof URLPF === 'undefined' || typeof URLPF === 'function' || URLPF === null) {
-    console.warn('URLPF global variable is not properly defined. Using fallback URL.');
     window.URLPF = 'https://grammermx.com/Jesus/PruebaDos/';
-} else {
-    console.log('URLPF correctly defined as:', URLPF);
 }
