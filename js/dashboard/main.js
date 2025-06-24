@@ -46,7 +46,7 @@ import { renderProductsChart } from './charts/products.js';                  // 
 import { renderRecoveryFilesChart } from './charts/recovery.js';             // Archivos de recuperación
 import { renderTimeSeriesChart, renderCorrelationChart } from './charts/timeSeries.js'; // Series temporales
 import { renderTransportChart } from './charts/transport.js';                // Tipos de transporte
-import { renderWordCloud } from './charts/wordCloud.js';                     // Nube de palabras
+import { renderTopUserPlantOrdersChart } from './charts/topUserPlantOrders.js'; // Top usuario/planta
 import { renderPlantComparison } from './charts/plantComparison.js';         // Comparativa entre plantas
 
 /**
@@ -105,11 +105,11 @@ export function updateAllVisualizations() {
     // Gráfico de pronóstico (predicciones futuras basadas en datos históricos)
     renderForecastChart();
     
-    // Nube de palabras (visualización de términos frecuentes en descripciones)
-    renderWordCloud();
-    
     // Gráfico comparativo entre diferentes plantas
     renderPlantComparison();
+    
+    // Gráfico de usuario/planta (quiénes son los principales usuarios por planta)
+    renderTopUserPlantOrdersChart();
 }
 
 /**

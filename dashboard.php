@@ -308,8 +308,8 @@ include_once 'dao/users/auth_check.php';
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Text Analysis: Causes and Descriptions</h5>
-                        <div id="wordCloudChart" style="height: 400px;"></div>
+                        <h5 class="card-title">Top User and Plant by Orders Generated</h5>
+                        <div id="topUserPlantOrdersChart" style="height: 400px;"></div>
                     </div>
                 </div>
             </div>
