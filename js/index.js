@@ -102,6 +102,12 @@ async function loginUsuario() {
         } else {
             console.warn('PasswordManager not available, sending plain password');
         }
+
+        // LOG de los datos que se enviarán al backend
+        console.log('Datos enviados al backend:', {
+            email: email,
+            password: encryptedPassword
+        });
         
         // CAMBIO: Usar daoLogin.php en lugar de loginValidation.php
         const response = await fetch(`${URLPF}dao/users/daoLogin.php`, {
