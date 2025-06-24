@@ -278,15 +278,27 @@ function initializeDataTable() {
     $('#submitbtn').on('click', function(e) {
         e.preventDefault();
 
-        console.log('Form submitted - Debug starting');
+        // Validar existencia de campos antes de usarlos
+        const $userPassword = $('#user-password');
+        const $userName = $('#user-name');
+        const $userEmail = $('#user-email');
+        const $userPlant = $('#user-plant');
 
-        // Gather form data
+        if ($userPassword.length === 0 || $userName.length === 0 || $userEmail.length === 0 || $userPlant.length === 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Form Error',
+                text: 'Some form fields are missing in the DOM. Please reload the page.'
+            });
+            return;
+        }
+
         const userId = $('#user-id').val();
         const isNewUser = userId === 'New';
-        const password = $('#user-password').val().trim();
-        const name = $('#user-name').val().trim();
-        const email = $('#user-email').val().trim();
-        const plant = $('#user-plant').val().trim();
+        const password = $userPassword.val().trim();
+        const name = $userName.val().trim();
+        const email = $userEmail.val().trim();
+        const plant = $userPlant.val().trim();
 
         console.log('Form data gathered:', {
             userId,
