@@ -13,7 +13,8 @@ import {
     applyFilters,
     clearFilters,
     loadOrdersData,
-    getDataTableButtons
+    getDataTableButtons,
+    getWeekNumber // <-- Add this line
 } from './dataTables.js';
 
 /**
