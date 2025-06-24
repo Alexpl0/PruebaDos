@@ -574,3 +574,12 @@ table.dataTable tbody tr:hover {
     outline: none;
 }
 
+.dt-buttons {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+}
+

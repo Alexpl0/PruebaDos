@@ -149,23 +149,19 @@ function getDataTableButtons(ordersData) {
             exportOptions: { columns: ':not(:last-child)' }
         },
         {
-            extend: 'csv',
-            text: '<i class="fas fa-file-csv"></i> CSV',
-            className: 'btn btn-info btn-sm buttons-csv',
+            extend: 'pdfHtml5',
+            text: '<i class="fas fa-file-pdf"></i> PDF',
+            className: 'btn btn-danger btn-sm buttons-pdf',
             filename: `Orders_${new Date().toISOString().split('T')[0]}`,
             title: 'Orders History',
             exportOptions: { columns: ':not(:last-child)' }
         },
         {
-            text: '<i class="fas fa-file-pdf"></i> SVG',
-            className: 'btn btn-danger btn-sm buttons-svg',
-            action: async function () {
-                const ordersToExport = ordersData.length ? ordersData : [];
-                for (const order of ordersToExport) {
-                    await generatePDF(order);
-                }
-                showSuccessToast('PDFs generated successfully!');
-            }
+            extend: 'print',
+            text: '<i class="fas fa-print"></i> Print',
+            className: 'btn btn-secondary btn-sm buttons-print',
+            title: 'Orders History',
+            exportOptions: { columns: ':not(:last-child)' }
         }
     ];
 }
