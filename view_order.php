@@ -27,6 +27,11 @@ $authorizationLevel = $auth_level;
 // Define base URLs
 $URLBASE = "https://grammermx.com/Jesus/PruebaDos/";
 $URLM = "https://grammermx.com/Mailer/PFMailer/";
+
+if (!isset($_SESSION['user'])) {
+    http_response_code(401);
+    die('User not authenticated');
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
