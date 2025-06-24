@@ -14,7 +14,7 @@ import {
     clearFilters,
     loadOrdersData,
     getDataTableButtons,
-    getWeekNumber // <-- Add this line
+    getWeekNumber
 } from './dataTables.js';
 
 /**
@@ -25,7 +25,7 @@ import {
 // Variables específicas para la página semanal
 let weeklyDataTable = null;
 let filteredOrdersData = [];
-let allOrdersData = []; // <-- Agrega esta línea
+let allOrdersData = [];
 let currentWeekOffset = 0;
 let currentFilters = {
     date: 'all',
@@ -89,45 +89,15 @@ function setupWeekNavigation() {
 }
 
 /**
- * Setup filter event listeners
- */
-function setupFilterEventListeners() {
-    // Toggle filter panel
-    const toggleBtn = document.getElementById('toggleFilters');
-    const filterBody = document.getElementById('filterPanelBody');
-
-    if (toggleBtn && filterBody) {
-        toggleBtn.addEventListener('click', () => {
-            const isVisible = filterBody.style.display !== 'none';
-            filterBody.style.display = isVisible ? 'none' : 'block';
-            toggleBtn.innerHTML = isVisible ?
-                '<i class="fas fa-chevron-down"></i>' :
-                '<i class="fas fa-chevron-up"></i>';
-        });
-    }
-
-    // Apply filters button
-    const applyBtn = document.getElementById('applyFilters');
-    if (applyBtn) {
-        applyBtn.addEventListener('click', applyWeeklyFilters);
-    }
-
-    // Clear filters button
-    const clearBtn = document.getElementById('clearFilters');
-    if (clearBtn) {
-        clearBtn.addEventListener('click', clearWeeklyFilters);
-    }
-}
-
-/**
  * Apply weekly filters
+ * (Función conservada por si la llamas manualmente, pero ya no se conecta a ningún botón)
  */
 function applyWeeklyFilters() {
     const filters = {
-        date: document.getElementById('filterDate').value,
-        plant: document.getElementById('filterPlant').value,
-        approvalStatus: document.getElementById('filterApprovalStatus').value,
-        costRange: document.getElementById('filterCostRange').value
+        date: document.getElementById('filterDate')?.value ?? 'all',
+        plant: document.getElementById('filterPlant')?.value ?? 'all',
+        approvalStatus: document.getElementById('filterApprovalStatus')?.value ?? 'all',
+        costRange: document.getElementById('filterCostRange')?.value ?? 'all'
     };
 
     filteredOrdersData = applyFilters(allOrdersData, filters);
@@ -137,13 +107,14 @@ function applyWeeklyFilters() {
 
 /**
  * Clear weekly filters
+ * (Función conservada por si la llamas manualmente, pero ya no se conecta a ningún botón)
  */
 function clearWeeklyFilters() {
     // Reset filters in the UI
-    document.getElementById('filterDate').value = 'all';
-    document.getElementById('filterPlant').value = 'all';
-    document.getElementById('filterApprovalStatus').value = 'all';
-    document.getElementById('filterCostRange').value = 'all';
+    if (document.getElementById('filterDate')) document.getElementById('filterDate').value = 'all';
+    if (document.getElementById('filterPlant')) document.getElementById('filterPlant').value = 'all';
+    if (document.getElementById('filterApprovalStatus')) document.getElementById('filterApprovalStatus').value = 'all';
+    if (document.getElementById('filterCostRange')) document.getElementById('filterCostRange').value = 'all';
 
     // Reset filtered data
     filteredOrdersData = clearFilters(allOrdersData);
