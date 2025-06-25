@@ -79,17 +79,17 @@ try {
             echo json_encode([
                 'success' => false,
                 'status' => 'error',
-                'mensaje' => 'Invalid email or password',
-                'message' => 'Invalid email or password'
+                'mensaje' => 'Incorrect password',
+                'message' => 'Incorrect password'
             ]);
         }
     } else {
-        http_response_code(401);
+        http_response_code(404);
         echo json_encode([
             'success' => false,
             'status' => 'error',
-            'mensaje' => 'Invalid email or password',
-            'message' => 'Invalid email or password'
+            'mensaje' => 'User not found',
+            'message' => 'User not found'
         ]);
     }
 
