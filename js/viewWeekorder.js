@@ -18,48 +18,33 @@ import {
     setupApprovalEventListeners 
 } from './approval.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     console.log('🌐 Page loaded. Initializing event listeners and fetching data.');
 
     // Configurar manejadores de eventos para todas las interacciones
     setupApprovalEventListeners();
     console.log('✅ Event listeners set up.');
 
-    // Cargar visualizaciones SVG para las órdenes
-    const orderCards = document.querySelectorAll('.order-card');
-    console.log(`📦 Found ${orderCards.length} order cards on the page.`);
+    try {
+        console.log('📡 Fetching orders from endpoint...');
+        const orders = await fetchOrderData();
+        console.log('📦 Orders fetched:', orders);
 
-    orderCards.forEach(async (card) => {
-        const orderId = card.getAttribute('data-order-id');
-        const containerId = `svg-container-${orderId}`;
-        console.log(`🔍 Processing order card with ID: ${orderId}`);
-
-        try {
-            console.log(`📡 Fetching data for order ID: ${orderId}`);
-            const orderData = await fetchOrderData();
-            console.log(`📋 Data fetched for order ID: ${orderId}`, orderData);
-
-            console.log(`🎨 Loading SVG visualization for order ID: ${orderId}`);
-            await loadAndPopulateSVG(orderData, containerId);
-            console.log(`✅ SVG loaded successfully for order ID: ${orderId}`);
-        } catch (error) {
-            console.error(`❌ Error loading SVG for order ID: ${orderId}`, error);
-            const container = document.getElementById(containerId);
-            if (container) {
-                container.innerHTML = `
-                    <div style="text-align: center; color: #ef4444;">
-                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
-                        <p>Error loading order visualization</p>
-                    </div>
-                `;
-            }
+        if (orders.length === 0) {
+            console.warn('⚠️ No orders found. Check the endpoint or data availability.');
+            return;
         }
-    });
 
-    // Actualizar estadísticas iniciales en el panel flotante
-    console.log('📊 Updating summary statistics.');
-    updateSummary();
-    console.log('✅ Summary statistics updated.');
+        console.log('🎨 Generating order cards...');
+        generateOrderCards(orders);
+        console.log('✅ Order cards generated.');
+
+        console.log('📊 Updating summary statistics.');
+        updateSummary();
+        console.log('✅ Summary statistics updated.');
+    } catch (error) {
+        console.error('❌ Error during initialization:', error);
+    }
 });
 
 async function fetchOrderData() {
@@ -87,12 +72,49 @@ async function fetchOrderData() {
         }
 
         console.log('✅ Valid data format confirmed.');
-        console.log('📦 Orders fetched:', result.data); // Mostrar todas las órdenes obtenidas
         return result.data;
     } catch (error) {
         console.error('❌ Error fetching order data:', error);
         throw error;
     }
+}
+
+function generateOrderCards(orders) {
+    const container = document.getElementById('orders-container'); // Asegúrate de tener un contenedor en tu HTML
+    if (!container) {
+        console.error('❌ Orders container not found in the DOM.');
+        return;
+    }
+
+    orders.forEach((order) => {
+        console.log(`🎨 Creating card for order ID: ${order.id}`);
+
+        // Crear la tarjeta
+        const card = document.createElement('div');
+        card.className = 'order-card';
+        card.setAttribute('data-order-id', order.id);
+
+        // Contenido de la tarjeta
+        card.innerHTML = `
+            <div class="order-header">
+                <h3>Order #${order.id}</h3>
+                <p>${order.description}</p>
+            </div>
+            <div class="order-actions">
+                <button class="btn btn-approve-order" data-order-id="${order.id}">Approve</button>
+                <button class="btn btn-reject-order" data-order-id="${order.id}">Reject</button>
+                <button class="btn btn-download-order" data-order-id="${order.id}">Download PDF</button>
+            </div>
+            <div id="svg-container-${order.id}" class="svg-container"></div>
+        `;
+
+        // Añadir la tarjeta al contenedor
+        container.appendChild(card);
+
+        // Generar el SVG para la orden
+        console.log(`🎨 Generating SVG for order ID: ${order.id}`);
+        loadAndPopulateSVG(order, `svg-container-${order.id}`);
+    });
 }
 
 function updateSummary() {
