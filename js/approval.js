@@ -517,20 +517,37 @@ export async function handleReject() {
  * Sets up event listeners for approval/rejection buttons
  */
 export function setupApprovalEventListeners() {
-    const approveBtn = document.getElementById('approveBtn');
-    const rejectBtn = document.getElementById('rejectBtn');
+    document.addEventListener('DOMContentLoaded', () => {
+        // Configurar event listeners para botones de aprobación
+        const approveButtons = document.querySelectorAll('.btn-approve-order');
+        if (approveButtons.length === 0) {
+            console.error('Approve button not found in DOM');
+        } else {
+            approveButtons.forEach((btn) => {
+                btn.addEventListener('click', (e) => handleApproval(e));
+            });
+        }
 
-    // Check and configure approve button
-    if (!approveBtn) {
-        console.error('Approve button not found in DOM');
-    } else {
-        approveBtn.onclick = handleApprove;
-    }
-    
-    // Check and configure reject button
-    if (!rejectBtn) {
-        console.error('Reject button not found in DOM');
-    } else {
-        rejectBtn.onclick = handleReject;
-    }
+        // Configurar event listeners para botones de rechazo
+        const rejectButtons = document.querySelectorAll('.btn-reject-order');
+        if (rejectButtons.length === 0) {
+            console.error('Reject button not found in DOM');
+        } else {
+            rejectButtons.forEach((btn) => {
+                btn.addEventListener('click', (e) => handleRejection(e));
+            });
+        }
+    });
+}
+
+function handleApproval(event) {
+    const orderId = event.target.getAttribute('data-order-id');
+    console.log(`Approving order #${orderId}`);
+    // Lógica de aprobación aquí
+}
+
+function handleRejection(event) {
+    const orderId = event.target.getAttribute('data-order-id');
+    console.log(`Rejecting order #${orderId}`);
+    // Lógica de rechazo aquí
 }
