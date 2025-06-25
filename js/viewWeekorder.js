@@ -19,31 +19,31 @@ import {
 } from './approval.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Page loaded. Initializing event listeners and fetching data.');
+    console.log('🌐 Page loaded. Initializing event listeners and fetching data.');
 
     // Configurar manejadores de eventos para todas las interacciones
     setupApprovalEventListeners();
-    console.log('Event listeners set up.');
+    console.log('✅ Event listeners set up.');
 
     // Cargar visualizaciones SVG para las órdenes
     const orderCards = document.querySelectorAll('.order-card');
-    console.log(`Found ${orderCards.length} order cards on the page.`);
+    console.log(`📦 Found ${orderCards.length} order cards on the page.`);
 
     orderCards.forEach(async (card) => {
         const orderId = card.getAttribute('data-order-id');
         const containerId = `svg-container-${orderId}`;
-        console.log(`Processing order card with ID: ${orderId}`);
+        console.log(`🔍 Processing order card with ID: ${orderId}`);
 
         try {
-            console.log(`Fetching data for order ID: ${orderId}`);
+            console.log(`📡 Fetching data for order ID: ${orderId}`);
             const orderData = await fetchOrderData();
-            console.log(`Data fetched for order ID: ${orderId}`, orderData);
+            console.log(`📋 Data fetched for order ID: ${orderId}`, orderData);
 
-            console.log(`Loading SVG visualization for order ID: ${orderId}`);
+            console.log(`🎨 Loading SVG visualization for order ID: ${orderId}`);
             await loadAndPopulateSVG(orderData, containerId);
-            console.log(`SVG loaded successfully for order ID: ${orderId}`);
+            console.log(`✅ SVG loaded successfully for order ID: ${orderId}`);
         } catch (error) {
-            console.error(`Error loading SVG for order ID: ${orderId}`, error);
+            console.error(`❌ Error loading SVG for order ID: ${orderId}`, error);
             const container = document.getElementById(containerId);
             if (container) {
                 container.innerHTML = `
@@ -57,13 +57,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Actualizar estadísticas iniciales en el panel flotante
-    console.log('Updating summary statistics.');
+    console.log('📊 Updating summary statistics.');
     updateSummary();
-    console.log('Summary statistics updated.');
+    console.log('✅ Summary statistics updated.');
 });
 
 async function fetchOrderData() {
-    console.log('Starting fetch to endpoint.');
+    console.log('📡 Starting fetch to endpoint.');
     try {
         const response = await fetch(`${URLPF}dao/conections/daoPremiumFreight.php`, {
             method: 'GET',
@@ -74,35 +74,36 @@ async function fetchOrderData() {
             },
         });
 
-        console.log(`Endpoint responded with status: ${response.status}`);
+        console.log(`📡 Endpoint responded with status: ${response.status}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const result = await response.json();
-        console.log('Data received from endpoint:', result);
+        console.log('📋 Data received from endpoint:', result);
 
         if (!result || !result.data) {
-            throw new Error('Invalid data format received');
+            throw new Error('❌ Invalid data format received');
         }
 
-        console.log('Valid data format confirmed.');
+        console.log('✅ Valid data format confirmed.');
+        console.log('📦 Orders fetched:', result.data); // Mostrar todas las órdenes obtenidas
         return result.data;
     } catch (error) {
-        console.error('Error fetching order data:', error);
+        console.error('❌ Error fetching order data:', error);
         throw error;
     }
 }
 
 function updateSummary() {
-    console.log('Calculating pending and processed orders.');
+    console.log('📊 Calculating pending and processed orders.');
     const pendingCount = document.querySelectorAll('.order-card:not(.processed)').length;
     const processedCount = document.querySelectorAll('.order-card.processed').length;
-    console.log(`Pending orders: ${pendingCount}, Processed orders: ${processedCount}`);
+    console.log(`📦 Pending orders: ${pendingCount}, ✅ Processed orders: ${processedCount}`);
 
     document.getElementById('pending-count').textContent = pendingCount;
     document.getElementById('processed-count').textContent = processedCount;
-    console.log('Summary updated in the DOM.');
+    console.log('✅ Summary updated in the DOM.');
 }
 
 /**
