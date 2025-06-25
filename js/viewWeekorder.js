@@ -13,23 +13,120 @@ import {
     setupApprovalEventListeners 
 } from './approval.js';
 
+document.addEventListener('DOMContentLoaded', () => {
+    // Configurar manejadores de eventos para todas las interacciones
+    setupApprovalEventListeners();
+
+    // Cargar visualizaciones SVG para las órdenes
+    const orderCards = document.querySelectorAll('.order-card');
+    orderCards.forEach(async (card) => {
+        const orderId = card.getAttribute('data-order-id');
+        const containerId = `svg-container-${orderId}`;
+        try {
+            const orderData = await fetchOrderData(orderId);
+            await loadAndPopulateSVG(orderData, containerId);
+            console.log(`SVG loaded for order ${orderId}`);
+        } catch (error) {
+            console.error(`Error loading SVG for order ${orderId}:`, error);
+            const container = document.getElementById(containerId);
+            if (container) {
+                container.innerHTML = `
+                    <div style="text-align: center; color: #ef4444;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                        <p>Error loading order visualization</p>
+                    </div>
+                `;
+            }
+        }
+    });
+
+    // Actualizar estadísticas iniciales en el panel flotante
+    updateSummary();
+});
+
+async function fetchOrderData() {
+    try {
+        const response = await fetch(`${URLPF}dao/conections/daoPremiumFreight.php`, {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        if (!result || !result.data) {
+            throw new Error('Invalid data format received');
+        }
+
+        return result.data;
+    } catch (error) {
+        console.error('Error fetching order data:', error);
+        throw error;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // Obtener datos de las órdenes desde el endpoint correcto
+        const ordersData = await fetchOrderData();
+
+        // Cargar visualizaciones SVG para las órdenes
+        ordersData.forEach(async (order) => {
+            const containerId = `svg-container-${order.id}`;
+            try {
+                await loadAndPopulateSVG(order, containerId);
+                console.log(`SVG loaded for order ${order.id}`);
+            } catch (error) {
+                console.error(`Error loading SVG for order ${order.id}:`, error);
+                const container = document.getElementById(containerId);
+                if (container) {
+                    container.innerHTML = `
+                        <div style="text-align: center; color: #ef4444;">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                            <p>Error loading order visualization</p>
+                        </div>
+                    `;
+                }
+            }
+        });
+
+        // Actualizar estadísticas iniciales en el panel flotante
+        updateSummary();
+    } catch (error) {
+        console.error('Error initializing orders:', error);
+    }
+});
+
+function updateSummary() {
+    const pendingCount = document.querySelectorAll('.order-card:not(.processed)').length;
+    const processedCount = document.querySelectorAll('.order-card.processed').length;
+    document.getElementById('pending-count').textContent = pendingCount;
+    document.getElementById('processed-count').textContent = processedCount;
+}
+
 /**
  * ================================================================================ 
  * CLASE PRINCIPAL: BulkOrdersViewer 
  * ================================================================================ 
- * 
- * Esta clase maneja toda la funcionalidad del visualizador de órdenes bulk:
  */
 class BulkOrdersViewer {
-    constructor() {
-        this.config = window.PF_BULK_CONFIG;      // Configuración global de PHP
+    constructor(userId, authorizationLevel, urls) {
+        this.userId = userId;                     // ID del usuario
+        this.authorizationLevel = authorizationLevel; // Nivel de autorización
+        this.urls = urls;                         // URLs base
         this.processedOrders = new Set();         // Set para rastrear órdenes ya procesadas
         this.filteredOrders = [];                 // Órdenes filtradas según authorizationLevel
         this.initialize();                        // Iniciar proceso de configuración
     }
 
     async initialize() {
-        console.log('Initializing Bulk Orders Viewer:', this.config);
+        console.log('Initializing Bulk Orders Viewer:', this.userId, this.authorizationLevel, this.urls);
         
         // Obtener y filtrar órdenes según authorizationLevel
         await this.fetchAndFilterOrders();
@@ -64,9 +161,8 @@ class BulkOrdersViewer {
                 throw new Error('Invalid data format received');
             }
 
-            const authorizationLevel = this.config.user.authorizationLevel;
             this.filteredOrders = result.data.filter(
-                (order) => order.approval_status + 1 === authorizationLevel
+                (order) => order.approval_status + 1 === this.authorizationLevel
             );
 
             console.log('Filtered Orders:', this.filteredOrders);
@@ -381,8 +477,20 @@ class BulkOrdersViewer {
 }
 
 // Inicializar cuando el DOM esté listo
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => new BulkOrdersViewer());
-} else {
-    new BulkOrdersViewer();
-}
+document.addEventListener('DOMContentLoaded', () => {
+    // Asegúrate de que estas variables se definan correctamente en el backend y se pasen al frontend
+    const userId = window.userId || null; // Define estas variables en el HTML o backend
+    const authorizationLevel = window.authorizationLevel || null;
+    const urls = {
+        base: window.URLBASE || '',
+        mailer: window.URLM || '',
+        pf: window.URLPF || ''
+    };
+
+    if (!userId || !authorizationLevel || !urls.base || !urls.mailer || !urls.pf) {
+        console.error('Error: Missing required configuration variables.');
+        return;
+    }
+
+    new BulkOrdersViewer(userId, authorizationLevel, urls);
+});

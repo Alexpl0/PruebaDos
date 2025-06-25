@@ -31,7 +31,7 @@ $URLPF = "https://grammermx.com/PremiumFreight/";
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Freight Weekly<?php echo $orderId; ?> - Grammer PF</title>
+    <title>Premium Freight Weekly - Grammer PF</title>
     
     <!-- Favicon -->
     <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
@@ -51,28 +51,6 @@ $URLPF = "https://grammermx.com/PremiumFreight/";
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/viewWeekorder.css">
-    
-    <!-- External JS -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.2/d3.min.js"></script> <!-- Para manipulación avanzada de SVGs -->
-    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script> <!-- Para utilidades JS -->
-    <script>
-        window.PF_WEEK_CONFIG = {
-            userId: <?php echo $userId; ?>,
-            userName: '<?php echo addslashes($userName); ?>',
-            userEmail: '<?php echo addslashes($userEmail); ?>',
-            userRole: '<?php echo addslashes($userRole); ?>',
-            userPlant: '<?php echo addslashes($userPlant); ?>',
-            authorizationLevel: <?php echo $authorizationLevel; ?>,
-            urls: {
-                base: '<?php echo $URLBASE; ?>',
-                mailer: '<?php echo $URLM; ?>',
-                pf: '<?php echo $URLPF; ?>'
-            }
-        };
-    </script>
 </head>
 <body>
     <div class="bulk-container">
@@ -91,7 +69,7 @@ $URLPF = "https://grammermx.com/PremiumFreight/";
                         <p class="orders-subtitle">
                             <?php 
                             echo isset($ordersData) && count($ordersData) > 0
-                                ? count($ordersData) . ' orders pending approval by ' . (isset($userData['name']) ? htmlspecialchars($userData['name']) : htmlspecialchars($userName))
+                                ? count($ordersData) . ' orders pending approval by ' . htmlspecialchars($userName)
                                 : 'No orders available';
                             ?>
                         </p>
@@ -125,17 +103,15 @@ $URLPF = "https://grammermx.com/PremiumFreight/";
                 <div class="order-header">
                     <h2 class="order-title">Order #<?php echo $order['id']; ?></h2>
                     <div class="order-actions">
-                        <!-- Botón de aprobación con token único -->
+                        <!-- Botón de aprobación -->
                         <button class="order-action-btn btn-approve-order" 
-                                data-order-id="<?php echo $order['id']; ?>"
-                                data-token="<?php echo $tokensData[$order['id']]['approve']; ?>">
+                                data-order-id="<?php echo $order['id']; ?>">
                             <i class="fas fa-check"></i>
                             Approve
                         </button>
-                        <!-- Botón de rechazo con token único -->
+                        <!-- Botón de rechazo -->
                         <button class="order-action-btn btn-reject-order"
-                                data-order-id="<?php echo $order['id']; ?>"
-                                data-token="<?php echo $tokensData[$order['id']]['reject']; ?>">
+                                data-order-id="<?php echo $order['id']; ?>">
                             <i class="fas fa-times"></i>
                             Reject
                         </button>
@@ -157,7 +133,7 @@ $URLPF = "https://grammermx.com/PremiumFreight/";
             <?php endforeach; ?>
         </main>
 
-    <!-- ===== PANEL FLOTANTE DE PROGRESO ===== -->
+        <!-- ===== PANEL FLOTANTE DE PROGRESO ===== -->
         <div class="floating-summary" id="floating-summary">
             <div class="summary-title">Progress Summary</div>
             <div class="summary-stats">
@@ -167,35 +143,11 @@ $URLPF = "https://grammermx.com/PremiumFreight/";
         </div>
     </div>
 
-    
-
-    <!-- PDF and Canvas Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    
-    <!-- jQuery and Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- DataTables JS -->
-    <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
-
     <!-- Custom scripts -->
-    <script src="js/uploadFiles.js"></script>
     <script type="module" src="js/viewWeekorder.js"></script>
-
-    <script>console.log('User Plant:', window.userPlant);</script>
 
     <footer class="text-center py-3 mt-4 bg-light">
         <p class="mb-0">© 2025 Grammer. All rights reserved.</p>
     </footer>
-
 </body>
 </html>
