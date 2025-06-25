@@ -90,9 +90,9 @@ $URLPF = "https://grammermx.com/PremiumFreight/";
                         <h1 class="orders-title-main">Premium Freight Orders</h1>
                         <p class="orders-subtitle">
                             <?php 
-                            echo isset($ordersData) && count($ordersData) > 0 
-                                ? count($ordersData) . ' orders pending approval by ' . htmlspecialchars($userName) 
-                                : 'No orders available'; 
+                            echo isset($ordersData) && count($ordersData) > 0
+                                ? count($ordersData) . ' orders pending approval by ' . (isset($userData['name']) ? htmlspecialchars($userData['name']) : htmlspecialchars($userName))
+                                : 'No orders available';
                             ?>
                         </p>
                     </div>
