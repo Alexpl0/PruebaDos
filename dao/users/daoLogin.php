@@ -25,6 +25,9 @@ try {
         exit;
     }
 
+    // Encriptar la contraseña recibida del front
+    $encryptedPassword = PasswordManager::encrypt($password);
+
     $con = new LocalConector();
     $conex = $con->conectar();
 
@@ -36,18 +39,7 @@ try {
 
     if ($user = $result->fetch_assoc()) {
         // Verificar contraseña usando PasswordManager
-        $passwordMatch = false;
-        
-        // Si la contraseña viene encriptada del cliente, desencriptarla primero
-        if (PasswordManager::isEncrypted($password)) {
-            $decryptedPassword = PasswordManager::decrypt($password);
-            if ($decryptedPassword !== null) {
-                $passwordMatch = PasswordManager::verify($decryptedPassword, $user['password']);
-            }
-        } else {
-            // Contraseña en texto plano
-            $passwordMatch = PasswordManager::verify($password, $user['password']);
-        }
+        $passwordMatch = PasswordManager::verify($encryptedPassword, $user['password']);
         
         if ($passwordMatch) {
             
