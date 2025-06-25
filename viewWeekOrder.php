@@ -190,5 +190,10 @@ $URLPF = "https://grammermx.com/PremiumFreight/";
     <script type="module" src="js/viewWeekorder.js"></script>
 
     <script>console.log('User Plant:', window.userPlant);</script>
+
+    <footer class="text-center py-3 mt-4 bg-light">
+        <p class="mb-0">© 2025 Grammer. All rights reserved.</p>
+    </footer>
+
 </body>
 </html>
