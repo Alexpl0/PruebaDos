@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function fetchOrderData() {
     console.log('📡 Starting fetch to endpoint.');
     try {
-        const response = await fetch(`${URLPF}dao/conections/daoPremiumFreight.php`, {
+        const response = await fetch(`${URLBASE}dao/conections/daoPremiumFreight.php`, {
             method: 'GET',
             credentials: 'same-origin',
             headers: {
@@ -161,7 +161,7 @@ class BulkOrdersViewer {
 
     async fetchAndFilterOrders() {
         try {
-            const response = await fetch(URLPF + 'dao/conections/daoPremiumFreight.php', {
+            const response = await fetch(URLBASE + 'dao/conections/daoPremiumFreight.php', {
                 method: 'GET',
                 credentials: 'same-origin',
                 headers: {
