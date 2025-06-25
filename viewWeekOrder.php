@@ -157,15 +157,7 @@ $URLPF = "https://grammermx.com/PremiumFreight/";
             <?php endforeach; ?>
         </main>
 
-        <!-- ===== PANEL FLOTANTE DE PROGRESO =====
-        <div class="floating-summary" id="floating-summary">
-            <div class="summary-title">Progress Summary</div>
-            <div class="summary-stats">
-                <span>Pending: <span id="pending-count"><?php echo count($ordersData); ?></span></span>
-                <span>Processed: <span id="processed-count">0</span></span>
-            </div>
-        </div>
-    </div> -->
+    
 
     <!-- PDF and Canvas Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
