@@ -449,21 +449,3 @@ class BulkOrdersViewer {
     }
 }
 
-// Inicializar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', () => {
-    // Asegúrate de que estas variables se definan correctamente en el backend y se pasen al frontend
-    const userId = window.userId || null; // Define estas variables en el HTML o backend
-    const authorizationLevel = window.authorizationLevel || null;
-    const urls = {
-        base: window.URLBASE || '',
-        mailer: window.URLM || '',
-        pf: window.URLPF || ''
-    };
-
-    if (!userId || !authorizationLevel || !urls.base || !urls.mailer || !urls.pf) {
-        console.error('Error: Missing required configuration variables.');
-        return;
-    }
-
-    new BulkOrdersViewer(userId, authorizationLevel, urls);
-});
