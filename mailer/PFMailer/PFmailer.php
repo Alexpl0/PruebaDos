@@ -64,7 +64,7 @@ class PFMailer {
         $this->mail->Port = 465;
         $this->mail->SMTPAuth = true;
         $this->mail->Username = 'pruebasjesus@grammermx.com';
-        $this->mail->Password = 'FreightSystem.2025';
+        $this->mail->Password = 'FreightSystem*2025';
         $this->mail->SMTPSecure = 'ssl';
         
         // 6. Configurar formato HTML y codificación de caracteres
@@ -631,5 +631,10 @@ class PFMailer {
             return null;
         }
     }
+}
+
+// Debug: Verificar si TEST_MODE está activado
+if (TEST_MODE) {
+    logAction("TEST_MODE está activado. Redirigiendo correos a " . TEST_EMAIL, 'DEBUG');
 }
 ?>

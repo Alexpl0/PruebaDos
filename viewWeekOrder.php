@@ -88,7 +88,13 @@ $URLPF = "https://grammermx.com/PremiumFreight/";
                     <!-- Información de las órdenes -->
                     <div class="orders-info">
                         <h1 class="orders-title-main">Premium Freight Orders</h1>
-                        <p class="orders-subtitle"><?php echo count($ordersData); ?> orders pending approval by <?php echo htmlspecialchars($userData['name']); ?></p>
+                        <p class="orders-subtitle">
+                            <?php 
+                            echo isset($ordersData) && count($ordersData) > 0 
+                                ? count($ordersData) . ' orders pending approval by ' . htmlspecialchars($userName) 
+                                : 'No orders available'; 
+                            ?>
+                        </p>
                     </div>
                 </div>
                 <div class="header-right">
