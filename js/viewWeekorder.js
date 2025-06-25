@@ -59,13 +59,13 @@ class BulkOrdersViewer {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const data = await response.json();
-            if (!data || !Array.isArray(data.orders)) {
+            const result = await response.json();
+            if (!result || !Array.isArray(result.data)) {
                 throw new Error('Invalid data format received');
             }
 
             const authorizationLevel = this.config.user.authorizationLevel;
-            this.filteredOrders = data.orders.filter(
+            this.filteredOrders = result.data.filter(
                 (order) => order.approval_status + 1 === authorizationLevel
             );
 
