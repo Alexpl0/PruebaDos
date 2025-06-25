@@ -359,7 +359,7 @@ export async function rejectOrder(orderId, rejectionReason = null, options = {})
  * @param {string} notificationType - Tipo de notificación ('approval', 'approved', 'rejected').
  * @returns {Promise<void>}
  */
-async function sendEmailNotification(orderId, notificationType) {
+export async function sendEmailNotification(orderId, notificationType) {
     console.log(`[EMAIL DEBUG] Iniciando envío de correo - Orden: ${orderId}, Tipo: ${notificationType}`);
     
     try {
@@ -369,18 +369,15 @@ async function sendEmailNotification(orderId, notificationType) {
         // Determinar el endpoint según el tipo de notificación
         switch (notificationType) {
             case 'approval':
-                // Enviar correo al siguiente aprobador
                 endpoint = 'https://grammermx.com/Mailer/PFMailer/PFmailNotification.php';
                 console.log(`[EMAIL DEBUG] Configurando envío al siguiente aprobador`);
                 break;
             case 'approved':
-                // Enviar correo de estado final (aprobado) al creador
                 endpoint = 'https://grammermx.com/Mailer/PFMailer/PFmailStatus.php';
                 emailData.status = 'approved';
                 console.log(`[EMAIL DEBUG] Configurando envío de estado final (aprobado) al creador`);
                 break;
             case 'rejected':
-                // Enviar correo de estado final (rechazado) al creador
                 endpoint = 'https://grammermx.com/Mailer/PFMailer/PFmailStatus.php';
                 emailData.status = 'rejected';
                 console.log(`[EMAIL DEBUG] Configurando envío de estado final (rechazado) al creador`);
