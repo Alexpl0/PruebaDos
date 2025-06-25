@@ -1,3 +1,8 @@
+// Definir las URLs base directamente en el archivo JS
+const URLBASE = "https://grammermx.com/Jesus/PruebaDos/";
+const URLM = "https://grammermx.com/Mailer/PFMailer/";
+const URLPF = "https://grammermx.com/PremiumFreight/";
+
 /**
  * IMPORTACIÓN DE MÓDULOS CRÍTICOS
  * 
@@ -23,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const orderId = card.getAttribute('data-order-id');
         const containerId = `svg-container-${orderId}`;
         try {
-            const orderData = await fetchOrderData(orderId);
+            const orderData = await fetchOrderData();
             await loadAndPopulateSVG(orderData, containerId);
             console.log(`SVG loaded for order ${orderId}`);
         } catch (error) {
@@ -70,38 +75,6 @@ async function fetchOrderData() {
         throw error;
     }
 }
-
-document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        // Obtener datos de las órdenes desde el endpoint correcto
-        const ordersData = await fetchOrderData();
-
-        // Cargar visualizaciones SVG para las órdenes
-        ordersData.forEach(async (order) => {
-            const containerId = `svg-container-${order.id}`;
-            try {
-                await loadAndPopulateSVG(order, containerId);
-                console.log(`SVG loaded for order ${order.id}`);
-            } catch (error) {
-                console.error(`Error loading SVG for order ${order.id}:`, error);
-                const container = document.getElementById(containerId);
-                if (container) {
-                    container.innerHTML = `
-                        <div style="text-align: center; color: #ef4444;">
-                            <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
-                            <p>Error loading order visualization</p>
-                        </div>
-                    `;
-                }
-            }
-        });
-
-        // Actualizar estadísticas iniciales en el panel flotante
-        updateSummary();
-    } catch (error) {
-        console.error('Error initializing orders:', error);
-    }
-});
 
 function updateSummary() {
     const pendingCount = document.querySelectorAll('.order-card:not(.processed)').length;
