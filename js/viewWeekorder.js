@@ -46,7 +46,7 @@ class BulkOrdersViewer {
 
     async fetchAndFilterOrders() {
         try {
-            const response = await fetch(URLPF + 'dao/conections/daoStatusUpdate.php', {
+            const response = await fetch(URLPF + 'dao/conections/daoPremiumFreight.php', {
                 method: 'GET',
                 credentials: 'same-origin',
                 headers: {
