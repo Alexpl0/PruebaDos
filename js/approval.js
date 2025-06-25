@@ -353,41 +353,45 @@ export async function rejectOrder(orderId, rejectionReason = null, options = {})
 }
 
 /**
- * Sends email notification based on action type
+ * Envía notificaciones por correo electrónico según el tipo de acción realizada.
+ * 
+ * @param {number|string} orderId - ID de la orden.
+ * @param {string} notificationType - Tipo de notificación ('approval', 'approved', 'rejected').
+ * @returns {Promise<void>}
  */
 async function sendEmailNotification(orderId, notificationType) {
-    console.log(`[EMAIL DEBUG] Starting email send - Order: ${orderId}, Type: ${notificationType}`);
+    console.log(`[EMAIL DEBUG] Iniciando envío de correo - Orden: ${orderId}, Tipo: ${notificationType}`);
     
     try {
         let endpoint = '';
         const emailData = { orderId: orderId };
 
-        // Determine endpoint based on notification type
+        // Determinar el endpoint según el tipo de notificación
         switch (notificationType) {
             case 'approval':
-                // Send email to next approver
+                // Enviar correo al siguiente aprobador
                 endpoint = 'https://grammermx.com/Mailer/PFMailer/PFmailNotification.php';
-                console.log(`[EMAIL DEBUG] Setting up send to next approver`);
+                console.log(`[EMAIL DEBUG] Configurando envío al siguiente aprobador`);
                 break;
             case 'approved':
-                // Send final status email (approved) to creator
+                // Enviar correo de estado final (aprobado) al creador
                 endpoint = 'https://grammermx.com/Mailer/PFMailer/PFmailStatus.php';
                 emailData.status = 'approved';
-                console.log(`[EMAIL DEBUG] Setting up final status send (approved) to creator`);
+                console.log(`[EMAIL DEBUG] Configurando envío de estado final (aprobado) al creador`);
                 break;
             case 'rejected':
-                // Send final status email (rejected) to creator
+                // Enviar correo de estado final (rechazado) al creador
                 endpoint = 'https://grammermx.com/Mailer/PFMailer/PFmailStatus.php';
                 emailData.status = 'rejected';
-                console.log(`[EMAIL DEBUG] Setting up final status send (rejected) to creator`);
+                console.log(`[EMAIL DEBUG] Configurando envío de estado final (rechazado) al creador`);
                 break;
             default:
-                console.warn(`[EMAIL DEBUG] Unrecognized notification type: ${notificationType}`);
+                console.warn(`[EMAIL DEBUG] Tipo de notificación no reconocido: ${notificationType}`);
                 return;
         }
 
-        console.log(`[EMAIL DEBUG] Selected endpoint: ${endpoint}`);
-        console.log(`[EMAIL DEBUG] Email data:`, emailData);
+        console.log(`[EMAIL DEBUG] Endpoint seleccionado: ${endpoint}`);
+        console.log(`[EMAIL DEBUG] Datos del correo:`, emailData);
 
         const response = await fetch(endpoint, {
             method: 'POST',
@@ -395,39 +399,22 @@ async function sendEmailNotification(orderId, notificationType) {
             body: JSON.stringify(emailData)
         });
 
-        console.log(`[EMAIL DEBUG] HTTP response received - Status: ${response.status}, OK: ${response.ok}`);
+        console.log(`[EMAIL DEBUG] Respuesta HTTP recibida - Estado: ${response.status}, OK: ${response.ok}`);
 
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
-        // Get response text first for diagnosis
-        const responseText = await response.text();
-        console.log(`[EMAIL DEBUG] Server response (text):`, responseText);
-
-        // Try to parse as JSON
-        let result;
-        try {
-            result = JSON.parse(responseText);
-        } catch (parseError) {
-            console.error(`[EMAIL DEBUG] Error parsing JSON:`, parseError);
-            console.error(`[EMAIL DEBUG] Response received:`, responseText);
-            throw new Error(`Server response is not valid JSON: ${responseText.substring(0, 200)}...`);
-        }
-
-        console.log(`[EMAIL DEBUG] Server result (parsed):`, result);
+        const result = await response.json();
+        console.log(`[EMAIL DEBUG] Resultado del servidor:`, result);
 
         if (!result.success) {
-            console.warn(`[EMAIL DEBUG] Error reported by server: ${result.message}`);
+            console.warn(`[EMAIL DEBUG] Error reportado por el servidor: ${result.message}`);
         } else {
-            console.log(`[EMAIL DEBUG] ✅ Email sent successfully - Order: ${orderId}, Type: ${notificationType}`);
+            console.log(`[EMAIL DEBUG] ✅ Correo enviado exitosamente - Orden: ${orderId}, Tipo: ${notificationType}`);
         }
     } catch (error) {
-        console.error(`[EMAIL DEBUG] ❌ Error sending email - Order: ${orderId}, Type: ${notificationType}:`, error);
-        console.error(`[EMAIL DEBUG] Error details:`, {
-            message: error.message,
-            stack: error.stack
-        });
+        console.error(`[EMAIL DEBUG] ❌ Error al enviar correo - Orden: ${orderId}, Tipo: ${notificationType}:`, error);
     }
 }
 
