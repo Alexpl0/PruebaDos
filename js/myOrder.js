@@ -106,12 +106,10 @@ function renderProgressLine(data) {
         checkpoint.style.left = `${position}%`;
         checkpoint.style.transform = 'translateX(-50%)';
 
-
-        const initials = getInitials(approver.name);
-
+        // CORREGIDO: Se elimina el texto (iniciales) de dentro del círculo.
         checkpoint.innerHTML = `
             <div id="circle-${approver.level}" class="checkpoint-circle">
-                ${initials}
+                <!-- Círculo sin texto -->
             </div>
             <div class="checkpoint-info">
                 <div class="checkpoint-name">${approver.name}</div>
