@@ -1,4 +1,7 @@
 <?php
+// myorders.php
+// This file is responsible for displaying the user's orders and handling related functionalities.
+// It includes necessary configurations, session management, and sets up the HTML structure for the page.
 session_start();
 require_once 'config.php'; // Include config.php to get URL constant
 $nivel = isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null;

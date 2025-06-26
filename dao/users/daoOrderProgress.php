@@ -1,5 +1,5 @@
 <?php
-// filepath: c:\Users\Ex-Perez-J\OneDrive - GRAMMER AG\Desktop\PruebaDos\dao\users\daoOrderProgress.php
+// daoOrderProgress.php
 header('Content-Type: application/json');
 include_once('../db/PFDB.php');
 session_start();

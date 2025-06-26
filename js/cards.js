@@ -164,13 +164,22 @@ function getApprovalStatusMessage(order) {
  * Attaches event listeners to card elements
  */
 function attachCardEventListeners() {
-    // Attach click handlers to View buttons - REDIRECT TO NEW PAGE
+    // Determine the current page
+    const currentPage = window.location.pathname;
+
+    // Attach click handlers to View buttons
     document.querySelectorAll('.ver-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const orderId = this.getAttribute('data-order-id');
             
-            // Redirect to the new view_order.php page instead of showing modal
-            window.location.href = `view_order.php?order=${orderId}`;
+            // Redirect based on the current page
+            if (currentPage.includes('orders.js')) {
+                window.location.href = `view_order.php?order=${orderId}`;
+            } else if (currentPage.includes('myorders.php')) {
+                window.location.href = `myOrder.php?order=${orderId}`;
+            } else {
+                console.warn('Page not recognized for redirection.');
+            }
         });
     });
     
@@ -182,8 +191,6 @@ function attachCardEventListeners() {
             showEvidenceUploadModal(orderId);
         });
     });
-    
-    // console.log(`Event listeners attached to ${document.querySelectorAll('.ver-btn').length} view buttons and ${document.querySelectorAll('.notification-badge').length} notification badges`);
 }
 
 /**
