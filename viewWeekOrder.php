@@ -7,7 +7,7 @@
 require_once 'dao/users/auth_check.php';
 // Incluir el archivo de configuración global.
 // Nota: Asegúrate de que la ruta a tu config.php sea correcta.
-require_once __DIR__ . '/../config.php';
+require_once __DIR__ . 'config.php';
 
 
 // Check if user is authenticated
