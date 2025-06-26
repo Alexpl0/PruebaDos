@@ -101,6 +101,9 @@ async function fetchAndFilterOrders() {
 
         allOrders = result.data;
         
+        // CORRECCIÓN: Hacemos que `allOrders` sea global para que `approval.js` pueda acceder a él.
+        window.allOrders = allOrders;
+
         // Filtrar órdenes: el estado de aprobación debe ser uno menos que el nivel del usuario.
         filteredOrders = allOrders.filter(
             (order) => parseInt(order.approval_status, 10) + 1 === authorizationLevel
@@ -317,11 +320,13 @@ async function handleIndividualAction(orderId, action) {
 
     if (isConfirmed) {
         try {
+            // Se pasa un objeto de opciones vacío para usar los diálogos de confirmación por defecto de `approval.js`
+            const options = {};
             if (action === 'approve') {
-                await approveOrder(orderId);
+                await approveOrder(orderId, options); 
                 await sendEmailNotification(orderId, 'approval');
             } else {
-                await rejectOrder(orderId);
+                await rejectOrder(orderId, null, options); // Se pasa null para que pida la razón
                 await sendEmailNotification(orderId, 'rejected');
             }
             processedOrders.add(orderId);
@@ -393,11 +398,14 @@ async function handleBulkAction(action) {
 
         for (const order of pendingOrders) {
             try {
+                // Se deshabilita la confirmación para cada orden individual en el bucle
+                const options = { showConfirmation: false }; 
                 if (action === 'approve') {
-                    await approveOrder(order.id);
+                    await approveOrder(order.id, options);
                     await sendEmailNotification(order.id, 'approval');
                 } else {
-                    await rejectOrder(order.id);
+                    // Para rechazar en bloque, podrías pedir una razón genérica o poner una por defecto
+                    await rejectOrder(order.id, 'Bulk rejection by user.', options); 
                     await sendEmailNotification(order.id, 'rejected');
                 }
                 processedOrders.add(order.id.toString());
