@@ -106,9 +106,10 @@ function renderProgressLine(data) {
         checkpoint.style.left = `${position}%`;
         checkpoint.style.transform = 'translateX(-50%)';
 
-        // CORREGIDO: Se elimina el texto (iniciales) de dentro del círculo.
+        // ACTUALIZADO: Se añade el atributo data-tooltip para el hover en móviles.
+        const tooltipText = `${approver.name} (${approver.role})`;
         checkpoint.innerHTML = `
-            <div id="circle-${approver.level}" class="checkpoint-circle">
+            <div id="circle-${approver.level}" class="checkpoint-circle" data-tooltip="${tooltipText}">
                 <!-- Círculo sin texto -->
             </div>
             <div class="checkpoint-info">
