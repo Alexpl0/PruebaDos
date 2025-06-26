@@ -67,11 +67,7 @@ $URLPF = "https://grammermx.com/PremiumFreight/";
                     <div class="orders-info">
                         <h1 class="orders-title-main">Premium Freight Orders</h1>
                         <p class="orders-subtitle">
-                            <?php 
-                            echo isset($ordersData) && count($ordersData) > 0
-                                ? count($ordersData) . ' orders pending approval by ' . htmlspecialchars($userName)
-                                : 'No orders available';
-                            ?>
+                            Orders pending approval by <?php echo htmlspecialchars($userName); ?>
                         </p>
                     </div>
                 </div>
@@ -96,19 +92,40 @@ $URLPF = "https://grammermx.com/PremiumFreight/";
         </header>
 
         <!-- ===== GRID PRINCIPAL DE ÓRDENES ===== -->
-        <main class="orders-grid" id="orders-grid"></main>
+        <main class="orders-grid" id="orders-grid">
+            <!-- Las tarjetas de orden se generarán aquí por JS -->
+            <div class="loading-spinner-container">
+                <div class="loading-spinner"></div>
+                <p>Loading orders...</p>
+            </div>
+        </main>
 
         <!-- ===== PANEL FLOTANTE DE PROGRESO ===== -->
         <div class="floating-summary" id="floating-summary">
             <div class="summary-title">Progress Summary</div>
             <div class="summary-stats">
-                <span>Pending: <span id="pending-count"><?php echo isset($ordersData) && count($ordersData) > 0 ? count($ordersData) : '0'; ?></span></span>
+                <span>Pending: <span id="pending-count">0</span></span>
                 <span>Processed: <span id="processed-count">0</span></span>
             </div>
         </div>
     </div>
 
-    <!-- Custom scripts -->
+    <!-- ===== SCRIPT DE CONFIGURACIÓN ===== -->
+    <!-- Este bloque pasa las variables de PHP a JavaScript de forma segura -->
+    <script>
+        window.APP_CONFIG = {
+            userId: <?php echo json_encode($userId); ?>,
+            authorizationLevel: <?php echo json_encode($authorizationLevel); ?>,
+            urls: {
+                base: "<?php echo $URLBASE; ?>",
+                mailer: "<?php echo $URLM; ?>",
+                pf: "<?php echo $URLPF; ?>"
+            }
+        };
+    </script>
+
+    <!-- Scripts de la aplicación -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script type="module" src="js/viewWeekorder.js"></script>
 
     <footer class="text-center py-3 mt-4 bg-light">

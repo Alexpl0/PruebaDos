@@ -1,875 +1,461 @@
 /**
- * viewOrder.js - Premium Freight Order Viewer
- * 
- * This module handles the individual order view functionality including:
- * - Loading and displaying SVG order content
- * - Approval/rejection functionality
- * - PDF generation
- * - Navigation controls
- * - Real-time order status updates
- * - Progress line for order creators
+ * viewWeekorder.js - Visor de Órdenes Semanales (Enfoque Funcional)
+ *
+ * Este script maneja la visualización y gestión de múltiples órdenes de flete premium.
+ * Se ha refactorizado para eliminar el uso de clases y adoptar un enfoque puramente funcional,
+ * facilitando la lectura y el mantenimiento.
+ *
+ * Funcionalidades clave:
+ * - Carga y filtra órdenes según el nivel de autorización del usuario.
+ * - Renderiza una tarjeta para cada orden pendiente.
+ * - Carga dinámicamente una visualización SVG para cada orden.
+ * - Permite acciones individuales (aprobar, rechazar, descargar PDF).
+ * - Permite acciones en bloque (aprobar todas, rechazar todas, descargar todas).
+ * - Mantiene un resumen del progreso en un panel flotante.
+ * - Utiliza SweetAlert2 para notificaciones y confirmaciones interactivas.
  */
 
-// Import required modules
-import { loadAndPopulateSVG, generatePDF as svgGeneratePDF } from './svgOrders.js';
-import { handleApprove, handleReject } from './approval.js';
-import { showLoading } from './utils.js';
+// Importación de módulos críticos
+import { loadAndPopulateSVG, generatePDF } from './svgOrders.js';
+import { approveOrder, rejectOrder, sendEmailNotification } from './approval.js';
+
+// =================================================================================
+// ESTADO Y CONFIGURACIÓN DEL MÓDULO
+// =================================================================================
+
+// URLs base (podrían obtenerse de APP_CONFIG si se quisiera)
+const URLBASE = "https://grammermx.com/Jesus/PruebaDos/";
+
+// Variables para gestionar el estado de la aplicación
+let allOrders = []; // Todas las órdenes obtenidas del fetch
+let filteredOrders = []; // Órdenes filtradas que se muestran al usuario
+const processedOrders = new Set(); // IDs de órdenes ya procesadas (aprobadas/rechazadas)
+
+// Configuración del usuario obtenida desde el objeto global `window.APP_CONFIG`
+const userId = window.APP_CONFIG.userId;
+const authorizationLevel = window.APP_CONFIG.authorizationLevel;
+
+
+// =================================================================================
+// INICIALIZACIÓN PRINCIPAL
+// =================================================================================
 
 /**
- * Configuration and global variables
+ * Se ejecuta cuando el DOM está completamente cargado.
+ * Es el punto de entrada de la aplicación.
  */
-let currentOrder = null;
-let isLoading = false;
-let progressData = null;
-
-/**
- * Initialize the view order page when DOM is loaded
- */
-document.addEventListener('DOMContentLoaded', function() {
-    initializeViewOrder();
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('🚀 DOM cargado. Iniciando aplicación de visualización de órdenes...');
+    await initializeApp();
 });
 
 /**
- * Load order data from the existing PFDB endpoint
+ * Función principal que orquesta la inicialización de la página.
  */
-async function loadOrderData() {
+async function initializeApp() {
     try {
-        const response = await fetch(`${window.PF_CONFIG.baseURL}dao/conections/daoPremiumFreight.php`, {
-            method: 'GET',
-            credentials: 'same-origin',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const responseText = await response.text();
-        
-        if (!responseText || responseText.trim() === '') {
-            throw new Error('Empty response from server');
-        }
-        
-        let data;
-        try {
-            data = JSON.parse(responseText);
-        } catch (parseError) {
-            throw new Error('Invalid JSON response from server');
-        }
-        
-        if (!data.status || data.status !== 'success' || !Array.isArray(data.data)) {
-            throw new Error('Invalid data format received');
-        }
-        
-        // Buscar la orden específica en los datos
-        const targetOrder = data.data.find(order => order.id === window.PF_CONFIG.orderId);
-        
-        if (!targetOrder) {
-            // Verificar si es un problema de permisos de planta
-            const userPlant = window.PF_CONFIG.user.plant;
-            const userAuthLevel = window.PF_CONFIG.user.authorizationLevel;
-            
-            let errorMessage = `Order #${window.PF_CONFIG.orderId} not found`;
-            let errorDetails = 'The order may not exist or you may not have permission to view it.';
-            
-            // Si el usuario tiene nivel de autorización bajo, probablemente es un problema de planta
-            if (userAuthLevel < 4) {
-                errorDetails = `You can only view orders from your plant (Plant ${userPlant}). This order may belong to a different plant.`;
-            }
-            
-            showAccessDeniedError(errorMessage, errorDetails);
-            return null;
-        }
-        
-        // Verificar permisos de planta específicos
-        const orderPlant = targetOrder.creator_plant;
-        const userPlant = window.PF_CONFIG.user.plant;
-        const userAuthLevel = window.PF_CONFIG.user.authorizationLevel;
-        
-        if (userAuthLevel < 4 && userPlant != orderPlant) {
-            showPlantAccessError(userPlant, orderPlant, userAuthLevel);
-            return null;
-        }
-        
-        // Actualizar datos globales
-        window.PF_CONFIG.orderData = targetOrder;
-        window.allOrders = [targetOrder];
-        window.originalOrders = [targetOrder];
-        
-        return targetOrder;
-        
-    } catch (error) {
-        showGenericError('Error Loading Order', error.message);
-        throw error;
-    }
-}
+        console.log(`👤 Usuario: ${userId}, Nivel: ${authorizationLevel}`);
 
-/**
- * Load progress data for the order (only for creators)
- */
-async function loadProgressData() {
-    try {
-        const response = await fetch(`${window.PF_CONFIG.baseURL}dao/users/daoOrderProgress.php?orderId=${window.PF_CONFIG.orderId}`, {
-            method: 'GET',
-            credentials: 'same-origin',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        });
+        // 1. Obtener y filtrar las órdenes desde el servidor.
+        await fetchAndFilterOrders();
         
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        // Manejar diferentes tipos de respuesta
-        if (!data.success) {
-            handleProgressError(data);
-            return;
-        }
-        
-        if (data.success && data.showProgress) {
-            progressData = data;
-            renderProgressLine();
-        } else if (data.error_type === 'not_creator') {
-            console.info('Progress line not shown: User is not the creator of this order');
-        }
-        
-    } catch (error) {
-        console.warn('Could not load progress data:', error.message);
-        // No mostrar error al usuario, simplemente no mostrar la línea de progreso
-    }
-}
+        // 2. Renderizar las tarjetas de las órdenes en la UI.
+        renderOrderCards();
 
-/**
- * Handle different types of progress loading errors
- */
-function handleProgressError(data) {
-    switch (data.error_type) {
-        case 'plant_restriction':
-            showPlantRestrictionError(data);
-            break;
-        case 'incomplete_approver_chain':
-            showApproverChainError(data);
-            break;
-        case 'not_found':
-            showNotFoundError(data);
-            break;
-        case 'server_error':
-            console.error('Server error loading progress:', data.message);
-            // No mostrar al usuario, es un error interno
-            break;
-        default:
-            console.warn('Unknown progress error:', data.message);
-    }
-}
-
-/**
- * Show plant access restriction error
- */
-function showPlantAccessError(userPlant, orderPlant, userAuthLevel) {
-    Swal.fire({
-        icon: 'warning',
-        title: 'Access Restricted',
-        html: `
-            <div style="text-align: left;">
-                <p><strong>You don't have permission to view this order.</strong></p>
-                <br>
-                <p><strong>Reason:</strong> Plant restriction</p>
-                <p><strong>Your plant:</strong> ${userPlant}</p>
-                <p><strong>Order plant:</strong> ${orderPlant}</p>
-                <br>
-                <p><small><strong>Note:</strong> Users with authorization level 4 or higher can view orders from other plants. Your current level is ${userAuthLevel}.</small></p>
-            </div>
-        `,
-        confirmButtonText: 'Back to Orders',
-        confirmButtonColor: '#6c757d',
-        customClass: { container: 'swal-on-top' },
-        allowOutsideClick: false,
-        allowEscapeKey: false
-    }).then(() => {
-        window.location.href = 'orders.php';
-    });
-}
-
-/**
- * Show plant restriction error for progress data
- */
-function showPlantRestrictionError(data) {
-    const details = data.details || {};
-    Swal.fire({
-        icon: 'info',
-        title: 'Plant Access Restriction',
-        html: `
-            <div style="text-align: left;">
-                <p><strong>Limited access to order information.</strong></p>
-                <br>
-                <p><strong>Your plant:</strong> ${details.user_plant}</p>
-                <p><strong>Order plant:</strong> ${details.order_plant}</p>
-                <p><strong>Your authorization level:</strong> ${details.user_auth_level}</p>
-                <br>
-                <p><small>You can view basic order information, but detailed progress tracking is restricted to orders from your plant or users with authorization level ${details.required_auth_level} or higher.</small></p>
-            </div>
-        `,
-        confirmButtonText: 'Understood',
-        confirmButtonColor: '#007bff',
-        customClass: { container: 'swal-on-top' }
-    });
-}
-
-/**
- * Show approver chain error
- */
-function showApproverChainError(data) {
-    const details = data.details || {};
-    Swal.fire({
-        icon: 'error',
-        title: 'System Configuration Error',
-        html: `
-            <div style="text-align: left;">
-                <p><strong>Unable to load approval progress.</strong></p>
-                <br>
-                <p><strong>Issue:</strong> Incomplete approver chain</p>
-                <p><strong>Required levels:</strong> ${details.required_levels}</p>
-                <p><strong>Found approvers:</strong> ${details.found_approvers}</p>
-                <p><strong>Order plant:</strong> ${details.order_plant}</p>
-                <br>
-                <p><small>Please contact the system administrator to resolve this configuration issue.</small></p>
-            </div>
-        `,
-        confirmButtonText: 'Contact Admin',
-        confirmButtonColor: '#dc3545',
-        customClass: { container: 'swal-on-top' }
-    });
-}
-
-/**
- * Show order not found error
- */
-function showNotFoundError(data) {
-    Swal.fire({
-        icon: 'error',
-        title: 'Order Not Found',
-        text: data.message || 'The requested order could not be found.',
-        confirmButtonText: 'Back to Orders',
-        confirmButtonColor: '#6c757d',
-        customClass: { container: 'swal-on-top' },
-        allowOutsideClick: false,
-        allowEscapeKey: false
-    }).then(() => {
-        window.location.href = 'orders.php';
-    });
-}
-
-/**
- * Show access denied error
- */
-function showAccessDeniedError(title, details) {
-    Swal.fire({
-        icon: 'warning',
-        title: title,
-        html: `
-            <div style="text-align: left;">
-                <p>${details}</p>
-                <br>
-                <p><strong>Your information:</strong></p>
-                <p><strong>Plant:</strong> ${window.PF_CONFIG.user.plant}</p>
-                <p><strong>Authorization Level:</strong> ${window.PF_CONFIG.user.authorizationLevel}</p>
-                <br>
-                <p><small>If you believe this is an error, please contact your administrator.</small></p>
-            </div>
-        `,
-        confirmButtonText: 'Back to Orders',
-        confirmButtonColor: '#6c757d',
-        customClass: { container: 'swal-on-top' },
-        allowOutsideClick: false,
-        allowEscapeKey: false
-    }).then(() => {
-        window.location.href = 'orders.php';
-    });
-}
-
-/**
- * Show generic error
- */
-function showGenericError(title, message) {
-    Swal.fire({
-        icon: 'error',
-        title: title,
-        text: message,
-        confirmButtonText: 'Back to Orders',
-        confirmButtonColor: '#dc3545',
-        customClass: { container: 'swal-on-top' }
-    }).then(() => {
-        window.location.href = 'orders.php';
-    });
-}
-
-/**
- * Render the progress line
- */
-function renderProgressLine() {
-    if (!progressData || !progressData.showProgress) {
-        return;
-    }
-    
-    const progressSection = document.getElementById('progressSection');
-    const checkpointsContainer = document.querySelector('.progress-checkpoints');
-    const activeLine = document.querySelector('.progress-active-line');
-    const truck = document.querySelector('.progress-truck');
-    
-    if (!progressSection || !checkpointsContainer || !activeLine || !truck) {
-        return;
-    }
-    
-    // Mostrar la sección de progreso
-    progressSection.classList.remove('hidden');
-    
-    // Limpiar checkpoints existentes
-    checkpointsContainer.innerHTML = '';
-    
-    // Crear checkpoints
-    progressData.approvers.forEach((approver, index) => {
-        const checkpoint = document.createElement('div');
-        checkpoint.className = 'checkpoint';
-        
-        let circleClass = 'pending';
-        if (approver.isCompleted) {
-            circleClass = 'completed';
-        } else if (approver.isCurrent) {
-            circleClass = 'current';
-        } else if (approver.isRejectedHere) {
-            circleClass = 'rejected';
-        }
-        
-        checkpoint.innerHTML = `
-            <div class="checkpoint-circle ${circleClass}">
-                ${approver.authorization_level}
-                ${approver.isRejectedHere ? `
-                    <button class="rejection-info-btn" onclick="showRejectionReason('${escapeHtml(approver.name)}')">
-                        <i class="fas fa-question"></i>
-                    </button>
-                ` : ''}
-            </div>
-            <div class="checkpoint-info">
-                <div class="checkpoint-name">${escapeHtml(approver.name)}</div>
-                <div class="checkpoint-role">(${escapeHtml(approver.role)})</div>
-            </div>
-        `;
-        
-        checkpointsContainer.appendChild(checkpoint);
-    });
-    
-    // Configurar línea de progreso
-    const isRejected = progressData.orderInfo.is_rejected;
-    
-    if (isRejected) {
-        activeLine.classList.add('rejected');
-        truck.classList.remove('moving');
-        truck.classList.add('crashed');
-        truck.innerHTML = '<i class="fa-solid fa-car-burst"></i>';
-    } else {
-        activeLine.classList.remove('rejected');
-        truck.classList.add('moving');
-        truck.classList.remove('crashed');
-        truck.innerHTML = '<i class="fa-solid fa-truck-fast"></i>';
-    }
-    
-    // Animar progreso con delay para efecto visual
-    setTimeout(() => {
-        activeLine.style.width = `${progressData.progress.percentage}%`;
-        truck.style.left = `${Math.max(0, progressData.progress.percentage - 2)}%`;
-    }, 500);
-}
-
-/**
- * Utility function to escape HTML
- */
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-/**
- * Show rejection reason dialog
- */
-window.showRejectionReason = function(approverName) {
-    const rejectionReason = progressData?.orderInfo?.rejection_reason;
-    
-    let message;
-    if (rejectionReason && rejectionReason.trim() !== '') {
-        message = `<strong>Rejection Reason:</strong><br><br>"${escapeHtml(rejectionReason)}"<br><br><small>- ${escapeHtml(approverName)}</small>`;
-    } else {
-        message = `No specific reason was provided for the rejection.<br><br>Please contact <strong>${escapeHtml(approverName)}</strong> for more information about why this order was rejected.`;
-    }
-    
-    Swal.fire({
-        icon: 'info',
-        title: 'Order Rejection Information',
-        html: message,
-        confirmButtonText: 'Understood',
-        confirmButtonColor: '#6c757d',
-        customClass: { container: 'swal-on-top' }
-    });
-};
-
-/**
- * Main initialization function
- */
-async function initializeViewOrder() {
-    try {
-        // Load order data first
-        const orderData = await loadOrderData();
-        
-        // Si orderData es null, significa que hubo un error de permisos y ya se mostró
-        if (!orderData) {
-            return;
-        }
-        
-        // Set current order for other functions
-        currentOrder = orderData;
-        
-        // Load progress data (only shows if user is creator)
-        await loadProgressData();
-        
-        // Initialize UI components
-        await initializeOrderDisplay();
-        
-        // Configure buttons based on permissions
-        configureActionButtons();
-        
-        // Setup event listeners
+        // 3. Configurar todos los manejadores de eventos para los botones.
         setupEventListeners();
         
+        // 4. Actualizar el resumen inicial (órdenes pendientes/procesadas).
+        updateSummary();
+        
+        console.log('✅ Aplicación inicializada correctamente.');
+
     } catch (error) {
-        // Error already handled in individual functions
-        console.error('Failed to initialize view order:', error);
+        console.error('❌ Error fatal durante la inicialización:', error);
+        displayErrorState('Could not initialize the application. Please try again later.');
     }
 }
 
+
+// =================================================================================
+// LÓGICA DE DATOS (FETCHING Y FILTRADO)
+// =================================================================================
+
 /**
- * Initialize the order display with SVG content
+ * Obtiene todas las órdenes del endpoint y las filtra según el nivel
+ * de autorización del usuario.
  */
-async function initializeOrderDisplay() {
+async function fetchAndFilterOrders() {
+    console.log('📡 Obteniendo y filtrando órdenes...');
     try {
-        // Show loading spinner
-        showLoadingSpinner(true);
-        
-        // Verificar que currentOrder tenga los datos necesarios
-        if (!currentOrder) {
-            throw new Error('No order data available');
+        const response = await fetch(`${URLBASE}dao/conections/daoPremiumFreight.php`);
+
+        if (!response.ok) {
+            throw new Error(`Error de red: ${response.status} - ${response.statusText}`);
         }
-        
-        // CORREGIDO: Asegurar que el contenedor SVG esté disponible
-        const svgContainer = document.getElementById('svgContent');
-        if (!svgContainer) {
-            throw new Error('SVG container not found');
+
+        const result = await response.json();
+        if (!result || !Array.isArray(result.data)) {
+            throw new Error('El formato de los datos recibidos es inválido.');
         }
+
+        allOrders = result.data;
         
-        // CORREGIDO: Verificar que la orden tenga un ID válido
-        if (!currentOrder.id) {
-            throw new Error('Order ID is missing');
-        }
-        
-        // Load SVG content using the correct function and container
-        await loadAndPopulateSVG(currentOrder, 'svgContent');
-        
-        // Hide loading spinner and show content
-        showLoadingSpinner(false);
-        
-        // Update page title
-        updatePageTitle();
-        
+        // Filtrar órdenes: el estado de aprobación debe ser uno menos que el nivel del usuario.
+        filteredOrders = allOrders.filter(
+            (order) => parseInt(order.approval_status, 10) + 1 === authorizationLevel
+        );
+
+        console.log(`📦 Encontradas ${allOrders.length} órdenes en total, ${filteredOrders.length} filtradas para este usuario.`);
+
     } catch (error) {
-        showLoadingSpinner(false);
-        
-        // Mostrar error en el contenedor SVG
-        const svgContainer = document.getElementById('svgContent');
-        if (svgContainer) {
-            svgContainer.innerHTML = `
-                <div style="text-align: center; padding: 40px; color: #666;">
-                    <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 20px; color: #dc3545;"></i>
-                    <h3>Error Loading Order</h3>
-                    <p>${escapeHtml(error.message)}</p>
-                    <button onclick="location.reload()" class="btn btn-primary">Retry</button>
-                </div>
-            `;
-            svgContainer.classList.remove('hidden');
-        }
-        
+        console.error('❌ Error en fetchAndFilterOrders:', error);
+        // Propagar el error para que la función llamadora lo maneje.
         throw error;
     }
 }
 
-/**
- * Setup all event listeners for the page
- */
-function setupEventListeners() {
-    // Back button
-    const backBtn = document.querySelector('.btn-back');
-    if (backBtn) {
-        backBtn.addEventListener('click', handleGoBack);
-    }
-    
-    // PDF button
-    const pdfBtn = document.querySelector('.btn-pdf');
-    if (pdfBtn) {
-        pdfBtn.addEventListener('click', handleGeneratePDF);
-    }
-    
-    // Approval buttons
-    const approveBtn = document.getElementById('approveBtn');
-    const rejectBtn = document.getElementById('rejectBtn');
-    
-    if (approveBtn) {
-        approveBtn.addEventListener('click', handleApprovalClick);
-    }
-    
-    if (rejectBtn) {
-        rejectBtn.addEventListener('click', handleRejectionClick);
-    }
-    
-    // Keyboard shortcuts
-    document.addEventListener('keydown', handleKeyboardShortcuts);
-}
+
+// =================================================================================
+// RENDERIZADO DE LA INTERFAZ DE USUARIO
+// =================================================================================
 
 /**
- * Check if user has permission to approve this order
+ * Renderiza las tarjetas para cada orden filtrada en el grid.
  */
-function checkApprovalPermissions(user, order) {
-    if (!user || !order) {
-        return false;
-    }
+function renderOrderCards() {
+    const grid = document.getElementById('orders-grid');
+    if (!grid) return;
 
-    // CORREGIDO: Conversiones explícitas a números
-    const userAuthLevel = Number(user.authorizationLevel || window.authorizationLevel);
-    const userPlant = user.plant !== null && user.plant !== undefined ? parseInt(user.plant, 10) : null;
-    const currentApprovalLevel = Number(order.approval_status);
-    const requiredLevel = currentApprovalLevel + 1;
-    const creatorPlant = parseInt(order.creator_plant, 10) || 0;
-    const maxRequiredLevel = Number(order.required_auth_level || 7);
+    // Limpiar el contenedor (eliminar el spinner de carga inicial).
+    grid.innerHTML = ''; 
 
-    // 1. Verificar que no esté completamente aprobada
-    if (currentApprovalLevel >= maxRequiredLevel) {
-        return false;
-    }
-    
-    // 2. Verificar que no esté rechazada
-    if (currentApprovalLevel === 99) {
-        return false;
-    }
-
-    // 3. Verificar nivel de autorización
-    if (userAuthLevel !== requiredLevel) {
-        return false;
-    }
-
-    // 4. Verificar planta - CORREGIDO: Comparación entre enteros
-    if (userPlant !== null && userPlant !== undefined && creatorPlant !== userPlant) {
-        return false;
-    }
-
-    return true;
-}
-
-/**
- * Configure approval/rejection buttons based on user permissions
- */
-function configureActionButtons() {
-    const user = window.PF_CONFIG?.user;
-    const order = currentOrder;
-    
-    if (!user || !order) {
+    if (filteredOrders.length === 0) {
+        displayEmptyState();
         return;
     }
 
-    // Configurar variables globales que necesita approval.js
-    window.authorizationLevel = user.authorizationLevel;
-    window.userPlant = user.plant;
-    window.userID = user.id;
-    
-    // Configurar sessionStorage con el ID de la orden actual
-    sessionStorage.setItem('selectedOrderId', order.id.toString());
-    
-    // Configurar window.allOrders para que approval.js pueda encontrar la orden
-    if (!window.allOrders) {
-        window.allOrders = [];
-    }
-    
-    const existingOrderIndex = window.allOrders.findIndex(o => o.id === order.id);
-    if (existingOrderIndex >= 0) {
-        window.allOrders[existingOrderIndex] = order;
-    } else {
-        window.allOrders.push(order);
-    }
-
-    const approveBtn = document.getElementById('approveBtn');
-    const rejectBtn = document.getElementById('rejectBtn');
-    
-    const canApprove = checkApprovalPermissions(user, order);
-    
-    if (canApprove) {
-        if (approveBtn) {
-            approveBtn.classList.remove('hidden');
-        }
-        if (rejectBtn) {
-            rejectBtn.classList.remove('hidden');
-        }
-    } else {
-        if (approveBtn) {
-            approveBtn.classList.add('hidden');
-        }
-        if (rejectBtn) {
-            rejectBtn.classList.add('hidden');
-        }
-    }
-}
-
-/**
- * Handle approval button click
- */
-async function handleApprovalClick(event) {
-    event.preventDefault();
-    
-    if (isLoading) {
-        return;
-    }
-    
-    try {
-        isLoading = true;
-        
-        // Double-check permissions before proceeding
-        const canApprove = checkApprovalPermissions(window.PF_CONFIG?.user, currentOrder);
-        
-        if (!canApprove) {
-            throw new Error('You do not have permission to approve this order');
-        }
-        
-        sessionStorage.setItem('selectedOrderId', currentOrder.id.toString());
-        
-        await handleApprove();
-        
-        await refreshOrderData();
-        
-        // Refresh progress data after approval
-        await loadProgressData();
-        
-    } catch (error) {
-        showErrorMessage('Failed to approve order: ' + error.message);
-    } finally {
-        isLoading = false;
-    }
-}
-
-/**
- * Handle rejection button click
- */
-async function handleRejectionClick(event) {
-    event.preventDefault();
-    
-    if (isLoading) return;
-    
-    try {
-        isLoading = true;
-        sessionStorage.setItem('selectedOrderId', currentOrder.id.toString());
-        await handleReject();
-        await refreshOrderData();
-        
-        // Refresh progress data after rejection
-        await loadProgressData();
-    } catch (error) {
-        showErrorMessage('Failed to reject order: ' + error.message);
-    } finally {
-        isLoading = false;
-    }
-}
-
-/**
- * Handle PDF generation
- */
-async function handleGeneratePDF(event) {
-    if (event && typeof event.preventDefault === 'function') {
-        event.preventDefault();
-    }
-    
-    if (isLoading) return;
-    
-    try {
-        isLoading = true;
-        
-        Swal.fire({
-            title: 'Generating PDF',
-            html: 'Please wait while the document is being processed...',
-            timerProgressBar: true,
-            didOpen: () => { Swal.showLoading(); },
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            allowEnterKey: false,
-            customClass: { container: 'swal-on-top' }
-        });
-
-        const fileName = await svgGeneratePDF(currentOrder);
-
-        Swal.fire({
-            icon: 'success',
-            title: 'PDF Generated Successfully!',
-            html: `The file <b>${escapeHtml(fileName)}</b> has been downloaded successfully.`,
-            confirmButtonText: 'OK',
-            confirmButtonColor: '#28a745',
-            customClass: { container: 'swal-on-top' }
-        });
-        
-    } catch (error) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error Generating PDF',
-            text: error.message || 'An unexpected error occurred.',
-            confirmButtonText: 'OK',
-            confirmButtonColor: '#dc3545',
-            customClass: { container: 'swal-on-top' }
-        });
-        
-        const tempContainer = document.querySelector('div[style*="left: -9999px"]');
-        if (tempContainer) {
-            document.body.removeChild(tempContainer);
-        }
-    } finally {
-        isLoading = false;
-    }
-}
-
-/**
- * Handle back navigation
- */
-function handleGoBack() {
-    window.location.href = 'orders.php';
-}
-
-/**
- * Handle keyboard shortcuts
- */
-function handleKeyboardShortcuts(event) {
-    if (event.key === 'Escape') {
-        handleGoBack();
-    }
-    
-    if (event.ctrlKey && event.key === 'p') {
-        event.preventDefault();
-        handleGeneratePDF(event);
-    }
-    
-    if (event.ctrlKey && event.key === 'Enter') {
-        const approveBtn = document.getElementById('approveBtn');
-        if (approveBtn && !approveBtn.classList.contains('hidden')) {
-            event.preventDefault();
-            handleApprovalClick(event);
-        }
-    }
-}
-
-/**
- * Update page title with order information
- */
-function updatePageTitle() {
-    if (currentOrder) {
-        document.title = `Order #${currentOrder.id} - ${currentOrder.status_name || 'Premium Freight'} - Grammer AG`;
-    }
-}
-
-/**
- * Show/hide loading spinner
- */
-function showLoadingSpinner(show) {
-    const spinner = document.getElementById('loadingSpinner');
-    const content = document.getElementById('svgContent');
-    
-    if (show) {
-        if (spinner) spinner.classList.remove('hidden');
-        if (content) content.classList.add('hidden');
-    } else {
-        if (spinner) spinner.classList.add('hidden');
-        if (content) content.classList.remove('hidden');
-    }
-}
-
-/**
- * Show error message to user
- */
-function showErrorMessage(message) {
-    Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: message,
-        confirmButtonColor: '#dc3545'
+    filteredOrders.forEach(order => {
+        const card = createOrderCardElement(order);
+        grid.appendChild(card);
+        // Cargar el contenido SVG para esta tarjeta específica.
+        loadOrderSVG(order, `svg-container-${order.id}`);
     });
 }
 
 /**
- * Refresh order data from server
+ * Crea el elemento HTML para una sola tarjeta de orden.
+ * @param {object} order - Los datos de la orden.
+ * @returns {HTMLElement} El elemento div de la tarjeta.
  */
-async function refreshOrderData() {
+function createOrderCardElement(order) {
+    const card = document.createElement('div');
+    card.className = 'order-card';
+    card.setAttribute('data-order-id', order.id);
+
+    card.innerHTML = `
+        <div class="order-header">
+            <h2 class="order-title">Order #${order.id}</h2>
+            <div class="order-actions">
+                <button class="order-action-btn btn-approve-order" data-order-id="${order.id}" title="Approve this order">
+                    <i class="fas fa-check"></i> Approve
+                </button>
+                <button class="order-action-btn btn-reject-order" data-order-id="${order.id}" title="Reject this order">
+                    <i class="fas fa-times"></i> Reject
+                </button>
+                <button class="order-action-btn btn-download-order" data-order-id="${order.id}" title="Download as PDF">
+                    <i class="fas fa-download"></i> PDF
+                </button>
+            </div>
+        </div>
+        <div class="order-content">
+            <div class="order-svg-container" id="svg-container-${order.id}">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+    `;
+    return card;
+}
+
+/**
+ * Carga y muestra el contenido SVG para una orden específica.
+ * @param {object} orderData - Los datos de la orden.
+ * @param {string} containerId - El ID del contenedor donde se renderizará el SVG.
+ */
+async function loadOrderSVG(orderData, containerId) {
     try {
-        const response = await fetch(`${window.PF_CONFIG.baseURL}dao/conections/daoPremiumFreight.php`, {
-            method: 'GET',
-            credentials: 'same-origin',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error('Failed to fetch updated order data');
-        }
-        
-        const responseText = await response.text();
-        const data = JSON.parse(responseText);
-        
-        if (data.status === 'success' && Array.isArray(data.data)) {
-            const updatedOrder = data.data.find(order => order.id === currentOrder.id);
-            
-            if (updatedOrder) {
-                currentOrder = updatedOrder;
-                window.PF_CONFIG.orderData = currentOrder;
-                
-                const existingOrderIndex = window.allOrders?.findIndex(o => o.id === currentOrder.id);
-                if (existingOrderIndex >= 0) {
-                    window.allOrders[existingOrderIndex] = currentOrder;
-                } else {
-                    if (!window.allOrders) window.allOrders = [];
-                    window.allOrders.push(currentOrder);
-                }
-                
-                configureActionButtons();
-                await initializeOrderDisplay();
-            }
-        }
-        
+        await loadAndPopulateSVG(orderData, containerId);
     } catch (error) {
-        // Silently fail refresh
+        console.error(`❌ Error cargando SVG para orden ${orderData.id}:`, error);
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = `
+                <div class="svg-error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Error loading visualization</p>
+                </div>
+            `;
+        }
     }
 }
 
 /**
- * Global functions for compatibility
+ * Actualiza el contador de órdenes pendientes y procesadas.
  */
-window.goBack = handleGoBack;
-window.handleGeneratePDF = handleGeneratePDF;
+function updateSummary() {
+    const pendingCount = filteredOrders.length - processedOrders.size;
+    const processedCount = processedOrders.size;
+    document.getElementById('pending-count').textContent = pendingCount;
+    document.getElementById('processed-count').textContent = processedCount;
+    console.log(`📊 Resumen actualizado: ${pendingCount} pendientes, ${processedCount} procesadas.`);
+}
 
 /**
- * Export functions for use by other modules
+ * Marca una tarjeta como procesada, añadiendo estilos y un indicador de estado.
+ * @param {string} orderId - El ID de la orden procesada.
+ * @param {string} action - La acción realizada ('approve' o 'reject').
  */
-export {
-    initializeViewOrder,
-    handleApprovalClick,
-    handleRejectionClick,
-    handleGeneratePDF,
-    handleGoBack,
-    refreshOrderData
-};
+function markOrderAsProcessed(orderId, action) {
+    const orderCard = document.querySelector(`.order-card[data-order-id="${orderId}"]`);
+    if (!orderCard) return;
+
+    orderCard.classList.add('processed');
+    const orderHeader = orderCard.querySelector('.order-header');
+    
+    // Crear y añadir el indicador de estado (badge).
+    const statusIndicator = document.createElement('div');
+    statusIndicator.className = `status-indicator status-${action}`;
+    statusIndicator.textContent = action === 'approve' ? 'APPROVED' : 'REJECTED';
+    orderHeader.appendChild(statusIndicator);
+    
+    // Opcional: Ocultar la tarjeta después de un tiempo.
+    // setTimeout(() => orderCard.classList.add('hidden'), 3000);
+}
+
+/**
+ * Muestra un mensaje cuando no hay órdenes para mostrar.
+ */
+function displayEmptyState() {
+    const grid = document.getElementById('orders-grid');
+    grid.innerHTML = `
+        <div class="empty-state">
+            <i class="fas fa-box-open"></i>
+            <h2>No pending orders found</h2>
+            <p>There are no orders requiring your approval at this moment.</p>
+        </div>
+    `;
+}
+
+/**
+ * Muestra un mensaje de error general en el área de contenido.
+ * @param {string} message - El mensaje de error a mostrar.
+ */
+function displayErrorState(message) {
+    const grid = document.getElementById('orders-grid');
+    grid.innerHTML = `
+        <div class="error-state">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h2>An Error Occurred</h2>
+            <p>${message}</p>
+        </div>
+    `;
+}
+
+
+// =================================================================================
+// MANEJO DE EVENTOS
+// =================================================================================
+
+/**
+ * Configura todos los manejadores de eventos de la página.
+ */
+function setupEventListeners() {
+    const grid = document.getElementById('orders-grid');
+
+    // Delegación de eventos para acciones individuales en las tarjetas.
+    grid.addEventListener('click', (event) => {
+        const approveBtn = event.target.closest('.btn-approve-order');
+        const rejectBtn = event.target.closest('.btn-reject-order');
+        const downloadBtn = event.target.closest('.btn-download-order');
+        
+        if (approveBtn) {
+            handleIndividualAction(approveBtn.dataset.orderId, 'approve');
+        } else if (rejectBtn) {
+            handleIndividualAction(rejectBtn.dataset.orderId, 'reject');
+        } else if (downloadBtn) {
+            handleDownloadOrder(downloadBtn.dataset.orderId);
+        }
+    });
+
+    // Event listeners para acciones en bloque.
+    document.getElementById('approve-all-btn').addEventListener('click', () => handleBulkAction('approve'));
+    document.getElementById('reject-all-btn').addEventListener('click', () => handleBulkAction('reject'));
+    document.getElementById('download-all-btn').addEventListener('click', handleDownloadAll);
+    
+    console.log('✅ Manejadores de eventos configurados.');
+}
+
+/**
+ * Maneja una acción individual (aprobar/rechazar) sobre una orden.
+ * @param {string} orderId - El ID de la orden.
+ * @param {string} action - La acción a realizar ('approve' o 'reject').
+ */
+async function handleIndividualAction(orderId, action) {
+    if (processedOrders.has(orderId)) {
+        Swal.fire('Already Processed', `Order #${orderId} has already been processed.`, 'info');
+        return;
+    }
+    
+    const { isConfirmed } = await Swal.fire({
+        title: `${action.charAt(0).toUpperCase() + action.slice(1)} Order #${orderId}?`,
+        text: `Are you sure you want to ${action} this order?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: action === 'approve' ? '#10B981' : '#EF4444',
+        confirmButtonText: `Yes, ${action} it!`,
+    });
+
+    if (isConfirmed) {
+        try {
+            if (action === 'approve') {
+                await approveOrder(orderId);
+                await sendEmailNotification(orderId, 'approval');
+            } else {
+                await rejectOrder(orderId);
+                await sendEmailNotification(orderId, 'rejected');
+            }
+            processedOrders.add(orderId);
+            markOrderAsProcessed(orderId, action);
+            updateSummary();
+            Swal.fire('Success!', `Order #${orderId} has been ${action}d.`, 'success');
+        } catch (error) {
+            console.error(`❌ Error al ${action} la orden #${orderId}:`, error);
+            Swal.fire('Error', `Failed to ${action} order #${orderId}.`, 'error');
+        }
+    }
+}
+
+/**
+ * Maneja la descarga de un PDF para una sola orden.
+ * @param {string} orderId - El ID de la orden a descargar.
+ */
+async function handleDownloadOrder(orderId) {
+    const orderData = filteredOrders.find((o) => o.id == orderId);
+    if (!orderData) {
+        Swal.fire('Error', 'Order data not found.', 'error');
+        return;
+    }
+
+    try {
+        Swal.fire({
+            title: 'Generating PDF...',
+            text: 'Please wait a moment.',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading(),
+        });
+        await generatePDF(orderData, `PF_Order_${orderId}`);
+        Swal.close();
+        Swal.fire('Downloaded!', `PDF for order #${orderId} has been generated.`, 'success');
+    } catch (error) {
+        console.error('❌ Error al generar PDF:', error);
+        Swal.fire('PDF Error', 'Failed to generate the PDF.', 'error');
+    }
+}
+
+/**
+ * Maneja una acción en bloque (aprobar/rechazar todas).
+ * @param {string} action - La acción a realizar ('approve' o 'reject').
+ */
+async function handleBulkAction(action) {
+    const pendingOrders = filteredOrders.filter(o => !processedOrders.has(o.id.toString()));
+
+    if (pendingOrders.length === 0) {
+        Swal.fire('No Pending Orders', 'All orders have already been processed.', 'info');
+        return;
+    }
+
+    const { isConfirmed } = await Swal.fire({
+        title: `${action.charAt(0).toUpperCase() + action.slice(1)} All Orders?`,
+        text: `This will ${action} ${pendingOrders.length} pending orders. This action cannot be undone.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: action === 'approve' ? '#10B981' : '#EF4444',
+        confirmButtonText: `Yes, ${action} all!`,
+    });
+
+    if (isConfirmed) {
+        Swal.fire({
+            title: 'Processing Orders...',
+            text: 'Please wait, this may take a moment.',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading(),
+        });
+
+        for (const order of pendingOrders) {
+            try {
+                if (action === 'approve') {
+                    await approveOrder(order.id);
+                    await sendEmailNotification(order.id, 'approval');
+                } else {
+                    await rejectOrder(order.id);
+                    await sendEmailNotification(order.id, 'rejected');
+                }
+                processedOrders.add(order.id.toString());
+                markOrderAsProcessed(order.id, action);
+            } catch (error) {
+                console.error(`❌ Error procesando orden #${order.id} en bloque:`, error);
+                // Opcional: registrar el fallo y continuar.
+            }
+        }
+        
+        updateSummary();
+        Swal.fire('Completed!', `All ${pendingOrders.length} orders have been processed.`, 'success');
+    }
+}
+
+/**
+ * Maneja la descarga de todos los PDFs para las órdenes filtradas.
+ */
+async function handleDownloadAll() {
+    if (filteredOrders.length === 0) {
+        Swal.fire('No Orders', 'There are no orders to download.', 'info');
+        return;
+    }
+    
+    const { isConfirmed } = await Swal.fire({
+        title: 'Download All PDFs?',
+        text: `This will generate PDFs for all ${filteredOrders.length} visible orders.`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, download all!',
+    });
+
+    if (isConfirmed) {
+        Swal.fire({
+            title: 'Generating PDFs...',
+            html: 'Starting download process...<br><b></b>',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+                const progressText = Swal.getHtmlContainer().querySelector('b');
+                
+                let i = 0;
+                const interval = setInterval(async () => {
+                    if (i < filteredOrders.length) {
+                        const order = filteredOrders[i];
+                        progressText.textContent = `Generating ${i + 1} of ${filteredOrders.length}: Order #${order.id}`;
+                        try {
+                            await generatePDF(order, `PF_Order_${order.id}`);
+                        } catch (error) {
+                            console.error(`❌ Error descargando PDF para orden #${order.id}:`, error);
+                        }
+                        i++;
+                    } else {
+                        clearInterval(interval);
+                        Swal.fire('All Done!', `${filteredOrders.length} PDFs have been downloaded.`, 'success');
+                    }
+                }, 500); // Un pequeño delay entre descargas para no sobrecargar.
+            },
+        });
+    }
+}
