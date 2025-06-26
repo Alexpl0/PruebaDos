@@ -480,3 +480,30 @@ body {
         margin: var(--spacing-md);
     }
 }
+
+/* --- ESTILOS VISUALES PARA ÓRDENES PROCESADAS --- */
+
+/* Cambia el color del encabezado según la acción (aprobado/rechazado) */
+.order-header.header-approved {
+    background: linear-gradient(90deg, var(--success), #16a34a); /* Usando la variable --success */
+}
+
+.order-header.header-rejected {
+    background: linear-gradient(90deg, var(--danger), #e11d48); /* Usando la variable --danger */
+}
+
+/* Estilo para la nueva insignia de estado que aparece junto al título */
+.order-title .status-badge {
+    display: inline-block;
+    margin-left: 1rem;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--grammer-blue); /* Color del texto de la insignia */
+    background-color: var(--white); /* Fondo blanco para que resalte */
+    border-radius: 9999px; /* Para hacerlo una píldora */
+    vertical-align: middle;
+    text-transform: uppercase; /* Para que se vea más como una etiqueta */
+    letter-spacing: 0.05em;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* Sombra sutil */
+}

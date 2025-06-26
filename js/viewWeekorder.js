@@ -121,16 +121,41 @@ function updateSummary() {
     document.getElementById('processed-count').textContent = processedCount;
 }
 
+/**
+ * ACTUALIZADO: Modifica la tarjeta de la orden para reflejar su estado procesado.
+ * @param {string} orderId - El ID de la orden.
+ * @param {string} action - La acción realizada ('approve' o 'reject').
+ */
 function markOrderAsProcessed(orderId, action) {
     const orderCard = document.querySelector(`.order-card[data-order-id="${orderId}"]`);
     if (!orderCard) return;
+
+    // 1. Añade 'processed' a la tarjeta para la opacidad y estilos generales.
     orderCard.classList.add('processed');
+
     const orderHeader = orderCard.querySelector('.order-header');
-    const statusIndicator = document.createElement('div');
-    statusIndicator.className = `status-indicator status-${action}`;
-    statusIndicator.textContent = action === 'approve' ? 'APPROVED' : 'REJECTED';
-    orderHeader.appendChild(statusIndicator);
+    if (orderHeader) {
+        // 2. Añade clase para cambiar el color de fondo del header.
+        orderHeader.classList.add(action === 'approve' ? 'header-approved' : 'header-rejected');
+
+        // 3. Elimina los botones de acción para un estado final limpio.
+        const approveBtn = orderHeader.querySelector('.btn-approve-order');
+        const rejectBtn = orderHeader.querySelector('.btn-reject-order');
+        if (approveBtn) approveBtn.remove();
+        if (rejectBtn) rejectBtn.remove();
+        
+        // 4. Añade una insignia de estado junto al título.
+        const title = orderHeader.querySelector('.order-title');
+        if (title) {
+            const statusBadge = document.createElement('span');
+            statusBadge.className = 'status-badge';
+            statusBadge.textContent = action === 'approve' ? 'APROBADO' : 'RECHAZADO';
+            // insertAdjacentElement es más flexible para añadir elementos.
+            title.insertAdjacentElement('beforeend', statusBadge);
+        }
+    }
 }
+
 
 function displayEmptyState() {
     document.getElementById('orders-grid').innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><h2>No pending orders found</h2><p>There are no orders requiring your approval at this moment.</p></div>`;
