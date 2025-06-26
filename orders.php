@@ -46,7 +46,7 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     
     <!-- Local CSS files -->
     <link rel="stylesheet" href="css/styles.css">
@@ -65,8 +65,12 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
         <h1 id="title1">Generated Orders History</h1>
         <h1 id="title2"></h1>
         
-        <!-- Botones de Histórico -->
+        <!-- Botones de Acciones e Histórico -->
         <div class="buttons-container">
+            <!-- BOTÓN AÑADIDO -->
+            <button type="button" class="btn btn-warning" onclick="window.location.href='viewWeekOrder.php'">
+                <i class="fas fa-clock"></i> Pending Approval
+            </button>
             <button type="button" class="btn btn-primary" onclick="window.location.href='weekly-orders-history.php'">
                 <i class="fas fa-calendar-week"></i>  Weekly History
             </button>
