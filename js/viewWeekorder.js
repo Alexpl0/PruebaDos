@@ -121,6 +121,9 @@ function renderOrderCards(orders) {
         // Aquí puedes llamar a tu función para cargar el SVG
         loadAndPopulateSVG(order, `svg-container-${order.id}`);
     });
+
+    // Configurar eventos para los botones después de renderizar las tarjetas
+    setupIndividualEventListeners();
 }
 
 function updateSummary() {
@@ -498,5 +501,28 @@ class BulkOrdersViewer {
             }, 3000);
         }
     }
+}
+
+function setupIndividualEventListeners() {
+    document.querySelectorAll('.btn-approve-order').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+            const orderId = e.target.closest('.order-action-btn').getAttribute('data-order-id');
+            bulkOrdersViewer.handleIndividualAction(e, 'approve');
+        });
+    });
+
+    document.querySelectorAll('.btn-reject-order').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+            const orderId = e.target.closest('.order-action-btn').getAttribute('data-order-id');
+            bulkOrdersViewer.handleIndividualAction(e, 'reject');
+        });
+    });
+
+    document.querySelectorAll('.btn-download-order').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+            const orderId = e.target.closest('.order-action-btn').getAttribute('data-order-id');
+            bulkOrdersViewer.handleDownloadOrder(e);
+        });
+    });
 }
 
