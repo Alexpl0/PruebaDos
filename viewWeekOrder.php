@@ -5,6 +5,10 @@
  */
 
 require_once 'dao/users/auth_check.php';
+// Incluir el archivo de configuración global.
+// Nota: Asegúrate de que la ruta a tu config.php sea correcta.
+require_once __DIR__ . '/../config.php';
+
 
 // Check if user is authenticated
 if (!isset($_SESSION['user'])) {
@@ -20,10 +24,17 @@ $userRole = $_SESSION['user']['role'] ?? '';
 $userPlant = $user_plant;
 $authorizationLevel = $auth_level;
 
-// Define base URLs
-$URLBASE = "https://grammermx.com/Jesus/PruebaDos/";
-$URLM = "https://grammermx.com/Mailer/PFMailer/";
-$URLPF = "https://grammermx.com/PremiumFreight/";
+// --- Definir URLs desde config.php ---
+
+// URL base de la aplicación (para llamadas a la API, etc.)
+$URLBASE = defined('URLPF') ? URLPF : 'https://grammermx.com/Jesus/PruebaDos/';
+
+// URL del servicio de correos
+$URLM = defined('URLM') ? URLM : 'https://grammermx.com/Mailer/PFMailer/';
+
+// URL del dominio de Premium Freight (para enlaces, etc.)
+// Nota: Se recomienda agregar una constante como URL_DOMAIN_PF en config.php para esta URL.
+$URLPF_DOMAIN = defined('URL_PREMIUM_FREIGHT') ? URL_PREMIUM_FREIGHT : 'https://grammermx.com/PremiumFreight/';
 
 ?>
 <!DOCTYPE html>
@@ -116,30 +127,17 @@ $URLPF = "https://grammermx.com/PremiumFreight/";
         window.APP_CONFIG = {
             userId: <?php echo json_encode($userId); ?>,
             authorizationLevel: <?php echo json_encode($authorizationLevel); ?>,
+            userPlant: <?php echo json_encode($userPlant); ?>,
             urls: {
                 base: "<?php echo $URLBASE; ?>",
                 mailer: "<?php echo $URLM; ?>",
-                pf: "<?php echo $URLPF; ?>"
+                pf: "<?php echo $URLPF_DOMAIN; ?>"
             }
         };
     </script>
 
-    <!-- PDF and Canvas Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    
-    <!-- jQuery and Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-
     <!-- Scripts de la aplicación -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
-    
-    <!-- Custom scripts -->
-    <script src="js/header.js"></script>
-    <script src="js/uploadFiles.js"></script>
     <script type="module" src="js/viewWeekorder.js"></script>
 
     <footer class="text-center py-3 mt-4 bg-light">
