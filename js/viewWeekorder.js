@@ -1,528 +1,461 @@
-// Definir las URLs base directamente en el archivo JS
+/**
+ * viewWeekorder.js - Visor de Órdenes Semanales (Enfoque Funcional)
+ *
+ * Este script maneja la visualización y gestión de múltiples órdenes de flete premium.
+ * Se ha refactorizado para eliminar el uso de clases y adoptar un enfoque puramente funcional,
+ * facilitando la lectura y el mantenimiento.
+ *
+ * Funcionalidades clave:
+ * - Carga y filtra órdenes según el nivel de autorización del usuario.
+ * - Renderiza una tarjeta para cada orden pendiente.
+ * - Carga dinámicamente una visualización SVG para cada orden.
+ * - Permite acciones individuales (aprobar, rechazar, descargar PDF).
+ * - Permite acciones en bloque (aprobar todas, rechazar todas, descargar todas).
+ * - Mantiene un resumen del progreso en un panel flotante.
+ * - Utiliza SweetAlert2 para notificaciones y confirmaciones interactivas.
+ */
+
+// Importación de módulos críticos
+import { loadAndPopulateSVG, generatePDF } from './svgOrders.js';
+import { approveOrder, rejectOrder, sendEmailNotification } from './approval.js';
+
+// =================================================================================
+// ESTADO Y CONFIGURACIÓN DEL MÓDULO
+// =================================================================================
+
+// URLs base (podrían obtenerse de APP_CONFIG si se quisiera)
 const URLBASE = "https://grammermx.com/Jesus/PruebaDos/";
-const URLM = "https://grammermx.com/Mailer/PFMailer/";
-const URLPF = "https://grammermx.com/PremiumFreight/";
+
+// Variables para gestionar el estado de la aplicación
+let allOrders = []; // Todas las órdenes obtenidas del fetch
+let filteredOrders = []; // Órdenes filtradas que se muestran al usuario
+const processedOrders = new Set(); // IDs de órdenes ya procesadas (aprobadas/rechazadas)
+
+// Configuración del usuario obtenida desde el objeto global `window.APP_CONFIG`
+const userId = window.APP_CONFIG.userId;
+const authorizationLevel = window.APP_CONFIG.authorizationLevel;
+
+
+// =================================================================================
+// INICIALIZACIÓN PRINCIPAL
+// =================================================================================
 
 /**
- * IMPORTACIÓN DE MÓDULOS CRÍTICOS
- * 
- * loadAndPopulateSVG: Función para cargar y poblar SVGs con datos de órdenes
- * generatePDF: Función para generar y descargar PDFs de órdenes
- * approval.js: Módulo para manejar aprobaciones, rechazos y notificaciones
+ * Se ejecuta cuando el DOM está completamente cargado.
+ * Es el punto de entrada de la aplicación.
  */
-import { loadAndPopulateSVG, generatePDF } from './svgOrders.js';
-import { 
-    approveOrder, 
-    rejectOrder, 
-    sendEmailNotification, 
-    setupApprovalEventListeners 
-} from './approval.js';
-
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('🌐 Page loaded. Initializing event listeners and fetching data.');
-
-    // Configurar manejadores de eventos para todas las interacciones
-    setupApprovalEventListeners();
-    console.log('✅ Event listeners set up.');
-
-    try {
-        console.log('📡 Fetching orders from endpoint...');
-        const orders = await fetchOrderData();
-        renderOrderCards(orders);
-
-        if (orders.length === 0) {
-            console.warn('⚠️ No orders found. Check the endpoint or data availability.');
-            return;
-        }
-
-        console.log('🎨 Generating order cards...');
-        renderOrderCards(orders);
-        console.log('✅ Order cards generated.');
-
-        console.log('📊 Updating summary statistics.');
-        updateSummary();
-        console.log('✅ Summary statistics updated.');
-    } catch (error) {
-        console.error('❌ Error during initialization:', error);
-    }
+    console.log('🚀 DOM cargado. Iniciando aplicación de visualización de órdenes...');
+    await initializeApp();
 });
 
-async function fetchOrderData() {
-    console.log('📡 Starting fetch to endpoint.');
+/**
+ * Función principal que orquesta la inicialización de la página.
+ */
+async function initializeApp() {
     try {
-        const response = await fetch(`${URLBASE}dao/conections/daoPremiumFreight.php`, {
-            method: 'GET',
-            credentials: 'same-origin',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
-        });
+        console.log(`👤 Usuario: ${userId}, Nivel: ${authorizationLevel}`);
 
-        console.log(`📡 Endpoint responded with status: ${response.status}`);
+        // 1. Obtener y filtrar las órdenes desde el servidor.
+        await fetchAndFilterOrders();
+        
+        // 2. Renderizar las tarjetas de las órdenes en la UI.
+        renderOrderCards();
+
+        // 3. Configurar todos los manejadores de eventos para los botones.
+        setupEventListeners();
+        
+        // 4. Actualizar el resumen inicial (órdenes pendientes/procesadas).
+        updateSummary();
+        
+        console.log('✅ Aplicación inicializada correctamente.');
+
+    } catch (error) {
+        console.error('❌ Error fatal durante la inicialización:', error);
+        displayErrorState('Could not initialize the application. Please try again later.');
+    }
+}
+
+
+// =================================================================================
+// LÓGICA DE DATOS (FETCHING Y FILTRADO)
+// =================================================================================
+
+/**
+ * Obtiene todas las órdenes del endpoint y las filtra según el nivel
+ * de autorización del usuario.
+ */
+async function fetchAndFilterOrders() {
+    console.log('📡 Obteniendo y filtrando órdenes...');
+    try {
+        const response = await fetch(`${URLBASE}dao/conections/daoPremiumFreight.php`);
+
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`Error de red: ${response.status} - ${response.statusText}`);
         }
 
         const result = await response.json();
-        console.log('📋 Data received from endpoint:', result);
-
-        if (!result || !result.data) {
-            throw new Error('❌ Invalid data format received');
+        if (!result || !Array.isArray(result.data)) {
+            throw new Error('El formato de los datos recibidos es inválido.');
         }
 
-        console.log('✅ Valid data format confirmed.');
-        return result.data;
+        allOrders = result.data;
+        
+        // Filtrar órdenes: el estado de aprobación debe ser uno menos que el nivel del usuario.
+        filteredOrders = allOrders.filter(
+            (order) => parseInt(order.approval_status, 10) + 1 === authorizationLevel
+        );
+
+        console.log(`📦 Encontradas ${allOrders.length} órdenes en total, ${filteredOrders.length} filtradas para este usuario.`);
+
     } catch (error) {
-        console.error('❌ Error fetching order data:', error);
+        console.error('❌ Error en fetchAndFilterOrders:', error);
+        // Propagar el error para que la función llamadora lo maneje.
         throw error;
     }
 }
 
-function renderOrderCards(orders) {
+
+// =================================================================================
+// RENDERIZADO DE LA INTERFAZ DE USUARIO
+// =================================================================================
+
+/**
+ * Renderiza las tarjetas para cada orden filtrada en el grid.
+ */
+function renderOrderCards() {
     const grid = document.getElementById('orders-grid');
-    if (!grid) {
-        console.error('No se encontró el contenedor de órdenes');
+    if (!grid) return;
+
+    // Limpiar el contenedor (eliminar el spinner de carga inicial).
+    grid.innerHTML = ''; 
+
+    if (filteredOrders.length === 0) {
+        displayEmptyState();
         return;
     }
-    grid.innerHTML = ''; // Limpiar antes de renderizar
 
-    orders.forEach(order => {
-        const card = document.createElement('div');
-        card.className = 'order-card';
-        card.setAttribute('data-order-id', order.id);
-
-        card.innerHTML = `
-            <div class="order-header">
-                <h2 class="order-title">Order #${order.id}</h2>
-                <div class="order-actions">
-                    <button class="order-action-btn btn-approve-order" data-order-id="${order.id}">
-                        <i class="fas fa-check"></i>
-                        Approve
-                    </button>
-                    <button class="order-action-btn btn-reject-order" data-order-id="${order.id}">
-                        <i class="fas fa-times"></i>
-                        Reject
-                    </button>
-                    <button class="order-action-btn btn-download-order" data-order-id="${order.id}">
-                        <i class="fas fa-download"></i>
-                        PDF
-                    </button>
-                </div>
-            </div>
-            <div class="order-content">
-                <div class="order-svg-container" id="svg-container-${order.id}">
-                    <div class="loading-spinner"></div>
-                </div>
-            </div>
-        `;
+    filteredOrders.forEach(order => {
+        const card = createOrderCardElement(order);
         grid.appendChild(card);
-
-        // Aquí puedes llamar a tu función para cargar el SVG
-        loadAndPopulateSVG(order, `svg-container-${order.id}`);
+        // Cargar el contenido SVG para esta tarjeta específica.
+        loadOrderSVG(order, `svg-container-${order.id}`);
     });
-
-    // Configurar eventos para los botones después de renderizar las tarjetas
-    setupIndividualEventListeners();
-}
-
-function updateSummary() {
-    console.log('📊 Calculating pending and processed orders.');
-    const pendingCount = document.querySelectorAll('.order-card:not(.processed)').length;
-    const processedCount = document.querySelectorAll('.order-card.processed').length;
-    console.log(`📦 Pending orders: ${pendingCount}, ✅ Processed orders: ${processedCount}`);
-
-    document.getElementById('pending-count').textContent = pendingCount;
-    document.getElementById('processed-count').textContent = processedCount;
-    console.log('✅ Summary updated in the DOM.');
 }
 
 /**
- * ================================================================================ 
- * CLASE PRINCIPAL: BulkOrdersViewer 
- * ================================================================================ 
+ * Crea el elemento HTML para una sola tarjeta de orden.
+ * @param {object} order - Los datos de la orden.
+ * @returns {HTMLElement} El elemento div de la tarjeta.
  */
-class BulkOrdersViewer {
-    constructor(userId, authorizationLevel, urls) {
-        this.userId = userId;                     // ID del usuario
-        this.authorizationLevel = authorizationLevel; // Nivel de autorización
-        this.urls = urls;                         // URLs base
-        this.processedOrders = new Set();         // Set para rastrear órdenes ya procesadas
-        this.filteredOrders = [];                 // Órdenes filtradas según authorizationLevel
-        this.initialize();                        // Iniciar proceso de configuración
-    }
+function createOrderCardElement(order) {
+    const card = document.createElement('div');
+    card.className = 'order-card';
+    card.setAttribute('data-order-id', order.id);
 
-    async initialize() {
-        console.log('Initializing Bulk Orders Viewer:', this.userId, this.authorizationLevel, this.urls);
-        
-        // Obtener y filtrar órdenes según authorizationLevel
-        await this.fetchAndFilterOrders();
-        
-        // Cargar visualizaciones SVG para las órdenes filtradas
-        await this.loadAllOrderSVGs();
-        
-        // Configurar manejadores de eventos para todas las interacciones
-        setupApprovalEventListeners();
-        
-        // Actualizar estadísticas iniciales en el panel flotante
-        this.updateSummary();
-    }
+    card.innerHTML = `
+        <div class="order-header">
+            <h2 class="order-title">Order #${order.id}</h2>
+            <div class="order-actions">
+                <button class="order-action-btn btn-approve-order" data-order-id="${order.id}" title="Approve this order">
+                    <i class="fas fa-check"></i> Approve
+                </button>
+                <button class="order-action-btn btn-reject-order" data-order-id="${order.id}" title="Reject this order">
+                    <i class="fas fa-times"></i> Reject
+                </button>
+                <button class="order-action-btn btn-download-order" data-order-id="${order.id}" title="Download as PDF">
+                    <i class="fas fa-download"></i> PDF
+                </button>
+            </div>
+        </div>
+        <div class="order-content">
+            <div class="order-svg-container" id="svg-container-${order.id}">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+    `;
+    return card;
+}
 
-    async fetchAndFilterOrders() {
+/**
+ * Carga y muestra el contenido SVG para una orden específica.
+ * @param {object} orderData - Los datos de la orden.
+ * @param {string} containerId - El ID del contenedor donde se renderizará el SVG.
+ */
+async function loadOrderSVG(orderData, containerId) {
+    try {
+        await loadAndPopulateSVG(orderData, containerId);
+    } catch (error) {
+        console.error(`❌ Error cargando SVG para orden ${orderData.id}:`, error);
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = `
+                <div class="svg-error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Error loading visualization</p>
+                </div>
+            `;
+        }
+    }
+}
+
+/**
+ * Actualiza el contador de órdenes pendientes y procesadas.
+ */
+function updateSummary() {
+    const pendingCount = filteredOrders.length - processedOrders.size;
+    const processedCount = processedOrders.size;
+    document.getElementById('pending-count').textContent = pendingCount;
+    document.getElementById('processed-count').textContent = processedCount;
+    console.log(`📊 Resumen actualizado: ${pendingCount} pendientes, ${processedCount} procesadas.`);
+}
+
+/**
+ * Marca una tarjeta como procesada, añadiendo estilos y un indicador de estado.
+ * @param {string} orderId - El ID de la orden procesada.
+ * @param {string} action - La acción realizada ('approve' o 'reject').
+ */
+function markOrderAsProcessed(orderId, action) {
+    const orderCard = document.querySelector(`.order-card[data-order-id="${orderId}"]`);
+    if (!orderCard) return;
+
+    orderCard.classList.add('processed');
+    const orderHeader = orderCard.querySelector('.order-header');
+    
+    // Crear y añadir el indicador de estado (badge).
+    const statusIndicator = document.createElement('div');
+    statusIndicator.className = `status-indicator status-${action}`;
+    statusIndicator.textContent = action === 'approve' ? 'APPROVED' : 'REJECTED';
+    orderHeader.appendChild(statusIndicator);
+    
+    // Opcional: Ocultar la tarjeta después de un tiempo.
+    // setTimeout(() => orderCard.classList.add('hidden'), 3000);
+}
+
+/**
+ * Muestra un mensaje cuando no hay órdenes para mostrar.
+ */
+function displayEmptyState() {
+    const grid = document.getElementById('orders-grid');
+    grid.innerHTML = `
+        <div class="empty-state">
+            <i class="fas fa-box-open"></i>
+            <h2>No pending orders found</h2>
+            <p>There are no orders requiring your approval at this moment.</p>
+        </div>
+    `;
+}
+
+/**
+ * Muestra un mensaje de error general en el área de contenido.
+ * @param {string} message - El mensaje de error a mostrar.
+ */
+function displayErrorState(message) {
+    const grid = document.getElementById('orders-grid');
+    grid.innerHTML = `
+        <div class="error-state">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h2>An Error Occurred</h2>
+            <p>${message}</p>
+        </div>
+    `;
+}
+
+
+// =================================================================================
+// MANEJO DE EVENTOS
+// =================================================================================
+
+/**
+ * Configura todos los manejadores de eventos de la página.
+ */
+function setupEventListeners() {
+    const grid = document.getElementById('orders-grid');
+
+    // Delegación de eventos para acciones individuales en las tarjetas.
+    grid.addEventListener('click', (event) => {
+        const approveBtn = event.target.closest('.btn-approve-order');
+        const rejectBtn = event.target.closest('.btn-reject-order');
+        const downloadBtn = event.target.closest('.btn-download-order');
+        
+        if (approveBtn) {
+            handleIndividualAction(approveBtn.dataset.orderId, 'approve');
+        } else if (rejectBtn) {
+            handleIndividualAction(rejectBtn.dataset.orderId, 'reject');
+        } else if (downloadBtn) {
+            handleDownloadOrder(downloadBtn.dataset.orderId);
+        }
+    });
+
+    // Event listeners para acciones en bloque.
+    document.getElementById('approve-all-btn').addEventListener('click', () => handleBulkAction('approve'));
+    document.getElementById('reject-all-btn').addEventListener('click', () => handleBulkAction('reject'));
+    document.getElementById('download-all-btn').addEventListener('click', handleDownloadAll);
+    
+    console.log('✅ Manejadores de eventos configurados.');
+}
+
+/**
+ * Maneja una acción individual (aprobar/rechazar) sobre una orden.
+ * @param {string} orderId - El ID de la orden.
+ * @param {string} action - La acción a realizar ('approve' o 'reject').
+ */
+async function handleIndividualAction(orderId, action) {
+    if (processedOrders.has(orderId)) {
+        Swal.fire('Already Processed', `Order #${orderId} has already been processed.`, 'info');
+        return;
+    }
+    
+    const { isConfirmed } = await Swal.fire({
+        title: `${action.charAt(0).toUpperCase() + action.slice(1)} Order #${orderId}?`,
+        text: `Are you sure you want to ${action} this order?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: action === 'approve' ? '#10B981' : '#EF4444',
+        confirmButtonText: `Yes, ${action} it!`,
+    });
+
+    if (isConfirmed) {
         try {
-            const response = await fetch(URLBASE + 'dao/conections/daoPremiumFreight.php', {
-                method: 'GET',
-                credentials: 'same-origin',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const result = await response.json();
-            if (!result || !Array.isArray(result.data)) {
-                throw new Error('Invalid data format received');
-            }
-
-            this.filteredOrders = result.data.filter(
-                (order) => order.approval_status + 1 === this.authorizationLevel
-            );
-
-            console.log('Filtered Orders:', this.filteredOrders);
-        } catch (error) {
-            console.error('Error fetching and filtering orders:', error);
-        }
-    }
-
-    async loadAllOrderSVGs() {
-        const promises = this.filteredOrders.map((order) =>
-            this.loadOrderSVG(order)
-        );
-        await Promise.all(promises);
-    }
-
-    async loadOrderSVG(orderData) {
-        try {
-            const containerId = `svg-container-${orderData.id}`;
-            await loadAndPopulateSVG(orderData, containerId);
-            console.log(`SVG loaded for order ${orderData.id}`);
-        } catch (error) {
-            console.error(`Error loading SVG for order ${orderData.id}:`, error);
-            const container = document.getElementById(`svg-container-${orderData.id}`);
-            if (container) {
-                container.innerHTML = `
-                    <div style="text-align: center; color: #ef4444;">
-                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
-                        <p>Error loading order visualization</p>
-                    </div>
-                `;
-            }
-        }
-    }
-
-    async handleIndividualAction(event, action) {
-        const btn = event.target.closest('.order-action-btn');
-        const orderId = btn.getAttribute('data-order-id');
-
-        if (this.processedOrders.has(orderId)) {
-            Swal.fire({
-                icon: 'info',
-                title: 'Already Processed',
-                text: `Order #${orderId} has already been ${action}d.`,
-            });
-            return;
-        }
-
-        const result = await Swal.fire({
-            title: `${action.charAt(0).toUpperCase() + action.slice(1)} Order #${orderId}?`,
-            text: `Are you sure you want to ${action} this order?`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: action === 'approve' ? '#10B981' : '#EF4444',
-            confirmButtonText: `Yes, ${action}!`,
-            cancelButtonText: 'Cancel',
-        });
-
-        if (result.isConfirmed) {
             if (action === 'approve') {
                 await approveOrder(orderId);
                 await sendEmailNotification(orderId, 'approval');
-            } else if (action === 'reject') {
+            } else {
                 await rejectOrder(orderId);
                 await sendEmailNotification(orderId, 'rejected');
             }
-            this.processedOrders.add(orderId);
-            this.markOrderAsProcessed(orderId, action);
-            this.updateSummary();
-        }
-    }
-
-    async handleDownloadOrder(event) {
-        const btn = event.target.closest('.order-action-btn');
-        const orderId = btn.getAttribute('data-order-id');
-        const orderData = this.filteredOrders.find((o) => o.id == orderId);
-
-        if (!orderData) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Order data not found.',
-            });
-            return;
-        }
-
-        try {
-            await generatePDF(orderData, `PF_Order_${orderId}`);
-            Swal.fire({
-                icon: 'success',
-                title: 'PDF Downloaded!',
-                text: `Order #${orderId} has been downloaded successfully.`,
-                timer: 2000,
-                timerProgressBar: true,
-            });
+            processedOrders.add(orderId);
+            markOrderAsProcessed(orderId, action);
+            updateSummary();
+            Swal.fire('Success!', `Order #${orderId} has been ${action}d.`, 'success');
         } catch (error) {
-            console.error('Error generating PDF:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Failed to generate PDF. Please try again.',
-            });
+            console.error(`❌ Error al ${action} la orden #${orderId}:`, error);
+            Swal.fire('Error', `Failed to ${action} order #${orderId}.`, 'error');
         }
     }
+}
 
-    async handleDownloadAll() {
-        const result = await Swal.fire({
-            title: 'Download All Orders?',
-            text: `This will generate PDFs for ${this.filteredOrders.length} orders. This may take a few moments.`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#034C8C',
-            confirmButtonText: 'Yes, download all!',
-            cancelButtonText: 'Cancel',
+/**
+ * Maneja la descarga de un PDF para una sola orden.
+ * @param {string} orderId - El ID de la orden a descargar.
+ */
+async function handleDownloadOrder(orderId) {
+    const orderData = filteredOrders.find((o) => o.id == orderId);
+    if (!orderData) {
+        Swal.fire('Error', 'Order data not found.', 'error');
+        return;
+    }
+
+    try {
+        Swal.fire({
+            title: 'Generating PDF...',
+            text: 'Please wait a moment.',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading(),
+        });
+        await generatePDF(orderData, `PF_Order_${orderId}`);
+        Swal.close();
+        Swal.fire('Downloaded!', `PDF for order #${orderId} has been generated.`, 'success');
+    } catch (error) {
+        console.error('❌ Error al generar PDF:', error);
+        Swal.fire('PDF Error', 'Failed to generate the PDF.', 'error');
+    }
+}
+
+/**
+ * Maneja una acción en bloque (aprobar/rechazar todas).
+ * @param {string} action - La acción a realizar ('approve' o 'reject').
+ */
+async function handleBulkAction(action) {
+    const pendingOrders = filteredOrders.filter(o => !processedOrders.has(o.id.toString()));
+
+    if (pendingOrders.length === 0) {
+        Swal.fire('No Pending Orders', 'All orders have already been processed.', 'info');
+        return;
+    }
+
+    const { isConfirmed } = await Swal.fire({
+        title: `${action.charAt(0).toUpperCase() + action.slice(1)} All Orders?`,
+        text: `This will ${action} ${pendingOrders.length} pending orders. This action cannot be undone.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: action === 'approve' ? '#10B981' : '#EF4444',
+        confirmButtonText: `Yes, ${action} all!`,
+    });
+
+    if (isConfirmed) {
+        Swal.fire({
+            title: 'Processing Orders...',
+            text: 'Please wait, this may take a moment.',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading(),
         });
 
-        if (result.isConfirmed) {
+        for (const order of pendingOrders) {
             try {
-                Swal.fire({
-                    title: 'Generating PDFs...',
-                    text: 'Please wait while we generate all PDFs.',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    },
-                });
-
-                for (let i = 0; i < this.filteredOrders.length; i++) {
-                    const order = this.filteredOrders[i];
-                    await generatePDF(order, `PF_Order_${order.id}`);
-                    const progress = ((i + 1) / this.filteredOrders.length) * 100;
-                    Swal.update({
-                        text: `Generated ${i + 1} of ${this.filteredOrders.length} PDFs (${Math.round(progress)}%)`,
-                    });
+                if (action === 'approve') {
+                    await approveOrder(order.id);
+                    await sendEmailNotification(order.id, 'approval');
+                } else {
+                    await rejectOrder(order.id);
+                    await sendEmailNotification(order.id, 'rejected');
                 }
-
-                Swal.fire({
-                    icon: 'success',
-                    title: 'All PDFs Downloaded!',
-                    text: `Successfully generated ${this.filteredOrders.length} PDF files.`,
-                    timer: 3000,
-                    timerProgressBar: true,
-                });
+                processedOrders.add(order.id.toString());
+                markOrderAsProcessed(order.id, action);
             } catch (error) {
-                console.error('Error generating PDFs:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Failed to generate some PDFs. Please try again.',
-                });
+                console.error(`❌ Error procesando orden #${order.id} en bloque:`, error);
+                // Opcional: registrar el fallo y continuar.
             }
         }
+        
+        updateSummary();
+        Swal.fire('Completed!', `All ${pendingOrders.length} orders have been processed.`, 'success');
     }
+}
 
-    /**
-     * Maneja las acciones en bloque (aprobar todas o rechazar todas).
-     * 
-     * @param {string} action - Tipo de acción ('approve' o 'reject').
-     */
-    async handleBulkAction(action) {
-        const pendingOrders = this.filteredOrders.filter(
-            (order) => !this.processedOrders.has(order.id.toString())
-        );
+/**
+ * Maneja la descarga de todos los PDFs para las órdenes filtradas.
+ */
+async function handleDownloadAll() {
+    if (filteredOrders.length === 0) {
+        Swal.fire('No Orders', 'There are no orders to download.', 'info');
+        return;
+    }
+    
+    const { isConfirmed } = await Swal.fire({
+        title: 'Download All PDFs?',
+        text: `This will generate PDFs for all ${filteredOrders.length} visible orders.`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, download all!',
+    });
 
-        if (pendingOrders.length === 0) {
-            Swal.fire({
-                icon: 'info',
-                title: 'No Pending Orders',
-                text: 'All orders have been processed already.',
-            });
-            return;
-        }
-
-        const result = await Swal.fire({
-            title: `${action.charAt(0).toUpperCase() + action.slice(1)} All Orders?`,
-            text: `This will ${action} ${pendingOrders.length} pending orders. This action cannot be undone.`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: action === 'approve' ? '#10B981' : '#EF4444',
-            confirmButtonText: `Yes, ${action} all!`,
-            cancelButtonText: 'Cancel',
-        });
-
-        if (result.isConfirmed) {
-            try {
-                Swal.fire({
-                    title: `${action.charAt(0).toUpperCase() + action.slice(1)}ing Orders...`,
-                    text: 'Please wait while we process all orders.',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    },
-                });
-
-                for (let i = 0; i < pendingOrders.length; i++) {
-                    const order = pendingOrders[i];
-                    try {
-                        if (action === 'approve') {
-                            await approveOrder(order.id);
-                            await sendEmailNotification(order.id, 'approval');
-                        } else if (action === 'reject') {
-                            await rejectOrder(order.id);
-                            await sendEmailNotification(order.id, 'rejected');
+    if (isConfirmed) {
+        Swal.fire({
+            title: 'Generating PDFs...',
+            html: 'Starting download process...<br><b></b>',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+                const progressText = Swal.getHtmlContainer().querySelector('b');
+                
+                let i = 0;
+                const interval = setInterval(async () => {
+                    if (i < filteredOrders.length) {
+                        const order = filteredOrders[i];
+                        progressText.textContent = `Generating ${i + 1} of ${filteredOrders.length}: Order #${order.id}`;
+                        try {
+                            await generatePDF(order, `PF_Order_${order.id}`);
+                        } catch (error) {
+                            console.error(`❌ Error descargando PDF para orden #${order.id}:`, error);
                         }
-                        this.processedOrders.add(order.id.toString());
-                        this.markOrderAsProcessed(order.id, action);
-                    } catch (error) {
-                        console.error(`Error processing order ${order.id}:`, error);
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: `Failed to ${action} order #${order.id}. Continuing with the rest.`,
-                        });
+                        i++;
+                    } else {
+                        clearInterval(interval);
+                        Swal.fire('All Done!', `${filteredOrders.length} PDFs have been downloaded.`, 'success');
                     }
-
-                    const progress = ((i + 1) / pendingOrders.length) * 100;
-                    Swal.update({
-                        text: `Processed ${i + 1} of ${pendingOrders.length} orders (${Math.round(progress)}%)`,
-                    });
-                }
-
-                Swal.fire({
-                    icon: 'success',
-                    title: `All Orders ${action.charAt(0).toUpperCase() + action.slice(1)}ed!`,
-                    text: `Successfully ${action}ed ${pendingOrders.length} orders.`,
-                    timer: 3000,
-                    timerProgressBar: true,
-                });
-
-                this.updateSummary();
-            } catch (error) {
-                console.error(`Error processing bulk action (${action}):`, error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: `Failed to complete the bulk ${action} action. Please try again.`,
-                });
-            }
-        }
-    }
-
-    updateSummary() {
-        const pendingCount = this.filteredOrders.length - this.processedOrders.size;
-        const processedCount = this.processedOrders.size;
-        document.getElementById('pending-count').textContent = pendingCount;
-        document.getElementById('processed-count').textContent = processedCount;
-    }
-
-    setupEventListeners() {
-        // Event listeners para acciones individuales
-        document.querySelectorAll('.btn-approve-order').forEach((btn) => {
-            btn.addEventListener('click', (e) => this.handleIndividualAction(e, 'approve'));
+                }, 500); // Un pequeño delay entre descargas para no sobrecargar.
+            },
         });
-
-        document.querySelectorAll('.btn-reject-order').forEach((btn) => {
-            btn.addEventListener('click', (e) => this.handleIndividualAction(e, 'reject'));
-        });
-
-        document.querySelectorAll('.btn-download-order').forEach((btn) => {
-            btn.addEventListener('click', (e) => this.handleDownloadOrder(e));
-        });
-
-        // Event listeners para acciones bulk
-        document.getElementById('approve-all-btn').addEventListener('click', () =>
-            this.handleBulkAction('approve')
-        );
-        document.getElementById('reject-all-btn').addEventListener('click', () =>
-            this.handleBulkAction('reject')
-        );
-        document.getElementById('download-all-btn').addEventListener('click', () =>
-            this.handleDownloadAll()
-        );
-    }
-
-    /**
-     * ACTUALIZACIÓN VISUAL DE ORDEN PROCESADA
-     * 
-     * CAMBIOS VISUALES APLICADOS:
-     * 1. Añade clase 'processed' para estilos CSS
-     * 2. Crea y añade indicador de estado visual
-     * 3. Programa ocultación automática opcional
-     * 
-     * PARÁMETROS:
-     * @param {number|string} orderId - ID de la orden procesada
-     * @param {string} action - Acción realizada ('approve' o 'reject')
-     * 
-     * FEEDBACK VISUAL:
-     * - Cambio de opacidad y escala de la tarjeta
-     * - Badge de estado (APPROVED/REJECTED)
-     * - Opción de ocultar orden después de delay
-     */
-    markOrderAsProcessed(orderId, action) {
-        const orderCard = document.querySelector(`[data-order-id="${orderId}"]`);
-        if (orderCard) {
-            // Añadir clase 'processed' para estilos visuales
-            orderCard.classList.add('processed');
-
-            // Crear y añadir indicador de estado visual
-            const orderHeader = orderCard.querySelector('.order-header');
-            const statusIndicator = document.createElement('div');
-            statusIndicator.className = `status-indicator status-${action}`;
-            statusIndicator.textContent = action === 'approve' ? 'APPROVED' : 'REJECTED';
-            orderHeader.appendChild(statusIndicator);
-
-            // Opcional: Ocultar la orden después de un delay
-            setTimeout(() => {
-                if (confirm(`Hide processed order #${orderId}?`)) {
-                    orderCard.classList.add('hidden');
-                }
-            }, 3000);
-        }
     }
 }
-
-function setupIndividualEventListeners() {
-    document.querySelectorAll('.btn-approve-order').forEach((btn) => {
-        btn.addEventListener('click', (e) => {
-            const orderId = e.target.closest('.order-action-btn').getAttribute('data-order-id');
-            bulkOrdersViewer.handleIndividualAction(e, 'approve');
-        });
-    });
-
-    document.querySelectorAll('.btn-reject-order').forEach((btn) => {
-        btn.addEventListener('click', (e) => {
-            const orderId = e.target.closest('.order-action-btn').getAttribute('data-order-id');
-            bulkOrdersViewer.handleIndividualAction(e, 'reject');
-        });
-    });
-
-    document.querySelectorAll('.btn-download-order').forEach((btn) => {
-        btn.addEventListener('click', (e) => {
-            const orderId = e.target.closest('.order-action-btn').getAttribute('data-order-id');
-            bulkOrdersViewer.handleDownloadOrder(e);
-        });
-    });
-}
-
