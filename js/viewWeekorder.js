@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         console.log('📡 Fetching orders from endpoint...');
         const orders = await fetchOrderData();
-        console.log('📦 Orders fetched:', orders);
+        renderOrderCards(orders);
 
         if (orders.length === 0) {
             console.warn('⚠️ No orders found. Check the endpoint or data availability.');
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         console.log('🎨 Generating order cards...');
-        generateOrderCards(orders);
+        renderOrderCards(orders);
         console.log('✅ Order cards generated.');
 
         console.log('📊 Updating summary statistics.');
@@ -79,40 +79,46 @@ async function fetchOrderData() {
     }
 }
 
-function generateOrderCards(orders) {
-    const container = document.getElementById('orders-container'); // Asegúrate de tener un contenedor en tu HTML
-    if (!container) {
-        console.error('❌ Orders container not found in the DOM.');
+function renderOrderCards(orders) {
+    const grid = document.getElementById('orders-grid');
+    if (!grid) {
+        console.error('No se encontró el contenedor de órdenes');
         return;
     }
+    grid.innerHTML = ''; // Limpiar antes de renderizar
 
-    orders.forEach((order) => {
-        console.log(`🎨 Creating card for order ID: ${order.id}`);
-
-        // Crear la tarjeta
+    orders.forEach(order => {
         const card = document.createElement('div');
         card.className = 'order-card';
         card.setAttribute('data-order-id', order.id);
 
-        // Contenido de la tarjeta
         card.innerHTML = `
             <div class="order-header">
-                <h3>Order #${order.id}</h3>
-                <p>${order.description}</p>
+                <h2 class="order-title">Order #${order.id}</h2>
+                <div class="order-actions">
+                    <button class="order-action-btn btn-approve-order" data-order-id="${order.id}">
+                        <i class="fas fa-check"></i>
+                        Approve
+                    </button>
+                    <button class="order-action-btn btn-reject-order" data-order-id="${order.id}">
+                        <i class="fas fa-times"></i>
+                        Reject
+                    </button>
+                    <button class="order-action-btn btn-download-order" data-order-id="${order.id}">
+                        <i class="fas fa-download"></i>
+                        PDF
+                    </button>
+                </div>
             </div>
-            <div class="order-actions">
-                <button class="btn btn-approve-order" data-order-id="${order.id}">Approve</button>
-                <button class="btn btn-reject-order" data-order-id="${order.id}">Reject</button>
-                <button class="btn btn-download-order" data-order-id="${order.id}">Download PDF</button>
+            <div class="order-content">
+                <div class="order-svg-container" id="svg-container-${order.id}">
+                    <div class="loading-spinner"></div>
+                </div>
             </div>
-            <div id="svg-container-${order.id}" class="svg-container"></div>
         `;
+        grid.appendChild(card);
 
-        // Añadir la tarjeta al contenedor
-        container.appendChild(card);
-
-        // Generar el SVG para la orden
-        console.log(`🎨 Generating SVG for order ID: ${order.id}`);
+        // Aquí puedes llamar a tu función para cargar el SVG
         loadAndPopulateSVG(order, `svg-container-${order.id}`);
     });
 }

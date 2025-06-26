@@ -96,42 +96,7 @@ $URLPF = "https://grammermx.com/PremiumFreight/";
         </header>
 
         <!-- ===== GRID PRINCIPAL DE ÓRDENES ===== -->
-        <main class="orders-grid" id="orders-grid">
-            <?php foreach ($ordersData as $order): ?>
-            <!-- Tarjeta individual para cada orden -->
-            <div class="order-card" data-order-id="<?php echo $order['id']; ?>">
-                <div class="order-header">
-                    <h2 class="order-title">Order #<?php echo $order['id']; ?></h2>
-                    <div class="order-actions">
-                        <!-- Botón de aprobación -->
-                        <button class="order-action-btn btn-approve-order" 
-                                data-order-id="<?php echo $order['id']; ?>">
-                            <i class="fas fa-check"></i>
-                            Approve
-                        </button>
-                        <!-- Botón de rechazo -->
-                        <button class="order-action-btn btn-reject-order"
-                                data-order-id="<?php echo $order['id']; ?>">
-                            <i class="fas fa-times"></i>
-                            Reject
-                        </button>
-                        <!-- Botón de descarga PDF -->
-                        <button class="order-action-btn btn-download-order"
-                                data-order-id="<?php echo $order['id']; ?>">
-                            <i class="fas fa-download"></i>
-                            PDF
-                        </button>
-                    </div>
-                </div>
-                <div class="order-content">
-                    <!-- Contenedor para SVG que será populado por JavaScript -->
-                    <div class="order-svg-container" id="svg-container-<?php echo $order['id']; ?>">
-                        <div class="loading-spinner"></div>
-                    </div>
-                </div>
-            </div>
-            <?php endforeach; ?>
-        </main>
+        <main class="orders-grid" id="orders-grid"></main>
 
         <!-- ===== PANEL FLOTANTE DE PROGRESO ===== -->
         <div class="floating-summary" id="floating-summary">
