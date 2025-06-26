@@ -7,7 +7,7 @@
 import { addNotificationStyles } from './utils.js';
 import { createCards, setupSearch } from './cards.js';
 import { updateModalButtons, setupModalEventListeners } from './modals.js';
-import { setupApprovalEventListeners } from './approval.js';
+// import { setupApprovalEventListeners } from './approval.js';
 
 /**
  * Initialize the application when the DOM is fully loaded
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
     try {
         // Set up event listeners
         setupModalEventListeners();
-        setupApprovalEventListeners();
+        // setupApprovalEventListeners();
         setupSearch();
     } catch (error) {
         console.error('Error setting up event listeners:', error);
