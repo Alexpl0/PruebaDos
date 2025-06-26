@@ -124,8 +124,22 @@ $URLPF = "https://grammermx.com/PremiumFreight/";
         };
     </script>
 
+    <!-- PDF and Canvas Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    
+    <!-- jQuery and Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
     <!-- Scripts de la aplicación -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    
+    <!-- Custom scripts -->
+    <script src="js/header.js"></script>
+    <script src="js/uploadFiles.js"></script>
     <script type="module" src="js/viewWeekorder.js"></script>
 
     <footer class="text-center py-3 mt-4 bg-light">
