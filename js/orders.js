@@ -7,7 +7,7 @@
 import { addNotificationStyles } from './utils.js';
 import { createCards, setupSearch } from './cards.js';
 import { updateModalButtons, setupModalEventListeners } from './modals.js';
-import { setupApprovalEventListeners } from './approval.js';
+// import { setupApprovalEventListeners } from './approval.js';
 
 // Define the URLPF variable for this module
 const URLPF = window.URL_BASE || window.BASE_URL || 'https://grammermx.com/Jesus/PruebaDos/';
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
     try {
         // Set up event listeners
         setupModalEventListeners();
-        setupApprovalEventListeners();
+        // setupApprovalEventListeners();
         setupSearch();
     } catch (error) {
         console.error('Error setting up event listeners:', error);
