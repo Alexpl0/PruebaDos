@@ -17,8 +17,9 @@ $nivel = isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['au
 $name = isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null;
 $userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
 $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
+$authorizationLevel = isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null; // Agregado
 ?>
-
+ 
 <!DOCTYPE html>
 <html lang="en">
 <head>
