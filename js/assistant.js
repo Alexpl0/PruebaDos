@@ -24,7 +24,7 @@ class VirtualAssistant {
             <div id="virtual-assistant" class="virtual-assistant">
                 <!-- Botón del asistente (Lucy) -->
                 <div id="assistant-button" class="assistant-button" title="Hi! I'm Lucy, your virtual assistant. Click to chat with me!">
-                    <img src="assets/assistant/Lucy.webp" alt="Lucy - Virtual Assistant" class="assistant-avatar">
+                    <img src="assets/assistant/Lucy.jpeg" alt="Lucy - Virtual Assistant" class="assistant-avatar">
                     <div class="assistant-pulse"></div>
                     <div class="assistant-welcome-bubble" id="welcome-bubble">
                         <p>Hi! I'm Lucy 👋<br>I'm here to help you!</p>
@@ -37,7 +37,7 @@ class VirtualAssistant {
                     <!-- Header del Chat -->
                     <div class="chat-header">
                         <div class="chat-header-info">
-                            <img src="assets/assistant/Lucy.webp" alt="Lucy" class="chat-avatar">
+                            <img src="assets/assistant/Lucy.jpeg" alt="Lucy" class="chat-avatar">
                             <div class="chat-title">
                                 <h4>Lucy</h4>
                                 <span class="chat-status">Virtual Assistant • Online</span>
@@ -57,7 +57,7 @@ class VirtualAssistant {
                     <div class="chat-messages" id="chat-messages">
                         <div class="message assistant-message">
                             <div class="message-avatar">
-                                <img src="assets/assistant/Lucy.webp" alt="Lucy">
+                                <img src="assets/assistant/Lucy.jpeg" alt="Lucy">
                             </div>
                             <div class="message-content">
                                 <div class="message-bubble">
@@ -72,7 +72,7 @@ class VirtualAssistant {
                     <div class="typing-indicator" id="typing-indicator">
                         <div class="message assistant-message">
                             <div class="message-avatar">
-                                <img src="assets/assistant/Lucy.webp" alt="Lucy">
+                                <img src="assets/assistant/Lucy.jpeg" alt="Lucy">
                             </div>
                             <div class="message-content">
                                 <div class="typing-dots">
@@ -285,7 +285,7 @@ class VirtualAssistant {
         const messageHTML = `
             <div class="message assistant-message">
                 <div class="message-avatar">
-                    <img src="assets/assistant/Lucy.webp" alt="Lucy">
+                    <img src="assets/assistant/Lucy.jpeg" alt="Lucy">
                 </div>
                 <div class="message-content">
                     <div class="message-bubble">
