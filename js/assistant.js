@@ -210,10 +210,11 @@ class VirtualAssistant {
     async sendMessage() {
         const messageInput = document.getElementById('message-input');
         const message = messageInput.value.trim();
-        
+
         if (!message) return;
 
         // Añadir mensaje del usuario
+        console.log('User message:', message);
         this.addUserMessage(message);
         messageInput.value = '';
 
@@ -221,26 +222,33 @@ class VirtualAssistant {
         this.showTypingIndicator();
 
         try {
+            // Crear el JSON para enviar
+            const requestBody = {
+                question: message
+            };
+            console.log('Request JSON:', requestBody);
+
             // Enviar pregunta al endpoint
             const response = await fetch(this.apiEndpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    question: message
-                })
+                body: JSON.stringify(requestBody)
             });
+
+            console.log('Response status:', response.status);
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
-            
+            console.log('Response JSON:', data);
+
             // Ocultar indicador de escritura
             this.hideTypingIndicator();
-            
+
             // Añadir respuesta del asistente
             this.addAssistantMessage(data.answer || 'I apologize, but I could not process your request at this moment.');
 
