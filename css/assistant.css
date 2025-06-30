@@ -1,0 +1,431 @@
+/* Virtual Assistant Styles */
+.virtual-assistant {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10000;
+    font-family: var(--body-font, 'Merriweather', serif);
+}
+
+/* Botón del Asistente */
+.assistant-button {
+    position: relative;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--grammer-blue, #034C8C), var(--grammer-light-blue, #4A90D9));
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(3, 76, 140, 0.3);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.assistant-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(3, 76, 140, 0.4);
+}
+
+.assistant-button.chat-open {
+    transform: scale(0.9);
+}
+
+.assistant-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid white;
+}
+
+/* Animación de pulso */
+.assistant-pulse {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: rgba(3, 76, 140, 0.3);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    70% {
+        transform: scale(1.4);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1.4);
+        opacity: 0;
+    }
+}
+
+/* Burbuja de bienvenida */
+.assistant-welcome-bubble {
+    position: absolute;
+    bottom: 80px;
+    right: 0;
+    background: white;
+    padding: 15px;
+    border-radius: 15px 15px 5px 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    max-width: 200px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.assistant-welcome-bubble.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.assistant-welcome-bubble p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--gray-700, #374151);
+    line-height: 1.4;
+}
+
+.bubble-arrow {
+    position: absolute;
+    bottom: -5px;
+    right: 20px;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 0;
+    border-top: 10px solid white;
+}
+
+/* Ventana de Chat */
+.chat-window {
+    position: absolute;
+    bottom: 90px;
+    right: 0;
+    width: 350px;
+    height: 400px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+/* Header del Chat */
+.chat-header {
+    background: linear-gradient(135deg, var(--grammer-blue, #034C8C), var(--grammer-light-blue, #4A90D9));
+    color: white;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-header-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.chat-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
+.chat-title h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.chat-status {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.chat-controls {
+    display: flex;
+    gap: 5px;
+}
+
+.chat-control-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 3px;
+    transition: background 0.2s ease;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-control-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Área de Mensajes */
+.chat-messages {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    background: var(--gray-50, #F9FAFB);
+    max-height: 250px;
+}
+
+.chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+    background: var(--gray-300, #D1D5DB);
+    border-radius: 3px;
+}
+
+/* Mensajes */
+.message {
+    display: flex;
+    margin-bottom: 15px;
+    animation: messageAppear 0.3s ease;
+}
+
+@keyframes messageAppear {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.user-message {
+    justify-content: flex-end;
+}
+
+.assistant-message {
+    justify-content: flex-start;
+}
+
+.message-avatar {
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.message-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.message-content {
+    max-width: 80%;
+}
+
+.message-bubble {
+    padding: 10px 15px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.user-message .message-bubble {
+    background: var(--grammer-blue, #034C8C);
+    color: white;
+    border-bottom-right-radius: 5px;
+}
+
+.assistant-message .message-bubble {
+    background: white;
+    color: var(--gray-800, #1F2937);
+    border: 1px solid var(--gray-200, #E5E7EB);
+    border-bottom-left-radius: 5px;
+}
+
+.message-time {
+    font-size: 11px;
+    color: var(--gray-500, #6B7280);
+    margin-top: 5px;
+    text-align: right;
+}
+
+.assistant-message .message-time {
+    text-align: left;
+}
+
+/* Indicador de escritura */
+.typing-indicator {
+    display: none;
+}
+
+.typing-dots {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 15px;
+    background: white;
+    border: 1px solid var(--gray-200, #E5E7EB);
+    border-radius: 18px 18px 18px 5px;
+}
+
+.typing-dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--gray-400, #9CA3AF);
+    animation: typingDot 1.5s infinite;
+}
+
+.typing-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typingDot {
+    0%, 60%, 100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    30% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+}
+
+/* Input de Mensaje */
+.chat-input {
+    padding: 15px;
+    border-top: 1px solid var(--gray-200, #E5E7EB);
+    background: white;
+}
+
+.input-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+#message-input {
+    flex: 1;
+    padding: 10px 15px;
+    border: 1px solid var(--gray-300, #D1D5DB);
+    border-radius: 20px;
+    font-size: 14px;
+    outline: none;
+    resize: none;
+    font-family: inherit;
+}
+
+#message-input:focus {
+    border-color: var(--grammer-blue, #034C8C);
+    box-shadow: 0 0 0 3px rgba(3, 76, 140, 0.1);
+}
+
+.send-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--grammer-blue, #034C8C);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.send-button:hover {
+    background: var(--grammer-dark-blue, #002856);
+    transform: scale(1.05);
+}
+
+.send-button:disabled {
+    background: var(--gray-400, #9CA3AF);
+    cursor: not-allowed;
+    transform: none;
+}
+
+.input-footer {
+    margin-top: 8px;
+    text-align: center;
+}
+
+.input-footer small {
+    color: var(--gray-500, #6B7280);
+    font-size: 11px;
+}
+
+/* Destacado de moneda */
+.currency-highlight {
+    color: var(--success, #218621);
+    background: rgba(33, 134, 33, 0.1);
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .virtual-assistant {
+        bottom: 15px;
+        right: 15px;
+    }
+    
+    .chat-window {
+        width: 300px;
+        height: 350px;
+        bottom: 80px;
+        right: -25px;
+    }
+    
+    .assistant-welcome-bubble {
+        max-width: 150px;
+        right: -10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .chat-window {
+        width: 280px;
+        right: -35px;
+    }
+    
+    .assistant-button {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .assistant-avatar {
+        width: 40px;
+        height: 40px;
+    }
+}

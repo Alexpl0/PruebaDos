@@ -64,6 +64,8 @@ include_once 'dao/users/auth_check.php';
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/newOrder.css">
+    <!-- Virtual Assistant -->
+    <link rel="stylesheet" href="css/virtualAssistant.css">
 
     <!-- Google Fonts -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap" as="style">
@@ -439,6 +441,7 @@ include_once 'dao/users/auth_check.php';
     <script src="js/carrierSelect.js"></script>
     <script src="js/addCarrier.js"></script>
     <script src="js/selectConfig.js"></script>  
+    <script src="js/virtualAssistant.js"></script>
     <!-- Add this just before the closing </body> tag -->
 </body>
 </html>
