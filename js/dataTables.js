@@ -106,6 +106,7 @@ function getDataTableConfig(filename, title) {
             }
         ],
         pageLength: 25,
+        lengthMenu: [25, 50, 100, 200],
         responsive: true,
         columnDefs: [
             { targets: [0], width: "80px", className: "text-center" }, // ID
