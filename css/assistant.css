@@ -126,7 +126,7 @@
 .chat-header {
     background: linear-gradient(135deg, var(--grammer-blue, #034C8C), var(--grammer-light-blue, #4A90D9));
     color: white;
-    padding: 15px;
+    padding: 5px 10px 0 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -183,7 +183,7 @@
 /* Área de Mensajes */
 .chat-messages {
     flex: 1;
-    padding: 15px;
+    padding: 5px 10px 0px 10px;
     overflow-y: auto;
     background: var(--gray-50, #F9FAFB);
     max-height: 250px;
@@ -205,7 +205,6 @@
 /* Mensajes */
 .message {
     display: flex;
-    margin-bottom: 15px;
     animation: messageAppear 0.3s ease;
 }
 
@@ -249,7 +248,7 @@
 .message-bubble {
     padding: 10px 15px;
     border-radius: 18px;
-    font-size: 14px;
+    font-size: 12px;
     line-height: 1.4;
     word-wrap: break-word;
 }
@@ -334,11 +333,12 @@
 }
 
 #message-input {
+    margin:0;
     flex: 1;
     padding: 10px 15px;
     border: 1px solid var(--gray-300, #D1D5DB);
     border-radius: 20px;
-    font-size: 14px;
+    font-size: 12px !important;
     outline: none;
     resize: none;
     font-family: inherit;
@@ -350,6 +350,7 @@
 }
 
 .send-button {
+    margin:0;
     width: 40px;
     height: 40px;
     border-radius: 50%;
