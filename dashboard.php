@@ -58,6 +58,10 @@ include_once 'dao/users/auth_check.php';
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/dashboard.css">
+    <?php if (isset($nivel) && $nivel > 0): ?>
+        <!-- Virtual Assistant CSS -->
+        <link rel="stylesheet" href="css/assistant.css">
+    <?php endif; ?>
 </head>
 <body>
     <div id="loadingOverlay" style="display:none;">
@@ -407,5 +411,9 @@ include_once 'dao/users/auth_check.php';
 
     <!-- Script principal del dashboard (versión modular) -->
     <script type="module" src="js/dashboard.js"></script>
+    <?php if (isset($nivel) && $nivel > 0): ?>
+        <!-- Virtual Assistant JS -->
+        <script src="js/assistant.js"></script>
+    <?php endif; ?>
 </body>
 </html>

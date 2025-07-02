@@ -49,6 +49,10 @@ include_once 'dao/users/auth_check.php';
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css">
+    <?php if (isset($nivel) && $nivel > 0): ?>
+        <!-- Virtual Assistant CSS -->
+        <link rel="stylesheet" href="css/assistant.css">
+    <?php endif; ?>
 </head>
 <body>
     <div id="header-container"></div>
@@ -103,5 +107,11 @@ include_once 'dao/users/auth_check.php';
     <script src="js/uploadFiles.js"></script>
     <script src="js/dataTables.js"></script>
     <script src="js/myorders.js" type="module"></script>
+
+
+    <?php if (isset($nivel) && $nivel > 0): ?>
+        <!-- Virtual Assistant JavaScript - Solo para usuarios autorizados -->
+        <script src="js/assistant.js"></script>
+    <?php endif; ?>
 </body>
 </html>

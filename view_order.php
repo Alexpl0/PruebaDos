@@ -17,12 +17,16 @@ if (!isset($_GET['order']) || empty($_GET['order'])) {
 $orderId = intval($_GET['order']);
 
 // Get user session data from auth_check
-$userId = $user_id;
-$userName = $user_name;
+$nivel = isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null;
+$name = isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null;
+$userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
+$plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
+$userId = $userID;
+$userName = $name;
 $userEmail = $_SESSION['user']['email'] ?? '';
 $userRole = $_SESSION['user']['role'] ?? '';
-$userPlant = $user_plant;
-$authorizationLevel = $auth_level;
+$userPlant = $plant;
+$authorizationLevel = $nivel;
 
 // Define base URLs
 $URLBASE = "https://grammermx.com/Jesus/PruebaDos/";
@@ -57,7 +61,11 @@ if (!isset($_SESSION['user'])) {
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/view-order.css">
-    
+    <?php if (isset($nivel) && $nivel > 0): ?>
+        <!-- Virtual Assistant CSS -->
+        <link rel="stylesheet" href="css/assistant.css">
+    <?php endif; ?>
+
     <!-- External JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -71,14 +79,14 @@ if (!isset($_SESSION['user'])) {
             mailerURL: '<?php echo $URLM; ?>',
             orderData: null, // Se cargará vía AJAX usando el endpoint existente
             user: {
-                id: <?php echo $userId; ?>,
-                name: '<?php echo $userName; ?>',
-                email: '<?php echo $userEmail; ?>',
-                role: '<?php echo $userRole; ?>',
-                plant: <?php echo $userPlant ? "'$userPlant'" : 'null'; ?>,
-                authorizationLevel: <?php echo $authorizationLevel; ?>
+                id: <?php echo json_encode($userID); ?>,
+                name: <?php echo json_encode($name); ?>,
+                email: <?php echo json_encode($userEmail); ?>,
+                role: <?php echo json_encode($userRole); ?>,
+                plant: <?php echo json_encode($plant); ?>,
+                authorizationLevel: <?php echo json_encode($nivel); ?>
             },
-            orderId: <?php echo $orderId; ?>
+            orderId: <?php echo json_encode($orderId); ?>
         };
         
         // Legacy support for existing modules
@@ -205,7 +213,9 @@ if (!isset($_SESSION['user'])) {
     <!-- Custom scripts -->
     <script src="js/uploadFiles.js"></script>
     <script type="module" src="js/viewOrder.js"></script>
-
-    <script>console.log('User Plant:', window.userPlant);</script>
+    <?php if (isset($nivel) && $nivel > 0): ?>
+        <!-- Virtual Assistant JavaScript - Solo para usuarios autorizados -->
+        <script src="js/assistant.js"></script>
+    <?php endif; ?>
 </body>
 </html>

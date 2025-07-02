@@ -65,7 +65,10 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/adminUsers.css">
-
+    <?php if (isset($nivel) && $nivel > 0): ?>
+        <!-- Virtual Assistant CSS -->
+        <link rel="stylesheet" href="css/assistant.css">
+    <?php endif; ?>
     <!-- Pass PHP user data to JavaScript -->
     <script>
         window.authorizationLevel = <?php echo json_encode($nivel); ?>;
@@ -201,5 +204,9 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
     <script src="js/header.js"></script>
     <script src="js/PasswordManager.js"></script>
     <script src="js/userAdmin.js"></script>
+    <?php if (isset($nivel) && $nivel > 0): ?>
+        <!-- Virtual Assistant JS -->
+        <script src="js/assistant.js"></script>
+    <?php endif; ?>
 </body>
 </html>

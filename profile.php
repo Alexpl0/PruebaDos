@@ -1,24 +1,17 @@
 <?php
-session_start();
-require_once 'config.php'; // Include config.php to get URL constant
-// Check if user is logged in
-if (!isset($_SESSION['user'])) {
-    header('Location: index.php');
-    exit;
-}
-$user = $_SESSION['user'];
-include_once 'dao/users/auth_check.php';
-?>
-<script>
-    window.authorizationLevel = <?php echo json_encode(isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null); ?>;
-    window.userName = <?php echo json_encode(isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null); ?>;
-    window.userID = <?php echo json_encode(isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null); ?>;
-    // Definimos la variable global de JavaScript con la URL base desde PHP
-    const URLPF = '<?php echo URLPF; ?>'; 
-    // Agregar esta línea para el mailer
-    const URLM = '<?php echo URLM; ?>'; 
-</script>
+/**
+ * profile.php - User profile page (Refactored)
+ * This version uses the centralized context injection system.
+ */
 
+// 1. Incluir el sistema de autenticación.
+// auth_check.php también inicia la sesión y redirige si no hay usuario.
+require_once 'dao/users/auth_check.php';
+
+// 2. Incluir el inyector de contexto desde su ubicación central.
+// Este script crea la variable $appContextForJS e imprime el objeto `window.APP_CONTEXT`.
+require_once 'dao/users/context_injector.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,21 +21,32 @@ include_once 'dao/users/auth_check.php';
     <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
 
     <!-- ================== SCRIPTS DE TERCEROS ================== -->
-    <!-- Enlace al CDN de Font Awesome -->
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <!-- SweetAlert2 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- ================== CSS LOCAL ================== -->
-    <!-- Archivos CSS locales -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/profile.css">
+
+    <!-- ================== SISTEMA DE CONTEXTO CENTRALIZADO ================== -->
+    <?php
+        // El inyector ya fue requerido en la parte superior del script.
+    ?>
+    <!-- Incluir el módulo de configuración JS. -->
+    <script src="js/config.js"></script>
+    <!-- ==================================================================== -->
+
+    <?php 
+    // Carga condicional del CSS del asistente, usando la variable del inyector.
+    if (isset($appContextForJS['user']['authorizationLevel']) && $appContextForJS['user']['authorizationLevel'] > 0): ?>
+        <link rel="stylesheet" href="css/assistant.css">
+    <?php endif; ?>
 </head>
 <body>
     <div id="header-container"></div>
@@ -53,9 +57,9 @@ include_once 'dao/users/auth_check.php';
                     <i class="fas fa-user-circle avatar-icon"></i>
                 </div>
                 <div class="user-info">
-                    <h2><?php echo htmlspecialchars($user['name']); ?></h2>
-                    <span class="badge bg-primary"><?php echo htmlspecialchars($user['role']); ?></span>
-                    <span class="badge bg-secondary">Auth Level: <?php echo htmlspecialchars($user['authorization_level']); ?></span>
+                    <h2><?php echo htmlspecialchars($appContextForJS['user']['name']); ?></h2>
+                    <span class="badge bg-primary"><?php echo htmlspecialchars($appContextForJS['user']['role']); ?></span>
+                    <span class="badge bg-secondary">Auth Level: <?php echo htmlspecialchars($appContextForJS['user']['authorizationLevel']); ?></span>
                 </div>
             </div>
             
@@ -63,12 +67,12 @@ include_once 'dao/users/auth_check.php';
                 <form id="profile-form">
                     <div class="mb-3">
                         <label for="email" class="form-label">Email Address</label>
-                        <input type="email" id="email" value="<?php echo htmlspecialchars($user['email']); ?>" readonly class="form-control">
+                        <input type="email" id="email" value="<?php echo htmlspecialchars($appContextForJS['user']['email']); ?>" readonly class="form-control">
                     </div>
                     
                     <div class="mb-3">
                         <label for="username" class="form-label">Name</label>
-                        <input type="text" id="username" value="<?php echo htmlspecialchars($user['name']); ?>" class="form-control">
+                        <input type="text" id="username" value="<?php echo htmlspecialchars($appContextForJS['user']['name']); ?>" class="form-control">
                     </div>
                     
                     <div class="mb-3">
@@ -89,7 +93,6 @@ include_once 'dao/users/auth_check.php';
                                 <i class="fas fa-eye-slash"></i>
                             </button>
                         </div>
-                        <!-- NUEVO: Indicador de fortaleza -->
                         <div id="password-strength-indicator" class="mt-2"></div>
                     </div>
                     
@@ -101,13 +104,11 @@ include_once 'dao/users/auth_check.php';
                                 <i class="fas fa-eye-slash"></i>
                             </button>
                         </div>
-                        <!-- NUEVO: Feedback de coincidencia -->
                         <div id="password-feedback" class="mt-2"></div>
                     </div>
                     
                     <button type="button" id="update-profile" class="btn btn-primary">Update Profile</button>
                     
-                    <!-- NUEVO: Indicador de seguridad -->
                     <div class="text-center mt-3">
                         <small class="text-muted">
                             <i class="fas fa-shield-alt text-success"></i>
@@ -135,7 +136,7 @@ include_once 'dao/users/auth_check.php';
                 </div>
                 
                 <div class="mt-3 text-center">
-                    <a href="myorders.php" class="btn btn-outline-primary">
+                    <a href="orders.php" class="btn btn-outline-primary">
                         <i class="fas fa-list"></i> View My Orders
                     </a>
                 </div>
@@ -152,8 +153,13 @@ include_once 'dao/users/auth_check.php';
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/header.js"></script>
     <script src="js/utils.js" type="module"></script>
-    <!-- NUEVO: Cargar PasswordManager -->
     <script src="js/PasswordManager.js"></script>
     <script src="js/profile.js"></script>
+    
+    <?php 
+    // Carga condicional del JS del asistente.
+    if (isset($appContextForJS['user']['authorizationLevel']) && $appContextForJS['user']['authorizationLevel'] > 0): ?>
+        <script src="js/assistant.js"></script>
+    <?php endif; ?>
 </body>
 </html>

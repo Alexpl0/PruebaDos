@@ -35,7 +35,13 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
     
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
-    <link rel="stylesheet" href="css/myOrder.css"> </head>
+    <link rel="stylesheet" href="css/myOrder.css">
+    
+    <?php if (isset($nivel) && $nivel > 0): ?>
+        <!-- Virtual Assistant CSS - Solo para usuarios autorizados -->
+        <link rel="stylesheet" href="css/assistant.css">
+    <?php endif; ?>
+</head>
 <body>
     <div id="header-container"></div>
 
@@ -96,5 +102,10 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
     
     <script src="js/header.js"></script>
     <script src="js/myOrder.js" type="module"></script>
+    
+    <?php if (isset($nivel) && $nivel > 0): ?>
+        <!-- Virtual Assistant JavaScript - Solo para usuarios autorizados -->
+        <script src="js/assistant.js"></script>
+    <?php endif; ?>
 </body>
 </html>

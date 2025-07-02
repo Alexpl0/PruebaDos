@@ -5,10 +5,7 @@
  */
 
 require_once 'dao/users/auth_check.php';
-// Incluir el archivo de configuración global.
-// Nota: Asegúrate de que la ruta a tu config.php sea correcta.
 require_once 'config.php';
-
 
 // Check if user is authenticated
 if (!isset($_SESSION['user'])) {
@@ -16,26 +13,24 @@ if (!isset($_SESSION['user'])) {
     die('User not authenticated');
 }
 
-// Get user session data from auth_check
-$userId = $user_id;
-$userName = $user_name;
+// Variables de usuario para el asistente
+$nivel = isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null;
+$name = isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null;
+$userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
+$plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
+
+// Para compatibilidad con el resto del código
+$userId = $userID;
+$userName = $name;
 $userEmail = $_SESSION['user']['email'] ?? '';
 $userRole = $_SESSION['user']['role'] ?? '';
-$userPlant = $user_plant;
-$authorizationLevel = $auth_level;
+$userPlant = $plant;
+$authorizationLevel = $nivel;
 
 // --- Definir URLs desde config.php ---
-
-// URL base de la aplicación (para llamadas a la API, etc.)
 $URLBASE = defined('URLPF') ? URLPF : 'https://grammermx.com/Jesus/PruebaDos/';
-
-// URL del servicio de correos
 $URLM = defined('URLM') ? URLM : 'https://grammermx.com/Mailer/PFMailer/';
-
-// URL del dominio de Premium Freight (para enlaces, etc.)
-// Nota: Se recomienda agregar una constante como URL_DOMAIN_PF en config.php para esta URL.
 $URLPF_DOMAIN = defined('URL_PREMIUM_FREIGHT') ? URL_PREMIUM_FREIGHT : 'https://grammermx.com/PremiumFreight/';
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -62,6 +57,10 @@ $URLPF_DOMAIN = defined('URL_PREMIUM_FREIGHT') ? URL_PREMIUM_FREIGHT : 'https://
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/viewWeekorder.css">
+    <?php if (isset($nivel) && $nivel > 0): ?>
+        <!-- Virtual Assistant CSS -->
+        <link rel="stylesheet" href="css/assistant.css">
+    <?php endif; ?>
 </head>
 <body>
     <div class="bulk-container">
@@ -139,6 +138,10 @@ $URLPF_DOMAIN = defined('URL_PREMIUM_FREIGHT') ? URL_PREMIUM_FREIGHT : 'https://
     <!-- Scripts de la aplicación -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script type="module" src="js/viewWeekorder.js"></script>
+    <?php if (isset($nivel) && $nivel > 0): ?>
+        <!-- Virtual Assistant JavaScript - Solo para usuarios autorizados -->
+        <script src="js/assistant.js"></script>
+    <?php endif; ?>
 
     <footer class="text-center py-3 mt-4 bg-light">
         <p class="mb-0">© 2025 Grammer. All rights reserved.</p>

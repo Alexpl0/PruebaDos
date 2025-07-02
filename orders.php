@@ -1,43 +1,23 @@
 <?php
-session_start();
-require_once 'config.php'; // Include config.php to get URL constant
-include_once 'dao/users/auth_check.php';
-$nivel = isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null;
-$name = isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null;
-$userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
-$role = isset($_SESSION['user']['role']) ? $_SESSION['user']['role'] : null;
-$plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
-?>
-<script>
-    window.authorizationLevel = <?php echo json_encode($nivel); ?>;
-    window.userName = <?php echo json_encode($name); ?>;
-    window.userID = <?php echo json_encode($userID); ?>;
-    window.role = <?php echo json_encode($role); ?>;
-    window.userPlant = <?php echo json_encode($plant); ?>;
-    // Definimos la variable global de JavaScript con la URL base desde PHP
-    const BASE_URL = '<?php echo URLPF; ?>'; 
-    // También mantener URL para compatibilidad
-    window.URL_BASE = '<?php echo URLPF; ?>';
-    // Agregar esta línea para el mailer
-    const URLM = '<?php echo URLM; ?>';
-    
-    // Crear objeto user con json_encode para evitar problemas de comillas
-    const user = {
-        name: <?php echo json_encode($name); ?>,
-        id: <?php echo json_encode($userID); ?>,
-        role: <?php echo json_encode($role); ?>,
-        plant: <?php echo json_encode($plant); ?>,
-        authorizationLevel: <?php echo json_encode($nivel); ?>
-    };
-</script>
+/**
+ * orders.php - Main orders dashboard (Refactored)
+ * This version uses the centralized context injection system.
+ */
 
+// 1. Incluir el sistema de autenticación.
+require_once 'dao/users/auth_check.php';
+
+// 2. Incluir el inyector de contexto desde su ubicación central.
+// Este script crea la variable $appContextForJS e imprime el objeto `window.APP_CONTEXT`.
+require_once 'dao/users/context_injector.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
     <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
-    <title>Orders</title>
+    <title>Orders - Premium Freight</title>
     
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -57,6 +37,20 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css">
+    
+    <!-- ================== SISTEMA DE CONTEXTO CENTRALIZADO ================== -->
+    <?php
+        // El inyector ya fue requerido en la parte superior del script.
+    ?>
+    <!-- Incluir el módulo de configuración JS. -->
+    <script src="js/config.js"></script>
+    <!-- ==================================================================== -->
+
+    <?php 
+    // Carga condicional del CSS del asistente.
+    if (isset($appContextForJS['user']['authorizationLevel']) && $appContextForJS['user']['authorizationLevel'] > 0): ?>
+        <link rel="stylesheet" href="css/assistant.css">
+    <?php endif; ?>
 </head>
 <body>
     <div id="header-container"></div>
@@ -67,8 +61,7 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
         
         <!-- Botones de Acciones e Histórico -->
         <div class="buttons-container">
-            <!-- BOTÓN AÑADIDO -->
-            <button type="button" class="btn btn-warning" onclick="window.location.href='viewWeekOrder.php'">
+            <button type="button" class="btn btn-warning" onclick="window.location.href='weekOrders.php'">
                 <i class="fas fa-clock"></i> Pending Approval
             </button>
             <button type="button" class="btn btn-primary" onclick="window.location.href='weekly-orders-history.php'">
@@ -130,5 +123,11 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
     <script src="js/uploadFiles.js"></script>
     <script src="js/dataTables.js" type="module"></script>
     <script src="js/orders.js" type="module"></script>
+    
+    <?php 
+    // Carga condicional del JS del asistente.
+    if (isset($appContextForJS['user']['authorizationLevel']) && $appContextForJS['user']['authorizationLevel'] > 0): ?>
+        <script src="js/assistant.js"></script>
+    <?php endif; ?>
 </body>
 </html>
