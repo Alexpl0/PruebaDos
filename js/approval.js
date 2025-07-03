@@ -36,9 +36,12 @@ export async function approveOrder(orderId, options = {}) {
             if (!isConfirmed) return { success: false, message: 'User cancelled' };
         }
 
+        // --- CORRECCIÓN AQUÍ ---
+        // Se añade 'userLevel' para que coincida con lo que el backend espera.
         const updateData = {
             orderId: selectedOrder.id,
             newStatusId: user.authorizationLevel,
+            userLevel: user.authorizationLevel, // <-- CAMPO AÑADIDO
             userID: user.id,
             authDate: new Date().toISOString().slice(0, 19).replace('T', ' ')
         };
@@ -95,8 +98,13 @@ export async function rejectOrder(orderId, rejectionReason = null, options = {})
         }
         if (!reason) return { success: false, message: 'Reason is required' };
 
+        // --- CORRECCIÓN AQUÍ ---
+        // Se añade 'userLevel' para que coincida con lo que el backend espera.
         const updateData = {
-            orderId: selectedOrder.id, newStatusId: 99, userID: user.id,
+            orderId: selectedOrder.id, 
+            newStatusId: 99, 
+            userLevel: user.authorizationLevel, // <-- CAMPO AÑADIDO
+            userID: user.id,
             authDate: new Date().toISOString().slice(0, 19).replace('T', ' '),
             rejection_reason: reason
         };
