@@ -1,10 +1,10 @@
 /**
  * viewWeekorder.js - Visor de Órdenes Semanales (Refactorizado)
- * ACTUALIZADO: La descarga múltiple ahora baja los archivos uno por uno.
+ * Utiliza PF_CONFIG para una gestión de datos consistente y ahora es más robusto.
  */
 
+import { loadAndPopulateSVG, generatePDF } from './svgOrders.js';
 import { approveOrder, rejectOrder } from './approval.js';
-import { generatePDF } from './svgOrders.js'; 
 
 let allOrders = [];
 let filteredOrders = [];
@@ -34,7 +34,7 @@ async function fetchAndFilterOrders() {
         const result = await response.json();
         if (!result || !Array.isArray(result.data)) throw new Error('Invalid data format received.');
         
-        window.allOrders = result.data;
+        window.allOrders = result.data; // Esencial para que approval.js funcione
         filteredOrders = result.data.filter(
             (order) => parseInt(order.approval_status, 10) + 1 === user.authorizationLevel
         );
@@ -81,101 +81,6 @@ function createOrderCardElement(order) {
     return card;
 }
 
-function setupEventListeners() {
-    const grid = document.getElementById('orders-grid');
-    const approveAllBtn = document.getElementById('approve-all-btn');
-    const rejectAllBtn = document.getElementById('reject-all-btn');
-    const downloadAllBtn = document.getElementById('download-all-btn');
-
-    if (grid) {
-        grid.addEventListener('click', (event) => {
-            const btn = event.target.closest('.order-action-btn');
-            if (!btn) return;
-            const orderId = btn.closest('.order-card').dataset.orderId;
-            if (btn.classList.contains('btn-approve-order')) handleIndividualAction(orderId, 'approve');
-            else if (btn.classList.contains('btn-reject-order')) handleIndividualAction(orderId, 'reject');
-            else if (btn.classList.contains('btn-download-order')) handleDownloadOrder(orderId);
-        });
-    } else {
-        console.error("Event Listener Error: Element with ID 'orders-grid' not found.");
-    }
-
-    if (approveAllBtn) approveAllBtn.addEventListener('click', () => handleBulkAction('approve'));
-    if (rejectAllBtn) rejectAllBtn.addEventListener('click', () => handleBulkAction('reject'));
-    if (downloadAllBtn) {
-        downloadAllBtn.addEventListener('click', handleDownloadAll);
-    } else {
-        console.error("Event Listener Error: Element with ID 'download-all-btn' not found.");
-    }
-}
-
-async function handleDownloadOrder(orderId) {
-    const orderData = filteredOrders.find((o) => o.id == orderId);
-    if (!orderData) return Swal.fire('Error', 'Order data not found.', 'error');
-    try {
-        Swal.fire({ title: 'Generating PDF...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-        await generatePDF(orderData, { outputType: 'download', fileName: `PF_Order_${orderId}` });
-        Swal.close();
-    } catch (error) {
-        Swal.fire('PDF Error', 'Failed to generate the PDF.', 'error');
-    }
-}
-
-/**
- * ACTUALIZADO: Maneja la descarga de todos los PDFs uno por uno.
- */
-async function handleDownloadAll() {
-    const ordersToDownload = filteredOrders.filter(o => !processedOrders.has(o.id.toString()));
-    if (ordersToDownload.length === 0) {
-        return Swal.fire('No Orders to Download', 'There are no pending orders to download.', 'info');
-    }
-
-    const { isConfirmed } = await Swal.fire({
-        title: 'Download All PDFs?',
-        text: `This will start downloading ${ordersToDownload.length} PDF files one by one.`,
-        icon: 'info',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, download all!',
-    });
-
-    if (!isConfirmed) return;
-
-    Swal.fire({
-        title: 'Starting Downloads...',
-        html: `Please wait. Preparing to download file <b>1 / ${ordersToDownload.length}</b>.`,
-        allowOutsideClick: false,
-        timer: 1500,
-        didOpen: () => Swal.showLoading(),
-    });
-
-    try {
-        let count = 0;
-        for (const order of ordersToDownload) {
-            count++;
-            Swal.update({
-                title: 'Downloading Files...',
-                html: `Downloading file <b>${count} / ${ordersToDownload.length}</b>...`,
-            });
-            
-            try {
-                // Llama a la función que ya sabe cómo descargar un PDF
-                await generatePDF(order, { outputType: 'download', fileName: `PF_Order_${order.id}` });
-                // Pausa para no saturar al navegador
-                await new Promise(resolve => setTimeout(resolve, 750)); 
-            } catch (pdfError) {
-                console.error(`Failed to download PDF for order #${order.id}:`, pdfError);
-            }
-        }
-
-        Swal.fire('Downloads Complete', `All ${ordersToDownload.length} files have been processed.`, 'success');
-
-    } catch (error) {
-        console.error('Error during bulk PDF download:', error);
-        Swal.fire('An Error Occurred', 'Could not complete all downloads.', 'error');
-    }
-}
-
-// --- El resto de las funciones de ayuda (sin cambios) ---
 async function loadOrderSVG(orderData, containerId) {
     try {
         await loadAndPopulateSVG(orderData, containerId);
@@ -235,6 +140,37 @@ function displayErrorState(message) {
     }
 }
 
+function setupEventListeners() {
+    const grid = document.getElementById('orders-grid');
+    const approveAllBtn = document.getElementById('approve-all-btn');
+    const rejectAllBtn = document.getElementById('reject-all-btn');
+
+    if (grid) {
+        grid.addEventListener('click', (event) => {
+            const btn = event.target.closest('.order-action-btn');
+            if (!btn) return;
+            const orderId = btn.closest('.order-card').dataset.orderId;
+            if (btn.classList.contains('btn-approve-order')) handleIndividualAction(orderId, 'approve');
+            else if (btn.classList.contains('btn-reject-order')) handleIndividualAction(orderId, 'reject');
+            else if (btn.classList.contains('btn-download-order')) handleDownloadOrder(orderId);
+        });
+    } else {
+        console.error("Event Listener Error: Element with ID 'orders-grid' not found.");
+    }
+
+    if (approveAllBtn) {
+        approveAllBtn.addEventListener('click', () => handleBulkAction('approve'));
+    } else {
+        console.error("Event Listener Error: Element with ID 'approve-all-btn' not found.");
+    }
+
+    if (rejectAllBtn) {
+        rejectAllBtn.addEventListener('click', () => handleBulkAction('reject'));
+    } else {
+        console.error("Event Listener Error: Element with ID 'reject-all-btn' not found.");
+    }
+}
+
 async function handleIndividualAction(orderId, action) {
     if (processedOrders.has(orderId)) return;
     try {
@@ -247,6 +183,18 @@ async function handleIndividualAction(orderId, action) {
         }
     } catch (error) {
         console.error(`Action '${action}' failed for order #${orderId}:`, error);
+    }
+}
+
+async function handleDownloadOrder(orderId) {
+    const orderData = filteredOrders.find((o) => o.id == orderId);
+    if (!orderData) return Swal.fire('Error', 'Order data not found.', 'error');
+    try {
+        Swal.fire({ title: 'Generating PDF...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        await generatePDF(orderData, `PF_Order_${orderId}`);
+        Swal.close();
+    } catch (error) {
+        Swal.fire('PDF Error', 'Failed to generate the PDF.', 'error');
     }
 }
 
