@@ -97,7 +97,6 @@ function getDataTableButtons(exportTitle = 'Orders_History', ordersData = null) 
     return [
         { extend: 'excel', text: '<i class="fas fa-file-excel"></i> Excel', className: 'btn btn-success btn-sm', filename, title: exportTitle, exportOptions: { columns: ':not(:last-child)' } },
         { extend: 'pdfHtml5', text: '<i class="fas fa-file-pdf"></i> PDF', className: 'btn btn-danger btn-sm', orientation: 'landscape', pageSize: 'A3', filename, title: exportTitle, exportOptions: { columns: ':not(:last-child)' } },
-        { extend: 'print', text: '<i class="fas fa-print"></i> Print', className: 'btn btn-secondary btn-sm', title: exportTitle, exportOptions: { columns: ':not(:last-child)' } },
         {
             text: '<i class="fas fa-file-alt"></i> Export SVGs',
             className: 'btn btn-warning btn-sm buttons-svg',

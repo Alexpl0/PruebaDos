@@ -1,9 +1,8 @@
 <?php
 /**
  * PFEmailTemplates.php - HTML Templates for Premium Freight emails
- * 
- * @author GRAMMER AG
- * @version 2.4 - All texts in English
+ * * @author GRAMMER AG
+ * @version 2.5 - Removed direct action buttons from emails
  */
 
 class PFEmailTemplates {
@@ -32,8 +31,6 @@ class PFEmailTemplates {
      */
     public function getApprovalEmailTemplate($orderData, $approvalToken, $rejectToken) {
         $viewOrderUrl = $this->baseUrlPF . "view_order.php?order=" . $orderData['id'];
-        $approveUrl = $this->baseUrl . "PFmailSingleAction.php?action=approve&token=$approvalToken";
-        $rejectUrl = $this->baseUrl . "PFmailSingleAction.php?action=reject&token=$rejectToken";
         
         $costEuros = number_format((float)($orderData['cost_euros'] ?? 0), 2);
         $orderDescription = htmlspecialchars($orderData['description'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
@@ -72,25 +69,6 @@ class PFEmailTemplates {
         .detail-value { color: #1f2937; float: right; font-weight: 400; font-family: Georgia, serif; }
         .detail-value.highlight { color: #034C8C; font-weight: 700; font-family: Georgia, serif; }
         .detail-value.cost { color: #059669; font-weight: 700; font-size: 16px; font-family: Georgia, serif; }
-        .actions-section { margin: 32px 0; text-align: center; }
-        .actions-title { color: #1e293b; margin: 0 0 16px 0; font-size: 16px; font-weight: 700; font-family: Georgia, serif; }
-        .actions-subtitle { color: #6b7280; margin: 0 0 20px 0; font-size: 12px; font-family: Georgia, serif; }
-        .action-button { 
-            display: inline-block; 
-            padding: 12px 18px; 
-            text-decoration: none; 
-            font-weight: bold; 
-            font-size: 12px; 
-            border-radius: 6px;
-            text-align: center;
-            border: 2px solid transparent;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            font-family: Georgia, serif;
-            min-width: 90px;
-        }
-        .approve-btn { background-color: #059669 !important; color: #ffffff !important; border-color: #047857 !important; }
-        .reject-btn { background-color: #dc2626 !important; color: #ffffff !important; border-color: #b91c1c !important; }
         .info-box { background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; padding: 16px; margin: 24px 0; }
         .info-text { margin: 0; color: #92400e; font-size: 12px; line-height: 1.4; font-family: Georgia, serif; }
         .footer { background-color: #f8fafc; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0; }
@@ -155,16 +133,6 @@ class PFEmailTemplates {
                                 </a>
                             </div>
                             
-                            <div class="actions-section">
-                                <h3 class="actions-title">Quick Actions</h3>
-                                <p class="actions-subtitle">Click the button above to view full details, or use these quick action buttons:</p>
-                                
-                                <div style="text-align: center;">
-                                    <a href="' . $approveUrl . '" class="action-button approve-btn" style="background-color: #28a745 !important; color: #ffffff !important; padding: 14px 24px; text-decoration: none; font-weight: bold; border-radius: 6px; border: 2px solid #1e7e34 !important; text-transform: uppercase; display: inline-block; margin: 8px;">✓ APPROVE</a>
-                                    <a href="' . $rejectUrl . '" class="action-button reject-btn" style="background-color: #dc3545 !important; color: #ffffff !important; padding: 14px 24px; text-decoration: none; font-weight: bold; border-radius: 6px; border: 2px solid #bd2130 !important; text-transform: uppercase; display: inline-block; margin: 8px;">✗ REJECT</a>
-                                </div>
-                            </div>
-                            
                             <div class="info-box">
                                 <p class="info-text">
                                     <strong>Note:</strong> This approval request will expire in 7 days. 
@@ -193,8 +161,6 @@ class PFEmailTemplates {
      * Template for weekly summary email
      */
     public function getWeeklySummaryTemplate($orders, $approver, $approveAllToken, $rejectAllToken) {
-        $approveAllUrl = $this->baseUrl . "PFmailBulkAction.php?action=approve&token=$approveAllToken";
-        $rejectAllUrl = $this->baseUrl . "PFmailBulkAction.php?action=reject&token=$rejectAllToken";
         $viewAllOrdersUrl = $this->baseUrl . "view_bulk_orders.php?user=" . $approver['id'] . "&token=$approveAllToken";
         
         $totalOrders = count($orders);
@@ -231,10 +197,7 @@ class PFEmailTemplates {
         .bulk-title { color: #1e293b; margin: 0 0 12px 0; font-size: 16px; font-weight: 700; font-family: Georgia, serif; }
         .bulk-subtitle { color: #6b7280; margin: 0 0 20px 0; font-size: 13px; font-family: Georgia, serif; }
         .bulk-button { display: inline-block; margin: 0 8px; padding: 14px 28px; font-size: 14px; font-weight: 600; text-decoration: none; border-radius: 6px; transition: all 0.2s ease; font-family: Georgia, serif; }
-        .approve-all-btn { background-color: #059669; color: #ffffff; border: 2px solid #059669; }
-        .reject-all-btn { background-color: #dc2626; color: #ffffff; border: 2px solid #dc2626; }
         .view-all-btn { background-color: #034C8C; color: #ffffff; border: 2px solid #034C8C; }
-        .bulk-warning { color: #6b7280; font-size: 11px; margin: 12px 0 0 0; font-family: Georgia, serif; }
         .orders-section { margin: 30px 0; }
         .section-title { color: #1e293b; margin: 0 0 12px 0; font-size: 16px; font-weight: 700; font-family: Georgia, serif; }
     </style>
@@ -280,14 +243,9 @@ class PFEmailTemplates {
                         </div>
 
                         <div class="bulk-actions">
-                            <div class="bulk-title">⚡ Quick Actions</div>
-                            <div class="bulk-subtitle">Process all orders at once or review them individually</div>
+                            <div class="bulk-title">⚡ Review Orders</div>
+                            <div class="bulk-subtitle">Click the button below to review all pending orders individually.</div>
                             <a href="' . $viewAllOrdersUrl . '" class="bulk-button view-all-btn">📋 View All Orders</a>
-                            <a href="' . $approveAllUrl . '" class="bulk-button approve-all-btn">✅ Approve All</a>
-                            <a href="' . $rejectAllUrl . '" class="bulk-button reject-all-btn">❌ Reject All</a>
-                            <div class="bulk-warning">
-                                ⚠️ Bulk actions will process all orders listed below. Use "View All Orders" to review individually.
-                            </div>
                         </div>
 
                         <div class="orders-section">

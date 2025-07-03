@@ -33,14 +33,14 @@ document.addEventListener('DOMContentLoaded', async function () {
         // Asignar eventos a los botones de filtro
         document.getElementById('applyFilters').addEventListener('click', () => {
             const filteredData = applyFilters(allOrdersData);
-            populateTotalDataTable(filteredData);
+            populateTotalDataTable(filteredData); // Repopulate with filtered data
             updateQuickStats(filteredData);
             showInfoToast(`Filters applied. Found ${filteredData.length} orders.`);
         });
 
         document.getElementById('clearFilters').addEventListener('click', () => {
             const clearedData = clearFilters(allOrdersData);
-            populateTotalDataTable(clearedData);
+            populateTotalDataTable(clearedData); // Repopulate with all data
             updateQuickStats(clearedData);
             showInfoToast('Filters cleared.');
         });
@@ -86,7 +86,8 @@ function populateTotalDataTable(orders) {
     $('#totalHistoryTable').DataTable({
         data: tableData,
         dom: 'Bfrtip',
-        buttons: getDataTableButtons('Total Orders History'),
+        // MODIFICACIÓN CLAVE: Pasamos los datos de las órdenes a la función que crea los botones
+        buttons: getDataTableButtons('Total Orders History', orders),
         scrollX: true,
         scrollY: '400px',
         responsive: false,
