@@ -1,36 +1,16 @@
 <?php
 /**
- * viewWeekOrder.php - Weekly Orders Viewer
- * Solo usuarios autenticados pueden acceder (igual que view_order.php)
+ * viewWeekOrder.php - Weekly Orders Viewer (Refactored)
+ * Shows a grid of pending orders for bulk actions.
+ * This version uses the centralized context injection system.
  */
 
+// 1. Incluir el sistema de autenticación.
 require_once 'dao/users/auth_check.php';
-require_once 'config.php';
 
-// Check if user is authenticated
-if (!isset($_SESSION['user'])) {
-    http_response_code(401);
-    die('User not authenticated');
-}
-
-// Variables de usuario para el asistente
-$nivel = isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null;
-$name = isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null;
-$userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
-$plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
-
-// Para compatibilidad con el resto del código
-$userId = $userID;
-$userName = $name;
-$userEmail = $_SESSION['user']['email'] ?? '';
-$userRole = $_SESSION['user']['role'] ?? '';
-$userPlant = $plant;
-$authorizationLevel = $nivel;
-
-// --- Definir URLs desde config.php ---
-$URLBASE = defined('URLPF') ? URLPF : 'https://grammermx.com/Jesus/PruebaDos/';
-$URLM = defined('URLM') ? URLM : 'https://grammermx.com/Mailer/PFMailer/';
-$URLPF_DOMAIN = defined('URL_PREMIUM_FREIGHT') ? URL_PREMIUM_FREIGHT : 'https://grammermx.com/PremiumFreight/';
+// 2. Incluir el inyector de contexto desde su ubicación central.
+// Este script crea la variable $appContextForJS e imprime el objeto `window.APP_CONTEXT`.
+require_once 'dao/users/context_injector.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -39,14 +19,10 @@ $URLPF_DOMAIN = defined('URL_PREMIUM_FREIGHT') ? URL_PREMIUM_FREIGHT : 'https://
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Premium Freight Weekly - Grammer PF</title>
     
-    <!-- Favicon -->
+    <!-- Favicon, Meta, Fonts -->
     <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
-    
-    <!-- SEO and Meta -->
     <meta name="description" content="Premium Freight Order Management System - Grammer AG">
     <meta name="author" content="Grammer AG">
-    
-    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
     
@@ -57,8 +33,18 @@ $URLPF_DOMAIN = defined('URL_PREMIUM_FREIGHT') ? URL_PREMIUM_FREIGHT : 'https://
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/viewWeekorder.css">
-    <?php if (isset($nivel) && $nivel > 0): ?>
-        <!-- Virtual Assistant CSS -->
+
+    <!-- ================== SISTEMA DE CONTEXTO CENTRALIZADO ================== -->
+    <?php
+        // El inyector ya fue requerido en la parte superior del script.
+    ?>
+    <!-- Incluir el módulo de configuración JS. -->
+    <script src="js/config.js"></script>
+    <!-- ==================================================================== -->
+
+    <?php 
+    // Carga condicional del CSS del asistente.
+    if (isset($appContextForJS['user']['authorizationLevel']) && $appContextForJS['user']['authorizationLevel'] > 0): ?>
         <link rel="stylesheet" href="css/assistant.css">
     <?php endif; ?>
 </head>
@@ -68,21 +54,18 @@ $URLPF_DOMAIN = defined('URL_PREMIUM_FREIGHT') ? URL_PREMIUM_FREIGHT : 'https://
         <header class="bulk-header">
             <div class="bulk-header-content">
                 <div class="header-left">
-                    <!-- Logo y nombre de la compañía -->
                     <div class="company-logo">
                         <i class="fas fa-truck-fast"></i>
                         <span class="company-name">Grammer AG</span>
                     </div>
-                    <!-- Información de las órdenes -->
                     <div class="orders-info">
                         <h1 class="orders-title-main">Premium Freight Orders</h1>
                         <p class="orders-subtitle">
-                            Orders pending approval by <?php echo htmlspecialchars($userName); ?>
+                            Orders pending approval by <?php echo htmlspecialchars($appContextForJS['user']['name']); ?>
                         </p>
                     </div>
                 </div>
                 <div class="header-right">
-                    <!-- Panel de acciones bulk -->
                     <div class="bulk-actions-header">
                         <button id="approve-all-btn" class="bulk-action-btn btn-approve-all">
                             <i class="fas fa-check-double"></i>
@@ -103,7 +86,6 @@ $URLPF_DOMAIN = defined('URL_PREMIUM_FREIGHT') ? URL_PREMIUM_FREIGHT : 'https://
 
         <!-- ===== GRID PRINCIPAL DE ÓRDENES ===== -->
         <main class="orders-grid" id="orders-grid">
-            <!-- Las tarjetas de orden se generarán aquí por JS -->
             <div class="loading-spinner-container">
                 <div class="loading-spinner"></div>
                 <p>Loading orders...</p>
@@ -120,26 +102,13 @@ $URLPF_DOMAIN = defined('URL_PREMIUM_FREIGHT') ? URL_PREMIUM_FREIGHT : 'https://
         </div>
     </div>
 
-    <!-- ===== SCRIPT DE CONFIGURACIÓN ===== -->
-    <!-- Este bloque pasa las variables de PHP a JavaScript de forma segura -->
-    <script>
-        window.APP_CONFIG = {
-            userId: <?php echo json_encode($userId); ?>,
-            authorizationLevel: <?php echo json_encode($authorizationLevel); ?>,
-            userPlant: <?php echo json_encode($userPlant); ?>,
-            urls: {
-                base: "<?php echo $URLBASE; ?>",
-                mailer: "<?php echo $URLM; ?>",
-                pf: "<?php echo $URLPF_DOMAIN; ?>"
-            }
-        };
-    </script>
-
     <!-- Scripts de la aplicación -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script type="module" src="js/viewWeekorder.js"></script>
-    <?php if (isset($nivel) && $nivel > 0): ?>
-        <!-- Virtual Assistant JavaScript - Solo para usuarios autorizados -->
+    
+    <?php 
+    // Carga condicional del JS del asistente.
+    if (isset($appContextForJS['user']['authorizationLevel']) && $appContextForJS['user']['authorizationLevel'] > 0): ?>
         <script src="js/assistant.js"></script>
     <?php endif; ?>
 

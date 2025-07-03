@@ -1,17 +1,18 @@
 <?php
-session_start();
-require_once 'config.php'; // Include config.php to get URL constant
-// Now you can use $_SESSION['user']
-include_once 'dao/users/auth_check.php';
-?>
-<script>
-    window.authorizationLevel = <?php echo json_encode(isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null); ?>;
-    window.userName = <?php echo json_encode(isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null); ?>;
-    window.userID = <?php echo json_encode(isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null); ?>;
-    // Definimos la variable global de JavaScript con la URL base desde PHP
-    const URLPF = '<?php echo URLPF; ?>'; 
-</script>
+/**
+ * register.php - User registration page (Corrected Refactor)
+ * This version uses the centralized context injection system and includes auth_check.
+ */
 
+// 1. Manejar sesión y autenticación.
+// auth_check.php redirigirá a un usuario logueado a profile.php.
+// Si no hay sesión, continuará la ejecución de esta página.
+require_once 'dao/users/auth_check.php';
+
+// 2. Incluir el inyector de contexto.
+// Para usuarios no logueados, proveerá un contexto de "invitado".
+require_once 'dao/users/context_injector.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,21 +20,26 @@ include_once 'dao/users/auth_check.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Registration - Premium Freight</title>
     
-    <!-- Favicon -->
+    <!-- Favicon, Fonts, External CSS -->
     <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
-    
-    <!-- Enlace al CDN de Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
     
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
-    <!-- Archivos CSS locales -->
+    <!-- Local CSS -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/register.css">
+
+    <!-- ================== SISTEMA DE CONTEXTO CENTRALIZADO ================== -->
+    <?php
+        // El inyector ya fue requerido en la parte superior del script.
+    ?>
+    <!-- Incluir el módulo de configuración JS. -->
+    <script src="js/config.js"></script>
+    <!-- ==================================================================== -->
 </head>
 <body>
     <div id="header-container"></div>
@@ -49,7 +55,6 @@ include_once 'dao/users/auth_check.php';
         <div id="registerform-container">
             <div id="register">
                 <div>
-                    <!-- Mensaje de notificación -->
                     <div class="alert alert-info" role="alert" id="email-notification">
                         Please check your spam folder for an email from <strong>premium_freight@grammermx.com</strong> to verify your account.
                     </div>

@@ -1,5 +1,13 @@
 <?php
-require_once 'config.php'; // Include config.php to get URL constant
+/**
+ * newOrder.php - Form to create a new Special Freight Authorization (Refactored)
+ * This version uses the centralized context injection system.
+ */
+
+// 1. Manejar sesión y autenticación. Es lo primero para proteger la página.
+require_once 'dao/users/auth_check.php';
+
+// 2. Cargar todas las dependencias necesarias para los dropdowns del formulario.
 require_once __DIR__ . '/dao/elements/daoPlantas.php';
 require_once __DIR__ . '/dao/elements/daoCodePlants.php';
 require_once __DIR__ . '/dao/elements/daoTransport.php';
@@ -14,25 +22,9 @@ require_once __DIR__ . '/dao/elements/daoMeasures.php';
 require_once __DIR__ . '/dao/elements/daoProducts.php';
 require_once __DIR__ . '/dao/elements/daoStates.php';
 
-session_start();
-require_once 'config.php'; // Include config.php to get URL constant
-$nivel = isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null;
-$name = isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null;
-$userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
-$plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
-include_once 'dao/users/auth_check.php';
+// 3. Incluir el inyector de contexto.
+require_once 'dao/users/context_injector.php';
 ?>
-<script>
-    window.authorizationLevel = <?php echo json_encode($nivel); ?>;
-    window.userName = <?php echo json_encode($name); ?>;
-    window.userID = <?php echo json_encode($userID); ?>;
-    window.userPlant = <?php echo json_encode($plant); ?>;
-    // Definimos la variable global de JavaScript con la URL base desde PHP
-    const URLPF = '<?php echo URLPF ?>'; 
-    // Agregar esta línea para el mailer
-    const URLM = '<?php echo URLM ?>'; 
-</script>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -43,159 +35,101 @@ include_once 'dao/users/auth_check.php';
     <!-- Favicon -->
     <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
 
-    <!-- Enlace al CDN de Font Awesome -->
+    <!-- External CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-
-    <!-- jQuery first to ensure availability for other scripts -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-
-    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
 
     <!-- Local CSS files -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/newOrder.css">
-    <?php if (isset($nivel) && $nivel > 0): ?>
-        <!-- Virtual Assistant CSS -->
+
+    <!-- ================== SISTEMA DE CONTEXTO CENTRALIZADO ================== -->
+    <?php
+        // El inyector ya fue requerido en la parte superior del script.
+    ?>
+    <!-- Incluir el módulo de configuración JS. -->
+    <script src="js/config.js"></script>
+    <!-- ==================================================================== -->
+
+    <?php 
+    // Carga condicional del CSS del asistente.
+    if (isset($appContextForJS['user']['authorizationLevel']) && $appContextForJS['user']['authorizationLevel'] > 0): ?>
         <link rel="stylesheet" href="css/assistant.css">
     <?php endif; ?>
-
-    <!-- Google Fonts -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap" as="style">
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div id="header-container"></div>
 
     <main class="container my-4">
         <h1 class="mb-3">SPECIAL FREIGHT AUTHORIZATION</h1>
-
         <h2 class="mb-4" style="justify-self: center; text-align: center;">Transport Order</h2>
+        
         <form id="plant-form">
-            <!--=================================================================================================================-->
-            <div id="SectPlantas" class="mb-3"> <!-- Contiene Requesting Plant y Plant Code -->
-                <!--=================================================================================================================-->
+            <!-- Requesting Plant y Plant Code -->
+            <div id="SectPlantas" class="mb-3">
                 <div id="DivPlanta" class="mb-2">
                     <label for="planta">Requesting Plant:</label>
                     <select name="planta" id="planta" class="form-select">
-                        <?php if (!empty($jsonPlantas)): ?>
-                            <?php foreach ($jsonPlantas as $planta): ?>
-                                <option value="<?php echo htmlspecialchars($planta['ID']); ?>">
-                                    <?php echo htmlspecialchars($planta['PLANT']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <option value="" disabled>No data found, JSON_Plantas empty</option>
-                        <?php endif; ?>
+                        <?php foreach ($jsonPlantas as $planta): ?>
+                            <option value="<?php echo htmlspecialchars($planta['ID']); ?>"><?php echo htmlspecialchars($planta['PLANT']); ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
-                <!--=================================================================================================================-->
                 <div id="DivCodes" class="mb-2">
                     <label for="codeplanta">Plant Code:</label>
                     <select name="codeplanta" id="codeplanta" class="form-select">
-                        <?php if (!empty($jsonCodePlants)): ?>
-                            <?php foreach ($jsonCodePlants as $codeplanta): ?>
-                                <option value="<?php echo htmlspecialchars($codeplanta['ID']); ?>">
-                                    <?php echo htmlspecialchars($codeplanta['PLANT_CODE']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <option value="" disabled>No data found, jsonCodePlants empty</option>
-                        <?php endif; ?>
+                        <?php foreach ($jsonCodePlants as $codeplanta): ?>
+                            <option value="<?php echo htmlspecialchars($codeplanta['ID']); ?>"><?php echo htmlspecialchars($codeplanta['PLANT_CODE']); ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
-                <!--=================================================================================================================-->
             </div>
 
-            <!--=================================================================================================================-->
-
+            <!-- Transport Mode, In/Out, Cost -->
             <div id="SectTransporte" class="mb-3">
-                <!--=================================================================================================================-->
                 <div id="DivTransport" class="mb-2">
                     <label for="transport">Transport Mode:</label>
                     <select name="transport" id="transport" class="form-select">
-                        <?php if (!empty($jsonTransport)): ?>
-                            <?php foreach ($jsonTransport as $transport): ?>
-                                <option value="<?php echo htmlspecialchars($transport['ID']); ?>">
-                                    <?php echo htmlspecialchars($transport['MODE']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <option value="" disabled>No data found, jsonTransport empty</option>
-                        <?php endif; ?>
+                        <?php foreach ($jsonTransport as $transport): ?>
+                            <option value="<?php echo htmlspecialchars($transport['ID']); ?>"><?php echo htmlspecialchars($transport['MODE']); ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
-                <!--=================================================================================================================-->
                 <div id="DivInOutBound" class="mb-2">
                     <label for="InOutBound">In/Out Outbound:</label>
                     <select name="InOutBound" id="InOutBound" class="form-select">
-                        <?php if (!empty($jsonInOutBound)): ?>
-                            <?php foreach ($jsonInOutBound as $InOutBound): ?>
-                                <option value="<?php echo htmlspecialchars($InOutBound['ID']); ?>">
-                                    <?php echo htmlspecialchars($InOutBound['IN_OUT']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <option value="" disabled>No data found, jsonInOutBound empty</option>
-                        <?php endif; ?>
+                        <?php foreach ($jsonInOutBound as $inOutBound): ?>
+                            <option value="<?php echo htmlspecialchars($inOutBound['ID']); ?>"><?php echo htmlspecialchars($inOutBound['IN_OUT']); ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
-                <!--=================================================================================================================-->
                 <div id="SectEuros" class="mb-3">
                     <label for="CostoEuros">Cost in Euros €</label>
                     <input style="display: none" type="text" id="CostoEuros" name="CostoEuros" class="form-control" readonly>
                 </div>
-                <!--=================================================================================================================-->
             </div>
 
-            <!--=================================================================================================================-->
-
-            <div id="SectResponsability" class="mb-3"> <!-- Contiene Area of Responsibility y Internal/External Service y PaidBy -->
-
-                <!--=================================================================================================================-->
-
+            <!-- Responsibility, Service, Paid By -->
+            <div id="SectResponsability" class="mb-3">
                 <div id="DivArea" class="mb-2">
                     <label for="Area">Area of Responsibility:</label>
                     <select name="Area" id="Area" class="form-select">
-                        <?php if (!empty($jsonArea)): ?>
-                            <?php foreach ($jsonArea as $Area): ?>
-                                <option value="<?php echo htmlspecialchars($Area['ID']); ?>">
-                                    <?php echo htmlspecialchars($Area['RESPONSIBILITY']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <option value="" disabled>No data found, jsonArea empty</option>
-                        <?php endif; ?>
+                        <?php foreach ($jsonArea as $area): ?>
+                            <option value="<?php echo htmlspecialchars($area['ID']); ?>"><?php echo htmlspecialchars($area['RESPONSIBILITY']); ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
-
-                <!--=================================================================================================================-->
-
                 <div id="DivInExt" class="mb-2">
                     <label for="IntExt">Internal/External Service:</label>
                     <select name="IntExt" id="IntExt" class="form-select">
-                        <?php if (!empty($jsonInExt)): ?>
-                            <?php foreach ($jsonInExt as $IntExt): ?>
-                                <option value="<?php echo htmlspecialchars($IntExt['ID']); ?>">
-                                    <?php echo htmlspecialchars($IntExt['IN_EXT']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <option value="" disabled>No data found, jsonInExt empty</option>
-                        <?php endif; ?>
+                        <?php foreach ($jsonInExt as $inExt): ?>
+                            <option value="<?php echo htmlspecialchars($inExt['ID']); ?>"><?php echo htmlspecialchars($inExt['IN_EXT']); ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
-
-                <!--=================================================================================================================-->
                 <div id="SectPaidBy" class="mb-3">
                     <label for="PaidBy">Costs paid By:</label>
                     <select name="PaidBy" id="PaidBy" class="form-select">
@@ -204,225 +138,110 @@ include_once 'dao/users/auth_check.php';
                         <option value="Cliente">Client</option>
                     </select>
                 </div>
-                <!--=================================================================================================================-->
             </div>
 
-            <!--=================================================================================================================-->
-
+            <!-- Cause, Status, Recovery -->
             <div id="SectCause" class="mb-3">
-                <!--=================================================================================================================-->
                 <div id="DivCategoryCause" class="mb-2">
                     <label for="CategoryCause">Root Category Cause:</label>
                     <select name="CategoryCause" id="CategoryCause" class="form-select">
-                        <?php if (!empty($jsonCategoryCause)): ?>
-                            <?php foreach ($jsonCategoryCause as $CategoryCause): ?>
-                                <option value="<?php echo htmlspecialchars($CategoryCause['ID']); ?>">
-                                    <?php echo htmlspecialchars($CategoryCause['CATEGORY']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <option value="" disabled>No data found, jsonCategoryCause empty</option>
-                        <?php endif; ?>
+                        <?php foreach ($jsonCategoryCause as $category): ?>
+                            <option value="<?php echo htmlspecialchars($category['ID']); ?>"><?php echo htmlspecialchars($category['CATEGORY']); ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
-                <!--=================================================================================================================-->
                 <div id="DivProjectStatus" class="mb-2">
                     <label for="ProjectStatus">Project Status:</label>
                     <select name="ProjectStatus" id="ProjectStatus" class="form-select">
-                        <?php if (!empty($jsonProjectStatus)): ?>
-                            <?php foreach ($jsonProjectStatus as $ProjectStatus): ?>
-                                <option value="<?php echo htmlspecialchars($ProjectStatus['ID']); ?>">
-                                    <?php echo htmlspecialchars($ProjectStatus['STATUS']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <option value="" disabled>No data found, jsonProjectStatus empty</option>
-                        <?php endif; ?>
+                        <?php foreach ($jsonProjectStatus as $status): ?>
+                            <option value="<?php echo htmlspecialchars($status['ID']); ?>"><?php echo htmlspecialchars($status['STATUS']); ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
-                <!--=================================================================================================================-->
                 <div id="SectRecovery" class="mb-3">
                     <label for="Recovery">Recovery:</label>
                     <select name="Recovery" id="Recovery" class="form-select">
-                        <?php if (!empty($jsonRecovery)): ?>
-                            <?php foreach ($jsonRecovery as $Recovery): ?>
-                                <option value="<?php echo htmlspecialchars($Recovery['ID']); ?>">
-                                    <?php echo htmlspecialchars($Recovery['RECOVERY']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <option value="" disabled>No data found, jsonRecovery empty</option>
-                        <?php endif; ?>
+                        <?php foreach ($jsonRecovery as $recovery): ?>
+                            <option value="<?php echo htmlspecialchars($recovery['ID']); ?>"><?php echo htmlspecialchars($recovery['RECOVERY']); ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
-                <!--=================================================================================================================-->
             </div>
-            <!--=================================================================================================================-->
-
+            
             <div id="recoveryFileContainer" class="mt-2" style="display: none;">
                 <label for="recoveryFile">Recovery Evidence (PDF):</label>
                 <input type="file" id="recoveryFile" name="recoveryFile" class="form-control" accept=".pdf">
                 <small class="text-muted">Please upload a PDF file as evidence for recovery</small>
             </div>
 
-            <!--=================================================================================================================-->
+            <!-- Descriptions -->
             <div id="SectDescription" class="mb-3">
-                <!--=================================================================================================================-->
                 <h3 style="justify-self: center;">Description</h3>
                 <textarea id="Description" style="display: none;" name="Description" class="form-control" placeholder="Description" required></textarea>
-                <!--=================================================================================================================-->
                 <label for="InmediateActions">Immediate Actions</label>
                 <textarea id="InmediateActions" name="InmediateActions" class="form-control" placeholder="Immediate Actions" required minlength="50"></textarea>
-                <div id="immediateCounter" class="text-muted small mt-1 mb-3">
-                    <span class="text-danger">50 characters required</span> - <span class="char-count">0/50</span>
-                </div>
-                <!--=================================================================================================================-->
-
+                <div id="immediateCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">50 characters required</span> - <span class="char-count">0/50</span></div>
                 <label for="PermanentActions">Permanent Actions</label>
                 <textarea id="PermanentActions" name="PermanentActions" class="form-control" placeholder="Permanent Actions" required minlength="50"></textarea>
-                <div id="permanentCounter" class="text-muted small mt-1 mb-3">
-                    <span class="text-danger">50 characters required</span> - <span class="char-count">0/50</span>
-                </div>
-                <!--=================================================================================================================-->
+                <div id="permanentCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">50 characters required</span> - <span class="char-count">0/50</span></div>
             </div>
-            <!--=================================================================================================================-->
+
+            <!-- Ship From -->
             <h2 class="mt-4">Ship From</h2>
             <div id="SectShip" class="mb-3">
-                <!--=================================================================================================================-->
-                <div id="DivCompanyShip" class="mb-2">
-                    <label for="CompanyShip">Company Name</label>
-                    <select id="CompanyShip" name="CompanyShip"  class="form-select">
-                        <option value="" disabled selected>Select a company</option>
-                    </select>
-                </div>
-                <!--=================================================================================================================-->
-                <div id="DivCityShip" class="mb-2">
-                    <label for="inputCityShip">City</label>
-                    <input type="text" id="inputCityShip" class="form-control" placeholder="City">
-                </div>
-                <!--=================================================================================================================-->
+                <div id="DivCompanyShip" class="mb-2"><label for="CompanyShip">Company Name</label><select id="CompanyShip" name="CompanyShip" class="form-select"><option value="" disabled selected>Select a company</option></select></div>
+                <div id="DivCityShip" class="mb-2"><label for="inputCityShip">City</label><input type="text" id="inputCityShip" class="form-control" placeholder="City"></div>
             </div>
-            <!--=================================================================================================================-->
             <div id="ShipTo" class="mb-3">
-                <div id="DivStatesShip" class="mb-2">
-                    <label for="StatesShip">State:</label>
-                    <input type="text" id="StatesShip" class="form-control" placeholder="States">
-                </div>
-                <!--=================================================================================================================-->
-
-                <div id="DivZipShip" class="mb-2">
-                    <label for="inputZipShip">ZIP</label>
-                    <input type="number" id="inputZipShip" class="form-control" placeholder="ZIP">
-                </div>
+                <div id="DivStatesShip" class="mb-2"><label for="StatesShip">State:</label><input type="text" id="StatesShip" class="form-control" placeholder="States"></div>
+                <div id="DivZipShip" class="mb-2"><label for="inputZipShip">ZIP</label><input type="number" id="inputZipShip" class="form-control" placeholder="ZIP"></div>
             </div>
-            <!--=================================================================================================================-->
+
+            <!-- Destination -->
             <h2 class="mt-4">Destination</h2>
             <div id="SectDest" class="mb-3">
-                <!--=================================================================================================================-->
-                <div id="DivCompanyDest" class="mb-2">
-                    <label for="inputCompanyNameDest">Company Name</label>
-                    <select id="inputCompanyNameDest" name="inputCompanyNameDest"  class="form-select">
-                        <option value="" disabled selected>Select a company</option>
-                    </select>
-                </div>
-                <!--=================================================================================================================-->
-                <div id="DivCityDest" class="mb-2">
-                    <label for="inputCityDest">City</label>
-                    <input type="text" id="inputCityDest" class="form-control" placeholder="City Dest">
-                </div>
-                <!--=================================================================================================================-->
+                <div id="DivCompanyDest" class="mb-2"><label for="inputCompanyNameDest">Company Name</label><select id="inputCompanyNameDest" name="inputCompanyNameDest" class="form-select"><option value="" disabled selected>Select a company</option></select></div>
+                <div id="DivCityDest" class="mb-2"><label for="inputCityDest">City</label><input type="text" id="inputCityDest" class="form-control" placeholder="City Dest"></div>
             </div>
-            <!--=================================================================================================================-->
             <div id="DestTo" class="mb-3">
-                <div id="DivStatesDest" class="mb-2">
-                    <label for="StatesDest">State:</label>
-                    <input type="text" id="StatesDest" class="form-control" placeholder="States">
-                </div>
-                <!--=================================================================================================================-->
-                <div id="SectZipDest" class="mb-2">
-                    <label for="inputZipDest">ZIP</label>
-                    <input type="number" id="inputZipDest" class="form-control" placeholder="ZIP">
-                </div>
+                <div id="DivStatesDest" class="mb-2"><label for="StatesDest">State:</label><input type="text" id="StatesDest" class="form-control" placeholder="States"></div>
+                <div id="SectZipDest" class="mb-2"><label for="inputZipDest">ZIP</label><input type="number" id="inputZipDest" class="form-control" placeholder="ZIP"></div>
             </div>
-            <!--=================================================================================================================-->
+
+            <!-- Measures & Products -->
             <div id="SectMeasures" class="mb-3">
-                <!--=================================================================================================================-->
                 <div id="MeasuresDiv">
-                    <label for="Weight">Weight:</label>
-                    <input type="number" id="Weight" name="Weight" class="form-control me-2" placeholder="Weight" required>
-                    <!--=================================================================================================================-->
+                    <label for="Weight">Weight:</label><input type="number" id="Weight" name="Weight" class="form-control me-2" placeholder="Weight" required>
                     <label for="Measures">U/M</label>
-                    <select id="Measures" name="Measures"  class="form-select">
-                        <?php if (!empty($jsonMeasures)): ?>
-                            <?php foreach ($jsonMeasures as $Measures): ?>
-                                <option value="<?php echo htmlspecialchars($Measures['UM']); ?>">
-                                    <?php echo htmlspecialchars($Measures['UM']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <option value="" disabled>No data found, jsonMeasures empty</option>
-                        <?php endif; ?>
+                    <select id="Measures" name="Measures" class="form-select">
+                        <?php foreach ($jsonMeasures as $measure): ?><option value="<?php echo htmlspecialchars($measure['UM']); ?>"><?php echo htmlspecialchars($measure['UM']); ?></option><?php endforeach; ?>
                     </select>
-                    <!--=================================================================================================================-->
                 </div>
-                <!--=================================================================================================================-->
                 <div id="SectProducts" class="mb-3">
                     <label for="Products">Products:</label>
                     <select name="Products" id="Products" class="form-select">
-                        <?php if (!empty($jsonProducts)): ?>
-                            <?php foreach ($jsonProducts as $Products): ?>
-                                <!-- Cambia aquí para usar PRODUCT como valor en lugar de ID -->
-                                <option value="<?php echo htmlspecialchars($Products['PRODUCT']); ?>">
-                                    <?php echo htmlspecialchars($Products['PRODUCT']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <option value="" disabled>No data found, jsonProducts empty</option>
-                        <?php endif; ?>
+                        <?php foreach ($jsonProducts as $product): ?><option value="<?php echo htmlspecialchars($product['PRODUCT']); ?>"><?php echo htmlspecialchars($product['PRODUCT']); ?></option><?php endforeach; ?>
                     </select>
                 </div>
-                <!--=================================================================================================================-->
             </div>
-            <!--=================================================================================================================-->
+
+            <!-- Carrier, Cost, Reference -->
             <h2 class="mt-4">Selected Carrier</h2>
             <div id="SectCarrier" class="mb-3">
-                <!--=================================================================================================================-->
-                <div id="DivCarrier" class="mb-2">
-                    <label for="Carrier">Carrier:</label>
-                    <select name="Carrier" id="Carrier" class="form-select">
-                        <option value="" disabled selected>Select a carrier</option>
-                    </select>
-                </div>
-                <!--=================================================================================================================-->
+                <div id="DivCarrier" class="mb-2"><label for="Carrier">Carrier:</label><select name="Carrier" id="Carrier" class="form-select"><option value="" disabled selected>Select a carrier</option></select></div>
                 <div id="DivCosto" class="mb-2">
                     <label for="QuotedCost">Quoted Cost</label>
-                    <div id="QuotedCostDiv" class="d-flex">
-                        <input type="number" id="QuotedCost" name="QuotedCost" class="form-control me-2" placeholder="Quoted Cost" required>
-                        <div id="Divisa">
-                            <button type="button" id="MXN" class="btn btn-outline-secondary me-1">MXN</button>
-                            <button type="button" id="USD" class="btn btn-outline-secondary">USD</button>
-                        </div>
-                    </div>
+                    <div id="QuotedCostDiv" class="d-flex"><input type="number" id="QuotedCost" name="QuotedCost" class="form-control me-2" placeholder="Quoted Cost" required><div id="Divisa"><button type="button" id="MXN" class="btn btn-outline-secondary me-1">MXN</button><button type="button" id="USD" class="btn btn-outline-secondary">USD</button></div></div>
                 </div>
-                <!--=================================================================================================================-->
                 <div id="SectReference" class="mb-3">
-                    <!--=================================================================================================================-->
                     <label for="Reference">Reference</label>
                     <div class="reference-container">
-                        <select id="Reference" name="Reference" class="form-select">
-                            <option value="" disabled selected>Select a Reference</option>
-                            <option value="45">45</option>
-                            <option value="3">3</option>
-                            <option value="CC">CC</option>
-                            <option value="Order">Order</option>
-                        </select>
-                        <!--=================================================================================================================-->
+                        <select id="Reference" name="Reference" class="form-select"><option value="" disabled selected>Select a Reference</option><option value="45">45</option><option value="3">3</option><option value="CC">CC</option><option value="Order">Order</option></select>
                         <input id="ReferenceNumber" type="number" name="ReferenceNumber" class="form-control" placeholder="Reference Number" required>
                     </div>
-                    <!--=================================================================================================================-->
                 </div>
             </div>
-            <!--=================================================================================================================-->
+            
             <button type="button" id="enviar" class="btn btn-primary">Submit</button>
         </form>
     </main>
@@ -432,6 +251,9 @@ include_once 'dao/users/auth_check.php';
     </footer>
 
     <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="js/header.js"></script>
     <script src="js/companySelect.js"></script>
     <script src="js/formValidation.js"></script>
@@ -443,8 +265,10 @@ include_once 'dao/users/auth_check.php';
     <script src="js/carrierSelect.js"></script>
     <script src="js/addCarrier.js"></script>
     <script src="js/selectConfig.js"></script>  
-    <?php if (isset($nivel) && $nivel > 0): ?>
-        <!-- Virtual Assistant JavaScript - Solo para usuarios autorizados -->
+    
+    <?php 
+    // Carga condicional del JS del asistente.
+    if (isset($appContextForJS['user']['authorizationLevel']) && $appContextForJS['user']['authorizationLevel'] > 0): ?>
         <script src="js/assistant.js"></script>
     <?php endif; ?>
 </body>

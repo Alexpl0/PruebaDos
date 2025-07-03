@@ -1,30 +1,18 @@
 <?php
 /**
- * User Administration Panel for Premium Freight System
+ * adminUsers.php - User Administration Panel (Refactored)
+ * This version uses the centralized context injection system.
  */
 
-// Initialize session and authentication
-session_start();
-require_once 'config.php';
-// NUEVO: Agregar PasswordManager para funciones de admin
+// 1. Manejar sesión y autenticación. auth_check se encargará de verificar el nivel de autorización.
+require_once 'dao/users/auth_check.php';
+
+// 2. Cargar dependencias específicas de la página
 require_once 'dao/users/PasswordManager.php';
 
-$nivel = isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null;
-$name = isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null;
-$userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
-$plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
+// 3. Incluir el inyector de contexto.
+require_once 'dao/users/context_injector.php';
 ?>
-<script>
-    window.authorizationLevel = <?php echo json_encode($nivel); ?>;
-    window.userName = <?php echo json_encode($name); ?>;
-    window.userID = <?php echo json_encode($userID); ?>;
-    window.userPlant = <?php echo json_encode($plant); ?>;
-    // Definimos la variable global de JavaScript con la URL base desde PHP
-    const URLPF = '<?php echo URLPF; ?>'; 
-    // Agregar esta línea para el mailer
-    const URLM = '<?php echo URLM; ?>'; 
-</script>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -36,70 +24,31 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
     <!-- Favicon -->
     <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
     
-    <!-- Font Awesome -->
+    <!-- External CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
-    <!-- DataTables with Buttons -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css">
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
-    
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    
-    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Local CSS -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/adminUsers.css">
-    <?php if (isset($nivel) && $nivel > 0): ?>
-        <!-- Virtual Assistant CSS -->
+    
+    <!-- ================== SISTEMA DE CONTEXTO CENTRALIZADO ================== -->
+    <?php
+        // El inyector ya fue requerido en la parte superior del script.
+    ?>
+    <!-- Incluir el módulo de configuración JS. -->
+    <script src="js/config.js"></script>
+    <!-- ==================================================================== -->
+
+    <?php 
+    // Carga condicional del CSS del asistente.
+    if (isset($appContextForJS['user']['authorizationLevel']) && $appContextForJS['user']['authorizationLevel'] > 0): ?>
         <link rel="stylesheet" href="css/assistant.css">
     <?php endif; ?>
-    <!-- Pass PHP user data to JavaScript -->
-    <script>
-        window.authorizationLevel = <?php echo json_encode($nivel); ?>;
-        window.userName = <?php echo json_encode($name); ?>;
-        window.userID = <?php echo json_encode($userID); ?>;
-    </script>
-    
-    <style>
-        /* Estilo para el ícono de contraseña */
-        .password-toggle {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            color: #6c757d;
-            z-index: 10;
-        }
-        
-        .password-toggle:hover {
-            color: #495057;
-        }
-        
-        .password-field-container {
-            position: relative;
-        }
-        
-        .password-strength-indicator {
-            margin-top: 5px;
-        }
-    </style>
 </head>
 <body>
     <!-- Header will be loaded dynamically -->
@@ -201,11 +150,23 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
     </footer>
 
     <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/header.js"></script>
     <script src="js/PasswordManager.js"></script>
     <script src="js/userAdmin.js"></script>
-    <?php if (isset($nivel) && $nivel > 0): ?>
-        <!-- Virtual Assistant JS -->
+    
+    <?php 
+    // Carga condicional del JS del asistente.
+    if (isset($appContextForJS['user']['authorizationLevel']) && $appContextForJS['user']['authorizationLevel'] > 0): ?>
         <script src="js/assistant.js"></script>
     <?php endif; ?>
 </body>

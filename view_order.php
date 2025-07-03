@@ -1,41 +1,23 @@
 <?php
 /**
- * view_order.php - Professional Order Viewer
- * Individual order view page with approval/rejection functionality
- * Version: 1.0 - Internal system integration
+ * view_order.php - Professional Order Viewer (Refactored)
+ * Individual order view page with approval/rejection functionality.
+ * This version uses the centralized context injection system.
  */
 
-// Use the auth_check system (this will block users with authorization_level 0)
+// 1. Incluir el sistema de autenticación.
 require_once 'dao/users/auth_check.php';
 
-// Check if order ID is provided
+// 2. Validar que se haya proporcionado un ID de orden.
 if (!isset($_GET['order']) || empty($_GET['order'])) {
     header('Location: orders.php');
     exit;
 }
-
 $orderId = intval($_GET['order']);
 
-// Get user session data from auth_check
-$nivel = isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null;
-$name = isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null;
-$userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
-$plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
-$userId = $userID;
-$userName = $name;
-$userEmail = $_SESSION['user']['email'] ?? '';
-$userRole = $_SESSION['user']['role'] ?? '';
-$userPlant = $plant;
-$authorizationLevel = $nivel;
-
-// Define base URLs
-$URLBASE = "https://grammermx.com/Jesus/PruebaDos/";
-$URLM = "https://grammermx.com/Mailer/PFMailer/";
-
-if (!isset($_SESSION['user'])) {
-    http_response_code(401);
-    die('User not authenticated');
-}
+// 3. Incluir el inyector de contexto desde su ubicación central.
+// Este script crea la variable $appContextForJS e imprime el objeto `window.APP_CONTEXT`.
+require_once 'dao/users/context_injector.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -44,14 +26,10 @@ if (!isset($_SESSION['user'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Premium Freight Order #<?php echo $orderId; ?> - Grammer AG</title>
     
-    <!-- Favicon -->
+    <!-- Favicon, Meta, Fonts -->
     <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
-    
-    <!-- SEO and Meta -->
     <meta name="description" content="Premium Freight Order Management System - Grammer AG">
     <meta name="author" content="Grammer AG">
-    
-    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- External CSS -->
@@ -61,47 +39,32 @@ if (!isset($_SESSION['user'])) {
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/view-order.css">
-    <?php if (isset($nivel) && $nivel > 0): ?>
-        <!-- Virtual Assistant CSS -->
+
+    <!-- ================== SISTEMA DE CONTEXTO CENTRALIZADO ================== -->
+    <?php
+        // El inyector ya fue requerido en la parte superior del script.
+    ?>
+    <!-- 1. Incluir el módulo de configuración JS. -->
+    <script src="js/config.js"></script>
+    
+    <!-- 2. Añadir datos específicos de la página al objeto de configuración global. -->
+    <script>
+        window.PF_CONFIG.orderId = <?php echo json_encode($orderId); ?>;
+        // Para compatibilidad con módulos que usan sessionStorage
+        sessionStorage.setItem('selectedOrderId', window.PF_CONFIG.orderId);
+    </script>
+    <!-- ==================================================================== -->
+
+    <?php 
+    // Carga condicional del CSS del asistente.
+    if (isset($appContextForJS['user']['authorizationLevel']) && $appContextForJS['user']['authorizationLevel'] > 0): ?>
         <link rel="stylesheet" href="css/assistant.css">
     <?php endif; ?>
 
-    <!-- External JS -->
+    <!-- External JS Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    
-    <!-- Global Variables -->
-    <script>
-        // ===== GLOBAL CONFIGURATION =====
-        window.PF_CONFIG = {
-            baseURL: '<?php echo $URLBASE; ?>',
-            mailerURL: '<?php echo $URLM; ?>',
-            orderData: null, // Se cargará vía AJAX usando el endpoint existente
-            user: {
-                id: <?php echo json_encode($userID); ?>,
-                name: <?php echo json_encode($name); ?>,
-                email: <?php echo json_encode($userEmail); ?>,
-                role: <?php echo json_encode($userRole); ?>,
-                plant: <?php echo json_encode($plant); ?>,
-                authorizationLevel: <?php echo json_encode($nivel); ?>
-            },
-            orderId: <?php echo json_encode($orderId); ?>
-        };
-        
-        // Legacy support for existing modules
-        window.PF_URL = window.PF_CONFIG.baseURL;
-        window.URLM = window.PF_CONFIG.mailerURL;
-        window.allOrders = [];
-        window.originalOrders = [];
-        window.authorizationLevel = window.PF_CONFIG.user.authorizationLevel;
-        window.userName = window.PF_CONFIG.user.name;
-        window.userID = window.PF_CONFIG.user.id;
-        window.userPlant = window.PF_CONFIG.user.plant;
-        
-        // For session storage compatibility
-        sessionStorage.setItem('selectedOrderId', window.PF_CONFIG.orderId);
-    </script>
 </head>
 <body>
     <div class="email-container fade-in">
@@ -128,11 +91,11 @@ if (!isset($_SESSION['user'])) {
         <div class="status-section">
             <div class="approver-info">
                 <div class="approver-avatar">
-                    <?php echo strtoupper(substr($userName, 0, 2)); ?>
+                    <?php echo strtoupper(substr(htmlspecialchars($appContextForJS['user']['name']), 0, 2)); ?>
                 </div>
                 <div class="approver-details">
-                    <h4><?php echo htmlspecialchars($userName); ?></h4>
-                    <p class="approver-role"><?php echo htmlspecialchars($userRole); ?> - Level <?php echo $authorizationLevel; ?></p>
+                    <h4><?php echo htmlspecialchars($appContextForJS['user']['name']); ?></h4>
+                    <p class="approver-role"><?php echo htmlspecialchars($appContextForJS['user']['role']); ?> - Level <?php echo $appContextForJS['user']['authorizationLevel']; ?></p>
                 </div>
             </div>
             
@@ -165,15 +128,10 @@ if (!isset($_SESSION['user'])) {
                 <h3 class="progress-title">Approval Progress</h3>
                 <p class="progress-subtitle">Track your order through the approval process</p>
             </div>
-            
             <div class="progress-line-container">
                 <div class="progress-background-line"></div>
                 <div class="progress-active-line" style="width: 0%"></div>
-                
-                <div class="progress-checkpoints">
-                    <!-- Checkpoints will be populated by JavaScript -->
-                </div>
-                
+                <div class="progress-checkpoints"></div>
                 <div class="progress-truck moving" style="left: 0%">
                     <i class="fa-solid fa-truck-fast"></i>
                 </div>
@@ -192,10 +150,6 @@ if (!isset($_SESSION['user'])) {
         </div>
     </div>
 
-    <!-- PDF and Canvas Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    
     <!-- jQuery and Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
@@ -213,8 +167,10 @@ if (!isset($_SESSION['user'])) {
     <!-- Custom scripts -->
     <script src="js/uploadFiles.js"></script>
     <script type="module" src="js/viewOrder.js"></script>
-    <?php if (isset($nivel) && $nivel > 0): ?>
-        <!-- Virtual Assistant JavaScript - Solo para usuarios autorizados -->
+    
+    <?php 
+    // Carga condicional del JS del asistente.
+    if (isset($appContextForJS['user']['authorizationLevel']) && $appContextForJS['user']['authorizationLevel'] > 0): ?>
         <script src="js/assistant.js"></script>
     <?php endif; ?>
 </body>

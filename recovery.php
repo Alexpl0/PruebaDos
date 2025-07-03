@@ -1,9 +1,21 @@
 <?php
-session_start();
-require_once 'config.php';
-include_once 'dao/users/auth_check.php';
+/**
+ * recovery.php - Password recovery page (Refactored)
+ * This version uses the centralized context injection system.
+ */
 
-// Verificar si hay errores de token en la URL
+// 1. Cargar configuración de la aplicación (URLs, etc.)
+require_once 'config.php';
+
+// 2. Manejar sesión y autenticación.
+// auth_check.php redirigirá a profile.php si ya hay una sesión activa.
+require_once 'dao/users/auth_check.php';
+
+// 3. Incluir el inyector de contexto.
+// Para usuarios no logueados, proveerá un contexto de "invitado".
+require_once 'dao/users/context_injector.php';
+
+// 4. Lógica para manejar errores de la URL (para tokens inválidos, etc.)
 $error = $_GET['error'] ?? null;
 $errorMessage = '';
 
@@ -17,28 +29,8 @@ switch ($error) {
     case 'token_used':
         $errorMessage = 'This recovery link has already been used.';
         break;
-} 
+}
 ?>
-<script>
-    window.authorizationLevel = <?php echo json_encode(isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null); ?>;
-    window.userName = <?php echo json_encode(isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null); ?>;
-    window.userID = <?php echo json_encode(isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null); ?>;
-    // Definimos la variable global de JavaScript con la URL base desde PHP
-    const URLPF = '<?php echo URLPF; ?>'; 
-    const URLM = '<?php echo URLM; ?>'; 
-    
-    <?php if ($errorMessage): ?>
-    document.addEventListener('DOMContentLoaded', function() {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: '<?php echo addslashes($errorMessage); ?>',
-            confirmButtonText: 'Understood'
-        });
-    });
-    <?php endif; ?>
-</script>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -50,7 +42,7 @@ switch ($error) {
     <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
     
     <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -62,6 +54,28 @@ switch ($error) {
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/recovery.css">
+
+    <!-- ================== SISTEMA DE CONTEXTO CENTRALIZADO ================== -->
+    <?php
+        // El inyector ya fue requerido en la parte superior del script.
+    ?>
+    <!-- Incluir el módulo de configuración JS. -->
+    <script src="js/config.js"></script>
+    <!-- ==================================================================== -->
+
+    <?php if ($errorMessage): ?>
+    <script>
+        // Disparar alerta de error si existe un mensaje en la URL
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                icon: 'error',
+                title: 'Recovery Link Error',
+                text: '<?php echo addslashes($errorMessage); ?>',
+                confirmButtonText: 'Understood'
+            });
+        });
+    </script>
+    <?php endif; ?>
 </head>
 <body>
     <div id="header-container"></div>

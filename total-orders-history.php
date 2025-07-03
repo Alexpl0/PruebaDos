@@ -1,23 +1,17 @@
 <?php
-session_start();
-require_once 'config.php'; // Include config.php to get URL constant
-include_once 'dao/users/auth_check.php';
-$nivel = isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null;
-$name = isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : null;
-$userID = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : null;
-$role = isset($_SESSION['user']['role']) ? $_SESSION['user']['role'] : null;
-$plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
-?>
-<script>
-    window.authorizationLevel = <?php echo json_encode($nivel); ?>;
-    window.userName = <?php echo json_encode($name); ?>;
-    window.userID = <?php echo json_encode($userID); ?>;
-    window.role = <?php echo json_encode($role); ?>;
-    window.userPlant = <?php echo json_encode($plant); ?>;
-    const URLPF = '<?php echo URLPF; ?>'; 
-    const URLM = '<?php echo URLM; ?>';
-</script>
+/**
+ * total-orders-history.php - View for the complete history of all orders (Refactored)
+ * This version uses the centralized context injection system.
+ */
 
+// 1. Incluir el sistema de autenticación.
+// auth_check.php también inicia la sesión y redirige si no hay usuario.
+require_once 'dao/users/auth_check.php';
+
+// 2. Incluir el inyector de contexto desde su ubicación central.
+// Este script crea la variable $appContextForJS e imprime el objeto `window.APP_CONTEXT`.
+require_once 'dao/users/context_injector.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -33,7 +27,7 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     
     <!-- Local CSS files -->
     <link rel="stylesheet" href="css/styles.css">
@@ -42,8 +36,18 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css">
-    <?php if (isset($nivel) && $nivel > 0): ?>
-        <!-- Virtual Assistant CSS -->
+    
+    <!-- ================== SISTEMA DE CONTEXTO CENTRALIZADO ================== -->
+    <?php
+        // El inyector ya fue requerido en la parte superior del script.
+    ?>
+    <!-- Incluir el módulo de configuración JS. -->
+    <script src="js/config.js"></script>
+    <!-- ==================================================================== -->
+
+    <?php 
+    // Carga condicional del CSS del asistente, usando la variable del inyector.
+    if (isset($appContextForJS['user']['authorizationLevel']) && $appContextForJS['user']['authorizationLevel'] > 0): ?>
         <link rel="stylesheet" href="css/assistant.css">
     <?php endif; ?>
 </head>
@@ -239,8 +243,10 @@ $plant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
     <!-- Custom scripts -->
     <script type="module" src="js/dataTables.js"></script>
     <script type="module" src="js/totalHistoryPage.js"></script>
-    <?php if (isset($nivel) && $nivel > 0): ?>
-        <!-- Virtual Assistant JavaScript - Solo para usuarios autorizados -->
+    
+    <?php 
+    // Carga condicional del JS del asistente.
+    if (isset($appContextForJS['user']['authorizationLevel']) && $appContextForJS['user']['authorizationLevel'] > 0): ?>
         <script src="js/assistant.js"></script>
     <?php endif; ?>
 </body>

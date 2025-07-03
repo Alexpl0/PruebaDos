@@ -1,22 +1,17 @@
 <?php
-session_start();
-require_once 'config.php';
+/**
+ * index.php - Main login page (Refactored)
+ * This is the entry point for unauthenticated users.
+ */
 
-// Redirect to newOrder if already logged in
-if (isset($_SESSION['user'])) {
-    header('Location: newOrder.php');
-    exit;
-}
+// 1. Manejar sesión y autenticación.
+// auth_check.php redirigirá a un usuario logueado a su perfil o dashboard.
+require_once 'dao/users/auth_check.php';
+
+// 2. Incluir el inyector de contexto.
+// Para usuarios no logueados, proveerá un contexto de "invitado".
+require_once 'dao/users/context_injector.php';
 ?>
-<script>
-    // Definimos la variable global de JavaScript con la URL base desde PHP
-    const URLPF = '<?php echo URLPF; ?>';
-    
-    window.authorizationLevel = null;
-    window.userName = null;
-    window.userID = null;
-</script>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -27,16 +22,25 @@ if (isset($_SESSION['user'])) {
     <!-- Favicon -->
     <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
     
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <!-- Bootstrap & Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
-    <!-- Enlace al CDN de Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  
-    <!-- Archivos CSS locales -->
+    <!-- Local CSS -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/index.css">
+
+    <!-- ================== SISTEMA DE CONTEXTO CENTRALIZADO ================== -->
+    <?php
+        // El inyector ya fue requerido en la parte superior del script.
+    ?>
+    <!-- Incluir el módulo de configuración JS. -->
+    <script src="js/config.js"></script>
+    <!-- ==================================================================== -->
     
 </head>
 <body>
@@ -68,7 +72,6 @@ if (isset($_SESSION['user'])) {
                         <p class="text-center">Don't have an account? <a href="register.php" style="color: var(--first-color)">Sign up</a></p>
                         <p class="text-center">Forgot your password? <a href="recovery.php" style="color: var(--first-color)">Recover</a></p>
                         
-                        <!-- Indicador de seguridad -->
                         <div class="text-center mt-3">
                             <small class="text-muted">
                                 <i class="fas fa-shield-alt text-success"></i>
@@ -87,14 +90,9 @@ if (isset($_SESSION['user'])) {
 
     <!-- Archivos JS locales -->
     <script src="js/header.js"></script>
-    <script>
-        // Definir URLPF ANTES de cargar otros scripts
-        const URLPF = '<?php echo URLPF; ?>';
-        console.log('URLPF set to:', URLPF);
-    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Cargar PasswordManager -->
     <script src="js/PasswordManager.js"></script>
     <script src="js/index.js"></script>
 </body>
 </html>
+-
