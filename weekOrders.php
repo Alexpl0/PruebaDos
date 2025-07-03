@@ -6,12 +6,9 @@
  */
 
 // 1. Incluir el sistema de autenticación.
-// Esto se asegura de que el usuario tenga una sesión válida y carga los datos en $_SESSION.
 require_once 'dao/users/auth_check.php';
 
 // 2. Incluir el inyector de contexto desde su nueva ubicación.
-// Este script crea la variable $appContextForJS e imprime el objeto `window.APP_CONTEXT`.
-// Se usa '/' en la ruta para máxima compatibilidad entre sistemas operativos (Windows, Linux, etc.).
 require_once 'dao/users/context_injector.php';
 ?>
 <!DOCTYPE html>
@@ -32,22 +29,16 @@ require_once 'dao/users/context_injector.php';
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/view-order.css">
-    <link rel="stylesheet" href="css/weekOrders.css">
+    <link rel="stylesheet" href="css/viewWeekorder.css"> <!-- Se cambió para coincidir con el otro archivo -->
 
     <!-- ================== SISTEMA DE CONTEXTO CENTRALIZADO ================== -->
     <?php
         // El inyector ya fue requerido en la parte superior del script.
-        // La etiqueta <script> con APP_CONTEXT ya ha sido generada por el inyector.
     ?>
-
-    <!-- Incluir el módulo de configuración JS.
-         Este script DEBE cargarse DESPUÉS del inyector y ANTES que cualquier otro script que lo necesite. -->
     <script src="js/config.js"></script>
     <!-- ==================================================================== -->
 
     <?php 
-    // Carga condicional del CSS del asistente, usando la variable PHP generada por el inyector.
     if (isset($appContextForJS['user']['authorizationLevel']) && $appContextForJS['user']['authorizationLevel'] > 0): ?>
         <link rel="stylesheet" href="css/assistant.css">
     <?php endif; ?>
@@ -59,90 +50,73 @@ require_once 'dao/users/context_injector.php';
 
 </head>
 <body>
-    <div class="email-container fade-in">
-        <!-- ===== PROFESSIONAL HEADER (sin cambios) ===== -->
-        <div class="email-header">
-            <div class="email-header-content">
+    <div class="bulk-container">
+        <!-- ===== PROFESSIONAL HEADER ===== -->
+        <header class="bulk-header">
+            <div class="bulk-header-content">
                 <div class="header-left">
                     <div class="company-logo">
-                        <i class="fas fa-industry"></i>
+                        <i class="fas fa-truck-fast"></i>
+                        <span class="company-name">Grammer AG</span>
                     </div>
-                    <div class="order-info">
-                        <h1 class="order-title-main">Weekly Orders</h1>
-                        <p class="order-subtitle" id="orderCount">Loading orders...</p>
+                    <div class="orders-info">
+                        <h1 class="orders-title-main">Premium Freight Orders</h1>
+                        <p class="orders-subtitle">
+                            Orders pending approval by <?php echo htmlspecialchars($appContextForJS['user']['name']); ?>
+                        </p>
                     </div>
                 </div>
                 <div class="header-right">
-                    <h2 class="company-name">GRAMMER AG</h2>
-                    <p class="order-subtitle">PremiumFreight System</p>
+                    <div class="bulk-actions-header">
+                        <!-- CORRECCIÓN: Se añadió ID y se quitó onclick -->
+                        <button id="approve-all-btn" class="bulk-action-btn btn-approve-all">
+                            <i class="fas fa-check-double"></i>
+                            Approve All
+                        </button>
+                        <!-- CORRECCIÓN: Se añadió el botón de rechazar con su ID -->
+                        <button id="reject-all-btn" class="bulk-action-btn btn-reject-all">
+                            <i class="fas fa-times-circle"></i>
+                            Reject All
+                        </button>
+                        <!-- CORRECCIÓN: Se añadió ID y se quitó onclick (si se quiere manejar por JS) -->
+                        <button id="download-all-btn" class="bulk-action-btn btn-download-all">
+                            <i class="fas fa-download"></i>
+                            Download All
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
+        </header>
 
-        <!-- ===== STATUS AND ACTIONS SECTION ===== -->
-        <div class="status-section">
-            <div class="approver-info">
-                <div class="approver-avatar">
-                    <!-- Usamos htmlspecialchars para seguridad -->
-                    <?php echo strtoupper(substr(htmlspecialchars($appContextForJS['user']['name']), 0, 2)); ?>
-                </div>
-                <div class="approver-details">
-                    <h4><?php echo htmlspecialchars($appContextForJS['user']['name']); ?></h4>
-                    <p class="approver-role"><?php echo htmlspecialchars($appContextForJS['user']['role']); ?> - Level <?php echo $appContextForJS['user']['authorizationLevel']; ?></p>
-                </div>
+        <!-- ===== GRID PRINCIPAL DE ÓRDENES ===== -->
+        <!-- CORRECCIÓN: Se cambió el id a "orders-grid" -->
+        <main class="orders-grid" id="orders-grid">
+            <div class="loading-spinner-container">
+                <div class="loading-spinner"></div>
+                <p>Loading orders...</p>
             </div>
-            
-            <div class="quick-actions">
-                 <button class="action-btn-compact btn-back" onclick="goBack()">
-                    <i class="fas fa-arrow-left"></i>
-                    Back
-                </button>
-                
-                <button class="action-btn-compact btn-approve-all hidden" onclick="handleApproveAll()">
-                    <i class="fas fa-check-double"></i>
-                    Approve All
-                </button>
-                
-                <button class="action-btn-compact btn-download-all hidden" onclick="handleDownloadAll()">
-                    <i class="fas fa-download"></i>
-                    Download All
-                </button>
-            </div>
-        </div>
+        </main>
 
-        <!-- ===== ORDERS CONTAINER (sin cambios) ===== -->
-        <div class="orders-container">
-            <div class="loading-orders" id="loadingOrders">
-                <div class="loading-spinner">
-                    <div class="spinner"></div>
-                    Loading your pending orders...
-                </div>
+        <!-- ===== PANEL FLOTANTE DE PROGRESO ===== -->
+        <div class="floating-summary" id="floating-summary">
+            <div class="summary-title">Progress Summary</div>
+            <div class="summary-stats">
+                <span>Pending: <span id="pending-count">0</span></span>
+                <span>Processed: <span id="processed-count">0</span></span>
             </div>
-            <div id="ordersContent" class="hidden"></div>
         </div>
     </div>
 
-    <!-- JS Libraries (jQuery, Bootstrap, DataTables, etc.) -->
+    <!-- JS Libraries (jQuery, Bootstrap, etc.) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- DataTables JS -->
-    <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
 
     <!-- Custom scripts -->
     <script src="js/uploadFiles.js"></script>
     <script type="module" src="js/viewWeekorder.js"></script>
     
     <?php 
-    // Carga condicional del JS del asistente.
-    // La lógica para inicializar el asistente ahora está dentro de assistant.js
     if (isset($appContextForJS['user']['authorizationLevel']) && $appContextForJS['user']['authorizationLevel'] > 0): ?>
         <script src="js/assistant.js"></script>
     <?php endif; ?>
