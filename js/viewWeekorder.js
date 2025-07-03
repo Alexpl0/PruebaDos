@@ -1,6 +1,6 @@
 /**
  * viewWeekorder.js - Visor de Órdenes Semanales (Refactorizado)
- * Utiliza PF_CONFIG para una gestión de datos consistente.
+ * Utiliza PF_CONFIG para una gestión de datos consistente y ahora es más robusto.
  */
 
 import { loadAndPopulateSVG, generatePDF } from './svgOrders.js';
@@ -46,7 +46,10 @@ async function fetchAndFilterOrders() {
 
 function renderOrderCards() {
     const grid = document.getElementById('orders-grid');
-    if (!grid) return;
+    if (!grid) {
+        console.error("Render Error: Element 'orders-grid' not found.");
+        return;
+    }
     grid.innerHTML = '';
     if (filteredOrders.length === 0) {
         displayEmptyState();
@@ -88,8 +91,15 @@ async function loadOrderSVG(orderData, containerId) {
 }
 
 function updateSummary() {
-    document.getElementById('pending-count').textContent = filteredOrders.length - processedOrders.size;
-    document.getElementById('processed-count').textContent = processedOrders.size;
+    const pendingCountEl = document.getElementById('pending-count');
+    const processedCountEl = document.getElementById('processed-count');
+    
+    if (pendingCountEl) {
+        pendingCountEl.textContent = filteredOrders.length - processedOrders.size;
+    }
+    if (processedCountEl) {
+        processedCountEl.textContent = processedOrders.size;
+    }
 }
 
 function markOrderAsProcessed(orderId, action) {
@@ -109,24 +119,56 @@ function markOrderAsProcessed(orderId, action) {
 }
 
 function displayEmptyState() {
-    document.getElementById('orders-grid').innerHTML = `<div class="empty-state"><h2>No pending orders found</h2><p>There are no orders requiring your approval at this moment.</p></div>`;
+    const grid = document.getElementById('orders-grid');
+    if (grid) {
+        grid.innerHTML = `<div class="empty-state"><h2>No pending orders found</h2><p>There are no orders requiring your approval at this moment.</p></div>`;
+    }
 }
 
 function displayErrorState(message) {
-    document.getElementById('orders-grid').innerHTML = `<div class="error-state"><h2>An Error Occurred</h2><p>${message}</p></div>`;
+    const grid = document.getElementById('orders-grid');
+    if (grid) {
+        grid.innerHTML = `<div class="error-state"><h2>An Error Occurred</h2><p>${message}</p></div>`;
+    } else {
+        console.error("Fatal Error: 'orders-grid' container not found. Displaying error in body.");
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-state';
+        errorDiv.style.padding = '2rem';
+        errorDiv.innerHTML = `<h2>An Error Occurred</h2><p>${message}</p>`;
+        document.body.innerHTML = ''; 
+        document.body.appendChild(errorDiv);
+    }
 }
 
 function setupEventListeners() {
-    document.getElementById('orders-grid').addEventListener('click', (event) => {
-        const btn = event.target.closest('.order-action-btn');
-        if (!btn) return;
-        const orderId = btn.closest('.order-card').dataset.orderId;
-        if (btn.classList.contains('btn-approve-order')) handleIndividualAction(orderId, 'approve');
-        else if (btn.classList.contains('btn-reject-order')) handleIndividualAction(orderId, 'reject');
-        else if (btn.classList.contains('btn-download-order')) handleDownloadOrder(orderId);
-    });
-    document.getElementById('approve-all-btn').addEventListener('click', () => handleBulkAction('approve'));
-    document.getElementById('reject-all-btn').addEventListener('click', () => handleBulkAction('reject'));
+    const grid = document.getElementById('orders-grid');
+    const approveAllBtn = document.getElementById('approve-all-btn');
+    const rejectAllBtn = document.getElementById('reject-all-btn');
+
+    if (grid) {
+        grid.addEventListener('click', (event) => {
+            const btn = event.target.closest('.order-action-btn');
+            if (!btn) return;
+            const orderId = btn.closest('.order-card').dataset.orderId;
+            if (btn.classList.contains('btn-approve-order')) handleIndividualAction(orderId, 'approve');
+            else if (btn.classList.contains('btn-reject-order')) handleIndividualAction(orderId, 'reject');
+            else if (btn.classList.contains('btn-download-order')) handleDownloadOrder(orderId);
+        });
+    } else {
+        console.error("Event Listener Error: Element with ID 'orders-grid' not found.");
+    }
+
+    if (approveAllBtn) {
+        approveAllBtn.addEventListener('click', () => handleBulkAction('approve'));
+    } else {
+        console.error("Event Listener Error: Element with ID 'approve-all-btn' not found.");
+    }
+
+    if (rejectAllBtn) {
+        rejectAllBtn.addEventListener('click', () => handleBulkAction('reject'));
+    } else {
+        console.error("Event Listener Error: Element with ID 'reject-all-btn' not found.");
+    }
 }
 
 async function handleIndividualAction(orderId, action) {
