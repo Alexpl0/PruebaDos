@@ -117,7 +117,8 @@ function populateWeeklyDataTable(orders) {
     $('#weeklyHistoryTable').DataTable({
         data: tableData,
         dom: 'Bfrtip',
-        buttons: getDataTableButtons(`Weekly Orders History - Week ${getWeekNumber(new Date())}`),
+        // MODIFICACIÓN CLAVE: Pasamos los datos de las órdenes a la función que crea los botones
+        buttons: getDataTableButtons(`Weekly Orders History - Week ${getWeekNumber(new Date())}`, orders),
         scrollX: true,
         scrollY: '400px',
         responsive: false,
@@ -130,27 +131,5 @@ function populateWeeklyDataTable(orders) {
             const order = allOrdersData.find(o => o.id == btn.dataset.orderId);
             if (order) await generatePDF(order);
         });
-    });
-}
-
-/**
- * Generate PDFs for all filtered orders
- * Este es el código que faltaba.
- */
-const svgBtn = document.querySelector('.buttons-svg');
-if (svgBtn) {
-    svgBtn.addEventListener('click', async () => {
-        // Usamos la variable `filteredOrdersData` que contiene las órdenes de la semana actual
-        const ordersToExport = filteredOrdersData;
-
-        if (ordersToExport.length === 0) {
-            showInfoToast('No orders to export for the current week.');
-            return;
-        }
-
-        for (const order of ordersToExport) {
-            await generatePDF(order);
-        }
-        showSuccessToast('PDFs generated successfully!');
     });
 }

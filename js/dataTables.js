@@ -88,9 +88,10 @@ function getDataTableConfig(filename, title) {
 /**
  * Get DataTable buttons configuration
  * @param {string} exportTitle - The title for the exported files.
+ * @param {Array|null} [ordersData=null] - Optional. Full data for orders to be used in custom actions.
  * @returns {Array} Buttons configuration
  */
-function getDataTableButtons(exportTitle = 'Orders_History') {
+function getDataTableButtons(exportTitle = 'Orders_History', ordersData = null) {
     const timestamp = new Date().toISOString().split('T')[0];
     const filename = `${exportTitle}_${timestamp}`;
     return [
@@ -101,9 +102,44 @@ function getDataTableButtons(exportTitle = 'Orders_History') {
             text: '<i class="fas fa-file-alt"></i> Export SVGs',
             className: 'btn btn-warning btn-sm buttons-svg',
             action: async function (e, dt, node, config) {
-                const tableId = $(dt.table().node()).attr('id');
-                const allOrders = window.allOrdersData || [];
-                await generatePDFsForVisibleOrders(tableId, allOrders);
+                // Get the IDs of the visible rows after filtering
+                const visibleData = dt.rows({ filter: 'applied' }).data().toArray();
+                const visibleIds = visibleData.map(row => String(row[0])); // Get IDs as strings for reliable matching
+
+                if (visibleIds.length === 0) {
+                    showInfoToast("No orders to export.");
+                    return;
+                }
+
+                // Check if we have the full data to work with
+                if (!ordersData || ordersData.length === 0) {
+                    showErrorMessage('Export Error', 'Full order data is not available for this action.');
+                    return;
+                }
+
+                // Find the full order objects corresponding to the visible IDs
+                const ordersToExport = ordersData.filter(order => visibleIds.includes(String(order.id)));
+
+                if (ordersToExport.length === 0) {
+                    console.warn('Could not match visible IDs to full order data.', { visibleIds, ordersData });
+                    showInfoToast("No matching orders found to export.");
+                    return;
+                }
+
+                showLoading('Generating PDFs...', `Processing ${ordersToExport.length} orders.`);
+
+                try {
+                    // Generate PDF for each order with the custom filename
+                    for (const order of ordersToExport) {
+                        const customFileName = `PD_${order.id}`;
+                        await generatePDF(order, customFileName);
+                    }
+                    Swal.close();
+                    showSuccessToast(`${ordersToExport.length} PDFs generated successfully!`);
+                } catch (error) {
+                    console.error('Error during PDF batch generation:', error);
+                    showErrorMessage('Export Failed', 'An error occurred while generating the PDFs.');
+                }
             }
         }
     ];
@@ -296,37 +332,6 @@ function setupToggleFilters(toggleButtonId, filterPanelId) {
     }
 }
 
-/**
- * Generate PDFs for all visible orders in the DataTable
- * @param {string} tableId - ID of the DataTable
- * @param {Array} allOrders - The complete array of order objects to find full data.
- */
-async function generatePDFsForVisibleOrders(tableId, allOrders) {
-    const visibleOrdersInfo = getVisibleOrdersFromDataTable(tableId);
-    if (visibleOrdersInfo.length === 0) {
-        showInfoToast("No orders to export.");
-        return;
-    }
-    showLoading('Generating PDFs...', `Processing ${visibleOrdersInfo.length} orders.`);
-    for (const orderInfo of visibleOrdersInfo) {
-        const fullOrderData = allOrders.find(o => o.id == orderInfo.id);
-        if (fullOrderData) await generatePDF(fullOrderData);
-    }
-    Swal.close();
-    showSuccessToast("All visible order PDFs have been generated.");
-}
-
-/**
- * Extract all visible IDs from the DataTable
- * @param {string} tableId - ID of the DataTable
- * @returns {Array} Array of visible orders
- */
-function getVisibleOrdersFromDataTable(tableId) {
-    const table = $(`#${tableId}`).DataTable();
-    const visibleData = table.rows({ filter: 'applied' }).data().toArray();
-    return visibleData.map(row => ({ id: row[0] }));
-}
-
 export {
     getBaseURL,
     getWeekNumber,
@@ -345,6 +350,4 @@ export {
     applyFilters,
     clearFilters,
     setupToggleFilters,
-    generatePDFsForVisibleOrders,
-    getVisibleOrdersFromDataTable
 };
