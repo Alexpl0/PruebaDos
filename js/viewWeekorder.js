@@ -4,7 +4,7 @@
  */
 
 import { approveOrder, rejectOrder } from './approval.js';
-import { generatePDF } from './svgOrders.js'; 
+import { generatePDF, loadAndPopulateSVG } from './svgOrders.js'; 
 
 let allOrders = [];
 let filteredOrders = [];
@@ -121,9 +121,6 @@ async function handleDownloadOrder(orderId) {
     }
 }
 
-/**
- * ACTUALIZADO: Maneja la descarga de todos los PDFs uno por uno.
- */
 async function handleDownloadAll() {
     const ordersToDownload = filteredOrders.filter(o => !processedOrders.has(o.id.toString()));
     if (ordersToDownload.length === 0) {
@@ -158,9 +155,7 @@ async function handleDownloadAll() {
             });
             
             try {
-                // Llama a la función que ya sabe cómo descargar un PDF
                 await generatePDF(order, { outputType: 'download', fileName: `PF_Order_${order.id}` });
-                // Pausa para no saturar al navegador
                 await new Promise(resolve => setTimeout(resolve, 750)); 
             } catch (pdfError) {
                 console.error(`Failed to download PDF for order #${order.id}:`, pdfError);
@@ -175,11 +170,16 @@ async function handleDownloadAll() {
     }
 }
 
-// --- El resto de las funciones de ayuda (sin cambios) ---
+/**
+ * CORREGIDO: Ahora esta función registrará el error en la consola para depuración.
+ */
 async function loadOrderSVG(orderData, containerId) {
     try {
+        // La función que se importa de svgOrders.js ahora está disponible aquí
         await loadAndPopulateSVG(orderData, containerId);
     } catch (error) {
+        // ¡AQUÍ ESTÁ EL CAMBIO! Mostramos el error en la consola.
+        console.error(`Error loading SVG for order #${orderData.id}:`, error);
         const container = document.getElementById(containerId);
         if (container) container.innerHTML = `<div class="svg-error-message"><p>Error loading visualization</p></div>`;
     }
