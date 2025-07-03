@@ -1,30 +1,29 @@
 /**
- * Approval module for the Premium Freight system - REFACTORED for reusability
- * Con logs de depuración detallados.
+ * Approval module for the Premium Freight system (Refactored)
+ * Ahora es autocontenido y lee directamente de `window.PF_CONFIG`.
  */
 
-const URLPF = window.URL_BASE || window.BASE_URL || 'https://grammermx.com/Jesus/PruebaDos/';
 let isProcessing = false;
 
 /**
  * Función genérica de aprobación.
+ * @param {number|string} orderId - El ID de la orden a aprobar.
+ * @param {object} options - Opciones como { showConfirmation: false }.
+ * @returns {Promise<object>} - Objeto con el resultado de la operación.
  */
 export async function approveOrder(orderId, options = {}) {
-    if (isProcessing) {
-        console.warn('🟡 Approval already in process, please wait.');
-        return { success: false, message: 'Processing' };
-    }
+    if (isProcessing) return { success: false, message: 'Processing' };
     isProcessing = true;
-    console.group(`➡️ Approving Order #${orderId}`);
+    
+    // Obtener URLs y datos de usuario desde la configuración global.
+    const URLPF = window.PF_CONFIG.app.baseURL;
+    const user = window.PF_CONFIG.user;
+
     try {
         const selectedOrder = window.allOrders?.find(order => order.id == orderId);
-        if (!selectedOrder) throw new Error('Order not found in window.allOrders');
-        
-        console.log('📄 Orden encontrada:', selectedOrder);
+        if (!selectedOrder) throw new Error('Order not found');
 
         if (!validateOrderForApproval(selectedOrder)) {
-            // La validación ya muestra un Swal, así que solo retornamos.
-            console.warn(`🔴 Validation failed for order #${orderId}.`);
             return { success: false, message: 'Validation failed' };
         }
         
@@ -32,186 +31,104 @@ export async function approveOrder(orderId, options = {}) {
             const { isConfirmed } = await Swal.fire({
                 title: 'Approve Order?',
                 html: `<p>Are you sure you want to approve order <strong>#${selectedOrder.id}</strong>?</p>`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#10B981',
-                confirmButtonText: 'Yes, approve it!',
+                icon: 'question', showCancelButton: true, confirmButtonColor: '#10B981', confirmButtonText: 'Yes, approve it!',
             });
-            if (!isConfirmed) {
-                console.log('Approval cancelled by user.');
-                return { success: false, message: 'User cancelled' };
-            }
+            if (!isConfirmed) return { success: false, message: 'User cancelled' };
         }
-
-        const newApprovalLevel = Number(window.authorizationLevel);
-        const requiredLevel = Number(selectedOrder.required_auth_level || 7);
-        const willBeFullyApproved = (newApprovalLevel >= requiredLevel);
-        const updatedStatusTextId = willBeFullyApproved ? 3 : 2; // 3: approved, 2: under review
 
         const updateData = {
             orderId: selectedOrder.id,
-            newStatusId: newApprovalLevel,
-            userLevel: newApprovalLevel,
-            userID: window.userID,
+            newStatusId: user.authorizationLevel,
+            userID: user.id,
             authDate: new Date().toISOString().slice(0, 19).replace('T', ' ')
         };
 
-        console.log('⬆️ Sending data to daoStatusUpdate.php:', updateData);
-
-        const responseApproval = await fetch(URLPF + 'dao/conections/daoStatusUpdate.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updateData)
+        const response = await fetch(`${URLPF}dao/conections/daoStatusUpdate.php`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updateData)
         });
 
-        const resultApproval = await responseApproval.json();
-        console.log('⬇️ Received response from daoStatusUpdate.php:', resultApproval);
-        if (!resultApproval.success) throw new Error(resultApproval.message || 'Error updating approval level.');
+        const result = await response.json();
+        if (!result.success) throw new Error(result.message || 'Error updating approval level.');
 
-        console.log('✅ Order approved successfully in backend.');
         Swal.fire({ icon: 'success', title: 'Order Approved!', text: `Order #${selectedOrder.id} approved.`, timer: 2000, timerProgressBar: true });
-
         return { success: true, order: selectedOrder };
+
     } catch (error) {
-        console.error('❌ Error in approveOrder:', error);
         Swal.fire({ icon: 'error', title: 'Approval Failed', text: error.message });
         throw error;
     } finally {
         isProcessing = false;
-        console.groupEnd();
     }
 }
 
 /**
  * Función genérica de rechazo.
+ * @param {number|string} orderId - El ID de la orden a rechazar.
+ * @param {string|null} rejectionReason - La razón del rechazo. Si es null, se le pedirá al usuario.
+ * @param {object} options - Opciones como { showConfirmation: false }.
+ * @returns {Promise<object>} - Objeto con el resultado de la operación.
  */
 export async function rejectOrder(orderId, rejectionReason = null, options = {}) {
-    if (isProcessing) {
-        console.warn('🟡 Rejection already in process, please wait.');
-        return { success: false, message: 'Processing' };
-    }
+    if (isProcessing) return { success: false, message: 'Processing' };
     isProcessing = true;
-    console.group(`➡️ Rejecting Order #${orderId}`);
+
+    const URLPF = window.PF_CONFIG.app.baseURL;
+    const user = window.PF_CONFIG.user;
+
     try {
         const selectedOrder = window.allOrders?.find(order => order.id == orderId);
-        if (!selectedOrder) throw new Error('Order not found in window.allOrders');
+        if (!selectedOrder) throw new Error('Order not found');
 
-        console.log('📄 Orden encontrada:', selectedOrder);
-        
-        // La validación de rechazo es la misma que la de aprobación.
         if (!validateOrderForApproval(selectedOrder)) {
-             console.warn(`🔴 Validation failed for order #${orderId}.`);
             return { success: false, message: 'Validation failed' };
         }
         
+        let reason = rejectionReason;
         if (options.showConfirmation !== false) {
-             const { value: reason, isConfirmed } = await Swal.fire({
-                title: 'Reject Order',
-                input: 'textarea',
-                inputPlaceholder: 'Please provide a reason for rejecting this order...',
+            const { value, isConfirmed } = await Swal.fire({
+                title: 'Reject Order', input: 'textarea', inputPlaceholder: 'Please provide a reason for rejecting this order...',
                 inputValidator: (value) => !value && 'A reason is required to reject!',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc3545',
-                confirmButtonText: 'Reject Order'
+                icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', confirmButtonText: 'Reject Order'
             });
-            if (!isConfirmed) {
-                console.log('Rejection cancelled by user.');
-                return { success: false, message: 'User cancelled' };
-            }
-            rejectionReason = reason;
+            if (!isConfirmed) return { success: false, message: 'User cancelled' };
+            reason = value;
         }
+        if (!reason) return { success: false, message: 'Reason is required' };
 
         const updateData = {
-            orderId: selectedOrder.id,
-            newStatusId: 99,
-            userLevel: window.authorizationLevel,
-            userID: window.userID,
+            orderId: selectedOrder.id, newStatusId: 99, userID: user.id,
             authDate: new Date().toISOString().slice(0, 19).replace('T', ' '),
-            rejection_reason: rejectionReason
+            rejection_reason: reason
         };
 
-        console.log('⬆️ Sending data to daoStatusUpdate.php:', updateData);
-
-        const response = await fetch(URLPF + 'dao/conections/daoStatusUpdate.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updateData)
+        const response = await fetch(`${URLPF}dao/conections/daoStatusUpdate.php`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updateData)
         });
 
         const result = await response.json();
-        console.log('⬇️ Received response from daoStatusUpdate.php:', result);
         if (!result.success) throw new Error(result.message || 'Error updating status to rejected.');
 
-        console.log('✅ Order rejected successfully in backend.');
         Swal.fire({ icon: 'success', title: 'Order Rejected', text: `Order #${selectedOrder.id} has been rejected.`, timer: 2000, timerProgressBar: true });
-
         return { success: true, order: selectedOrder };
+
     } catch (error) {
-        console.error('❌ Error in rejectOrder:', error);
         Swal.fire({ icon: 'error', title: 'Rejection Failed', text: error.message });
         throw error;
     } finally {
         isProcessing = false;
-        console.groupEnd();
-    }
-}
-
-/**
- * Envío de notificaciones por correo.
- */
-export async function sendEmailNotification(orderId, notificationType) {
-    console.group(`➡️ Sending Email for Order #${orderId} (Type: ${notificationType})`);
-    try {
-        let endpoint = '';
-        const emailData = { orderId: parseInt(orderId) };
-
-        switch (notificationType) {
-            case 'approval':
-                endpoint = 'https://grammermx.com/Mailer/PFMailer/PFmailNotification.php';
-                break;
-            case 'rejected':
-                endpoint = 'https://grammermx.com/Mailer/PFMailer/PFmailStatus.php';
-                emailData.status = 'rejected';
-                break;
-            default:
-                console.warn(`⚠️ Unrecognized notification type: ${notificationType}`);
-                console.groupEnd();
-                return;
-        }
-
-        console.log(`⬆️ Sending data to: ${endpoint}`, emailData);
-
-        const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(emailData)
-        });
-
-        const result = await response.json();
-        console.log(`⬇️ Received response from mailer:`, result);
-
-        if (result.success) {
-            console.log('✅ Email sent successfully.');
-        } else {
-            console.error('🔴 Mailer reported an error:', result.message);
-        }
-    } catch (error) {
-        console.error('❌ Failed to send email:', error);
-    } finally {
-        console.groupEnd();
     }
 }
 
 /**
  * Validación de permisos antes de aprobar/rechazar.
+ * @param {object} order - El objeto de la orden a validar.
+ * @returns {boolean} - True si el usuario tiene permisos, de lo contrario false.
  */
 function validateOrderForApproval(order) {
-    console.group("🔎 Validating permissions for order #" + order.id);
-    
-    const userPlant = window.userPlant !== null ? parseInt(window.userPlant, 10) : null;
+    const user = window.PF_CONFIG.user;
+    const userPlant = user.plant !== null ? parseInt(user.plant, 10) : null;
     const creatorPlant = parseInt(order.creator_plant, 10);
-    const userAuthLevel = Number(window.authorizationLevel);
+    const userAuthLevel = Number(user.authorizationLevel);
     const currentApprovalLevel = Number(order.approval_status);
     const nextRequiredLevel = currentApprovalLevel + 1;
     const requiredLevel = Number(order.required_auth_level || 7);
@@ -219,34 +136,19 @@ function validateOrderForApproval(order) {
     let isValid = true;
     let failureReason = '';
 
-    // 1. Validar que no esté totalmente aprobada
     if (currentApprovalLevel >= requiredLevel) {
-        isValid = false;
-        failureReason = 'Order is already fully approved.';
-    }
-    // 2. Validar que no esté rechazada
-    else if (currentApprovalLevel === 99) {
-        isValid = false;
-        failureReason = 'Order was previously rejected.';
-    }
-    // 3. Validar nivel de autorización
-    else if (userAuthLevel !== nextRequiredLevel) {
-        isValid = false;
-        failureReason = `Incorrect authorization level. Required: ${nextRequiredLevel}, User has: ${userAuthLevel}.`;
-    }
-    // 4. Validar planta (solo si el usuario tiene una asignada)
-    else if (userPlant !== null && creatorPlant !== userPlant) {
-        isValid = false;
-        failureReason = `Plant mismatch. Order Plant: ${creatorPlant}, User Plant: ${userPlant}.`;
+        isValid = false; failureReason = 'Order is already fully approved.';
+    } else if (currentApprovalLevel === 99) {
+        isValid = false; failureReason = 'Order was previously rejected.';
+    } else if (userAuthLevel !== nextRequiredLevel) {
+        isValid = false; failureReason = `Incorrect authorization level. Required: ${nextRequiredLevel}, User has: ${userAuthLevel}.`;
+    } else if (userPlant !== null && creatorPlant !== userPlant) {
+        isValid = false; failureReason = `Plant mismatch. Order Plant: ${creatorPlant}, User Plant: ${userPlant}.`;
     }
 
-    if (isValid) {
-        console.log('✅ Validation successful.');
-    } else {
-        console.warn(`🔴 Validation failed: ${failureReason}`);
+    if (!isValid) {
         Swal.fire({ icon: 'warning', title: 'Permission Denied', text: failureReason });
     }
     
-    console.groupEnd();
     return isValid;
 }
