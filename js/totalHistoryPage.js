@@ -1,186 +1,117 @@
+/**
+ * Premium Freight - Total History Page (Refactored)
+ * Manages the complete orders history page using PF_CONFIG.
+ */
 import { generatePDF } from './svgOrders.js';
 import { addNotificationStyles } from './utils.js';
-import { showErrorMessage, showInfoToast, showSuccessToast, showLoading, setupToggleFilters, getBaseURL, generateFilters, applyFilters, clearFilters, loadOrdersData, getDataTableButtons } from './dataTables.js';
+import { 
+    showErrorMessage, 
+    showInfoToast, 
+    showSuccessToast, 
+    showLoading, 
+    setupToggleFilters, 
+    generateFilters, 
+    applyFilters, 
+    clearFilters, 
+    loadOrdersData, 
+    getDataTableButtons 
+} from './dataTables.js';
 
-/**
- * Premium Freight - Total History Page
- * Manages the complete orders history page
- */
-
-// Variables específicas para la página total
-let totalDataTable = null;
-let filteredOrdersData = [];
+// Variable global para almacenar todos los datos de las órdenes de esta página.
 let allOrdersData = [];
-let currentFilters = {
-    date: 'all',
-    plant: 'all',
-    approvalStatus: 'all',
-    costRange: 'all'
-};
 
-/**
- * Initialize the total history page
- */
 document.addEventListener('DOMContentLoaded', async function () {
-    console.log('[TotalHistory] 🚀 Initializing total history page...');
-
     try {
-        // Add notification styles
         addNotificationStyles();
-
-        // Setup toggle filters functionality
         setupToggleFilters('toggleFilters', 'filterPanelBody');
 
-        // Generate dynamic filters
-        const baseUrl = getBaseURL();
-        await generateFilters(`${baseUrl}dao/conections/daoPremiumFreight.php`);
-
-        // Load total history data
+        const baseURL = window.PF_CONFIG.app.baseURL;
+        await generateFilters(`${baseURL}dao/conections/daoPremiumFreight.php`);
+        
         loadTotalHistoryData();
 
-        console.log('[TotalHistory] ✅ Initialization completed successfully');
+        // Asignar eventos a los botones de filtro
+        document.getElementById('applyFilters').addEventListener('click', () => {
+            const filteredData = applyFilters(allOrdersData);
+            populateTotalDataTable(filteredData);
+            updateQuickStats(filteredData);
+            showInfoToast(`Filters applied. Found ${filteredData.length} orders.`);
+        });
+
+        document.getElementById('clearFilters').addEventListener('click', () => {
+            const clearedData = clearFilters(allOrdersData);
+            populateTotalDataTable(clearedData);
+            updateQuickStats(clearedData);
+            showInfoToast('Filters cleared.');
+        });
+
     } catch (error) {
-        console.error('[TotalHistory] ❌ Error during initialization:', error);
         showErrorMessage('Initialization Error', 'Failed to initialize the total history page.');
     }
 });
 
-/**
- * Apply advanced filters
- */
-function applyAdvancedFilters() {
-    const filters = {
-        date: document.getElementById('filterDate').value,
-        plant: document.getElementById('filterPlant').value,
-        approvalStatus: document.getElementById('filterApprovalStatus').value,
-        costRange: document.getElementById('filterCostRange').value
-    };
-
-    filteredOrdersData = applyFilters(allOrdersData, filters);
-    populateTotalDataTable(filteredOrdersData);
-    showInfoToast(`Applied filters - ${filteredOrdersData.length} orders found`);
-}
-
-/**
- * Clear advanced filters
- */
-function clearAdvancedFilters() {
-    // Reset filters in the UI
-    document.getElementById('filterDate').value = 'all';
-    document.getElementById('filterPlant').value = 'all';
-    document.getElementById('filterApprovalStatus').value = 'all';
-    document.getElementById('filterCostRange').value = 'all';
-
-    // Reset filtered data
-    filteredOrdersData = clearFilters(allOrdersData);
-    populateTotalDataTable(allOrdersData);
-    showInfoToast('Filters cleared - showing all orders');
-}
-
-/**
- * Load total history data
- */
 async function loadTotalHistoryData() {
     try {
         showLoading('Loading Total History', 'Please wait while we fetch all orders...');
-
         const orders = await loadOrdersData();
-
-        console.log(`[TotalHistory] 📋 Found ${orders.length} total orders`);
-
-        allOrdersData = orders;
-        filteredOrdersData = orders;
-
+        
+        allOrdersData = orders; // Guardar los datos originales
+        
         populateTotalDataTable(orders);
+        updateQuickStats(orders);
         showSuccessToast(`Loaded ${orders.length} total orders`);
     } catch (error) {
-        console.error('[TotalHistory] ❌ Error loading total history data:', error);
         showErrorMessage('Data Loading Error', `Could not load orders data: ${error.message}`);
     } finally {
         Swal.close();
     }
 }
 
-/**
- * Populate the DataTable with total orders
- * @param {Array} orders - Array of orders to display
- */
 function populateTotalDataTable(orders) {
-    console.log('[TotalHistory] 📋 Populating DataTable with orders:', orders);
-
-    const tableData = orders.map(order => {
-        return [
-            order.id || '-',
-            order.planta || '-',
-            order.code_planta || '-',
-            order.date || '-',
-            order.in_out_bound || '-',
-            order.reference_number || '-',
-            order.creator_name || '-',
-            order.area || '-',
-            order.description || '-',
-            order.category_cause || '-',
-            order.cost_euros || '-',
-            order.transport || '-',
-            order.carrier || '-',
-            order.origin_company_name || '-',
-            order.origin_city || '-',
-            order.destiny_company_name || '-',
-            order.destiny_city || '-',
-            `<button class="btn btn-sm btn-outline-primary generate-pdf-btn" onclick="generateSinglePDF(${order.id})">
-                <i class="fas fa-file-pdf"></i>
-            </button>`
-        ];
-    });
-
-    console.log('[TotalHistory] 📋 Table data:', tableData);
+    const tableData = orders.map(order => [
+        order.id || '-', order.planta || '-', order.code_planta || '-', order.date || '-',
+        order.in_out_bound || '-', order.reference_number || '-', order.creator_name || '-',
+        order.area || '-', order.description || '-', order.category_cause || '-',
+        order.cost_euros ? `€${parseFloat(order.cost_euros).toFixed(2)}` : '-',
+        order.transport || '-', order.carrier || '-',
+        order.origin_company_name || '-', order.origin_city || '-',
+        order.destiny_company_name || '-', order.destiny_city || '-',
+        `<button class="btn btn-sm btn-outline-primary generate-pdf-btn" data-order-id="${order.id}" title="View as PDF"><i class="fas fa-file-pdf"></i></button>`
+    ]);
 
     if ($.fn.DataTable.isDataTable('#totalHistoryTable')) {
         $('#totalHistoryTable').DataTable().clear().destroy();
     }
 
-    totalDataTable = $('#totalHistoryTable').DataTable({
+    $('#totalHistoryTable').DataTable({
         data: tableData,
         dom: 'Bfrtip',
-        buttons: getDataTableButtons(orders),
+        buttons: getDataTableButtons('Total Orders History'),
         scrollX: true,
         scrollY: '400px',
-        responsive: false
+        responsive: false,
+        order: [[0, 'desc']]
     });
 
-    // Actualiza las estadísticas rápidas
-    updateQuickStats(orders);
-
-    // Después de poblar la DataTable, agrega:
     document.querySelectorAll('.generate-pdf-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            const orderId = btn.getAttribute('onclick').match(/\d+/)[0];
-            const order = allOrdersData.find(o => o.id == orderId);
+        btn.addEventListener('click', async () => {
+            const order = allOrdersData.find(o => o.id == btn.dataset.orderId);
             if (order) await generatePDF(order);
         });
     });
 }
 
-/**
- * Update quick stats cards based on current orders
- * @param {Array} orders - Array of orders to analyze
- */
 function updateQuickStats(orders) {
-    const total = orders.length;
-    const approved = orders.filter(o => (o.status_name === 'aprobado' || o.status_name === 'Approved')).length;
-    const pending = orders.filter(o => (o.status_name === 'revision' || o.status_name === 'Review' || o.status_name === 'pending' || o.status_name === 'Pending')).length;
-    const rejected = orders.filter(o => (o.status_name === 'rechazado' || o.status_name === 'Rejected')).length;
-
-    document.getElementById('totalOrdersCount').textContent = total;
-    document.getElementById('approvedOrdersCount').textContent = approved;
-    document.getElementById('pendingOrdersCount').textContent = pending;
-    document.getElementById('rejectedOrdersCount').textContent = rejected;
+    const stats = { total: 0, approved: 0, pending: 0, rejected: 0 };
+    orders.forEach(o => {
+        stats.total++;
+        const status = (o.status_name || '').toLowerCase();
+        if (status === 'aprobado' || status === 'approved') stats.approved++;
+        else if (status === 'rechazado' || status === 'rejected') stats.rejected++;
+        else stats.pending++;
+    });
+    document.getElementById('totalOrdersCount').textContent = stats.total;
+    document.getElementById('approvedOrdersCount').textContent = stats.approved;
+    document.getElementById('pendingOrdersCount').textContent = stats.pending;
+    document.getElementById('rejectedOrdersCount').textContent = stats.rejected;
 }
-
-/**
- * Attach event listeners to filter buttons
- */
-document.addEventListener('DOMContentLoaded', function () {
-    document.getElementById('applyFilters').addEventListener('click', applyAdvancedFilters);
-    document.getElementById('clearFilters').addEventListener('click', clearAdvancedFilters);
-});
