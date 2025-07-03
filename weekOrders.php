@@ -138,7 +138,7 @@ require_once 'dao/users/context_injector.php';
 
     <!-- Custom scripts -->
     <script src="js/uploadFiles.js"></script>
-    <script type="module" src="js/weekOrders.js"></script>
+    <script type="module" src="js/viewWeekorder.js"></script>
     
     <?php 
     // Carga condicional del JS del asistente.
