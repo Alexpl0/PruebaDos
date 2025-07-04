@@ -33,9 +33,9 @@ require_once 'dao/users/context_injector.php';
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <!-- Local CSS -->
-    <!-- <link rel="stylesheet" href="css/styles.css"> -->
-    <!-- <link rel="stylesheet" href="css/header.css"> -->
-    <!-- <link rel="stylesheet" href="css/myOrder.css"> -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/header.css">
+    <link rel="stylesheet" href="css/myOrder.css">
     
     <!-- ================== SISTEMA DE CONTEXTO CENTRALIZADO ================== -->
     <?php
@@ -61,7 +61,7 @@ require_once 'dao/users/context_injector.php';
 
     <main class="container my-4">
         <div class="page-header">
-            <h1>Order Progress Sin CSS?</h1>
+            <h1>Order Progress</h1>
             <h2 id="order-title">Tracking Order #<?php echo htmlspecialchars($orderId); ?></h2>
         </div>
 

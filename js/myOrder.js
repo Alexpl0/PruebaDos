@@ -41,6 +41,7 @@ async function loadOrderDetails(orderId, baseURL) {
 
         await loadAndPopulateSVG(orderData, 'svgContent');
         loadingSpinner.style.display = 'none';
+        console.log('Data: ', orderData);
         document.getElementById('svgContent').style.opacity = 1;
 
     } catch (error) {
