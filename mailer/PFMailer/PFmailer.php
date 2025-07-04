@@ -63,8 +63,8 @@ class PFMailer {
         $this->mail->Host = 'smtp.hostinger.com'; 
         $this->mail->Port = 465;
         $this->mail->SMTPAuth = true;
-        $this->mail->Username = 'pruebasjesus@grammermx.com';
-        $this->mail->Password = 'FreightSystem*2025';
+        $this->mail->Username = 'jesuspruebas@grammermx.com';
+        $this->mail->Password = 'FreightSystem/2025';
         $this->mail->SMTPSecure = 'ssl';
         
         // 6. Configurar formato HTML y codificación de caracteres
@@ -72,8 +72,8 @@ class PFMailer {
         $this->mail->CharSet = 'UTF-8';
         
         // 7. Configurar el remitente
-        $this->mail->setFrom('pruebasjesus@grammermx.com', 'Premium Freight System');
-        $this->mail->addBCC('pruebasjesus@grammermx.com', 'Jesús Pérez');
+        $this->mail->setFrom('jesuspruebas@grammermx.com', 'Premium Freight System');
+        $this->mail->addBCC('extern.jesus.perez@grammer.com', 'Jesús Pérez');
         
         // 8. Configurar destinatarios en copia oculta según el modo
         if (TEST_MODE) {
