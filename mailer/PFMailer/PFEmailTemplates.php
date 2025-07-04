@@ -2,7 +2,7 @@
 /**
  * PFEmailTemplates.php - HTML Templates for Premium Freight emails
  * * @author GRAMMER AG
- * @version 2.5 - Removed direct action buttons from emails
+ * @version 2.6 - Removed emojis and updated weekly summary link
  */
 
 class PFEmailTemplates {
@@ -129,7 +129,7 @@ class PFEmailTemplates {
                             
                             <div style="text-align: center; margin: 30px 0;">
                                 <a href="' . $viewOrderUrl . '" style="background-color: #034C8C !important; color: #ffffff !important; padding: 16px 32px; text-decoration: none; font-weight: bold; border-radius: 8px; border: 2px solid #023b6a; text-transform: uppercase; display: inline-block; font-size: 16px;">
-                                    📋 VIEW ORDER & TAKE ACTION
+                                    VIEW ORDER & TAKE ACTION
                                 </a>
                             </div>
                             
@@ -161,7 +161,7 @@ class PFEmailTemplates {
      * Template for weekly summary email
      */
     public function getWeeklySummaryTemplate($orders, $approver, $approveAllToken, $rejectAllToken) {
-        $viewAllOrdersUrl = $this->baseUrl . "view_bulk_orders.php?user=" . $approver['id'] . "&token=$approveAllToken";
+        $viewAllOrdersUrl = $this->baseUrlPF . 'weekOrders.php';
         
         $totalOrders = count($orders);
         $totalCost = array_sum(array_column($orders, 'cost_euros'));
@@ -215,7 +215,7 @@ class PFEmailTemplates {
 
                     <div class="content">
                         <div class="stats-card">
-                            <div class="stats-title">📊 Summary Statistics</div>
+                            <div class="stats-title">Summary Statistics</div>
                             <div class="stats-row">
                                 <table>
                                     <tr>
@@ -243,13 +243,13 @@ class PFEmailTemplates {
                         </div>
 
                         <div class="bulk-actions">
-                            <div class="bulk-title">⚡ Review Orders</div>
+                            <div class="bulk-title">Review Orders</div>
                             <div class="bulk-subtitle">Click the button below to review all pending orders individually.</div>
-                            <a href="' . $viewAllOrdersUrl . '" class="bulk-button view-all-btn">📋 View All Orders</a>
+                            <a href="' . $viewAllOrdersUrl . '" class="bulk-button view-all-btn">View All Orders</a>
                         </div>
 
                         <div class="orders-section">
-                            <div class="section-title">📋 Orders Requiring Your Approval</div>
+                            <div class="section-title">Orders Requiring Your Approval</div>
                             ' . $orderRows . '
                         </div>
                     </div>
@@ -477,7 +477,7 @@ class PFEmailTemplates {
                 <table class="email-container" role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
                     <tr>
                         <td class="header">
-                            <h1>⚠️ Recovery Evidence Required</h1>
+                            <h1>Recovery Evidence Required</h1>
                             <h2>Premium Freight System</h2>
                         </td>
                     </tr>
@@ -493,7 +493,7 @@ class PFEmailTemplates {
                             
                             <div class="warning-box">
                                 <div class="warning-text">
-                                    📋 Action Required: Please upload the recovery evidence for the orders listed below to complete the process.
+                                    Action Required: Please upload the recovery evidence for the orders listed below to complete the process.
                                 </div>
                             </div>
                             
@@ -518,13 +518,13 @@ class PFEmailTemplates {
                             
                             <div class="action-section">
                                 <a href="' . $viewOrdersUrl . '" class="action-button">
-                                    📁 View My Orders
+                                    View My Orders
                                 </a>
                             </div>
                             
                             <div class="info-box">
                                 <div class="info-text">
-                                    💡 <strong>Tip:</strong> Click "View My Orders" to access your orders and upload the required recovery evidence. 
+                                    <strong>Tip:</strong> Click "View My Orders" to access your orders and upload the required recovery evidence. 
                                     Look for orders marked with a recovery requirement and upload the appropriate documentation.
                                 </div>
                             </div>

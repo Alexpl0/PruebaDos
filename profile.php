@@ -136,7 +136,7 @@ require_once 'dao/users/context_injector.php';
                 </div>
                 
                 <div class="mt-3 text-center">
-                    <a href="orders.php" class="btn btn-outline-primary">
+                    <a href="myorders.php" class="btn btn-outline-primary">
                         <i class="fas fa-list"></i> View My Orders
                     </a>
                 </div>
