@@ -61,7 +61,7 @@ require_once 'dao/users/context_injector.php';
 
     <main class="container my-4">
         <div class="page-header">
-            <h1>Order Progress</h1>
+            <h1>Order Progress Sin CSS?</h1>
             <h2 id="order-title">Tracking Order #<?php echo htmlspecialchars($orderId); ?></h2>
         </div>
 
