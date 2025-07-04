@@ -49,8 +49,9 @@ require_once 'dao/users/context_injector.php';
     <!-- ================== SISTEMA DE CONTEXTO CENTRALIZADO ================== -->
     <?php
         // El inyector ya fue requerido en la parte superior del script.
+        // Inyecta el objeto window.APP_CONTEXT
     ?>
-    <!-- Incluir el módulo de configuración JS. -->
+    <!-- Incluir el módulo de configuración JS que lee el contexto. -->
     <script src="js/config.js"></script>
     <!-- ==================================================================== -->
 
@@ -254,17 +255,24 @@ require_once 'dao/users/context_injector.php';
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Scripts de la aplicación -->
     <script src="js/header.js"></script>
     <script src="js/companySelect.js"></script>
     <script src="js/formValidation.js"></script>
     <script src="js/currencyUtils.js"></script>
     <script src="js/addCompany.js"></script>
     <script src="js/uploadFiles.js"></script>
-    <script src="js/newOrder.js"></script>
     <script src="js/createPDF.js"></script>
     <script src="js/carrierSelect.js"></script>
     <script src="js/addCarrier.js"></script>
     <script src="js/selectConfig.js"></script>  
+    
+    <!-- ================== CARGA DE MÓDULOS JS ================== -->
+    <!-- Se cargan como 'module' para permitir import/export -->
+    <script type="module" src="js/mailer.js"></script>
+    <script type="module" src="js/newOrder.js"></script>
+    <!-- ======================================================= -->
     
     <?php 
     // Carga condicional del JS del asistente.

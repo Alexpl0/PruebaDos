@@ -1,58 +1,20 @@
 /**
- * Premium Freight - New Order Management
- * 
- * Este módulo maneja la creación de nuevas órdenes de Premium Freight,
- * incluyendo la validación de formularios, el procesamiento de datos,
- * y el envío de información al servidor.
+ * Premium Freight - New Order Management (Refactored)
+ * * This module handles the creation of new Premium Freight orders.
+ * It now imports notification functions from the central mailer.js module.
  */
 
-//==========================================================================================
-// Global variables
-// 'range' stores the authorization level required for the order.
-// Using 'let' because its value will be calculated and assigned dynamically
-// by the 'calculateAuthorizationRange' function based on the quoted cost.
+// 1. Importar la función de notificación desde el módulo centralizado.
+import { sendApprovalNotification } from './mailer.js';
+
+// Global variable for the required authorization level.
 let range = 0;
 
-// Función para enviar notificación de aprobación después de crear la orden
-async function sendApprovalNotification(orderId) {
-    try {
-        console.log("Sending notification to:", URLM + 'PFmailNotification.php');
-        
-        const response = await fetch(URLM + 'PFmailNotification.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                orderId: orderId
-            })
-        });
-
-        if (!response.ok) {
-            console.error(`HTTP error! status: ${response.status}`);
-            return false;
-        }
-
-        const result = await response.json();
-        
-        if (result.success) {
-            console.log(`Approval notification sent for order #${orderId}`);
-            return true;
-        } else {
-            console.error(`Failed to send approval notification for order #${orderId}:`, result.message);
-            return false;
-        }
-    } catch (error) {
-        console.error('Error sending approval notification:', error);
-        return false;
-    }
-}
-
-// Function to send form data as a promise
+// Function to send form data to the server.
 function sendFormDataAsync(payload) {
-    console.log("Sending form data to server: ", URLPF + 'dao/conections/daoPFpost.php');
+    console.log("Sending form data to server: ", window.PF_CONFIG.app.baseURL + 'dao/conections/daoPFpost.php');
     return new Promise((resolve, reject) => {
-        fetch(URLPF + 'dao/conections/daoPFpost.php', {
+        fetch(window.PF_CONFIG.app.baseURL + 'dao/conections/daoPFpost.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -70,8 +32,7 @@ function sendFormDataAsync(payload) {
     });
 }
 
-//==========================================================================================
-// Function to upload a recovery file
+// Function to upload a recovery file.
 async function uploadRecoveryFile(orderId, userName, file) {
     if (!orderId || !file) {
         console.error("Missing required parameters for file upload", { orderId, hasFile: !!file });
@@ -83,7 +44,7 @@ async function uploadRecoveryFile(orderId, userName, file) {
     formData.append('userName', userName);
     formData.append('recoveryFile', file);
     
-    const response = await fetch(URLPF + 'dao/conections/daoUploadRecovery.php', {
+    const response = await fetch(window.PF_CONFIG.app.baseURL + 'dao/conections/daoUploadRecovery.php', {
         method: 'POST',
         body: formData
     });
@@ -97,10 +58,7 @@ async function uploadRecoveryFile(orderId, userName, file) {
     return await response.json();
 }
 
-//==========================================================================================
-// Helper function to calculate the authorization range or level required
-// based on the quoted cost of the order.
-// Defines different cost thresholds to assign an authorization level.
+// Helper function to calculate the authorization range.
 function calculateAuthorizationRange(quotedCost) {
     const cost = parseFloat(quotedCost);
 
@@ -109,31 +67,16 @@ function calculateAuthorizationRange(quotedCost) {
         return 4; // Default to lowest authorization level
     }
 
-    if (cost <= 1500) {
-        return 4;
-    } else if (cost <= 3000) {
-        return 5;
-    } else if (cost <= 5000) {
-        return 6;
-    } else if (cost <= 10000) {
-        return 7;
-    }
+    if (cost <= 1500) return 4;
+    if (cost <= 3000) return 5;
+    if (cost <= 5000) return 6;
+    return 7; // For costs > 5000
 }
 
-//==========================================================================================
-// Function to validate and obtain the IDs of origin and destination companies.
-// Uses jQuery to interact with Select2 elements.
-// Returns an object with a validity indicator and the obtained IDs.
+// Function to validate and obtain company IDs.
 function validateCompanyIds() {
-    const originCompanyId = $('#CompanyShip').data('selected-id') || 
-                           ($('#CompanyShip').select2('data')[0] ? 
-                            parseInt($('#CompanyShip').select2('data')[0].id, 10) : null);
-    
-    const destCompanyId = $('#inputCompanyNameDest').data('selected-id') || 
-                          ($('#inputCompanyNameDest').select2('data')[0] ? 
-                           parseInt($('#inputCompanyNameDest').select2('data')[0].id, 10) : null);
-    
-    console.log("Validating company IDs - Origin:", originCompanyId, "Destination:", destCompanyId);
+    const originCompanyId = $('#CompanyShip').data('selected-id') || ($('#CompanyShip').select2('data')[0] ? parseInt($('#CompanyShip').select2('data')[0].id, 10) : null);
+    const destCompanyId = $('#inputCompanyNameDest').data('selected-id') || ($('#inputCompanyNameDest').select2('data')[0] ? parseInt($('#inputCompanyNameDest').select2('data')[0].id, 10) : null);
     
     return {
         valid: Boolean(originCompanyId && destCompanyId),
@@ -142,343 +85,78 @@ function validateCompanyIds() {
     };
 }
 
-//==========================================================================================
-/**
- * Handles the visibility of the recovery file upload field based on the Recovery selection.
- * Works with both standard HTML selects and Select2 components.
- */
+// Handles the visibility of the recovery file upload field.
 function handleRecoveryFileVisibility() {
-    try {
-        console.log("handleRecoveryFileVisibility called");
-        const recoverySelect = document.getElementById('Recovery');
-        
-        if (!recoverySelect) {
-            console.error("Recovery select element not found");
-            return;
-        }
-        
-        const fileContainer = document.getElementById('recoveryFileContainer');
-        
-        if (!fileContainer) {
-            console.error("Recovery file container not found");
-            return;
-        }
-        
-        // Get the selected option text
-        const selectedIndex = recoverySelect.selectedIndex;
-        const selectedText = selectedIndex >= 0 ? recoverySelect.options[selectedIndex].text : '';
-        
-        console.log("Recovery selection:", {
-            element: recoverySelect,
-            value: recoverySelect.value,
-            selectedIndex: selectedIndex,
-            selectedText: selectedText
-        });
-        
-        // Check if the selected option is "NO RECOVERY" (by text content)
-        const isNoRecovery = selectedText.toUpperCase().includes('NO RECOVERY');
-        
-        console.log("Is NO RECOVERY selected:", isNoRecovery);
-        
-        if (isNoRecovery) {
-            fileContainer.style.display = 'none';
-            // Clear the file input when hiding
-            const fileInput = document.getElementById('recoveryFile');
-            if (fileInput) fileInput.value = '';
-        } else {
-            fileContainer.style.display = 'block';
-        }
-        
-    } catch (error) {
-        console.error('Error in handleRecoveryFileVisibility:', error);
-    }
-}
-
-//==========================================================================================
-// Initializes event listeners and other configurations when the DOM (Document Object Model)
-// is fully loaded and ready to be manipulated.
-// This ensures that all HTML elements are available before attempting to interact with them using JavaScript.
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("DOM Content Loaded - Initializing form");
-    
-    initializeCompanySelectors();
-    initializeCarrierSelector();
-    initializeCurrencySelectors();
-
-    const btnSubmit = document.getElementById('enviar');
-    if (btnSubmit) {
-        btnSubmit.addEventListener('click', submitForm);
-    } else {
-        console.error("Submit button ('enviar') not found. The form cannot be submitted.");
-    }
-
-    // Handle recovery selection and file upload visibility
     const recoverySelect = document.getElementById('Recovery');
-    if (recoverySelect) {
-        console.log("Setting up Recovery select event listeners");
-        
-        // Standard change event for native select element
-        recoverySelect.addEventListener('change', function() {
-            console.log("Recovery selection changed");
-            handleRecoveryFileVisibility();
-        });
-        
-        // Handle Select2 if jQuery and Select2 are available
-        if (window.jQuery && $.fn.select2) {
-            $(document).ready(function() {
-                if ($('#Recovery').length) {
-                    console.log("Initializing Select2 for Recovery");
-                    
-                    // This event fires when a Select2 selection changes
-                    $('#Recovery').on('select2:select', function() {
-                        console.log("Recovery Select2 selection changed");
-                        handleRecoveryFileVisibility();
-                    });
-                    
-                    // Initialize with correct state after Select2 is fully loaded
-                    setTimeout(handleRecoveryFileVisibility, 300);
-                }
-            });
-        }
-        
-        // Initial setup
-        console.log("Calling initial handleRecoveryFileVisibility");
-        handleRecoveryFileVisibility();
-    } else {
-        console.error("Recovery select element not found");
-    }
+    const fileContainer = document.getElementById('recoveryFileContainer');
+    if (!recoverySelect || !fileContainer) return;
+
+    const selectedText = recoverySelect.options[recoverySelect.selectedIndex]?.text || '';
+    const isNoRecovery = selectedText.toUpperCase().includes('NO RECOVERY');
     
-    // Set up file validation for recovery uploads
-    const recoveryFile = document.getElementById('recoveryFile');
-    if (recoveryFile) {
-        recoveryFile.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const fileType = file.type;
-                if (fileType !== 'application/pdf') {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Invalid File Type',
-                        text: 'Please upload a PDF file as evidence for recovery.'
-                    });
-                    this.value = '';
-                } else if (file.size > 10 * 1024 * 1024) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'File Too Large',
-                        text: 'The file size should not exceed 10MB.'
-                    });
-                    this.value = '';
-                }
-            }
-        });
-    }
-
-    // Initialize text area handlers for descriptions
-    const immediateActions = document.getElementById('InmediateActions');
-    const permanentActions = document.getElementById('PermanentActions');
-    
-    if (immediateActions && permanentActions) {
-        immediateActions.addEventListener('input', updateDescription);
-        permanentActions.addEventListener('input', updateDescription);
-        
-        immediateActions.addEventListener('blur', function() {
-            updateCharCounter(immediateActions, '#immediateCounter', 50);
-        });
-        
-        permanentActions.addEventListener('blur', function() {
-            updateCharCounter(permanentActions, '#permanentCounter', 50);
-        });
-        
-        updateDescription();
-    } else {
-        console.error("Description text areas not found. Description updater could not be initialized.");
-    }
-});
-
-/**
- * Updates the Description field by combining Immediate and Permanent Actions
- * This function combines the values from the two visible text areas into a single hidden Description field
- */
-function updateDescription() {
-    try {
-        const immediateValue = document.getElementById('InmediateActions').value.trim();
-        const permanentValue = document.getElementById('PermanentActions').value.trim();
-        const descriptionField = document.getElementById('Description');
-        
-        if (descriptionField) {
-            const combinedText = `IMMEDIATE ACTIONS:\n${immediateValue}\n\nPERMANENT ACTIONS:\n${permanentValue}`;
-            descriptionField.value = combinedText;
-            
-            // Update character counters
-            updateCharCounter(document.getElementById('InmediateActions'), '#immediateCounter', 50);
-            updateCharCounter(document.getElementById('PermanentActions'), '#permanentCounter', 50);
-        }
-    } catch (error) {
-        console.error("Error updating description:", error);
+    fileContainer.style.display = isNoRecovery ? 'none' : 'block';
+    if (isNoRecovery) {
+        const fileInput = document.getElementById('recoveryFile');
+        if (fileInput) fileInput.value = '';
     }
 }
 
-/**
- * Updates character counters for textareas and validates minimum length
- * @param {HTMLElement} textarea - The textarea element to validate
- * @param {string} counterSelector - Selector for the counter element
- * @param {number} minLength - Minimum required character length
- */
-function updateCharCounter(textarea, counterSelector, minLength) {
-    try {
-        const length = textarea.value.length;
-        const counterElement = document.querySelector(counterSelector);
-        
-        if (counterElement) {
-            const countElement = counterElement.querySelector('.char-count');
-            if (countElement) {
-                countElement.textContent = `${length}/${minLength}`;
-            }
-            
-            const requirementElement = counterElement.querySelector('.text-danger');
-            if (requirementElement) {
-                if (length >= minLength) {
-                    requirementElement.classList.remove('text-danger');
-                    requirementElement.classList.add('text-success');
-                    requirementElement.textContent = 'Minimum length met';
-                    textarea.classList.add('is-valid');
-                    textarea.classList.remove('is-invalid');
-                } else {
-                    requirementElement.classList.add('text-danger');
-                    requirementElement.classList.remove('text-success');
-                    requirementElement.textContent = `${minLength} characters required`;
-                    textarea.classList.add('is-invalid');
-                    textarea.classList.remove('is-valid');
-                }
-            }
-        }
-    } catch (error) {
-        console.error("Error updating character counter:", error);
-    }
-}
-
-/**
- * Returns the currently selected currency
- * @returns {string} The selected currency code (USD, MXN)
- */
-function getSelectedCurrency() {
-    const usdButton = document.getElementById('USD');
-    return usdButton && usdButton.classList.contains('active') ? 'USD' : 'MXN';
-}
-
-/**
- * Verificación de disponibilidad de las variables URLPF y URLM
- * En caso de que los scripts se carguen antes que las variables estén definidas
- */
-if (typeof URLPF === 'undefined') {
-    console.warn("URLPF variable not defined. Using default base URLPF.");
-    window.URLPF = 'https://grammermx.com/Jesus/PruebaDos/';
-}
-
-if (typeof URLM === 'undefined') {
-    console.warn("URLM variable not defined. Using default base URLM.");
-    window.URLM = 'https://grammermx.com/Mailer/PFMailer/';
-}
-
-//==========================================================================================
-// Asynchronous function to validate and submit form data.
-// This function executes when the user clicks the form submit button.
-// It orchestrates validation, processing of new companies, payload preparation,
-// and final data submission to the server.
+// Main function to validate and submit the form.
 async function submitForm(event) {
     event.preventDefault();
 
-    // 1. Procesar nuevas compañías si las hay
+    // 1. Process new companies if any
     let originId = null;
     let destinyId = null;
-    
-    // Verificar si hay nuevas compañías que guardar utilizando la función de addCompany.js
-    const hasNewCompanies = window.hasNewCompaniesToSave && window.hasNewCompaniesToSave();
-    
-    if (hasNewCompanies) {
+    if (window.hasNewCompaniesToSave && window.hasNewCompaniesToSave()) {
         try {
             const result = await window.saveNewCompanies();
-            if (result && result.success) {
-                originId = result.originId;
-                destinyId = result.destinyId;
-                console.log("New companies saved successfully. Origin ID:", originId, "Destiny ID:", destinyId);
-            } else {
-                console.error("Failed to save new companies:", result ? result.error : "Unknown error");
-                return;
-            }
+            if (!result || !result.success) throw new Error(result?.error || "Failed to save new companies");
+            originId = result.originId;
+            destinyId = result.destinyId;
         } catch (error) {
-            console.error("Error saving new companies:", error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Failed to save new company information. Please try again.'
-            });
+            Swal.fire({ icon: 'error', title: 'Error', text: `Failed to save new company info: ${error.message}` });
             return;
         }
     }
 
     // Process new carrier if needed
     let carrierId = null;
-    const hasNewCarrier = window.hasNewCarrierToSave && window.hasNewCarrierToSave();
-
-    if (hasNewCarrier) {
+    if (window.hasNewCarrierToSave && window.hasNewCarrierToSave()) {
         try {
             carrierId = await window.saveNewCarrier();
-            if (!carrierId) {
-                console.error("Failed to save new carrier");
-                return;
-            }
+            if (!carrierId) throw new Error("Failed to save new carrier");
         } catch (error) {
-            console.error("Error saving new carrier:", error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Failed to save new carrier information. Please try again.'
-            });
+            Swal.fire({ icon: 'error', title: 'Error', text: `Failed to save new carrier info: ${error.message}` });
             return;
         }
     }
-
-    // Get existing carrier ID if needed
     if (!carrierId) {
         carrierId = $('#Carrier').val();
     }
 
-    // 2. Validar el formulario
+    // 2. Validate form
     const validationResult = validateCompleteForm();
     if (!validationResult.isValid) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Validation Error',
-            text: validationResult.message || 'Please check the form for errors.'
-        });
+        Swal.fire({ icon: 'error', title: 'Validation Error', text: validationResult.message || 'Please check the form for errors.' });
         return;
     }
-
     const formData = validationResult.formData;
 
-    // 3. Obtener los IDs de compañía (nuevos o existentes)
+    // 3. Get company IDs (new or existing)
     const companyValidation = validateCompanyIds();
-    if (!companyValidation.valid && !originId && !destinyId) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Company Error',
-            text: 'Please select valid origin and destination companies.'
-        });
+    const finalOriginId = originId || companyValidation.originId;
+    const finalDestinyId = destinyId || companyValidation.destinyId;
+    if (!finalOriginId || !finalDestinyId) {
+        Swal.fire({ icon: 'error', title: 'Company Error', text: 'Please select valid origin and destination companies.' });
         return;
     }
 
-    // Usar IDs de nuevas compañías o de la validación de compañías existentes
-    const finalOriginId = originId || companyValidation.originId;
-    const finalDestinyId = destinyId || companyValidation.destinyId;
-
+    // 4. Prepare payload
     const quotedCost = parseFloat(formData['QuotedCost']);
     range = calculateAuthorizationRange(quotedCost);
-
-    // 4. Preparar el payload con los IDs correctos
     const payload = {
-        user_id: window.userID || 1,
+        user_id: window.PF_CONFIG.user.id || 1,
         date: new Date().toISOString().slice(0, 19).replace('T', ' '),
         planta: formData['planta'],
         code_planta: formData['codeplanta'],
@@ -505,129 +183,121 @@ async function submitForm(event) {
         required_auth_level: range,
         moneda: getSelectedCurrency()
     };
-
-    // 5. Validaciones finales
-    if (!payload.origin_id || !payload.destiny_id) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Company Error',
-            text: 'Origin and destination company IDs are required.'
-        });
-        return;
-    }
-
-    if (!payload.cost_euros || payload.cost_euros <= 0) {
-        console.warn("Cost in euros is zero or invalid:", payload.cost_euros);
-    }
-
-    console.log("Final payload being sent:", payload);
-
-    // 6. Verificar si se necesita archivo de recuperación
-    const recoverySelect = document.getElementById('Recovery');
-    const recoveryFile = document.getElementById('recoveryFile');
-    const needsFile = !recoverySelect.options[recoverySelect.selectedIndex].text.includes('NO RECOVERY');
     
-    // 7. Enviar el formulario principal
+    // 5. Submit form data
     try {
         const response = await sendFormDataAsync(payload);
-        console.log("Response from server:", response);
-        
-        if (response && response.success) {
-            console.log("Order ID from response:", response.order_id, "Full response:", response);
-            
-            const orderId = response.order_id || response.orderId || response.id || response.premium_freight_id;
-            
-            if (!orderId) {
-                console.error("Order ID is missing in server response:", response);
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Order Status Unknown',
-                    text: 'The order might have been created, but we could not determine its ID. Please check the dashboard.'
-                });
-                return;
-            }
-            
-            // Si se necesita subir un archivo de recuperación y hay un archivo seleccionado
-            if (needsFile && recoveryFile && recoveryFile.files.length > 0) {
-                try {
-                    console.log("Uploading recovery file for order ID:", orderId);
-                    
-                    const fileResponse = await uploadRecoveryFile(
-                        orderId,
-                        window.userName || 'Unknown User',
-                        recoveryFile.files[0]
-                    );
-                    
-                    if (!fileResponse || !fileResponse.success) {
-                        console.error("Error uploading recovery file:", fileResponse ? fileResponse.message : "Unknown error");
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Order Created',
-                            text: 'Order was created successfully, but there was an issue uploading the recovery file.'
-                        });
-                        return;
-                    }
-                } catch (fileError) {
-                    console.error("Exception uploading recovery file:", fileError);
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Order Created',
-                        text: 'Order was created successfully, but there was an error uploading the recovery file.'
-                    });
-                    return;
-                }
-            }
-            
-            // 8. ENVIAR NOTIFICACIÓN DE APROBACIÓN AUTOMÁTICAMENTE DESPUÉS DE CREAR LA ORDEN
-            let notificationSent = false;
-            try {
-                console.log("Sending approval notification for order:", orderId);
-                notificationSent = await sendApprovalNotification(orderId);
-                
-                if (notificationSent) {
-                    console.log("Approval notification sent successfully");
-                } else {
-                    console.warn("Failed to send approval notification");
-                }
-            } catch (notificationError) {
-                console.error("Error sending approval notification:", notificationError);
-                notificationSent = false;
-            }
-
-            // 9. Mostrar mensaje de éxito incluyendo información sobre la notificación
-            Swal.fire({
-                icon: 'success',
-                title: 'Premium Freight Order Created',
-                html: `
-                    Order #${orderId} has been created successfully.<br><br>
-                    ${notificationSent ? 
-                        '<i class="fas fa-envelope-check text-success"></i> Approval notification sent to approvers.' : 
-                        '<i class="fas fa-envelope-exclamation text-warning"></i> Order created but notification failed to send.'
-                    }
-                `,
-                timer: 5000,
-                showConfirmButton: true,
-                confirmButtonText: 'Go to Dashboard'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = 'dashboard.php';
-                }
-            });
-            
-        } else {
-            console.error("Error from server:", response ? response.message : "Unknown error");
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: response && response.message ? response.message : 'Failed to create order. Please try again.'
-            });
+        if (!response || !response.success) {
+            throw new Error(response?.message || 'Failed to create order.');
         }
+
+        const orderId = response.order_id || response.premium_freight_id;
+        if (!orderId) {
+            throw new Error("Order was created, but its ID is missing in the server response.");
+        }
+
+        // 6. Upload recovery file if needed
+        const recoveryFile = document.getElementById('recoveryFile');
+        const needsFile = !document.getElementById('Recovery').options[document.getElementById('Recovery').selectedIndex].text.includes('NO RECOVERY');
+        if (needsFile && recoveryFile?.files.length > 0) {
+            const fileResponse = await uploadRecoveryFile(orderId, window.PF_CONFIG.user.name, recoveryFile.files[0]);
+            if (!fileResponse.success) {
+                console.warn("Order created, but recovery file upload failed:", fileResponse.message);
+            }
+        }
+        
+        // 7. Send approval notification using the imported function
+        const notificationResult = await sendApprovalNotification(orderId);
+
+        // 8. Show final success message
+        Swal.fire({
+            icon: 'success',
+            title: 'Premium Freight Order Created',
+            html: `
+                Order <strong>#${orderId}</strong> has been created successfully.<br><br>
+                ${notificationResult.success ? 
+                    '<i class="fas fa-check-circle text-success"></i> Approval notification sent to approvers.' : 
+                    `<i class="fas fa-exclamation-triangle text-warning"></i> Order created, but notification failed: ${notificationResult.message}`
+                }
+            `,
+            confirmButtonText: 'Go to Dashboard'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = 'dashboard.php';
+            }
+        });
+
     } catch (error) {
         console.error("Exception in order submission:", error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'An unexpected error occurred. Please try again later.'
-        });
+        Swal.fire({ icon: 'error', title: 'Submission Error', text: error.message });
     }
+}
+
+// Initializes event listeners when the DOM is ready.
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCompanySelectors();
+    initializeCarrierSelector();
+    initializeCurrencySelectors();
+
+    document.getElementById('enviar')?.addEventListener('click', submitForm);
+    
+    const recoverySelect = document.getElementById('Recovery');
+    if (recoverySelect) {
+        recoverySelect.addEventListener('change', handleRecoveryFileVisibility);
+        if (window.jQuery && $.fn.select2) {
+            $('#Recovery').on('select2:select', handleRecoveryFileVisibility);
+        }
+        handleRecoveryFileVisibility();
+    }
+    
+    // Setup for description text areas
+    const immediateActions = document.getElementById('InmediateActions');
+    const permanentActions = document.getElementById('PermanentActions');
+    if (immediateActions && permanentActions) {
+        const updateAndValidate = () => {
+            updateDescription();
+            updateCharCounter(immediateActions, '#immediateCounter', 50);
+            updateCharCounter(permanentActions, '#permanentCounter', 50);
+        };
+        immediateActions.addEventListener('input', updateAndValidate);
+        permanentActions.addEventListener('input', updateAndValidate);
+        updateAndValidate();
+    }
+});
+
+// Helper function to update the combined description field.
+function updateDescription() {
+    const immediateValue = document.getElementById('InmediateActions')?.value.trim() || '';
+    const permanentValue = document.getElementById('PermanentActions')?.value.trim() || '';
+    const descriptionField = document.getElementById('Description');
+    if (descriptionField) {
+        descriptionField.value = `IMMEDIATE ACTIONS:\n${immediateValue}\n\nPERMANENT ACTIONS:\n${permanentValue}`;
+    }
+}
+
+// Helper function to update character counters for textareas.
+function updateCharCounter(textarea, counterSelector, minLength) {
+    const length = textarea.value.length;
+    const counterElement = document.querySelector(counterSelector);
+    if (!counterElement) return;
+
+    counterElement.querySelector('.char-count').textContent = `${length}/${minLength}`;
+    const reqElement = counterElement.querySelector('span:first-child');
+    
+    if (length >= minLength) {
+        reqElement.classList.replace('text-danger', 'text-success');
+        reqElement.textContent = 'Minimum length met';
+        textarea.classList.add('is-valid');
+        textarea.classList.remove('is-invalid');
+    } else {
+        reqElement.classList.replace('text-success', 'text-danger');
+        reqElement.textContent = `${minLength} characters required`;
+        textarea.classList.add('is-invalid');
+        textarea.classList.remove('is-valid');
+    }
+}
+
+// Helper function to get the selected currency.
+function getSelectedCurrency() {
+    return document.getElementById('USD')?.classList.contains('active') ? 'USD' : 'MXN';
 }
