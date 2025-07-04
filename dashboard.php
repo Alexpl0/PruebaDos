@@ -98,7 +98,7 @@ require_once 'dao/users/context_injector.php';
             <div class="col-md-12">
                 <div class="btn-group float-end">
                     <button id="exportCSV" class="btn btn-sm btn-outline-success">
-                        <i class="fa-solid fa-file-csv"></i> Export CSV
+                        <i class="fa-solid fa-file-excel"></i> Export to Excel
                     </button>
                     <button id="exportPDF" class="btn btn-sm btn-outline-danger">
                         <i class="fa-solid fa-file-pdf"></i> Export PDF
@@ -110,19 +110,16 @@ require_once 'dao/users/context_injector.php';
             </div>
         </div>
         
-        <!-- KPIs principales -->
+        <!-- Contenedores de Gráficos (sin cambios) -->
         <div class="row mb-4" id="filterscards">
             <div class="col-md-3"><div class="card bg-primary text-white"><div class="card-body"><h5 class="card-title">Total Shipments</h5><h2 id="kpiTotalEnvios" class="display-4">0</h2></div></div></div>
             <div class="col-md-3"><div class="card bg-success text-white"><div class="card-body"><h5 class="card-title">Total Cost (€)</h5><h2 id="kpiCostoTotal" class="display-4">0</h2></div></div></div>
             <div class="col-md-3"><div class="card bg-info text-white"><div class="card-body"><h5 class="card-title">Approval %</h5><h2 id="kpiApprovalRate" class="display-4">0%</h5></div></div></div>
             <div class="col-md-3"><div class="card bg-warning text-dark"><div class="card-body"><h5 class="card-title">Recovery %</h5><h2 id="kpiRecoveryRate" class="display-4">0%</h2></div></div></div>
         </div>
-
         <div class="row mb-4">
             <div class="col-md-12"><div class="card"><div class="card-body"><h5 class="card-title">Detailed KPIs</h5><div class="row" id="detailedKPIs"><div class="col-md-3 col-sm-6 mb-3"><div class="card stats-card border-primary"><div class="card-body p-3"><div class="title">Average Cost</div><div class="value" id="kpiAvgCost">€0</div></div></div></div><div class="col-md-3 col-sm-6 mb-3"><div class="card stats-card border-success"><div class="card-body p-3"><div class="title">Internal/External Ratio</div><div class="value" id="kpiIntExtRatio">0:0</div></div></div></div><div class="col-md-3 col-sm-6 mb-3"><div class="card stats-card border-info"><div class="card-body p-3"><div class="title">Average Approval Time</div><div class="value" id="kpiAvgApprovalTime">0 days</div></div></div></div><div class="col-md-3 col-sm-6 mb-3"><div class="card stats-card border-warning"><div class="card-body p-3"><div class="title">Total Weight</div><div class="value" id="kpiTotalWeight">0 kg</div></div></div></div></div></div></div></div>
         </div>
-        
-        <!-- Gráficos -->
         <div class="row mb-4">
             <div class="col-md-6"><div class="card h-100"><div class="card-body"><h5 class="card-title">Distribution by Area and Type</h5><div id="chartAreaDistribution" style="height: 350px;"></div></div></div></div>
             <div class="col-md-6"><div class="card h-100"><div class="card-body"><h5 class="card-title">Payment Responsibility</h5><div class="row"><div class="col-md-8"><div id="chartPaidBy" style="height: 350px;"></div></div><div class="col-md-4"><div id="paidByStats" class="mt-4"></div></div></div></div></div></div>
@@ -156,7 +153,6 @@ require_once 'dao/users/context_injector.php';
     <!-- Bibliotecas JS -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.35.0/dist/apexcharts.min.js"></script>
@@ -166,6 +162,10 @@ require_once 'dao/users/context_injector.php';
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     
+    <!-- ===== NUEVAS LIBRERÍAS PARA EXPORTACIÓN ===== -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <!-- Archivos JS locales -->
     <script src="js/header.js"></script>
     <script type="module" src="js/dashboard.js"></script>

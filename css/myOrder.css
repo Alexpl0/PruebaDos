@@ -40,6 +40,7 @@
     height: 8px;
     background-color: var(--gray-200);
     border-radius: 4px;
+    transform: translateY(15px);
 }
 
 .progress-bar {
@@ -64,8 +65,9 @@
 
 /* --- CHECKPOINTS --- */
 .checkpoints-container {
-    display: flex;
-    justify-content: space-between;
+    /* ==== CORRECCIÓN 1: Se eliminaron las propiedades de Flexbox ==== */
+    /* 'display: flex' y 'justify-content: space-between' se eliminaron */
+    /* para permitir que el posicionamiento absoluto de cada checkpoint funcione. */
     position: absolute;
     width: 100%;
     top: 50%;
@@ -73,12 +75,14 @@
 }
 
 .checkpoint {
-    position: relative;
+    /* ==== CORRECCIÓN 2: Se cambió a posicionamiento absoluto y se centró ==== */
+    position: absolute; /* Clave para que la propiedad 'left' del JS funcione. */
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* Aumentamos el ancho para dar más espacio al texto */
     width: 120px;
+    /* Esto centra el checkpoint en su punto de anclaje 'left'. */
+    transform: translateX(-50%);
 }
 
 .checkpoint-circle {
@@ -142,7 +146,7 @@
 .progress-truck {
     position: absolute;
     top: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -150%);
     font-size: 2rem;
     transition: left 0.8s ease-in-out;
     z-index: 3;
