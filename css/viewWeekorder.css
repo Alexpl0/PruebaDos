@@ -120,7 +120,7 @@ body {
     padding: var(--spacing-xs) var(--spacing-sm); /* Padding reducido para botones más pequeños */
     background: var(--white);
     color: var(--gray-700);
-    border: 1px solid transparent;
+    border: 1px dashed var(--white);
     border-radius: var(--border-radius);
     font-size: 0.75rem; /* Fuente más pequeña */
     font-weight: 600;
@@ -245,7 +245,7 @@ body {
     padding: var(--spacing-xs) var(--spacing-sm);
     font-size: 0.75rem;
     font-weight: 500;
-    border: 1px dashed var(--white);
+    border: 1px dashed var(--white) !important;
     border-radius: var(--border-radius);
     background: rgba(255,255,255,0.1);
     color: var(--white);
