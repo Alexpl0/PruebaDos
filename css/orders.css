@@ -662,3 +662,45 @@ main {
         overflow-y: auto; /* Permitir scroll si el contenido es muy alto */
     }
 }
+
+/* === ESTILOS PERSONALIZADOS PARA LA PAGINACIÓN (OPCIONAL) === */
+
+/* Contenedor principal de la paginación */
+#pagination-container {
+    margin-top: 2.5rem; /* Aumenta el espacio superior */
+    margin-bottom: 2rem; /* Añade espacio inferior */
+}
+
+/* Estilo de cada botón/link de la paginación */
+.pagination .page-item .page-link {
+    color: var(--grammer-blue); /* Color del texto del botón */
+    border-radius: 0.3rem;      /* Bordes ligeramente redondeados */
+    margin: 0 3px;              /* Espacio entre botones */
+    border: 1px solid #dee2e6;  /* Borde sutil */
+    transition: all 0.3s ease;  /* Transición suave para efectos */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* Efecto al pasar el cursor sobre un botón */
+.pagination .page-item .page-link:hover {
+    background-color: #e9ecef;      /* Color de fondo al pasar el cursor */
+    color: var(--grammer-dark-blue);/* Color de texto más oscuro */
+    transform: translateY(-2px);    /* Ligero efecto de levantamiento */
+}
+
+/* Estilo para el botón de la página activa */
+.pagination .page-item.active .page-link {
+    background-color: var(--grammer-blue);      /* Color de fondo principal */
+    border-color: var(--grammer-dark-blue);     /* Color del borde */
+    color: white;                               /* Color del texto */
+    z-index: 3;                                 /* Asegura que esté por encima de otros */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Estilo para los botones deshabilitados (primera/última página) */
+.pagination .page-item.disabled .page-link {
+    color: #6c757d;
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    box-shadow: none;
+}

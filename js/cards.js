@@ -1,34 +1,38 @@
 /**
- * Premium Freight - Card Functionality (Refactored)
- * Handles the creation and management of order cards using PF_CONFIG.
+ * Premium Freight - Card Functionality (Refactored for Pagination)
+ * Handles the creation and management of order cards.
  */
 
 import { getWeekNumber } from './utils.js';
-import { showModal } from './modals.js';
 import { showEvidenceUploadModal } from './modals.js';
 
 /**
- * Creates cards for each order and appends them to the DOM.
- * @param {Array} orders - Array of order objects.
+ * Creates cards for each order for the current page and appends them to the DOM.
+ * @param {Array} orders - Array of order objects for the current page.
  */
 export function createCards(orders) {
     const mainCards = document.getElementById("card");
     if (!mainCards) return;
 
-    mainCards.innerHTML = "";
-    window.originalOrders = orders.slice();
-    window.allOrders = orders;
+    mainCards.innerHTML = ""; // Clear previous cards
 
+    // If no orders, display a message
+    if (!orders || orders.length === 0) {
+        mainCards.innerHTML = '<p class="text-center text-muted mt-5">No orders found matching your criteria.</p>';
+        return;
+    }
+
+    // Sort orders for the current page
     orders.sort((a, b) => {
-        const getPriority = (status) => {
-            status = (status || '').toLowerCase();
-            if (status === 'nuevo' || status === '') return 1;
-            if (status === 'revision') return 2;
-            if (status === 'rechazado') return 3;
-            if (status === 'aprobado') return 4;
+        const getPriority = (statusId, statusName) => {
+            if (statusId == 99) return 1; // Highest priority for rejected
+            statusName = (statusName || '').toLowerCase();
+            if (statusName === 'nuevo' || statusName === '') return 2;
+            if (statusName === 'revision') return 3;
+            if (statusName === 'aprobado') return 4;
             return 5;
         };
-        return getPriority(a.status_name) - getPriority(b.status_name);
+        return getPriority(a.status_id, a.status_name) - getPriority(b.status_id, b.status_name);
     });
 
     orders.forEach(order => {
@@ -36,6 +40,7 @@ export function createCards(orders) {
         mainCards.appendChild(card);
     });
 
+    // Re-initialize tooltips for the new cards
     if (window.jQuery && $.fn.tooltip) {
         $('[data-bs-toggle="tooltip"]').tooltip();
     }
@@ -54,11 +59,20 @@ function createSingleCard(order) {
     card.style.cssText = "max-width: 265px; min-height: 250px; display: flex; flex-direction: column; justify-content: space-between; position: relative;";
 
     const statusName = (order.status_name || '').toLowerCase();
-    if (statusName === "aprobado") card.style.backgroundColor = "#449843";
-    else if (statusName === "nuevo") card.style.backgroundColor = "#F5F5F5";
-    else if (statusName === "revision") card.style.backgroundColor = "#F5F28B";
-    else if (statusName === "rechazado") card.style.backgroundColor = "#EC5854";
-    else card.style.backgroundColor = "#FFFFFF";
+
+    // --- Lógica de Color de la Tarjeta ---
+    // Se da prioridad al status_id = 99 para el color rojo.
+    if (order.status_id == 99) {
+        card.style.backgroundColor = "#EC5854"; // Rojo para Rechazado
+    } else if (statusName === "aprobado") {
+        card.style.backgroundColor = "#449843"; // Verde para Aprobado
+    } else if (statusName === "revision") {
+        card.style.backgroundColor = "#F5F28B"; // Amarillo para Revisión
+    } else if (statusName === "nuevo") {
+        card.style.backgroundColor = "#F5F5F5"; // Gris claro para Nuevo
+    } else {
+        card.style.backgroundColor = "#FFFFFF"; // Color por defecto
+    }
 
     const needsEvidence = order.recovery_file && !order.recovery_evidence;
     const falta = getApprovalStatusMessage(order);
@@ -97,10 +111,11 @@ function createSingleCard(order) {
  * @returns {string} Status message.
  */
 function getApprovalStatusMessage(order) {
+    if (order.status_id == 99) return 'Order Rejected';
+    
     const approvalStatus = Number(order.approval_status);
     const requiredAuthLevel = Number(order.required_auth_level || 7);
 
-    if (approvalStatus === 99) return 'Order Rejected';
     if (approvalStatus >= requiredAuthLevel) return 'Fully Approved';
 
     switch (approvalStatus) {
@@ -139,19 +154,9 @@ function attachCardEventListeners() {
 }
 
 /**
- * Sets up search functionality.
+ * Gets the search input element from the DOM.
+ * @returns {HTMLElement|null}
  */
-export function setupSearch() {
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            const query = searchInput.value.trim().toLowerCase();
-            const orders = window.originalOrders || [];
-            const filtered = query ? orders.filter(order => 
-                String(order.id).toLowerCase().includes(query) || 
-                (order.description || '').toLowerCase().includes(query)
-            ) : orders;
-            createCards(filtered);
-        });
-    }
+export function getSearchInput() {
+    return document.getElementById('searchInput');
 }
