@@ -51,7 +51,7 @@ require_once 'dao/users/context_injector.php';
 </head>
 <body>
     <div class="bulk-container">
-        <!-- ===== PROFESSIONAL HEADER ===== -->
+        <!-- ===== PROFESSIONAL HEADER (RESTAURADO) ===== -->
         <header class="bulk-header">
             <div class="bulk-header-content">
                 <div class="header-left">
@@ -64,7 +64,6 @@ require_once 'dao/users/context_injector.php';
                 </div>
                 <div class="header-right">
                     <div class="bulk-actions-header">
-                        <!-- Botón "Back" es un enlace, los demás son botones para JS -->
                         <a href="orders.php" class="bulk-action-btn btn-back">
                             <i class="fas fa-arrow-left"></i>
                             Back
