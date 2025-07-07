@@ -143,7 +143,7 @@ require_once 'dao/users/context_injector.php';
             </div>
         </div> 
     </main>
-
+ 
     <footer class="text-center py-3">
         <p>© 2025 Grammer. All rights reserved.</p>
     </footer>
