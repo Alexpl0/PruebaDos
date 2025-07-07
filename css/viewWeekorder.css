@@ -98,7 +98,7 @@ body {
 
 /* ===== PANEL DE ACCIONES BULK (CORREGIDO A FILA) ===== */
 .bulk-actions-header {
-    display: flex;
+    display: contents;
     flex-direction: row;
     align-items: center;
     justify-content: center;
@@ -112,6 +112,7 @@ body {
 }
 
 .bulk-action-btn {
+    margin: 0;
     display: flex;
     align-items: center;
     justify-content: center;
