@@ -141,7 +141,7 @@ require_once 'dao/users/context_injector.php';
                     </a>
                 </div>
             </div>
-        </div>
+        </div> 
     </main>
 
     <footer class="text-center py-3">
