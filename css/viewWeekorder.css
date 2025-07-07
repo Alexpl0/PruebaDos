@@ -9,17 +9,17 @@
 
 html {
     font-size: 16px;
-    scroll-behavior: smooth;  /* Scrolling suave para navegación */
+    scroll-behavior: smooth;
 }
 
 body {
-    font-family: var(--font-primary); /* Usando la variable de fuente centralizada */
+    font-family: var(--font-primary);
     line-height: 1.6;
     color: var(--gray-800);
     background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
     min-height: 100vh;
-    -webkit-font-smoothing: antialiased;  /* Mejorar renderizado de fuentes en WebKit */
-    -moz-osx-font-smoothing: grayscale;   /* Mejorar renderizado de fuentes en Firefox */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* ===== CONTENEDOR PRINCIPAL BULK ===== */
@@ -42,7 +42,6 @@ body {
     overflow: hidden;
 }
 
-/* Patrón de fondo decorativo para el header */
 .bulk-header::before {
     content: '';
     position: absolute;
@@ -113,22 +112,15 @@ body {
     display: flex;
     align-items: center;
     gap: var(--spacing-md);
-    flex-grow: 1; /* Permite que el contenedor derecho crezca */
 }
 
-/* ===== PANEL DE ACCIONES BULK ===== */
+/* ===== PANEL DE ACCIONES BULK (CORREGIDO) ===== */
 .bulk-actions-header {
     display: flex;
-    align-items: center;
-    justify-content: center; /* CENTRADO HORIZONTAL */
-    flex-wrap: wrap;
-    gap: var(--spacing-md);
-    background: rgba(255,255,255,0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: var(--border-radius);
-    padding: var(--spacing-sm) var(--spacing-md);
-    width: 100%; /* Ocupa todo el espacio de .header-right */
+    flex-direction: column; /* Apila los botones verticalmente */
+    align-items: center;    /* Centra los botones en la columna */
+    gap: 0.5rem;            /* Reduce el espacio entre botones */
+    padding: var(--spacing-sm) 0;
 }
 
 .bulk-action-btn {
@@ -147,8 +139,9 @@ body {
     transition: var(--transition-normal);
     cursor: pointer;
     box-shadow: var(--shadow-sm);
-    min-width: 90px;
     height: 36px;
+    width: 100%;
+    max-width: 150px; /* Ancho máximo solicitado */
 }
 
 .bulk-action-btn:hover {
@@ -187,7 +180,6 @@ body {
     color: var(--white);
 }
 
-/* ESTILO PARA EL NUEVO BOTÓN DE REGRESAR */
 .btn-back {
     background: var(--gray-500);
     color: var(--white);
@@ -226,7 +218,6 @@ body {
     transform: translateY(-2px);
 }
 
-/* Estados visuales de las tarjetas */
 .order-card.processed {
     opacity: 0.6;
     transform: scale(0.98);
@@ -279,7 +270,6 @@ body {
     color: var(--white);
 }
 
-/* Estilos específicos para botones de orden */
 .btn-approve-order {
     background: var(--success);
     border-color: var(--success);
@@ -342,34 +332,6 @@ body {
     transition: var(--transition-normal);
 }
 
-/* ===== INDICADORES DE ESTADO ===== */
-.status-indicator {
-    position: absolute;
-    top: var(--spacing-sm);
-    right: var(--spacing-sm);
-    padding: var(--spacing-xs) var(--spacing-sm);
-    border-radius: 9999px;
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.status-approved {
-    background: var(--success);
-    color: var(--white);
-}
-
-.status-rejected {
-    background: var(--danger);
-    color: var(--white);
-}
-
-.status-pending {
-    background: var(--warning);
-    color: var(--white);
-}
-
 /* ===== PANEL FLOTANTE DE RESUMEN ===== */
 .floating-summary {
     position: fixed;
@@ -399,19 +361,6 @@ body {
 }
 
 /* ===== ESTADOS DE CARGA ===== */
-.loading-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255,255,255,0.8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-}
-
 .loading-spinner {
     width: 40px;
     height: 40px;
@@ -435,12 +384,12 @@ body {
     
     .bulk-header-content {
         flex-direction: column;
-        align-items: flex-start;
-        gap: var(--spacing-sm);
+        align-items: stretch;
+        gap: var(--spacing-lg);
     }
     
     .bulk-actions-header {
-        justify-content: flex-start; /* Alinea a la izquierda en móvil */
+        align-items: center;
     }
     
     .floating-summary {
@@ -452,28 +401,25 @@ body {
 }
 
 /* --- ESTILOS VISUALES PARA ÓRDENES PROCESADAS --- */
-
-/* Cambia el color del encabezado según la acción (aprobado/rechazado) */
 .order-header.header-approved {
-    background: linear-gradient(90deg, var(--success), #16a34a); /* Usando la variable --success */
+    background: linear-gradient(90deg, var(--success), #16a34a);
 }
 
 .order-header.header-rejected {
-    background: linear-gradient(90deg, var(--danger), #e11d48); /* Usando la variable --danger */
+    background: linear-gradient(90deg, var(--danger), #e11d48);
 }
 
-/* Estilo para la nueva insignia de estado que aparece junto al título */
 .order-title .status-badge {
     display: inline-block;
     margin-left: 1rem;
     padding: 0.2rem 0.6rem;
     font-size: 0.8rem;
     font-weight: 700;
-    color: var(--grammer-blue); /* Color del texto de la insignia */
-    background-color: var(--white); /* Fondo blanco para que resalte */
-    border-radius: 9999px; /* Para hacerlo una píldora */
+    color: var(--grammer-blue);
+    background-color: var(--white);
+    border-radius: 9999px;
     vertical-align: middle;
-    text-transform: uppercase; /* Para que se vea más como una etiqueta */
+    text-transform: uppercase;
     letter-spacing: 0.05em;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* Sombra sutil */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }

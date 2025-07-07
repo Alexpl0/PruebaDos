@@ -29,7 +29,7 @@ require_once 'dao/users/context_injector.php';
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/viewWeekorder.css"> <!-- Se cambió para coincidir con el otro archivo -->
+    <link rel="stylesheet" href="css/viewWeekorder.css">
 
     <!-- ================== SISTEMA DE CONTEXTO CENTRALIZADO ================== -->
     <?php
@@ -68,8 +68,8 @@ require_once 'dao/users/context_injector.php';
                 </div>
                 <div class="header-right">
                     <div class="bulk-actions-header">
-                        <!-- BOTÓN DE REGRESAR AÑADIDO -->
-                        <a href="home.php" class="bulk-action-btn btn-back">
+                        <!-- Botón "Back" es un enlace, los demás son botones para JS -->
+                        <a href="orders.php" class="bulk-action-btn btn-back">
                             <i class="fas fa-arrow-left"></i>
                             Back
                         </a>
