@@ -1,0 +1,8 @@
+# Ignorar todo lo relacionado con la carpeta mailer
+mailer/
+
+# Ignorar archivo PFDB.php
+dao/db/PFDB.php
+
+# Ignorar archivo PFmailer.php
+mailer/PFMailer/PFmailer.php
