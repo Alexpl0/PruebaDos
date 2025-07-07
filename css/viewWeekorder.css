@@ -149,7 +149,6 @@ body {
     box-shadow: var(--shadow-sm);
     min-width: 90px;
     height: 36px;
-    max-width: 150px;
 }
 
 .bulk-action-btn:hover {

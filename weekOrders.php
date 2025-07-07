@@ -57,7 +57,7 @@ require_once 'dao/users/context_injector.php';
                 <div class="header-left">
                     <div class="company-logo">
                         <i class="fas fa-truck-fast"></i>
-                        <span class="company-name">Grammer AG Actualizado</span>
+                        <span class="company-name">Grammer AG</span>
                     </div>
                     <div class="orders-info">
                         <h1 class="orders-title-main">Premium Freight Orders</h1>
@@ -68,17 +68,19 @@ require_once 'dao/users/context_injector.php';
                 </div>
                 <div class="header-right">
                     <div class="bulk-actions-header">
-                        <!-- CORRECCIÓN: Se añadió ID y se quitó onclick -->
+                        <!-- BOTÓN DE REGRESAR AÑADIDO -->
+                        <a href="home.php" class="bulk-action-btn btn-back">
+                            <i class="fas fa-arrow-left"></i>
+                            Back
+                        </a>
                         <button id="approve-all-btn" class="bulk-action-btn btn-approve-all">
                             <i class="fas fa-check-double"></i>
                             Approve All
                         </button>
-                        <!-- CORRECCIÓN: Se añadió el botón de rechazar con su ID -->
                         <button id="reject-all-btn" class="bulk-action-btn btn-reject-all">
                             <i class="fas fa-times-circle"></i>
                             Reject All
                         </button>
-                        <!-- CORRECCIÓN: Se añadió ID y se quitó onclick (si se quiere manejar por JS) -->
                         <button id="download-all-btn" class="bulk-action-btn btn-download-all">
                             <i class="fas fa-download"></i>
                             Download All
@@ -89,7 +91,6 @@ require_once 'dao/users/context_injector.php';
         </header>
 
         <!-- ===== GRID PRINCIPAL DE ÓRDENES ===== -->
-        <!-- CORRECCIÓN: Se cambió el id a "orders-grid" -->
         <main class="orders-grid" id="orders-grid">
             <div class="loading-spinner-container">
                 <div class="loading-spinner"></div>
