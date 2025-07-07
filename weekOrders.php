@@ -51,24 +51,12 @@ require_once 'dao/users/context_injector.php';
 </head>
 <body>
     <div class="bulk-container">
-        <!-- ===== PROFESSIONAL HEADER ===== -->
+        <!-- ===== PROFESSIONAL HEADER (SIMPLIFICADO) ===== -->
         <header class="bulk-header">
             <div class="bulk-header-content">
-                <div class="header-left">
-                    <div class="company-logo">
-                        <i class="fas fa-truck-fast"></i>
-                        <span class="company-name">Grammer AG</span>
-                    </div>
-                    <div class="orders-info">
-                        <h1 class="orders-title-main">Premium Freight Orders</h1>
-                        <p class="orders-subtitle">
-                            Orders pending approval by <?php echo htmlspecialchars($appContextForJS['user']['name']); ?>
-                        </p>
-                    </div>
-                </div>
+                <!-- SE ELIMINÓ .header-left PARA UN DISEÑO MÁS LIMPIO -->
                 <div class="header-right">
                     <div class="bulk-actions-header">
-                        <!-- Botón "Back" es un enlace, los demás son botones para JS -->
                         <a href="orders.php" class="bulk-action-btn btn-back">
                             <i class="fas fa-arrow-left"></i>
                             Back
