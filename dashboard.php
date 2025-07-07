@@ -27,6 +27,7 @@ require_once 'dao/users/context_injector.php';
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    
 
     <!-- ================== CSS LOCAL ================== -->
     <link rel="stylesheet" href="css/header.css">
@@ -110,16 +111,19 @@ require_once 'dao/users/context_injector.php';
             </div>
         </div>
         
-        <!-- Contenedores de Gráficos (sin cambios) -->
+        <!-- KPIs principales -->
         <div class="row mb-4" id="filterscards">
             <div class="col-md-3"><div class="card bg-primary text-white"><div class="card-body"><h5 class="card-title">Total Shipments</h5><h2 id="kpiTotalEnvios" class="display-4">0</h2></div></div></div>
             <div class="col-md-3"><div class="card bg-success text-white"><div class="card-body"><h5 class="card-title">Total Cost (€)</h5><h2 id="kpiCostoTotal" class="display-4">0</h2></div></div></div>
             <div class="col-md-3"><div class="card bg-info text-white"><div class="card-body"><h5 class="card-title">Approval %</h5><h2 id="kpiApprovalRate" class="display-4">0%</h5></div></div></div>
             <div class="col-md-3"><div class="card bg-warning text-dark"><div class="card-body"><h5 class="card-title">Recovery %</h5><h2 id="kpiRecoveryRate" class="display-4">0%</h2></div></div></div>
         </div>
+
         <div class="row mb-4">
             <div class="col-md-12"><div class="card"><div class="card-body"><h5 class="card-title">Detailed KPIs</h5><div class="row" id="detailedKPIs"><div class="col-md-3 col-sm-6 mb-3"><div class="card stats-card border-primary"><div class="card-body p-3"><div class="title">Average Cost</div><div class="value" id="kpiAvgCost">€0</div></div></div></div><div class="col-md-3 col-sm-6 mb-3"><div class="card stats-card border-success"><div class="card-body p-3"><div class="title">Internal/External Ratio</div><div class="value" id="kpiIntExtRatio">0:0</div></div></div></div><div class="col-md-3 col-sm-6 mb-3"><div class="card stats-card border-info"><div class="card-body p-3"><div class="title">Average Approval Time</div><div class="value" id="kpiAvgApprovalTime">0 days</div></div></div></div><div class="col-md-3 col-sm-6 mb-3"><div class="card stats-card border-warning"><div class="card-body p-3"><div class="title">Total Weight</div><div class="value" id="kpiTotalWeight">0 kg</div></div></div></div></div></div></div></div>
         </div>
+        
+        <!-- Gráficos -->
         <div class="row mb-4">
             <div class="col-md-6"><div class="card h-100"><div class="card-body"><h5 class="card-title">Distribution by Area and Type</h5><div id="chartAreaDistribution" style="height: 350px;"></div></div></div></div>
             <div class="col-md-6"><div class="card h-100"><div class="card-body"><h5 class="card-title">Payment Responsibility</h5><div class="row"><div class="col-md-8"><div id="chartPaidBy" style="height: 350px;"></div></div><div class="col-md-4"><div id="paidByStats" class="mt-4"></div></div></div></div></div></div>
@@ -153,19 +157,24 @@ require_once 'dao/users/context_injector.php';
     <!-- Bibliotecas JS -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Librerías de Gráficos y Fechas -->
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.35.0/dist/apexcharts.min.js"></script>
+    
+    <!-- Librerías de Mapas y Tablas -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/d3@7.4.4/dist/d3.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/d3-cloud@1.2.5/build/d3.layout.cloud.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-    
-    <!-- ===== NUEVAS LIBRERÍAS PARA EXPORTACIÓN ===== -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
+    <!-- ===== NUEVAS LIBRERÍAS PARA EXPORTACIÓN ===== -->
+    <!-- Librería para generar archivos de Excel (.xlsx) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Librería para generar archivos PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
     <!-- Archivos JS locales -->
     <script src="js/header.js"></script>
     <script type="module" src="js/dashboard.js"></script>

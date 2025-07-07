@@ -1,4 +1,7 @@
-/* === Archivo: js/charts/approval.js === */
+/**
+ * MÓDULO DE GRÁFICOS DE APROBACIÓN DE SOLICITUDES
+ * Muestra el tiempo promedio que tardan las solicitudes en ser aprobadas o rechazadas.
+ */
 import { getFilteredData } from '../dataDashboard.js';
 import { charts, chartColors, chartData } from '../configDashboard.js';
 
@@ -6,6 +9,7 @@ export function renderApprovalTimeChart() {
     const filteredData = getFilteredData();
     const approvalTimeData = [];
 
+    // Calcula la diferencia en días para cada registro
     filteredData.forEach(item => {
         if (item.date && item.approval_date && item.status_name) {
             const createDate = new Date(item.date);
@@ -16,6 +20,7 @@ export function renderApprovalTimeChart() {
         }
     });
 
+    // Calcula el promedio de días por estado
     const avgByStatus = {};
     const countByStatus = {};
     approvalTimeData.forEach(item => {
@@ -31,6 +36,7 @@ export function renderApprovalTimeChart() {
         avgByStatus[status] = avgByStatus[status] / countByStatus[status];
     }
 
+    // Ordena y traduce los estados para la gráfica
     const statusTranslation = { 'nuevo': 'New', 'revision': 'In Review', 'aprobado': 'Approved', 'rechazado': 'Rejected' };
     const statusOrder = ['New', 'In Review', 'Approved', 'Rejected'];
     const categories = [];
@@ -44,7 +50,7 @@ export function renderApprovalTimeChart() {
         }
     });
 
-    // --- ¡NUEVO! Guardar datos para exportación ---
+    // --- Guardar datos para la exportación a Excel ---
     chartData['approvalTime'] = {
         title: 'Average Approval Time',
         headers: ['Status', 'Average Time (Days)'],
@@ -54,6 +60,7 @@ export function renderApprovalTimeChart() {
         ])
     };
 
+    // Configuración de la gráfica
     const options = {
         chart: { type: 'bar', height: 350, id: 'approvalTime' },
         title: { text: 'Average Approval Time', align: 'left' },
@@ -64,6 +71,7 @@ export function renderApprovalTimeChart() {
         series: [{ name: 'Average Days', data: seriesData }]
     };
 
+    // Renderiza o actualiza la gráfica
     if (charts.approvalTime) {
         charts.approvalTime.updateOptions(options);
     } else {

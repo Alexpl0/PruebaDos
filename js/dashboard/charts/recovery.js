@@ -1,4 +1,7 @@
-/* === Archivo: js/charts/recovery.js === */
+/**
+ * MÓDULO DE VISUALIZACIÓN DE ARCHIVOS DE RECUPERACIÓN
+ * Muestra la distribución de registros según la presencia de archivos de recuperación y evidencias.
+ */
 import { getFilteredData } from '../dataDashboard.js';
 import { charts, chartColors, chartData } from '../configDashboard.js';
 
@@ -20,7 +23,7 @@ export function renderRecoveryFilesChart() {
     const labels = filteredChartData.map(item => item.name);
     const series = filteredChartData.map(item => item.value);
 
-    // --- ¡NUEVO! Guardar datos para exportación ---
+    // --- Guardar datos para la exportación a Excel ---
     chartData['recoveryFiles'] = {
         title: 'Recovery Files Status',
         headers: ['Documentation Status', 'Number of Shipments'],
@@ -32,7 +35,7 @@ export function renderRecoveryFilesChart() {
         title: { text: 'Recovery Files Status', align: 'left' },
         labels: labels,
         series: series,
-        colors: ['#4CAF50', '#FFB74D', '#2196F3', '#E53935'],
+        colors: ['#FFB74D', '#2196F3', '#4CAF50', '#E53935'],
         legend: { position: 'bottom' }
     };
 

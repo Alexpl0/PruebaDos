@@ -1,4 +1,8 @@
-/* === Archivo: js/charts/areaDistribution.js === */
+/**
+ * MÓDULO DE VISUALIZACIÓN DE DISTRIBUCIÓN POR ÁREA
+ * Genera un gráfico de barras apiladas que muestra la distribución de envíos
+ * por área y tipo (interno, externo, etc.).
+ */
 import { getFilteredData } from '../dataDashboard.js';
 import { charts, chartColors, chartData } from '../configDashboard.js';
 
@@ -6,6 +10,7 @@ export function renderAreaDistributionChart() {
     const filteredData = getFilteredData();
     const areaData = {};
 
+    // Agrupa los datos por área y tipo de envío
     filteredData.forEach(item => {
         const area = item.area || 'Unspecified';
         const intExt = item.int_ext || 'Unspecified';
@@ -27,7 +32,7 @@ export function renderAreaDistributionChart() {
     const external = areas.map(area => areaData[area].EXTERNAL);
     const other = areas.map(area => areaData[area].other);
 
-    // --- ¡NUEVO! Guardar datos para exportación ---
+    // --- Guardar datos para la exportación a Excel ---
     chartData['areaDistribution'] = {
         title: 'Distribution by Area',
         headers: ['Area', 'Internal Shipments', 'External Shipments', 'Other Shipments'],
@@ -39,6 +44,7 @@ export function renderAreaDistributionChart() {
         ])
     };
 
+    // Configuración de la gráfica
     const options = {
         chart: { type: 'bar', height: 350, stacked: true, id: 'areaDistribution' },
         title: { text: 'Distribution by Area and Type', align: 'left' },
@@ -57,6 +63,7 @@ export function renderAreaDistributionChart() {
         ]
     };
 
+    // Renderiza o actualiza la gráfica
     if (charts.areaDistribution) {
         charts.areaDistribution.updateOptions(options);
     } else {

@@ -67,7 +67,7 @@ try {
     $encryptedPassword = PasswordManager::prepareForStorage($password);
     
     // Insertar nuevo usuario con valores por defecto
-    $stmt = $conex->prepare("INSERT INTO `User` (name, email, plant, role, password, authorization_level) VALUES (?, ?, ?, 'User', ?, 0)");
+    $stmt = $conex->prepare("INSERT INTO `User` (name, email, plant, role, password, authorization_level) VALUES (?, ?, ?, 'Worker', ?, 0)");
     $stmt->bind_param("ssss", $name, $email, $plant, $encryptedPassword);
     
     if ($stmt->execute()) {

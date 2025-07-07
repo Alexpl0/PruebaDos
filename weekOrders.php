@@ -57,7 +57,7 @@ require_once 'dao/users/context_injector.php';
                 <div class="header-left">
                     <div class="company-logo">
                         <i class="fas fa-truck-fast"></i>
-                        <span class="company-name">Grammer AG</span>
+                        <span class="company-name">Grammer AG Actualizado</span>
                     </div>
                     <div class="orders-info">
                         <h1 class="orders-title-main">Premium Freight Orders</h1>

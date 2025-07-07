@@ -1,4 +1,7 @@
-/* === Archivo: js/charts/products.js === */
+/**
+ * MÓDULO DE VISUALIZACIÓN DE PRODUCTOS
+ * Muestra los 10 productos con más incidentes en un gráfico de barras horizontales.
+ */
 import { getFilteredData } from '../dataDashboard.js';
 import { charts, chartColors, chartData } from '../configDashboard.js';
 
@@ -14,7 +17,7 @@ export function renderProductsChart() {
     const categories = topProducts.map(([product, _]) => product === 'Sin especificar' ? 'Unspecified' : product);
     const data = topProducts.map(([_, count]) => count);
 
-    // --- ¡NUEVO! Guardar datos para exportación ---
+    // --- Guardar datos para la exportación a Excel ---
     chartData['topProducts'] = {
         title: 'Top 10 Products by Incidents',
         headers: ['Product', 'Number of Incidents'],

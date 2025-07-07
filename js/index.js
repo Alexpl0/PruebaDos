@@ -1,13 +1,12 @@
 /**
  * index.js (Completo y Refactorizado)
- * Handles login functionality for the Premium Freight application.
- * Reads configuration from window.PF_CONFIG.
+ * Handles login and verification resend functionality.
  */
 document.addEventListener('DOMContentLoaded', function() {
+    // ... (el resto del DOMContentLoaded se mantiene igual)
     const btnLogin = document.getElementById('btnLogin');
     if (btnLogin) btnLogin.disabled = true;
 
-    // Carga diferida de PasswordManager para no bloquear el renderizado
     if (typeof PasswordManager === 'undefined') {
         const script = document.createElement('script');
         script.src = 'js/PasswordManager.js';
@@ -17,7 +16,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (btnLogin) btnLogin.disabled = false;
     }
 
-    // Toggle para mostrar/ocultar contraseña
     const togglePassword = document.getElementById('togglePassword');
     const passwordInput = document.getElementById('password');
     togglePassword?.addEventListener('click', function() {
@@ -27,11 +25,32 @@ document.addEventListener('DOMContentLoaded', function() {
         this.classList.toggle('fa-eye-slash');
     });
 
-    // Evento de 'Enter' para iniciar sesión
     document.querySelectorAll('#email, #password').forEach(input => {
         input.addEventListener('keypress', e => { if (e.key === 'Enter') loginUsuario(); });
     });
 });
+
+/**
+ * NEW: Handles the logic to resend a verification email.
+ * @param {string} email - The user's email address.
+ */
+async function resendVerificationEmail(email) {
+    try {
+        const URLPF = window.PF_CONFIG.app.baseURL;
+        const response = await fetch(`${URLPF}dao/users/daoLogin.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email, action: 'resend_verification' })
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Failed to resend email.');
+        }
+        return data; // Resolve the preConfirm promise in Swal
+    } catch (error) {
+        Swal.showValidationMessage(`Request failed: ${error.message}`);
+    }
+}
 
 async function loginUsuario() {
     const emailInput = document.getElementById('email');
@@ -45,31 +64,51 @@ async function loginUsuario() {
         return Swal.fire('Warning', 'Please enter email and password.', 'warning');
     }
 
-    // --- NUEVA VALIDACIÓN DE EMAIL ---
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
         return Swal.fire('Invalid Email', 'Please enter a valid email address format.', 'error');
     }
-    // --- FIN DE LA VALIDACIÓN ---
     
     btnLogin.classList.add('loading');
     btnLogin.disabled = true;
     
-    // Leer la URL base desde el objeto de configuración global
     const URLPF = window.PF_CONFIG.app.baseURL;
 
     try {
         const response = await fetch(`${URLPF}dao/users/daoLogin.php`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify({ email, password, action: 'login' })
         });
 
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-        
         const data = await response.json();
         
-        if (data.success && data.user) {
+        if (!response.ok) {
+            // NUEVO: Manejo específico para usuario no verificado
+            if (response.status === 403) {
+                Swal.fire({
+                    title: 'Account Not Verified',
+                    text: data.message,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Resend Verification',
+                    cancelButtonText: 'Close',
+                    confirmButtonColor: '#3085d6',
+                    showLoaderOnConfirm: true,
+                    preConfirm: () => {
+                        return resendVerificationEmail(email);
+                    },
+                    allowOutsideClick: () => !Swal.isLoading()
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                         Swal.fire('Sent!', 'A new verification email has been sent to your address.', 'success');
+                    }
+                });
+            } else {
+                // Otros errores HTTP (401, 404, etc.)
+                throw new Error(data.message || `HTTP error! Status: ${response.status}`);
+            }
+        } else if (data.success && data.user) {
             await Swal.fire({
                 icon: 'success', title: 'Login Successful!', text: `Welcome back, ${data.user.name}!`,
                 timer: 1500, showConfirmButton: false

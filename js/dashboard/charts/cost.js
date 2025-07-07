@@ -1,4 +1,7 @@
-/* === Archivo: js/charts/cost.js === */
+/**
+ * MÓDULO DE ANÁLISIS Y VISUALIZACIÓN DE COSTOS
+ * Contiene gráficos para categorías de costos y responsabilidad de pago.
+ */
 import { getFilteredData } from '../dataDashboard.js';
 import { charts, chartColors, chartData } from '../configDashboard.js';
 import { formatNumber } from '../utilsDashboard.js';
@@ -18,7 +21,7 @@ export function renderCostCategoriesChart() {
     const labels = Object.keys(costCategories);
     const series = Object.values(costCategories);
 
-    // --- ¡NUEVO! Guardar datos para exportación ---
+    // --- Guardar datos para la exportación a Excel ---
     chartData['costCategories'] = {
         title: 'Cost Categories',
         headers: ['Cost Category', 'Number of Shipments'],
@@ -47,14 +50,12 @@ export function renderPaidByChart() {
     const filteredData = getFilteredData();
     const paidByData = {};
     const costByPayer = {};
-
     const translations = { 'Sin especificar': 'Unspecified', 'Cliente': 'Customer', 'Proveedor': 'Supplier', 'Interno': 'Internal' };
 
     filteredData.forEach(item => {
         const paidByRaw = item.paid_by || 'Sin especificar';
         const paidBy = translations[paidByRaw] || paidByRaw;
         const cost = parseFloat(item.cost_euros || 0);
-
         paidByData[paidBy] = (paidByData[paidBy] || 0) + 1;
         costByPayer[paidBy] = (costByPayer[paidBy] || 0) + cost;
     });
@@ -62,7 +63,7 @@ export function renderPaidByChart() {
     const labels = Object.keys(paidByData);
     const series = Object.values(paidByData);
 
-    // --- ¡NUEVO! Guardar datos para exportación ---
+    // --- Guardar datos para la exportación a Excel ---
     chartData['paidBy'] = {
         title: 'Payment Responsibility',
         headers: ['Payer', 'Number of Shipments', 'Total Cost (€)'],
@@ -89,7 +90,6 @@ export function renderPaidByChart() {
         charts.paidBy.render();
     }
     
-    // Render stats table
     const paidByStats = document.getElementById('paidByStats');
     if (paidByStats) {
         let statsHTML = '<ul class="list-group">';

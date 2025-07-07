@@ -1,4 +1,7 @@
-/* === Archivo: js/charts/topUserPlantOrders.js === */
+/**
+ * Gráfica de "Top Usuario y Planta por Órdenes Generadas"
+ * Muestra el usuario y la planta con más órdenes generadas.
+ */
 import { getFilteredData } from '../dataDashboard.js';
 import { charts, chartData } from '../configDashboard.js';
 
@@ -21,7 +24,7 @@ export function renderTopUserPlantOrdersChart(containerId = 'topUserPlantOrdersC
     const seriesData = [topUser[1], topPlant[1]];
     const labels = [topUser[0], topPlant[0]];
 
-    // --- Guardar datos para exportación ---
+    // --- Guardar datos para la exportación a Excel ---
     chartData['topUserPlant'] = {
         title: 'Top User and Plant by Orders',
         headers: ['Category', 'Name', 'Total Orders'],
@@ -51,4 +54,3 @@ export function renderTopUserPlantOrdersChart(containerId = 'topUserPlantOrdersC
         charts[containerId] = chart;
     }
 }
-

@@ -1,7 +1,16 @@
 /**
- * Approval module for the Premium Freight system (Refactored)
- * Ahora es autocontenido y lee directamente de `window.PF_CONFIG`.
+ * Approval module for the Premium Freight system (Refactored & Corrected)
+ *
+ * CORRECCIÓN:
+ * - Se importan las funciones `sendApprovalNotification` y `sendStatusNotification` desde mailer.js.
+ * - Después de una aprobación exitosa, se determina si es una aprobación intermedia o final.
+ * - Si es intermedia, se llama a `sendApprovalNotification` para notificar al siguiente aprobador.
+ * - Si es final, se llama a `sendStatusNotification` para notificar al creador.
+ * - Después de un rechazo exitoso, se llama a `sendStatusNotification` para notificar al creador.
+ * - AÑADIDO: Se muestra un modal de carga con Swal.fire mientras se procesan las aprobaciones y rechazos.
  */
+
+import { sendApprovalNotification, sendStatusNotification } from './mailer.js'; // <-- IMPORTANTE: Importamos el mailer
 
 let isProcessing = false;
 
@@ -15,7 +24,6 @@ export async function approveOrder(orderId, options = {}) {
     if (isProcessing) return { success: false, message: 'Processing' };
     isProcessing = true;
     
-    // Obtener URLs y datos de usuario desde la configuración global.
     const URLPF = window.PF_CONFIG.app.baseURL;
     const user = window.PF_CONFIG.user;
 
@@ -36,12 +44,21 @@ export async function approveOrder(orderId, options = {}) {
             if (!isConfirmed) return { success: false, message: 'User cancelled' };
         }
 
-        // --- CORRECCIÓN AQUÍ ---
-        // Se añade 'userLevel' para que coincida con lo que el backend espera.
+        // --- INICIO DE MODAL DE CARGA ---
+        Swal.fire({
+            title: 'Procesando Aprobación...',
+            html: `Por favor espere mientras se actualiza y notifica la orden <strong>#${selectedOrder.id}</strong>.`,
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        // --- FIN DE MODAL DE CARGA ---
+
         const updateData = {
             orderId: selectedOrder.id,
             newStatusId: user.authorizationLevel,
-            userLevel: user.authorizationLevel, // <-- CAMPO AÑADIDO
+            userLevel: user.authorizationLevel,
             userID: user.id,
             authDate: new Date().toISOString().slice(0, 19).replace('T', ' ')
         };
@@ -53,7 +70,22 @@ export async function approveOrder(orderId, options = {}) {
         const result = await response.json();
         if (!result.success) throw new Error(result.message || 'Error updating approval level.');
 
-        Swal.fire({ icon: 'success', title: 'Order Approved!', text: `Order #${selectedOrder.id} approved.`, timer: 2000, timerProgressBar: true });
+        // --- INICIO DE LA LÓGICA DE CORREO ---
+        const newApprovalLevel = Number(user.authorizationLevel);
+        const maxRequiredLevel = Number(selectedOrder.required_auth_level || 7);
+
+        if (newApprovalLevel >= maxRequiredLevel) {
+            // Aprobación final: notificar al creador.
+            console.log(`Final approval for order #${selectedOrder.id}. Notifying creator.`);
+            await sendStatusNotification(selectedOrder.id, 'approved');
+        } else {
+            // Aprobación intermedia: notificar al siguiente en la línea.
+            console.log(`Intermediate approval for order #${selectedOrder.id}. Notifying next approver.`);
+            await sendApprovalNotification(selectedOrder.id);
+        }
+        // --- FIN DE LA LÓGICA DE CORREO ---
+
+        Swal.fire({ icon: 'success', title: 'Order Approved!', text: `Order #${selectedOrder.id} approved. Notification sent.`, timer: 2500, timerProgressBar: true });
         return { success: true, order: selectedOrder };
 
     } catch (error) {
@@ -98,12 +130,21 @@ export async function rejectOrder(orderId, rejectionReason = null, options = {})
         }
         if (!reason) return { success: false, message: 'Reason is required' };
 
-        // --- CORRECCIÓN AQUÍ ---
-        // Se añade 'userLevel' para que coincida con lo que el backend espera.
+        // --- INICIO DE MODAL DE CARGA ---
+        Swal.fire({
+            title: 'Procesando Rechazo...',
+            html: `Por favor espere mientras se actualiza y notifica la orden <strong>#${selectedOrder.id}</strong>.`,
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        // --- FIN DE MODAL DE CARGA ---
+
         const updateData = {
             orderId: selectedOrder.id, 
             newStatusId: 99, 
-            userLevel: user.authorizationLevel, // <-- CAMPO AÑADIDO
+            userLevel: user.authorizationLevel,
             userID: user.id,
             authDate: new Date().toISOString().slice(0, 19).replace('T', ' '),
             rejection_reason: reason
@@ -116,7 +157,13 @@ export async function rejectOrder(orderId, rejectionReason = null, options = {})
         const result = await response.json();
         if (!result.success) throw new Error(result.message || 'Error updating status to rejected.');
 
-        Swal.fire({ icon: 'success', title: 'Order Rejected', text: `Order #${selectedOrder.id} has been rejected.`, timer: 2000, timerProgressBar: true });
+        // --- INICIO DE LA LÓGICA DE CORREO ---
+        console.log(`Order #${selectedOrder.id} rejected. Notifying creator.`);
+        const rejectorInfo = { name: user.name, reason: reason };
+        await sendStatusNotification(selectedOrder.id, 'rejected', rejectorInfo);
+        // --- FIN DE LA LÓGICA DE CORREO ---
+
+        Swal.fire({ icon: 'success', title: 'Order Rejected', text: `Order #${selectedOrder.id} has been rejected. Notification sent.`, timer: 2500, timerProgressBar: true });
         return { success: true, order: selectedOrder };
 
     } catch (error) {

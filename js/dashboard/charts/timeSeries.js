@@ -1,4 +1,7 @@
-/* === Archivo: js/charts/timeSeries.js === */
+/**
+ * MÓDULO DE VISUALIZACIÓN DE SERIES TEMPORALES Y CORRELACIONES
+ * Contiene gráficos para tendencias temporales y correlación peso vs. costo.
+ */
 import { getFilteredData } from '../dataDashboard.js';
 import { charts, chartColors, chartData } from '../configDashboard.js';
 import { formatNumber } from '../utilsDashboard.js';
@@ -37,7 +40,7 @@ export function renderTimeSeriesChart() {
     const externalData = sortedMonths.map(ym => monthlyData[ym].externalCount);
     const costData = sortedMonths.map(ym => monthlyData[ym].cost);
 
-    // --- Guardar datos para exportación ---
+    // --- Guardar datos para la exportación a Excel ---
     chartData['timeSeries'] = {
         title: 'Shipments and Cost Trend',
         headers: ['Month', 'Internal Shipments', 'External Shipments', 'Total Cost (€)'],
@@ -108,7 +111,7 @@ export function renderCorrelationChart() {
         }))
     }));
 
-    // --- Guardar datos para exportación ---
+    // --- Guardar datos para la exportación a Excel ---
     chartData['correlation'] = {
         title: 'Weight vs Cost Correlation',
         headers: ['ID', 'Weight (kg)', 'Cost (€)', 'Transport', 'Description'],

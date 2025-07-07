@@ -1,4 +1,7 @@
-/* === Archivo: js/charts/causes.js === */
+/**
+ * MÓDULO DE ANÁLISIS DE PARETO PARA CAUSAS DE INCIDENCIAS
+ * Muestra las principales causas de incidencias y su porcentaje acumulativo.
+ */
 import { getFilteredData } from '../dataDashboard.js';
 import { charts, chartColors, chartData } from '../configDashboard.js';
 import { formatNumber } from '../utilsDashboard.js';
@@ -11,6 +14,7 @@ export function renderCausesChart() {
         causesData[cause] = (causesData[cause] || 0) + 1;
     });
 
+    // Ordena y limita a las 10 causas principales
     const sortedCauses = Object.entries(causesData).sort((a, b) => b[1] - a[1]).slice(0, 10);
     const total = sortedCauses.reduce((sum, [_, count]) => sum + count, 0);
     let cumulative = 0;
@@ -26,7 +30,7 @@ export function renderCausesChart() {
         cumulativePercentage.push((cumulative / total) * 100);
     });
 
-    // --- ¡NUEVO! Guardar datos para exportación ---
+    // --- Guardar datos para la exportación a Excel ---
     chartData['causesPareto'] = {
         title: 'Pareto Analysis Causes',
         headers: ['Cause', 'Incidents Count', 'Cumulative %'],
@@ -37,6 +41,7 @@ export function renderCausesChart() {
         ])
     };
 
+    // Configuración de la gráfica
     const options = {
         chart: { type: 'line', height: 350, stacked: false, id: 'causes' },
         title: { text: 'Pareto Analysis: Main Causes', align: 'center' },
@@ -55,6 +60,7 @@ export function renderCausesChart() {
         ]
     };
 
+    // Renderiza o actualiza la gráfica
     if (charts.causes) {
         charts.causes.updateOptions(options);
     } else {
