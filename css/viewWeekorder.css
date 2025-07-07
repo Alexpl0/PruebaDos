@@ -245,13 +245,15 @@ body {
     padding: var(--spacing-xs) var(--spacing-sm);
     font-size: 0.75rem;
     font-weight: 500;
-    border: 1px solid rgba(255,255,255,0.3);
+    border: 1px dashed var(--white);
     border-radius: var(--border-radius);
     background: rgba(255,255,255,0.1);
     color: var(--white);
     text-decoration: none;
     transition: var(--transition-fast);
     cursor: pointer;
+    width: 60px;
+    justify-content: center;
 }
 
 .order-action-btn:hover {
