@@ -1,6 +1,6 @@
 /**
- * Premium Freight - Card Functionality (Refactored for Pagination)
- * Handles the creation and management of order cards.
+ * Premium Freight - Card Functionality (Corrected Logic)
+ * Handles the creation and management of order cards with correct status and color logic.
  */
 
 import { getWeekNumber } from './utils.js';
@@ -16,31 +16,17 @@ export function createCards(orders) {
 
     mainCards.innerHTML = ""; // Clear previous cards
 
-    // If no orders, display a message
     if (!orders || orders.length === 0) {
         mainCards.innerHTML = '<p class="text-center text-muted mt-5">No orders found matching your criteria.</p>';
         return;
     }
 
-    // Sort orders for the current page
-    orders.sort((a, b) => {
-        const getPriority = (statusId, statusName) => {
-            if (statusId == 99) return 1; // Highest priority for rejected
-            statusName = (statusName || '').toLowerCase();
-            if (statusName === 'nuevo' || statusName === '') return 2;
-            if (statusName === 'revision') return 3;
-            if (statusName === 'aprobado') return 4;
-            return 5;
-        };
-        return getPriority(a.status_id, a.status_name) - getPriority(b.status_id, b.status_name);
-    });
-
+    // No sorting needed here as it's handled by the backend or can be done after creation if necessary.
     orders.forEach(order => {
         const card = createSingleCard(order);
         mainCards.appendChild(card);
     });
 
-    // Re-initialize tooltips for the new cards
     if (window.jQuery && $.fn.tooltip) {
         $('[data-bs-toggle="tooltip"]').tooltip();
     }
@@ -49,7 +35,7 @@ export function createCards(orders) {
 }
 
 /**
- * Creates a single order card.
+ * Creates a single order card with the correct color and status message.
  * @param {Object} order - Order data.
  * @returns {HTMLElement} The created card element.
  */
@@ -58,24 +44,27 @@ function createSingleCard(order) {
     card.className = "card shadow rounded mx-2 mb-4";
     card.style.cssText = "max-width: 265px; min-height: 250px; display: flex; flex-direction: column; justify-content: space-between; position: relative;";
 
-    const statusName = (order.status_name || '').toLowerCase();
+    // --- LÓGICA DE COLOR DE LA TARJETA (CORREGIDA) ---
+    const approvalStatus = Number(order.approval_status || 0);
+    const requiredLevel = Number(order.required_auth_level || 7);
 
-    // --- Lógica de Color de la Tarjeta ---
-    // Se da prioridad al status_id = 99 para el color rojo.
-    if (order.status_id == 99) {
-        card.style.backgroundColor = "#EC5854"; // Rojo para Rechazado
-    } else if (statusName === "aprobado") {
-        card.style.backgroundColor = "#449843"; // Verde para Aprobado
-    } else if (statusName === "revision") {
-        card.style.backgroundColor = "#F5F28B"; // Amarillo para Revisión
-    } else if (statusName === "nuevo") {
-        card.style.backgroundColor = "#F5F5F5"; // Gris claro para Nuevo
+    if (approvalStatus === 99) {
+        // Regla: Orden Rechazada -> Rojo
+        card.style.backgroundColor = "#EC5854";
+    } else if (approvalStatus >= requiredLevel) {
+        // Regla: Orden Completamente Aprobada -> Verde
+        card.style.backgroundColor = "#449843";
+    } else if (approvalStatus > 0) {
+        // Regla: En proceso de aprobación -> Amarillo
+        // (approvalStatus 1 es el primer nivel de aprobación, por lo tanto, ya está en proceso)
+        card.style.backgroundColor = "#F5F28B";
     } else {
-        card.style.backgroundColor = "#FFFFFF"; // Color por defecto
+        // Regla: Orden recién creada (approvalStatus es 0 o null) -> Blanco/Gris claro
+        card.style.backgroundColor = "#F5F5F5";
     }
 
     const needsEvidence = order.recovery_file && !order.recovery_evidence;
-    const falta = getApprovalStatusMessage(order);
+    const falta = getApprovalStatusMessage(order); // Obtiene el mensaje de estado
     
     let notificationBadge = '';
     if (needsEvidence) {
@@ -106,26 +95,30 @@ function createSingleCard(order) {
 }
 
 /**
- * Determines the approval status message to display.
+ * Determines the approval status message to display based on the business rules.
  * @param {Object} order - Order data.
  * @returns {string} Status message.
  */
 function getApprovalStatusMessage(order) {
-    if (order.status_id == 99) return 'Order Rejected';
+    const approvalStatus = Number(order.approval_status || 0);
+    const requiredLevel = Number(order.required_auth_level || 7);
+
+    // Regla: Orden Rechazada
+    if (approvalStatus === 99) return 'Order Rejected';
     
-    const approvalStatus = Number(order.approval_status);
-    const requiredAuthLevel = Number(order.required_auth_level || 7);
+    // Regla: Orden Completamente Aprobada
+    if (approvalStatus >= requiredLevel) return 'Fully Approved';
 
-    if (approvalStatus >= requiredAuthLevel) return 'Fully Approved';
-
+    // Regla: Pendiente de aprobación (muestra el siguiente nivel requerido)
+    // El 'approvalStatus' actual indica el último nivel aprobado. El siguiente es 'approvalStatus + 1'.
     switch (approvalStatus) {
-        case 0: return 'Pending: Logistics Manager';
-        case 1: return 'Pending: Controlling';
-        case 2: return 'Pending: Plant Manager';
-        case 3: return 'Pending: Senior Logistics Manager';
-        case 4: return 'Pending: Manager OPS Division';
-        case 5: return 'Pending: SR VP Regional';
-        case 6: return 'Pending: Regional Division Controlling';
+        case 0: return 'Pending: Logistics Manager'; // Nivel 1
+        case 1: return 'Pending: Controlling';       // Nivel 2
+        case 2: return 'Pending: Plant Manager';     // Nivel 3
+        case 3: return 'Pending: Senior Logistics Manager'; // Nivel 4
+        case 4: return 'Pending: Manager OPS Division'; // Nivel 5
+        case 5: return 'Pending: SR VP Regional';       // Nivel 6
+        case 6: return 'Pending: Regional Division Controlling'; // Nivel 7
         default: return `Pending: Level ${approvalStatus + 1}`;
     }
 }
