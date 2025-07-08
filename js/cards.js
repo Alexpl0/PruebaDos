@@ -21,14 +21,17 @@ export function createCards(orders) {
         return;
     }
 
-    // No sorting needed here as it's handled by the backend or can be done after creation if necessary.
     orders.forEach(order => {
         const card = createSingleCard(order);
         mainCards.appendChild(card);
     });
 
-    if (window.jQuery && $.fn.tooltip) {
-        $('[data-bs-toggle="tooltip"]').tooltip();
+    // Initialize Bootstrap tooltips after cards are created
+    if (window.bootstrap && bootstrap.Tooltip) {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
     }
 
     attachCardEventListeners();
@@ -44,40 +47,48 @@ function createSingleCard(order) {
     card.className = "card shadow rounded mx-2 mb-4";
     card.style.cssText = "max-width: 265px; min-height: 250px; display: flex; flex-direction: column; justify-content: space-between; position: relative;";
 
-    // --- LÓGICA DE COLOR DE LA TARJETA (CORREGIDA) ---
+    // --- Card Color Logic ---
     const approvalStatus = Number(order.approval_status || 0);
     const requiredLevel = Number(order.required_auth_level || 7);
 
     if (approvalStatus === 99) {
-        // Regla: Orden Rechazada -> Rojo
-        card.style.backgroundColor = "#EC5854";
+        card.style.backgroundColor = "#EC5854"; // Rejected -> Red
     } else if (approvalStatus >= requiredLevel) {
-        // Regla: Orden Completamente Aprobada -> Verde
-        card.style.backgroundColor = "#449843";
+        card.style.backgroundColor = "#449843"; // Fully Approved -> Green
     } else if (approvalStatus > 0) {
-        // Regla: En proceso de aprobación -> Amarillo
-        // (approvalStatus 1 es el primer nivel de aprobación, por lo tanto, ya está en proceso)
-        card.style.backgroundColor = "#F5F28B";
+        card.style.backgroundColor = "#F5F28B"; // In Progress -> Yellow
     } else {
-        // Regla: Orden recién creada (approvalStatus es 0 o null) -> Blanco/Gris claro
-        card.style.backgroundColor = "#F5F5F5";
+        card.style.backgroundColor = "#F5F5F5"; // New -> White/Gray
     }
 
-    const needsEvidence = order.recovery_file && !order.recovery_evidence;
-    const falta = getApprovalStatusMessage(order); // Obtiene el mensaje de estado
+    // --- File Status Badge Logic ---
+    const hasRecoveryFile = order.recovery_file && order.recovery_file.trim() !== '';
+    const hasRecoveryEvidence = order.recovery_evidence && order.recovery_evidence.trim() !== '';
+    const falta = getApprovalStatusMessage(order);
     
-    let notificationBadge = '';
-    if (needsEvidence) {
-        notificationBadge = `
-            <div class="notification-badge" data-order-id="${order.id}" data-bs-toggle="tooltip" 
-                 data-bs-placement="top" title="Evidence of Recovery is yet to be uploaded">
-                <i class="exclamation-icon">!</i>
+    let fileStatusBadge = '';
+
+    if (hasRecoveryFile && hasRecoveryEvidence) {
+        // Case 1: Both files exist -> Show "Complete" badge (green check)
+        fileStatusBadge = `
+            <div class="file-status-badge status-complete" data-bs-toggle="tooltip" 
+                 data-bs-placement="top" title="Recovery documents are complete.">
+                <i class="fas fa-check"></i>
+            </div>
+        `;
+    } else if (hasRecoveryFile && !hasRecoveryEvidence) {
+        // Case 2: Only recovery file exists -> Show "Warning" badge (yellow exclamation)
+        fileStatusBadge = `
+            <div class="file-status-badge status-warning" data-order-id="${order.id}" data-bs-toggle="tooltip" 
+                 data-bs-placement="top" title="Evidence of Recovery is pending. Click to upload.">
+                <i class="fas fa-exclamation"></i>
             </div>
         `;
     }
+    // Case 3: No recovery file needed, so no badge is rendered.
 
     card.innerHTML = `
-        ${notificationBadge}
+        ${fileStatusBadge}
         <div class="card-body d-flex flex-column">
             <h5 class="card-title">ID: ${order.id || 'N/A'}</h5>
             <h6 class="card-subtitle mb-2 fw-bold text-dark">CW: ${getWeekNumber(order.date)}</h6>
@@ -103,22 +114,17 @@ function getApprovalStatusMessage(order) {
     const approvalStatus = Number(order.approval_status || 0);
     const requiredLevel = Number(order.required_auth_level || 7);
 
-    // Regla: Orden Rechazada
     if (approvalStatus === 99) return 'Order Rejected';
-    
-    // Regla: Orden Completamente Aprobada
     if (approvalStatus >= requiredLevel) return 'Fully Approved';
 
-    // Regla: Pendiente de aprobación (muestra el siguiente nivel requerido)
-    // El 'approvalStatus' actual indica el último nivel aprobado. El siguiente es 'approvalStatus + 1'.
     switch (approvalStatus) {
-        case 0: return 'Pending: Logistics Manager'; // Nivel 1
-        case 1: return 'Pending: Controlling';       // Nivel 2
-        case 2: return 'Pending: Plant Manager';     // Nivel 3
-        case 3: return 'Pending: Senior Logistics Manager'; // Nivel 4
-        case 4: return 'Pending: Manager OPS Division'; // Nivel 5
-        case 5: return 'Pending: SR VP Regional';       // Nivel 6
-        case 6: return 'Pending: Regional Division Controlling'; // Nivel 7
+        case 0: return 'Pending: Logistics Manager';
+        case 1: return 'Pending: Controlling';
+        case 2: return 'Pending: Plant Manager';
+        case 3: return 'Pending: Senior Logistics Manager';
+        case 4: return 'Pending: Manager OPS Division';
+        case 5: return 'Pending: SR VP Regional';
+        case 6: return 'Pending: Regional Division Controlling';
         default: return `Pending: Level ${approvalStatus + 1}`;
     }
 }
@@ -137,9 +143,10 @@ function attachCardEventListeners() {
         });
     });
     
-    document.querySelectorAll('.notification-badge').forEach(badge => {
+    // Attach click listener ONLY to the warning badges
+    document.querySelectorAll('.file-status-badge.status-warning').forEach(badge => {
         badge.addEventListener('click', function(e) {
-            e.stopPropagation();
+            e.stopPropagation(); // Prevent card click event
             const orderId = this.getAttribute('data-order-id');
             showEvidenceUploadModal(orderId);
         });

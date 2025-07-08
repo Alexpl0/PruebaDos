@@ -55,29 +55,35 @@ export function showLoading(title = 'Loading', text = 'Please wait...', timer = 
 export function addNotificationStyles() {
     const styleElement = document.createElement('style');
     styleElement.textContent = `
-        .notification-badge {
+        .file-status-badge {
             position: absolute;
-            top: -8px;
-            right: -8px;
-            width: 24px;
-            height: 24px;
-            background-color: #ff4444;
+            top: -10px;
+            right: -10px;
+            width: 28px;
+            height: 28px;
             color: white;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            cursor: pointer;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
             z-index: 10;
+            font-size: 14px;
         }
 
-        .exclamation-icon {
-            font-style: normal;
-            font-weight: bold;
-            font-size: 14px;
+        .file-status-badge.status-warning {
+            background-color: #ffc107; /* Bootstrap Warning Yellow */
+            cursor: pointer;
+        }
+
+        .file-status-badge.status-complete {
+            background-color: #28a745; /* Bootstrap Success Green */
+            cursor: default;
+        }
+
+        .file-status-badge i {
+            line-height: 1; /* Helps center Font Awesome icons */
         }
     `;
     document.head.appendChild(styleElement);
-    console.log("Added notification badge styles dynamically");
 }
