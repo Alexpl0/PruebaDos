@@ -119,25 +119,30 @@ async function sendRecoveryNotification(orderId) {
     });
 
     try {
+        // Construir el payload con 'task' en lugar de 'action'
+        const payload = {
+            task: 'send_recovery_for_order',
+            orderId: orderId
+        };
+
         const response = await fetch(endpoint, {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({ orderId: orderId })
+            body: JSON.stringify(payload)
         });
 
-        // Intenta leer la respuesta como JSON, sin importar el código de estado.
-        // Esto funciona porque el PHP ahora siempre devuelve JSON.
+        // Leer la respuesta como JSON, ya que nuestro PHP ahora siempre devuelve JSON.
         const result = await response.json();
 
         if (!response.ok) {
-            // Si la respuesta no es OK, lanza un error con el mensaje del JSON del servidor.
+            // Si la respuesta no es OK (ej. 400, 403, 404, 500), lanzamos un error con el mensaje del servidor.
             throw new Error(result.message || `Server responded with status: ${response.status}`);
         }
 
-        // A este punto, la respuesta fue OK (2xx). Verificamos el flag 'success'.
+        // Si la respuesta es OK (2xx), verificamos el flag 'success' del JSON.
         if (result.success) {
             Swal.fire({
                 icon: 'success',
@@ -150,12 +155,12 @@ async function sendRecoveryNotification(orderId) {
             throw new Error(result.message || 'The server reported a failure.');
         }
     } catch (error) {
-        // Este bloque catch ahora maneja errores de red, de parseo de JSON, y los errores que lanzamos arriba.
+        // Este bloque ahora captura errores de red y los errores que lanzamos arriba.
         console.error('Error in sendRecoveryNotification:', error);
         Swal.fire({
             icon: 'error',
             title: 'Request Failed',
-            text: error.message // El mensaje de error ahora será limpio e informativo.
+            text: error.message // El mensaje de error será claro e informativo.
         });
         return { success: false, message: error.message };
     }
