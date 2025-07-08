@@ -1,24 +1,24 @@
 /**
  * Approval module for the Premium Freight system (Refactored & Corrected)
  *
- * CORRECCIÓN:
- * - Se importan las funciones `sendApprovalNotification` y `sendStatusNotification` desde mailer.js.
- * - Después de una aprobación exitosa, se determina si es una aprobación intermedia o final.
- * - Si es intermedia, se llama a `sendApprovalNotification` para notificar al siguiente aprobador.
- * - Si es final, se llama a `sendStatusNotification` para notificar al creador.
- * - Después de un rechazo exitoso, se llama a `sendStatusNotification` para notificar al creador.
- * - AÑADIDO: Se muestra un modal de carga con Swal.fire mientras se procesan las aprobaciones y rechazos.
+ * CORRECTION:
+ * - Imports `sendApprovalNotification` and `sendStatusNotification` from mailer.js.
+ * - After a successful approval, determines if it's an intermediate or final approval.
+ * - If intermediate, calls `sendApprovalNotification` to notify the next approver.
+ * - If final, calls `sendStatusNotification` to notify the creator.
+ * - After a successful rejection, calls `sendStatusNotification` to notify the creator.
+ * - ADDED: Shows a loading modal with Swal.fire while processing approvals and rejections.
  */
 
-import { sendApprovalNotification, sendStatusNotification } from './mailer.js'; // <-- IMPORTANTE: Importamos el mailer
+import { sendApprovalNotification, sendStatusNotification } from './mailer.js'; // <-- IMPORTANT: Import mailer
 
 let isProcessing = false;
 
 /**
- * Función genérica de aprobación.
- * @param {number|string} orderId - El ID de la orden a aprobar.
- * @param {object} options - Opciones como { showConfirmation: false }.
- * @returns {Promise<object>} - Objeto con el resultado de la operación.
+ * Generic approval function.
+ * @param {number|string} orderId - The ID of the order to approve.
+ * @param {object} options - Options like { showConfirmation: false }.
+ * @returns {Promise<object>} - Result object.
  */
 export async function approveOrder(orderId, options = {}) {
     if (isProcessing) return { success: false, message: 'Processing' };
@@ -44,16 +44,16 @@ export async function approveOrder(orderId, options = {}) {
             if (!isConfirmed) return { success: false, message: 'User cancelled' };
         }
 
-        // --- INICIO DE MODAL DE CARGA ---
+        // --- START LOADING MODAL ---
         Swal.fire({
-            title: 'Procesando Aprobación...',
-            html: `Por favor espere mientras se actualiza y notifica la orden <strong>#${selectedOrder.id}</strong>.`,
+            title: 'Processing Approval...',
+            html: `Please wait while order <strong>#${selectedOrder.id}</strong> is being updated and notified.`,
             allowOutsideClick: false,
             didOpen: () => {
                 Swal.showLoading();
             }
         });
-        // --- FIN DE MODAL DE CARGA ---
+        // --- END LOADING MODAL ---
 
         const updateData = {
             orderId: selectedOrder.id,
@@ -70,20 +70,20 @@ export async function approveOrder(orderId, options = {}) {
         const result = await response.json();
         if (!result.success) throw new Error(result.message || 'Error updating approval level.');
 
-        // --- INICIO DE LA LÓGICA DE CORREO ---
+        // --- EMAIL LOGIC ---
         const newApprovalLevel = Number(user.authorizationLevel);
         const maxRequiredLevel = Number(selectedOrder.required_auth_level || 7);
 
         if (newApprovalLevel >= maxRequiredLevel) {
-            // Aprobación final: notificar al creador.
+            // Final approval: notify creator.
             console.log(`Final approval for order #${selectedOrder.id}. Notifying creator.`);
             await sendStatusNotification(selectedOrder.id, 'approved');
         } else {
-            // Aprobación intermedia: notificar al siguiente en la línea.
+            // Intermediate approval: notify next approver.
             console.log(`Intermediate approval for order #${selectedOrder.id}. Notifying next approver.`);
             await sendApprovalNotification(selectedOrder.id);
         }
-        // --- FIN DE LA LÓGICA DE CORREO ---
+        // --- END EMAIL LOGIC ---
 
         Swal.fire({ icon: 'success', title: 'Order Approved!', text: `Order #${selectedOrder.id} approved. Notification sent.`, timer: 2500, timerProgressBar: true });
         return { success: true, order: selectedOrder };
@@ -97,11 +97,11 @@ export async function approveOrder(orderId, options = {}) {
 }
 
 /**
- * Función genérica de rechazo.
- * @param {number|string} orderId - El ID de la orden a rechazar.
- * @param {string|null} rejectionReason - La razón del rechazo. Si es null, se le pedirá al usuario.
- * @param {object} options - Opciones como { showConfirmation: false }.
- * @returns {Promise<object>} - Objeto con el resultado de la operación.
+ * Generic rejection function.
+ * @param {number|string} orderId - The ID of the order to reject.
+ * @param {string|null} rejectionReason - The reason for rejection. If null, user will be prompted.
+ * @param {object} options - Options like { showConfirmation: false }.
+ * @returns {Promise<object>} - Result object.
  */
 export async function rejectOrder(orderId, rejectionReason = null, options = {}) {
     if (isProcessing) return { success: false, message: 'Processing' };
@@ -130,16 +130,16 @@ export async function rejectOrder(orderId, rejectionReason = null, options = {})
         }
         if (!reason) return { success: false, message: 'Reason is required' };
 
-        // --- INICIO DE MODAL DE CARGA ---
+        // --- START LOADING MODAL ---
         Swal.fire({
-            title: 'Procesando Rechazo...',
-            html: `Por favor espere mientras se actualiza y notifica la orden <strong>#${selectedOrder.id}</strong>.`,
+            title: 'Processing Rejection...',
+            html: `Please wait while order <strong>#${selectedOrder.id}</strong> is being updated and notified.`,
             allowOutsideClick: false,
             didOpen: () => {
                 Swal.showLoading();
             }
         });
-        // --- FIN DE MODAL DE CARGA ---
+        // --- END LOADING MODAL ---
 
         const updateData = {
             orderId: selectedOrder.id, 
@@ -157,11 +157,11 @@ export async function rejectOrder(orderId, rejectionReason = null, options = {})
         const result = await response.json();
         if (!result.success) throw new Error(result.message || 'Error updating status to rejected.');
 
-        // --- INICIO DE LA LÓGICA DE CORREO ---
+        // --- EMAIL LOGIC ---
         console.log(`Order #${selectedOrder.id} rejected. Notifying creator.`);
         const rejectorInfo = { name: user.name, reason: reason };
         await sendStatusNotification(selectedOrder.id, 'rejected', rejectorInfo);
-        // --- FIN DE LA LÓGICA DE CORREO ---
+        // --- END EMAIL LOGIC ---
 
         Swal.fire({ icon: 'success', title: 'Order Rejected', text: `Order #${selectedOrder.id} has been rejected. Notification sent.`, timer: 2500, timerProgressBar: true });
         return { success: true, order: selectedOrder };
@@ -175,9 +175,9 @@ export async function rejectOrder(orderId, rejectionReason = null, options = {})
 }
 
 /**
- * Validación de permisos antes de aprobar/rechazar.
- * @param {object} order - El objeto de la orden a validar.
- * @returns {boolean} - True si el usuario tiene permisos, de lo contrario false.
+ * Permission validation before approving/rejecting.
+ * @param {object} order - The order object to validate.
+ * @returns {boolean} - True if the user has permission, otherwise false.
  */
 function validateOrderForApproval(order) {
     const user = window.PF_CONFIG.user;
@@ -196,9 +196,9 @@ function validateOrderForApproval(order) {
     } else if (currentApprovalLevel === 99) {
         isValid = false; failureReason = 'Order was previously rejected.';
     } else if (userAuthLevel !== nextRequiredLevel) {
-        isValid = false; failureReason = `Incorrect authorization level. Required: ${nextRequiredLevel}, User has: ${userAuthLevel}.`;
+        isValid = false; failureReason = `Incorrect authorization level. Required: ${nextRequiredLevel}, your level: ${userAuthLevel}.`;
     } else if (userPlant !== null && creatorPlant !== userPlant) {
-        isValid = false; failureReason = `Plant mismatch. Order Plant: ${creatorPlant}, User Plant: ${userPlant}.`;
+        isValid = false; failureReason = `Plant mismatch. Order Plant: ${creatorPlant}, Your Plant: ${userPlant}.`;
     }
 
     if (!isValid) {
