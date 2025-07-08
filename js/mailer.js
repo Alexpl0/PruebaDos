@@ -121,19 +121,23 @@ async function sendRecoveryNotification(orderId) {
     try {
         const response = await fetch(endpoint, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
             body: JSON.stringify({ orderId: orderId })
         });
 
-        // If the server response is not OK (e.g., 500 error), handle it as a specific error.
+        // Intenta leer la respuesta como JSON, sin importar el código de estado.
+        // Esto funciona porque el PHP ahora siempre devuelve JSON.
+        const result = await response.json();
+
         if (!response.ok) {
-            const errorText = await response.text(); // Get raw text from the server response
-            // We throw an error with this text. This avoids the JSON parsing error.
-            throw new Error(`Server error (${response.status}): ${errorText.substring(0, 200)}`);
+            // Si la respuesta no es OK, lanza un error con el mensaje del JSON del servidor.
+            throw new Error(result.message || `Server responded with status: ${response.status}`);
         }
 
-        const result = await response.json(); // This is now safer to call
-
+        // A este punto, la respuesta fue OK (2xx). Verificamos el flag 'success'.
         if (result.success) {
             Swal.fire({
                 icon: 'success',
@@ -142,15 +146,16 @@ async function sendRecoveryNotification(orderId) {
             });
             return { success: true, message: result.message };
         } else {
-            // This handles cases where the server responded with 200 OK but { success: false }
-            throw new Error(result.message || 'The server reported an issue but did not specify what.');
+            // Esto maneja casos donde el servidor respondió con 200 OK pero { success: false }
+            throw new Error(result.message || 'The server reported a failure.');
         }
     } catch (error) {
+        // Este bloque catch ahora maneja errores de red, de parseo de JSON, y los errores que lanzamos arriba.
         console.error('Error in sendRecoveryNotification:', error);
         Swal.fire({
             icon: 'error',
             title: 'Request Failed',
-            text: error.message.includes('<') ? 'A server error occurred. Check the console for details.' : error.message
+            text: error.message // El mensaje de error ahora será limpio e informativo.
         });
         return { success: false, message: error.message };
     }

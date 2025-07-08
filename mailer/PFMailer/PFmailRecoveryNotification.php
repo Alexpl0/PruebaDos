@@ -1,108 +1,126 @@
 <?php
 /**
  * PFmailRecoveryNotification.php - Endpoint para enviar recordatorios de recovery evidence
- * 
- * Este archivo maneja las solicitudes para enviar correos de recordatorio
- * sobre las órdenes que necesitan evidencia de recovery.
+ * * Este archivo maneja las solicitudes para enviar correos de recordatorio
+ * sobre las órdenes que necesitan evidencia de recovery. (Versión robusta)
  */
 
-require_once 'PFmailer.php';
-
-// Establecer el tipo de contenido de la respuesta
+// Establecer el header de contenido al principio para asegurar que se envíe.
 header('Content-Type: application/json');
 
-// Verificar método de solicitud
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Método no permitido. Utilice POST.'
-    ]);
-    exit;
-}
+// Usamos un bloque try/catch para capturar cualquier error fatal y devolver una respuesta JSON válida.
+try {
+    // Este require es un punto crítico. Si falla, el bloque catch lo manejará.
+    require_once 'PFmailer.php';
 
-// Obtener datos de la solicitud
-$input = file_get_contents('php://input');
-$data = json_decode($input, true);
-
-// Inicializar mailer
-$mailer = new PFMailer();
-
-// Si se proporciona un ID de usuario específico, enviar solo para ese usuario
-if (isset($data['userId'])) {
-    $userId = intval($data['userId']);
-    
-    // Obtener órdenes pendientes de recovery evidence para el usuario
-    $pendingOrders = $mailer->getPendingRecoveryOrdersByUser($userId);
-    
-    if (empty($pendingOrders)) {
+    // Verificar el método de la solicitud
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405); // Method Not Allowed
         echo json_encode([
             'success' => false,
-            'message' => 'No se encontraron órdenes que necesiten evidencia de recovery para este usuario.'
+            'message' => 'Method Not Allowed. Please use POST.'
         ]);
         exit;
     }
-    
-    // Obtener datos del usuario
-    $user = $mailer->getUser($userId);
-    if (!$user) {
+
+    // Obtener y decodificar los datos de la solicitud
+    $input = file_get_contents('php://input');
+    $data = json_decode($input, true);
+
+    // Validar que el JSON sea correcto
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        http_response_code(400); // Bad Request
         echo json_encode([
             'success' => false,
-            'message' => 'Usuario no encontrado.'
+            'message' => 'Invalid JSON format: ' . json_last_error_msg()
         ]);
         exit;
     }
-    
-    // Enviar correo
-    $result = $mailer->sendRecoveryCheckEmail($user, $pendingOrders);
-    
-    echo json_encode([
-        'success' => $result,
-        'message' => $result ? 'Correo de verificación de recovery enviado correctamente.' : 'Error al enviar correo de verificación de recovery.'
-    ]);
-} 
-// Si se proporciona un ID de orden específico, enviar solo para esa orden
-else if (isset($data['orderId'])) {
+
+    // El cliente solo envía orderId, así que lo validamos específicamente.
+    if (!isset($data['orderId']) || !is_numeric($data['orderId']) || $data['orderId'] <= 0) {
+        http_response_code(400); // Bad Request
+        echo json_encode([
+            'success' => false,
+            'message' => 'Request must contain a valid numeric orderId.'
+        ]);
+        exit;
+    }
+
     $orderId = intval($data['orderId']);
     
+    // Inicializar el mailer
+    $mailer = new PFMailer();
+
     // Obtener detalles de la orden
     $order = $mailer->getOrder($orderId);
     
-    if (!$order || empty($order['recovery_file']) || !empty($order['recovery_evidence'])) {
+    // Validar que la orden es apta para una notificación
+    if (!$order) {
+        http_response_code(404); // Not Found
         echo json_encode([
             'success' => false,
-            'message' => 'Orden no encontrada o no necesita evidencia de recovery.'
+            'message' => "Order with ID #{$orderId} not found."
+        ]);
+        exit;
+    }
+
+    if (empty($order['recovery_file'])) {
+        http_response_code(400); // Bad Request
+        echo json_encode([
+            'success' => false,
+            'message' => "Order #{$orderId} does not require a recovery file, so no notification can be sent."
         ]);
         exit;
     }
     
-    // Obtener datos del usuario
+    if (!empty($order['recovery_evidence'])) {
+        http_response_code(400); // Bad Request
+        echo json_encode([
+            'success' => false,
+            'message' => "Order #{$orderId} already has a recovery evidence file."
+        ]);
+        exit;
+    }
+    
+    // Obtener datos del usuario creador
     $userId = $order['user_id'];
     $user = $mailer->getUser($userId);
     
     if (!$user) {
+        http_response_code(404); // Not Found
         echo json_encode([
             'success' => false,
-            'message' => 'Usuario no encontrado para esta orden.'
+            'message' => "The creator (User ID: {$userId}) for order #{$orderId} was not found."
         ]);
         exit;
     }
     
-    // Enviar correo
+    // Enviar el correo. sendRecoveryCheckEmail espera un array de órdenes.
     $result = $mailer->sendRecoveryCheckEmail($user, [$order]);
     
+    if ($result) {
+        echo json_encode([
+            'success' => true,
+            'message' => "A reminder email has been successfully sent to {$user['email']} for order #{$orderId}."
+        ]);
+    } else {
+        // Esto indica un fallo dentro de la librería PHPMailer.
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => 'The mail server failed to send the email. Please check server logs for PHPMailer errors.'
+        ]);
+    }
+
+} catch (Throwable $e) {
+    // Captura cualquier otro error (incluyendo errores fatales)
+    // Esto previene la página en blanco del error 500.
+    http_response_code(500);
+    error_log($e); // Escribe el error real en el log de errores del servidor
     echo json_encode([
-        'success' => $result,
-        'message' => $result ? 'Correo de verificación de recovery enviado correctamente.' : 'Error al enviar correo de verificación de recovery.'
-    ]);
-} 
-// Si no se proporcionan parámetros específicos, enviar a todos los usuarios con órdenes pendientes
-else {
-    $result = $mailer->sendRecoveryCheckEmails();
-    
-    echo json_encode([
-        'success' => ($result['success'] > 0),
-        'message' => "Correos de verificación de recovery enviados: {$result['success']} exitosos, " . count($result['errors']) . " fallidos.",
-        'details' => $result
+        'success' => false,
+        'message' => 'An internal server error occurred. Please contact the administrator.',
+        'error_details' => $e->getMessage() // Para depuración, se puede quitar en producción
     ]);
 }
-?>
