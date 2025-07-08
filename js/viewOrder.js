@@ -76,6 +76,10 @@ function setupEventListeners() {
     document.querySelector('.btn-pdf')?.addEventListener('click', handleGeneratePDF);
     document.getElementById('approveBtn')?.addEventListener('click', handleApprovalClick);
     document.getElementById('rejectBtn')?.addEventListener('click', handleRejectionClick);
+    
+    // New event listeners for the recovery modal
+    document.getElementById('recoveryFilesBtn')?.addEventListener('click', () => openRecoveryFilesModal(currentOrder));
+    document.getElementById('closeRecoveryModalBtn')?.addEventListener('click', closeRecoveryFilesModal);
 }
 
 function checkApprovalPermissions(user, order) {
@@ -100,7 +104,91 @@ function configureActionButtons() {
     const canApprove = checkApprovalPermissions(user, currentOrder);
     document.getElementById('approveBtn')?.classList.toggle('hidden', !canApprove);
     document.getElementById('rejectBtn')?.classList.toggle('hidden', !canApprove);
+
+    // Show recovery files button if a recovery file exists
+    const hasRecoveryFile = currentOrder.recovery_file && currentOrder.recovery_file.trim() !== '';
+    document.getElementById('recoveryFilesBtn')?.classList.toggle('hidden', !hasRecoveryFile);
 }
+
+/**
+ * Opens and populates the recovery files modal.
+ * @param {object} order - The current order data.
+ */
+function openRecoveryFilesModal(order) {
+    if (!order) return;
+
+    const modal = document.getElementById('recoveryModal');
+    const modalBody = document.getElementById('recoveryModalBody');
+    const alertContainer = document.getElementById('recoveryModalAlertContainer');
+    if (!modal || !modalBody || !alertContainer) return;
+
+    // Clear previous content
+    modalBody.innerHTML = '';
+    alertContainer.innerHTML = '';
+
+    const hasRecoveryFile = order.recovery_file && order.recovery_file.trim() !== '';
+    const hasEvidenceFile = order.recovery_evidence && order.recovery_evidence.trim() !== '';
+
+    // Create alert if evidence is missing
+    if (hasRecoveryFile && !hasEvidenceFile) {
+        const creatorName = order.creator_name || 'the creator';
+        alertContainer.innerHTML = `
+            <div class="recovery-modal-alert">
+                <p>Would you like to send an email to <strong>${creatorName}</strong> to request the missing file?</p>
+                <button class="btn-send-email">Send Request Email</button>
+            </div>
+        `;
+        // Add event listener for the button (functionality to be added later)
+        alertContainer.querySelector('.btn-send-email').addEventListener('click', () => {
+            Swal.fire('Info', 'Email sending functionality will be implemented soon.', 'info');
+        });
+    }
+    
+    // Populate PDF viewers
+    const files = [
+        { title: 'Recovery File', path: order.recovery_file, present: hasRecoveryFile },
+        { title: 'Recovery Evidence', path: order.recovery_evidence, present: hasEvidenceFile }
+    ];
+
+    files.forEach(file => {
+        const column = document.createElement('div');
+        column.className = 'pdf-viewer-column';
+
+        let contentHtml;
+        if (file.present) {
+            contentHtml = `<iframe src="${file.path}" title="${file.title}"></iframe>`;
+        } else {
+            contentHtml = `
+                <div class="pdf-missing-placeholder">
+                    <i class="fas fa-file-circle-question"></i>
+                    <span>File is missing</span>
+                </div>
+            `;
+        }
+
+        column.innerHTML = `
+            <div class="pdf-viewer-header">${file.title}</div>
+            <div class="pdf-viewer-content">
+                ${contentHtml}
+            </div>
+        `;
+        modalBody.appendChild(column);
+    });
+
+    modal.style.display = 'flex';
+}
+
+
+/**
+ * Closes the recovery files modal.
+ */
+function closeRecoveryFilesModal() {
+    const modal = document.getElementById('recoveryModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
 
 async function handleApprovalClick(event) {
     event.preventDefault();

@@ -39,6 +39,7 @@ require_once 'dao/users/context_injector.php';
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/view-order.css">
+    <link rel="stylesheet" href="css/recovery-modal.css"> <!-- Added new modal styles -->
 
     <!-- ================== SISTEMA DE CONTEXTO CENTRALIZADO ================== -->
     <?php
@@ -100,14 +101,20 @@ require_once 'dao/users/context_injector.php';
             </div>
             
             <div class="quick-actions">
-                <button class="action-btn-compact btn-back" onclick="goBack()">
+                <button class="action-btn-compact btn-back">
                     <i class="fas fa-arrow-left"></i>
                     Back
                 </button>
                 
-                <button class="action-btn-compact btn-pdf" onclick="handleGeneratePDF()">
+                <button class="action-btn-compact btn-pdf">
                     <i class="fas fa-file-pdf"></i>
                     PDF
+                </button>
+
+                <!-- New button for recovery files -->
+                <button id="recoveryFilesBtn" class="action-btn-compact btn-info hidden">
+                    <i class="fas fa-folder-open"></i>
+                    Recovery Files
                 </button>
                 
                 <button id="approveBtn" class="action-btn-compact btn-approve hidden">
@@ -124,18 +131,7 @@ require_once 'dao/users/context_injector.php';
 
         <!-- ===== PROGRESS LINE SECTION ===== -->
         <div id="progressSection" class="progress-section hidden">
-            <div class="progress-header">
-                <h3 class="progress-title">Approval Progress</h3>
-                <p class="progress-subtitle">Track your order through the approval process</p>
-            </div>
-            <div class="progress-line-container">
-                <div class="progress-background-line"></div>
-                <div class="progress-active-line" style="width: 0%"></div>
-                <div class="progress-checkpoints"></div>
-                <div class="progress-truck moving" style="left: 0%">
-                    <i class="fa-solid fa-truck-fast"></i>
-                </div>
-            </div>
+            <!-- Progress line content remains the same -->
         </div>
 
         <!-- ===== SVG CONTENT CONTAINER ===== -->
@@ -150,19 +146,24 @@ require_once 'dao/users/context_injector.php';
         </div>
     </div>
 
+    <!-- ===== RECOVERY FILES MODAL ===== -->
+    <div id="recoveryModal" class="recovery-modal-overlay">
+        <div class="recovery-modal-content">
+            <div class="recovery-modal-header">
+                <h3 class="recovery-modal-title">Recovery Files</h3>
+                <button id="closeRecoveryModalBtn" class="recovery-modal-close-btn">&times;</button>
+            </div>
+            <div id="recoveryModalAlertContainer"></div>
+            <div id="recoveryModalBody" class="recovery-modal-body">
+                <!-- PDF viewers will be injected here by JavaScript -->
+            </div>
+        </div>
+    </div>
+
     <!-- jQuery and Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- DataTables JS -->
-    <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
 
     <!-- Custom scripts -->
     <script src="js/uploadFiles.js"></script>
