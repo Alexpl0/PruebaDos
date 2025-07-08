@@ -11,19 +11,13 @@
  * @returns {Promise<object>} - Promesa que se resuelve a un objeto { success: boolean, message: string }.
  */
 function sendApprovalNotification(orderId) {
-    // Validar que tenemos un orderId válido
     if (!orderId || isNaN(Number(orderId))) {
         console.error('sendApprovalNotification: Invalid orderId provided:', orderId);
         return Promise.resolve({ success: false, message: 'ID de orden inválido o no proporcionado' });
     }
 
     const numericOrderId = Number(orderId);
-    console.log(`Enviando notificación para orden #${numericOrderId}`);
-
-    // Obtener la URL del mailer desde la configuración global
     const endpoint = window.PF_CONFIG.app.mailerURL + 'PFmailNotification.php';
-    console.log(`Haciendo petición a: ${endpoint}`);
-    
     const payload = { 
         orderId: numericOrderId,
         timestamp: new Date().toISOString()
@@ -38,9 +32,7 @@ function sendApprovalNotification(orderId) {
         body: JSON.stringify(payload)
     })
     .then(response => {
-        console.log(`Respuesta recibida: ${response.status} ${response.statusText}`);
         if (!response.ok) {
-            // Si la respuesta no es OK, intenta leer el texto para obtener más detalles.
             return response.json().catch(() => response.text()).then(errorInfo => {
                 const errorMessage = typeof errorInfo === 'object' ? errorInfo.message : errorInfo;
                 throw new Error(errorMessage || `Error del servidor: ${response.status}`);
@@ -49,12 +41,9 @@ function sendApprovalNotification(orderId) {
         return response.json();
     })
     .then(data => {
-        console.log('Respuesta procesada:', data);
         if (data.success) {
-            console.log('Notificación enviada correctamente');
             return { success: true, message: data.message };
         } else {
-            console.warn('El servidor respondió con un fallo:', data.message);
             return { success: false, message: data.message || 'Error al enviar la notificación' };
         }
     })
@@ -102,16 +91,23 @@ function sendStatusNotification(orderId, status, rejectorInfo = null) {
  * @returns {Promise<object>} - Promesa que se resuelve al resultado de la operación.
  */
 async function sendRecoveryNotification(orderId) {
-    if (!orderId) {
-        console.error('sendRecoveryNotification: Invalid orderId provided.');
+    if (!orderId || isNaN(Number(orderId))) {
+        console.error('sendRecoveryNotification: Se proporcionó un orderId inválido.');
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Se requiere un ID de orden válido para enviar la notificación.'
+        });
         return { success: false, message: 'Invalid Order ID' };
     }
 
-    const endpoint = window.PF_CONFIG.app.mailerURL + 'PFmailRecoveryNotification.php';
+    // Construimos la URL del nuevo endpoint.
+    const endpoint = window.PF_CONFIG.app.mailerURL + 'PFmailRecoveryIndividual.php';
 
+    // Mostramos una alerta de "cargando" para mejorar la experiencia de usuario.
     Swal.fire({
-        title: 'Sending Request...',
-        text: 'Please wait while the email notification is being sent.',
+        title: 'Enviando Notificación...',
+        text: 'Por favor espera mientras se procesa la solicitud.',
         allowOutsideClick: false,
         didOpen: () => {
             Swal.showLoading();
@@ -119,10 +115,9 @@ async function sendRecoveryNotification(orderId) {
     });
 
     try {
-        // Construir el payload con 'task' en lugar de 'action'
+        // El payload ahora es más simple, solo contiene el orderId.
         const payload = {
-            task: 'send_recovery_for_order',
-            orderId: orderId
+            orderId: Number(orderId)
         };
 
         const response = await fetch(endpoint, {
@@ -134,32 +129,29 @@ async function sendRecoveryNotification(orderId) {
             body: JSON.stringify(payload)
         });
 
-        // Leer la respuesta como JSON, ya que nuestro PHP ahora siempre devuelve JSON.
+        // Leemos la respuesta como JSON, ya que nuestro endpoint siempre devuelve JSON.
         const result = await response.json();
 
+        // Si la respuesta HTTP no fue exitosa (ej. 404, 500), lanzamos un error.
+        // El mensaje del error será el que definimos en el backend.
         if (!response.ok) {
-            // Si la respuesta no es OK (ej. 400, 403, 404, 500), lanzamos un error con el mensaje del servidor.
-            throw new Error(result.message || `Server responded with status: ${response.status}`);
+            throw new Error(result.message || `El servidor respondió con el estado: ${response.status}`);
         }
 
-        // Si la respuesta es OK (2xx), verificamos el flag 'success' del JSON.
-        if (result.success) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Email Sent!',
-                text: result.message || 'The notification has been sent successfully.'
-            });
-            return { success: true, message: result.message };
-        } else {
-            // Esto maneja casos donde el servidor respondió con 200 OK pero { success: false }
-            throw new Error(result.message || 'The server reported a failure.');
-        }
+        // Si la respuesta fue exitosa (200 OK), mostramos el mensaje correspondiente.
+        Swal.fire({
+            icon: 'success',
+            title: '¡Éxito!',
+            text: result.message
+        });
+        return { success: true, message: result.message };
+
     } catch (error) {
-        // Este bloque ahora captura errores de red y los errores que lanzamos arriba.
-        console.error('Error in sendRecoveryNotification:', error);
+        // Este bloque captura tanto errores de red (fetch fallido) como los errores que lanzamos arriba.
+        console.error('Error en sendRecoveryNotification:', error);
         Swal.fire({
             icon: 'error',
-            title: 'Request Failed',
+            title: 'Solicitud Fallida',
             text: error.message // El mensaje de error será claro e informativo.
         });
         return { success: false, message: error.message };
