@@ -72,12 +72,12 @@ export function addNotificationStyles() {
         }
 
         .file-status-badge.status-warning {
-            background-color: #ffc107; /* Bootstrap Warning Yellow */
+            background-color: var(--danger); /* Changed to use the --danger variable */
             cursor: pointer;
         }
 
         .file-status-badge.status-complete {
-            background-color: #28a745; /* Bootstrap Success Green */
+            background-color: var(--success); /* Bootstrap Success Green */
             cursor: default;
         }
 
