@@ -76,8 +76,6 @@
     justify-content: space-between;
     align-items: center;
     font-size: 0.9rem;
-    max-width: 200px;
-    margin: 0;
 }
 
 .recovery-modal-alert p {
@@ -95,6 +93,8 @@
     margin-left: var(--spacing-lg);
     font-size: 0.85rem;
     white-space: nowrap;
+    max-width: 200px;
+    margin: 0;
 }
 
 .recovery-modal-body {
