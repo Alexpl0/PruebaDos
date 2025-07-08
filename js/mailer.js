@@ -125,9 +125,16 @@ async function sendRecoveryNotification(orderId) {
             body: JSON.stringify({ orderId: orderId })
         });
 
-        const result = await response.json();
+        // If the server response is not OK (e.g., 500 error), handle it as a specific error.
+        if (!response.ok) {
+            const errorText = await response.text(); // Get raw text from the server response
+            // We throw an error with this text. This avoids the JSON parsing error.
+            throw new Error(`Server error (${response.status}): ${errorText.substring(0, 200)}`);
+        }
 
-        if (response.ok && result.success) {
+        const result = await response.json(); // This is now safer to call
+
+        if (result.success) {
             Swal.fire({
                 icon: 'success',
                 title: 'Email Sent!',
@@ -135,14 +142,15 @@ async function sendRecoveryNotification(orderId) {
             });
             return { success: true, message: result.message };
         } else {
-            throw new Error(result.message || 'Failed to send the email.');
+            // This handles cases where the server responded with 200 OK but { success: false }
+            throw new Error(result.message || 'The server reported an issue but did not specify what.');
         }
     } catch (error) {
         console.error('Error in sendRecoveryNotification:', error);
         Swal.fire({
             icon: 'error',
-            title: 'Error',
-            text: error.message || 'A network error occurred. Please try again.'
+            title: 'Request Failed',
+            text: error.message.includes('<') ? 'A server error occurred. Check the console for details.' : error.message
         });
         return { success: false, message: error.message };
     }
