@@ -5,6 +5,7 @@
 
 import { loadAndPopulateSVG, generatePDF as svgGeneratePDF } from './svgOrders.js';
 import { approveOrder, rejectOrder } from './approval.js';
+import { sendRecoveryNotification } from './mailer.js';
 
 let currentOrder = null;
 let isLoading = false;
@@ -138,10 +139,11 @@ function openRecoveryFilesModal(order) {
                 <button class="btn-send-email">Send Request Email</button>
             </div>
         `;
-        // Add event listener for the button (functionality to be added later)
-        alertContainer.querySelector('.btn-send-email').addEventListener('click', () => {
-            Swal.fire('Info', 'Email sending functionality will be implemented soon.', 'info');
-        });
+        // Add event listener for the button
+        const sendEmailBtn = alertContainer.querySelector('.btn-send-email');
+        if (sendEmailBtn) {
+            sendEmailBtn.addEventListener('click', (e) => handleSendRecoveryEmail(e, order.id));
+        }
     }
     
     // Populate PDF viewers
@@ -178,7 +180,6 @@ function openRecoveryFilesModal(order) {
     modal.style.display = 'flex';
 }
 
-
 /**
  * Closes the recovery files modal.
  */
@@ -186,6 +187,30 @@ function closeRecoveryFilesModal() {
     const modal = document.getElementById('recoveryModal');
     if (modal) {
         modal.style.display = 'none';
+    }
+}
+
+/**
+ * Handles the click event for sending a recovery email notification.
+ * @param {Event} event - The click event.
+ * @param {number} orderId - The ID of the order.
+ */
+async function handleSendRecoveryEmail(event, orderId) {
+    const button = event.target;
+    if (button.disabled) return;
+
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+    try {
+        // The Swal notifications are handled inside sendRecoveryNotification
+        await sendRecoveryNotification(orderId);
+    } catch (error) {
+        // Error is also handled by Swal inside the function
+        console.error("Failed to send recovery email:", error);
+    } finally {
+        button.disabled = false;
+        button.innerHTML = 'Send Request Email';
     }
 }
 

@@ -96,8 +96,62 @@ function sendStatusNotification(orderId, status, rejectorInfo = null) {
     });
 }
 
+/**
+ * Envía una notificación por correo para solicitar el archivo de evidencia de recovery.
+ * @param {number} orderId - El ID de la orden de Premium Freight.
+ * @returns {Promise<object>} - Promesa que se resuelve al resultado de la operación.
+ */
+async function sendRecoveryNotification(orderId) {
+    if (!orderId) {
+        console.error('sendRecoveryNotification: Invalid orderId provided.');
+        return { success: false, message: 'Invalid Order ID' };
+    }
+
+    const endpoint = window.PF_CONFIG.app.mailerURL + 'PFmailRecoveryNotification.php';
+
+    Swal.fire({
+        title: 'Sending Request...',
+        text: 'Please wait while the email notification is being sent.',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    try {
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId: orderId })
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Email Sent!',
+                text: result.message || 'The notification has been sent successfully.'
+            });
+            return { success: true, message: result.message };
+        } else {
+            throw new Error(result.message || 'Failed to send the email.');
+        }
+    } catch (error) {
+        console.error('Error in sendRecoveryNotification:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message || 'A network error occurred. Please try again.'
+        });
+        return { success: false, message: error.message };
+    }
+}
+
+
 // Exportamos las funciones para usarlas en otros módulos
 export { 
     sendApprovalNotification,
-    sendStatusNotification
+    sendStatusNotification,
+    sendRecoveryNotification
 };
