@@ -1,19 +1,18 @@
 /**
- * Módulo de notificaciones por correo electrónico para el sistema Premium Freight
- * * Este módulo contiene funciones para enviar distintos tipos de notificaciones
- * por correo electrónico a los usuarios del sistema, como notificaciones de aprobación,
- * cambios de estado, etc. Lee la configuración desde `window.PF_CONFIG`.
+ * Email notification module for the Premium Freight system
+ * This module contains functions to send different types of email notifications
+ * to system users, such as approval notifications, status changes, etc. Reads configuration from `window.PF_CONFIG`.
  */
 
 /**
- * Envía una notificación por correo electrónico al siguiente aprobador en línea.
- * @param {number} orderId - El ID de la orden de Premium Freight.
- * @returns {Promise<object>} - Promesa que se resuelve a un objeto { success: boolean, message: string }.
+ * Sends an email notification to the next approver in line.
+ * @param {number} orderId - The Premium Freight order ID.
+ * @returns {Promise<object>} - Promise resolved to an object { success: boolean, message: string }.
  */
 function sendApprovalNotification(orderId) {
     if (!orderId || isNaN(Number(orderId))) {
         console.error('sendApprovalNotification: Invalid orderId provided:', orderId);
-        return Promise.resolve({ success: false, message: 'ID de orden inválido o no proporcionado' });
+        return Promise.resolve({ success: false, message: 'Invalid or missing order ID' });
     }
 
     const numericOrderId = Number(orderId);
@@ -35,7 +34,7 @@ function sendApprovalNotification(orderId) {
         if (!response.ok) {
             return response.json().catch(() => response.text()).then(errorInfo => {
                 const errorMessage = typeof errorInfo === 'object' ? errorInfo.message : errorInfo;
-                throw new Error(errorMessage || `Error del servidor: ${response.status}`);
+                throw new Error(errorMessage || `Server error: ${response.status}`);
             });
         }
         return response.json();
@@ -44,21 +43,21 @@ function sendApprovalNotification(orderId) {
         if (data.success) {
             return { success: true, message: data.message };
         } else {
-            return { success: false, message: data.message || 'Error al enviar la notificación' };
+            return { success: false, message: data.message || 'Error sending notification' };
         }
     })
     .catch(error => {
-        console.error('Error en sendApprovalNotification:', error);
-        return { success: false, message: `Error de red o de servidor: ${error.message}` };
+        console.error('Error in sendApprovalNotification:', error);
+        return { success: false, message: `Network or server error: ${error.message}` };
     });
 }
 
 /**
- * Envía una notificación de estado final (aprobado o rechazado) al creador de la orden.
- * @param {number} orderId - El ID de la orden de Premium Freight.
- * @param {string} status - El estado de la orden ('approved' o 'rejected').
- * @param {Object} [rejectorInfo=null] - Información opcional sobre quién rechazó la orden.
- * @returns {Promise<object>} - Promesa que se resuelve al resultado de la operación.
+ * Sends a final status notification (approved or rejected) to the order creator.
+ * @param {number} orderId - The Premium Freight order ID.
+ * @param {string} status - The order status ('approved' or 'rejected').
+ * @param {Object} [rejectorInfo=null] - Optional info about who rejected the order.
+ * @returns {Promise<object>} - Promise resolved to the operation result.
  */
 function sendStatusNotification(orderId, status, rejectorInfo = null) {
     const endpoint = window.PF_CONFIG.app.mailerURL + 'PFmailStatus.php';
@@ -75,39 +74,39 @@ function sendStatusNotification(orderId, status, rejectorInfo = null) {
     .then(response => response.json())
     .then(data => {
         if (!data.success) {
-            throw new Error(data.message || 'Error desconocido al enviar notificación de estado.');
+            throw new Error(data.message || 'Unknown error sending status notification.');
         }
         return data;
     })
     .catch(error => {
-        console.error('Error en sendStatusNotification:', error);
+        console.error('Error in sendStatusNotification:', error);
         return { success: false, message: error.message };
     });
 }
 
 /**
- * Envía una notificación por correo para solicitar el archivo de evidencia de recovery.
- * @param {number} orderId - El ID de la orden de Premium Freight.
- * @returns {Promise<object>} - Promesa que se resuelve al resultado de la operación.
+ * Sends an email notification to request the recovery evidence file.
+ * @param {number} orderId - The Premium Freight order ID.
+ * @returns {Promise<object>} - Promise resolved to the operation result.
  */
 async function sendRecoveryNotification(orderId) {
     if (!orderId || isNaN(Number(orderId))) {
-        console.error('sendRecoveryNotification: Se proporcionó un orderId inválido.');
+        console.error('sendRecoveryNotification: Invalid orderId provided.');
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'Se requiere un ID de orden válido para enviar la notificación.'
+            text: 'A valid order ID is required to send the notification.'
         });
         return { success: false, message: 'Invalid Order ID' };
     }
 
-    // Construimos la URL del nuevo endpoint.
+    // Build the endpoint URL.
     const endpoint = window.PF_CONFIG.app.mailerURL + 'PFmailRecoveryIndividual.php';
 
-    // Mostramos una alerta de "cargando" para mejorar la experiencia de usuario.
+    // Show a "loading" alert for better user experience.
     Swal.fire({
-        title: 'Enviando Notificación...',
-        text: 'Por favor espera mientras se procesa la solicitud.',
+        title: 'Sending Notification...',
+        text: 'Please wait while your request is being processed.',
         allowOutsideClick: false,
         didOpen: () => {
             Swal.showLoading();
@@ -115,7 +114,7 @@ async function sendRecoveryNotification(orderId) {
     });
 
     try {
-        // El payload ahora es más simple, solo contiene el orderId.
+        // The payload is simple, only contains the orderId.
         const payload = {
             orderId: Number(orderId)
         };
@@ -129,37 +128,37 @@ async function sendRecoveryNotification(orderId) {
             body: JSON.stringify(payload)
         });
 
-        // Leemos la respuesta como JSON, ya que nuestro endpoint siempre devuelve JSON.
+        // Read the response as JSON, since our endpoint always returns JSON.
         const result = await response.json();
 
-        // Si la respuesta HTTP no fue exitosa (ej. 404, 500), lanzamos un error.
-        // El mensaje del error será el que definimos en el backend.
+        // If the HTTP response was not successful (e.g. 404, 500), throw an error.
+        // The error message will be the one defined in the backend.
         if (!response.ok) {
-            throw new Error(result.message || `El servidor respondió con el estado: ${response.status}`);
+            throw new Error(result.message || `Server responded with status: ${response.status}`);
         }
 
-        // Si la respuesta fue exitosa (200 OK), mostramos el mensaje correspondiente.
+        // If the response was successful (200 OK), show the corresponding message.
         Swal.fire({
             icon: 'success',
-            title: '¡Éxito!',
+            title: 'Success!',
             text: result.message
         });
         return { success: true, message: result.message };
 
     } catch (error) {
-        // Este bloque captura tanto errores de red (fetch fallido) como los errores que lanzamos arriba.
-        console.error('Error en sendRecoveryNotification:', error);
+        // This block catches both network errors (fetch failed) and errors thrown above.
+        console.error('Error in sendRecoveryNotification:', error);
         Swal.fire({
             icon: 'error',
-            title: 'Solicitud Fallida',
-            text: error.message // El mensaje de error será claro e informativo.
+            title: 'Request Failed',
+            text: error.message // The error message will be clear and informative.
         });
         return { success: false, message: error.message };
     }
 }
 
 
-// Exportamos las funciones para usarlas en otros módulos
+// Export the functions for use in other modules
 export { 
     sendApprovalNotification,
     sendStatusNotification,

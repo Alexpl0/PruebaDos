@@ -137,8 +137,8 @@ require_once 'dao/users/context_injector.php';
     <script>
         function resendEmail() {
             Swal.fire({
-                title: 'Reenviando correo...',
-                text: 'Por favor espera mientras enviamos el correo de verificación',
+                title: 'Resending email...',
+                text: 'Please wait while we send the verification email.',
                 allowOutsideClick: false,
                 showConfirmButton: false,
                 willOpen: () => {
@@ -146,7 +146,7 @@ require_once 'dao/users/context_injector.php';
                 }
             });
 
-            // Usamos el objeto de configuración global para las URLs y el ID de usuario.
+            // Use the global config object for URLs and user ID.
             fetch(window.PF_CONFIG.app.mailerURL + 'PFmailVerification.php', {
                 method: 'POST',
                 headers: {
@@ -162,8 +162,8 @@ require_once 'dao/users/context_injector.php';
                 if (data.success) {
                     Swal.fire({
                         icon: 'success',
-                        title: '¡Correo Enviado!',
-                        text: 'Hemos reenviado el correo de verificación. Por favor revisa tu bandeja de entrada.',
+                        title: 'Email Sent!',
+                        text: 'We have resent the verification email. Please check your inbox.',
                         timer: 3000,
                         timerProgressBar: true
                     });
@@ -171,7 +171,7 @@ require_once 'dao/users/context_injector.php';
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: data.message || 'Error al enviar el correo'
+                        text: data.message || 'Error sending the email.'
                     });
                 }
             })
@@ -179,7 +179,7 @@ require_once 'dao/users/context_injector.php';
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: 'Error de conexión. Por favor intenta de nuevo.'
+                    text: 'Connection error. Please try again.'
                 });
             });
         }
