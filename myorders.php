@@ -54,20 +54,34 @@ require_once 'dao/users/context_injector.php';
         <h1 id="title2"></h1>
     </div>
 
+    <!-- =========== Contenedor para la Búsqueda (AÑADIDO) =========== -->
+    <div class="search-container">
+        <div class="input-group mb-4">
+            <span class="input-group-text" id="basic-addon1"><i class="fas fa-search"></i></span>
+            <input type="text" id="searchInput" class="form-control" placeholder="Search by Order ID or Description..." aria-label="Search">
+        </div>
+    </div>
+
     <main id="main"> 
         <div id="card"></div>
     </main>
     
     <!-- Modal -->
     <div id="myModal" class="modal">
-        <div class="modal-content">
-            <span id="closeModal" class="close-button">&times;</span>
-            <div class="modal-buttons">
-                <button id="savePdfBtn" class="save-pdf-button icon-only-btn" title="Save as PDF">
-                    <span class="material-symbols-outlined">picture_as_pdf</span>
-                </button>
+        <div class="modal-dialog modal-xl"> <!-- Usar modal-dialog para mejor estructura -->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-buttons">
+                        <button id="savePdfBtn" class="save-pdf-button icon-only-btn" title="Save as PDF">
+                            <i class="fas fa-file-pdf"></i>
+                        </button>
+                    </div>
+                    <button type="button" id="closeModal" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="svgPreview" class="svg-frame"></div>
+                </div>
             </div>
-            <div id="svgPreview" class="svg-frame"></div>
         </div>
     </div>
 
@@ -90,8 +104,9 @@ require_once 'dao/users/context_injector.php';
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
 
-    <!-- Custom scripts -->
+    <!-- Custom scripts (asumiendo que modals.js existe) -->
     <script src="js/header.js"></script>
+    <script src="js/modals.js" type="module"></script> 
     <script src="js/uploadFiles.js"></script>
     <script src="js/dataTables.js" type="module"></script>
     <script src="js/myorders.js" type="module"></script>
