@@ -93,7 +93,7 @@ require_once 'dao/users/context_injector.php';
     <!-- Custom scripts -->
     <script src="js/header.js"></script>
     <script src="js/uploadFiles.js"></script>
-    <script src="js/dataTables.js"></script>
+    <script src="js/dataTables.js" type="module"></script>
     <script src="js/myorders.js" type="module"></script>
 
     <?php 
