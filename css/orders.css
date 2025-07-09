@@ -11,8 +11,16 @@ body {
 }
 
 main {
-    padding: 5%;
+    padding: 2% 5%; /* Adjusted padding */
 }
+
+/* === Search Container Styles === */
+.search-container {
+    max-width: 800px;
+    margin: 1rem auto; /* Center the search bar */
+    padding: 0 5%;
+}
+
 
 /* === ESTILOS GENERALES PARA TARJETAS === */
 .card {
@@ -682,7 +690,7 @@ main {
 }
 
 /* Efecto al pasar el cursor sobre un botón */
-.pagination .page-item .page-link:hover {
+.pagination .page-item:not(.disabled):not(.active) .page-link:hover {
     background-color: #e9ecef;      /* Color de fondo al pasar el cursor */
     color: var(--grammer-dark-blue);/* Color de texto más oscuro */
     transform: translateY(-2px);    /* Ligero efecto de levantamiento */
@@ -703,4 +711,5 @@ main {
     background-color: #f8f9fa;
     border-color: #dee2e6;
     box-shadow: none;
+    cursor: not-allowed;
 }

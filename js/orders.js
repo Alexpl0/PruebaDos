@@ -76,7 +76,7 @@ function loadOrderData(page, search = '') {
             
             updatePageTitle(window.PF_CONFIG.user.plant, orders.length, pagination.total);
             createCards(orders);
-            setupPagination(pagination);
+            setupPagination(pagination); // Call the updated pagination setup
             Swal.close();
         })
         .catch(error => {
@@ -88,48 +88,84 @@ function loadOrderData(page, search = '') {
 }
 
 /**
- * Creates and manages the pagination controls.
+ * Creates and manages the pagination controls with intelligent page linking.
  * @param {object} pagination - The pagination object from the API { total, page, totalPages }.
  */
 function setupPagination({ total, page, totalPages }) {
     const paginationContainer = document.getElementById('pagination-container');
     if (!paginationContainer) return;
 
-    paginationContainer.innerHTML = '';
-    if (totalPages <= 1) return;
+    paginationContainer.innerHTML = ''; // Clear previous pagination
+    if (totalPages <= 1) return; // Don't show pagination if there's only one page
 
     currentPage = page;
 
-    const createPageLink = (p, text, isDisabled = false, isActive = false) => {
+    const createPageLink = (p, text, isDisabled = false, isActive = false, isEllipsis = false) => {
         const li = document.createElement('li');
-        li.className = `page-item ${isDisabled ? 'disabled' : ''} ${isActive ? 'active' : ''}`;
-        li.innerHTML = `<a class="page-link" href="#" data-page="${p}">${text}</a>`;
+        li.className = `page-item ${isDisabled ? 'disabled' : ''} ${isActive ? 'active' : ''} ${isEllipsis ? 'ellipsis' : ''}`;
+        
+        const a = document.createElement('a');
+        a.className = 'page-link';
+        a.href = '#';
+        a.dataset.page = p;
+        a.innerHTML = text;
+        if (isEllipsis) {
+            a.style.pointerEvents = 'none';
+        }
+
+        li.appendChild(a);
         return li;
     };
 
-    // Previous button
-    paginationContainer.appendChild(createPageLink(page - 1, 'Previous', page === 1));
+    // "Previous" button
+    paginationContainer.appendChild(createPageLink(page - 1, '<span aria-hidden="true">&laquo;</span>', page === 1));
 
-    // Page number buttons (simplified for brevity, can be expanded with "...")
-    for (let i = 1; i <= totalPages; i++) {
+    // Page number logic
+    const pagesToShow = 5; // How many page numbers to show around the current page
+    const startPage = Math.max(1, page - Math.floor(pagesToShow / 2));
+    const endPage = Math.min(totalPages, startPage + pagesToShow - 1);
+
+    // Show first page and ellipsis if needed
+    if (startPage > 1) {
+        paginationContainer.appendChild(createPageLink(1, '1'));
+        if (startPage > 2) {
+            paginationContainer.appendChild(createPageLink(0, '...', false, false, true));
+        }
+    }
+
+    // Show page numbers around the current page
+    for (let i = startPage; i <= endPage; i++) {
         paginationContainer.appendChild(createPageLink(i, i, false, i === page));
     }
 
-    // Next button
-    paginationContainer.appendChild(createPageLink(page + 1, 'Next', page === totalPages));
+    // Show last page and ellipsis if needed
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            paginationContainer.appendChild(createPageLink(0, '...', false, false, true));
+        }
+        paginationContainer.appendChild(createPageLink(totalPages, totalPages));
+    }
 
-    // Add event listeners
+    // "Next" button
+    paginationContainer.appendChild(createPageLink(page + 1, '<span aria-hidden="true">&raquo;</span>', page === totalPages));
+
+    // Add event listeners to all clickable links
     paginationContainer.querySelectorAll('.page-link').forEach(link => {
+        const parentLi = link.parentElement;
+        if (parentLi.classList.contains('disabled') || parentLi.classList.contains('ellipsis')) {
+            return; // Skip disabled or ellipsis items
+        }
+
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const targetPage = Number(link.dataset.page);
-            const parentLi = link.parentElement;
-            if (targetPage && !parentLi.classList.contains('disabled') && !parentLi.classList.contains('active')) {
+            if (targetPage && targetPage !== currentPage) {
                 loadOrderData(targetPage, currentSearchQuery);
             }
         });
     });
 }
+
 
 /**
  * Sets up the event listener for the search input field.
@@ -146,7 +182,7 @@ function setupSearchListener() {
                     currentSearchQuery = query;
                     loadOrderData(1, currentSearchQuery); // Reset to page 1 for new search
                 }
-            }, 500);
+            }, 500); // Wait 500ms after user stops typing
         });
     }
 }

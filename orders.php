@@ -73,9 +73,24 @@ require_once 'dao/users/context_injector.php';
         </div>
     </div>
 
+    <!-- =========== Contenedor para la Búsqueda =========== -->
+    <div class="search-container">
+        <div class="input-group mb-4">
+            <span class="input-group-text" id="basic-addon1"><i class="fas fa-search"></i></span>
+            <input type="text" id="searchInput" class="form-control" placeholder="Search by Order ID or Description..." aria-label="Search">
+        </div>
+    </div>
+
     <main id="main"> 
         <div id="card"></div>
     </main>
+
+    <!-- =========== Contenedor para la Paginación =========== -->
+    <nav aria-label="Page navigation">
+        <ul id="pagination-container" class="pagination justify-content-center">
+            <!-- Los botones de paginación se generarán aquí con JavaScript -->
+        </ul>
+    </nav>
     
     <!-- Modal -->
     <div id="myModal" class="modal">
