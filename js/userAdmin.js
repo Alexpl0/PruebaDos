@@ -3,11 +3,11 @@
  * This file handles the DataTable initialization and CRUD operations for users.
  * * Features:
  * - User listing with DataTable, filtered by the admin's plant or all for regional admins
- * - Add (with password), Edit (without password), Delete user operations
+ * - Add (with password), Edit (without password), Delete user operations with clear confirmation
  * - Dynamic form for new vs. existing users
  * - Export to Excel and PDF with styled icon buttons
  * * @author Alejandro Perez
- * @version 4.0.0
+ * @version 5.0.0
  */
 
 let usersTable;
@@ -38,7 +38,7 @@ function initializeDataTable() {
                     return `
                         <div class="action-buttons">
                             <button class="btn btn-sm btn-primary edit-user" data-id="${row.id}" title="Edit User"><i class="fas fa-edit"></i></button>
-                            <button class="btn btn-sm btn-danger delete-user" data-id="${row.id}" ${row.id == PF_CONFIG.user.id ? 'disabled' : ''} title="Delete User"><i class="fas fa-trash"></i></button>
+                            <button class="btn btn-sm btn-danger delete-user" data-id="${row.id}" data-name="${row.name}" ${row.id == PF_CONFIG.user.id ? 'disabled' : ''} title="Delete User"><i class="fas fa-trash"></i></button>
                         </div>
                     `;
                 }
@@ -113,7 +113,7 @@ function sendUserData(userData, method) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            Swal.fire('Success', data.message, 'success');
+            Swal.fire('Success!', data.message, 'success');
             $('#user-form-container').addClass('d-none');
             usersTable.ajax.reload();
         } else {
@@ -141,12 +141,17 @@ $(document).ready(function() {
 
     $('#users-table').on('click', '.delete-user', function() {
         const userId = $(this).data('id');
+        const userName = $(this).data('name');
+        
         Swal.fire({
             title: 'Are you sure?',
-            text: "You won't be able to revert this!",
+            text: `You are about to permanently delete the user "${userName}". This action cannot be undone.`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Yes, delete it!'
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel'
         }).then(result => {
             if (result.isConfirmed) {
                 sendUserData({ id: userId }, 'DELETE');
