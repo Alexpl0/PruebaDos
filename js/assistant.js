@@ -1,12 +1,12 @@
 /**
  * Virtual Assistant - Lucy
- * Sistema de chat integrado para todas las páginas del sistema Premium Freight
- * Versión modificada para eliminar la funcionalidad de minimizar y añadir inicialización de contexto.
+ * Integrated chat system for all Premium Freight system pages.
+ * Version modified to remove minimize functionality and add context initialization.
  */
 class VirtualAssistant {
     constructor() {
         this.isOpen = false;
-        // La API real se puede cambiar aquí si es necesario
+        // The real API can be changed here if needed
         this.apiEndpoint = 'https://phytonclaude.onrender.com/ask';
         this.conversationHistory = [];
         this.init();
@@ -16,46 +16,46 @@ class VirtualAssistant {
         this.createAssistantHTML();
         this.setupEventListeners();
         this.showWelcomeMessage();
-        // Nueva función para "despertar" el servidor y personalizar el saludo.
+        // New function to "wake up" the server and personalize the greeting.
         this.initializeAssistantContext();
     }
 
     createAssistantHTML() {
-        // Se usan placeholders para las imágenes ya que no se tiene acceso a la carpeta /assets.
+        // Use the correct path for the images.
         const lucyAvatarSrc = 'assets/assistant/Lucy.png';
 
         const assistantHTML = `
-            <!-- Asistente Virtual Flotante -->
+            <!-- Floating Virtual Assistant -->
             <div id="virtual-assistant" class="virtual-assistant">
-                <!-- Botón del asistente (Lucy) -->
-                <div id="assistant-button" class="assistant-button" title="¡Hola! Soy Lucy, tu asistente virtual. ¡Haz clic para chatear conmigo!">
-                    <img src="${lucyAvatarSrc}" alt="Lucy - Asistente Virtual" class="assistant-avatar">
+                <!-- Assistant Button (Lucy) -->
+                <div id="assistant-button" class="assistant-button" title="Hi! I'm Lucy, your virtual assistant. Click to chat with me!">
+                    <img src="${lucyAvatarSrc}" alt="Lucy - Virtual Assistant" class="assistant-avatar">
                     <div class="assistant-pulse"></div>
                     <div class="assistant-welcome-bubble" id="welcome-bubble">
-                        <p>¡Hola! Soy Lucy 👋<br>¡Estoy aquí para ayudarte!</p>
+                        <p>Hi! I'm Lucy 👋<br>I'm here to help!</p>
                         <div class="bubble-arrow"></div>
                     </div>
                 </div>
 
-                <!-- Ventana de Chat -->
+                <!-- Chat Window -->
                 <div id="chat-window" class="chat-window">
-                    <!-- Header del Chat -->
+                    <!-- Chat Header -->
                     <div class="chat-header">
                         <div class="chat-header-info">
                             <img src="${lucyAvatarSrc}" alt="Lucy" class="chat-avatar">
                             <div class="chat-title">
                                 <h4>Lucy</h4>
-                                <span class="chat-status">Asistente Virtual • En línea</span>
+                                <span class="chat-status">Virtual Assistant • Online</span>
                             </div>
                         </div>
                         <div class="chat-controls">
-                            <button id="close-chat" class="chat-control-btn" title="Cerrar">
+                            <button id="close-chat" class="chat-control-btn" title="Close">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Área de Mensajes -->
+                    <!-- Messages Area -->
                     <div class="chat-messages" id="chat-messages">
                         <div class="message assistant-message">
                              <div class="message-avatar">
@@ -63,13 +63,13 @@ class VirtualAssistant {
                             </div>
                             <div class="message-content">
                                 <div class="message-bubble" id="initial-assistant-message">
-                                    Conectando con Lucy...
+                                    Connecting to Lucy...
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Indicador de Escritura -->
+                    <!-- Typing Indicator -->
                     <div class="typing-indicator" id="typing-indicator">
                         <div class="message assistant-message">
                             <div class="message-avatar">
@@ -85,16 +85,16 @@ class VirtualAssistant {
                         </div>
                     </div>
 
-                    <!-- Input de Mensaje -->
+                    <!-- Message Input -->
                     <div class="chat-input">
                         <div class="input-container">
-                            <input type="text" id="message-input" placeholder="Escribe tu pregunta aquí..." maxlength="500">
-                            <button id="send-message" class="send-button" title="Enviar mensaje">
+                            <input type="text" id="message-input" placeholder="Type your question here..." maxlength="500">
+                            <button id="send-message" class="send-button" title="Send message">
                                 <i class="fas fa-paper-plane"></i>
                             </button>
                         </div>
                         <div class="input-footer">
-                            <small>¡Pregúntame lo que sea sobre Premium Freight!</small>
+                            <small>Ask me anything about Premium Freight!</small>
                         </div>
                     </div>
                 </div>
@@ -104,15 +104,15 @@ class VirtualAssistant {
     }
     
     /**
-     * Envía un mensaje inicial en segundo plano para "despertar" el servidor
-     * y establecer el contexto del usuario (nombre y planta).
+     * Sends an initial background message to "wake up" the server
+     * and set the user context (name and plant).
      */
     async initializeAssistantContext() {
         const initialMessageBubble = document.getElementById('initial-assistant-message');
         const firstMessageContainer = initialMessageBubble.closest('.message-content');
 
         try {
-            // Espera a que el objeto de configuración esté disponible.
+            // Wait for the configuration object to be available.
             await new Promise(resolve => {
                 const interval = setInterval(() => {
                     if (window.PF_CONFIG?.user) {
@@ -122,21 +122,21 @@ class VirtualAssistant {
                 }, 100);
             });
 
-            const userName = window.PF_CONFIG.user.name || 'Invitado';
-            const userPlant = window.PF_CONFIG.user.plant || 'desconocida';
+            const userName = window.PF_CONFIG.user.name || 'Guest';
+            const userPlant = window.PF_CONFIG.user.plant || 'unknown';
             
-            // No enviar si es un invitado, para no gastar recursos innecesariamente.
+            // Do not send if it's a guest, to avoid wasting resources.
             if (userName === 'Guest') {
                  if(initialMessageBubble) {
-                    initialMessageBubble.innerHTML = '¡Hola! Soy Lucy, tu asistente virtual. ¿Cómo puedo ayudarte hoy?';
+                    initialMessageBubble.innerHTML = 'Hi! I\'m Lucy, your virtual assistant. How can I help you today?';
                     const timeHTML = `<div class="message-time">${this.getCurrentTime()}</div>`;
                     firstMessageContainer.insertAdjacentHTML('beforeend', timeHTML);
                  }
                  return;
             }
 
-            // Mensaje de contexto que se enviará a la IA.
-            const contextMessage = `Hola Lucy. Mi nombre es ${userName} y trabajo en la planta ${userPlant}. Por favor, preséntate, salúdame por mi nombre y confirma que entiendes en qué planta trabajo.`;
+            // Context message to be sent to the AI.
+            const contextMessage = `Hello Lucy. My name is ${userName} and I work at the ${userPlant} plant. Please introduce yourself, greet me by name, and confirm that you understand which plant I work at.`;
 
             const response = await fetch(this.apiEndpoint, {
                 method: 'POST',
@@ -150,20 +150,20 @@ class VirtualAssistant {
 
             const data = await response.json();
 
-            // Actualiza la burbuja del primer mensaje con la respuesta personalizada de la IA.
+            // Update the first message bubble with the personalized response from the AI.
             if (initialMessageBubble && data.answer) {
                 initialMessageBubble.innerHTML = this.formatAssistantMessage(data.answer);
             } else {
-                 initialMessageBubble.innerHTML = `¡Hola ${userName}! Soy Lucy, tu asistente. ¿En qué te puedo ayudar?`;
+                 initialMessageBubble.innerHTML = `Hi ${userName}! I'm Lucy, your assistant. How can I help you?`;
             }
 
         } catch (error) {
-            console.error('Error al inicializar el contexto del asistente:', error);
+            console.error('Error initializing assistant context:', error);
             if (initialMessageBubble) {
-                initialMessageBubble.innerHTML = '¡Hola! Soy Lucy. Parece que hay un problema de conexión, pero estoy lista para ayudar. ¿Qué necesitas?';
+                initialMessageBubble.innerHTML = 'Hi! I\'m Lucy. There seems to be a connection issue, but I\'m ready to help. What do you need?';
             }
         } finally {
-            // Añade la hora al mensaje, ya sea el personalizado o el de error.
+            // Add the time to the message, whether it's the personalized one or the error one.
             if(firstMessageContainer) {
                 const timeHTML = `<div class="message-time">${this.getCurrentTime()}</div>`;
                 firstMessageContainer.insertAdjacentHTML('beforeend', timeHTML);
@@ -257,12 +257,12 @@ class VirtualAssistant {
             const data = await response.json();
             
             this.hideTypingIndicator();
-            this.addAssistantMessage(data.answer || 'Disculpa, no pude procesar tu solicitud en este momento.');
+            this.addAssistantMessage(data.answer || 'Sorry, I couldn\'t process your request at this moment.');
 
         } catch (error) {
-            console.error('Error enviando mensaje al asistente:', error);
+            console.error('Error sending message to the assistant:', error);
             this.hideTypingIndicator();
-            this.addAssistantMessage('Disculpa, estoy teniendo problemas para conectarme. Por favor, inténtalo de nuevo en un momento.');
+            this.addAssistantMessage('Sorry, I\'m having trouble connecting. Please try again in a moment.');
         }
     }
 
@@ -288,7 +288,7 @@ class VirtualAssistant {
     addAssistantMessage(message) {
         const chatMessages = document.getElementById('chat-messages');
         const messageTime = this.getCurrentTime();
-        const lucyAvatarSrc = 'https://placehold.co/100x100/4A90D9/FFFFFF?text=L';
+        const lucyAvatarSrc = 'assets/assistant/Lucy.png';
         
         const messageHTML = `
             <div class="message assistant-message">
@@ -340,19 +340,19 @@ class VirtualAssistant {
         let formattedMessage = this.escapeHtml(message);
         formattedMessage = formattedMessage.replace(/\n/g, '<br>');
         
-        formattedMessage = formattedMessage.replace(/(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s*(euros?|EUR|€)/gi, 
+        formattedMessage = formattedMessage.replace(/(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s*(euros?|EUR|€|\$|dollars?)/gi, 
             '<strong class="currency-highlight">$1 $2</strong>');
         
         return formattedMessage;
     }
 }
 
-// Inicializar el asistente cuando el DOM esté listo
+// Initialize the assistant when the DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
     const excludePages = ['login.php', 'register.php', 'index.html'];
     const currentPage = window.location.pathname.split('/').pop();
     
-    // Para esta demo, siempre inicializamos el asistente.
+    // For this demo, we always initialize the assistant.
     // if (!excludePages.includes(currentPage)) {
         window.virtualAssistant = new VirtualAssistant();
     // }
