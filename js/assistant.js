@@ -136,7 +136,7 @@ class VirtualAssistant {
             }
 
             // Context message to be sent to the AI.
-            const contextMessage = `Hello Lucy. My name is ${userName} and I work at the ${userPlant} plant. Please introduce yourself, greet me by name, and confirm that you understand which plant I work at.`;
+            const contextMessage = `Hello Lucy. My name is ${userName} and I work at the ${userPlant} plant. Please introduce yourself, greet me by name, but dont tell me who created you`;
 
             const response = await fetch(this.apiEndpoint, {
                 method: 'POST',
