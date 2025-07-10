@@ -51,7 +51,7 @@
     color: var(--grammer-blue, #034C8C) !important;
 }
 
-/* Button styling */
+/* Form Button styling */
 #submitbtn {
     background-color: var(--grammer-blue, #034C8C);
     border-color: var(--grammer-blue, #034C8C);
@@ -93,9 +93,56 @@
     border-radius: 50%;
 }
 
-/* DataTable button styling */
-.dt-buttons .btn {
-    border-radius: 8px;
-    font-weight: 500;
-    padding: 0.5rem 1rem;
+/* DataTable button styling - NEW STYLES */
+.dt-buttons {
+    display: flex;
+    gap: 0.75rem; /* Space between buttons */
+    margin-bottom: 1rem;
+    align-items: center;
+}
+
+/* Reset default DataTable button styles */
+.dt-buttons .dt-button {
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+}
+
+/* Custom class for our icon-only buttons */
+.dt-buttons .dt-icon-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%; /* Circular buttons */
+    color: white !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.dt-buttons .dt-icon-btn i {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.dt-buttons .dt-icon-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* Specific colors for each button */
+.dt-buttons .dt-icon-btn.btn-primary {
+    background-color: var(--grammer-blue, #034C8C) !important;
+}
+
+.dt-buttons .dt-icon-btn.btn-success {
+    background-color: #198754 !important;
+}
+
+.dt-buttons .dt-icon-btn.btn-danger {
+    background-color: #dc3545 !important;
 }

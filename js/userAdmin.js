@@ -5,9 +5,9 @@
  * - User listing with DataTable, filtered by the admin's plant or all for regional admins
  * - Add (with password), Edit (without password), Delete user operations
  * - Dynamic form for new vs. existing users
- * - Export to Excel and PDF
+ * - Export to Excel and PDF with styled icon buttons
  * * @author Alejandro Perez
- * @version 3.0.0
+ * @version 4.0.0
  */
 
 let usersTable;
@@ -47,8 +47,9 @@ function initializeDataTable() {
         dom: 'Bfrtip',
         buttons: [
             {
-                text: '<i class="fas fa-user-plus"></i> Add User',
-                className: 'btn-primary',
+                text: '<i class="fas fa-user-plus"></i>',
+                className: 'btn-primary dt-icon-btn',
+                titleAttr: 'Add New User',
                 action: function () {
                     $('#user-form').trigger('reset');
                     $('#user-id').val('New');
@@ -59,8 +60,20 @@ function initializeDataTable() {
                     $('#user-form-container')[0].scrollIntoView({ behavior: 'smooth' });
                 }
             },
-            { extend: 'excel', text: '<i class="fas fa-file-excel"></i> Excel', className: 'btn-success', exportOptions: { columns: [0, 1, 2, 3, 4] } },
-            { extend: 'pdf', text: '<i class="fas fa-file-pdf"></i> PDF', className: 'btn-danger', exportOptions: { columns: [0, 1, 2, 3, 4] } }
+            { 
+                extend: 'excel', 
+                text: '<i class="fas fa-file-excel"></i>', 
+                className: 'btn-success dt-icon-btn',
+                titleAttr: 'Export to Excel',
+                exportOptions: { columns: [0, 1, 2, 3, 4] } 
+            },
+            { 
+                extend: 'pdf', 
+                text: '<i class="fas fa-file-pdf"></i>', 
+                className: 'btn-danger dt-icon-btn',
+                titleAttr: 'Export to PDF',
+                exportOptions: { columns: [0, 1, 2, 3, 4] } 
+            }
         ],
         order: [[0, 'desc']],
         responsive: true,
