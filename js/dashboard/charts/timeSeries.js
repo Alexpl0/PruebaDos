@@ -58,8 +58,24 @@ export function renderTimeSeriesChart() {
         stroke: { width: [1, 1, 4], curve: 'smooth' },
         xaxis: { categories: categories, labels: { rotate: -45, rotateAlways: true } },
         yaxis: [
-            { title: { text: "Number of Shipments" }, min: 0, labels: { formatter: val => formatNumber(val, 0) } },
-            { opposite: true, title: { text: "Total Cost (€)" }, min: 0, labels: { formatter: val => `€${formatNumber(val, 0)}` } }
+            {
+                // Eje para "Number of Shipments"
+                title: { text: "Number of Shipments" },
+                min: 0,
+                labels: {
+                    formatter: (val) => formatNumber(val, 0) // Formato sin decimales para conteos
+                }
+            },
+            {
+                // Eje para "Total Cost (€)"
+                opposite: true,
+                title: { text: "Total Cost (€)" },
+                min: 0,
+                labels: {
+                    // CORRECCIÓN: Se cambia a 2 decimales para mostrar los centavos.
+                    formatter: (val) => `€${formatNumber(val, 2)}`
+                }
+            }
         ],
         tooltip: { shared: true, intersect: false, y: [ { formatter: y => `${y.toFixed(0)} shipments` }, { formatter: y => `${y.toFixed(0)} shipments` }, { formatter: y => `€${formatNumber(y, 2)}` } ] },
         colors: ['#4472C4', '#A5A5A5', '#ED7D31'],
@@ -128,7 +144,7 @@ export function renderCorrelationChart() {
         chart: { height: 400, type: 'scatter', zoom: { enabled: true, type: 'xy' }, id: 'correlation' },
         title: { text: 'Correlation between Weight and Cost', align: 'left' },
         xaxis: { title: { text: 'Weight (kg)' }, tickAmount: 10 },
-        yaxis: { title: { text: 'Cost (€)' }, tickAmount: 10, labels: { formatter: val => `€${formatNumber(val, 0)}` } },
+        yaxis: { title: { text: 'Cost (€)' }, tickAmount: 10, labels: { formatter: val => `€${formatNumber(val, 2)}` } },
         tooltip: { custom: ({series, seriesIndex, dataPointIndex, w}) => {
             const data = w.config.series[seriesIndex].data[dataPointIndex];
             return `<div class="p-2"><b>ID:</b> ${data.id}<br><b>Transport:</b> ${w.config.series[seriesIndex].name}<br><b>Weight:</b> ${data.x} kg<br><b>Cost:</b> €${formatNumber(data.y, 2)}<br><small>${data.description}</small></div>`;
