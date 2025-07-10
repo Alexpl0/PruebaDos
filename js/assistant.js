@@ -21,7 +21,7 @@ class VirtualAssistant {
     createAssistantHTML() {
         // Se usan placeholders para las imágenes ya que no se tiene acceso a la carpeta /assets.
         // En un entorno real, se usarían las rutas correctas como 'assets/assistant/Lucy.png'.
-        const lucyAvatarSrc = 'https://placehold.co/100x100/4A90D9/FFFFFF?text=L';
+        const lucyAvatarSrc = 'assets/assistant/Lucy.png';
 
         const assistantHTML = `
             <!-- Asistente Virtual Flotante -->
