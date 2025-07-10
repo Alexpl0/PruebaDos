@@ -1,7 +1,7 @@
 /**
  * Virtual Assistant - Lucy
  * Sistema de chat integrado para todas las páginas del sistema Premium Freight
- * Versión modificada para eliminar la funcionalidad de minimizar.
+ * Versión modificada para eliminar la funcionalidad de minimizar y añadir inicialización de contexto.
  */
 class VirtualAssistant {
     constructor() {
@@ -16,11 +16,12 @@ class VirtualAssistant {
         this.createAssistantHTML();
         this.setupEventListeners();
         this.showWelcomeMessage();
+        // Nueva función para "despertar" el servidor y personalizar el saludo.
+        this.initializeAssistantContext();
     }
 
     createAssistantHTML() {
         // Se usan placeholders para las imágenes ya que no se tiene acceso a la carpeta /assets.
-        // En un entorno real, se usarían las rutas correctas como 'assets/assistant/Lucy.png'.
         const lucyAvatarSrc = 'assets/assistant/Lucy.png';
 
         const assistantHTML = `
@@ -48,7 +49,6 @@ class VirtualAssistant {
                             </div>
                         </div>
                         <div class="chat-controls">
-                            <!-- Se eliminó el botón de minimizar -->
                             <button id="close-chat" class="chat-control-btn" title="Cerrar">
                                 <i class="fas fa-times"></i>
                             </button>
@@ -62,8 +62,8 @@ class VirtualAssistant {
                                 <img src="${lucyAvatarSrc}" alt="Lucy">
                             </div>
                             <div class="message-content">
-                                <div class="message-bubble">
-                                    ¡Hola! Soy Lucy, tu asistente virtual de Premium Freight. Puedo ayudarte con preguntas sobre pedidos, costos, procesos y más. ¿Cómo puedo ayudarte hoy?
+                                <div class="message-bubble" id="initial-assistant-message">
+                                    Conectando con Lucy...
                                 </div>
                             </div>
                         </div>
@@ -101,13 +101,76 @@ class VirtualAssistant {
             </div>
         `;
         document.body.insertAdjacentHTML('beforeend', assistantHTML);
-        // Añadir el tiempo del primer mensaje después de crearlo
-        const firstMessage = document.querySelector('.chat-messages .assistant-message');
-        if (firstMessage) {
-            const timeHTML = `<div class="message-time">${this.getCurrentTime()}</div>`;
-            firstMessage.querySelector('.message-content').insertAdjacentHTML('beforeend', timeHTML);
+    }
+    
+    /**
+     * Envía un mensaje inicial en segundo plano para "despertar" el servidor
+     * y establecer el contexto del usuario (nombre y planta).
+     */
+    async initializeAssistantContext() {
+        const initialMessageBubble = document.getElementById('initial-assistant-message');
+        const firstMessageContainer = initialMessageBubble.closest('.message-content');
+
+        try {
+            // Espera a que el objeto de configuración esté disponible.
+            await new Promise(resolve => {
+                const interval = setInterval(() => {
+                    if (window.PF_CONFIG?.user) {
+                        clearInterval(interval);
+                        resolve();
+                    }
+                }, 100);
+            });
+
+            const userName = window.PF_CONFIG.user.name || 'Invitado';
+            const userPlant = window.PF_CONFIG.user.plant || 'desconocida';
+            
+            // No enviar si es un invitado, para no gastar recursos innecesariamente.
+            if (userName === 'Guest') {
+                 if(initialMessageBubble) {
+                    initialMessageBubble.innerHTML = '¡Hola! Soy Lucy, tu asistente virtual. ¿Cómo puedo ayudarte hoy?';
+                    const timeHTML = `<div class="message-time">${this.getCurrentTime()}</div>`;
+                    firstMessageContainer.insertAdjacentHTML('beforeend', timeHTML);
+                 }
+                 return;
+            }
+
+            // Mensaje de contexto que se enviará a la IA.
+            const contextMessage = `Hola Lucy. Mi nombre es ${userName} y trabajo en la planta ${userPlant}. Por favor, preséntate, salúdame por mi nombre y confirma que entiendes en qué planta trabajo.`;
+
+            const response = await fetch(this.apiEndpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: contextMessage })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // Actualiza la burbuja del primer mensaje con la respuesta personalizada de la IA.
+            if (initialMessageBubble && data.answer) {
+                initialMessageBubble.innerHTML = this.formatAssistantMessage(data.answer);
+            } else {
+                 initialMessageBubble.innerHTML = `¡Hola ${userName}! Soy Lucy, tu asistente. ¿En qué te puedo ayudar?`;
+            }
+
+        } catch (error) {
+            console.error('Error al inicializar el contexto del asistente:', error);
+            if (initialMessageBubble) {
+                initialMessageBubble.innerHTML = '¡Hola! Soy Lucy. Parece que hay un problema de conexión, pero estoy lista para ayudar. ¿Qué necesitas?';
+            }
+        } finally {
+            // Añade la hora al mensaje, ya sea el personalizado o el de error.
+            if(firstMessageContainer) {
+                const timeHTML = `<div class="message-time">${this.getCurrentTime()}</div>`;
+                firstMessageContainer.insertAdjacentHTML('beforeend', timeHTML);
+            }
         }
     }
+
 
     setupEventListeners() {
         const assistantButton = document.getElementById('assistant-button');
@@ -180,17 +243,18 @@ class VirtualAssistant {
 
         try {
             const requestBody = { question: message };
-            // Simulación de la llamada a la API para la demo
-            // En un entorno real, esta sería la llamada fetch.
-            console.log('Enviando a la API:', requestBody);
             
-            // Simular un retraso de la API
-            await new Promise(resolve => setTimeout(resolve, 1500)); 
-            
-            // Simular una respuesta de la API
-            const data = { answer: `Esta es una respuesta simulada para tu pregunta: "${message}". La integración real con la API está pendiente.` };
-            
-            console.log('Respuesta recibida:', data);
+            const response = await fetch(this.apiEndpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody)
+            });
+
+             if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
             
             this.hideTypingIndicator();
             this.addAssistantMessage(data.answer || 'Disculpa, no pude procesar tu solicitud en este momento.');
