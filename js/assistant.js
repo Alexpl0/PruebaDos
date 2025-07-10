@@ -1,12 +1,12 @@
 /**
  * Virtual Assistant - Lucy
  * Sistema de chat integrado para todas las páginas del sistema Premium Freight
+ * Versión modificada para eliminar la funcionalidad de minimizar.
  */
-
 class VirtualAssistant {
     constructor() {
         this.isOpen = false;
-        this.isMinimized = false;
+        // La API real se puede cambiar aquí si es necesario
         this.apiEndpoint = 'https://phytonclaude.onrender.com/ask';
         this.conversationHistory = [];
         this.init();
@@ -19,15 +19,19 @@ class VirtualAssistant {
     }
 
     createAssistantHTML() {
+        // Se usan placeholders para las imágenes ya que no se tiene acceso a la carpeta /assets.
+        // En un entorno real, se usarían las rutas correctas como 'assets/assistant/Lucy.png'.
+        const lucyAvatarSrc = 'https://placehold.co/100x100/4A90D9/FFFFFF?text=L';
+
         const assistantHTML = `
             <!-- Asistente Virtual Flotante -->
             <div id="virtual-assistant" class="virtual-assistant">
                 <!-- Botón del asistente (Lucy) -->
-                <div id="assistant-button" class="assistant-button" title="Hi! I'm Lucy, your virtual assistant. Click to chat with me!">
-                    <img src="assets/assistant/Lucy.png" alt="Lucy - Virtual Assistant" class="assistant-avatar">
+                <div id="assistant-button" class="assistant-button" title="¡Hola! Soy Lucy, tu asistente virtual. ¡Haz clic para chatear conmigo!">
+                    <img src="${lucyAvatarSrc}" alt="Lucy - Asistente Virtual" class="assistant-avatar">
                     <div class="assistant-pulse"></div>
                     <div class="assistant-welcome-bubble" id="welcome-bubble">
-                        <p>Hi! I'm Lucy 👋<br>I'm here to help you!</p>
+                        <p>¡Hola! Soy Lucy 👋<br>¡Estoy aquí para ayudarte!</p>
                         <div class="bubble-arrow"></div>
                     </div>
                 </div>
@@ -37,17 +41,15 @@ class VirtualAssistant {
                     <!-- Header del Chat -->
                     <div class="chat-header">
                         <div class="chat-header-info">
-                            <img src="assets/assistant/Lucy.png" alt="Lucy" class="chat-avatar">
+                            <img src="${lucyAvatarSrc}" alt="Lucy" class="chat-avatar">
                             <div class="chat-title">
                                 <h4>Lucy</h4>
-                                <span class="chat-status">Virtual Assistant • Online</span>
+                                <span class="chat-status">Asistente Virtual • En línea</span>
                             </div>
                         </div>
                         <div class="chat-controls">
-                            <button id="minimize-chat" class="chat-control-btn" title="Minimize">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                            <button id="close-chat" class="chat-control-btn" title="Close">
+                            <!-- Se eliminó el botón de minimizar -->
+                            <button id="close-chat" class="chat-control-btn" title="Cerrar">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
@@ -56,14 +58,13 @@ class VirtualAssistant {
                     <!-- Área de Mensajes -->
                     <div class="chat-messages" id="chat-messages">
                         <div class="message assistant-message">
-                            <div class="message-avatar">
-                                <img src="assets/assistant/Lucy.png" alt="Lucy">
+                             <div class="message-avatar">
+                                <img src="${lucyAvatarSrc}" alt="Lucy">
                             </div>
                             <div class="message-content">
                                 <div class="message-bubble">
-                                    Hello! I'm Lucy, your virtual assistant for Premium Freight. I can help you with questions about orders, costs, processes, and more. How can I assist you today?
+                                    ¡Hola! Soy Lucy, tu asistente virtual de Premium Freight. Puedo ayudarte con preguntas sobre pedidos, costos, procesos y más. ¿Cómo puedo ayudarte hoy?
                                 </div>
-                                <div class="message-time">${this.getCurrentTime()}</div>
                             </div>
                         </div>
                     </div>
@@ -72,7 +73,7 @@ class VirtualAssistant {
                     <div class="typing-indicator" id="typing-indicator">
                         <div class="message assistant-message">
                             <div class="message-avatar">
-                                <img src="assets/assistant/Lucy.png" alt="Lucy">
+                                <img src="${lucyAvatarSrc}" alt="Lucy">
                             </div>
                             <div class="message-content">
                                 <div class="typing-dots">
@@ -87,51 +88,37 @@ class VirtualAssistant {
                     <!-- Input de Mensaje -->
                     <div class="chat-input">
                         <div class="input-container">
-                            <input type="text" id="message-input" placeholder="Type your question here..." maxlength="500">
-                            <button id="send-message" class="send-button" title="Send message">
+                            <input type="text" id="message-input" placeholder="Escribe tu pregunta aquí..." maxlength="500">
+                            <button id="send-message" class="send-button" title="Enviar mensaje">
                                 <i class="fas fa-paper-plane"></i>
                             </button>
                         </div>
                         <div class="input-footer">
-                            <small>Ask me anything about Premium Freight!</small>
+                            <small>¡Pregúntame lo que sea sobre Premium Freight!</small>
                         </div>
                     </div>
                 </div>
             </div>
         `;
-
-        // Insertar al final del body
         document.body.insertAdjacentHTML('beforeend', assistantHTML);
+        // Añadir el tiempo del primer mensaje después de crearlo
+        const firstMessage = document.querySelector('.chat-messages .assistant-message');
+        if (firstMessage) {
+            const timeHTML = `<div class="message-time">${this.getCurrentTime()}</div>`;
+            firstMessage.querySelector('.message-content').insertAdjacentHTML('beforeend', timeHTML);
+        }
     }
 
     setupEventListeners() {
         const assistantButton = document.getElementById('assistant-button');
         const closeChat = document.getElementById('close-chat');
-        const minimizeChat = document.getElementById('minimize-chat');
         const sendMessage = document.getElementById('send-message');
         const messageInput = document.getElementById('message-input');
 
-        // Abrir/cerrar chat al hacer clic en Lucy
-        assistantButton.addEventListener('click', () => {
-            this.toggleChat();
-        });
+        assistantButton.addEventListener('click', () => this.toggleChat());
+        closeChat.addEventListener('click', () => this.closeChat());
+        sendMessage.addEventListener('click', () => this.sendMessage());
 
-        // Cerrar chat
-        closeChat.addEventListener('click', () => {
-            this.closeChat();
-        });
-
-        // Minimizar chat
-        minimizeChat.addEventListener('click', () => {
-            this.minimizeChat();
-        });
-
-        // Enviar mensaje
-        sendMessage.addEventListener('click', () => {
-            this.sendMessage();
-        });
-
-        // Enviar mensaje con Enter
         messageInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -139,16 +126,10 @@ class VirtualAssistant {
             }
         });
 
-        // Ocultar burbuja de bienvenida después de un tiempo
-        setTimeout(() => {
-            this.hideWelcomeMessage();
-        }, 5000);
+        setTimeout(() => this.hideWelcomeMessage(), 5000);
     }
 
     toggleChat() {
-        const chatWindow = document.getElementById('chat-window');
-        const assistantButton = document.getElementById('assistant-button');
-        
         if (this.isOpen) {
             this.closeChat();
         } else {
@@ -163,13 +144,8 @@ class VirtualAssistant {
         chatWindow.style.display = 'flex';
         assistantButton.classList.add('chat-open');
         this.isOpen = true;
-        this.isMinimized = false;
         
-        // Focus en el input
-        setTimeout(() => {
-            document.getElementById('message-input').focus();
-        }, 300);
-
+        setTimeout(() => document.getElementById('message-input').focus(), 300);
         this.hideWelcomeMessage();
     }
 
@@ -180,26 +156,11 @@ class VirtualAssistant {
         chatWindow.style.display = 'none';
         assistantButton.classList.remove('chat-open');
         this.isOpen = false;
-        this.isMinimized = false;
-    }
-
-    minimizeChat() {
-        const chatWindow = document.getElementById('chat-window');
-        
-        if (this.isMinimized) {
-            chatWindow.style.height = '400px';
-            this.isMinimized = false;
-        } else {
-            chatWindow.style.height = '60px';
-            this.isMinimized = true;
-        }
     }
 
     showWelcomeMessage() {
         const welcomeBubble = document.getElementById('welcome-bubble');
-        setTimeout(() => {
-            welcomeBubble.classList.add('show');
-        }, 1000);
+        setTimeout(() => welcomeBubble.classList.add('show'), 1000);
     }
 
     hideWelcomeMessage() {
@@ -213,49 +174,31 @@ class VirtualAssistant {
 
         if (!message) return;
 
-        // Añadir mensaje del usuario
-        console.log('User message:', message);
         this.addUserMessage(message);
         messageInput.value = '';
-
-        // Mostrar indicador de escritura
         this.showTypingIndicator();
 
         try {
-            // Crear el JSON para enviar
-            const requestBody = {
-                question: message
-            };
-            console.log('Request JSON:', requestBody);
-
-            // Enviar pregunta al endpoint
-            const response = await fetch(this.apiEndpoint, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestBody)
-            });
-
-            console.log('Response status:', response.status);
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            console.log('Response JSON:', data);
-
-            // Ocultar indicador de escritura
+            const requestBody = { question: message };
+            // Simulación de la llamada a la API para la demo
+            // En un entorno real, esta sería la llamada fetch.
+            console.log('Enviando a la API:', requestBody);
+            
+            // Simular un retraso de la API
+            await new Promise(resolve => setTimeout(resolve, 1500)); 
+            
+            // Simular una respuesta de la API
+            const data = { answer: `Esta es una respuesta simulada para tu pregunta: "${message}". La integración real con la API está pendiente.` };
+            
+            console.log('Respuesta recibida:', data);
+            
             this.hideTypingIndicator();
-
-            // Añadir respuesta del asistente
-            this.addAssistantMessage(data.answer || 'I apologize, but I could not process your request at this moment.');
+            this.addAssistantMessage(data.answer || 'Disculpa, no pude procesar tu solicitud en este momento.');
 
         } catch (error) {
-            console.error('Error sending message to assistant:', error);
+            console.error('Error enviando mensaje al asistente:', error);
             this.hideTypingIndicator();
-            this.addAssistantMessage('I apologize, but I\'m having trouble connecting to my knowledge base right now. Please try again in a moment.');
+            this.addAssistantMessage('Disculpa, estoy teniendo problemas para conectarme. Por favor, inténtalo de nuevo en un momento.');
         }
     }
 
@@ -281,11 +224,12 @@ class VirtualAssistant {
     addAssistantMessage(message) {
         const chatMessages = document.getElementById('chat-messages');
         const messageTime = this.getCurrentTime();
+        const lucyAvatarSrc = 'https://placehold.co/100x100/4A90D9/FFFFFF?text=L';
         
         const messageHTML = `
             <div class="message assistant-message">
                 <div class="message-avatar">
-                    <img src="assets/assistant/Lucy.png" alt="Lucy">
+                    <img src="${lucyAvatarSrc}" alt="Lucy">
                 </div>
                 <div class="message-content">
                     <div class="message-bubble">
@@ -302,7 +246,7 @@ class VirtualAssistant {
 
     showTypingIndicator() {
         const typingIndicator = document.getElementById('typing-indicator');
-        typingIndicator.style.display = 'block';
+        typingIndicator.style.display = 'flex';
         this.scrollToBottom();
     }
 
@@ -319,7 +263,7 @@ class VirtualAssistant {
     }
 
     getCurrentTime() {
-        return new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
     escapeHtml(text) {
@@ -329,11 +273,9 @@ class VirtualAssistant {
     }
 
     formatAssistantMessage(message) {
-        // Convertir saltos de línea a <br>
         let formattedMessage = this.escapeHtml(message);
         formattedMessage = formattedMessage.replace(/\n/g, '<br>');
         
-        // Formatear números con estilo
         formattedMessage = formattedMessage.replace(/(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s*(euros?|EUR|€)/gi, 
             '<strong class="currency-highlight">$1 $2</strong>');
         
@@ -343,11 +285,11 @@ class VirtualAssistant {
 
 // Inicializar el asistente cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', function() {
-    // Solo inicializar si no estamos en páginas específicas que no lo necesiten
     const excludePages = ['login.php', 'register.php', 'index.html'];
     const currentPage = window.location.pathname.split('/').pop();
     
-    if (!excludePages.includes(currentPage)) {
+    // Para esta demo, siempre inicializamos el asistente.
+    // if (!excludePages.includes(currentPage)) {
         window.virtualAssistant = new VirtualAssistant();
-    }
+    // }
 });
