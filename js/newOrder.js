@@ -23,7 +23,7 @@ function sendFormDataAsync(payload) {
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error('Network response was not ok: ' + response.statusText);
+                throw new Error('La respuesta del servidor no fue exitosa: ' + response.statusText);
             }
             return response.json();
         })
@@ -36,7 +36,7 @@ function sendFormDataAsync(payload) {
 async function uploadRecoveryFile(orderId, userName, file) {
     if (!orderId || !file) {
         console.error("Missing required parameters for file upload", { orderId, hasFile: !!file });
-        return { success: false, message: "Missing required parameters" };
+        return { success: false, message: "Parámetros requeridos faltantes" };
     }
 
     const formData = new FormData();
@@ -52,7 +52,7 @@ async function uploadRecoveryFile(orderId, userName, file) {
     if (!response.ok) {
         const errorText = await response.text();
         console.error("Upload failed with status:", response.status, errorText);
-        return { success: false, message: `Upload failed: ${response.statusText}` };
+        return { success: false, message: `La carga del archivo falló: ${response.statusText}` };
     }
     
     return await response.json();
@@ -105,95 +105,96 @@ function handleRecoveryFileVisibility() {
 async function submitForm(event) {
     event.preventDefault();
 
-    // 1. Process new companies if any
-    let originId = null;
-    let destinyId = null;
-    if (window.hasNewCompaniesToSave && window.hasNewCompaniesToSave()) {
-        try {
+    // ================== INICIO DE LA CORRECCIÓN: MODAL DE CARGA ==================
+    Swal.fire({
+        title: 'Enviando Orden',
+        html: 'Por favor espere mientras se procesa su solicitud...',
+        timerProgressBar: true,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+    // =================== FIN DE LA CORRECCIÓN: MODAL DE CARGA ===================
+
+    try {
+        // 1. Process new companies if any
+        let originId = null;
+        let destinyId = null;
+        if (window.hasNewCompaniesToSave && window.hasNewCompaniesToSave()) {
             const result = await window.saveNewCompanies();
-            if (!result || !result.success) throw new Error(result?.error || "Failed to save new companies");
+            if (!result || !result.success) throw new Error(result?.error || "Falló al guardar nuevas compañías");
             originId = result.originId;
             destinyId = result.destinyId;
-        } catch (error) {
-            Swal.fire({ icon: 'error', title: 'Error', text: `Failed to save new company info: ${error.message}` });
-            return;
         }
-    }
 
-    // Process new carrier if needed
-    let carrierId = null;
-    if (window.hasNewCarrierToSave && window.hasNewCarrierToSave()) {
-        try {
+        // Process new carrier if needed
+        let carrierId = null;
+        if (window.hasNewCarrierToSave && window.hasNewCarrierToSave()) {
             carrierId = await window.saveNewCarrier();
-            if (!carrierId) throw new Error("Failed to save new carrier");
-        } catch (error) {
-            Swal.fire({ icon: 'error', title: 'Error', text: `Failed to save new carrier info: ${error.message}` });
-            return;
+            if (!carrierId) throw new Error("Falló al guardar nuevo transportista");
         }
-    }
-    if (!carrierId) {
-        carrierId = $('#Carrier').val();
-    }
+        if (!carrierId) {
+            carrierId = $('#Carrier').val();
+        }
 
-    // 2. Validate form
-    const validationResult = validateCompleteForm();
-    if (!validationResult.isValid) {
-        Swal.fire({ icon: 'error', title: 'Validation Error', text: validationResult.message || 'Please check the form for errors.' });
-        return;
-    }
-    const formData = validationResult.formData;
+        // 2. Validate form
+        const validationResult = validateCompleteForm();
+        if (!validationResult.isValid) {
+            throw new Error(validationResult.message || 'Por favor revise el formulario en busca de errores.');
+        }
+        const formData = validationResult.formData;
 
-    // 3. Get company IDs (new or existing)
-    const companyValidation = validateCompanyIds();
-    const finalOriginId = originId || companyValidation.originId;
-    const finalDestinyId = destinyId || companyValidation.destinyId;
-    if (!finalOriginId || !finalDestinyId) {
-        Swal.fire({ icon: 'error', title: 'Company Error', text: 'Please select valid origin and destination companies.' });
-        return;
-    }
+        // 3. Get company IDs (new or existing)
+        const companyValidation = validateCompanyIds();
+        const finalOriginId = originId || companyValidation.originId;
+        const finalDestinyId = destinyId || companyValidation.destinyId;
+        if (!finalOriginId || !finalDestinyId) {
+            throw new Error('Por favor seleccione compañías de origen y destino válidas.');
+        }
 
-    // 4. Prepare payload
-    const quotedCost = parseFloat(formData['QuotedCost']);
-    range = calculateAuthorizationRange(quotedCost);
-    const payload = {
-        user_id: window.PF_CONFIG.user.id || 1,
-        date: new Date().toISOString().slice(0, 19).replace('T', ' '),
-        planta: formData['planta'],
-        code_planta: formData['codeplanta'],
-        transport: formData['transport'],
-        in_out_bound: formData['InOutBound'],
-        cost_euros: (typeof euros === 'number' && !isNaN(euros)) ? euros : 0,
-        description: formData['Description'],
-        area: formData['Area'],
-        int_ext: formData['IntExt'],
-        paid_by: formData['PaidBy'],
-        category_cause: formData['CategoryCause'],
-        project_status: formData['ProjectStatus'],
-        recovery: formData['Recovery'],
-        weight: formData['Weight'],
-        measures: formData['Measures'],
-        products: formData['Products'],
-        carrier: carrierId,
-        quoted_cost: quotedCost,
-        reference: formData['Reference'],
-        reference_number: formData['ReferenceNumber'],
-        origin_id: finalOriginId,
-        destiny_id: finalDestinyId,
-        status_id: 1,
-        required_auth_level: range,
-        moneda: getSelectedCurrency()
-    };
-    
-    // 5. Submit form data
-    try {
+        // 4. Prepare payload
+        const quotedCost = parseFloat(formData['QuotedCost']);
+        range = calculateAuthorizationRange(quotedCost);
+        const payload = {
+            user_id: window.PF_CONFIG.user.id || 1,
+            date: new Date().toISOString().slice(0, 19).replace('T', ' '),
+            planta: formData['planta'],
+            code_planta: formData['codeplanta'],
+            transport: formData['transport'],
+            in_out_bound: formData['InOutBound'],
+            cost_euros: (typeof euros === 'number' && !isNaN(euros)) ? euros : 0,
+            description: formData['Description'],
+            area: formData['Area'],
+            int_ext: formData['IntExt'],
+            paid_by: formData['PaidBy'],
+            category_cause: formData['CategoryCause'],
+            project_status: formData['ProjectStatus'],
+            recovery: formData['Recovery'],
+            weight: formData['Weight'],
+            measures: formData['Measures'],
+            products: formData['Products'],
+            carrier: carrierId,
+            quoted_cost: quotedCost,
+            reference: formData['Reference'],
+            reference_number: formData['ReferenceNumber'],
+            origin_id: finalOriginId,
+            destiny_id: finalDestinyId,
+            status_id: 1,
+            required_auth_level: range,
+            moneda: getSelectedCurrency()
+        };
+        
+        // 5. Submit form data
         const response = await sendFormDataAsync(payload);
         if (!response || !response.success) {
-            throw new Error(response?.message || 'Failed to create order.');
+            throw new Error(response?.message || 'Falló la creación de la orden.');
         }
 
         const orderId = response.order_id || response.premium_freight_id;
         if (!orderId) {
-            throw new Error("Order was created, but its ID is missing in the server response.");
+            throw new Error("La orden fue creada, pero el ID no se recibió del servidor.");
         }
 
         // 6. Upload recovery file if needed
@@ -202,7 +203,7 @@ async function submitForm(event) {
         if (needsFile && recoveryFile?.files.length > 0) {
             const fileResponse = await uploadRecoveryFile(orderId, window.PF_CONFIG.user.name, recoveryFile.files[0]);
             if (!fileResponse.success) {
-                console.warn("Order created, but recovery file upload failed:", fileResponse.message);
+                console.warn("Orden creada, pero la carga del archivo de recuperación falló:", fileResponse.message);
             }
         }
         
@@ -212,15 +213,15 @@ async function submitForm(event) {
         // 8. Show final success message
         Swal.fire({
             icon: 'success',
-            title: 'Premium Freight Order Created',
+            title: '¡Orden Creada Exitosamente!',
             html: `
-                Order <strong>#${orderId}</strong> has been created successfully.<br><br>
+                La orden <strong>#${orderId}</strong> ha sido creada.<br><br>
                 ${notificationResult.success ? 
-                    '<i class="fas fa-check-circle text-success"></i> Approval notification sent to approvers.' : 
-                    `<i class="fas fa-exclamation-triangle text-warning"></i> Order created, but notification failed: ${notificationResult.message}`
+                    '<i class="fas fa-check-circle text-success"></i> Notificación de aprobación enviada.' : 
+                    `<i class="fas fa-exclamation-triangle text-warning"></i> Orden creada, pero la notificación falló: ${notificationResult.message}`
                 }
             `,
-            confirmButtonText: 'Go to Dashboard'
+            confirmButtonText: 'Ir al Dashboard'
         }).then((result) => {
             if (result.isConfirmed) {
                 window.location.href = 'dashboard.php';
@@ -228,8 +229,12 @@ async function submitForm(event) {
         });
 
     } catch (error) {
-        console.error("Exception in order submission:", error);
-        Swal.fire({ icon: 'error', title: 'Submission Error', text: error.message });
+        console.error("Excepción en el envío de la orden:", error);
+        Swal.fire({ 
+            icon: 'error', 
+            title: 'Error de Envío', 
+            text: error.message 
+        });
     }
 }
 
