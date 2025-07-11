@@ -75,9 +75,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Simula un retraso de red de 2.5 segundos
         setTimeout(() => {
-            // URL de ejemplo actualizada a un reporte público de Microsoft más estable.
+            // URL de ejemplo actualizada con el enlace que proporcionaste.
             // Tu backend debería devolver una URL real generada por tu sistema.
-            const fakeDashboardUrl = "https://app.powerbi.com/view?r=eyJrIjoiZWIzN2Q2MjktY2ZkZS00ZDZlLTk0YjctZGQ4YjkyN2FlZDE2IiwidCI6IjcwOTk0YjgxLTY2YzYtNDBkMi05M2FkLWMxYWU5MDUxMDM4MSIsImMiOjh9";
+            const fakeDashboardUrl = "https://app.fabric.microsoft.com/view?r=eyJrIjoiZDExZTM1N2YtNGZhYS00ZTM4LWE1ZWItZmY4ODkwZDZiNGUzIiwidCI6IjQ5MzkwMzQ4LTk2ZGMtNDZhZC05YTYyLWMxMDQzMDIwZmQ2MyJ9";
             
             showDashboardResult(fakeDashboardUrl);
 
