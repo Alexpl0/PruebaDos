@@ -63,6 +63,8 @@ require_once 'dao/users/context_injector.php';
                     <hr>
                     <p class="card-text mt-3">Describe the dashboard you need. Be as specific as possible to get the best result.</p>
                     
+                    <p class="prompt-example">For example: <em>"A dashboard that shows the performance of logistics support through calls, chats, emails, and escalations."</em></p>
+                    
                     <form id="lucy-form" class="text-center">
                         <div class="mb-3">
                             <textarea id="prompt-input" class="form-control" rows="4" placeholder="e.g., 'I need a report with sales by country on a map and cost per carrier in a bar chart...'"></textarea>
