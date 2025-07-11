@@ -75,9 +75,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Simula un retraso de red de 2.5 segundos
         setTimeout(() => {
-            // Esta es una URL de ejemplo de un dashboard público de Power BI.
+            // URL de ejemplo actualizada a un reporte público de Microsoft más estable.
             // Tu backend debería devolver una URL real generada por tu sistema.
-            const fakeDashboardUrl = "https://app.powerbi.com/view?r=eyJrIjoiN2Y2YjM3YWYtOTI4ZC00YjZkLWI2YjEtY2U2YmQ4YjY1NzYwIiwidCI6IjZkY2ZjYTU4LWZkNWQtNGI2MC1iM2JkLTNkYjVlMDVjNTE2MSIsImMiOjR9";
+            const fakeDashboardUrl = "https://app.powerbi.com/view?r=eyJrIjoiZWIzN2Q2MjktY2ZkZS00ZDZlLTk0YjctZGQ4YjkyN2FlZDE2IiwidCI6IjcwOTk0YjgxLTY2YzYtNDBkMi05M2FkLWMxYWU5MDUxMDM4MSIsImMiOjh9";
             
             showDashboardResult(fakeDashboardUrl);
 
