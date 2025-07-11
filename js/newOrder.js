@@ -4,7 +4,7 @@
  * It now imports notification functions from the central mailer.js module.
  */
 
-// 1. Importar la función de notificación desde el módulo centralizado.
+// 1. Import notification function from the centralized module.
 import { sendApprovalNotification } from './mailer.js';
 
 // Global variable for the required authorization level.
@@ -23,7 +23,7 @@ function sendFormDataAsync(payload) {
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error('La respuesta del servidor no fue exitosa: ' + response.statusText);
+                throw new Error('Network response was not ok: ' + response.statusText);
             }
             return response.json();
         })
@@ -36,7 +36,7 @@ function sendFormDataAsync(payload) {
 async function uploadRecoveryFile(orderId, userName, file) {
     if (!orderId || !file) {
         console.error("Missing required parameters for file upload", { orderId, hasFile: !!file });
-        return { success: false, message: "Parámetros requeridos faltantes" };
+        return { success: false, message: "Missing required parameters" };
     }
 
     const formData = new FormData();
@@ -52,7 +52,7 @@ async function uploadRecoveryFile(orderId, userName, file) {
     if (!response.ok) {
         const errorText = await response.text();
         console.error("Upload failed with status:", response.status, errorText);
-        return { success: false, message: `La carga del archivo falló: ${response.statusText}` };
+        return { success: false, message: `Upload failed: ${response.statusText}` };
     }
     
     return await response.json();
@@ -105,10 +105,10 @@ function handleRecoveryFileVisibility() {
 async function submitForm(event) {
     event.preventDefault();
 
-    // ================== INICIO DE LA CORRECCIÓN: MODAL DE CARGA ==================
+    // ================== START: LOADING MODAL ==================
     Swal.fire({
-        title: 'Enviando Orden',
-        html: 'Por favor espere mientras se procesa su solicitud...',
+        title: 'Submitting Order',
+        html: 'Please wait while your request is being processed...',
         timerProgressBar: true,
         allowOutsideClick: false,
         allowEscapeKey: false,
@@ -116,7 +116,7 @@ async function submitForm(event) {
             Swal.showLoading();
         }
     });
-    // =================== FIN DE LA CORRECCIÓN: MODAL DE CARGA ===================
+    // =================== END: LOADING MODAL ===================
 
     try {
         // 1. Process new companies if any
@@ -124,7 +124,7 @@ async function submitForm(event) {
         let destinyId = null;
         if (window.hasNewCompaniesToSave && window.hasNewCompaniesToSave()) {
             const result = await window.saveNewCompanies();
-            if (!result || !result.success) throw new Error(result?.error || "Falló al guardar nuevas compañías");
+            if (!result || !result.success) throw new Error(result?.error || "Failed to save new companies");
             originId = result.originId;
             destinyId = result.destinyId;
         }
@@ -133,7 +133,7 @@ async function submitForm(event) {
         let carrierId = null;
         if (window.hasNewCarrierToSave && window.hasNewCarrierToSave()) {
             carrierId = await window.saveNewCarrier();
-            if (!carrierId) throw new Error("Falló al guardar nuevo transportista");
+            if (!carrierId) throw new Error("Failed to save new carrier");
         }
         if (!carrierId) {
             carrierId = $('#Carrier').val();
@@ -142,7 +142,7 @@ async function submitForm(event) {
         // 2. Validate form
         const validationResult = validateCompleteForm();
         if (!validationResult.isValid) {
-            throw new Error(validationResult.message || 'Por favor revise el formulario en busca de errores.');
+            throw new Error(validationResult.message || 'Please check the form for errors.');
         }
         const formData = validationResult.formData;
 
@@ -151,7 +151,7 @@ async function submitForm(event) {
         const finalOriginId = originId || companyValidation.originId;
         const finalDestinyId = destinyId || companyValidation.destinyId;
         if (!finalOriginId || !finalDestinyId) {
-            throw new Error('Por favor seleccione compañías de origen y destino válidas.');
+            throw new Error('Please select valid origin and destination companies.');
         }
 
         // 4. Prepare payload
@@ -189,12 +189,12 @@ async function submitForm(event) {
         // 5. Submit form data
         const response = await sendFormDataAsync(payload);
         if (!response || !response.success) {
-            throw new Error(response?.message || 'Falló la creación de la orden.');
+            throw new Error(response?.message || 'Failed to create order.');
         }
 
         const orderId = response.order_id || response.premium_freight_id;
         if (!orderId) {
-            throw new Error("La orden fue creada, pero el ID no se recibió del servidor.");
+            throw new Error("Order was created, but its ID is missing in the server response.");
         }
 
         // 6. Upload recovery file if needed
@@ -203,7 +203,7 @@ async function submitForm(event) {
         if (needsFile && recoveryFile?.files.length > 0) {
             const fileResponse = await uploadRecoveryFile(orderId, window.PF_CONFIG.user.name, recoveryFile.files[0]);
             if (!fileResponse.success) {
-                console.warn("Orden creada, pero la carga del archivo de recuperación falló:", fileResponse.message);
+                console.warn("Order created, but recovery file upload failed:", fileResponse.message);
             }
         }
         
@@ -213,26 +213,26 @@ async function submitForm(event) {
         // 8. Show final success message
         Swal.fire({
             icon: 'success',
-            title: '¡Orden Creada Exitosamente!',
+            title: 'Order Created Successfully!',
             html: `
-                La orden <strong>#${orderId}</strong> ha sido creada.<br><br>
+                Order <strong>#${orderId}</strong> has been created successfully.<br><br>
                 ${notificationResult.success ? 
-                    '<i class="fas fa-check-circle text-success"></i> Notificación de aprobación enviada.' : 
-                    `<i class="fas fa-exclamation-triangle text-warning"></i> Orden creada, pero la notificación falló: ${notificationResult.message}`
+                    '<i class="fas fa-check-circle text-success"></i> Approval notification sent.' : 
+                    `<i class="fas fa-exclamation-triangle text-warning"></i> Order created, but notification failed: ${notificationResult.message}`
                 }
             `,
-            confirmButtonText: 'Ir al Dashboard'
+            confirmButtonText: 'Go to Generated Orders'
         }).then((result) => {
             if (result.isConfirmed) {
-                window.location.href = 'dashboard.php';
+                window.location.href = 'orders.php';
             }
         });
 
     } catch (error) {
-        console.error("Excepción en el envío de la orden:", error);
+        console.error("Exception in order submission:", error);
         Swal.fire({ 
             icon: 'error', 
-            title: 'Error de Envío', 
+            title: 'Submission Error', 
             text: error.message 
         });
     }
