@@ -24,12 +24,12 @@ require_once 'dao/users/context_injector.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Freight Order #<?php echo $orderId; ?> - Grammer AG</title>
+    <title>Premium Freight Order #<?php echo $orderId; ?> - GRAMMER AMERICAS</title>
     
     <!-- Favicon, Meta, Fonts -->
     <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
-    <meta name="description" content="Premium Freight Order Management System - Grammer AG">
-    <meta name="author" content="Grammer AG">
+    <meta name="description" content="Premium Freight Order Management System - GRAMMER AMERICAS">
+    <meta name="author" content="GRAMMER AMERICAS">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- External CSS -->
@@ -82,7 +82,7 @@ require_once 'dao/users/context_injector.php';
                     </div>
                 </div>
                 <div class="header-right">
-                    <h2 class="company-name">GRAMMER AG</h2>
+                    <h2 class="company-name">GRAMMER AMERICAS</h2>
                     <p class="order-subtitle">Logistics Management System</p>
                 </div>
             </div>

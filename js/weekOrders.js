@@ -321,7 +321,7 @@ function createTableRow(order, index) {
     };
     row.innerHTML = `
         <td class="text-center fw-bold">${order.id || '-'}</td>
-        <td>Grammer AG</td>
+        <td>GRAMMER AMERICAS</td>
         <td class="text-center">${order.creator_plant || '-'}</td>
         <td>${order.creator_plant || '-'}</td>
         <td class="text-center">${formattedDate}</td>

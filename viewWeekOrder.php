@@ -21,8 +21,8 @@ require_once 'dao/users/context_injector.php';
     
     <!-- Favicon, Meta, Fonts -->
     <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
-    <meta name="description" content="Premium Freight Order Management System - Grammer AG">
-    <meta name="author" content="Grammer AG">
+    <meta name="description" content="Premium Freight Order Management System - GRAMMER AMERICAS">
+    <meta name="author" content="GRAMMER AMERICAS">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
     
@@ -56,7 +56,7 @@ require_once 'dao/users/context_injector.php';
                 <div class="header-left">
                     <div class="company-logo">
                         <i class="fas fa-truck-fast"></i>
-                        <span class="company-name">Grammer AG</span>
+                        <span class="company-name">GRAMMER AMERICAS</span>
                     </div>
                     <div class="orders-info">
                         <h1 class="orders-title-main">Premium Freight Orders</h1>
