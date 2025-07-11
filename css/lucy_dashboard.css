@@ -1,12 +1,12 @@
 /* css/lucy_dashboard.css */
 
-/* Estilo del contenedor principal para centrar el contenido */
+/* Main container style to center content */
 .lucy-main-container {
     max-width: 900px;
     margin: 0 auto;
 }
 
-/* Tarjeta de interacción con Lucy */
+/* Lucy interaction card */
 #lucy-interaction-card {
     background: linear-gradient(145deg, var(--gray-50), var(--white));
     border: 1px solid var(--gray-200);
@@ -57,6 +57,7 @@
     border-radius: var(--border-radius);
     transition: all var(--transition-normal);
     background-color: var(--white);
+    text-align: left; /* Ensure placeholder text starts from the left */
 }
 
 #prompt-input:focus {
@@ -65,13 +66,15 @@
 }
 
 #generate-dashboard-btn {
-    padding: var(--spacing-md) var(--spacing-lg);
-    font-size: 1.1rem;
+    padding: 0.75rem 1.5rem; /* Adjusted padding */
+    font-size: 1rem; /* Adjusted font size */
     font-weight: bold;
     background-color: var(--grammer-blue);
     border-color: var(--grammer-blue);
     border-radius: var(--border-radius);
     transition: all var(--transition-normal);
+    max-width: 320px; /* Set a max-width */
+    width: 100%; /* Ensure it's responsive within the max-width */
 }
 
 #generate-dashboard-btn:hover {
@@ -81,7 +84,7 @@
     box-shadow: var(--shadow-md);
 }
 
-/* Contenedor de resultados */
+/* Results container */
 #dashboard-result-container .card {
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-md);
@@ -93,11 +96,11 @@
     color: var(--grammer-dark-blue);
 }
 
-/* Estilo para el iframe, asegurando que sea responsivo */
+/* Iframe style, ensuring it's responsive */
 #iframe-container {
     position: relative;
     width: 100%;
-    /* Mantiene una proporción 16:9, común para dashboards */
+    /* Maintains a 16:9 aspect ratio, common for dashboards */
     padding-top: 56.25%; 
 }
 
