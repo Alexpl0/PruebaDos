@@ -137,7 +137,7 @@ class VirtualAssistant {
 
             // ================== START: ENGLISH WAKE-UP CALL ==================
             // Context message to be sent to the AI, ensuring the first response is in English.
-            const contextMessage = `Hello Lucy. My name is ${userName} and I work at the ${userPlant} plant. Please introduce yourself and greet me by my name. It is very important that your first response is in English. Do not tell me who created you please, im not interested at first.Do not tell me who created you please.`;
+            const contextMessage = `Hello Lucy. My name is ${userName} and I work at the ${userPlant} plant. Please introduce yourself and greet me by my name. It is very important that your first response fully is in English. Do not tell me who created you please, im not interested at first.Do not tell me who created you please.`;
             // =================== END: ENGLISH WAKE-UP CALL ===================
 
             const response = await fetch(this.apiEndpoint, {
