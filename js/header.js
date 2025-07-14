@@ -1,6 +1,7 @@
 /**
  * Premium Freight - Componente Header Responsivo (Refactorizado)
  * * Lee el contexto del usuario desde `window.PF_CONFIG` para generar el header.
+ * * Versión actualizada con rol de Súper Usuario.
  */
 
 /**
@@ -14,9 +15,10 @@ function createHeader(isPublicPage = false) {
     }
 
     // Obtener datos del usuario desde el objeto de configuración global.
-    const user = window.PF_CONFIG?.user || { authorizationLevel: 0, name: null };
+    const user = window.PF_CONFIG?.user || { authorizationLevel: 0, name: null, id: null };
     const authLevel = user.authorizationLevel;
     const userName = user.name;
+    const userId = user.id; // ID del usuario para la validación de súper usuario.
 
     const currentPage = window.location.pathname.split('/').pop() || 'index.php';
 
@@ -27,19 +29,33 @@ function createHeader(isPublicPage = false) {
     }
 
     let navItems = '';
-    if (authLevel === 0) {
+
+    // Lógica de navegación con 3 niveles: Súper Usuario, Admin y Usuario normal.
+    // 1. Súper Usuario (ID 36) tiene acceso a todo, incluyendo la administración de usuarios.
+    if (userId === 36) {
+        navItems += navLink('profile.php', 'My Profile', 'fas fa-user-shield');
+        navItems += navLink('newOrder.php', 'New Order', 'fas fa-plus-circle');
+        navItems += navLink('orders.php', 'Generated Orders', 'fas fa-list-alt');
+        navItems += navLink('adminUsers.php', 'Admin User', 'fas fa-users-cog'); // <-- Enlace exclusivo
+        navItems += navLink('dashboard.php', 'Charts', 'fas fa-chart-bar');
+        navItems += navLink('#', 'Manual', 'fas fa-book');
+    }
+    // 2. Otros administradores (nivel > 0) ven las opciones de admin, pero no la administración de usuarios.
+    else if (authLevel > 0) {
+        navItems += navLink('profile.php', 'My Profile', 'fas fa-user-shield');
+        navItems += navLink('newOrder.php', 'New Order', 'fas fa-plus-circle');
+        navItems += navLink('orders.php', 'Generated Orders', 'fas fa-list-alt');
+        navItems += navLink('dashboard.php', 'Charts', 'fas fa-chart-bar');
+        navItems += navLink('#', 'Manual', 'fas fa-book');
+    }
+    // 3. Usuarios regulares (nivel 0) ven su menú limitado.
+    else {
         navItems += navLink('profile.php', 'My Profile', 'fas fa-user');
         navItems += navLink('newOrder.php', 'New Order', 'fas fa-plus-circle');
         navItems += navLink('myorders.php', 'My Orders', 'fas fa-list-check');
         navItems += navLink('#', 'Manual', 'fas fa-book');
-    } else {
-        navItems += navLink('profile.php', 'My Profile', 'fas fa-user-shield');
-        navItems += navLink('newOrder.php', 'New Order', 'fas fa-plus-circle');
-        navItems += navLink('orders.php', 'Generated Orders', 'fas fa-list-alt');
-        navItems += navLink('adminUsers.php', 'Admin User', 'fas fa-users-cog');
-        navItems += navLink('dashboard.php', 'Charts', 'fas fa-chart-bar');
-        navItems += navLink('#', 'Manual', 'fas fa-book');
     }
+
 
     if (userName) {
         navItems += navLink('dao/users/logout.php', 'Log Out', 'fas fa-sign-out-alt');
@@ -95,6 +111,12 @@ function createPublicHeader() {
  * Inicializa la funcionalidad del header.
  */
 document.addEventListener('DOMContentLoaded', function() {
+    // Asumimos que PF_CONFIG se define en otro script como config.js
+    // Si APP_CONTEXT es el objeto global, lo asignamos.
+    if (typeof window.APP_CONTEXT !== 'undefined' && typeof window.PF_CONFIG === 'undefined') {
+        window.PF_CONFIG = window.APP_CONTEXT;
+    }
+
     const currentPage = window.location.pathname.split('/').pop() || 'index.php';
     const publicPages = ['index.php', 'register.php', 'recovery.php', 'password_reset.php'];
     const isPublicPage = publicPages.includes(currentPage);

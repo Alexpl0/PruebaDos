@@ -5,34 +5,56 @@ session_start();
 
 header('Content-Type: application/json');
 
-// Check if user is logged in and has admin privileges
-if (!isset($_SESSION['user']) || $_SESSION['user']['authorization_level'] < 1) {
-    http_response_code(403);
-    echo json_encode([
-        'success' => false,
-        'message' => 'You must have administrator privileges to access this feature'
-    ]);
+// --- INICIO DEL BLOQUE DE SEGURIDAD REFORZADO ---
+
+$method = $_SERVER['REQUEST_METHOD'];
+$user = $_SESSION['user'] ?? null;
+$userId = $user['id'] ?? null;
+$authLevel = $user['authorization_level'] ?? null;
+
+// 1. Verificación general: El usuario debe haber iniciado sesión.
+if (!$user) {
+    http_response_code(401); // Unauthorized
+    echo json_encode(['success' => false, 'message' => 'You must be logged in to access this feature.']);
     exit;
 }
 
-// Get request method
-$method = $_SERVER['REQUEST_METHOD'];
+// 2. Verificación para acciones de modificación (Crear, Actualizar, Borrar).
+// Solo el súper usuario (ID 36) puede realizar estas acciones.
+if (in_array($method, ['POST', 'PUT', 'DELETE'])) {
+    if ($userId != 36) {
+        http_response_code(403); // Forbidden
+        echo json_encode(['success' => false, 'message' => 'You do not have permission to modify user data.']);
+        exit;
+    }
+}
+
+// 3. Verificación para ver datos (GET).
+// Solo los administradores (nivel > 0) pueden ver la lista de usuarios.
+// El súper usuario (ID 36) está incluido si su nivel de autorización es > 0.
+if ($method === 'GET' && $authLevel < 1) {
+    http_response_code(403); // Forbidden
+    echo json_encode(['success' => false, 'message' => 'You do not have permission to view user data.']);
+    exit;
+}
+
+// --- FIN DEL BLOQUE DE SEGURIDAD ---
+
 
 try {
     $con = new LocalConector();
     $conex = $con->conectar();
     $conex->set_charset("utf8mb4");
 
-    // GET - Retrieve users with conditional filtering
+    // GET - Retrieve users
     if ($method === 'GET') {
         $userPlant = $_SESSION['user']['plant']; 
 
-        // If the user has no plant assigned (is regional), they can see all users.
-        if (empty($userPlant)) {
-            $stmt = $conex->prepare("SELECT id, name, email, plant, role FROM `User` ORDER BY id DESC");
+        // El súper usuario (asumiendo que no tiene planta) verá a todos los usuarios.
+        if (empty($userPlant) || $userId == 36) {
+            $stmt = $conex->prepare("SELECT id, name, email, plant, role, authorization_level FROM `User` ORDER BY id DESC");
         } else {
-            // Otherwise, they only see users from their own plant.
-            $stmt = $conex->prepare("SELECT id, name, email, plant, role FROM `User` WHERE plant = ? ORDER BY id DESC");
+            $stmt = $conex->prepare("SELECT id, name, email, plant, role, authorization_level FROM `User` WHERE plant = ? ORDER BY id DESC");
             $stmt->bind_param("s", $userPlant);
         }
         
@@ -44,17 +66,13 @@ try {
             $users[] = $row;
         }
         
-        echo json_encode([
-            'success' => true,
-            'data' => $users
-        ]);
+        echo json_encode(['success' => true, 'data' => $users]);
     }
     
-    // POST - Create a new user (password is required)
+    // POST - Create a new user
     else if ($method === 'POST') {
         $input = json_decode(file_get_contents('php://input'), true);
         
-        // Validate required fields, including password for new users
         $required_fields = ['name', 'email', 'plant', 'role', 'authorization_level', 'password'];
         $missing_fields = [];
         
@@ -66,14 +84,10 @@ try {
         
         if (!empty($missing_fields)) {
             http_response_code(400);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Missing required fields: ' . implode(', ', $missing_fields)
-            ]);
+            echo json_encode(['success' => false, 'message' => 'Missing required fields: ' . implode(', ', $missing_fields)]);
             exit;
         }
         
-        // Check if email already exists
         $stmt = $conex->prepare("SELECT id FROM `User` WHERE email = ?");
         $stmt->bind_param("s", $input['email']);
         $stmt->execute();
@@ -81,40 +95,24 @@ try {
         
         if ($stmt->num_rows > 0) {
             http_response_code(409);
-            echo json_encode([
-                'success' => false,
-                'message' => 'A user with this email already exists'
-            ]);
+            echo json_encode(['success' => false, 'message' => 'A user with this email already exists']);
             exit;
         }
         $stmt->close();
         
-        // Encrypt the password before storage
         $encryptedPassword = PasswordManager::prepareForStorage($input['password']);
         
-        // Insert new user with encrypted password
         $stmt = $conex->prepare("INSERT INTO `User` (name, email, plant, role, password, authorization_level) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("sssssi", 
-            $input['name'], 
-            $input['email'], 
-            $input['plant'],
-            $input['role'], 
-            $encryptedPassword,
-            $input['authorization_level']
-        );
+        $stmt->bind_param("sssssi", $input['name'], $input['email'], $input['plant'], $input['role'], $encryptedPassword, $input['authorization_level']);
         
         if ($stmt->execute()) {
-            echo json_encode([
-                'success' => true,
-                'message' => 'User created successfully with an encrypted password.',
-                'user_id' => $stmt->insert_id
-            ]);
+            echo json_encode(['success' => true, 'message' => 'User created successfully.', 'user_id' => $stmt->insert_id]);
         } else {
             throw new Exception("Error creating user: " . $stmt->error);
         }
     }
     
-    // PUT - Update an existing user (password is not handled)
+    // PUT - Update an existing user
     else if ($method === 'PUT') {
         $input = json_decode(file_get_contents('php://input'), true);
         
@@ -140,11 +138,11 @@ try {
         $params = [];
         $types = "";
         
-        if (isset($input['name']) && trim($input['name']) !== '') { $updateFields[] = "name = ?"; $params[] = $input['name']; $types .= "s"; }
-        if (isset($input['email']) && trim($input['email']) !== '') { $updateFields[] = "email = ?"; $params[] = $input['email']; $types .= "s"; }
-        if (isset($input['plant'])) { $updateFields[] = "plant = ?"; $params[] = $input['plant']; $types .= "s"; } // Allow setting plant to empty
-        if (isset($input['role']) && trim($input['role']) !== '') { $updateFields[] = "role = ?"; $params[] = $input['role']; $types .= "s"; }
-        if (isset($input['authorization_level']) && is_numeric($input['authorization_level'])) { $updateFields[] = "authorization_level = ?"; $params[] = $input['authorization_level']; $types .= "i"; }
+        if (isset($input['name'])) { $updateFields[] = "name = ?"; $params[] = $input['name']; $types .= "s"; }
+        if (isset($input['email'])) { $updateFields[] = "email = ?"; $params[] = $input['email']; $types .= "s"; }
+        if (isset($input['plant'])) { $updateFields[] = "plant = ?"; $params[] = $input['plant']; $types .= "s"; }
+        if (isset($input['role'])) { $updateFields[] = "role = ?"; $params[] = $input['role']; $types .= "s"; }
+        if (isset($input['authorization_level'])) { $updateFields[] = "authorization_level = ?"; $params[] = $input['authorization_level']; $types .= "i"; }
         
         if (empty($updateFields)) {
             http_response_code(400);
@@ -158,8 +156,7 @@ try {
         $sql = "UPDATE `User` SET " . implode(", ", $updateFields) . " WHERE id = ?";
         $stmt = $conex->prepare($sql);
         
-        $bindParams = array_merge([$types], array_map(function(&$param) { return $param; }, $params));
-        call_user_func_array([$stmt, 'bind_param'], $bindParams);
+        $stmt->bind_param($types, ...$params);
         
         if ($stmt->execute()) {
             echo json_encode(['success' => true, 'message' => 'User updated successfully']);
