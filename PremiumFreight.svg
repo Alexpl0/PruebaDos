@@ -24,15 +24,15 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
-     inkscape:zoom="2.0000001"
-     inkscape:cx="657.24997"
-     inkscape:cy="138.74999"
+     inkscape:zoom="2.8284273"
+     inkscape:cx="560.3821"
+     inkscape:cy="46.138715"
      inkscape:window-width="1920"
      inkscape:window-height="991"
-     inkscape:window-x="1191"
-     inkscape:window-y="72"
+     inkscape:window-x="1491"
+     inkscape:window-y="1032"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer4"
+     inkscape:current-layer="layer2"
      showgrid="true"
      showguides="true">
     <sodipodi:guide
@@ -394,8 +394,7 @@
   <g
      inkscape:groupmode="layer"
      id="layer2"
-     inkscape:label="Title"
-     sodipodi:insensitive="true">
+     inkscape:label="Title">
     <image
        width="30.665503"
        height="13.988237"
@@ -406,14 +405,12 @@
        x="175.73"
        y="5.4000001" />
     <text
-       style="font-variant:normal;font-weight:900;font-size:5.588px;font-family:Arial;-inkscape-font-specification:Arial-Black;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:0.159658;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
+       style="font-variant:normal;font-weight:900;font-size:5.588px;font-family:Arial;-inkscape-font-specification:'Arial, Heavy';writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:0.159658;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1;font-style:normal;font-stretch:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
        id="text730"
        x="9.0716476"
        y="9.7001152"><tspan
-         x="9.0716476 13.106186 17.168659 21.203197 25.550659 27.724392 32.071857 35.799049 37.659855 41.387051 45.712162 49.7467 51.948376 56.603176 61.257977 65.30928 67.170082 71.517548 76.172356 80.206886 84.861694 89.516495 93.86396 96.037689 100.08899 104.41969 108.45422 110.6559 115.3107"
-         y="9.7001152"
-         id="tspan728"
-         style="stroke-width:0.159658">SPECIAL FREIGHT AUTHORISATION</tspan></text>
+         sodipodi:role="line"
+         id="tspan4">SPECIAL FREIGHT AUTHORIZATION</tspan></text>
     <text
        style="font-variant:normal;font-weight:900;font-size:5.588px;font-family:Arial;-inkscape-font-specification:Arial-Black;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:0.159658;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
        id="text736"
