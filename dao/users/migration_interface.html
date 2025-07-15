@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente de Migración de Usuarios</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        #logOutput {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Courier New', Courier, monospace;
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+        .status-dot {
+            height: 10px;
+            width: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+    </style>
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+</head>
+<body class="bg-slate-100 text-slate-800 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-3xl bg-white rounded-lg shadow-xl p-6 md:p-8">
+        <div class="text-center mb-6">
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-900">Asistente de Migración de Usuarios</h1>
+            <p class="text-slate-500 mt-2">Haz clic en el botón para iniciar la migración de la tabla 'Cuentas' a 'User'.</p>
+        </div>
+
+        <div class="text-center mb-6">
+            <button id="startButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-all duration-300 disabled:bg-slate-400 disabled:cursor-not-allowed">
+                Iniciar Migración
+            </button>
+        </div>
+
+        <div id="results" class="hidden">
+            <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                <h2 class="text-xl font-semibold mb-3 text-slate-800">Registro del Proceso</h2>
+                <div id="logOutput" class="bg-slate-900 text-white text-sm rounded-md p-4">
+                    Esperando para iniciar...
+                </div>
+            </div>
+            
+            <div id="summary" class="mt-6 bg-green-50 border border-green-200 rounded-lg p-4 text-center hidden">
+                <h3 class="text-lg font-bold text-green-800">¡Migración Completada!</h3>
+                <div class="flex justify-center space-x-6 mt-2 text-slate-700">
+                    <p><span class="font-bold text-green-600" id="migratedCount">0</span> Migrados</p>
+                    <p><span class="font-bold text-amber-600" id="skippedCount">0</span> Omitidos</p>
+                    <p><span class="font-bold text-red-600" id="errorsCount">0</span> Errores</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-8 text-center text-xs text-red-600 font-semibold">
+            <p>ADVERTENCIA: Una vez finalizada la migración, por seguridad, elimina los archivos 
+            <br><code>migration_interface.html</code> y <code>migrate_users.php</code> de tu servidor.</p>
+        </div>
+    </div>
+
+    <script>
+        const startButton = document.getElementById('startButton');
+        const resultsDiv = document.getElementById('results');
+        const logOutput = document.getElementById('logOutput');
+        const summaryDiv = document.getElementById('summary');
+        const migratedCountSpan = document.getElementById('migratedCount');
+        const skippedCountSpan = document.getElementById('skippedCount');
+        const errorsCountSpan = document.getElementById('errorsCount');
+
+        startButton.addEventListener('click', async () => {
+            if (!confirm('¿Estás seguro de que deseas iniciar el proceso de migración? Esta acción no se puede deshacer.')) {
+                return;
+            }
+
+            // --- Prepara la UI para el proceso ---
+            startButton.disabled = true;
+            startButton.textContent = 'Migrando...';
+            resultsDiv.classList.remove('hidden');
+            summaryDiv.classList.add('hidden');
+            logOutput.textContent = 'Iniciando conexión con el servidor...';
+
+            try {
+                // --- Ejecuta el script PHP ---
+                const response = await fetch('migrate_users.php');
+                
+                if (!response.ok) {
+                    throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                // --- Muestra los resultados ---
+                logOutput.textContent = data.log || 'No se recibió registro del servidor.';
+                
+                if (data.success) {
+                    summaryDiv.classList.remove('hidden');
+                    migratedCountSpan.textContent = data.migrated;
+                    skippedCountSpan.textContent = data.skipped;
+                    errorsCountSpan.textContent = data.errors;
+                    startButton.textContent = 'Migración Completada';
+                    startButton.classList.remove('bg-blue-600');
+                    startButton.classList.add('bg-green-600');
+                } else {
+                    startButton.textContent = 'Error en la Migración';
+                    startButton.classList.remove('bg-blue-600');
+                    startButton.classList.add('bg-red-600');
+                }
+
+            } catch (error) {
+                logOutput.textContent = `Ha ocurrido un error al contactar el script de migración.\n\n${error.message}\n\nAsegúrate de que el archivo 'migrate_users.php' está en la misma carpeta y revisa la consola del navegador (F12) para más detalles.`;
+                startButton.textContent = 'Error Crítico';
+                startButton.classList.remove('bg-blue-600');
+                startButton.classList.add('bg-red-600');
+            }
+        });
+    </script>
+
+</body>
+</html>
