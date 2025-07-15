@@ -31,16 +31,16 @@ try {
     $conex->set_charset("utf8mb4");
     $logMessages[] = "Conexión a la base de datos exitosa.";
 
-    // 1. Obtenemos todos los usuarios de la tabla antigua 'Cuentas'
-    $sqlSelectOld = "SELECT Correo, Usuario, PASSWORD FROM Cuentas";
+    // 1. Obtenemos todos los usuarios de la tabla antigua 'CUENTAS'
+    $sqlSelectOld = "SELECT Correo, Usuario, PASSWORD FROM CUENTAS";
     $result = $conex->query($sqlSelectOld);
 
     if ($result === false) {
-        throw new Exception("Error al consultar la tabla 'Cuentas': " . $conex->error);
+        throw new Exception("Error al consultar la tabla 'CUENTAS': " . $conex->error);
     }
 
     $totalUsers = $result->num_rows;
-    $logMessages[] = "Se encontraron $totalUsers usuarios en la tabla 'Cuentas' para migrar.";
+    $logMessages[] = "Se encontraron $totalUsers usuarios en la tabla 'CUENTAS' para migrar.";
     $logMessages[] = "-------------------------------------------------";
     
     // Preparamos la sentencia para insertar en la nueva tabla 'User'
