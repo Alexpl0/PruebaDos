@@ -1,8 +1,8 @@
 <?php
-// normalize_locations.php
+// normalize_locations.php (Versión 2)
 // --- INSTRUCCIONES ---
 // 1. Sube este archivo a la carpeta 'dao/'.
-// 2. Sube 'normalization_interface.html' a la misma carpeta.
+// 2. Sube la nueva versión de 'normalization_interface.html' a la misma carpeta.
 // 3. Abre 'normalization_interface.html' en tu navegador para iniciar.
 // 4. Al finalizar, BORRA TODOS los archivos generados del servidor.
 
@@ -23,7 +23,7 @@ $response = [
     ],
     'mapping' => [],
     'log' => '',
-    'sql_inserts' => '' // Nuevo campo para los inserts
+    'unmatched_data' => [] // Nuevo campo para los datos no encontrados
 ];
 $logMessages = [];
 
@@ -74,10 +74,8 @@ try {
                     strcasecmp(trim($badRow['STATE_DEST']), trim($goodRow['state'])) == 0
                 )
             ) {
-                // --- Coincidencia encontrada ---
                 $goodId = $goodRow['id'];
                 $badId = $badRow['id'];
-
                 $stmtUpdate->bind_param("ssssi", $goodRow['company_name'], $goodRow['city'], $goodRow['state'], $goodRow['zip'], $badId);
 
                 if ($stmtUpdate->execute()) {
@@ -98,29 +96,18 @@ try {
         if (!$matchFound) {
             $logMessages[] = "[AVISO] ID Malo: " . $badRow['id'] . " -> No se encontró coincidencia.";
             $response['summary']['unmatched']++;
-            $unmatchedRows[] = $badRow; // Guardamos la fila completa
+            $unmatchedRows[] = $badRow; // Guardamos la fila completa con su ID original
         }
     }
 
-    // --- PASO 5: Generar sentencias INSERT para los no encontrados ---
+    // --- PASO 5: Preparar los datos de los no encontrados ---
     if (!empty($unmatchedRows)) {
         $logMessages[] = "-------------------------------------------------";
-        $logMessages[] = "Generando sentencias INSERT para " . count($unmatchedRows) . " registros no encontrados...";
+        $logMessages[] = "Se encontraron " . count($unmatchedRows) . " registros sin coincidencia.";
+        $response['unmatched_data'] = $unmatchedRows;
         
-        $sqlInserts = "INSERT INTO Location (company_name, city, state, zip) VALUES\n";
-        $values = [];
-        foreach ($unmatchedRows as $row) {
-            // Escapamos los valores para seguridad
-            $company = $conex->real_escape_string(trim($row['COMPANY_DEST']));
-            $city = $conex->real_escape_string(trim($row['CITY_DEST']));
-            $state = $conex->real_escape_string(trim($row['STATE_DEST']));
-            $zip = $conex->real_escape_string(trim($row['ZIP_DEST']));
-            $values[] = "('$company', '$city', '$state', '$zip')";
-        }
-        $sqlInserts .= implode(",\n", $values) . ";";
-        
-        $response['sql_inserts'] = $sqlInserts;
-        file_put_contents('unmatched_inserts.sql', $sqlInserts);
+        // Guardar los registros no encontrados en un archivo JSON para descarga
+        file_put_contents('unmatched_records.json', json_encode($unmatchedRows, JSON_PRETTY_PRINT));
     }
 
     $response['success'] = true;

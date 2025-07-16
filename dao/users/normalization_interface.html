@@ -1,140 +1,132 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asistente de Normalización de Ubicaciones</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .output-area {
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            font-family: 'Courier New', Courier, monospace;
-            height: 35vh;
-        }
-    </style>
-    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
-</head>
-<body class="bg-slate-100 text-slate-800 flex items-center justify-center min-h-screen p-4">
+<?php
+// normalize_locations.php (Versión 2)
+// --- INSTRUCCIONES ---
+// 1. Sube este archivo a la carpeta 'dao/'.
+// 2. Sube la nueva versión de 'normalization_interface.html' a la misma carpeta.
+// 3. Abre 'normalization_interface.html' en tu navegador para iniciar.
+// 4. Al finalizar, BORRA TODOS los archivos generados del servidor.
 
-    <div class="w-full max-w-6xl bg-white rounded-lg shadow-xl p-6 md:p-8">
-        <div class="text-center mb-6">
-            <h1 class="text-2xl md:text-3xl font-bold text-slate-900">Asistente de Normalización de Ubicaciones</h1>
-            <p class="text-slate-500 mt-2">Actualiza la tabla 'DESTINO' con los datos de 'Location' y genera un mapa de relaciones y los inserts faltantes.</p>
-        </div>
+header('Content-Type: application/json');
+set_time_limit(600); // Aumenta el tiempo de ejecución a 10 minutos
+ini_set('memory_limit', '512M'); // Aumenta el límite de memoria
 
-        <div class="text-center mb-6">
-            <button id="startButton" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-all duration-300 disabled:bg-slate-400 disabled:cursor-not-allowed">
-                Iniciar Normalización
-            </button>
-        </div>
+// Incluimos la conexión a la BD
+include_once('../db/PFDB.php');
 
-        <div id="results" class="hidden">
-             <div id="summary" class="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4 text-center hidden">
-                <h3 class="text-lg font-bold text-blue-800">Resumen del Proceso</h3>
-                <div class="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-2 text-slate-700">
-                    <p><span class="font-bold text-green-600" id="updatedCount">0</span> Actualizados</p>
-                    <p><span class="font-bold text-amber-600" id="unmatchedCount">0</span> Sin Coincidencia</p>
-                    <p><span class="font-bold text-red-600" id="errorsCount">0</span> Errores</p>
-                </div>
-            </div>
+// Preparamos la respuesta
+$response = [
+    'success' => false,
+    'summary' => [
+        'updated' => 0,
+        'unmatched' => 0,
+        'errors' => 0,
+    ],
+    'mapping' => [],
+    'log' => '',
+    'unmatched_data' => [] // Nuevo campo para los datos no encontrados
+];
+$logMessages = [];
 
-            <div class="grid md:grid-cols-2 gap-6 mt-6">
-                <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
-                    <h2 class="text-xl font-semibold mb-3 text-slate-800">Registro del Proceso</h2>
-                    <textarea id="logOutput" class="output-area w-full bg-slate-900 text-white text-sm rounded-md p-4" readonly>Esperando para iniciar...</textarea>
-                </div>
-                <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
-                    <h2 class="text-xl font-semibold mb-3 text-slate-800">Mapeo de IDs (ID Buena &rarr; IDs Malas)</h2>
-                    <textarea id="mappingOutput" class="output-area w-full bg-slate-800 text-lime-300 text-sm rounded-md p-4" readonly>El mapeo aparecerá aquí...</textarea>
-                </div>
-            </div>
-            
-            <div id="sqlSection" class="mt-6 bg-slate-50 rounded-lg p-4 border border-slate-200 hidden">
-                <h2 class="text-xl font-semibold mb-3 text-slate-800">SQL para Ubicaciones Faltantes</h2>
-                <textarea id="sqlOutput" class="output-area w-full bg-slate-800 text-cyan-300 text-sm rounded-md p-4" readonly>No se encontraron registros faltantes.</textarea>
-            </div>
+try {
+    $con = new LocalConector();
+    $conex = $con->conectar();
+    $conex->set_charset("utf8mb4");
+    $logMessages[] = "Conexión a la base de datos exitosa.";
 
-            <div id="downloadSection" class="text-center mt-6 space-x-4 hidden">
-                 <a href="id_relations.json" download="id_relations.json" id="downloadButton" class="inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-all duration-300">
-                    Descargar Mapeo
-                </a>
-                <a href="unmatched_inserts.sql" download="unmatched_inserts.sql" id="downloadSqlButton" class="hidden inline-block bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-all duration-300">
-                    Descargar SQL
-                </a>
-            </div>
-        </div>
-        
-        <div class="mt-8 text-center text-xs text-red-600 font-semibold">
-            <p>ADVERTENCIA: Una vez finalizado, por seguridad, elimina todos los archivos generados de tu servidor.</p>
-        </div>
-    </div>
+    // --- PASO 1: Obtener todos los registros de la tabla BUENA ('Location') ---
+    $goodLocations = [];
+    $sqlGood = "SELECT id, company_name, city, state, zip FROM Location";
+    $resultGood = $conex->query($sqlGood);
+    if ($resultGood === false) throw new Exception("Error al leer la tabla 'Location': " . $conex->error);
+    
+    while ($row = $resultGood->fetch_assoc()) {
+        $goodLocations[] = $row;
+    }
+    $resultGood->free();
+    $logMessages[] = "Se cargaron " . count($goodLocations) . " registros de la tabla normalizada 'Location'.";
+    $logMessages[] = "-------------------------------------------------";
 
-    <script>
-        const startButton = document.getElementById('startButton');
-        const resultsDiv = document.getElementById('results');
-        const summaryDiv = document.getElementById('summary');
-        const logOutput = document.getElementById('logOutput');
-        const mappingOutput = document.getElementById('mappingOutput');
-        const sqlSection = document.getElementById('sqlSection');
-        const sqlOutput = document.getElementById('sqlOutput');
-        const downloadSection = document.getElementById('downloadSection');
-        const downloadSqlButton = document.getElementById('downloadSqlButton');
-        
-        const updatedCountSpan = document.getElementById('updatedCount');
-        const unmatchedCountSpan = document.getElementById('unmatchedCount');
-        const errorsCountSpan = document.getElementById('errorsCount');
+    // --- PASO 2: Obtener todos los registros de la tabla MALA ('DESTINO') ---
+    $sqlBad = "SELECT id, COMPANY_DEST, CITY_DEST, STATE_DEST, ZIP_DEST FROM DESTINO";
+    $resultBad = $conex->query($sqlBad);
+    if ($resultBad === false) throw new Exception("Error al leer la tabla 'DESTINO': " . $conex->error);
+    
+    $logMessages[] = "Se encontraron " . $resultBad->num_rows . " registros en la tabla 'DESTINO' para procesar.";
+    $logMessages[] = "Iniciando proceso de comparación y actualización...";
+    $logMessages[] = "-------------------------------------------------";
 
-        startButton.addEventListener('click', async () => {
-            if (!confirm('¿Estás seguro de iniciar la normalización? Se modificarán los datos en la tabla DESTINO.')) return;
+    // --- PASO 3: Preparar la sentencia de UPDATE para eficiencia ---
+    $sqlUpdate = "UPDATE DESTINO SET COMPANY_DEST = ?, CITY_DEST = ?, STATE_DEST = ?, ZIP_DEST = ? WHERE id = ?";
+    $stmtUpdate = $conex->prepare($sqlUpdate);
+    if ($stmtUpdate === false) throw new Exception("Error al preparar la sentencia UPDATE: " . $conex->error);
 
-            startButton.disabled = true;
-            startButton.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Normalizando...`;
-            resultsDiv.classList.remove('hidden');
-            summaryDiv.classList.add('hidden');
-            downloadSection.classList.add('hidden');
-            sqlSection.classList.add('hidden');
-            logOutput.value = 'Iniciando conexión... El proceso puede tardar varios minutos.';
-            mappingOutput.value = 'Esperando resultados...';
+    // --- PASO 4: Iterar, comparar, actualizar y mapear ---
+    $idMapping = [];
+    $unmatchedRows = []; // Array para guardar filas no encontradas
 
-            try {
-                const response = await fetch('normalize_locations.php');
-                if (!response.ok) throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
-                const data = await response.json();
-                
-                logOutput.value = data.log || 'No se recibió registro del servidor.';
-                
-                if (data.success) {
-                    summaryDiv.classList.remove('hidden');
-                    updatedCountSpan.textContent = data.summary.updated;
-                    unmatchedCountSpan.textContent = data.summary.unmatched;
-                    errorsCountSpan.textContent = data.summary.errors;
-                    
-                    mappingOutput.value = JSON.stringify(data.mapping, null, 2);
-                    downloadSection.classList.remove('hidden');
+    while ($badRow = $resultBad->fetch_assoc()) {
+        $matchFound = false;
+        foreach ($goodLocations as $goodRow) {
+            if (
+                trim($badRow['ZIP_DEST']) === trim($goodRow['zip']) &&
+                (
+                    strcasecmp(trim($badRow['CITY_DEST']), trim($goodRow['city'])) == 0 ||
+                    strcasecmp(trim($badRow['STATE_DEST']), trim($goodRow['state'])) == 0
+                )
+            ) {
+                $goodId = $goodRow['id'];
+                $badId = $badRow['id'];
+                $stmtUpdate->bind_param("ssssi", $goodRow['company_name'], $goodRow['city'], $goodRow['state'], $goodRow['zip'], $badId);
 
-                    if (data.sql_inserts) {
-                        sqlSection.classList.remove('hidden');
-                        sqlOutput.value = data.sql_inserts;
-                        downloadSqlButton.classList.remove('hidden');
-                    }
-
-                    startButton.textContent = 'Normalización Completada';
-                    startButton.classList.remove('bg-indigo-600');
-                    startButton.classList.add('bg-green-600');
+                if ($stmtUpdate->execute()) {
+                    $logMessages[] = "[ÉXITO] ID Malo: $badId -> Actualizado y mapeado a ID Bueno: $goodId.";
+                    $response['summary']['updated']++;
+                    if (!isset($idMapping[$goodId])) $idMapping[$goodId] = [];
+                    $idMapping[$goodId][] = $badId;
                 } else {
-                    throw new Error(data.log || 'El script PHP reportó un error desconocido.');
+                    $logMessages[] = "[ERROR] ID Malo: $badId -> No se pudo actualizar. Error: " . $stmtUpdate->error;
+                    $response['summary']['errors']++;
                 }
-
-            } catch (error) {
-                logOutput.value = `Ha ocurrido un error crítico:\n\n${error.message}`;
-                startButton.textContent = 'Error en la Normalización';
-                startButton.classList.remove('bg-indigo-600');
-                startButton.classList.add('bg-red-600');
+                
+                $matchFound = true;
+                break;
             }
-        });
-    </script>
+        }
 
-</body>
-</html>
+        if (!$matchFound) {
+            $logMessages[] = "[AVISO] ID Malo: " . $badRow['id'] . " -> No se encontró coincidencia.";
+            $response['summary']['unmatched']++;
+            $unmatchedRows[] = $badRow; // Guardamos la fila completa con su ID original
+        }
+    }
+
+    // --- PASO 5: Preparar los datos de los no encontrados ---
+    if (!empty($unmatchedRows)) {
+        $logMessages[] = "-------------------------------------------------";
+        $logMessages[] = "Se encontraron " . count($unmatchedRows) . " registros sin coincidencia.";
+        $response['unmatched_data'] = $unmatchedRows;
+        
+        // Guardar los registros no encontrados en un archivo JSON para descarga
+        file_put_contents('unmatched_records.json', json_encode($unmatchedRows, JSON_PRETTY_PRINT));
+    }
+
+    $response['success'] = true;
+    $response['mapping'] = $idMapping;
+    $logMessages[] = "-------------------------------------------------";
+    $logMessages[] = "Proceso de normalización finalizado.";
+
+    file_put_contents('id_relations.json', json_encode($idMapping, JSON_PRETTY_PRINT));
+
+    $stmtUpdate->close();
+    $resultBad->free();
+    $conex->close();
+
+} catch (Exception $e) {
+    $response['success'] = false;
+    $logMessages[] = "\n--- !!! ERROR CRÍTICO !!! ---";
+    $logMessages[] = "Error: " . $e->getMessage();
+}
+
+$response['log'] = implode("\n", $logMessages);
+echo json_encode($response);
+?>
