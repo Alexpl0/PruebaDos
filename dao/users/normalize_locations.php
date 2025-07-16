@@ -1,5 +1,5 @@
 <?php
-// normalize_locations.php (Versión 2)
+// normalize_locations.php (Versión 3 - para FROM_CITY)
 // --- INSTRUCCIONES ---
 // 1. Sube este archivo a la carpeta 'dao/'.
 // 2. Sube la nueva versión de 'normalization_interface.html' a la misma carpeta.
@@ -23,7 +23,7 @@ $response = [
     ],
     'mapping' => [],
     'log' => '',
-    'unmatched_data' => [] // Nuevo campo para los datos no encontrados
+    'unmatched_data' => [] 
 ];
 $logMessages = [];
 
@@ -46,32 +46,35 @@ try {
     $logMessages[] = "Se cargaron " . count($goodLocations) . " registros de la tabla normalizada 'Location'.";
     $logMessages[] = "-------------------------------------------------";
 
-    // --- PASO 2: Obtener todos los registros de la tabla MALA ('DESTINO') ---
-    $sqlBad = "SELECT id, COMPANY_DEST, CITY_DEST, STATE_DEST, ZIP_DEST FROM DESTINO";
+    // --- PASO 2: Obtener todos los registros de la tabla MALA ('FROM_CITY') ---
+    // !! CAMBIO: Apuntando a la tabla FROM_CITY y sus columnas !!
+    $sqlBad = "SELECT id, COMPANY_FROM, CITY_FROM, STATE_FROM, ZIP_FROM FROM FROM_CITY";
     $resultBad = $conex->query($sqlBad);
-    if ($resultBad === false) throw new Exception("Error al leer la tabla 'DESTINO': " . $conex->error);
+    if ($resultBad === false) throw new Exception("Error al leer la tabla 'FROM_CITY': " . $conex->error);
     
-    $logMessages[] = "Se encontraron " . $resultBad->num_rows . " registros en la tabla 'DESTINO' para procesar.";
+    $logMessages[] = "Se encontraron " . $resultBad->num_rows . " registros en la tabla 'FROM_CITY' para procesar.";
     $logMessages[] = "Iniciando proceso de comparación y actualización...";
     $logMessages[] = "-------------------------------------------------";
 
     // --- PASO 3: Preparar la sentencia de UPDATE para eficiencia ---
-    $sqlUpdate = "UPDATE DESTINO SET COMPANY_DEST = ?, CITY_DEST = ?, STATE_DEST = ?, ZIP_DEST = ? WHERE id = ?";
+    // !! CAMBIO: Actualizando la tabla FROM_CITY y sus columnas !!
+    $sqlUpdate = "UPDATE FROM_CITY SET COMPANY_FROM = ?, CITY_FROM = ?, STATE_FROM = ?, ZIP_FROM = ? WHERE id = ?";
     $stmtUpdate = $conex->prepare($sqlUpdate);
     if ($stmtUpdate === false) throw new Exception("Error al preparar la sentencia UPDATE: " . $conex->error);
 
     // --- PASO 4: Iterar, comparar, actualizar y mapear ---
     $idMapping = [];
-    $unmatchedRows = []; // Array para guardar filas no encontradas
+    $unmatchedRows = []; 
 
     while ($badRow = $resultBad->fetch_assoc()) {
         $matchFound = false;
         foreach ($goodLocations as $goodRow) {
+            // !! CAMBIO: Usando las columnas de FROM_CITY para la comparación !!
             if (
-                trim($badRow['ZIP_DEST']) === trim($goodRow['zip']) &&
+                trim($badRow['ZIP_FROM']) === trim($goodRow['zip']) &&
                 (
-                    strcasecmp(trim($badRow['CITY_DEST']), trim($goodRow['city'])) == 0 ||
-                    strcasecmp(trim($badRow['STATE_DEST']), trim($goodRow['state'])) == 0
+                    strcasecmp(trim($badRow['CITY_FROM']), trim($goodRow['city'])) == 0 ||
+                    strcasecmp(trim($badRow['STATE_FROM']), trim($goodRow['state'])) == 0
                 )
             ) {
                 $goodId = $goodRow['id'];
@@ -96,7 +99,7 @@ try {
         if (!$matchFound) {
             $logMessages[] = "[AVISO] ID Malo: " . $badRow['id'] . " -> No se encontró coincidencia.";
             $response['summary']['unmatched']++;
-            $unmatchedRows[] = $badRow; // Guardamos la fila completa con su ID original
+            $unmatchedRows[] = $badRow; 
         }
     }
 
@@ -106,7 +109,6 @@ try {
         $logMessages[] = "Se encontraron " . count($unmatchedRows) . " registros sin coincidencia.";
         $response['unmatched_data'] = $unmatchedRows;
         
-        // Guardar los registros no encontrados en un archivo JSON para descarga
         file_put_contents('unmatched_records.json', json_encode($unmatchedRows, JSON_PRETTY_PRINT));
     }
 

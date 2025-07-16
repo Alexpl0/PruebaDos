@@ -21,7 +21,7 @@
     <div class="w-full max-w-6xl bg-white rounded-lg shadow-xl p-6 md:p-8">
         <div class="text-center mb-6">
             <h1 class="text-2xl md:text-3xl font-bold text-slate-900">Asistente de Normalización de Ubicaciones</h1>
-            <p class="text-slate-500 mt-2">Actualiza la tabla 'DESTINO' con los datos de 'Location' y genera un mapa de relaciones y los registros faltantes.</p>
+            <p class="text-slate-500 mt-2">Actualiza la tabla 'FROM_CITY' con los datos de 'Location' y genera un mapa de relaciones y los registros faltantes.</p>
         </div>
 
         <div class="text-center mb-6">
@@ -52,7 +52,7 @@
             </div>
             
             <div id="unmatchedSection" class="mt-6 bg-slate-50 rounded-lg p-4 border border-slate-200 hidden">
-                <h2 class="text-xl font-semibold mb-3 text-slate-800">Registros No Encontrados (de la tabla DESTINO)</h2>
+                <h2 class="text-xl font-semibold mb-3 text-slate-800">Registros No Encontrados (de la tabla FROM_CITY)</h2>
                 <textarea id="unmatchedOutput" class="output-area w-full bg-slate-800 text-cyan-300 text-sm rounded-md p-4" readonly>No se encontraron registros sin coincidencia.</textarea>
             </div>
 
@@ -87,7 +87,7 @@
         const errorsCountSpan = document.getElementById('errorsCount');
 
         startButton.addEventListener('click', async () => {
-            if (!confirm('¿Estás seguro de iniciar la normalización? Se modificarán los datos en la tabla DESTINO.')) return;
+            if (!confirm('¿Estás seguro de iniciar la normalización? Se modificarán los datos en la tabla FROM_CITY.')) return;
 
             startButton.disabled = true;
             startButton.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Normalizando...`;
