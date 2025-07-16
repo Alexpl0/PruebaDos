@@ -7,21 +7,21 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
-        #logOutput, #mappingOutput {
+        .output-area {
             white-space: pre-wrap;
             word-wrap: break-word;
             font-family: 'Courier New', Courier, monospace;
-            height: 40vh;
+            height: 35vh;
         }
     </style>
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
 </head>
 <body class="bg-slate-100 text-slate-800 flex items-center justify-center min-h-screen p-4">
 
-    <div class="w-full max-w-4xl bg-white rounded-lg shadow-xl p-6 md:p-8">
+    <div class="w-full max-w-6xl bg-white rounded-lg shadow-xl p-6 md:p-8">
         <div class="text-center mb-6">
             <h1 class="text-2xl md:text-3xl font-bold text-slate-900">Asistente de Normalización de Ubicaciones</h1>
-            <p class="text-slate-500 mt-2">Actualiza la tabla 'DESTINO' con los datos de 'Location' y genera un mapa de relaciones de IDs.</p>
+            <p class="text-slate-500 mt-2">Actualiza la tabla 'DESTINO' con los datos de 'Location' y genera un mapa de relaciones y los inserts faltantes.</p>
         </div>
 
         <div class="text-center mb-6">
@@ -33,7 +33,7 @@
         <div id="results" class="hidden">
              <div id="summary" class="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4 text-center hidden">
                 <h3 class="text-lg font-bold text-blue-800">Resumen del Proceso</h3>
-                <div class="flex justify-center space-x-4 md:space-x-8 mt-2 text-slate-700">
+                <div class="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-2 text-slate-700">
                     <p><span class="font-bold text-green-600" id="updatedCount">0</span> Actualizados</p>
                     <p><span class="font-bold text-amber-600" id="unmatchedCount">0</span> Sin Coincidencia</p>
                     <p><span class="font-bold text-red-600" id="errorsCount">0</span> Errores</p>
@@ -43,24 +43,31 @@
             <div class="grid md:grid-cols-2 gap-6 mt-6">
                 <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
                     <h2 class="text-xl font-semibold mb-3 text-slate-800">Registro del Proceso</h2>
-                    <textarea id="logOutput" class="w-full bg-slate-900 text-white text-sm rounded-md p-4" readonly>Esperando para iniciar...</textarea>
+                    <textarea id="logOutput" class="output-area w-full bg-slate-900 text-white text-sm rounded-md p-4" readonly>Esperando para iniciar...</textarea>
                 </div>
                 <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
                     <h2 class="text-xl font-semibold mb-3 text-slate-800">Mapeo de IDs (ID Buena &rarr; IDs Malas)</h2>
-                    <textarea id="mappingOutput" class="w-full bg-slate-800 text-lime-300 text-sm rounded-md p-4" readonly>El mapeo aparecerá aquí...</textarea>
+                    <textarea id="mappingOutput" class="output-area w-full bg-slate-800 text-lime-300 text-sm rounded-md p-4" readonly>El mapeo aparecerá aquí...</textarea>
                 </div>
             </div>
             
-            <div id="downloadSection" class="text-center mt-6 hidden">
-                 <a href="id_relations.json" download="id_relations.json" id="downloadButton" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-all duration-300">
-                    Descargar Mapeo (id_relations.json)
+            <div id="sqlSection" class="mt-6 bg-slate-50 rounded-lg p-4 border border-slate-200 hidden">
+                <h2 class="text-xl font-semibold mb-3 text-slate-800">SQL para Ubicaciones Faltantes</h2>
+                <textarea id="sqlOutput" class="output-area w-full bg-slate-800 text-cyan-300 text-sm rounded-md p-4" readonly>No se encontraron registros faltantes.</textarea>
+            </div>
+
+            <div id="downloadSection" class="text-center mt-6 space-x-4 hidden">
+                 <a href="id_relations.json" download="id_relations.json" id="downloadButton" class="inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-all duration-300">
+                    Descargar Mapeo
+                </a>
+                <a href="unmatched_inserts.sql" download="unmatched_inserts.sql" id="downloadSqlButton" class="hidden inline-block bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-all duration-300">
+                    Descargar SQL
                 </a>
             </div>
         </div>
         
         <div class="mt-8 text-center text-xs text-red-600 font-semibold">
-            <p>ADVERTENCIA: Una vez finalizado, por seguridad, elimina los archivos 
-            <br><code>normalization_interface.html</code>, <code>normalize_locations.php</code> y <code>id_relations.json</code> del servidor.</p>
+            <p>ADVERTENCIA: Una vez finalizado, por seguridad, elimina todos los archivos generados de tu servidor.</p>
         </div>
     </div>
 
@@ -70,23 +77,25 @@
         const summaryDiv = document.getElementById('summary');
         const logOutput = document.getElementById('logOutput');
         const mappingOutput = document.getElementById('mappingOutput');
+        const sqlSection = document.getElementById('sqlSection');
+        const sqlOutput = document.getElementById('sqlOutput');
         const downloadSection = document.getElementById('downloadSection');
+        const downloadSqlButton = document.getElementById('downloadSqlButton');
         
         const updatedCountSpan = document.getElementById('updatedCount');
         const unmatchedCountSpan = document.getElementById('unmatchedCount');
         const errorsCountSpan = document.getElementById('errorsCount');
 
         startButton.addEventListener('click', async () => {
-            if (!confirm('¿Estás seguro de iniciar la normalización? Se modificarán los datos en la tabla DESTINO. Esta acción es irreversible.')) {
-                return;
-            }
+            if (!confirm('¿Estás seguro de iniciar la normalización? Se modificarán los datos en la tabla DESTINO.')) return;
 
             startButton.disabled = true;
             startButton.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Normalizando...`;
             resultsDiv.classList.remove('hidden');
             summaryDiv.classList.add('hidden');
             downloadSection.classList.add('hidden');
-            logOutput.value = 'Iniciando conexión con el servidor... El proceso puede tardar varios minutos.';
+            sqlSection.classList.add('hidden');
+            logOutput.value = 'Iniciando conexión... El proceso puede tardar varios minutos.';
             mappingOutput.value = 'Esperando resultados...';
 
             try {
@@ -105,6 +114,12 @@
                     mappingOutput.value = JSON.stringify(data.mapping, null, 2);
                     downloadSection.classList.remove('hidden');
 
+                    if (data.sql_inserts) {
+                        sqlSection.classList.remove('hidden');
+                        sqlOutput.value = data.sql_inserts;
+                        downloadSqlButton.classList.remove('hidden');
+                    }
+
                     startButton.textContent = 'Normalización Completada';
                     startButton.classList.remove('bg-indigo-600');
                     startButton.classList.add('bg-green-600');
@@ -113,7 +128,7 @@
                 }
 
             } catch (error) {
-                logOutput.value = `Ha ocurrido un error crítico:\n\n${error.message}\n\nRevisa la consola del navegador (F12) y el log de errores de PHP en tu servidor para más detalles.`;
+                logOutput.value = `Ha ocurrido un error crítico:\n\n${error.message}`;
                 startButton.textContent = 'Error en la Normalización';
                 startButton.classList.remove('bg-indigo-600');
                 startButton.classList.add('bg-red-600');

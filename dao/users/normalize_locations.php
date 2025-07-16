@@ -4,10 +4,10 @@
 // 1. Sube este archivo a la carpeta 'dao/'.
 // 2. Sube 'normalization_interface.html' a la misma carpeta.
 // 3. Abre 'normalization_interface.html' en tu navegador para iniciar.
-// 4. Al finalizar, BORRA AMBOS archivos del servidor.
+// 4. Al finalizar, BORRA TODOS los archivos generados del servidor.
 
 header('Content-Type: application/json');
-set_time_limit(600); // Aumenta el tiempo de ejecución a 10 minutos por si son muchos registros
+set_time_limit(600); // Aumenta el tiempo de ejecución a 10 minutos
 ini_set('memory_limit', '512M'); // Aumenta el límite de memoria
 
 // Incluimos la conexión a la BD
@@ -22,7 +22,8 @@ $response = [
         'errors' => 0,
     ],
     'mapping' => [],
-    'log' => ''
+    'log' => '',
+    'sql_inserts' => '' // Nuevo campo para los inserts
 ];
 $logMessages = [];
 
@@ -61,12 +62,11 @@ try {
 
     // --- PASO 4: Iterar, comparar, actualizar y mapear ---
     $idMapping = [];
+    $unmatchedRows = []; // Array para guardar filas no encontradas
 
     while ($badRow = $resultBad->fetch_assoc()) {
         $matchFound = false;
         foreach ($goodLocations as $goodRow) {
-            // Lógica de coincidencia: ZIP es igual Y (CIUDAD es igual O ESTADO es igual)
-            // Se usa trim() para limpiar espacios y strcasecmp() para ignorar mayúsculas/minúsculas
             if (
                 trim($badRow['ZIP_DEST']) === trim($goodRow['zip']) &&
                 (
@@ -78,39 +78,49 @@ try {
                 $goodId = $goodRow['id'];
                 $badId = $badRow['id'];
 
-                // Actualizamos el registro en la tabla 'DESTINO'
-                $stmtUpdate->bind_param("ssssi", 
-                    $goodRow['company_name'], 
-                    $goodRow['city'], 
-                    $goodRow['state'], 
-                    $goodRow['zip'], 
-                    $badId
-                );
+                $stmtUpdate->bind_param("ssssi", $goodRow['company_name'], $goodRow['city'], $goodRow['state'], $goodRow['zip'], $badId);
 
                 if ($stmtUpdate->execute()) {
                     $logMessages[] = "[ÉXITO] ID Malo: $badId -> Actualizado y mapeado a ID Bueno: $goodId.";
                     $response['summary']['updated']++;
-
-                    // Guardamos la relación en nuestro mapa
-                    if (!isset($idMapping[$goodId])) {
-                        $idMapping[$goodId] = [];
-                    }
+                    if (!isset($idMapping[$goodId])) $idMapping[$goodId] = [];
                     $idMapping[$goodId][] = $badId;
-
                 } else {
                     $logMessages[] = "[ERROR] ID Malo: $badId -> No se pudo actualizar. Error: " . $stmtUpdate->error;
                     $response['summary']['errors']++;
                 }
                 
                 $matchFound = true;
-                break; // Pasamos al siguiente registro malo una vez que encontramos su par
+                break;
             }
         }
 
         if (!$matchFound) {
-            $logMessages[] = "[AVISO] ID Malo: " . $badRow['id'] . " -> No se encontró coincidencia en la tabla 'Location'.";
+            $logMessages[] = "[AVISO] ID Malo: " . $badRow['id'] . " -> No se encontró coincidencia.";
             $response['summary']['unmatched']++;
+            $unmatchedRows[] = $badRow; // Guardamos la fila completa
         }
+    }
+
+    // --- PASO 5: Generar sentencias INSERT para los no encontrados ---
+    if (!empty($unmatchedRows)) {
+        $logMessages[] = "-------------------------------------------------";
+        $logMessages[] = "Generando sentencias INSERT para " . count($unmatchedRows) . " registros no encontrados...";
+        
+        $sqlInserts = "INSERT INTO Location (company_name, city, state, zip) VALUES\n";
+        $values = [];
+        foreach ($unmatchedRows as $row) {
+            // Escapamos los valores para seguridad
+            $company = $conex->real_escape_string(trim($row['COMPANY_DEST']));
+            $city = $conex->real_escape_string(trim($row['CITY_DEST']));
+            $state = $conex->real_escape_string(trim($row['STATE_DEST']));
+            $zip = $conex->real_escape_string(trim($row['ZIP_DEST']));
+            $values[] = "('$company', '$city', '$state', '$zip')";
+        }
+        $sqlInserts .= implode(",\n", $values) . ";";
+        
+        $response['sql_inserts'] = $sqlInserts;
+        file_put_contents('unmatched_inserts.sql', $sqlInserts);
     }
 
     $response['success'] = true;
@@ -118,9 +128,7 @@ try {
     $logMessages[] = "-------------------------------------------------";
     $logMessages[] = "Proceso de normalización finalizado.";
 
-    // Guardar el mapeo en un archivo JSON para descarga
     file_put_contents('id_relations.json', json_encode($idMapping, JSON_PRETTY_PRINT));
-
 
     $stmtUpdate->close();
     $resultBad->free();
