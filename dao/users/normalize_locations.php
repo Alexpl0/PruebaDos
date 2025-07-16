@@ -68,10 +68,10 @@ try {
             // Lógica de coincidencia: ZIP es igual Y (CIUDAD es igual O ESTADO es igual)
             // Se usa trim() para limpiar espacios y strcasecmp() para ignorar mayúsculas/minúsculas
             if (
-                trim($badRow['DESTZIP']) === trim($goodRow['zip']) &&
+                trim($badRow['ZIP_DEST']) === trim($goodRow['zip']) &&
                 (
-                    strcasecmp(trim($badRow['DESTCITY']), trim($goodRow['city'])) == 0 ||
-                    strcasecmp(trim($badRow['DESTSTATE']), trim($goodRow['state'])) == 0
+                    strcasecmp(trim($badRow['CITY_DEST']), trim($goodRow['city'])) == 0 ||
+                    strcasecmp(trim($badRow['STATE_DEST']), trim($goodRow['state'])) == 0
                 )
             ) {
                 // --- Coincidencia encontrada ---
