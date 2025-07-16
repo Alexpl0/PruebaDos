@@ -1,5 +1,5 @@
 <?php
-// normalize_locations.php (Versión 3 - para FROM_CITY)
+// normalize_locations.php (Versión 4 - Lógica de coincidencia mejorada)
 // --- INSTRUCCIONES ---
 // 1. Sube este archivo a la carpeta 'dao/'.
 // 2. Sube la nueva versión de 'normalization_interface.html' a la misma carpeta.
@@ -47,7 +47,6 @@ try {
     $logMessages[] = "-------------------------------------------------";
 
     // --- PASO 2: Obtener todos los registros de la tabla MALA ('FROM_CITY') ---
-    // !! CAMBIO: Apuntando a la tabla FROM_CITY y sus columnas !!
     $sqlBad = "SELECT id, COMPANY_FROM, CITY_FROM, STATE_FROM, ZIP_FROM FROM FROM_CITY";
     $resultBad = $conex->query($sqlBad);
     if ($resultBad === false) throw new Exception("Error al leer la tabla 'FROM_CITY': " . $conex->error);
@@ -57,7 +56,6 @@ try {
     $logMessages[] = "-------------------------------------------------";
 
     // --- PASO 3: Preparar la sentencia de UPDATE para eficiencia ---
-    // !! CAMBIO: Actualizando la tabla FROM_CITY y sus columnas !!
     $sqlUpdate = "UPDATE FROM_CITY SET COMPANY_FROM = ?, CITY_FROM = ?, STATE_FROM = ?, ZIP_FROM = ? WHERE id = ?";
     $stmtUpdate = $conex->prepare($sqlUpdate);
     if ($stmtUpdate === false) throw new Exception("Error al preparar la sentencia UPDATE: " . $conex->error);
@@ -69,14 +67,20 @@ try {
     while ($badRow = $resultBad->fetch_assoc()) {
         $matchFound = false;
         foreach ($goodLocations as $goodRow) {
-            // !! CAMBIO: Usando las columnas de FROM_CITY para la comparación !!
-            if (
-                trim($badRow['ZIP_FROM']) === trim($goodRow['zip']) &&
+            
+            // !! CAMBIO: Lógica de coincidencia extendida !!
+            // Condición 1: Coincide ZIP Y (Ciudad O Estado)
+            $zipCondition = trim($badRow['ZIP_FROM']) === trim($goodRow['zip']) &&
                 (
                     strcasecmp(trim($badRow['CITY_FROM']), trim($goodRow['city'])) == 0 ||
                     strcasecmp(trim($badRow['STATE_FROM']), trim($goodRow['state'])) == 0
-                )
-            ) {
+                );
+
+            // Condición 2: Coincide Compañía Y Estado
+            $companyStateCondition = strcasecmp(trim($badRow['COMPANY_FROM']), trim($goodRow['company_name'])) == 0 &&
+                                     strcasecmp(trim($badRow['STATE_FROM']), trim($goodRow['state'])) == 0;
+
+            if ($zipCondition || $companyStateCondition) {
                 $goodId = $goodRow['id'];
                 $badId = $badRow['id'];
                 $stmtUpdate->bind_param("ssssi", $goodRow['company_name'], $goodRow['city'], $goodRow['state'], $goodRow['zip'], $badId);
