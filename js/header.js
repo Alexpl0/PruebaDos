@@ -1,34 +1,50 @@
 /**
- * Premium Freight - Responsive Header Component (Definitive Fix)
- * - Dynamically injects Driver.js dependencies to ensure they are loaded.
- * - Reads user context from `window.PF_CONFIG`.
- * - Creates the header on DOMContentLoaded.
- * - Initializes the tour system only after Driver.js has successfully loaded.
+ * Premium Freight - Responsive Header Component (Versión corregida)
+ * - Carga Driver.js dinámicamente con mejores validaciones
+ * - Evita duplicaciones de carga
+ * - Manejo de errores mejorado
  */
 
 import { initContextualHelp } from './tours/tour-manager.js';
 
 /**
- * Dynamically loads a script and returns a promise that resolves when the script is loaded.
- * @param {string} src The source URL of the script.
+ * Dinamicamente carga un script y retorna una promesa
+ * @param {string} src La URL del script
  * @returns {Promise<void>}
  */
 function loadScript(src) {
     return new Promise((resolve, reject) => {
+        // Verificar si el script ya está cargado
+        if (document.querySelector(`script[src="${src}"]`)) {
+            resolve();
+            return;
+        }
+
         const script = document.createElement('script');
         script.src = src;
         script.async = true;
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
+        script.onload = () => {
+            console.log(`Script cargado exitosamente: ${src}`);
+            resolve();
+        };
+        script.onerror = () => {
+            console.error(`Error al cargar script: ${src}`);
+            reject(new Error(`Failed to load script: ${src}`));
+        };
         document.head.appendChild(script);
     });
 }
 
 /**
- * Dynamically loads a stylesheet.
- * @param {string} href The URL of the stylesheet.
+ * Dinamicamente carga un stylesheet
+ * @param {string} href La URL del stylesheet
  */
 function loadStyle(href) {
+    // Verificar si el stylesheet ya está cargado
+    if (document.querySelector(`link[href="${href}"]`)) {
+        return;
+    }
+
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.href = href;
@@ -36,8 +52,8 @@ function loadStyle(href) {
 }
 
 /**
- * Creates the header HTML based on the user context.
- * @param {boolean} isPublicPage - If it is a public page (login, etc.)
+ * Crea el header HTML basado en el contexto del usuario
+ * @param {boolean} isPublicPage - Si es una página pública
  */
 function createHeader(isPublicPage = false) {
     if (isPublicPage) {
@@ -58,7 +74,7 @@ function createHeader(isPublicPage = false) {
     }
 
     const helpDropdownHTML = `
-        <li class="nav__item nav__item-dropdown" id="help-nav-item" style="display: none;"> <!-- Hidden by default -->
+        <li class="nav__item nav__item-dropdown" id="help-nav-item" style="display: none;">
             <a href="#" class="nav__link">
                 <i class="fas fa-question-circle nav__link-icon"></i> Help
             </a>
@@ -69,7 +85,7 @@ function createHeader(isPublicPage = false) {
     `;
 
     let navItems = '';
-    // User-level based navigation logic (remains the same)
+    // Lógica de navegación basada en nivel de usuario
     if (userId === 36) { // Super User
         navItems += navLink('profile.php', 'My Profile', 'fas fa-user-shield');
         navItems += navLink('newOrder.php', 'New Order', 'fas fa-plus-circle');
@@ -83,7 +99,7 @@ function createHeader(isPublicPage = false) {
         navItems += navLink('orders.php', 'Generated Orders', 'fas fa-list-alt');
         navItems += navLink('dashboard.php', 'Charts', 'fas fa-chart-bar');
         navItems += helpDropdownHTML;
-    } else { // Regular User
+    } else { // Usuario regular
         navItems += navLink('profile.php', 'My Profile', 'fas fa-user');
         navItems += navLink('newOrder.php', 'New Order', 'fas fa-plus-circle');
         navItems += navLink('myorders.php', 'My Orders', 'fas fa-list-check');
@@ -119,7 +135,7 @@ function createHeader(isPublicPage = false) {
 
 function createPublicHeader() {
     const helpDropdownHTML = `
-        <li class="nav__item nav__item-dropdown" id="help-nav-item" style="display: none;"> <!-- Hidden by default -->
+        <li class="nav__item nav__item-dropdown" id="help-nav-item" style="display: none;">
             <a href="#" class="nav__link"><i class="fas fa-question-circle nav__link-icon"></i> Help</a>
             <ul class="dropdown-menu" id="help-dropdown-menu">
                 <li><a class="dropdown-item" href="#">Loading...</a></li>
@@ -141,46 +157,98 @@ function createPublicHeader() {
 }
 
 /**
- * Main initialization logic.
+ * Inicializa Driver.js con validaciones mejoradas
  */
-// 1. Build the basic page structure as soon as the HTML is parsed.
-document.addEventListener('DOMContentLoaded', function() {
-    if (typeof window.APP_CONTEXT !== 'undefined' && typeof window.PF_CONFIG === 'undefined') {
-        window.PF_CONFIG = window.APP_CONTEXT;
-    }
-    const currentPage = window.location.pathname.split('/').pop() || 'index.php';
-    const publicPages = ['index.php', 'register.php', 'recovery.php', 'password_reset.php', 'verification_required.php'];
-    const isPublicPage = publicPages.includes(currentPage);
-    createHeader(isPublicPage);
-
-    // Load Driver.js and initialize the help system
+async function initializeDriverJS() {
     const driverCSS = 'https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.css';
     const driverJS = 'https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js';
 
-    loadStyle(driverCSS);
-    loadScript(driverJS)
-        .then(() => {
-            console.log('Driver.js loaded successfully.');
-            initContextualHelp(); // This function is imported from tour-manager.js
-            const helpNavItem = document.getElementById('help-nav-item');
-            if (helpNavItem) {
-                helpNavItem.style.display = 'block'; // Show the help menu
-            }
-        })
-        .catch(error => {
-            console.error(error);
-        });
-
-    // Attach mobile menu listeners
-    if (!isPublicPage) {
-        setTimeout(function() {
-            const navMenu = document.getElementById('nav-menu');
-            const toggleMenu = document.getElementById('nav-toggle');
-            const closeMenu = document.getElementById('nav-close');
-            if (navMenu && toggleMenu && closeMenu) {
-                toggleMenu.addEventListener('click', () => { navMenu.classList.toggle('show'); });
-                closeMenu.addEventListener('click', () => { navMenu.classList.remove('show'); });
-            }
-        }, 100);
+    try {
+        // Cargar CSS
+        loadStyle(driverCSS);
+        
+        // Cargar JS
+        await loadScript(driverJS);
+        
+        // Verificar que Driver.js se cargó correctamente
+        if (typeof window.driver === 'undefined' || typeof window.driver.driver !== 'function') {
+            throw new Error('Driver.js no se cargó correctamente');
+        }
+        
+        console.log('Driver.js cargado y validado exitosamente');
+        
+        // Inicializar el sistema de ayuda
+        initContextualHelp();
+        
+        // Mostrar el menú de ayuda
+        const helpNavItem = document.getElementById('help-nav-item');
+        if (helpNavItem) {
+            helpNavItem.style.display = 'block';
+        }
+        
+    } catch (error) {
+        console.error('Error al cargar Driver.js:', error);
+        
+        // Ocultar el menú de ayuda si hay error
+        const helpNavItem = document.getElementById('help-nav-item');
+        if (helpNavItem) {
+            helpNavItem.style.display = 'none';
+        }
+        
+        // Mostrar error al usuario si SweetAlert está disponible
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Sistema de ayuda no disponible',
+                text: 'El sistema de ayuda interactiva no se pudo cargar. La aplicación funcionará normalmente.',
+                timer: 3000,
+                timerProgressBar: true
+            });
+        }
     }
+}
+
+/**
+ * Inicializa los listeners del menú móvil
+ */
+function initMobileMenuListeners() {
+    const navMenu = document.getElementById('nav-menu');
+    const toggleMenu = document.getElementById('nav-toggle');
+    const closeMenu = document.getElementById('nav-close');
+    
+    if (navMenu && toggleMenu && closeMenu) {
+        toggleMenu.addEventListener('click', () => {
+            navMenu.classList.toggle('show');
+        });
+        
+        closeMenu.addEventListener('click', () => {
+            navMenu.classList.remove('show');
+        });
+    }
+}
+
+/**
+ * Inicialización principal
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Configurar contexto si es necesario
+    if (typeof window.APP_CONTEXT !== 'undefined' && typeof window.PF_CONFIG === 'undefined') {
+        window.PF_CONFIG = window.APP_CONTEXT;
+    }
+    
+    // Determinar si es página pública
+    const currentPage = window.location.pathname.split('/').pop() || 'index.php';
+    const publicPages = ['index.php', 'register.php', 'recovery.php', 'password_reset.php', 'verification_required.php'];
+    const isPublicPage = publicPages.includes(currentPage);
+    
+    // Crear header
+    createHeader(isPublicPage);
+    
+    // Inicializar menú móvil para páginas privadas
+    if (!isPublicPage) {
+        setTimeout(initMobileMenuListeners, 100);
+    }
+    
+    // Inicializar Driver.js de manera asíncrona
+    initializeDriverJS();
 });
