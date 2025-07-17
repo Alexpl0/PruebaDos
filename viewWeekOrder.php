@@ -107,7 +107,7 @@ require_once 'dao/users/context_injector.php';
     <!-- Scripts de la aplicación -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script type="module" src="js/viewWeekorder.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script>
     
     <?php 
     // Carga condicional del JS del asistente.

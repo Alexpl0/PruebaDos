@@ -224,7 +224,7 @@ require_once 'dao/users/context_injector.php';
     <!-- Custom scripts -->
     <script type="module" src="js/dataTables.js"></script>
     <script type="module" src="js/weeklyHistoryPage.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script>
     
     <?php 
     // Carga condicional del JS del asistente.

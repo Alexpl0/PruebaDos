@@ -136,7 +136,7 @@ require_once 'dao/users/context_injector.php';
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
 
     <!-- Driver.js para el tour -->
-    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script>
 
     <!-- Custom scripts -->
         <script src="js/header.js" type="module"></script>
