@@ -1,7 +1,7 @@
 /**
  * @file tour-manager.js
  * Manages the initialization and execution of Driver.js tours.
- * This script is called after the window 'load' event, so external libraries should be ready.
+ * This script is called after Driver.js is confirmed to be loaded.
  */
 
 import { tourSteps, pageTours } from './definitions.js';
@@ -9,13 +9,16 @@ import { tourSteps, pageTours } from './definitions.js';
 let driverFactory = null;
 
 /**
- * Initializes the driver factory function. This is the first step.
+ * Initializes the driver factory function.
+ * CORRECTED: The library attaches itself to window.driver.js.driver
  */
 function initializeDriver() {
-    if (window.driver && typeof window.driver.driver === 'function') {
-        driverFactory = window.driver.driver;
+    // The library creates a `driver` object on the window, which contains `js`.
+    if (window.driver && window.driver.js && typeof window.driver.js.driver === 'function') {
+        driverFactory = window.driver.js.driver;
+        console.log("Driver.js factory initialized successfully.");
     } else {
-        console.error("Driver.js library (window.driver) is not available. The help feature will be disabled.");
+        console.error("Driver.js library object (window.driver.js.driver) is not available. The help feature will be disabled.");
     }
 }
 
@@ -65,11 +68,9 @@ export function initContextualHelp() {
     const helpDropdownMenu = document.getElementById('help-dropdown-menu');
     const helpNavItem = document.getElementById('help-nav-item');
 
-    // If the driver library failed to load, hide the help menu completely.
+    // If the driver library failed to load, do nothing further.
     if (!driverFactory) {
-        if (helpNavItem) {
-            helpNavItem.style.display = 'none';
-        }
+        if (helpNavItem) helpNavItem.style.display = 'none';
         return;
     }
     
@@ -78,6 +79,9 @@ export function initContextualHelp() {
     const relevantTours = pageTours[currentPage];
 
     if (relevantTours && Object.keys(relevantTours).length > 0) {
+        // Show the help menu now that we know it's needed and ready
+        if (helpNavItem) helpNavItem.style.display = 'list-item';
+
         let dropdownHTML = '';
         for (const question in relevantTours) {
             const tourName = relevantTours[question];
@@ -94,9 +98,7 @@ export function initContextualHelp() {
             });
         });
     } else {
-        // If no tours are defined for this page, hide the help menu.
-        if (helpNavItem) {
-            helpNavItem.style.display = 'none';
-        }
+        // If no tours are defined for this page, ensure the help menu is hidden.
+        if (helpNavItem) helpNavItem.style.display = 'none';
     }
 }
