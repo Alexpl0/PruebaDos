@@ -6,24 +6,49 @@
 
 import { tourSteps, pageTours } from './definitions.js';
 
-// Instance of the driver
-const driver = window.driver.driver;
+// This variable will hold the driver instance once it's initialized.
+let driverInstance = null;
+
+/**
+ * Initializes the driver instance.
+ * It checks if the driver library is available on the window object.
+ * This function is called after the DOM is fully loaded.
+ */
+function initializeDriver() {
+    if (window.driver) {
+        // We get the factory function from the library
+        driverInstance = window.driver.driver;
+    } else {
+        console.error("Driver.js library not loaded. Please ensure the script is included in your HTML file before your main application script.");
+    }
+}
 
 /**
  * Starts a tour based on the provided tour name.
  * @param {string} tourName - The key of the tour in the tourSteps object.
  */
 export function startTour(tourName) {
+    // Check if the driver was initialized successfully
+    if (!driverInstance) {
+        console.error("Driver is not initialized. Cannot start tour.");
+        // Notify the user gracefully in case of an error.
+        alert("The help feature is currently unavailable. Please ensure you have a stable internet connection and try again.");
+        return;
+    }
+
     const steps = tourSteps[tourName];
-    if (!steps || steps.length === 0) {
+    if (!steps || !steps.length) {
         console.error(`Tour "${tourName}" not found or is empty.`);
         return;
     }
 
-    driver({
+    // Create a new tour instance and drive it
+    const tour = driverInstance({
         showProgress: true,
         steps: steps
-    }).drive();
+    });
+    
+    tour.drive();
 }
 
 /**
@@ -31,6 +56,9 @@ export function startTour(tourName) {
  * It finds the current page and populates the dropdown with relevant questions.
  */
 export function initContextualHelp() {
+    // First, ensure the driver is ready to be used. This should run after the page is loaded.
+    initializeDriver();
+
     const helpDropdown = document.getElementById('help-dropdown-menu');
     if (!helpDropdown) return;
 
@@ -41,12 +69,10 @@ export function initContextualHelp() {
         let dropdownHTML = '';
         for (const question in relevantTours) {
             const tourName = relevantTours[question];
-            // Use data attributes to store the tour name
             dropdownHTML += `<li><a class="dropdown-item" href="#" data-tour="${tourName}">${question}</a></li>`;
         }
         helpDropdown.innerHTML = dropdownHTML;
 
-        // Add event listeners to each new dropdown item
         helpDropdown.querySelectorAll('.dropdown-item').forEach(item => {
             item.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -56,7 +82,6 @@ export function initContextualHelp() {
         });
 
     } else {
-        // If no tours are defined for the page, hide the help menu or show a default message
         const helpContainer = document.getElementById('help-nav-item');
         if(helpContainer) {
             helpContainer.style.display = 'none';
