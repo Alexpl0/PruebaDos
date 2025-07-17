@@ -73,7 +73,8 @@ require_once 'dao/users/context_injector.php';
             <div id="SectPlantas" class="mb-3">
                 <div id="DivPlanta" class="mb-2">
                     <label for="planta">Requesting Plant:</label>
-                    <select name="planta" id="planta" class="form-select">
+                    <select name="planta" id="planta" class="form-select" required>
+                        <option></option>
                         <?php foreach ($jsonPlantas as $planta): ?>
                             <option value="<?php echo htmlspecialchars($planta['ID']); ?>"><?php echo htmlspecialchars($planta['PLANT']); ?></option>
                         <?php endforeach; ?>
@@ -81,7 +82,8 @@ require_once 'dao/users/context_injector.php';
                 </div>
                 <div id="DivCodes" class="mb-2">
                     <label for="codeplanta">Plant Code:</label>
-                    <select name="codeplanta" id="codeplanta" class="form-select">
+                    <select name="codeplanta" id="codeplanta" class="form-select" required>
+                        <option></option>
                         <?php foreach ($jsonCodePlants as $codeplanta): ?>
                             <option value="<?php echo htmlspecialchars($codeplanta['ID']); ?>"><?php echo htmlspecialchars($codeplanta['PLANT_CODE']); ?></option>
                         <?php endforeach; ?>
@@ -93,7 +95,8 @@ require_once 'dao/users/context_injector.php';
             <div id="SectTransporte" class="mb-3">
                 <div id="DivTransport" class="mb-2">
                     <label for="transport">Transport Mode:</label>
-                    <select name="transport" id="transport" class="form-select">
+                    <select name="transport" id="transport" class="form-select" required>
+                        <option></option>
                         <?php foreach ($jsonTransport as $transport): ?>
                             <option value="<?php echo htmlspecialchars($transport['ID']); ?>"><?php echo htmlspecialchars($transport['MODE']); ?></option>
                         <?php endforeach; ?>
@@ -101,7 +104,8 @@ require_once 'dao/users/context_injector.php';
                 </div>
                 <div id="DivInOutBound" class="mb-2">
                     <label for="InOutBound">In/Out Outbound:</label>
-                    <select name="InOutBound" id="InOutBound" class="form-select">
+                    <select name="InOutBound" id="InOutBound" class="form-select" required>
+                        <option></option>
                         <?php foreach ($jsonInOutBound as $inOutBound): ?>
                             <option value="<?php echo htmlspecialchars($inOutBound['ID']); ?>"><?php echo htmlspecialchars($inOutBound['IN_OUT']); ?></option>
                         <?php endforeach; ?>
@@ -117,7 +121,8 @@ require_once 'dao/users/context_injector.php';
             <div id="SectResponsability" class="mb-3">
                 <div id="DivArea" class="mb-2">
                     <label for="Area">Area of Responsibility:</label>
-                    <select name="Area" id="Area" class="form-select">
+                    <select name="Area" id="Area" class="form-select" required>
+                        <option></option>
                         <?php foreach ($jsonArea as $area): ?>
                             <option value="<?php echo htmlspecialchars($area['ID']); ?>"><?php echo htmlspecialchars($area['RESPONSIBILITY']); ?></option>
                         <?php endforeach; ?>
@@ -125,7 +130,8 @@ require_once 'dao/users/context_injector.php';
                 </div>
                 <div id="DivInExt" class="mb-2">
                     <label for="IntExt">Internal/External Service:</label>
-                    <select name="IntExt" id="IntExt" class="form-select">
+                    <select name="IntExt" id="IntExt" class="form-select" required>
+                        <option></option>
                         <?php foreach ($jsonInExt as $inExt): ?>
                             <option value="<?php echo htmlspecialchars($inExt['ID']); ?>"><?php echo htmlspecialchars($inExt['IN_EXT']); ?></option>
                         <?php endforeach; ?>
@@ -133,8 +139,8 @@ require_once 'dao/users/context_injector.php';
                 </div>
                 <div id="SectPaidBy" class="mb-3">
                     <label for="PaidBy">Costs paid By:</label>
-                    <select name="PaidBy" id="PaidBy" class="form-select">
-                        <option value="" disabled selected>Select an Option</option>
+                    <select name="PaidBy" id="PaidBy" class="form-select" required>
+                        <option></option>
                         <option value="Grammer">Grammer</option>
                         <option value="Cliente">Client</option>
                     </select>
@@ -145,7 +151,8 @@ require_once 'dao/users/context_injector.php';
             <div id="SectCause" class="mb-3">
                 <div id="DivCategoryCause" class="mb-2">
                     <label for="CategoryCause">Root Category Cause:</label>
-                    <select name="CategoryCause" id="CategoryCause" class="form-select">
+                    <select name="CategoryCause" id="CategoryCause" class="form-select" required>
+                        <option></option>
                         <?php foreach ($jsonCategoryCause as $category): ?>
                             <option value="<?php echo htmlspecialchars($category['ID']); ?>"><?php echo htmlspecialchars($category['CATEGORY']); ?></option>
                         <?php endforeach; ?>
@@ -153,7 +160,8 @@ require_once 'dao/users/context_injector.php';
                 </div>
                 <div id="DivProjectStatus" class="mb-2">
                     <label for="ProjectStatus">Project Status:</label>
-                    <select name="ProjectStatus" id="ProjectStatus" class="form-select">
+                    <select name="ProjectStatus" id="ProjectStatus" class="form-select" required>
+                        <option></option>
                         <?php foreach ($jsonProjectStatus as $status): ?>
                             <option value="<?php echo htmlspecialchars($status['ID']); ?>"><?php echo htmlspecialchars($status['STATUS']); ?></option>
                         <?php endforeach; ?>
@@ -161,7 +169,8 @@ require_once 'dao/users/context_injector.php';
                 </div>
                 <div id="SectRecovery" class="mb-3">
                     <label for="Recovery">Recovery:</label>
-                    <select name="Recovery" id="Recovery" class="form-select">
+                    <select name="Recovery" id="Recovery" class="form-select" required>
+                        <option></option>
                         <?php foreach ($jsonRecovery as $recovery): ?>
                             <option value="<?php echo htmlspecialchars($recovery['ID']); ?>"><?php echo htmlspecialchars($recovery['RECOVERY']); ?></option>
                         <?php endforeach; ?>
@@ -190,7 +199,7 @@ require_once 'dao/users/context_injector.php';
             <!-- Ship From -->
             <h2 class="mt-4">Ship From</h2>
             <div id="SectShip" class="mb-3">
-                <div id="DivCompanyShip" class="mb-2"><label for="CompanyShip">Company Name</label><select id="CompanyShip" name="CompanyShip" class="form-select"><option value="" disabled selected>Select a company</option></select></div>
+                <div id="DivCompanyShip" class="mb-2"><label for="CompanyShip">Company Name</label><select id="CompanyShip" name="CompanyShip" class="form-select" required><option></option></select></div>
                 <div id="DivCityShip" class="mb-2"><label for="inputCityShip">City</label><input type="text" id="inputCityShip" class="form-control" placeholder="City"></div>
             </div>
             <div id="ShipTo" class="mb-3">
@@ -201,7 +210,7 @@ require_once 'dao/users/context_injector.php';
             <!-- Destination -->
             <h2 class="mt-4">Destination</h2>
             <div id="SectDest" class="mb-3">
-                <div id="DivCompanyDest" class="mb-2"><label for="inputCompanyNameDest">Company Name</label><select id="inputCompanyNameDest" name="inputCompanyNameDest" class="form-select"><option value="" disabled selected>Select a company</option></select></div>
+                <div id="DivCompanyDest" class="mb-2"><label for="inputCompanyNameDest">Company Name</label><select id="inputCompanyNameDest" name="inputCompanyNameDest" class="form-select" required><option></option></select></div>
                 <div id="DivCityDest" class="mb-2"><label for="inputCityDest">City</label><input type="text" id="inputCityDest" class="form-control" placeholder="City Dest"></div>
             </div>
             <div id="DestTo" class="mb-3">
@@ -214,13 +223,15 @@ require_once 'dao/users/context_injector.php';
                 <div id="MeasuresDiv">
                     <label for="Weight">Weight:</label><input type="number" id="Weight" name="Weight" class="form-control me-2" placeholder="Weight" required>
                     <label for="Measures">U/M</label>
-                    <select id="Measures" name="Measures" class="form-select">
+                    <select id="Measures" name="Measures" class="form-select" required>
+                        <option></option>
                         <?php foreach ($jsonMeasures as $measure): ?><option value="<?php echo htmlspecialchars($measure['UM']); ?>"><?php echo htmlspecialchars($measure['UM']); ?></option><?php endforeach; ?>
                     </select>
                 </div>
                 <div id="SectProducts" class="mb-3">
                     <label for="Products">Products:</label>
-                    <select name="Products" id="Products" class="form-select">
+                    <select name="Products" id="Products" class="form-select" required>
+                        <option></option>
                         <?php foreach ($jsonProducts as $product): ?><option value="<?php echo htmlspecialchars($product['PRODUCT']); ?>"><?php echo htmlspecialchars($product['PRODUCT']); ?></option><?php endforeach; ?>
                     </select>
                 </div>
@@ -231,8 +242,8 @@ require_once 'dao/users/context_injector.php';
             <div id="SectCarrier" class="mb-3">
                 <div id="DivCarrier" class="mb-2">
                     <label for="Carrier">Carrier:</label>
-                    <select name="Carrier" id="Carrier" class="form-select">
-                        <option value="" disabled selected>Select a carrier</option>
+                    <select name="Carrier" id="Carrier" class="form-select" required>
+                        <option></option>
                     </select>
                 </div>
                 <div id="DivCosto" class="mb-2">
@@ -245,12 +256,12 @@ require_once 'dao/users/context_injector.php';
                         </div>
                     </div>
                 </div>
-                <!-- ================== MODIFIED SECTION ================== -->
                 <div id="SectReference" class="mb-3">
                     <label for="ReferenceOrder">Reference Order Number</label>
-                    <select id="ReferenceOrder" name="ReferenceOrder" class="form-select" required></select>
+                    <select id="ReferenceOrder" name="ReferenceOrder" class="form-select" required>
+                        <option></option>
+                    </select>
                 </div>
-                <!-- ====================================================== -->
             </div>
             
             <button type="button" id="enviar" class="btn btn-primary">Submit</button>
@@ -273,19 +284,14 @@ require_once 'dao/users/context_injector.php';
     <script src="js/currencyUtils.js"></script>
     <script src="js/addCompany.js"></script>
     <script src="js/uploadFiles.js"></script>
-    <!-- <script src="js/createPDF.js"></script> -->
+    <!-- <script type="module" src="js/createPDF.js"></script> -->
     <script src="js/carrierSelect.js"></script>
     <script src="js/addCarrier.js"></script>
-    
-    <!-- ================== NEW SCRIPTS ADDED ================== -->
     <script src="js/referenceSelect.js"></script>
     <script src="js/addNumOrder.js"></script>
-    <!-- ===================================================== -->
-
     <script src="js/selectConfig.js"></script>  
     
     <!-- ================== CARGA DE MÓDULOS JS ================== -->
-    <!-- Se cargan como 'module' para permitir import/export -->
     <script type="module" src="js/mailer.js"></script>
     <script type="module" src="js/newOrder.js"></script>
     <!-- ======================================================= -->
