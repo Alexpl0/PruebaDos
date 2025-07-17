@@ -6,6 +6,7 @@
  * - Initializes the tour system only after Driver.js has successfully loaded.
  */
 
+// Se mantiene la ruta de importación correcta.
 import { initContextualHelp } from './tours/tour-manager.js';
 
 /**
@@ -57,9 +58,13 @@ function createHeader(isPublicPage = false) {
         return `<li class="nav__item"><a href="${href}" class="nav__link ${isActive}">${iconHTML} ${text}</a></li>`;
     }
 
+    // --- CORRECCIÓN ---
+    // Se ha añadido el atributo `data-bs-toggle="dropdown"` al enlace del menú de ayuda.
+    // Este atributo es requerido por Bootstrap 5 para que el menú desplegable funcione.
+    // También se añadió la clase "dropdown" al `<li>` para una mejor compatibilidad.
     const helpDropdownHTML = `
-        <li class="nav__item nav__item-dropdown" id="help-nav-item" style="display: none;"> <!-- Hidden by default, shown by tour manager -->
-            <a href="#" class="nav__link">
+        <li class="nav__item nav__item-dropdown dropdown" id="help-nav-item" style="display: none;">
+            <a href="#" class="nav__link" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="fas fa-question-circle nav__link-icon"></i> Help
             </a>
             <ul class="dropdown-menu" id="help-dropdown-menu">
@@ -118,9 +123,12 @@ function createHeader(isPublicPage = false) {
 }
 
 function createPublicHeader() {
+    // --- CORRECCIÓN (Aplicada también aquí por consistencia) ---
     const helpDropdownHTML = `
-        <li class="nav__item nav__item-dropdown" id="help-nav-item" style="display: none;"> <!-- Hidden by default -->
-            <a href="#" class="nav__link"><i class="fas fa-question-circle nav__link-icon"></i> Help</a>
+        <li class="nav__item nav__item-dropdown dropdown" id="help-nav-item" style="display: none;">
+            <a href="#" class="nav__link" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-question-circle nav__link-icon"></i> Help
+            </a>
             <ul class="dropdown-menu" id="help-dropdown-menu">
                 <li><a class="dropdown-item" href="#">Loading...</a></li>
             </ul>
