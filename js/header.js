@@ -1,18 +1,45 @@
 /**
- * Premium Freight - Responsive Header Component (Final Fix)
+ * Premium Freight - Responsive Header Component (Definitive Fix)
+ * - Dynamically injects Driver.js dependencies to ensure they are loaded.
  * - Reads user context from `window.PF_CONFIG`.
  * - Creates the header on DOMContentLoaded.
- * - Initializes the tour system on window.load to ensure external scripts are ready.
+ * - Initializes the tour system only after Driver.js has successfully loaded.
  */
 
-import { initContextualHelp } from './tour/tour-manager.js';
+import { initContextualHelp } from './tours/tour-manager.js';
+
+/**
+ * Dynamically loads a script and returns a promise that resolves when the script is loaded.
+ * @param {string} src The source URL of the script.
+ * @returns {Promise<void>}
+ */
+function loadScript(src) {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.async = true;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
+        document.head.appendChild(script);
+    });
+}
+
+/**
+ * Dynamically loads a stylesheet.
+ * @param {string} href The URL of the stylesheet.
+ */
+function loadStyle(href) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+}
 
 /**
  * Creates the header HTML based on the user context.
  * @param {boolean} isPublicPage - If it is a public page (login, etc.)
  */
 function createHeader(isPublicPage = false) {
-    // This function's internal logic remains the same.
     if (isPublicPage) {
         createPublicHeader();
         return;
@@ -22,7 +49,6 @@ function createHeader(isPublicPage = false) {
     const authLevel = user.authorizationLevel;
     const userName = user.name;
     const userId = user.id;
-
     const currentPage = window.location.pathname.split('/').pop() || 'index.php';
 
     function navLink(href, text, iconClass = '') {
@@ -32,7 +58,7 @@ function createHeader(isPublicPage = false) {
     }
 
     const helpDropdownHTML = `
-        <li class="nav__item nav__item-dropdown" id="help-nav-item">
+        <li class="nav__item nav__item-dropdown" id="help-nav-item" style="display: none;"> <!-- Hidden by default -->
             <a href="#" class="nav__link">
                 <i class="fas fa-question-circle nav__link-icon"></i> Help
             </a>
@@ -43,7 +69,7 @@ function createHeader(isPublicPage = false) {
     `;
 
     let navItems = '';
-
+    // User-level based navigation logic (remains the same)
     if (userId === 36) { // Super User
         navItems += navLink('profile.php', 'My Profile', 'fas fa-user-shield');
         navItems += navLink('newOrder.php', 'New Order', 'fas fa-plus-circle');
@@ -69,7 +95,6 @@ function createHeader(isPublicPage = false) {
     }
 
     const menuTypeClass = authLevel === 0 ? 'reduced-menu' : 'full-menu';
-    
     const headerHTML = `
     <header class="header ${menuTypeClass}">
         <a href="index.php" class="header__logo">GRAMMER</a>
@@ -89,13 +114,12 @@ function createHeader(isPublicPage = false) {
         </nav>
     </header>
     `;
-
     document.getElementById('header-container').innerHTML = headerHTML;
 }
 
 function createPublicHeader() {
     const helpDropdownHTML = `
-        <li class="nav__item nav__item-dropdown" id="help-nav-item">
+        <li class="nav__item nav__item-dropdown" id="help-nav-item" style="display: none;"> <!-- Hidden by default -->
             <a href="#" class="nav__link"><i class="fas fa-question-circle nav__link-icon"></i> Help</a>
             <ul class="dropdown-menu" id="help-dropdown-menu">
                 <li><a class="dropdown-item" href="#">Loading...</a></li>
@@ -119,17 +143,33 @@ function createPublicHeader() {
 /**
  * Main initialization logic.
  */
-// 1. First, build the basic page structure as soon as the HTML is parsed.
+// 1. Build the basic page structure as soon as the HTML is parsed.
 document.addEventListener('DOMContentLoaded', function() {
     if (typeof window.APP_CONTEXT !== 'undefined' && typeof window.PF_CONFIG === 'undefined') {
         window.PF_CONFIG = window.APP_CONTEXT;
     }
-
     const currentPage = window.location.pathname.split('/').pop() || 'index.php';
     const publicPages = ['index.php', 'register.php', 'recovery.php', 'password_reset.php', 'verification_required.php'];
     const isPublicPage = publicPages.includes(currentPage);
-
     createHeader(isPublicPage);
+
+    // Load Driver.js and initialize the help system
+    const driverCSS = 'https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.css';
+    const driverJS = 'https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js';
+
+    loadStyle(driverCSS);
+    loadScript(driverJS)
+        .then(() => {
+            console.log('Driver.js loaded successfully.');
+            initContextualHelp(); // This function is imported from tour-manager.js
+            const helpNavItem = document.getElementById('help-nav-item');
+            if (helpNavItem) {
+                helpNavItem.style.display = 'block'; // Show the help menu
+            }
+        })
+        .catch(error => {
+            console.error(error);
+        });
 
     // Attach mobile menu listeners
     if (!isPublicPage) {
@@ -143,9 +183,4 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 100);
     }
-});
-
-// 2. Then, once ALL resources (including external scripts) are loaded, initialize the interactive help.
-window.addEventListener('load', function() {
-    initContextualHelp();
 });
