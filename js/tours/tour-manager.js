@@ -10,15 +10,15 @@ let driverFactory = null;
 
 /**
  * Initializes the driver factory function.
- * CORRECTED: The library attaches itself to window.driver.js.driver
+ * CORRECTED: The library attaches itself to window.driver.driver
  */
 function initializeDriver() {
-    // The library creates a `driver` object on the window, which contains `js`.
-    if (window.driver && window.driver.js && typeof window.driver.js.driver === 'function') {
-        driverFactory = window.driver.js.driver;
+    // The library creates a `driver` object on the window, which contains the `driver` factory function.
+    if (window.driver && typeof window.driver.driver === 'function') {
+        driverFactory = window.driver.driver;
         console.log("Driver.js factory initialized successfully.");
     } else {
-        console.error("Driver.js library object (window.driver.js.driver) is not available. The help feature will be disabled.");
+        console.error("Driver.js library object (window.driver.driver) is not available. The help feature will be disabled.");
     }
 }
 
