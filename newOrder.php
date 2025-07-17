@@ -280,8 +280,7 @@ require_once 'dao/users/context_injector.php';
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
     
-    <!-- Scripts de la aplicación -->
-        <script src="js/header.js" type="module"></script>
+
 
     <script src="js/companySelect.js"></script>
     <script src="js/formValidation.js"></script>
@@ -294,6 +293,8 @@ require_once 'dao/users/context_injector.php';
     <script src="js/referenceSelect.js"></script>
     <script src="js/addNumOrder.js"></script>
     <script src="js/selectConfig.js"></script>  
+    <!-- Scripts de la aplicación -->
+    <script src="js/header.js" type="module"></script>
     
     <!-- ================== CARGA DE MÓDULOS JS ================== -->
     <script type="module" src="js/mailer.js"></script>
