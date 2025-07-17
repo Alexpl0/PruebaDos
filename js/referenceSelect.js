@@ -28,23 +28,37 @@
                     return { q: params.term || '' }; // Envía el término de búsqueda
                 },
                 processResults: function (data, params) {
+                    // Se comprueba si la respuesta del servidor es válida.
                     if (!data || !Array.isArray(data.data)) {
-                        console.error("Server data format is incorrect:", data);
+                        console.error("Server data format is incorrect or missing data array:", data);
                         return { results: [] };
                     }
-                    
-                    const results = data.data;
+
+                    // ================== CORRECCIÓN ==================
+                    // Se mapean los resultados para asegurar que la propiedad 'text' sea un string.
+                    // Select2 requiere que el texto a mostrar sea una cadena.
+                    const mappedResults = data.data.map(item => {
+                        return {
+                            id: item.id,
+                            text: String(item.text) // Se convierte explícitamente el número a string.
+                        };
+                    });
+                    // ===============================================
 
                     // Permite añadir un nuevo número de orden si no se encuentra y es un número válido.
-                    if (params.term && results.length === 0 && !isNaN(params.term)) {
-                        results.push({
+                    // Se ha mejorado la lógica para que no solo compruebe si no hay resultados,
+                    // sino si el término específico no está en la lista.
+                    if (params.term && !mappedResults.some(item => item.text === params.term) && !isNaN(params.term)) {
+                        mappedResults.push({
                             id: params.term,
                             text: `Add new order: "${params.term}"`,
                             isNew: true
                         });
                     }
                     
-                    return { results };
+                    return {
+                        results: mappedResults
+                    };
                 },
                 cache: true,
                 error: function(jqXHR, textStatus, errorThrown) {
