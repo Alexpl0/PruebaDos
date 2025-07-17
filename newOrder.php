@@ -273,7 +273,7 @@ require_once 'dao/users/context_injector.php';
     <script src="js/currencyUtils.js"></script>
     <script src="js/addCompany.js"></script>
     <script src="js/uploadFiles.js"></script>
-    <script src="js/createPDF.js"></script>
+    <!-- <script src="js/createPDF.js"></script> -->
     <script src="js/carrierSelect.js"></script>
     <script src="js/addCarrier.js"></script>
     
