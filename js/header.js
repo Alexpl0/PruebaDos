@@ -5,7 +5,7 @@
  * - Initializes the tour system on window.load to ensure external scripts are ready.
  */
 
-import { initContextualHelp } from './tours/tour-manager.js';
+import { initContextualHelp } from './tour/tour-manager.js';
 
 /**
  * Creates the header HTML based on the user context.
