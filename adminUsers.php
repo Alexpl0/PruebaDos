@@ -25,6 +25,9 @@ require_once 'dao/users/context_injector.php';
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/adminUsers.css">
+
+    <link rel="stylesheet" href="css/tour-styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
     
     <script src="js/config.js"></script>
 
@@ -125,6 +128,8 @@ require_once 'dao/users/context_injector.php';
     <footer class="text-center py-3 mt-4 bg-light">
         <p class="mb-0">© 2025 Grammer. All rights reserved.</p>
     </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>

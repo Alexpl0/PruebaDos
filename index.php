@@ -33,6 +33,8 @@ require_once 'dao/users/context_injector.php';
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="css/tour-styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
 
     <!-- ================== SISTEMA DE CONTEXTO CENTRALIZADO ================== -->
     <?php
@@ -93,5 +95,6 @@ require_once 'dao/users/context_injector.php';
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/PasswordManager.js"></script>
     <script src="js/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
 </body>
 </html>

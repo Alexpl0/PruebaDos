@@ -31,6 +31,8 @@ require_once 'dao/users/context_injector.php';
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/orders.css">
     <link rel="stylesheet" href="css/dataTables.css">
+    <link rel="stylesheet" href="css/tour-styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
 
     <!-- ================== SISTEMA DE CONTEXTO CENTRALIZADO ================== -->
     <?php
@@ -103,6 +105,7 @@ require_once 'dao/users/context_injector.php';
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
 
     <!-- Custom scripts (asumiendo que modals.js existe) -->
     <script src="js/header.js"></script>

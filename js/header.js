@@ -1,12 +1,16 @@
 /**
- * Premium Freight - Componente Header Responsivo (Refactorizado)
- * * Lee el contexto del usuario desde `window.PF_CONFIG` para generar el header.
- * * Versión actualizada con rol de Súper Usuario.
+ * Premium Freight - Responsive Header Component (Refactored for Driver.js)
+ * - Reads user context from `window.PF_CONFIG`.
+ * - Replaces "Manual" with a dynamic "Help" dropdown.
+ * - Integrates with tour-manager.js to provide contextual help.
  */
 
+// Import the tour manager to initialize the help menu
+import { initContextualHelp } from './tours/tour-manager.js';
+
 /**
- * Crea el HTML del header según el contexto del usuario.
- * @param {boolean} isPublicPage - Si es una página pública (login, etc.)
+ * Creates the header HTML based on the user context.
+ * @param {boolean} isPublicPage - If it is a public page (login, etc.)
  */
 function createHeader(isPublicPage = false) {
     if (isPublicPage) {
@@ -14,11 +18,10 @@ function createHeader(isPublicPage = false) {
         return;
     }
 
-    // Obtener datos del usuario desde el objeto de configuración global.
     const user = window.PF_CONFIG?.user || { authorizationLevel: 0, name: null, id: null };
     const authLevel = user.authorizationLevel;
     const userName = user.name;
-    const userId = user.id; // ID del usuario para la validación de súper usuario.
+    const userId = user.id;
 
     const currentPage = window.location.pathname.split('/').pop() || 'index.php';
 
@@ -28,34 +31,40 @@ function createHeader(isPublicPage = false) {
         return `<li class="nav__item"><a href="${href}" class="nav__link ${isActive}">${iconHTML} ${text}</a></li>`;
     }
 
+    // --- NEW: Help Dropdown Structure ---
+    const helpDropdownHTML = `
+        <li class="nav__item nav__item-dropdown" id="help-nav-item">
+            <a href="#" class="nav__link">
+                <i class="fas fa-question-circle nav__link-icon"></i> Help
+            </a>
+            <ul class="dropdown-menu" id="help-dropdown-menu">
+                <!-- Content will be populated by tour-manager.js -->
+            </ul>
+        </li>
+    `;
+
     let navItems = '';
 
-    // Lógica de navegación con 3 niveles: Súper Usuario, Admin y Usuario normal.
-    // 1. Súper Usuario (ID 36) tiene acceso a todo, incluyendo la administración de usuarios.
-    if (userId === 36) {
+    // Navigation logic based on user level
+    if (userId === 36) { // Super User
         navItems += navLink('profile.php', 'My Profile', 'fas fa-user-shield');
         navItems += navLink('newOrder.php', 'New Order', 'fas fa-plus-circle');
         navItems += navLink('orders.php', 'Generated Orders', 'fas fa-list-alt');
-        navItems += navLink('adminUsers.php', 'Admin User', 'fas fa-users-cog'); // <-- Enlace exclusivo
+        navItems += navLink('adminUsers.php', 'Admin User', 'fas fa-users-cog');
         navItems += navLink('dashboard.php', 'Charts', 'fas fa-chart-bar');
-        navItems += navLink('#', 'Manual', 'fas fa-book');
-    }
-    // 2. Otros administradores (nivel > 0) ven las opciones de admin, pero no la administración de usuarios.
-    else if (authLevel > 0) {
+        navItems += helpDropdownHTML; // Add help dropdown
+    } else if (authLevel > 0) { // Admin
         navItems += navLink('profile.php', 'My Profile', 'fas fa-user-shield');
         navItems += navLink('newOrder.php', 'New Order', 'fas fa-plus-circle');
         navItems += navLink('orders.php', 'Generated Orders', 'fas fa-list-alt');
         navItems += navLink('dashboard.php', 'Charts', 'fas fa-chart-bar');
-        navItems += navLink('#', 'Manual', 'fas fa-book');
-    }
-    // 3. Usuarios regulares (nivel 0) ven su menú limitado.
-    else {
+        navItems += helpDropdownHTML; // Add help dropdown
+    } else { // Regular User
         navItems += navLink('profile.php', 'My Profile', 'fas fa-user');
         navItems += navLink('newOrder.php', 'New Order', 'fas fa-plus-circle');
         navItems += navLink('myorders.php', 'My Orders', 'fas fa-list-check');
-        navItems += navLink('#', 'Manual', 'fas fa-book');
+        navItems += helpDropdownHTML; // Add help dropdown
     }
-
 
     if (userName) {
         navItems += navLink('dao/users/logout.php', 'Log Out', 'fas fa-sign-out-alt');
@@ -91,9 +100,21 @@ function createHeader(isPublicPage = false) {
 }
 
 /**
- * Crea un header simplificado para páginas públicas.
+ * Creates a simplified header for public pages.
  */
 function createPublicHeader() {
+    // This can also have a help dropdown if needed
+    const helpDropdownHTML = `
+        <li class="nav__item nav__item-dropdown" id="help-nav-item">
+            <a href="#" class="nav__link">
+                <i class="fas fa-question-circle nav__link-icon"></i> Help
+            </a>
+            <ul class="dropdown-menu" id="help-dropdown-menu">
+                <!-- Content will be populated by tour-manager.js -->
+            </ul>
+        </li>
+    `;
+
     const headerHTML = `
     <header class="header public-header">
         <div class="public-header__content">
@@ -101,6 +122,11 @@ function createPublicHeader() {
                 <img src="assets/logo/imagen.png" alt="GRAMMER" class="public-header__logo-img">
                 <span class="public-header__logo-text">SPECIAL FREIGHT</span>
             </div>
+            <nav>
+                <ul class="nav__list public-nav__list">
+                    ${helpDropdownHTML}
+                </ul>
+            </nav>
         </div>
     </header>
     `;
@@ -108,50 +134,44 @@ function createPublicHeader() {
 }
 
 /**
- * Inicializa la funcionalidad del header.
+ * Initializes the header functionality.
  */
 document.addEventListener('DOMContentLoaded', function() {
-    // Asumimos que PF_CONFIG se define en otro script como config.js
-    // Si APP_CONTEXT es el objeto global, lo asignamos.
     if (typeof window.APP_CONTEXT !== 'undefined' && typeof window.PF_CONFIG === 'undefined') {
         window.PF_CONFIG = window.APP_CONTEXT;
     }
 
     const currentPage = window.location.pathname.split('/').pop() || 'index.php';
-    const publicPages = ['index.php', 'register.php', 'recovery.php', 'password_reset.php'];
+    const publicPages = ['index.php', 'register.php', 'recovery.php', 'password_reset.php', 'verification_required.php'];
     const isPublicPage = publicPages.includes(currentPage);
 
     createHeader(isPublicPage);
 
-    if (isPublicPage) {
-        return;
+    // --- NEW: Initialize the contextual help menu AFTER the header is created ---
+    initContextualHelp();
+
+    // Attach event listeners for mobile menu toggle
+    if (!isPublicPage) {
+        setTimeout(function() {
+            const navMenu = document.getElementById('nav-menu');
+            const toggleMenu = document.getElementById('nav-toggle');
+            const closeMenu = document.getElementById('nav-close');
+
+            if (!navMenu || !toggleMenu || !closeMenu) return;
+
+            toggleMenu.addEventListener('click', () => {
+                navMenu.classList.toggle('show');
+                toggleMenu.style.display = 'none';
+                document.body.classList.add('menu-open');
+            });
+
+            closeMenu.addEventListener('click', () => {
+                navMenu.classList.remove('show');
+                setTimeout(() => {
+                    toggleMenu.style.display = 'block';
+                    document.body.classList.remove('menu-open');
+                }, 300);
+            });
+        }, 100);
     }
-
-    setTimeout(function() {
-        const navMenu = document.getElementById('nav-menu');
-        const toggleMenu = document.getElementById('nav-toggle');
-        const closeMenu = document.getElementById('nav-close');
-
-        if (!navMenu || !toggleMenu || !closeMenu) return;
-
-        toggleMenu.addEventListener('click', () => {
-            navMenu.classList.toggle('show');
-            toggleMenu.style.display = 'none';
-            document.body.classList.add('menu-open');
-        });
-
-        closeMenu.addEventListener('click', () => {
-            navMenu.classList.remove('show');
-            setTimeout(() => {
-                toggleMenu.style.display = 'block';
-                document.body.classList.remove('menu-open');
-            }, 300);
-        });
-
-        const navLinks = document.querySelectorAll('.nav__link');
-        navLinks.forEach(n => n.addEventListener('click', function() {
-            navLinks.forEach(link => link.classList.remove('active'));
-            this.classList.add('active');
-        }));
-    }, 100);
 });

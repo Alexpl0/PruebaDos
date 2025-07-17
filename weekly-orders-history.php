@@ -30,6 +30,8 @@ require_once 'dao/users/context_injector.php';
     <!-- Local CSS files -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/dataTables.css">
+    <link rel="stylesheet" href="css/tour-styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
 
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
@@ -222,6 +224,7 @@ require_once 'dao/users/context_injector.php';
     <!-- Custom scripts -->
     <script type="module" src="js/dataTables.js"></script>
     <script type="module" src="js/weeklyHistoryPage.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
     
     <?php 
     // Carga condicional del JS del asistente.

@@ -30,6 +30,8 @@ require_once 'dao/users/context_injector.php';
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/viewWeekorder.css">
+    <link rel="stylesheet" href="css/tour-styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
 
     <!-- ================== SISTEMA DE CONTEXTO CENTRALIZADO ================== -->
     <?php
@@ -47,6 +49,7 @@ require_once 'dao/users/context_injector.php';
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
 
 </head>
 <body>

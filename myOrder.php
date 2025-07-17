@@ -36,6 +36,8 @@ require_once 'dao/users/context_injector.php';
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/myOrder.css">
+    <link rel="stylesheet" href="css/tour-styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
     
     <!-- ================== SISTEMA DE CONTEXTO CENTRALIZADO ================== -->
     <?php
@@ -102,6 +104,7 @@ require_once 'dao/users/context_injector.php';
     <!-- Custom Scripts -->
     <script src="js/header.js"></script>
     <script src="js/myOrder.js" type="module"></script>
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
     
     <?php 
     // Carga condicional del JS del asistente.
