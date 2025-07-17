@@ -229,18 +229,28 @@ require_once 'dao/users/context_injector.php';
             <!-- Carrier, Cost, Reference -->
             <h2 class="mt-4">Selected Carrier</h2>
             <div id="SectCarrier" class="mb-3">
-                <div id="DivCarrier" class="mb-2"><label for="Carrier">Carrier:</label><select name="Carrier" id="Carrier" class="form-select"><option value="" disabled selected>Select a carrier</option></select></div>
+                <div id="DivCarrier" class="mb-2">
+                    <label for="Carrier">Carrier:</label>
+                    <select name="Carrier" id="Carrier" class="form-select">
+                        <option value="" disabled selected>Select a carrier</option>
+                    </select>
+                </div>
                 <div id="DivCosto" class="mb-2">
                     <label for="QuotedCost">Quoted Cost</label>
-                    <div id="QuotedCostDiv" class="d-flex"><input type="number" id="QuotedCost" name="QuotedCost" class="form-control me-2" placeholder="Quoted Cost" required><div id="Divisa"><button type="button" id="MXN" class="btn btn-outline-secondary me-1">MXN</button><button type="button" id="USD" class="btn btn-outline-secondary">USD</button></div></div>
-                </div>
-                <div id="SectReference" class="mb-3">
-                    <label for="Reference">Reference</label>
-                    <div class="reference-container">
-                        <select id="Reference" name="Reference" class="form-select"><option value="" disabled selected>Select a Reference</option><option value="45">45</option><option value="3">3</option><option value="CC">CC</option><option value="Order">Order</option></select>
-                        <input id="ReferenceNumber" type="number" name="ReferenceNumber" class="form-control" placeholder="Reference Number" required>
+                    <div id="QuotedCostDiv" class="d-flex">
+                        <input type="number" id="QuotedCost" name="QuotedCost" class="form-control me-2" placeholder="Quoted Cost" required>
+                        <div id="Divisa">
+                            <button type="button" id="MXN" class="btn btn-outline-secondary me-1">MXN</button>
+                            <button type="button" id="USD" class="btn btn-outline-secondary">USD</button>
+                        </div>
                     </div>
                 </div>
+                <!-- ================== MODIFIED SECTION ================== -->
+                <div id="SectReference" class="mb-3">
+                    <label for="ReferenceOrder">Reference Order Number</label>
+                    <select id="ReferenceOrder" name="ReferenceOrder" class="form-select" required></select>
+                </div>
+                <!-- ====================================================== -->
             </div>
             
             <button type="button" id="enviar" class="btn btn-primary">Submit</button>
@@ -266,6 +276,12 @@ require_once 'dao/users/context_injector.php';
     <script src="js/createPDF.js"></script>
     <script src="js/carrierSelect.js"></script>
     <script src="js/addCarrier.js"></script>
+    
+    <!-- ================== NEW SCRIPTS ADDED ================== -->
+    <script src="js/referenceSelect.js"></script>
+    <script src="js/addNumOrder.js"></script>
+    <!-- ===================================================== -->
+
     <script src="js/selectConfig.js"></script>  
     
     <!-- ================== CARGA DE MÓDULOS JS ================== -->

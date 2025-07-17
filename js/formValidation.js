@@ -8,10 +8,11 @@
 // Función para recolectar y validar los datos del formulario.
 // Esta es la única fuente de verdad para recolectar datos del formulario.
 function collectFormData() {
+    // MODIFICADO: Se eliminan 'Reference' y 'ReferenceNumber', se añade 'ReferenceOrder'.
     const fields = [
         'planta', 'codeplanta', 'transport', 'InOutBound', 'CostoEuros', 'Description',
         'Area', 'IntExt', 'PaidBy', 'CategoryCause', 'ProjectStatus', 'Recovery',
-        'Weight', 'Measures', 'Products', 'Carrier', 'QuotedCost', 'Reference', 'ReferenceNumber',
+        'Weight', 'Measures', 'Products', 'Carrier', 'QuotedCost', 'ReferenceOrder',
         'CompanyShip', 'inputCityShip', 'StatesShip', 'inputZipShip',
         'inputCompanyNameDest', 'inputCityDest', 'StatesDest', 'inputZipDest'
     ];
@@ -43,7 +44,7 @@ function collectFormData() {
                     value = selectedOption ? selectedOption.text : '';
                 }
             } else {
-                // Para todos los demás campos (inputs, textareas, y selects que envían ID como CompanyShip)
+                // Para todos los demás campos (inputs, textareas, y selects que envían ID)
                 value = element.value;
             }
 
@@ -52,7 +53,8 @@ function collectFormData() {
             }
             formData[id] = value;
 
-            if (!value || value === '') {
+            // No se valida 'ReferenceOrder' aquí porque su valor es un ID. La validación de requerido se hace en validateCompleteForm.
+            if ((!value || value === '') && id !== 'ReferenceOrder') {
                 emptyFields.push(id);
             }
         } else {
@@ -60,9 +62,10 @@ function collectFormData() {
         }
     });
 
-    // NOTA: Los IDs de compañía para el payload se obtienen por separado en newOrder.js
-    // usando validateCompanyIds(). Esta función se enfoca en recolectar los datos
-    // para la validación y para los campos que sí deben enviar texto.
+    // Se añade la validación para ReferenceOrder explícitamente.
+    if (!$('#ReferenceOrder').val()) {
+        emptyFields.push('ReferenceOrder');
+    }
 
     return { formData, emptyFields };
 }
@@ -166,6 +169,7 @@ function validateCompleteForm() {
         validateSelect2Element(this);
     });
 
+    // MODIFICADO: Se actualiza la sección de referencia.
     const sections = {
         "Información General": ['planta', 'codeplanta', 'transport', 'InOutBound'],
         "Información de Costo": ['QuotedCost'],
@@ -174,7 +178,7 @@ function validateCompleteForm() {
         "Origen del Envío": ['CompanyShip', 'inputCityShip', 'StatesShip', 'inputZipShip'],
         "Destino": ['inputCompanyNameDest', 'inputCityDest', 'StatesDest', 'inputZipDest'],
         "Detalles del Envío": ['Weight', 'Measures', 'Products', 'Carrier'],
-        "Información de Referencia": ['Reference', 'ReferenceNumber']
+        "Información de Referencia": ['ReferenceOrder']
     };
 
     const { formData, emptyFields } = collectFormData();

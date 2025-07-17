@@ -132,12 +132,26 @@ async function submitForm(event) {
         // Process new carrier if needed
         let carrierId = null;
         if (window.hasNewCarrierToSave && window.hasNewCarrierToSave()) {
-            carrierId = await window.saveNewCarrier();
-            if (!carrierId) throw new Error("Failed to save new carrier");
+            const carrierResult = await window.processNewCarrier();
+            if (!carrierResult.success) {
+                throw new Error("Failed to save new carrier");
+            }
+            carrierId = carrierResult.newCarrierId;
         }
         if (!carrierId) {
             carrierId = $('#Carrier').val();
         }
+
+        // ================== NEW: Process new Reference Order if needed ==================
+        let numOrderId = null;
+        if (window.hasNewNumOrderToSave && window.hasNewNumOrderToSave()) {
+            numOrderId = await window.saveNewNumOrder();
+            if (!numOrderId) throw new Error("Failed to save new reference order number");
+        }
+        if (!numOrderId) {
+            numOrderId = $('#ReferenceOrder').val();
+        }
+        // ==============================================================================
 
         // 2. Validate form
         const validationResult = validateCompleteForm();
@@ -157,6 +171,8 @@ async function submitForm(event) {
         // 4. Prepare payload
         const quotedCost = parseFloat(formData['QuotedCost']);
         range = calculateAuthorizationRange(quotedCost);
+
+        // ================== MODIFIED: Payload updated for new reference field ==================
         const payload = {
             user_id: window.PF_CONFIG.user.id || 1,
             date: new Date().toISOString().slice(0, 19).replace('T', ' '),
@@ -177,14 +193,14 @@ async function submitForm(event) {
             products: formData['Products'],
             carrier: carrierId,
             quoted_cost: quotedCost,
-            reference: formData['Reference'],
-            reference_number: formData['ReferenceNumber'],
+            num_order_id: numOrderId, // Replaces 'reference' and 'reference_number'
             origin_id: finalOriginId,
             destiny_id: finalDestinyId,
             status_id: 1,
             required_auth_level: range,
             moneda: getSelectedCurrency()
         };
+        // =====================================================================================
         
         // 5. Submit form data
         const response = await sendFormDataAsync(payload);
@@ -242,6 +258,9 @@ async function submitForm(event) {
 document.addEventListener('DOMContentLoaded', function() {
     initializeCompanySelectors();
     initializeCarrierSelector();
+    // ================== ADDED: Initialize the new reference selector ==================
+    initializeReferenceSelector();
+    // ================================================================================
     initializeCurrencySelectors();
 
     document.getElementById('enviar')?.addEventListener('click', submitForm);

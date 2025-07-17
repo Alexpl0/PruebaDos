@@ -215,31 +215,11 @@
     color: var(--white);
 }
 
-/* SectReference - reference type with number input */
-#SectReference {
-    display: flex;
-    flex-direction: column;
-}
-
-#SectReference label {
-    margin-bottom: 0.5rem;
-}
-
-.reference-container {
-    display: flex;
-    gap: 0.5rem;
-    width: 100%;
-}
-
-#Reference {
-    max-width: 30%;
-    flex-shrink: 0;
-}
-
-#ReferenceNumber {
-    width: 70%;
-    flex-grow: 1;
-}
+/* =====================================================
+   REMOVED OBSOLETE STYLES for #SectReference
+   The new select #ReferenceOrder will use generic
+   select and Select2 styles, so no specific CSS is needed.
+   ===================================================== */
 
 /* Recovery file upload container */
 #recoveryFileContainer {

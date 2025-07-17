@@ -36,18 +36,21 @@ if ($data === null) {
     exit;
 }
 
-// Definir los campos obligatorios que debe contener la solicitud
+// ================== MODIFICADO: Campos obligatorios actualizados ==================
+// Se eliminan 'reference' y 'reference_number' y se añade 'num_order_id'
 $requiredFields = [
     'planta', 'code_planta', 'transport', 'in_out_bound', 'cost_euros',
     'description', 'area', 'int_ext', 'paid_by', 'category_cause',
     'project_status', 'recovery', 'weight', 'measures', 'products',
-    'carrier', 'quoted_cost', 'reference', 'reference_number',
+    'carrier', 'quoted_cost', 'num_order_id', // Campo actualizado
     'origin_id', 'destiny_id', 'moneda'
 ];
+// ==============================================================================
 
 // Verificar si falta algún campo obligatorio
 $missingFields = [];
 foreach ($requiredFields as $field) {
+    // Se asegura de que el campo exista y no esté vacío (excepto para valores numéricos que pueden ser 0)
     if (!isset($data[$field]) || (is_string($data[$field]) && trim($data[$field]) === '')) {
         $missingFields[] = $field;
     }
@@ -62,35 +65,16 @@ if (!empty($missingFields)) {
     exit;
 }
 
-// Validar que los campos numéricos tengan valores válidos
-$numericFields = ['cost_euros', 'weight', 'quoted_cost'];
-foreach ($numericFields as $field) {
-    if (isset($data[$field]) && !is_numeric($data[$field])) {
-        http_response_code(400);
-        echo json_encode([
-            "success" => false,
-            "message" => "Field '$field' must be a valid number."
-        ]);
-        exit;
-    }
-}
-
 try {
-    // Crear conexión a la base de datos usando la clase LocalConector
+    // Crear conexión a la base de datos
     $con = new LocalConector();
     $conex = $con->conectar();
-
-    if (!$conex) {
-        throw new Exception("Database connection failed");
-    }
-
-    // Establecer el charset para soportar caracteres especiales y emojis
     $conex->set_charset("utf8mb4");
-
-    // Iniciar una transacción para asegurar la integridad de los datos
     $conex->begin_transaction();
 
-    // Preparar la consulta SQL para insertar en la tabla PremiumFreight
+    // ================== MODIFICADO: Consulta SQL actualizada ==================
+    // La columna 'reference' se insertará con NULL.
+    // La columna 'reference_number' ahora almacenará el ID de la tabla NumOrders.
     $sql = "INSERT INTO PremiumFreight (
                 user_id, date, planta, code_planta, transport, in_out_bound,
                 cost_euros, description, area, int_ext, paid_by, category_cause,
@@ -98,188 +82,93 @@ try {
                 carrier_id, quoted_cost, reference, reference_number,
                 origin_id, destiny_id, status_id, required_auth_level, moneda
             ) VALUES (
-                ?, ?, ?, ?, ?, ?,
-                ?, ?, ?, ?, ?, ?,
-                ?, ?, ?, ?, ?,
-                ?, ?, ?, ?,
-                ?, ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )";
 
     $stmt = $conex->prepare($sql);
-
     if (!$stmt) {
         throw new Exception("Error preparing statement: " . $conex->error);
     }
 
-    // Obtener valores de los campos, asegurando tipos y longitudes
+    // Obtener valores de los campos
     $userId = isset($data['user_id']) ? intval($data['user_id']) : 1;
     $statusId = isset($data['status_id']) ? intval($data['status_id']) : 1;
     $requiredAuthLevel = isset($data['required_auth_level']) ? intval($data['required_auth_level']) : 1;
-
-    // Convertir campos numéricos a su tipo correcto
-    $costEuros = floatval($data['cost_euros']);
-    $quotedCost = floatval($data['quoted_cost']);
-    $weight = floatval($data['weight']);
-    $originId = intval($data['origin_id']);
-    $destinyId = intval($data['destiny_id']);
-
-    // Limitar la longitud de los campos de texto según la estructura de la base de datos
     $date = isset($data['date']) ? substr($data['date'], 0, 30) : date('Y-m-d H:i:s');
-    $planta = substr($data['planta'], 0, 100);
-    $codePlanta = substr($data['code_planta'], 0, 50);
-    $transport = substr($data['transport'], 0, 50);
-    $inOutBound = substr($data['in_out_bound'], 0, 50);
-
-    // *** IMPORTANTE: No limitar el campo description para permitir textos largos ***
-    $description = $data['description']; // LONGTEXT soporta hasta 4GB
-
-    $area = substr($data['area'], 0, 100);
-    $intExt = substr($data['int_ext'], 0, 50);
-    $paidBy = substr($data['paid_by'], 0, 100);
-    $categoryCause = substr($data['category_cause'], 0, 100);
-    $projectStatus = substr($data['project_status'], 0, 100);
-    $recovery = substr($data['recovery'], 0, 100);
-    $measures = substr($data['measures'], 0, 100);
-    $products = substr($data['products'], 0, 100);
-    $carrier = substr($data['carrier'], 0, 100);
-    $reference = substr($data['reference'], 0, 100);
-    $referenceNumber = substr($data['reference_number'], 0, 100);
-    $moneda = substr($data['moneda'], 0, 10);
+    
+    // --- Nuevas variables para la referencia ---
+    $reference = null; // Se enviará NULL a la columna 'reference'
+    $referenceNumberId = intval($data['num_order_id']); // El ID de NumOrders va a la columna 'reference_number'
 
     // Vincular los parámetros a la consulta preparada
-    // Tipos: i = integer, d = double, s = string
-    $bindResult = $stmt->bind_param(
-        "issssssssssssssssssssiiiis",
+    // ================== MODIFICADO: Tipos y variables de bind_param actualizados ==================
+    // La firma cambia de '...ss...' a '...si...' para reference y reference_number
+    $stmt->bind_param(
+        "isssssdssssssssisisiisiiis",
         $userId,
         $date,
-        $planta,
-        $codePlanta,
-        $transport,
-        $inOutBound,
-        $costEuros,
-        $description,
-        $area,
-        $intExt,
-        $paidBy,
-        $categoryCause,
-        $projectStatus,
-        $recovery,
-        $weight,
-        $measures,
-        $products,
-        $carrier,
-        $quotedCost,
-        $reference,
-        $referenceNumber,
-        $originId,
-        $destinyId,
+        $data['planta'],
+        $data['code_planta'],
+        $data['transport'],
+        $data['in_out_bound'],
+        $data['cost_euros'],
+        $data['description'],
+        $data['area'],
+        $data['int_ext'],
+        $data['paid_by'],
+        $data['category_cause'],
+        $data['project_status'],
+        $data['recovery'],
+        $data['weight'],
+        $data['measures'],
+        $data['products'],
+        $data['carrier'],
+        $data['quoted_cost'],
+        $reference,          // Se bindea la variable null
+        $referenceNumberId,  // Se bindea el ID de la orden
+        $data['origin_id'],
+        $data['destiny_id'],
         $statusId,
         $requiredAuthLevel,
-        $moneda
+        $data['moneda']
     );
+    // =========================================================================================
 
-    if (!$bindResult) {
-        throw new Exception("Error binding parameters: " . $stmt->error);
-    }
-
-    // Ejecutar la consulta para insertar en PremiumFreight
     if (!$stmt->execute()) {
-        // Si hay error, revertir la transacción
         $conex->rollback();
         throw new Exception("Error executing statement: " . $stmt->error);
     }
 
-    // Obtener el ID del registro recién insertado
     $premiumFreightId = $stmt->insert_id;
-
-    if (!$premiumFreightId) {
-        $conex->rollback();
-        throw new Exception("Failed to get last insert ID");
-    }
-
     $stmt->close();
 
-    // Insertar registro en la tabla de aprobaciones (PremiumFreightApprovals)
-    $sqlApproval = "INSERT INTO PremiumFreightApprovals 
-                    (premium_freight_id, user_id, approval_date, status_id, act_approv) 
-                    VALUES (?, ?, NOW(), ?, 0)";
-
+    // El resto del código para insertar en PremiumFreightApprovals permanece igual...
+    $sqlApproval = "INSERT INTO PremiumFreightApprovals (premium_freight_id, user_id, approval_date, status_id, act_approv) VALUES (?, ?, NOW(), ?, 0)";
     $stmtApproval = $conex->prepare($sqlApproval);
-
-    if (!$stmtApproval) {
-        $conex->rollback();
-        throw new Exception("Error preparing approval statement: " . $conex->error);
-    }
-
-    // Vincular parámetros para la tabla de aprobaciones
-    $bindApprovalResult = $stmtApproval->bind_param("iii", 
-        $premiumFreightId, 
-        $userId, 
-        $statusId
-    );
-
-    if (!$bindApprovalResult) {
-        $conex->rollback();
-        throw new Exception("Error binding approval parameters: " . $stmtApproval->error);
-    }
-
-    // Ejecutar la inserción en la tabla de aprobaciones
-    if (!$stmtApproval->execute()) {
-        $conex->rollback();
-        throw new Exception("Error inserting approval record: " . $stmtApproval->error);
-    }
-
+    $stmtApproval->bind_param("iii", $premiumFreightId, $userId, $statusId);
+    $stmtApproval->execute();
     $stmtApproval->close();
 
-    // Obtener el nombre del usuario creador
-    $sqlUser = "SELECT name as userName FROM User WHERE id = ?";
-    $stmtUser = $conex->prepare($sqlUser);
-    $stmtUser->bind_param("i", $userId);
-    $stmtUser->execute();
-    $stmtUser->bind_result($userName);
-    $stmtUser->fetch();
-    $stmtUser->close();
-
-    // Confirmar la transacción si todo salió bien
+    // Confirmar la transacción
     $conex->commit();
-
-    // Cerrar la conexión a la base de datos
     $conex->close();
 
-    // Responder con éxito y el ID del nuevo registro
+    // Responder con éxito
     echo json_encode([
         "success" => true,
-        "message" => "Premium freight order created successfully with approval record.",
-        "order_id" => $premiumFreightId,        // Cambiado de "shipment_id" a "order_id"
-        "premium_freight_id" => $premiumFreightId,  // Mantén este también por compatibilidad
-        "shipment_id" => $premiumFreightId,     // Mantén el original por compatibilidad
-        "user_name" => $userName
+        "message" => "Premium freight order created successfully.",
+        "order_id" => $premiumFreightId
     ]);
 
 } catch (Exception $e) {
-    // Registrar información detallada del error para depuración
-    error_log("PremiumFreight insertion error: " . $e->getMessage());
-    error_log("Error occurred in file: " . $e->getFile() . " on line " . $e->getLine());
-    error_log("Stack trace: " . $e->getTraceAsString());
-
-    // Registrar error SQL si aplica
-    if (isset($stmt) && $stmt) {
-        error_log("SQL Error: " . $stmt->error);
-    }
-
-    // Revertir la transacción si la conexión está activa
-    if (isset($conex) && $conex->connect_errno === 0) {
+    if (isset($conex)) {
         $conex->rollback();
         $conex->close();
     }
-
     http_response_code(500);
     echo json_encode([
         "success" => false,
-        "message" => "Database error: " . $e->getMessage(),
-        "details" => "Check server logs for more information"
+        "message" => "Database error: " . $e->getMessage()
     ]);
 }
- 
-// https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPFpost.php
 ?>

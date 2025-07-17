@@ -17,10 +17,20 @@ try {
     $con = new LocalConector();
     $conex = $con->conectar();
 
-    // Consulta SQL base con LEFT JOIN
+    // ================== MODIFICADO: Consulta SQL actualizada con JOIN a NumOrders ==================
+    // Se reemplaza pf.* para listar explícitamente las columnas y evitar conflictos.
+    // Se añade un LEFT JOIN a NumOrders y se selecciona no.Number como 'reference_number'.
     $sql = "
         SELECT 
-            pf.*,
+            pf.id, pf.user_id, pf.date, pf.planta, pf.code_planta, pf.transport, 
+            pf.in_out_bound, pf.cost_euros, pf.description, pf.area, pf.int_ext, 
+            pf.paid_by, pf.category_cause, pf.project_status, pf.recovery, 
+            pf.weight, pf.measures, pf.products, pf.carrier_id, pf.quoted_cost, 
+            pf.reference, pf.origin_id, pf.destiny_id, pf.status_id, 
+            pf.required_auth_level, pf.moneda,
+            
+            no.Number AS reference_number, -- Se trae el número de la orden y se renombra
+
             u.name AS creator_name,
             u.email AS creator_email,
             u.role AS creator_role,
@@ -43,6 +53,7 @@ try {
             u_approver.email AS approver_email,
             u_approver.role AS approver_role
         FROM PremiumFreight pf
+        LEFT JOIN NumOrders no ON pf.reference_number = no.ID -- El JOIN se hace por el ID
         LEFT JOIN Carriers c ON pf.carrier_id = c.id
         LEFT JOIN User u ON pf.user_id = u.id
         LEFT JOIN Location lo_from ON pf.origin_id = lo_from.id
@@ -51,14 +62,14 @@ try {
         LEFT JOIN PremiumFreightApprovals pfa ON pf.id = pfa.premium_freight_id
         LEFT JOIN User u_approver ON pfa.user_id = u_approver.id
     ";
+    // =========================================================================================
 
-    // Agregar filtro por planta si el usuario tiene planta asignada
+    // El resto de la lógica para filtrar y ordenar permanece igual
     if ($userPlant !== null && $userPlant !== '') {
         $sql .= " WHERE u.plant = ?";
         $stmt = $conex->prepare($sql . " ORDER BY pf.id DESC");
         $stmt->bind_param("s", $userPlant);
     } else {
-        // Si no tiene planta asignada, mostrar todas las órdenes
         $stmt = $conex->prepare($sql . " ORDER BY pf.id DESC");
     }
 
@@ -70,7 +81,6 @@ try {
         $datos[] = $row;
     }
 
-    // Añadir información del usuario actual para uso en frontend
     $response = [
         'status' => 'success', 
         'data' => $datos,
@@ -88,3 +98,4 @@ try {
     http_response_code(500);
     echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }
+?>
