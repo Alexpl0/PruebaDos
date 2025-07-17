@@ -22,15 +22,8 @@ try {
     // Se añade un LEFT JOIN a NumOrders y se selecciona no.Number como 'reference_number'.
     $sql = "
         SELECT 
-            pf.id, pf.user_id, pf.date, pf.planta, pf.code_planta, pf.transport, 
-            pf.in_out_bound, pf.cost_euros, pf.description, pf.area, pf.int_ext, 
-            pf.paid_by, pf.category_cause, pf.project_status, pf.recovery, 
-            pf.weight, pf.measures, pf.products, pf.carrier_id, pf.quoted_cost, 
-            pf.reference, pf.origin_id, pf.destiny_id, pf.status_id, 
-            pf.required_auth_level, pf.moneda,
-            
+            pf.*, -- Se seleccionan todas las columnas de PremiumFreight
             no.Number AS reference_number, -- Se trae el número de la orden y se renombra
-
             u.name AS creator_name,
             u.email AS creator_email,
             u.role AS creator_role,
