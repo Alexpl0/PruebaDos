@@ -102,7 +102,8 @@ require_once 'dao/users/context_injector.php';
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <!-- Custom Scripts -->
-    <script src="js/header.js"></script>
+        <script src="js/header.js" type="module"></script>
+
     <script src="js/myOrder.js" type="module"></script>
     <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
     

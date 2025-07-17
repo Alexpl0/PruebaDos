@@ -281,7 +281,8 @@ require_once 'dao/users/context_injector.php';
     <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
     
     <!-- Scripts de la aplicación -->
-    <script src="js/header.js"></script>
+        <script src="js/header.js" type="module"></script>
+
     <script src="js/companySelect.js"></script>
     <script src="js/formValidation.js"></script>
     <script src="js/currencyUtils.js"></script>

@@ -116,7 +116,8 @@ switch ($error) {
     </footer>
 
     <!-- Scripts -->
-    <script src="js/header.js"></script>
+        <script src="js/header.js" type="module"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/password_reset.js"></script>
 </body>

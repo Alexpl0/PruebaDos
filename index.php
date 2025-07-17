@@ -91,7 +91,8 @@ require_once 'dao/users/context_injector.php';
     </footer>
 
     <!-- Archivos JS locales -->
-    <script src="js/header.js"></script>
+        <script src="js/header.js" type="module"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/PasswordManager.js"></script>
     <script src="js/index.js"></script>

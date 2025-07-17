@@ -151,7 +151,8 @@ require_once 'dao/users/context_injector.php';
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/header.js"></script>
+        <script src="js/header.js" type="module"></script>
+
     <script src="js/utils.js" type="module"></script>
     <script src="js/PasswordManager.js"></script>
     <script src="js/profile.js"></script>

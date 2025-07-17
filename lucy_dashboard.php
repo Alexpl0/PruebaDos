@@ -111,7 +111,8 @@ require_once 'dao/users/context_injector.php';
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <!-- ================== LOCAL SCRIPTS ================== -->
-    <script src="js/header.js"></script>
+        <script src="js/header.js" type="module"></script>
+
 
     <?php 
     // Conditionally load the assistant's JS.

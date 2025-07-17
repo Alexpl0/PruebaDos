@@ -176,7 +176,8 @@ require_once 'dao/users/context_injector.php';
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
     <!-- Archivos JS locales -->
-    <script src="js/header.js"></script>
+        <script src="js/header.js" type="module"></script>
+
     <script type="module" src="js/dashboard.js"></script>
 
     <?php 
