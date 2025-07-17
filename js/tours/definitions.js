@@ -36,6 +36,11 @@ export const tourSteps = {
         { element: '#new-password', popover: { title: 'New Password', description: 'Then, enter your new desired password.' } },
         { element: '#update-profile', popover: { title: 'Save Changes', description: 'Click this button to save all your profile updates.' } }
     ],
+    // NEW TOUR FOR PROFILE PAGE
+    'profile-view-orders': [
+        { element: 'a[href="myorders.php"]', popover: { title: 'View My Orders', description: 'Click this button to go to a page that lists all the orders you have created.' } }
+    ],
+
 
     // --- Order Management Tours ---
     'create-order': [
@@ -116,9 +121,11 @@ export const pageTours = {
     'verification_required.php': {
         'How to verify my email?': 'verification'
     },
+    // UPDATED PROFILE PAGE TOURS
     'profile.php': {
-        'How to update my profile?': 'profile-update',
-        'How to change my password?': 'profile-update'
+        'How to update your username?': 'profile-update',
+        'How to change your password?': 'profile-update',
+        'How to see your orders?': 'profile-view-orders'
     },
     'newOrder.php': {
         'How to create a new order?': 'create-order',
