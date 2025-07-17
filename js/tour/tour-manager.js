@@ -1,24 +1,21 @@
 /**
  * @file tour-manager.js
  * Manages the initialization and execution of Driver.js tours.
- * It also dynamically populates the "Help" dropdown in the header.
+ * This script is called after the window 'load' event, so external libraries should be ready.
  */
 
 import { tourSteps, pageTours } from './definitions.js';
 
-// This variable will hold the driver factory function once it's initialized.
 let driverFactory = null;
 
 /**
- * Initializes the driver instance.
- * It checks if the driver library is available on the window object.
+ * Initializes the driver factory function. This is the first step.
  */
 function initializeDriver() {
     if (window.driver && typeof window.driver.driver === 'function') {
-        // We store the factory function from the library
         driverFactory = window.driver.driver;
     } else {
-        console.error("Driver.js library not loaded or failed to initialize. Please check the script tag in your HTML.");
+        console.error("Driver.js library (window.driver) is not available. The help feature will be disabled.");
     }
 }
 
@@ -27,24 +24,16 @@ function initializeDriver() {
  * @param {string} tourName - The key of the tour in the tourSteps object.
  */
 export function startTour(tourName) {
-    // If the factory isn't ready, try to initialize it again.
     if (!driverFactory) {
-        initializeDriver();
-    }
-    
-    // If it's still not available, we cannot proceed.
-    if (!driverFactory) {
-        console.error("Driver is not initialized. Cannot start tour. The help feature is currently unavailable.");
-        // We can use a more modern notification system if available, like SweetAlert2
+        console.error("Driver factory not initialized. Cannot start tour.");
         if (typeof Swal !== 'undefined') {
             Swal.fire({
                 icon: 'error',
                 title: 'Help Unavailable',
-                text: 'The interactive guide could not be loaded. Please check your internet connection and try again.',
-                timer: 3000
+                text: 'The interactive guide could not be loaded. Please try refreshing the page.',
             });
         } else {
-            alert("The help feature is currently unavailable. Please check your connection and try again.");
+            alert("The help feature is currently unavailable. Please try refreshing the page.");
         }
         return;
     }
@@ -55,7 +44,6 @@ export function startTour(tourName) {
         return;
     }
 
-    // Create a new tour instance using the factory and drive it
     const tour = driverFactory({
         showProgress: true,
         steps: steps,
@@ -68,19 +56,24 @@ export function startTour(tourName) {
 }
 
 /**
- * Initializes the contextual help dropdown in the header.
- * This function should be called after the DOM is fully loaded.
+ * Initializes the contextual help dropdown menu in the header.
  */
 export function initContextualHelp() {
-    // Ensure the driver is ready to be used.
+    // Step 1: Try to get the driver library ready.
     initializeDriver();
 
-    const helpDropdown = document.getElementById('help-dropdown-menu');
-    if (!helpDropdown) {
-        // console.log("Help dropdown menu not found on this page.");
+    const helpDropdownMenu = document.getElementById('help-dropdown-menu');
+    const helpNavItem = document.getElementById('help-nav-item');
+
+    // If the driver library failed to load, hide the help menu completely.
+    if (!driverFactory) {
+        if (helpNavItem) {
+            helpNavItem.style.display = 'none';
+        }
         return;
     }
-
+    
+    // Step 2: Populate the menu with relevant questions for the current page.
     const currentPage = window.location.pathname.split('/').pop() || 'index.php';
     const relevantTours = pageTours[currentPage];
 
@@ -90,22 +83,20 @@ export function initContextualHelp() {
             const tourName = relevantTours[question];
             dropdownHTML += `<li><a class="dropdown-item" href="#" data-tour="${tourName}">${question}</a></li>`;
         }
-        helpDropdown.innerHTML = dropdownHTML;
+        helpDropdownMenu.innerHTML = dropdownHTML;
 
-        helpDropdown.querySelectorAll('.dropdown-item').forEach(item => {
+        // Step 3: Add click listeners to start the tours.
+        helpDropdownMenu.querySelectorAll('.dropdown-item').forEach(item => {
             item.addEventListener('click', function (e) {
                 e.preventDefault();
                 const tourToStart = this.getAttribute('data-tour');
                 startTour(tourToStart);
             });
         });
-
     } else {
-        // If no tours are defined for the page, hide the help menu
-        const helpContainer = document.getElementById('help-nav-item');
-        if(helpContainer) {
-            // console.log(`No tours defined for ${currentPage}, hiding help menu.`);
-            helpContainer.style.display = 'none';
+        // If no tours are defined for this page, hide the help menu.
+        if (helpNavItem) {
+            helpNavItem.style.display = 'none';
         }
     }
 }
