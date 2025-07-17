@@ -1,102 +1,87 @@
 /**
  * referenceSelect.js
  * * Módulo para la gestión y selección de Órdenes de Referencia.
- * Incluye funciones para inicializar el selector, cargar órdenes y manejar nuevas entradas.
- * Es similar a carrierSelect.js pero adaptado para NumOrders.
+ * MODIFICADO: Ahora carga todas las referencias al inicio para facilitar la depuración.
  */
 
 (function() {
     /**
+     * Carga todas las órdenes de referencia desde el endpoint y las añade al select.
+     */
+    async function loadAllReferences() {
+        const referenceElement = $('#ReferenceOrder');
+        if (referenceElement.length === 0) {
+            console.error("Elemento #ReferenceOrder no encontrado.");
+            return;
+        }
+
+        try {
+            console.log("Iniciando la carga de todas las órdenes de referencia...");
+            const response = await fetch(URLPF + 'dao/elements/daoNumOrders.php');
+            
+            if (!response.ok) {
+                throw new Error(`Error en la red: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log("1. Datos crudos recibidos del endpoint:", data);
+
+            if (data.status === 'success' && Array.isArray(data.data)) {
+                // Limpiar opciones existentes (excepto la primera si es un placeholder)
+                referenceElement.find('option:not(:first)').remove();
+
+                // Mapear y añadir las nuevas opciones
+                data.data.forEach(item => {
+                    // Asegurarse de que el texto sea un string
+                    const optionText = String(item.text); 
+                    const newOption = new Option(optionText, item.id, false, false);
+                    referenceElement.append(newOption);
+                });
+
+                console.log("2. Opciones añadidas al select. El elemento ahora contiene:", referenceElement.html());
+
+                // Forzar a Select2 a actualizarse con las nuevas opciones
+                referenceElement.trigger('change');
+                
+                console.log("3. Select2 actualizado.");
+
+            } else {
+                console.error("El formato de los datos del servidor es incorrecto:", data);
+            }
+
+        } catch (error) {
+            console.error("Falló la carga de las órdenes de referencia:", error);
+        }
+    }
+
+    /**
      * Inicializa el selector Select2 para las órdenes de referencia.
+     * Ahora se configura como un select estándar, ya que los datos se precargan.
      */
     function initializeReferenceSelector() {
         const referenceElement = $('#ReferenceOrder');
         if (referenceElement.length === 0) {
-            console.error("Cannot initialize Select2: #ReferenceOrder element not found in the DOM");
-            return;
+            return; // El error ya se reportó en loadAllReferences
         }
 
+        // Inicializa Select2 con configuración estándar (sin AJAX)
         referenceElement.select2({
-            placeholder: "Search for an Order Number",
-            allowClear: true,
-            minimumInputLength: 0, 
-            ajax: {
-                url: URLPF + 'dao/elements/daoNumOrders.php', // Endpoint para buscar órdenes
-                dataType: 'json',
-                delay: 250,
-                data: function (params) {
-                    return { q: params.term || '' }; // Envía el término de búsqueda
-                },
-                processResults: function (data, params) {
-                    // ================== DEBUGGING LOGS ==================
-                    console.log("1. Datos crudos recibidos del endpoint:", data);
-                    // ====================================================
-                    
-                    // Se comprueba si la respuesta del servidor es válida.
-                    if (!data || !Array.isArray(data.data)) {
-                        console.error("Server data format is incorrect or missing data array:", data);
-                        return { results: [] };
-                    }
-
-                    // Se mapean los resultados para asegurar que la propiedad 'text' sea un string.
-                    // Select2 requiere que el texto a mostrar sea una cadena.
-                    const mappedResults = data.data.map(item => {
-                        return {
-                            id: item.id,
-                            text: String(item.text) // Se convierte explícitamente el número a string.
-                        };
-                    });
-                    
-                    // ================== DEBUGGING LOGS ==================
-                    console.log("2. Datos mapeados (text como string):", mappedResults);
-                    // ====================================================
-
-                    // Permite añadir un nuevo número de orden si no se encuentra y es un número válido.
-                    // Se ha mejorado la lógica para que no solo compruebe si no hay resultados,
-                    // sino si el término específico no está en la lista.
-                    if (params.term && !mappedResults.some(item => item.text === params.term) && !isNaN(params.term)) {
-                        mappedResults.push({
-                            id: params.term,
-                            text: `Add new order: "${params.term}"`,
-                            isNew: true
-                        });
-                    }
-                    
-                    const finalResults = {
-                        results: mappedResults
-                    };
-
-                    // ================== DEBUGGING LOGS ==================
-                    console.log("3. Resultados finales enviados a Select2:", finalResults);
-                    // ====================================================
-
-                    return finalResults;
-                },
-                cache: true,
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.error("AJAX error for Reference Order:", textStatus, errorThrown, jqXHR.responseText);
-                }
-            }
-        }).on('select2:select', function(e) {
-            const data = e.params.data;
-            // Almacena el ID seleccionado en el atributo data del elemento.
-            if (!data.isNew && data.id) {
-                $(this).data('selected-id', parseInt(data.id, 10));
-            } else {
-                 $(this).data('selected-id', null);
-            }
+            placeholder: "Select a Reference Order",
+            allowClear: true
         });
 
-        console.log("Reference Order selector initialized");
+        console.log("Selector de Órdenes de Referencia inicializado (modo de carga inicial).");
+
+        // Carga los datos después de inicializar el componente base.
+        loadAllReferences();
     }
 
-    // Expone la función de inicialización al ámbito global para que pueda ser llamada desde otros scripts.
+    // Expone la función de inicialización al ámbito global.
     window.initializeReferenceSelector = initializeReferenceSelector;
 
-    // Comprueba la disponibilidad de la variable global URLPF.
+    // Comprobación de la variable global URLPF.
     if (typeof URLPF === 'undefined') {
         console.warn('URLPF global variable is not defined.');
-        // URL de fallback por si acaso.
         window.URLPF = window.URLPF || 'https://grammermx.com/Jesus/PruebaDos/';
     }
 })();
