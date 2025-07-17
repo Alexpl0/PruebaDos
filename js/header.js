@@ -1,7 +1,7 @@
 /**
- * Premium Freight - Componente Header Responsivo (Refactorizado)
+ * Premium Freight - Componente Header Responsivo (Refactorizado con Driver.js)
  * * Lee el contexto del usuario desde `window.PF_CONFIG` para generar el header.
- * * Versión actualizada con rol de Súper Usuario.
+ * * Incluye un menú desplegable "Info" para tours interactivos.
  */
 
 /**
@@ -18,7 +18,7 @@ function createHeader(isPublicPage = false) {
     const user = window.PF_CONFIG?.user || { authorizationLevel: 0, name: null, id: null };
     const authLevel = user.authorizationLevel;
     const userName = user.name;
-    const userId = user.id; // ID del usuario para la validación de súper usuario.
+    const userId = user.id;
 
     const currentPage = window.location.pathname.split('/').pop() || 'index.php';
 
@@ -28,34 +28,45 @@ function createHeader(isPublicPage = false) {
         return `<li class="nav__item"><a href="${href}" class="nav__link ${isActive}">${iconHTML} ${text}</a></li>`;
     }
 
+    // HTML para el menú desplegable de información/ayuda con más opciones
+    const infoDropdownHTML = `
+        <li class="nav__item dropdown">
+            <a class="nav__link dropdown-toggle" href="#" id="infoDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-info-circle nav__link-icon"></i> Info
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="infoDropdown">
+                <li><a class="dropdown-item" href="#" id="start-login-tour">How to log in?</a></li>
+                <li><a class="dropdown-item" href="#" id="start-register-tour">How to sign up?</a></li>
+                <li><a class="dropdown-item" href="#" id="start-recovery-tour">How to recover password?</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#">How to create an order? (soon)</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#">Contact Support</a></li>
+            </ul>
+        </li>`;
+
     let navItems = '';
 
-    // Lógica de navegación con 3 niveles: Súper Usuario, Admin y Usuario normal.
-    // 1. Súper Usuario (ID 36) tiene acceso a todo, incluyendo la administración de usuarios.
-    if (userId === 36) {
+    // Lógica de navegación con 3 niveles
+    if (userId === 36) { // Super User
         navItems += navLink('profile.php', 'My Profile', 'fas fa-user-shield');
         navItems += navLink('newOrder.php', 'New Order', 'fas fa-plus-circle');
         navItems += navLink('orders.php', 'Generated Orders', 'fas fa-list-alt');
-        navItems += navLink('adminUsers.php', 'Admin User', 'fas fa-users-cog'); // <-- Enlace exclusivo
+        navItems += navLink('adminUsers.php', 'Admin User', 'fas fa-users-cog');
         navItems += navLink('dashboard.php', 'Charts', 'fas fa-chart-bar');
-        navItems += navLink('#', 'Manual', 'fas fa-book');
-    }
-    // 2. Otros administradores (nivel > 0) ven las opciones de admin, pero no la administración de usuarios.
-    else if (authLevel > 0) {
+        navItems += infoDropdownHTML;
+    } else if (authLevel > 0) { // Admin
         navItems += navLink('profile.php', 'My Profile', 'fas fa-user-shield');
         navItems += navLink('newOrder.php', 'New Order', 'fas fa-plus-circle');
         navItems += navLink('orders.php', 'Generated Orders', 'fas fa-list-alt');
         navItems += navLink('dashboard.php', 'Charts', 'fas fa-chart-bar');
-        navItems += navLink('#', 'Manual', 'fas fa-book');
-    }
-    // 3. Usuarios regulares (nivel 0) ven su menú limitado.
-    else {
+        navItems += infoDropdownHTML;
+    } else { // Regular User
         navItems += navLink('profile.php', 'My Profile', 'fas fa-user');
         navItems += navLink('newOrder.php', 'New Order', 'fas fa-plus-circle');
         navItems += navLink('myorders.php', 'My Orders', 'fas fa-list-check');
-        navItems += navLink('#', 'Manual', 'fas fa-book');
+        navItems += infoDropdownHTML;
     }
-
 
     if (userName) {
         navItems += navLink('dao/users/logout.php', 'Log Out', 'fas fa-sign-out-alt');
@@ -111,15 +122,13 @@ function createPublicHeader() {
  * Inicializa la funcionalidad del header.
  */
 document.addEventListener('DOMContentLoaded', function() {
-    // Asumimos que PF_CONFIG se define en otro script como config.js
-    // Si APP_CONTEXT es el objeto global, lo asignamos.
     if (typeof window.APP_CONTEXT !== 'undefined' && typeof window.PF_CONFIG === 'undefined') {
         window.PF_CONFIG = window.APP_CONTEXT;
     }
 
     const currentPage = window.location.pathname.split('/').pop() || 'index.php';
     const publicPages = ['index.php', 'register.php', 'recovery.php', 'password_reset.php'];
-    const isPublicPage = publicPages.includes(currentPage);
+    const isPublicPage = publicPages.includes(currentPage) && !window.PF_CONFIG?.user?.name;
 
     createHeader(isPublicPage);
 
@@ -150,8 +159,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const navLinks = document.querySelectorAll('.nav__link');
         navLinks.forEach(n => n.addEventListener('click', function() {
-            navLinks.forEach(link => link.classList.remove('active'));
-            this.classList.add('active');
+            if (!this.classList.contains('dropdown-toggle')) {
+                navLinks.forEach(link => link.classList.remove('active'));
+                this.classList.add('active');
+            }
         }));
     }, 100);
 });

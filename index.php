@@ -28,6 +28,9 @@ require_once 'dao/users/context_injector.php';
     
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Driver.js for tours -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
     
     <!-- Local CSS -->
     <link rel="stylesheet" href="css/styles.css">
@@ -88,11 +91,15 @@ require_once 'dao/users/context_injector.php';
         <p>© 2025 Grammer. All rights reserved.</p>
     </footer>
 
-    <!-- Archivos JS locales -->
-    <script src="js/header.js"></script>
+    <!-- JS Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js"></script>
+
+    <!-- Local JS Files -->
+    <script src="js/header.js"></script>
     <script src="js/PasswordManager.js"></script>
     <script src="js/index.js"></script>
+    <!-- Include the consolidated tour script for authentication -->
+    <script src="js/tour/auth-tours.js"></script> 
 </body>
 </html>
--
