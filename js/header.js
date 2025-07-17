@@ -6,7 +6,7 @@
  */
 
 // Import the tour manager to initialize the help menu
-import { initContextualHelp } from './tours/tour-manager.js';
+import { initContextualHelp } from './tour/tour-manager.js';
 
 /**
  * Creates the header HTML based on the user context.
