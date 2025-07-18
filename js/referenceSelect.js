@@ -1,35 +1,33 @@
 /**
  * referenceSelect.js
- * * Este archivo inicializa el componente Select2 para el campo 'ReferenceOrder'.
- * 1. Precarga todas las opciones desde el servidor para evitar estados de "buscando".
- * 2. Se asegura de que todos los datos sean del tipo correcto (string) para prevenir errores.
- * 3. Permite al usuario escribir libremente para completar el número de orden después de seleccionar un prefijo.
- * 4. Valida que el usuario agregue al menos un dígito/carácter después de seleccionar un prefijo.
- * 5. CORREGIDO: Se convierte en un módulo ES6 y exporta su función de inicialización.
+ * * This file initializes the Select2 component for the 'ReferenceOrder' field.
+ * 1. Preloads all options from the server to avoid "searching" states.
+ * 2. Ensures all data is of the correct type (string) to prevent errors.
+ * 3. Allows the user to type freely to complete the order number after selecting a prefix.
+ * 4. Validates that the user adds at least one digit/character after selecting a prefix.
+ * 5. It is an ES6 module and exports its initialization function.
  */
 
 /**
- * Inicializa el selector para el campo de Órden de Referencia.
- * Se exporta para ser utilizada en otros módulos como newOrder.js
+ * Initializes the selector for the Reference Order field.
+ * It is exported to be used in other modules like newOrder.js
  */
 export function initializeReferenceSelector() {
-    // Nos aseguramos que jQuery y Select2 estén listos.
     if (typeof jQuery === 'undefined' || typeof jQuery.fn.select2 === 'undefined') {
-        console.error("Error Crítico: jQuery o Select2 no se han cargado. No se puede inicializar el selector de referencia.");
+        console.error("Critical Error: jQuery or Select2 have not been loaded. Cannot initialize the reference selector.");
         return;
     }
 
     const $referenceOrder = $('#ReferenceOrder');
     if (!$referenceOrder.length) {
-        console.error("Error Crítico: El elemento #ReferenceOrder no se encontró en la página.");
+        console.error("Critical Error: The #ReferenceOrder element was not found on the page.");
         return;
     }
 
-    // Primero, obtenemos todos los números de referencia del servidor.
     fetch(window.PF_CONFIG.app.baseURL + 'dao/elements/daoNumOrders.php')
         .then(response => {
             if (!response.ok) {
-                throw new Error(`Error de Red al cargar las órdenes: ${response.statusText}`);
+                throw new Error(`Network error while loading orders: ${response.statusText}`);
             }
             return response.json();
         })
@@ -42,7 +40,7 @@ export function initializeReferenceSelector() {
                 }));
 
                 $referenceOrder.select2({
-                    placeholder: 'Selecciona un prefijo o escribe el número completo',
+                    placeholder: 'Select a prefix or type the full number',
                     data: sanitizedData,
                     tags: true,
                     createTag: function(params) {
@@ -59,13 +57,13 @@ export function initializeReferenceSelector() {
                 });
 
             } else {
-                throw new Error("El formato de datos recibido para las órdenes de referencia es inválido.");
+                throw new Error("The data format received for the reference orders is invalid.");
             }
         })
         .catch(error => {
-            console.error("Falló la carga o inicialización del selector de referencia:", error);
+            console.error("Failed to load or initialize the reference selector:", error);
             $referenceOrder.select2({
-                placeholder: 'Error al cargar prefijos. Escribe el número manualmente.',
+                placeholder: 'Error loading prefixes. Enter the number manually.',
                 tags: true,
                 createTag: function(params) {
                     const term = $.trim(params.term);
@@ -75,7 +73,6 @@ export function initializeReferenceSelector() {
             });
         });
 
-    // Este evento se dispara cuando el usuario selecciona una opción.
     $referenceOrder.on('select2:select', function(e) {
         try {
             const data = e.params.data;
@@ -97,7 +94,7 @@ export function initializeReferenceSelector() {
                  $(this).data('selected-prefix', '');
             }
         } catch (err) {
-            console.error("Error inesperado en el manejador de eventos 'select2:select' de ReferenceOrder:", err);
+            console.error("Unexpected error in the 'select2:select' event handler for ReferenceOrder:", err);
         }
     });
 }

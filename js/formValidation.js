@@ -1,14 +1,13 @@
 /**
  * formValidation.js
- * Este módulo contiene funciones para validación y procesamiento de formularios
- * de Premium Freight en la plataforma GRAMMER
+ * This module contains functions for validation and processing of forms
+ * for Premium Freight on the GRAMMER platform.
  */
 
 //==========================================================================================
-// Función para recolectar y validar los datos del formulario.
-// Esta es la única fuente de verdad para recolectar datos del formulario.
+// Function to collect and validate form data.
+// This is the single source of truth for collecting form data.
 function collectFormData() {
-    // MODIFICADO: Se eliminan 'Reference' y 'ReferenceNumber', se añade 'ReferenceOrder'.
     const fields = [
         'planta', 'codeplanta', 'transport', 'InOutBound', 'CostoEuros', 'Description',
         'Area', 'IntExt', 'PaidBy', 'CategoryCause', 'ProjectStatus', 'Recovery',
@@ -17,7 +16,6 @@ function collectFormData() {
         'inputCompanyNameDest', 'inputCityDest', 'StatesDest', 'inputZipDest'
     ];
 
-    // Lista de campos cuyo TEXTO visible debe ser enviado.
     const textFields = [
         'planta', 'codeplanta', 'transport', 'InOutBound', 'Area', 'IntExt', 'PaidBy',
         'CategoryCause', 'ProjectStatus', 'Recovery', 'Carrier',
@@ -49,7 +47,6 @@ function collectFormData() {
             }
             formData[id] = value;
 
-            // La validación de 'ReferenceOrder' se hará de forma personalizada más adelante.
             if ((!value || value === '') && id !== 'ReferenceOrder') {
                 emptyFields.push(id);
             }
@@ -58,7 +55,6 @@ function collectFormData() {
         }
     });
 
-    // Se añade la validación para ReferenceOrder explícitamente.
     if (!$('#ReferenceOrder').val()) {
         emptyFields.push('ReferenceOrder');
     }
@@ -67,9 +63,8 @@ function collectFormData() {
 }
 
 //==========================================================================================
-// Función asíncrona para verificar y guardar nuevas compañías (origen y destino)
+// Async function to check and save new companies (origin and destination)
 async function processNewCompanies() {
-    // ... (código sin cambios)
     const companyShipElement = $('#CompanyShip');
     const companyDestElement = $('#inputCompanyNameDest');
     const companyShipData = companyShipElement.select2('data')[0];
@@ -89,8 +84,8 @@ async function processNewCompanies() {
         if (!companyName || !city || !state || !zip) {
             Swal.fire({
                 icon: 'warning',
-                title: 'Datos Incompletos',
-                text: 'Por favor complete todos los campos de la compañía de origen (Nombre, Ciudad, Estado y Código Postal).'
+                title: 'Incomplete Data',
+                text: 'Please complete all fields for the origin company (Name, City, State, and ZIP Code).'
             });
             return { success: false };
         }
@@ -100,10 +95,10 @@ async function processNewCompanies() {
             if (saveResult && saveResult !== false) {
                 newCompanyIds.origin_id = saveResult;
             } else {
-                throw new Error("Falló al guardar la compañía de origen");
+                throw new Error("Failed to save origin company");
             }
         } catch (error) {
-            console.error("Error guardando compañía de origen:", error);
+            console.error("Error saving origin company:", error);
             return { success: false };
         }
     }
@@ -117,8 +112,8 @@ async function processNewCompanies() {
         if (!companyName || !city || !state || !zip) {
             Swal.fire({
                 icon: 'warning',
-                title: 'Datos Incompletos',
-                text: 'Por favor complete todos los campos de la compañía de destino (Nombre, Ciudad, Estado y Código Postal).'
+                title: 'Incomplete Data',
+                text: 'Please complete all fields for the destination company (Name, City, State, and ZIP Code).'
             });
             return { success: false };
         }
@@ -128,10 +123,10 @@ async function processNewCompanies() {
             if (saveResult && saveResult !== false) {
                 newCompanyIds.destiny_id = saveResult;
             } else {
-                throw new Error("Falló al guardar la compañía de destino");
+                throw new Error("Failed to save destination company");
             }
         } catch (error) {
-            console.error("Error guardando compañía de destino:", error);
+            console.error("Error saving destination company:", error);
             return { success: false };
         }
     }
@@ -142,7 +137,7 @@ async function processNewCompanies() {
     };
 }
 
-// Función para validar visualmente un elemento Select2
+// Function to visually validate a Select2 element
 function validateSelect2Element(selectElement) {
     const $select = $(selectElement);
     const value = $select.val();
@@ -159,47 +154,39 @@ function validateSelect2Element(selectElement) {
 }
 
 
-// Función para validar exhaustivamente todos los campos del formulario.
+// Function to comprehensively validate all form fields.
 function validateCompleteForm() {
     $('select[required]').each(function() {
         validateSelect2Element(this);
     });
 
     const sections = {
-        "Información General": ['planta', 'codeplanta', 'transport', 'InOutBound'],
-        "Información de Costo": ['QuotedCost'],
-        "Responsabilidad": ['Area', 'IntExt', 'PaidBy'],
-        "Detalles del Proyecto": ['CategoryCause', 'ProjectStatus', 'Recovery', 'Description'],
-        "Origen del Envío": ['CompanyShip', 'inputCityShip', 'StatesShip', 'inputZipShip'],
-        "Destino": ['inputCompanyNameDest', 'inputCityDest', 'StatesDest', 'inputZipDest'],
-        "Detalles del Envío": ['Weight', 'Measures', 'Products', 'Carrier'],
-        "Información de Referencia": ['ReferenceOrder']
+        "General Information": ['planta', 'codeplanta', 'transport', 'InOutBound'],
+        "Cost Information": ['QuotedCost'],
+        "Responsibility": ['Area', 'IntExt', 'PaidBy'],
+        "Project Details": ['CategoryCause', 'ProjectStatus', 'Recovery', 'Description'],
+        "Shipment Origin": ['CompanyShip', 'inputCityShip', 'StatesShip', 'inputZipShip'],
+        "Destination": ['inputCompanyNameDest', 'inputCityDest', 'StatesDest', 'inputZipDest'],
+        "Shipment Details": ['Weight', 'Measures', 'Products', 'Carrier'],
+        "Reference Information": ['ReferenceOrder']
     };
 
     const { formData, emptyFields } = collectFormData();
-    let customErrorMessages = {}; // Objeto para mensajes de error personalizados
+    let customErrorMessages = {};
 
-    // ======================= INICIO DE LA MODIFICACIÓN =======================
-    // Validación personalizada para ReferenceOrder
     const $referenceOrder = $('#ReferenceOrder');
     const selectedPrefix = $referenceOrder.data('selected-prefix');
     const currentValue = $referenceOrder.val();
 
-    // Si se seleccionó un prefijo, el valor final DEBE ser más largo que el prefijo.
     if (selectedPrefix && currentValue && currentValue.length <= selectedPrefix.length) {
         if (!emptyFields.includes('ReferenceOrder')) {
             emptyFields.push('ReferenceOrder');
         }
-        // Mensaje de error específico para esta validación
-        customErrorMessages['ReferenceOrder'] = 'Debe complementar el prefijo seleccionado en el Número de Orden de Referencia.';
-        // Aplicar estilo de error visualmente
+        customErrorMessages['ReferenceOrder'] = 'You must complete the selected prefix in the Reference Order Number.';
         $referenceOrder.next('.select2-container').addClass('select2-container--error');
     } else if (currentValue) {
-        // Si hay un valor y es válido, quitamos el estilo de error
         $referenceOrder.next('.select2-container').removeClass('select2-container--error');
     }
-    // ======================== FIN DE LA MODIFICACIÓN =========================
-
 
     const immediateActions = document.getElementById('InmediateActions');
     const permanentActions = document.getElementById('PermanentActions');
@@ -229,12 +216,11 @@ function validateCompleteForm() {
         }
     }
 
-    let errorMessage = 'Por favor complete todos los campos requeridos en las siguientes secciones:\n';
+    let errorMessage = 'Please complete all required fields in the following sections:\n';
     for (const [section, fields] of Object.entries(sectionsWithEmptyFields)) {
-        // Mapeamos los campos a sus etiquetas o mensajes de error personalizados
         const fieldLabels = fields.map(fieldId => {
             if (customErrorMessages[fieldId]) {
-                return customErrorMessages[fieldId]; // Usar el mensaje personalizado
+                return customErrorMessages[fieldId];
             }
             const label = document.querySelector(`label[for="${fieldId}"]`);
             return label ? label.textContent.replace('*', '').trim() : fieldId;
@@ -246,11 +232,11 @@ function validateCompleteForm() {
     }
 
     if (typeof selectedCurrency !== 'undefined' && !selectedCurrency) {
-        errorMessage += '\n\n• Moneda: Por favor seleccione una moneda (MXN o USD)';
+        errorMessage += '\n\n• Currency: Please select a currency (MXN or USD)';
     }
     
     if (typeof euros !== 'undefined' && euros <= 0 && !emptyFields.includes('QuotedCost')) {
-        errorMessage += '\n\n• Costo en Euros: El costo en euros no puede ser 0 o negativo. Por favor verifique el tipo de cambio o su conexión a internet.';
+        errorMessage += '\n\n• Cost in Euros: The cost in euros cannot be 0 or negative. Please check the exchange rate or your internet connection.';
     }
 
     return { isValid: false, message: errorMessage };
@@ -258,7 +244,7 @@ function validateCompleteForm() {
 
 
 /**
- * Verificación de disponibilidad de las variables URL
+ * Check for URL variable availability
  */
 if (typeof URLPF === 'undefined') {
     console.warn('URLPF global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
