@@ -7,6 +7,10 @@ session_start();
 // Establece la cabecera para indicar que la respuesta es en formato JSON.
 header('Content-Type: application/json');
 
+// --- MODO DE DEPURACIÓN DE ERRORES DE MYSQLI ---
+// Esta línea es clave: fuerza a MySQLi a lanzar excepciones en lugar de solo advertencias.
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
 // Verifica si el usuario ha iniciado sesión.
 if (!isset($_SESSION['user'])) {
     http_response_code(401);
@@ -26,7 +30,6 @@ try {
     $conex = $con->conectar();
     
     // 1. --- Obtener el conteo de órdenes CREADAS por este usuario ---
-    // Esta lógica no cambia: cuenta todas las órdenes donde el user_id coincide.
     $stmt = $conex->prepare("SELECT COUNT(*) FROM PremiumFreight WHERE user_id = ?");
     $stmt->bind_param("i", $userId);
     $stmt->execute();
@@ -35,12 +38,11 @@ try {
     $stmt->close();
     
     // 2. --- Obtener el conteo de órdenes RECHAZADAS ---
-    // Una orden se considera rechazada si tiene una entrada en PremiumFreightApprovals con act_approv = 99.
-    // Se cuentan las órdenes distintas (DISTINCT) para no contar múltiples rechazos de la misma orden.
+    // CORRECCIÓN: Se cambió 'pfa.pf_id' por 'pfa.premium_freight_id'.
     $stmt = $conex->prepare("
         SELECT COUNT(DISTINCT pf.id)
         FROM PremiumFreight AS pf
-        INNER JOIN PremiumFreightApprovals AS pfa ON pf.id = pfa.pf_id
+        INNER JOIN PremiumFreightApprovals AS pfa ON pf.id = pfa.premium_freight_id
         WHERE pf.user_id = ? AND pfa.act_approv = 99
     ");
     $stmt->bind_param("i", $userId);
@@ -50,18 +52,16 @@ try {
     $stmt->close();
 
     // 3. --- Obtener el conteo de órdenes APROBADAS ---
-    // Una orden está aprobada si su 'required_auth_level' coincide con un 'act_approv'.
-    // CRÍTICO: También nos aseguramos de que la orden no esté en la lista de órdenes rechazadas.
-    // La subconsulta (NOT IN) excluye cualquier orden que ya haya sido contada como rechazada.
+    // CORRECCIÓN: Se cambió 'pfa.pf_id' por 'pfa.premium_freight_id' en el JOIN y en la subconsulta.
     $stmt = $conex->prepare("
         SELECT COUNT(DISTINCT pf.id)
         FROM PremiumFreight AS pf
-        INNER JOIN PremiumFreightApprovals AS pfa ON pf.id = pfa.pf_id
+        INNER JOIN PremiumFreightApprovals AS pfa ON pf.id = pfa.premium_freight_id
         WHERE 
             pf.user_id = ? 
             AND pf.required_auth_level = pfa.act_approv
             AND pf.id NOT IN (
-                SELECT DISTINCT pfa_rejected.pf_id
+                SELECT DISTINCT pfa_rejected.premium_freight_id
                 FROM PremiumFreightApprovals AS pfa_rejected
                 WHERE pfa_rejected.act_approv = 99
             )
@@ -84,11 +84,11 @@ try {
     ]);
     
 } catch (Exception $e) {
-    // Si ocurre cualquier error, devuelve un error 500.
+    // Si ocurre cualquier error, ahora devolverá el mensaje específico de la base de datos.
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'message' => 'An error occurred: ' . $e->getMessage()
+        'message' => 'Database Error: ' . $e->getMessage()
     ]);
 }
 ?>
