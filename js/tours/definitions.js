@@ -139,8 +139,7 @@ export const pageTours = {
     },
     'newOrder.php': {
         'How to create a new order?': 'create-order',
-        'How to select origin/destination?': 'select-origin-destination',
-        'How to choose a carrier?': 'create-order'
+        'How to select origin/destination?': 'select-origin-destination'
     },
     'myorders.php': {
         'How to view my created orders?': 'my-orders-view',
