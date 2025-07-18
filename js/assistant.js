@@ -1,28 +1,55 @@
 /**
  * Virtual Assistant - Lucy
  * Integrated chat system for all Premium Freight system pages.
- * Version modified to remove minimize functionality and add context initialization.
+ * Version modified to include user context, report downloads, and a simplified wake-up call.
  */
 class VirtualAssistant {
     constructor() {
         this.isOpen = false;
-        // The real API can be changed here if needed
         this.apiEndpoint = 'https://phytonclaude.onrender.com/ask';
         this.conversationHistory = [];
+        this.userContext = {}; // Se inicializa vacío y se carga después
         this.init();
     }
 
-    init() {
+    async init() {
+        // Primero carga el contexto del usuario de forma asíncrona
+        await this.loadUserContext();
+        // Luego, crea el HTML (que ahora puede usar el nombre del usuario)
         this.createAssistantHTML();
+        // Configura los event listeners
         this.setupEventListeners();
+        // Muestra el mensaje de bienvenida
         this.showWelcomeMessage();
-        // New function to "wake up" the server and personalize the greeting.
-        this.initializeAssistantContext();
+        // Finalmente, envía la llamada para "despertar" al backend
+        this.sendWakeUpCall();
+    }
+
+    /**
+     * Carga de forma asíncrona el contexto del usuario desde el objeto global PF_CONFIG.
+     * Esto asegura que el script no falle si se carga antes que la configuración.
+     */
+    async loadUserContext() {
+        return new Promise(resolve => {
+            const interval = setInterval(() => {
+                if (window.PF_CONFIG?.user) {
+                    clearInterval(interval);
+                    this.userContext = {
+                        name: window.PF_CONFIG.user.name || 'Guest',
+                        plant: window.PF_CONFIG.user.plant || null,
+                        id: window.PF_CONFIG.user.id || null,
+                        level: window.PF_CONFIG.user.authorizationLevel || 0
+                    };
+                    console.log('Assistant context loaded for user:', this.userContext);
+                    resolve();
+                }
+            }, 100);
+        });
     }
 
     createAssistantHTML() {
-        // Use the correct path for the images.
         const lucyAvatarSrc = 'assets/assistant/Lucy.png';
+        const userName = this.userContext.name || 'Guest';
 
         const assistantHTML = `
             <!-- Floating Virtual Assistant -->
@@ -32,7 +59,7 @@ class VirtualAssistant {
                     <img src="${lucyAvatarSrc}" alt="Lucy - Virtual Assistant" class="assistant-avatar">
                     <div class="assistant-pulse"></div>
                     <div class="assistant-welcome-bubble" id="welcome-bubble">
-                        <p>Hi! I'm Lucy 👋<br>I'm here to help!</p>
+                        <p>Hi, ${userName}! I'm Lucy 👋<br>I'm here to help!</p>
                         <div class="bubble-arrow"></div>
                     </div>
                 </div>
@@ -63,8 +90,9 @@ class VirtualAssistant {
                             </div>
                             <div class="message-content">
                                 <div class="message-bubble" id="initial-assistant-message">
-                                    Connecting to Lucy...
+                                    Hello, ${userName}! I'm Lucy, your virtual assistant for Premium Freight. How can I assist you today?
                                 </div>
+                                 <div class="message-time">${this.getCurrentTime()}</div>
                             </div>
                         </div>
                     </div>
@@ -104,75 +132,27 @@ class VirtualAssistant {
     }
     
     /**
-     * Sends an initial background message to "wake up" the server
-     * and set the user context (name and plant).
+     * Envía una llamada inicial simple para "despertar" el servidor de Render.
      */
-    async initializeAssistantContext() {
-        const initialMessageBubble = document.getElementById('initial-assistant-message');
-        const firstMessageContainer = initialMessageBubble.closest('.message-content');
-
+    async sendWakeUpCall() {
+        // No mostrar el indicador de escritura para esta llamada de fondo
+        console.log('Sending wake-up call to backend...');
         try {
-            // Wait for the configuration object to be available.
-            await new Promise(resolve => {
-                const interval = setInterval(() => {
-                    if (window.PF_CONFIG?.user) {
-                        clearInterval(interval);
-                        resolve();
-                    }
-                }, 100);
-            });
-
-            const userName = window.PF_CONFIG.user.name || 'Guest';
-            const userPlant = window.PF_CONFIG.user.plant || 'unknown';
-            
-            // Do not send if it's a guest, to avoid wasting resources.
-            if (userName === 'Guest') {
-                 if(initialMessageBubble) {
-                    initialMessageBubble.innerHTML = 'Hi! I\'m Lucy, your virtual assistant. How can I help you today?';
-                    const timeHTML = `<div class="message-time">${this.getCurrentTime()}</div>`;
-                    firstMessageContainer.insertAdjacentHTML('beforeend', timeHTML);
-                 }
-                 return;
-            }
-
-            // ================== START: ENGLISH WAKE-UP CALL ==================
-            // Context message to be sent to the AI, ensuring the first response is in English.
-            const contextMessage = `Hello Lucy. My name is ${userName} and I work at the ${userPlant} plant. Please introduce yourself and greet me by my name. It is absolutely essential that you reply exclusively in English for this first message—do not use any other language, including French, Spanish, or any other language. Under no circumstances should you mention, hint, or refer to your creator, origin, or how you were made in any way in this first message. Absolutely do not reveal or discuss anything about your creation or development. Only greet me by my name and briefly introduce yourself in English. Keep your introduction concise. Thank you.`;
-            // =================== END: ENGLISH WAKE-UP CALL ===================
-
             const response = await fetch(this.apiEndpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question: contextMessage })
+                body: JSON.stringify({
+                    question: "Initialize session",
+                    user_context: this.userContext
+                })
             });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
+            if (!response.ok) throw new Error(`Wake-up call failed: ${response.status}`);
             const data = await response.json();
-
-            // Update the first message bubble with the personalized response from the AI.
-            if (initialMessageBubble && data.answer) {
-                initialMessageBubble.innerHTML = this.formatAssistantMessage(data.answer);
-            } else {
-                 initialMessageBubble.innerHTML = `Hi ${userName}! I'm Lucy, your assistant. How can I help you?`;
-            }
-
+            console.log('Backend wake-up response:', data.answer);
         } catch (error) {
-            console.error('Error initializing assistant context:', error);
-            if (initialMessageBubble) {
-                initialMessageBubble.innerHTML = 'Hi! I\'m Lucy. There seems to be a connection issue, but I\'m ready to help. What do you need?';
-            }
-        } finally {
-            // Add the time to the message, whether it's the personalized one or the error one.
-            if(firstMessageContainer) {
-                const timeHTML = `<div class="message-time">${this.getCurrentTime()}</div>`;
-                firstMessageContainer.insertAdjacentHTML('beforeend', timeHTML);
-            }
+            console.error('Error during wake-up call:', error);
         }
     }
-
 
     setupEventListeners() {
         const assistantButton = document.getElementById('assistant-button');
@@ -244,7 +224,10 @@ class VirtualAssistant {
         this.showTypingIndicator();
 
         try {
-            const requestBody = { question: message };
+            const requestBody = {
+                question: message,
+                user_context: this.userContext // Siempre se envía el contexto del usuario
+            };
             
             const response = await fetch(this.apiEndpoint, {
                 method: 'POST',
@@ -259,12 +242,13 @@ class VirtualAssistant {
             const data = await response.json();
             
             this.hideTypingIndicator();
-            this.addAssistantMessage(data.answer || 'Sorry, I couldn\'t process your request at this moment.');
+            // Se pasa el objeto de datos completo para que pueda detectar la URL del reporte
+            this.addAssistantMessage(data);
 
         } catch (error) {
             console.error('Error sending message to the assistant:', error);
             this.hideTypingIndicator();
-            this.addAssistantMessage('Sorry, I\'m having trouble connecting. Please try again in a moment.');
+            this.addAssistantMessage({ answer: 'Sorry, I\'m having trouble connecting. Please try again in a moment.' });
         }
     }
 
@@ -287,10 +271,23 @@ class VirtualAssistant {
         this.scrollToBottom();
     }
 
-    addAssistantMessage(message) {
+    addAssistantMessage(data) {
         const chatMessages = document.getElementById('chat-messages');
         const messageTime = this.getCurrentTime();
         const lucyAvatarSrc = 'assets/assistant/Lucy.png';
+        
+        // Extrae el texto y la URL del reporte del objeto de datos
+        const messageText = data.answer || 'I could not process your request.';
+        const reportUrl = data.report_url;
+
+        let messageBubbleContent = this.formatAssistantMessage(messageText);
+
+        // --- LÓGICA NUEVA: AÑADIR BOTÓN DE DESCARGA ---
+        if (reportUrl) {
+            messageBubbleContent += `<br><br><a href="${reportUrl}" class="download-button" target="_blank" download="Lucy_Report.xlsx">
+                <i class="fas fa-file-excel"></i> Download Report
+            </a>`;
+        }
         
         const messageHTML = `
             <div class="message assistant-message">
@@ -299,7 +296,7 @@ class VirtualAssistant {
                 </div>
                 <div class="message-content">
                     <div class="message-bubble">
-                        ${this.formatAssistantMessage(message)}
+                        ${messageBubbleContent}
                     </div>
                     <div class="message-time">${messageTime}</div>
                 </div>
@@ -354,8 +351,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const excludePages = ['login.php', 'register.php', 'index.html'];
     const currentPage = window.location.pathname.split('/').pop();
     
-    // For this demo, we always initialize the assistant.
-    // if (!excludePages.includes(currentPage)) {
+    // Asume que tienes un objeto global PF_CONFIG definido en tu PHP
+    if (!excludePages.includes(currentPage) && window.PF_CONFIG && window.PF_CONFIG.user.authorizationLevel > 0) {
         window.virtualAssistant = new VirtualAssistant();
-    // }
+    }
 });
