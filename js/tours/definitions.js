@@ -133,8 +133,7 @@ export const pageTours = {
         'How to verify my email?': 'verification'
     },
     'profile.php': {
-        'How to update your username?': 'profile-update',
-        'How to change your password?': 'profile-update',
+        'How to update your profile?': 'profile-update',
         'How to see your orders?': 'profile-view-orders'
     },
     'newOrder.php': {
