@@ -67,7 +67,7 @@ export const tourSteps = {
     'my-orders-view': [
         { element: '#searchInput', popover: { title: 'Search Orders', description: 'You can quickly find any of your orders by typing its ID or description here.' } },
         { element: '#main', popover: { title: 'Your Orders', description: 'This area displays a list of all the orders you have created. You can click on any card to see more details.' } },
-        { element: '.card-order', popover: { title: 'Order Card', description: 'Each card shows a summary of the order, including its current status (Pending, Approved, or Rejected).' } }
+        { element: '.card-order', popover: { title: 'Order Card', description: 'Each card shows a summary of the order. The color indicates its status: White means a newly created order, yellow means it is in the approval process, green is fully approved, and red means the order was rejected.' } }
     ],
     'order-progress': [
         { element: '#progressSection', popover: { title: 'Approval Progress', description: 'This timeline shows the current status of your order and who has approved it so far.' } },

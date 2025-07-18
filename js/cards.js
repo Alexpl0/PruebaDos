@@ -119,12 +119,13 @@ function getApprovalStatusMessage(order) {
 
     switch (approvalStatus) {
         case 0: return 'Pending: Logistics Manager';
-        case 1: return 'Pending: Controlling';
-        case 2: return 'Pending: Plant Manager';
-        case 3: return 'Pending: Senior Logistics Manager';
-        case 4: return 'Pending: Manager OPS Division';
-        case 5: return 'Pending: SR VP Regional';
-        case 6: return 'Pending: Regional Division Controlling';
+        case 1: return 'Pending: Transport Specialist'; // <-- Nuevo caso agregado aquí
+        case 2: return 'Pending: Controlling';
+        case 3: return 'Pending: Plant Manager';
+        case 4: return 'Pending: Senior Logistics Manager';
+        case 5: return 'Pending: Manager OPS Division';
+        case 6: return 'Pending: SR VP Regional';
+        case 7: return 'Pending: Regional Division Controlling';
         default: return `Pending: Level ${approvalStatus + 1}`;
     }
 }
