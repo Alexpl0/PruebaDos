@@ -2,10 +2,12 @@
  * Premium Freight - New Order Management (Refactored)
  * * This module handles the creation of new Premium Freight orders.
  * It now imports notification functions from the central mailer.js module.
+ * MODIFICADO: Se importa la función de inicialización desde referenceSelect.js
  */
 
-// 1. Import notification function from the centralized module.
+// 1. Importar dependencias
 import { sendApprovalNotification } from './mailer.js';
+import { initializeReferenceSelector } from './referenceSelect.js';
 
 // Global variable for the required authorization level.
 let range = 0;
@@ -258,9 +260,8 @@ async function submitForm(event) {
 document.addEventListener('DOMContentLoaded', function() {
     initializeCompanySelectors();
     initializeCarrierSelector();
-    // ================== ADDED: Initialize the new reference selector ==================
+    // La llamada ahora funciona a través de la importación del módulo
     initializeReferenceSelector();
-    // ================================================================================
     initializeCurrencySelectors();
 
     document.getElementById('enviar')?.addEventListener('click', submitForm);
