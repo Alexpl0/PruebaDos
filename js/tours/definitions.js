@@ -50,10 +50,19 @@ export const tourSteps = {
         { element: '#SectRecovery', popover: { title: 'Recovery Selection', description: 'Select if the cost of this freight can be recovered. If you choose any option other than "No Recovery", the next field to upload evidence will become mandatory.' } },
         { element: '#recoveryFileContainer', popover: { title: 'Recovery Evidence', description: 'This field appears when recovery is possible. Please upload a single PDF file as evidence, such as a commitment letter from the client, an email confirmation, or any other official document that proves the recovery is in process.' } },
         { element: '#SectDescription', popover: { title: 'Description of Actions', description: 'Describe in detail the immediate and permanent actions that were taken in response to the issue.' } },
-        { element: '#SectShip', popover: { title: 'Origin (Ship From)', description: 'Select the company and city where the shipment originates.' } },
-        { element: '#SectDest', popover: { title: 'Destination', description: 'Select the company and city for the destination.' } },
+        { element: '#SectShip', popover: { title: 'Origin (Ship From)', description: 'Define the origin address for the shipment. You can select a pre-loaded address or add a new one.' } },
+        { element: '#SectDest', popover: { title: 'Destination', description: 'Define the destination address for the shipment, following the same process as the origin.' } },
         { element: '#SectCarrier', popover: { title: 'Carrier & Cost', description: 'Finally, select the carrier, enter the quoted cost, and add a reference number.' } },
         { element: '#enviar', popover: { title: 'Submit Order', description: 'Once the form is complete, click here to submit it for approval.' } }
+    ],
+    // NEW TOUR for selecting origin/destination
+    'select-origin-destination': [
+        { element: '#SectShip', popover: { title: 'Origin Address (Ship From)', description: 'First, you need to specify the origin of the shipment in this section.' } },
+        { element: '#DivCompanyShip', popover: { title: 'Select a Company', description: 'Click on the "Company Name" dropdown. You will find a list of many pre-loaded company addresses ready to use.' } },
+        { element: '#DivCompanyShip', popover: { title: 'Automatic Fields', description: 'When you select an existing company from the list, the fields for City, State, and ZIP code will be filled in automatically.' } },
+        { element: '#DivCompanyShip', popover: { title: 'Address Not Found?', description: 'If the address you need is not in the list, simply select the "Add New Company" option from the dropdown.' } },
+        { element: '#SectShip', popover: { title: 'Adding a New Address', description: 'After selecting "Add New Company", the other fields will be empty. Fill them in with the new address details. The system will automatically save this new address so you can use it in future orders.' } },
+        { element: '#SectDest', popover: { title: 'Destination Address', description: 'Excellent! Now, repeat the same process for the "Destination" address. You can select a pre-loaded one or add a new one just like you did for the origin.' } }
     ],
     'my-orders-view': [
         { element: '#searchInput', popover: { title: 'Search Orders', description: 'You can quickly find any of your orders by typing its ID or description here.' } },
@@ -130,7 +139,7 @@ export const pageTours = {
     },
     'newOrder.php': {
         'How to create a new order?': 'create-order',
-        'How to select origin/destination?': 'create-order',
+        'How to select origin/destination?': 'select-origin-destination',
         'How to choose a carrier?': 'create-order'
     },
     'myorders.php': {
