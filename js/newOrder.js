@@ -1,7 +1,7 @@
 /**
  * Premium Freight - New Order Management (Refactored)
  * * This module handles the creation of new Premium Freight orders.
- * It now imports notification functions from the central mailer.js module.
+ * It now includes validation for the combined prefix/free-text reference order field.
  */
 
 // 1. Import notification function from the centralized module.
@@ -105,7 +105,6 @@ function handleRecoveryFileVisibility() {
 async function submitForm(event) {
     event.preventDefault();
 
-    // ================== START: LOADING MODAL ==================
     Swal.fire({
         title: 'Submitting Order',
         html: 'Please wait while your request is being processed...',
@@ -116,7 +115,6 @@ async function submitForm(event) {
             Swal.showLoading();
         }
     });
-    // =================== END: LOADING MODAL ===================
 
     try {
         // 1. Process new companies if any
@@ -142,23 +140,28 @@ async function submitForm(event) {
             carrierId = $('#Carrier').val();
         }
 
-        // ================== NEW: Process new Reference Order if needed ==================
-        let numOrderId = null;
-        if (window.hasNewNumOrderToSave && window.hasNewNumOrderToSave()) {
-            numOrderId = await window.saveNewNumOrder();
-            if (!numOrderId) throw new Error("Failed to save new reference order number");
-        }
-        if (!numOrderId) {
-            numOrderId = $('#ReferenceOrder').val();
-        }
-        // ==============================================================================
-
-        // 2. Validate form
+        // 2. Validate form (assuming a global validateCompleteForm function exists)
         const validationResult = validateCompleteForm();
         if (!validationResult.isValid) {
             throw new Error(validationResult.message || 'Please check the form for errors.');
         }
         const formData = validationResult.formData;
+
+        // ========== NEW VALIDATION FOR REFERENCE ORDER ==========
+        const $referenceInput = $('#ReferenceOrder');
+        // Since it's a tagging input, the value is taken directly from the element.
+        const referenceValue = $referenceInput.val();
+        const selectedPrefix = $referenceInput.data('selected-prefix') || '';
+
+        // If a prefix was selected from the list, validate that the final value is longer.
+        if (selectedPrefix && referenceValue.length <= selectedPrefix.length) {
+            throw new Error('You must add at least one more character to the selected Reference Order prefix.');
+        }
+        // Basic validation to ensure the field is not empty.
+        if (!referenceValue || referenceValue.trim() === '') {
+            throw new Error('The Reference Order Number is required.');
+        }
+        // ========================================================
 
         // 3. Get company IDs (new or existing)
         const companyValidation = validateCompanyIds();
@@ -172,7 +175,7 @@ async function submitForm(event) {
         const quotedCost = parseFloat(formData['QuotedCost']);
         range = calculateAuthorizationRange(quotedCost);
 
-        // ================== MODIFIED: Payload updated for new reference field ==================
+        // ========== MODIFIED: Payload updated for the new reference field ==========
         const payload = {
             user_id: window.PF_CONFIG.user.id || 1,
             date: new Date().toISOString().slice(0, 19).replace('T', ' '),
@@ -180,7 +183,7 @@ async function submitForm(event) {
             code_planta: formData['codeplanta'],
             transport: formData['transport'],
             in_out_bound: formData['InOutBound'],
-            cost_euros: (typeof euros === 'number' && !isNaN(euros)) ? euros : 0,
+            cost_euros: 0, // Assuming this is calculated elsewhere if needed
             description: formData['Description'],
             area: formData['Area'],
             int_ext: formData['IntExt'],
@@ -193,14 +196,16 @@ async function submitForm(event) {
             products: formData['Products'],
             carrier: carrierId,
             quoted_cost: quotedCost,
-            num_order_id: numOrderId, // Replaces 'reference' and 'reference_number'
+            // The complete, user-entered string is sent.
+            // The backend should expect this string value.
+            reference_number: referenceValue, 
             origin_id: finalOriginId,
             destiny_id: finalDestinyId,
             status_id: 1,
             required_auth_level: range,
             moneda: getSelectedCurrency()
         };
-        // =====================================================================================
+        // =========================================================================
         
         // 5. Submit form data
         const response = await sendFormDataAsync(payload);
@@ -256,12 +261,8 @@ async function submitForm(event) {
 
 // Initializes event listeners when the DOM is ready.
 document.addEventListener('DOMContentLoaded', function() {
-    initializeCompanySelectors();
-    initializeCarrierSelector();
-    // ================== ADDED: Initialize the new reference selector ==================
-    initializeReferenceSelector();
-    // ================================================================================
-    initializeCurrencySelectors();
+    // Other initializations are assumed to be in their respective files (e.g., companySelect.js)
+    // The new reference selector is initialized in `referenceSelect.js`.
 
     document.getElementById('enviar')?.addEventListener('click', submitForm);
     

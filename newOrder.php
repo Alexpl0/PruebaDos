@@ -1,13 +1,13 @@
 <?php
 /**
  * newOrder.php - Form to create a new Special Freight Authorization (Refactored)
- * This version uses the centralized context injection system.
+ * This version uses the centralized context injection system and the new reference order input.
  */
 
-// 1. Manejar sesión y autenticación. Es lo primero para proteger la página.
+// 1. Handle session and authentication. This is the first step to protect the page.
 require_once 'dao/users/auth_check.php';
 
-// 2. Cargar todas las dependencias necesarias para los dropdowns del formulario.
+// 2. Load all necessary dependencies for the form dropdowns.
 require_once __DIR__ . '/dao/elements/daoPlantas.php';
 require_once __DIR__ . '/dao/elements/daoCodePlants.php';
 require_once __DIR__ . '/dao/elements/daoTransport.php';
@@ -22,7 +22,7 @@ require_once __DIR__ . '/dao/elements/daoMeasures.php';
 require_once __DIR__ . '/dao/elements/daoProducts.php';
 require_once __DIR__ . '/dao/elements/daoStates.php';
 
-// 3. Incluir el inyector de contexto.
+// 3. Include the context injector.
 require_once 'dao/users/context_injector.php';
 ?>
 <!DOCTYPE html>
@@ -46,19 +46,12 @@ require_once 'dao/users/context_injector.php';
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/newOrder.css">
     <link rel="stylesheet" href="css/tour-styles.css">
-    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/> -->
 
-    <!-- ================== SISTEMA DE CONTEXTO CENTRALIZADO ================== -->
-    <?php
-        // El inyector ya fue requerido en la parte superior del script.
-        // Inyecta el objeto window.APP_CONTEXT
-    ?>
-    <!-- Incluir el módulo de configuración JS que lee el contexto. -->
+    <!-- Centralized Context System -->
     <script src="js/config.js"></script>
-    <!-- ==================================================================== -->
 
     <?php 
-    // Carga condicional del CSS del asistente.
+    // Conditional CSS loading for the assistant.
     if (isset($appContextForJS['user']['authorizationLevel']) && $appContextForJS['user']['authorizationLevel'] > 0): ?>
         <link rel="stylesheet" href="css/assistant.css">
     <?php endif; ?>
@@ -260,9 +253,8 @@ require_once 'dao/users/context_injector.php';
                 </div>
                 <div id="SectReference" class="mb-3">
                     <label for="ReferenceOrder">Reference Order Number</label>
-                    <select id="ReferenceOrder" name="ReferenceOrder" class="form-select" required>
-                        <option></option>
-                    </select>
+                    <!-- ========== MODIFIED: Changed <select> to <input> for flexible entry ========== -->
+                    <input type="text" id="ReferenceOrder" name="ReferenceOrder" class="form-control" required placeholder="Search for a prefix or enter the full number">
                 </div>
             </div>
             
@@ -278,31 +270,29 @@ require_once 'dao/users/context_injector.php';
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- <script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script> -->
-    
-
 
     <script src="js/companySelect.js"></script>
     <script src="js/formValidation.js"></script>
     <script src="js/currencyUtils.js"></script>
     <script src="js/addCompany.js"></script>
     <script src="js/uploadFiles.js"></script>
-    <!-- <script type="module" src="js/createPDF.js"></script> -->
     <script src="js/carrierSelect.js"></script>
     <script src="js/addCarrier.js"></script>
+    <!-- ========== MODIFIED: This file handles the new logic for the reference input ========== -->
     <script src="js/referenceSelect.js"></script>
-    <script src="js/addNumOrder.js"></script>
+    <!-- ========== REMOVED: addNumOrder.js is no longer needed with the new approach ========== -->
+    <!-- <script src="js/addNumOrder.js"></script> -->
     <script src="js/selectConfig.js"></script>  
-    <!-- Scripts de la aplicación -->
+    
+    <!-- Application Scripts -->
     <script src="js/header.js" type="module"></script>
     
-    <!-- ================== CARGA DE MÓDULOS JS ================== -->
+    <!-- JS Module Loading -->
     <script type="module" src="js/mailer.js"></script>
     <script type="module" src="js/newOrder.js"></script>
-    <!-- ======================================================= -->
     
     <?php 
-    // Carga condicional del JS del asistente.
+    // Conditional JS loading for the assistant.
     if (isset($appContextForJS['user']['authorizationLevel']) && $appContextForJS['user']['authorizationLevel'] > 0): ?>
         <script src="js/assistant.js"></script>
     <?php endif; ?>
