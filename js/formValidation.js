@@ -32,15 +32,19 @@ function collectFormData() {
         if (element) {
             let value;
 
+            // Manejo especial para elementos 'SELECT' para obtener el texto visible.
             if (element.tagName === 'SELECT' && textFields.includes(id)) {
+                // Si el elemento es un Select2, usa su API para obtener el texto.
                 if (typeof $ !== 'undefined' && $(element).hasClass('select2-hidden-accessible')) {
                     const selectedData = $(element).select2('data');
                     value = (selectedData && selectedData.length > 0 && selectedData[0].text) ? selectedData[0].text : '';
                 } else {
+                    // Si es un select normal, usa el método estándar.
                     const selectedOption = element.options[element.selectedIndex];
                     value = selectedOption ? selectedOption.text : '';
                 }
             } else {
+                // Para todos los demás campos (inputs, textareas, y selects que envían ID)
                 value = element.value;
             }
 
@@ -49,7 +53,7 @@ function collectFormData() {
             }
             formData[id] = value;
 
-            // La validación de 'ReferenceOrder' se hará de forma personalizada más adelante.
+            // No se valida 'ReferenceOrder' aquí porque su valor es un ID. La validación de requerido se hace en validateCompleteForm.
             if ((!value || value === '') && id !== 'ReferenceOrder') {
                 emptyFields.push(id);
             }
@@ -69,7 +73,6 @@ function collectFormData() {
 //==========================================================================================
 // Función asíncrona para verificar y guardar nuevas compañías (origen y destino)
 async function processNewCompanies() {
-    // ... (código sin cambios)
     const companyShipElement = $('#CompanyShip');
     const companyDestElement = $('#inputCompanyNameDest');
     const companyShipData = companyShipElement.select2('data')[0];
@@ -161,10 +164,12 @@ function validateSelect2Element(selectElement) {
 
 // Función para validar exhaustivamente todos los campos del formulario.
 function validateCompleteForm() {
+    // Validar visualmente todos los selects con Select2 que sean requeridos
     $('select[required]').each(function() {
         validateSelect2Element(this);
     });
 
+    // MODIFICADO: Se actualiza la sección de referencia.
     const sections = {
         "Información General": ['planta', 'codeplanta', 'transport', 'InOutBound'],
         "Información de Costo": ['QuotedCost'],
@@ -177,29 +182,6 @@ function validateCompleteForm() {
     };
 
     const { formData, emptyFields } = collectFormData();
-    let customErrorMessages = {}; // Objeto para mensajes de error personalizados
-
-    // ======================= INICIO DE LA MODIFICACIÓN =======================
-    // Validación personalizada para ReferenceOrder
-    const $referenceOrder = $('#ReferenceOrder');
-    const selectedPrefix = $referenceOrder.data('selected-prefix');
-    const currentValue = $referenceOrder.val();
-
-    // Si se seleccionó un prefijo, el valor final DEBE ser más largo que el prefijo.
-    if (selectedPrefix && currentValue && currentValue.length <= selectedPrefix.length) {
-        if (!emptyFields.includes('ReferenceOrder')) {
-            emptyFields.push('ReferenceOrder');
-        }
-        // Mensaje de error específico para esta validación
-        customErrorMessages['ReferenceOrder'] = 'Debe complementar el prefijo seleccionado en el Número de Orden de Referencia.';
-        // Aplicar estilo de error visualmente
-        $referenceOrder.next('.select2-container').addClass('select2-container--error');
-    } else if (currentValue) {
-        // Si hay un valor y es válido, quitamos el estilo de error
-        $referenceOrder.next('.select2-container').removeClass('select2-container--error');
-    }
-    // ======================== FIN DE LA MODIFICACIÓN =========================
-
 
     const immediateActions = document.getElementById('InmediateActions');
     const permanentActions = document.getElementById('PermanentActions');
@@ -231,18 +213,12 @@ function validateCompleteForm() {
 
     let errorMessage = 'Por favor complete todos los campos requeridos en las siguientes secciones:\n';
     for (const [section, fields] of Object.entries(sectionsWithEmptyFields)) {
-        // Mapeamos los campos a sus etiquetas o mensajes de error personalizados
         const fieldLabels = fields.map(fieldId => {
-            if (customErrorMessages[fieldId]) {
-                return customErrorMessages[fieldId]; // Usar el mensaje personalizado
-            }
             const label = document.querySelector(`label[for="${fieldId}"]`);
             return label ? label.textContent.replace('*', '').trim() : fieldId;
         });
         
-        if (fieldLabels.length > 0) {
-            errorMessage += `\n• ${section}: ${fieldLabels.join(', ')}`;
-        }
+        errorMessage += `\n• ${section}: ${fieldLabels.join(', ')}`;
     }
 
     if (typeof selectedCurrency !== 'undefined' && !selectedCurrency) {

@@ -4,7 +4,6 @@
  * 1. Precarga todas las opciones desde el servidor para evitar estados de "buscando".
  * 2. Se asegura de que todos los datos sean del tipo correcto (string) para prevenir errores.
  * 3. Permite al usuario escribir libremente para completar el número de orden después de seleccionar un prefijo.
- * 4. MODIFICADO: Valida que el usuario agregue al menos un dígito/carácter después de seleccionar un prefijo.
  * Esta versión está diseñada para ser segura y no interferir con otros scripts de la página.
  */
 
@@ -37,6 +36,7 @@
                 if (response && response.status === 'success' && Array.isArray(response.data)) {
                     
                     // CORRECCIÓN CLAVE: Nos aseguramos que la propiedad 'text' de cada objeto sea un string.
+                    // Esto previene el error 'toUpperCase is not a function' que detenía otros scripts.
                     const sanitizedData = response.data.map(item => ({
                         id: item.id,
                         text: String(item.text || '') // Convertimos a String y aseguramos que no sea nulo.
@@ -45,7 +45,7 @@
                     // Una vez que tenemos los datos limpios, inicializamos Select2.
                     $referenceOrder.select2({
                         placeholder: 'Selecciona un prefijo o escribe el número completo',
-                        data: sanitizedData,
+                        data: sanitizedData, // Usamos los datos precargados y corregidos.
                         tags: true, // Permitimos que el usuario cree nuevas entradas (texto libre).
                         createTag: function(params) {
                             const term = $.trim(params.term);
@@ -61,6 +61,7 @@
                     });
 
                 } else {
+                    // Si la respuesta del servidor no es la esperada.
                     throw new Error("El formato de datos recibido para las órdenes de referencia es inválido.");
                 }
             })
@@ -78,31 +79,22 @@
                 });
             });
 
-        // ======================= INICIO DE LA MODIFICACIÓN =======================
         // Este evento se dispara cuando el usuario selecciona una opción.
         $referenceOrder.on('select2:select', function(e) {
             const data = e.params.data;
-            
-            // Si el dato seleccionado NO es una nueva etiqueta (es un prefijo de la lista)
-            if (data && !data.isNew) {
-                const prefix = data.text;
-                // Guardamos el prefijo seleccionado para usarlo después en la validación.
-                $(this).data('selected-prefix', prefix);
+            const prefix = (data && !data.isNew) ? data.text : '';
+            $(this).data('selected-prefix', prefix); // Guardamos el prefijo para la validación.
 
+            if (prefix) {
                 // Pequeño truco para que el usuario pueda seguir escribiendo en el campo.
-                // Colocamos el texto del prefijo en el campo de búsqueda de Select2 y lo enfocamos.
                 setTimeout(() => {
                     const searchField = $(this).data('select2').$dropdown.find('.select2-search__field');
                     if (searchField.length) {
                         searchField.val(prefix).focus();
                     }
-                }, 10); // Un pequeño delay para asegurar que Select2 haya procesado la selección.
-            } else {
-                // Si el usuario escribió un valor nuevo, nos aseguramos de no tener un prefijo guardado.
-                 $(this).data('selected-prefix', '');
+                }, 10);
             }
         });
-        // ======================== FIN DE LA MODIFICACIÓN =========================
     }
 
     // Esperamos a que el DOM esté listo y la configuración global exista.
