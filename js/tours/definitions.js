@@ -36,7 +36,6 @@ export const tourSteps = {
         { element: '#new-password', popover: { title: 'New Password', description: 'Then, enter your new desired password.' } },
         { element: '#update-profile', popover: { title: 'Save Changes', description: 'Click this button to save all your profile updates.' } }
     ],
-    // NEW TOUR FOR PROFILE PAGE
     'profile-view-orders': [
         { element: 'a[href="myorders.php"]', popover: { title: 'View My Orders', description: 'Click this button to go to a page that lists all the orders you have created.' } }
     ],
@@ -47,7 +46,8 @@ export const tourSteps = {
         { element: '#SectPlantas', popover: { title: 'Plant Information', description: 'Start by selecting the requesting plant and its corresponding code.' } },
         { element: '#SectTransporte', popover: { title: 'Transport Details', description: 'Choose the transport mode and specify if it\'s Inbound or Outbound.' } },
         { element: '#SectResponsability', popover: { title: 'Responsibility', description: 'Define the area of responsibility and who will pay for the service.' } },
-        { element: '#SectDescription', popover: { title: 'Cause & Actions', description: 'Describe the reason for this special freight and the actions taken.' } },
+        { element: '#SectCause', popover: { title: 'Cause and Recovery', description: 'Select the root cause for the freight. If you select any option other than "No Recovery", a file upload field with ID "recoveryFileContainer" will appear. This field is mandatory. Please upload a document (like a commitment letter or email) as proof that the recovery is in process.' } },
+        { element: '#SectDescription', popover: { title: 'Description of Actions', description: 'Describe in detail the immediate and permanent actions that were taken in response to the issue.' } },
         { element: '#SectShip', popover: { title: 'Origin (Ship From)', description: 'Select the company and city where the shipment originates.' } },
         { element: '#SectDest', popover: { title: 'Destination', description: 'Select the company and city for the destination.' } },
         { element: '#SectCarrier', popover: { title: 'Carrier & Cost', description: 'Finally, select the carrier, enter the quoted cost, and add a reference number.' } },
@@ -121,7 +121,6 @@ export const pageTours = {
     'verification_required.php': {
         'How to verify my email?': 'verification'
     },
-    // UPDATED PROFILE PAGE TOURS
     'profile.php': {
         'How to update your username?': 'profile-update',
         'How to change your password?': 'profile-update',
