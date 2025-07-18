@@ -44,9 +44,11 @@ export const tourSteps = {
     // --- Order Management Tours ---
     'create-order': [
         { element: '#SectPlantas', popover: { title: 'Plant Information', description: 'Start by selecting the requesting plant and its corresponding code.' } },
-        { element: '#SectTransporte', popover: { title: 'Transport Details', description: 'Choose the transport mode and specify if it\'s Inbound or Outbound.' } },
+        { element: '#SectTransporte', popover: { title: 'Transport Details', description: 'Choose the transport mode and specify if it\'s Inbound or Outbound. The "Cost in Euros" is calculated automatically at the end of the form, once you enter the quoted cost and select its currency (MXN or USD).' } },
         { element: '#SectResponsability', popover: { title: 'Responsibility', description: 'Define the area of responsibility and who will pay for the service.' } },
-        { element: '#SectCause', popover: { title: 'Cause and Recovery', description: 'Select the root cause for the freight. If you select any option other than "No Recovery", a file upload field with ID "recoveryFileContainer" will appear. This field is mandatory. Please upload a document (like a commitment letter or email) as proof that the recovery is in process.' } },
+        { element: '#SectCause', popover: { title: 'Cause Information', description: 'In this section, please define the root cause category, the project status, and if the cost can be recovered.' } },
+        { element: '#SectRecovery', popover: { title: 'Recovery Selection', description: 'Select if the cost of this freight can be recovered. If you choose any option other than "No Recovery", the next field to upload evidence will become mandatory.' } },
+        { element: '#recoveryFileContainer', popover: { title: 'Recovery Evidence', description: 'This field appears when recovery is possible. Please upload a single PDF file as evidence, such as a commitment letter from the client, an email confirmation, or any other official document that proves the recovery is in process.' } },
         { element: '#SectDescription', popover: { title: 'Description of Actions', description: 'Describe in detail the immediate and permanent actions that were taken in response to the issue.' } },
         { element: '#SectShip', popover: { title: 'Origin (Ship From)', description: 'Select the company and city where the shipment originates.' } },
         { element: '#SectDest', popover: { title: 'Destination', description: 'Select the company and city for the destination.' } },
