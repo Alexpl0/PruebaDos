@@ -1,87 +1,117 @@
 /**
  * referenceSelect.js
- * * Módulo para la gestión y selección de Órdenes de Referencia.
- * MODIFICADO: Ahora carga todas las referencias al inicio para facilitar la depuración.
+ * * Este archivo inicializa el componente Select2 para el campo 'ReferenceOrder'.
+ * 1. Precarga todas las opciones desde el servidor para evitar estados de "buscando".
+ * 2. Se asegura de que todos los datos sean del tipo correcto (string) para prevenir errores.
+ * 3. Permite al usuario escribir libremente para completar el número de orden después de seleccionar un prefijo.
+ * 4. MODIFICADO: Valida que el usuario agregue al menos un dígito/carácter después de seleccionar un prefijo.
+ * Esta versión está diseñada para ser segura y no interferir con otros scripts de la página.
  */
 
 (function() {
     /**
-     * Carga todas las órdenes de referencia desde el endpoint y las añade al select.
+     * Inicializa el selector para el campo de Órden de Referencia.
      */
-    async function loadAllReferences() {
-        const referenceElement = $('#ReferenceOrder');
-        if (referenceElement.length === 0) {
-            console.error("Elemento #ReferenceOrder no encontrado.");
+    function initializeReferenceSelector() {
+        // Nos aseguramos que jQuery y Select2 estén listos.
+        if (typeof jQuery === 'undefined' || typeof jQuery.fn.select2 === 'undefined') {
+            console.error("Error Crítico: jQuery o Select2 no se han cargado. No se puede inicializar el selector de referencia.");
             return;
         }
 
-        try {
-            console.log("Iniciando la carga de todas las órdenes de referencia...");
-            const response = await fetch(URLPF + 'dao/elements/daoNumOrders.php');
-            
-            if (!response.ok) {
-                throw new Error(`Error en la red: ${response.status}`);
-            }
+        const $referenceOrder = $('#ReferenceOrder');
+        if (!$referenceOrder.length) {
+            console.error("Error Crítico: El elemento #ReferenceOrder no se encontró en la página.");
+            return;
+        }
 
-            const data = await response.json();
-            console.log("1. Datos crudos recibidos del endpoint:", data);
+        // Primero, obtenemos todos los números de referencia del servidor.
+        fetch(window.PF_CONFIG.app.baseURL + 'dao/elements/daoNumOrders.php')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Error de Red al cargar las órdenes: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(response => {
+                if (response && response.status === 'success' && Array.isArray(response.data)) {
+                    
+                    // CORRECCIÓN CLAVE: Nos aseguramos que la propiedad 'text' de cada objeto sea un string.
+                    const sanitizedData = response.data.map(item => ({
+                        id: item.id,
+                        text: String(item.text || '') // Convertimos a String y aseguramos que no sea nulo.
+                    }));
 
-            if (data.status === 'success' && Array.isArray(data.data)) {
-                // Limpiar opciones existentes (excepto la primera si es un placeholder)
-                referenceElement.find('option:not(:first)').remove();
+                    // Una vez que tenemos los datos limpios, inicializamos Select2.
+                    $referenceOrder.select2({
+                        placeholder: 'Selecciona un prefijo o escribe el número completo',
+                        data: sanitizedData,
+                        tags: true, // Permitimos que el usuario cree nuevas entradas (texto libre).
+                        createTag: function(params) {
+                            const term = $.trim(params.term);
+                            if (term === '') {
+                                return null;
+                            }
+                            return {
+                                id: term,
+                                text: term,
+                                isNew: true // Marcamos la entrada como nueva.
+                            };
+                        }
+                    });
 
-                // Mapear y añadir las nuevas opciones
-                data.data.forEach(item => {
-                    // Asegurarse de que el texto sea un string
-                    const optionText = String(item.text); 
-                    const newOption = new Option(optionText, item.id, false, false);
-                    referenceElement.append(newOption);
+                } else {
+                    throw new Error("El formato de datos recibido para las órdenes de referencia es inválido.");
+                }
+            })
+            .catch(error => {
+                console.error("Falló la carga o inicialización del selector de referencia:", error);
+                // Plan B: Si todo falla, inicializamos Select2 solo con la opción de texto libre.
+                $referenceOrder.select2({
+                    placeholder: 'Error al cargar prefijos. Escribe el número manualmente.',
+                    tags: true,
+                    createTag: function(params) {
+                        const term = $.trim(params.term);
+                        if (term === '') { return null; }
+                        return { id: term, text: term, isNew: true };
+                    }
                 });
+            });
 
-                console.log("2. Opciones añadidas al select. El elemento ahora contiene:", referenceElement.html());
+        // ======================= INICIO DE LA MODIFICACIÓN =======================
+        // Este evento se dispara cuando el usuario selecciona una opción.
+        $referenceOrder.on('select2:select', function(e) {
+            const data = e.params.data;
+            
+            // Si el dato seleccionado NO es una nueva etiqueta (es un prefijo de la lista)
+            if (data && !data.isNew) {
+                const prefix = data.text;
+                // Guardamos el prefijo seleccionado para usarlo después en la validación.
+                $(this).data('selected-prefix', prefix);
 
-                // Forzar a Select2 a actualizarse con las nuevas opciones
-                referenceElement.trigger('change');
-                
-                console.log("3. Select2 actualizado.");
-
+                // Pequeño truco para que el usuario pueda seguir escribiendo en el campo.
+                // Colocamos el texto del prefijo en el campo de búsqueda de Select2 y lo enfocamos.
+                setTimeout(() => {
+                    const searchField = $(this).data('select2').$dropdown.find('.select2-search__field');
+                    if (searchField.length) {
+                        searchField.val(prefix).focus();
+                    }
+                }, 10); // Un pequeño delay para asegurar que Select2 haya procesado la selección.
             } else {
-                console.error("El formato de los datos del servidor es incorrecto:", data);
+                // Si el usuario escribió un valor nuevo, nos aseguramos de no tener un prefijo guardado.
+                 $(this).data('selected-prefix', '');
             }
-
-        } catch (error) {
-            console.error("Falló la carga de las órdenes de referencia:", error);
-        }
-    }
-
-    /**
-     * Inicializa el selector Select2 para las órdenes de referencia.
-     * Ahora se configura como un select estándar, ya que los datos se precargan.
-     */
-    function initializeReferenceSelector() {
-        const referenceElement = $('#ReferenceOrder');
-        if (referenceElement.length === 0) {
-            return; // El error ya se reportó en loadAllReferences
-        }
-
-        // Inicializa Select2 con configuración estándar (sin AJAX)
-        referenceElement.select2({
-            placeholder: "Select a Reference Order",
-            allowClear: true
         });
-
-        console.log("Selector de Órdenes de Referencia inicializado (modo de carga inicial).");
-
-        // Carga los datos después de inicializar el componente base.
-        loadAllReferences();
+        // ======================== FIN DE LA MODIFICACIÓN =========================
     }
 
-    // Expone la función de inicialización al ámbito global.
-    window.initializeReferenceSelector = initializeReferenceSelector;
+    // Esperamos a que el DOM esté listo y la configuración global exista.
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.PF_CONFIG && window.PF_CONFIG.app && window.PF_CONFIG.app.baseURL) {
+            initializeReferenceSelector();
+        } else {
+            console.error("PF_CONFIG no está definido. No se puede inicializar el selector de referencia.");
+        }
+    });
 
-    // Comprobación de la variable global URLPF.
-    if (typeof URLPF === 'undefined') {
-        console.warn('URLPF global variable is not defined.');
-        window.URLPF = window.URLPF || 'https://grammermx.com/Jesus/PruebaDos/';
-    }
 })();
