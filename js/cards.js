@@ -118,14 +118,14 @@ function getApprovalStatusMessage(order) {
     if (approvalStatus >= requiredLevel) return 'Fully Approved';
 
     switch (approvalStatus) {
-        case 0: return 'Pending: Logistics Manager';
+        case 0: return 'Pending: Trafico';
         case 1: return 'Pending: Transport Specialist'; // <-- Nuevo caso agregado aquí
-        case 2: return 'Pending: Controlling';
-        case 3: return 'Pending: Plant Manager';
-        case 4: return 'Pending: Senior Logistics Manager';
-        case 5: return 'Pending: Manager OPS Division';
-        case 6: return 'Pending: SR VP Regional';
-        case 7: return 'Pending: Regional Division Controlling';
+        case 2: return 'Pending: Logistics Manager';
+        case 3: return 'Pending: Controlling';
+        case 4: return 'Pending: Plant Manager';
+        case 5: return 'Pending: Senior Manager Logistics';
+        case 6: return 'Pending: Manager OPS Division';
+        case 7: return 'Pending: Division Controlling Regional';
         default: return `Pending: Level ${approvalStatus + 1}`;
     }
 }
