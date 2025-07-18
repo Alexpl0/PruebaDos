@@ -290,11 +290,11 @@ require_once 'dao/users/context_injector.php';
     <!-- <script type="module" src="js/createPDF.js"></script> -->
     <script src="js/carrierSelect.js"></script>
     <script src="js/addCarrier.js"></script>
-    <script src="js/referenceSelect.js"></script>
     <script src="js/addNumOrder.js"></script>
     <script src="js/selectConfig.js"></script>  
     <!-- Scripts de la aplicación -->
     <script src="js/header.js" type="module"></script>
+    <script src="js/referenceSelect.js"></script>
     
     <!-- ================== CARGA DE MÓDULOS JS ================== -->
     <script type="module" src="js/mailer.js"></script>
