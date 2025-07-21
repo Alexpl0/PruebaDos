@@ -132,7 +132,7 @@ window.loginUsuario = loginUsuario;
 async function handleUserSession() {
     const response = await fetch('https://grammermx.com/Logistica/PremiumFreight/dao/users/loginSession.php', {
         method: 'POST',
-        credentials: 'include', // ¡Esto es clave!
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ /* tus datos */ })
     });

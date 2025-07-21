@@ -1,9 +1,17 @@
 <?php
-// filepath: c:\Users\Ex-Perez-J\OneDrive - GRAMMER AG\Desktop\PruebaDos\dao\users\loginSession.php
-header('Access-Control-Allow-Origin: https://grammermx.com'); // Cambia esto a tu dominio frontend real
+// Cambia esto exactamente al dominio de tu frontend (incluye https y sin barra final)
+header('Access-Control-Allow-Origin: https://grammermx.com');
 header('Access-Control-Allow-Credentials: true');
 header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
 session_start();
+
 // Supón que recibes los datos del usuario por POST (JSON)
 $input = json_decode(file_get_contents('php://input'), true);
 
