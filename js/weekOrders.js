@@ -23,7 +23,7 @@ let isLoading = false;
 let dataCache = new Map(); // Cache for API responses
 
 function getBaseURL() {
-    return window.URLPF || window.URL_BASE || window.BASE_URL || 'https://grammermx.com/Jesus/PruebaDos/';
+    return window.URLPF || window.URL_BASE || window.BASE_URL || 'https://grammermx.com/Logistica/PremiumFreight/';
 }
 
 document.addEventListener('DOMContentLoaded', function() {

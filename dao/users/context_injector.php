@@ -18,7 +18,7 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 
 // 2. Definir URLs base (centralizadas aquí)
-$URLBASE = "https://grammermx.com/Jesus/PruebaDos/";
+$URLBASE = "https://grammermx.com/Logistica/PremiumFreight/";
 $URLM = "https://grammermx.com/Mailer/PFMailer/";
 
 // 3. Crear un array con el contexto de la aplicación para JavaScript.

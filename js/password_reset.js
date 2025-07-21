@@ -425,7 +425,7 @@ function isStrongPassword(password) {
  * Set base URLs if not defined
  */
 if (typeof window.URLPF === 'undefined') {
-    window.URLPF = 'https://grammermx.com/Jesus/PruebaDos/';
+    window.URLPF = 'https://grammermx.com/Logistica/PremiumFreight/';
 }
 
 if (typeof window.URLM === 'undefined') {
