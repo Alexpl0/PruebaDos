@@ -1,4 +1,8 @@
 <?php
+// filepath: c:\Users\Ex-Perez-J\OneDrive - GRAMMER AG\Desktop\PruebaDos\dao\users\loginSession.php
+header('Access-Control-Allow-Origin: https://grammermx.com'); // Cambia esto a tu dominio frontend real
+header('Access-Control-Allow-Credentials: true');
+header('Access-Control-Allow-Headers: Content-Type');
 session_start();
 // Supón que recibes los datos del usuario por POST (JSON)
 $input = json_decode(file_get_contents('php://input'), true);

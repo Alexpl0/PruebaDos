@@ -124,5 +124,28 @@ async function loginUsuario() {
         btnLogin.disabled = false;
     }
 }
+
 // Hacer la función global para el `onclick` del HTML
 window.loginUsuario = loginUsuario;
+
+// Nueva función para manejar la sesión del usuario
+async function handleUserSession() {
+    const response = await fetch('https://grammermx.com/Logistica/PremiumFreight/dao/users/loginSession.php', {
+        method: 'POST',
+        credentials: 'include', // ¡Esto es clave!
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ /* tus datos */ })
+    });
+
+    const data = await response.json();
+    if (response.ok && data.success) {
+        // La sesión es válida, redirigir o mostrar información del usuario
+        window.location.href = 'newOrder.php';
+    } else {
+        // La sesión no es válida, permanecer en la página de login
+        console.log('Invalid session or not logged in.');
+    }
+}
+
+// Llamar a la función de manejo de sesión al cargar la página
+document.addEventListener('DOMContentLoaded', handleUserSession);
