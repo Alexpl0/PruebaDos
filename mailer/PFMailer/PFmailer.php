@@ -67,7 +67,7 @@ if (APP_ENVIRONMENT === 'development') {
     define('SMTP_HOST', 'smtp.hostinger.com');
     define('SMTP_PORT', 465);
     define('SMTP_USER', 'specialfreight@grammermx.com');
-    define('SMTP_PASS', 'Freight2025');
+    define('SMTP_PASS', 'Freight***2025');
     define('SMTP_SECURE', 'ssl');
     define('SMTP_FROM_NAME', 'Premium Freight System');
 

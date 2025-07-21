@@ -1,12 +1,5 @@
 <?php
-// --- CORS GLOBAL ---
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
+require_once __DIR__ . '/../db/cors_config.php';
 
 session_start();
 
@@ -42,7 +35,7 @@ if (!isset($_SESSION['user'])) {
     // Usuario SÍ está logueado
     $auth_level = $_SESSION['user']['authorization_level'] ?? null;
     $user_id = $_SESSION['user']['id'] ?? null;
-    
+
     // EXCEPCIÓN: password_reset.php debe ser accesible si hay un token válido
     if ($base_name === 'password_reset.php') {
         if (!isset($_GET['token']) || empty($_GET['token'])) {
@@ -55,15 +48,14 @@ if (!isset($_SESSION['user'])) {
         header('Location: profile.php');
         exit;
     }
-    
+
     // --- NUEVA REGLA DE SÚPER USUARIO ---
     // Solo el usuario con ID 36 puede acceder a la página de administración de usuarios.
     if ($base_name === 'adminUsers.php' && $user_id != 36) {
-        // Si no es el súper usuario, se redirige a una página segura.
         header('Location: newOrder.php');
         exit;
     }
-    
+
     // Si el usuario tiene authorization_level 0, verificar páginas restringidas
     if ($auth_level === 0 || $auth_level === '0') {
         foreach ($restricted_pages_level0 as $page) {
@@ -74,4 +66,3 @@ if (!isset($_SESSION['user'])) {
         }
     }
 }
-?>
