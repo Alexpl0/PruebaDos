@@ -141,12 +141,13 @@ class PFMailer {
      */
     private function setEmailRecipients($originalEmail, $originalName = '') {
         $this->mail->clearAddresses();
-        
+
         if (TEST_MODE) {
             $this->mail->addAddress(TEST_EMAIL, 'Premium Freight Test');
             logAction("Email redirigido: Original={$originalEmail} -> Test=" . TEST_EMAIL, 'TEST_MODE');
         } else {
             $this->mail->addAddress($originalEmail, $originalName);
+            logAction("Email enviado a: {$originalName} <{$originalEmail}>", 'MAIL_RECIPIENT');
         }
     }
 
