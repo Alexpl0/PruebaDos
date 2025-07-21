@@ -1,191 +1,224 @@
 <?php
-// 1. Load configuration to access constants
-require_once __DIR__ . '/config.php';
+/**
+ * PFMailer.php
+ *
+ * Clase principal para el envío de correos electrónicos.
+ * Modificada para operar de forma segura en un entorno de producción o desarrollo.
+ */
 
-// 2. Load necessary dependencies for sending emails
+// =========================================================================
+// CONFIGURACIÓN PRINCIPAL - ¡EDITAR ESTA SECCIÓN!
+// =========================================================================
+// Cambia esta línea a 'production' para el entorno real.
+// 'development': Usa credenciales de prueba, redirige correos y activa logs.
+// 'production':  Usa credenciales reales y desactiva logs detallados.
+define('APP_ENVIRONMENT', 'production');
+// =========================================================================
+
+
+// --- Carga de dependencias ---
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-// 3. Import PHPMailer library files
-require '../Phpmailer/PHPMailer.php';
-require '../Phpmailer/SMTP.php';
+// Asegúrate de que las rutas a PHPMailer sean correctas
+require_once __DIR__ . '/../Phpmailer/PHPMailer.php';
+require_once __DIR__ . '/../Phpmailer/SMTP.php';
+require_once __DIR__ . '/../Phpmailer/Exception.php';
 
-// 4. Import new modular classes
-require_once 'PFEmailServices.php';
-require_once 'PFEmailTemplates.php';
+// Carga de clases de la aplicación
+require_once __DIR__ . '/PFEmailServices.php';
+require_once __DIR__ . '/PFEmailTemplates.php';
+require_once __DIR__ . '/PFDB.php';
 
-// 5. Define URL constants if they are not defined
-if (!defined('URLM')) {
+
+// --- Definición de constantes basada en el entorno ---
+if (APP_ENVIRONMENT === 'development') {
+    // -- MODO DESARROLLO --
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+
+    define('TEST_MODE', true);
+    define('TEST_EMAIL', 'extern.jesus.perez@grammer.com');
+
+    // Credenciales de SMTP para PRUEBAS
+    define('SMTP_HOST', 'smtp.hostinger.com');
+    define('SMTP_PORT', 465);
+    define('SMTP_USER', 'jesuspruebas@grammermx.com');
+    define('SMTP_PASS', 'PremiumFreight2025');
+    define('SMTP_SECURE', 'ssl');
+    define('SMTP_FROM_NAME', 'Premium Freight (Pruebas)');
+
+    // URLs de PRUEBAS
     define('URLM', 'https://grammermx.com/Mailer/PFMailer/');
-}
-
-if(!defined('URLPF')) {
     define('URLPF', 'https://grammermx.com/Jesus/PruebaDos/');
+
+    // Nivel de depuración SMTP (2 = Muestra toda la conversación con el servidor)
+    define('SMTP_DEBUG_LEVEL', 2);
+
+} else {
+    // -- MODO PRODUCCIÓN --
+    error_reporting(0);
+    ini_set('display_errors', 0);
+
+    define('TEST_MODE', false);
+    define('TEST_EMAIL', ''); // No se usa en producción
+
+    // ¡¡¡IMPORTANTE!!! Coloca aquí tus credenciales de PRODUCCIÓN
+    define('SMTP_HOST', 'smtp.hostinger.com');
+    define('SMTP_PORT', 465);
+    define('SMTP_USER', 'specialfreight@grammermx.com');
+    define('SMTP_PASS', 'Freight2025');
+    define('SMTP_SECURE', 'ssl');
+    define('SMTP_FROM_NAME', 'Premium Freight System');
+
+    // ¡¡¡IMPORTANTE!!! Coloca aquí tus URLs de PRODUCCIÓN
+    define('URLM', 'https://grammermx.com/Mailer/PFMailer/'); // Revisar si es la correcta
+    define('URLPF', 'https://grammermx.com/Logistica/PremiumFreight/');
+
+    // Nivel de depuración SMTP (0 = Desactivado para producción)
+    define('SMTP_DEBUG_LEVEL', 0);
 }
 
-// 6. TEST MODE CONFIGURATION
-define('TEST_MODE', true);
-define('TEST_EMAIL', 'extern.jesus.perez@grammer.com');
+// Función de Log (si no existe una global)
+if (!function_exists('logAction')) {
+    function logAction($message, $category) {
+        $logFile = __DIR__ . '/app.log';
+        $formattedMessage = sprintf("[%s] [%s]: %s\n", date('Y-m-d H:i:s'), strtoupper($category), $message);
+        file_put_contents($logFile, $formattedMessage, FILE_APPEND);
+    }
+}
+
 
 class PFMailer {
     private $mail;
     private $services;
     private $templates;
-    private $baseUrl;
     private $db;
 
     /**
-     * Constructor - initializes PHPMailer and dependencies
+     * Constructor - inicializa PHPMailer y las dependencias.
+     * La configuración se obtiene de las constantes definidas arriba.
      */
     public function __construct() {
-        $this->baseUrl = URLM;
-        $this->baseUrlPF = URLPF;
-        
         $this->services = new PFEmailServices();
-        $this->templates = new PFEmailTemplates($this->baseUrl, $this->baseUrlPF);
+        $this->templates = new PFEmailTemplates(URLM, URLPF);
         
-        require_once 'PFDB.php';
         $con = new LocalConector();
         $this->db = $con->conectar();
         
         $this->mail = new PHPMailer(true);
 
-        // --- ENABLING DETAILED SMTP DEBUGGING ---
-        // This will show us the full conversation with the mail server in the log.
-        $this->mail->SMTPDebug = 2; 
-        $this->mail->Debugoutput = function($str, $level) {
-            logAction("PHPMailer Debug: {$str}", "SMTP");
-        };
-
-        // SMTP Configuration
+        // Configuración del servidor SMTP
         $this->mail->isSMTP();
-        $this->mail->Host = 'smtp.hostinger.com'; 
-        $this->mail->Port = 465;
+        $this->mail->Host = SMTP_HOST;
+        $this->mail->Port = SMTP_PORT;
         $this->mail->SMTPAuth = true;
-        $this->mail->Username = 'jesuspruebas@grammermx.com';
-        $this->mail->Password = 'PremiumFreight2025';
-        $this->mail->SMTPSecure = 'ssl';
+        $this->mail->Username = SMTP_USER;
+        $this->mail->Password = SMTP_PASS;
+        $this->mail->SMTPSecure = SMTP_SECURE;
         
+        // Nivel de depuración SMTP controlado por el entorno
+        $this->mail->SMTPDebug = SMTP_DEBUG_LEVEL;
+        if (SMTP_DEBUG_LEVEL > 0) {
+            $this->mail->Debugoutput = function($str, $level) {
+                logAction("PHPMailer Debug: {$str}", "SMTP");
+            };
+        }
+
+        // Configuración del formato del correo
         $this->mail->isHTML(true);
         $this->mail->CharSet = 'UTF-8';
         
-        $this->mail->setFrom('jesuspruebas@grammermx.com', 'Premium Freight System');
-        $this->mail->addBCC('jesuspruebas@grammermx.com', 'Jesús Pérez');
+        // Remitente y Copia Oculta (BCC)
+        $this->mail->setFrom(SMTP_USER, SMTP_FROM_NAME);
+        $this->mail->addBCC(SMTP_USER, 'Copia de Seguridad');
         
-        if (TEST_MODE) {
-            $this->mail->addBCC(TEST_EMAIL, 'Premium Freight Test');
-            logAction("TEST MODE ENABLED: All emails will be redirected to " . TEST_EMAIL, 'TEST_MODE');
-        }
+        logAction("PFMailer inicializado en modo: " . APP_ENVIRONMENT, 'INIT');
     }
 
     /**
-     * Helper method to set recipients according to the mode
+     * Método auxiliar para establecer los destinatarios según el modo de operación.
      */
     private function setEmailRecipients($originalEmail, $originalName = '') {
         $this->mail->clearAddresses();
         
         if (TEST_MODE) {
             $this->mail->addAddress(TEST_EMAIL, 'Premium Freight Test');
-            logAction("Email redirected: Original={$originalEmail} -> Test=" . TEST_EMAIL, 'TEST_MODE');
+            logAction("Email redirigido: Original={$originalEmail} -> Test=" . TEST_EMAIL, 'TEST_MODE');
         } else {
             $this->mail->addAddress($originalEmail, $originalName);
         }
     }
 
-    /**
-     * NEW FUNCTION
-     * Calls the service to clear the cache for a specific order.
-     * @param int $orderId The ID of the order to clear.
-     */
+    // =========================================================================
+    // MÉTODOS DE LA APLICACIÓN
+    // =========================================================================
+
     public function clearOrderCache($orderId) {
         if (method_exists($this->services, 'clearOrderCache')) {
             $this->services->clearOrderCache($orderId);
         }
     }
 
-    /**
-     * NEW FUNCTION
-     * Sends an individual notification for an order that requires 'recovery_evidence'.
-     * @param int $orderId - The ID of the order to check.
-     * @return array - An array with the status ['success' => bool, 'message' => string].
-     */
     public function sendSingleRecoveryNotification($orderId) {
         try {
-            logAction("RECOVERY_SINGLE: Starting for order #{$orderId}", 'RECOVERY_SINGLE');
+            logAction("RECOVERY_SINGLE: Iniciando para orden #{$orderId}", 'RECOVERY_SINGLE');
 
             $order = $this->services->getOrderDetails($orderId);
             if (!$order) {
-                return ['success' => false, 'message' => "Order #{$orderId} was not found."];
+                return ['success' => false, 'message' => "Orden #{$orderId} no encontrada."];
             }
-            logAction("RECOVERY_SINGLE: Order details obtained.", 'RECOVERY_SINGLE');
 
             if (empty($order['recovery_file'])) {
-                $message = "Order #{$orderId} does not require a recovery file, so no notification can be sent.";
-                return ['success' => false, 'message' => $message];
+                return ['success' => false, 'message' => "Orden #{$orderId} no requiere archivo de recuperación."];
             }
-            logAction("RECOVERY_SINGLE: 'recovery_file' check passed.", 'RECOVERY_SINGLE');
             
             if (!empty($order['recovery_evidence'])) {
-                $message = "Order #{$orderId} already has a recovery evidence file.";
-                return ['success' => false, 'message' => $message];
+                return ['success' => false, 'message' => "Orden #{$orderId} ya tiene evidencia de recuperación."];
             }
-            logAction("RECOVERY_SINGLE: 'recovery_evidence' check passed.", 'RECOVERY_SINGLE');
 
             $user = $this->services->getUser($order['user_id']);
             if (!$user) {
-                return ['success' => false, 'message' => "The creator user for the order was not found."];
+                return ['success' => false, 'message' => "Usuario creador de la orden no encontrado."];
             }
-            logAction("RECOVERY_SINGLE: Creator user obtained.", 'RECOVERY_SINGLE');
 
-            logAction("RECOVERY_SINGLE: Generating email template...", 'RECOVERY_SINGLE');
             $emailBody = $this->templates->getRecoveryCheckTemplate($user, [$order]);
-            logAction("RECOVERY_SINGLE: Email template generated.", 'RECOVERY_SINGLE');
             
-            logAction("RECOVERY_SINGLE: Setting recipients...", 'RECOVERY_SINGLE');
             $this->setEmailRecipients($user['email'], $user['name']);
-            logAction("RECOVERY_SINGLE: Recipients set.", 'RECOVERY_SINGLE');
             
-            logAction("RECOVERY_SINGLE: Setting subject and body...", 'RECOVERY_SINGLE');
-            $this->mail->Subject = "Reminder: Recovery Evidence Required for Order #{$orderId}";
+            $this->mail->Subject = "Recordatorio: Evidencia de Recuperación Requerida para Orden #{$orderId}";
             $this->mail->Body = $emailBody;
-            logAction("RECOVERY_SINGLE: Subject and body set.", 'RECOVERY_SINGLE');
             
-            logAction("RECOVERY_SINGLE: Attempting to send email (mail->send())...", 'RECOVERY_SINGLE');
             if ($this->mail->send()) {
-                logAction("RECOVERY_SINGLE: Email sent successfully.", 'RECOVERY_SINGLE');
                 $this->services->logNotification($orderId, $user['id'], 'recovery_reminder');
-                return ['success' => true, 'message' => "A reminder email has been sent to {$user['email']} for order #{$orderId}."];
+                return ['success' => true, 'message' => "Email de recordatorio enviado a {$user['email']} para la orden #{$orderId}."];
             } else {
-                logAction("RECOVERY_SINGLE: PHPMailer failed. Error: " . $this->mail->ErrorInfo, 'RECOVERY_SINGLE');
-                return ['success' => false, 'message' => "The mail server could not send the notification. Error: " . $this->mail->ErrorInfo];
+                return ['success' => false, 'message' => "El servidor de correo falló. Error: " . $this->mail->ErrorInfo];
             }
 
         } catch (Exception $e) {
-            logAction("RECOVERY_SINGLE: Exception caught: " . $e->getMessage(), 'RECOVERY_SINGLE');
-            return ['success' => false, 'message' => 'A server exception occurred: ' . $e->getMessage()];
+            logAction("RECOVERY_SINGLE: Excepción: " . $e->getMessage(), 'RECOVERY_SINGLE_ERROR');
+            return ['success' => false, 'message' => 'Excepción del servidor: ' . $e->getMessage()];
         }
     }
 
-    // --- ORIGINAL FUNCTIONS RESTORED ---
-
     public function sendApprovalNotification($orderId) {
         try {
-            logAction("Starting sendApprovalNotification for order #{$orderId}", 'SENDAPPROVAL');
+            logAction("Iniciando sendApprovalNotification para orden #{$orderId}", 'SENDAPPROVAL');
             
             $orderDetails = $this->services->getOrderDetails($orderId);
             if (!$orderDetails) {
-                logAction("ERROR: Details not found for order #{$orderId}", 'SENDAPPROVAL');
+                logAction("ERROR: No se encontraron detalles para la orden #{$orderId}", 'SENDAPPROVAL');
                 return false;
             }
             
             $nextApprovers = $this->services->getNextApprovers($orderId);
             if (empty($nextApprovers)) {
-                logAction("No next approvers for order #{$orderId} - it may be fully approved or rejected", 'SENDAPPROVAL');
+                logAction("No hay siguientes aprobadores para la orden #{$orderId}", 'SENDAPPROVAL');
                 return false;
             }
             
             $emailsSent = 0;
-            
             foreach ($nextApprovers as $approver) {
                 try {
                     $approvalToken = $this->services->generateActionToken($orderId, $approver['id'], 'approve');
@@ -193,44 +226,33 @@ class PFMailer {
                     
                     $this->setEmailRecipients($approver['email'], $approver['name']);
                     
-                    $this->mail->Subject = "Premium Freight - Approval Required #$orderId";
+                    $this->mail->Subject = "Premium Freight - Aprobación Requerida #$orderId";
                     $htmlContent = $this->templates->getApprovalEmailTemplate($orderDetails, $approvalToken, $rejectToken);
                     $this->mail->Body = $htmlContent;
                     
                     if ($this->mail->send()) {
                         $emailsSent++;
-                        logAction("Email sent successfully to {$approver['name']} ({$approver['email']})", 'SENDAPPROVAL');
+                        logAction("Correo de aprobación enviado a {$approver['name']} ({$approver['email']})", 'SENDAPPROVAL');
                         $this->services->logNotification($orderId, $approver['id'], 'approval_request');
                     } else {
-                        logAction("Error sending email to {$approver['email']}: " . $this->mail->ErrorInfo, 'SENDAPPROVAL');
+                        logAction("Error enviando correo a {$approver['email']}: " . $this->mail->ErrorInfo, 'SENDAPPROVAL_ERROR');
                     }
-                    
                 } catch (Exception $e) {
-                    logAction("Exception sending email to {$approver['email']}: " . $e->getMessage(), 'SENDAPPROVAL');
+                    logAction("Excepción enviando correo a {$approver['email']}: " . $e->getMessage(), 'SENDAPPROVAL_EXCEPTION');
                 }
             }
-            
-            logAction("Approval notifications completed: {$emailsSent} of " . count($nextApprovers) . " sent", 'SENDAPPROVAL');
             return $emailsSent > 0;
-            
         } catch (Exception $e) {
-            logAction("Error in sendApprovalNotification: " . $e->getMessage(), 'SENDAPPROVAL');
+            logAction("Error en sendApprovalNotification: " . $e->getMessage(), 'SENDAPPROVAL_FATAL');
             return false;
         }
     }
 
     public function sendWeeklySummaryEmails() {
-        $result = [
-            'totalSent' => 0,
-            'success' => 0,
-            'errors' => []
-        ];
-
+        $result = ['totalSent' => 0, 'success' => 0, 'errors' => []];
         try {
             $pendingOrders = $this->services->getPendingOrdersForWeeklySummary();
-            if (empty($pendingOrders)) {
-                return $result;
-            }
+            if (empty($pendingOrders)) return $result;
             
             $ordersByApprover = $this->services->groupOrdersByApprover($pendingOrders);
             
@@ -238,65 +260,48 @@ class PFMailer {
                 try {
                     $approver = $this->services->getUser($approverId);
                     if (!$approver) {
-                        $result['errors'][] = "User not found for ID: $approverId";
+                        $result['errors'][] = "Usuario no encontrado para ID: $approverId";
                         continue;
                     }
                     
-                    $userOrders = $groupData['orders'];
-                    $bulkTokens = $groupData['bulk_tokens'];
-                    $approveAllToken = $bulkTokens['approve'];
-                    $rejectAllToken = $bulkTokens['reject'];
-                    
-                    $emailBody = $this->templates->getWeeklySummaryTemplate($userOrders, $approver, $approveAllToken, $rejectAllToken);
+                    $emailBody = $this->templates->getWeeklySummaryTemplate($groupData['orders'], $approver, $groupData['bulk_tokens']['approve'], $groupData['bulk_tokens']['reject']);
                 
                     $this->setEmailRecipients($approver['email'], $approver['name']);
-                    
-                    $this->mail->Subject = "Weekly Premium Freight Summary - " . count($userOrders) . " Orders Pending Approval";
+                    $this->mail->Subject = "Resumen Semanal Premium Freight - " . count($groupData['orders']) . " Órdenes Pendientes";
                     $this->mail->Body = $emailBody;
                     
                     if ($this->mail->send()) {
                         $result['success']++;
-                        foreach ($userOrders as $order) {
+                        foreach ($groupData['orders'] as $order) {
                             $this->services->logNotification($order['id'], $approverId, 'weekly_summary');
                         }
-                        error_log("Weekly summary sent to {$approver['email']} for " . count($userOrders) . " orders");
                     } else {
-                        $result['errors'][] = "Failed to send to {$approver['email']}: " . $this->mail->ErrorInfo;
+                        $result['errors'][] = "Fallo al enviar a {$approver['email']}: " . $this->mail->ErrorInfo;
                     }
-                    
                     $result['totalSent']++;
-                    
                 } catch (Exception $e) {
-                    $result['errors'][] = "Error processing approver $approverId: " . $e->getMessage();
+                    $result['errors'][] = "Error procesando aprobador $approverId: " . $e->getMessage();
                 }
             }
-            
         } catch (Exception $e) {
-            $result['errors'][] = "Error in sendWeeklySummaryEmails: " . $e->getMessage();
+            $result['errors'][] = "Error en sendWeeklySummaryEmails: " . $e->getMessage();
         }
-        
         return $result;
     }
 
     public function sendStatusNotification($orderId, $status, $rejectorInfo = null) {
         try {
             $orderData = $this->services->getOrderDetails($orderId);
-            if (!$orderData) {
-                error_log("Data not found for order #$orderId");
-                return false;
-            }
+            if (!$orderData) return false;
 
             $creator = $this->services->getUser($orderData['user_id']);
-            if (!$creator) {
-                error_log("Creator not found for order #$orderId");
-                return false;
-            }
+            if (!$creator) return false;
 
             $emailBody = $this->templates->getStatusNotificationTemplate($orderData, $status, $rejectorInfo);
             
             $subject = ($status === 'approved') ? 
-                "Premium Freight Order #{$orderId} - Approved" : 
-                "Premium Freight Order #{$orderId} - Rejected";
+                "Orden Premium Freight #{$orderId} - Aprobada" : 
+                "Orden Premium Freight #{$orderId} - Rechazada";
             
             $this->setEmailRecipients($creator['email'], $creator['name']);
             
@@ -306,255 +311,108 @@ class PFMailer {
             if ($this->mail->send()) {
                 $notificationType = ($status === 'approved') ? 'status_approved' : 'status_rejected';
                 $this->services->logNotification($orderId, $creator['id'], $notificationType);
-                error_log("Status notification sent to {$creator['email']} for order #$orderId");
                 return true;
-            } else {
-                error_log("Error sending status notification: " . $this->mail->ErrorInfo);
-                return false;
             }
-            
+            return false;
         } catch (Exception $e) {
-            error_log("Error in sendStatusNotification: " . $e->getMessage());
+            logAction("Error en sendStatusNotification: " . $e->getMessage(), 'STATUS_NOTIFICATION_EXCEPTION');
             return false;
         }
     }
 
-    public function sendWeeklySummary() {
-        try {
-            $result = $this->sendWeeklySummaryEmails();
-            return [
-                'success' => true,
-                'message' => "Weekly summary processed: {$result['success']} emails sent, " . count($result['errors']) . " errors",
-                'data' => $result
-            ];
-        } catch (Exception $e) {
-            error_log("Error in sendWeeklySummary: " . $e->getMessage());
-            return [
-                'success' => false,
-                'message' => 'Error sending weekly summary: ' . $e->getMessage()
-            ];
-        }
-    }
-
-    public function sendRecoveryNotifications() {
-        try {
-            $result = $this->sendRecoveryCheckEmails();
-            return [
-                'success' => true,
-                'message' => "Recovery notifications processed: {$result['success']} emails sent, " . count($result['errors']) . " errors",
-                'data' => $result
-            ];
-        } catch (Exception $e) {
-            error_log("Error in sendRecoveryNotifications: " . $e->getMessage());
-            return [
-                'success' => false,
-                'message' => 'Error sending recovery notifications: ' . $e->getMessage()
-            ];
-        }
-    }
-
     public function sendRecoveryCheckEmails() {
-        $result = [
-            'totalSent' => 0,
-            'success' => 0,
-            'errors' => []
-        ];
-
+        $result = ['totalSent' => 0, 'success' => 0, 'errors' => []];
         try {
-            if (!$this->db) {
-                throw new Exception("Database connection not established");
-            }
+            if (!$this->db) throw new Exception("Conexión a DB no establecida");
 
-            $sql = "SELECT PF.id, PF.user_id, PF.description, PF.cost_euros, 
-                           PF.date, PF.recovery_file, PF.area, U.name, U.email
-                    FROM PremiumFreight PF
-                    INNER JOIN User U ON PF.user_id = U.id
-                    WHERE PF.recovery_file IS NOT NULL 
-                    AND PF.recovery_file != ''
+            $sql = "SELECT PF.id, PF.user_id, PF.description, PF.cost_euros, PF.date, PF.recovery_file, PF.area, U.name, U.email
+                    FROM PremiumFreight PF INNER JOIN User U ON PF.user_id = U.id
+                    WHERE PF.recovery_file IS NOT NULL AND PF.recovery_file != ''
                     AND (PF.recovery_evidence IS NULL OR PF.recovery_evidence = '')";
-        
+            
             $stmt = $this->db->prepare($sql);
-            if (!$stmt) {
-                throw new Exception("Failed to prepare SQL statement: " . $this->db->error);
-            }
-            
             $stmt->execute();
-            $ordersResult = $stmt->get_result();
-            $ordersNeedingRecovery = $ordersResult->fetch_all(MYSQLI_ASSOC);
+            $ordersNeedingRecovery = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             
-            if (empty($ordersNeedingRecovery)) {
-                return $result;
-            }
+            if (empty($ordersNeedingRecovery)) return $result;
 
             $ordersByUser = [];
             foreach ($ordersNeedingRecovery as $order) {
-                $userId = $order['user_id'];
-                if (!isset($ordersByUser[$userId])) {
-                    $ordersByUser[$userId] = [
-                        'user' => [
-                            'id' => $userId,
-                            'name' => $order['name'],
-                            'email' => $order['email']
-                        ],
-                        'orders' => []
-                    ];
-                }
-                $ordersByUser[$userId]['orders'][] = $order;
+                $ordersByUser[$order['user_id']]['user'] = ['id' => $order['user_id'], 'name' => $order['name'], 'email' => $order['email']];
+                $ordersByUser[$order['user_id']]['orders'][] = $order;
             }
 
             foreach ($ordersByUser as $userInfo) {
                 try {
                     $emailBody = $this->templates->getRecoveryCheckTemplate($userInfo['user'], $userInfo['orders']);
                     $this->setEmailRecipients($userInfo['user']['email'], $userInfo['user']['name']);
-                    $this->mail->Subject = "Premium Freight - Recovery Evidence Required";
+                    $this->mail->Subject = "Premium Freight - Evidencia de Recuperación Requerida";
                     $this->mail->Body = $emailBody;
                     
                     if ($this->mail->send()) {
                         $result['success']++;
-                        error_log("Recovery check email sent to {$userInfo['user']['email']}");
                     } else {
-                        $result['errors'][] = "Failed to send recovery check email to {$userInfo['user']['email']}: {$this->mail->ErrorInfo}";
+                        $result['errors'][] = "Fallo al enviar a {$userInfo['user']['email']}: {$this->mail->ErrorInfo}";
                     }
-                    
                     $result['totalSent']++;
-                    
                 } catch (Exception $e) {
-                    $result['errors'][] = "Error sending recovery check email to {$userInfo['user']['email']}: " . $e->getMessage();
+                    $result['errors'][] = "Error enviando a {$userInfo['user']['email']}: " . $e->getMessage();
                 }
             }
-
         } catch (Exception $e) {
-            $result['errors'][] = "Error in sendRecoveryCheckEmails: " . $e->getMessage();
-            error_log("Error in sendRecoveryCheckEmails: " . $e->getMessage());
+            $result['errors'][] = "Error en sendRecoveryCheckEmails: " . $e->getMessage();
         }
-        
         return $result;
-    }
-
-    public function getDatabase() {
-        return $this->services->getDatabase();
-    }
-
-    public function getOrderDetails($orderId) {
-        return $this->services->getOrderDetails($orderId);
-    }
-
-    public function getUser($userId) {
-        return $this->services->getUser($userId);
-    }
-
-    public function setTestMode($enable = true) {
-        if ($enable) {
-            logAction("Switching to TEST MODE: All emails will be redirected to " . TEST_EMAIL, 'TEST_MODE');
-        } else {
-            logAction("Switching to PRODUCTION MODE: Emails will be sent to real addresses", 'PRODUCTION_MODE');
-        }
-    }
-    
-    public function testConnection() {
-        try {
-            return $this->mail->smtpConnect();
-        } catch (Exception $e) {
-            throw new Exception("SMTP connection failed: " . $e->getMessage());
-        }
     }
 
     public function sendPasswordResetEmail($user, $token) {
         try {
-            logAction("Starting password reset email dispatch for user: " . $user['email'], 'PASSWORD_RESET');
-            $this->mail->clearAddresses();
             $this->setEmailRecipients($user['email'], $user['name']);
             $emailContent = $this->templates->getPasswordResetTemplate($user, $token);
-            $this->mail->Subject = 'Password Reset Request - Premium Freight System';
+            $this->mail->Subject = 'Solicitud de Reestablecimiento de Contraseña - Premium Freight System';
             $this->mail->Body = $emailContent;
-            $result = $this->mail->send();
-            
-            if ($result) {
-                logAction("Password reset email sent successfully to: " . $user['email'], 'PASSWORD_RESET');
-            } else {
-                logAction("Error sending password reset email to: " . $user['email'], 'PASSWORD_RESET');
-            }
-            return $result;
+            return $this->mail->send();
         } catch (Exception $e) {
-            logAction("Exception in sendPasswordResetEmail: " . $e->getMessage(), 'PASSWORD_RESET');
+            logAction("Excepción en sendPasswordResetEmail: " . $e->getMessage(), 'PASSWORD_RESET');
             return false;
-        } finally {
-            $this->mail->clearAddresses();
-            $this->mail->clearAttachments();
         }
     }
 
     public function sendVerificationEmail($userId) {
         try {
-            logAction("Starting account verification email dispatch for user: " . $userId, 'VERIFICATION');
             $user = $this->services->getUser($userId);
-            if (!$user) {
-                logAction("User not found: " . $userId, 'VERIFICATION');
-                return false;
-            }
-            if ($user['verified'] == 1) {
-                logAction("User already verified: " . $userId, 'VERIFICATION');
-                return true;
-            }
+            if (!$user || $user['verified'] == 1) return false;
+            
             $token = $this->generateVerificationToken($userId);
-            if (!$token) {
-                logAction("Error generating token for user: " . $userId, 'VERIFICATION');
-                return false;
-            }
+            if (!$token) return false;
+
             $this->setEmailRecipients($user['email'], $user['name']);
             $emailContent = $this->templates->getVerificationTemplate($user, $token);
-            $this->mail->Subject = 'Account Verification - Premium Freight System';
+            $this->mail->Subject = 'Verificación de Cuenta - Premium Freight System';
             $this->mail->Body = $emailContent;
-            $result = $this->mail->send();
-            
-            if ($result) {
-                logAction("Verification email sent successfully to: " . $user['email'], 'VERIFICATION');
-            } else {
-                logAction("Error sending verification email: " . $this->mail->ErrorInfo, 'VERIFICATION');
-            }
-            return $result;
+            return $this->mail->send();
         } catch (Exception $e) {
-            logAction("Exception in sendVerificationEmail: " . $e->getMessage(), 'VERIFICATION');
+            logAction("Excepción en sendVerificationEmail: " . $e->getMessage(), 'VERIFICATION');
             return false;
-        } finally {
-            $this->mail->clearAddresses();
         }
     }
 
     private function generateVerificationToken($userId) {
         try {
             $token = bin2hex(random_bytes(32));
-            $createTableSql = "CREATE TABLE IF NOT EXISTS EmailVerificationTokens (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                token VARCHAR(64) NOT NULL UNIQUE,
-                user_id INT NOT NULL,
-                is_used TINYINT(1) DEFAULT 0,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                used_at TIMESTAMP NULL,
-                INDEX idx_token (token),
-                INDEX idx_user_id (user_id),
+            $this->db->query("CREATE TABLE IF NOT EXISTS EmailVerificationTokens (
+                id INT AUTO_INCREMENT PRIMARY KEY, token VARCHAR(64) NOT NULL UNIQUE, user_id INT NOT NULL,
+                is_used TINYINT(1) DEFAULT 0, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, used_at TIMESTAMP NULL,
                 FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
-            
-            $this->db->query($createTableSql);
+            )");
             
             $sql = "INSERT INTO EmailVerificationTokens (token, user_id) VALUES (?, ?)";
             $stmt = $this->db->prepare($sql);
             $stmt->bind_param("si", $token, $userId);
-            
-            if ($stmt->execute()) {
-                return $token;
-            }
-            return null;
+            return $stmt->execute() ? $token : null;
         } catch (Exception $e) {
-            logAction("Error generating verification token: " . $e->getMessage(), 'VERIFICATION');
+            logAction("Error generando token de verificación: " . $e->getMessage(), 'VERIFICATION');
             return null;
         }
     }
 }
-
-// Debug: Check if TEST_MODE is enabled
-if (TEST_MODE) {
-    logAction("TEST_MODE is enabled. Redirecting emails to " . TEST_EMAIL, 'DEBUG');
-}
-?>
