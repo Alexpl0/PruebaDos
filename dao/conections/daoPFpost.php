@@ -36,28 +36,23 @@ if ($data === null) {
     exit;
 }
 
-// ================== MODIFICADO: Campos obligatorios actualizados ==================
-// Se eliminan 'reference' y 'reference_number' y se añade 'num_order_id'
 $requiredFields = [
     'planta', 'code_planta', 'transport', 'in_out_bound', 'cost_euros',
     'description', 'area', 'int_ext', 'paid_by', 'category_cause',
     'project_status', 'recovery', 'weight', 'measures', 'products',
-    'carrier', 'quoted_cost', 'num_order_id', // Campo actualizado
+    'carrier', 'quoted_cost', 'num_order_id',
     'origin_id', 'destiny_id', 'moneda'
 ];
-// ==============================================================================
 
-// Verificar si falta algún campo obligatorio
 $missingFields = [];
 foreach ($requiredFields as $field) {
-    // Se asegura de que el campo exista y no esté vacío (excepto para valores numéricos que pueden ser 0)
     if (!isset($data[$field]) || (is_string($data[$field]) && trim($data[$field]) === '')) {
         $missingFields[] = $field;
     }
 }
 
 if (!empty($missingFields)) {
-    http_response_code(400); // Solicitud incorrecta
+    http_response_code(400);
     echo json_encode([
         "success" => false,
         "message" => "Missing required fields: " . implode(', ', $missingFields)
@@ -66,15 +61,11 @@ if (!empty($missingFields)) {
 }
 
 try {
-    // Crear conexión a la base de datos
     $con = new LocalConector();
     $conex = $con->conectar();
     $conex->set_charset("utf8mb4");
     $conex->begin_transaction();
 
-    // ================== MODIFICADO: Consulta SQL actualizada ==================
-    // La columna 'reference' se insertará con NULL.
-    // La columna 'reference_number' ahora almacenará el ID de la tabla NumOrders.
     $sql = "INSERT INTO PremiumFreight (
                 user_id, date, planta, code_planta, transport, in_out_bound,
                 cost_euros, description, area, int_ext, paid_by, category_cause,
@@ -90,49 +81,22 @@ try {
         throw new Exception("Error preparing statement: " . $conex->error);
     }
 
-    // Obtener valores de los campos
     $userId = isset($data['user_id']) ? intval($data['user_id']) : 1;
     $statusId = isset($data['status_id']) ? intval($data['status_id']) : 1;
     $requiredAuthLevel = isset($data['required_auth_level']) ? intval($data['required_auth_level']) : 1;
     $date = isset($data['date']) ? substr($data['date'], 0, 30) : date('Y-m-d H:i:s');
-    
-    // --- Nuevas variables para la referencia ---
-    $reference = null; // Se enviará NULL a la columna 'reference'
-    $referenceNumberId = intval($data['num_order_id']); // El ID de NumOrders va a la columna 'reference_number'
+    $reference = null;
+    $referenceNumberId = intval($data['num_order_id']);
 
-    // Vincular los parámetros a la consulta preparada
-    // ================== MODIFICADO: Tipos y variables de bind_param actualizados ==================
-    // La firma cambia de '...ss...' a '...si...' para reference y reference_number
     $stmt->bind_param(
         "isssssdssssssssisisiisiiis",
-        $userId,
-        $date,
-        $data['planta'],
-        $data['code_planta'],
-        $data['transport'],
-        $data['in_out_bound'],
-        $data['cost_euros'],
-        $data['description'],
-        $data['area'],
-        $data['int_ext'],
-        $data['paid_by'],
-        $data['category_cause'],
-        $data['project_status'],
-        $data['recovery'],
-        $data['weight'],
-        $data['measures'],
-        $data['products'],
-        $data['carrier'],
-        $data['quoted_cost'],
-        $reference,          // Se bindea la variable null
-        $referenceNumberId,  // Se bindea el ID de la orden
-        $data['origin_id'],
-        $data['destiny_id'],
-        $statusId,
-        $requiredAuthLevel,
-        $data['moneda']
+        $userId, $date, $data['planta'], $data['code_planta'], $data['transport'],
+        $data['in_out_bound'], $data['cost_euros'], $data['description'], $data['area'],
+        $data['int_ext'], $data['paid_by'], $data['category_cause'], $data['project_status'],
+        $data['recovery'], $data['weight'], $data['measures'], $data['products'],
+        $data['carrier'], $data['quoted_cost'], $reference, $referenceNumberId,
+        $data['origin_id'], $data['destiny_id'], $statusId, $requiredAuthLevel, $data['moneda']
     );
-    // =========================================================================================
 
     if (!$stmt->execute()) {
         $conex->rollback();
@@ -142,18 +106,27 @@ try {
     $premiumFreightId = $stmt->insert_id;
     $stmt->close();
 
-    // El resto del código para insertar en PremiumFreightApprovals permanece igual...
     $sqlApproval = "INSERT INTO PremiumFreightApprovals (premium_freight_id, user_id, approval_date, status_id, act_approv) VALUES (?, ?, NOW(), ?, 0)";
     $stmtApproval = $conex->prepare($sqlApproval);
     $stmtApproval->bind_param("iii", $premiumFreightId, $userId, $statusId);
     $stmtApproval->execute();
     $stmtApproval->close();
 
-    // Confirmar la transacción
+    // =================================================================================
+    // NUEVO: Insertar el primer registro en el historial de aprobaciones
+    // =================================================================================
+    $sqlHistory = "INSERT INTO ApprovalHistory (premium_freight_id, user_id, action_type, approval_level_reached, comments) VALUES (?, ?, 'CREATED', 0, 'Order created successfully')";
+    $stmtHistory = $conex->prepare($sqlHistory);
+    if ($stmtHistory) {
+        $stmtHistory->bind_param("ii", $premiumFreightId, $userId);
+        $stmtHistory->execute();
+        $stmtHistory->close();
+    }
+    // =================================================================================
+
     $conex->commit();
     $conex->close();
 
-    // Responder con éxito
     echo json_encode([
         "success" => true,
         "message" => "Premium freight order created successfully.",
