@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../db/cors_config.php';
 // migrate_users.php (Versión para Web)
 // --- INSTRUCCIONES ---
 // 1. Sube este archivo a la misma carpeta donde está tu 'daoUserAdmin.php'.

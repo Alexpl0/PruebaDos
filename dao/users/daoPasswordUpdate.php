@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../db/cors_config.php';
 /**
  * daoPasswordUpdate.php - Actualiza la contraseña usando el token
  */

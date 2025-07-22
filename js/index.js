@@ -2,6 +2,8 @@
  * index.js (Completo y Refactorizado)
  * Handles login and verification resend functionality.
  */
+console.log('index.js loaded - version 2025-07-21');
+
 document.addEventListener('DOMContentLoaded', function() {
     // ... (el resto del DOMContentLoaded se mantiene igual)
     const btnLogin = document.getElementById('btnLogin');

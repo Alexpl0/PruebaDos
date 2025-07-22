@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../db/cors_config.php';
 /**
  * daoPasswordReset.php - Maneja las solicitudes de reset de contraseña
  */

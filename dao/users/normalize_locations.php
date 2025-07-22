@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../db/cors_config.php';
 // normalize_locations.php (Versión 4 - Lógica de coincidencia mejorada)
 // --- INSTRUCCIONES ---
 // 1. Sube este archivo a la carpeta 'dao/'.

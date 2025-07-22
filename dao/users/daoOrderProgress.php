@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../db/cors_config.php';
 // daoOrderProgress.php
 header('Content-Type: application/json');
 include_once('../db/PFDB.php');

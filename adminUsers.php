@@ -89,17 +89,17 @@ require_once 'dao/users/context_injector.php';
                         </div>
                         <div class="col-md-6">
                             <label for="user-role-level" class="form-label">Role & Authorization Level</label>
-                            <select class="form-select" id="user-role-level" required>
-                                <option value="0:Worker">Worker</option>
-                                <option value="1:Logistics Manager">Logistics Manager</option>
-                                <option value="2:Transport Specialist">Transport Specialist</option>
-                                <option value="3:Controlling">Controlling</option>
-                                <option value="4:Plant Manager">Plant Manager</option>
-                                <option value="5:Senior Manager Logistics Division">Senior Manager Logistics Division</option>
-                                <option value="6:Manager OPS Division">Manager OPS Division</option>
-                                <option value="7:SR VP Regional">SR VP Regional</option>
-                                <option value="8:Division Controlling Regional">Division Controlling Regional</option>
-                            </select>
+                                <select class="form-select" id="user-role-level" required>
+                                    <option value="0:Worker">Worker</option>
+                                    <option value="1:Logistics Manager">Logistics Manager</option>
+                                    <option value="2:Transport Specialist">Transport Specialist</option>
+                                    <option value="3:Logistics Manager">Logistics Manager</option>
+                                    <option value="4:Controlling">Controlling</option>
+                                    <option value="5:Plant Manager">Plant Manager</option>
+                                    <option value="6:Senior Manager Logistics Division">Senior Manager Logistics Division</option>
+                                    <option value="7:Manager OPS Division">Manager OPS Division</option>
+                                    <option value="8:Division Controlling Regional">Division Controlling Regional</option>
+                                </select>
                         </div>
                     </div>
                     

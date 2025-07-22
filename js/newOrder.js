@@ -66,7 +66,7 @@ function calculateAuthorizationRange(quotedCost) {
 
     if (isNaN(cost)) {
         console.warn("Invalid cost value for authorization range calculation:", quotedCost);
-        return 4; // Default to lowest authorization level
+        return 5; // Default to lowest authorization level
     }
 
     if (cost <= 1500) return 5;
@@ -172,7 +172,7 @@ async function submitForm(event) {
 
         // 4. Prepare payload
         const quotedCost = parseFloat(formData['QuotedCost']);
-        range = calculateAuthorizationRange(quotedCost);
+        range = calculateAuthorizationRange(euros);
 
         // ================== MODIFIED: Payload updated for new reference field ==================
         const payload = {

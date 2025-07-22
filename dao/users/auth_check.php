@@ -25,7 +25,10 @@ $current_page = $_SERVER['REQUEST_URI'];
 $base_name = basename(parse_url($current_page, PHP_URL_PATH));
 
 // Comprobar si el usuario ha iniciado sesión
-if (!isset($_SESSION['user'])) {
+if (!isset($_SESSION['user']) ||
+    empty($_SESSION['user']['id']) ||
+    empty($_SESSION['user']['email'])
+) {
     // Usuario NO logueado
     if (!in_array($base_name, $public_pages)) {
         header('Location: index.php');

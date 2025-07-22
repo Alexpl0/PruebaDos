@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../db/cors_config.php';
 // Incluye el archivo de conexión a la base de datos.
 include_once('../db/PFDB.php');
 // Inicia la sesión para acceder a las variables de sesión.
