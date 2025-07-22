@@ -154,7 +154,7 @@ table.dataTable {
 /* Encabezados de tabla */
 table.dataTable thead th {
     background: linear-gradient(135deg, #034C8C 0%, #002856 100%);
-    color: var(--grammer-dark-blue);
+    color: var(--white-color);
     font-weight: 700;
     font-size: 0.875rem;
     text-transform: uppercase;
@@ -585,3 +585,22 @@ table.dataTable tbody tr:hover {
     max-width: 500px;
 }
 
+/* === NUEVOS ESTILOS PARA STATUS === */
+
+/* Coloreado de filas según el status */
+tr.status-approved td {
+    background-color: rgba(40, 167, 69, 0.15) !important; /* Verde claro */
+}
+
+tr.status-rejected td {
+    background-color: rgba(220, 53, 69, 0.15) !important; /* Rojo claro */
+}
+
+tr.status-review td {
+    background-color: rgba(255, 193, 7, 0.15) !important; /* Amarillo claro */
+}
+
+/* Estilos para las etiquetas de status para asegurar visibilidad */
+.badge.bg-warning.text-dark {
+    color: #000 !important;
+}
