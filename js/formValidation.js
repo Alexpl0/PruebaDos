@@ -47,7 +47,8 @@ function collectFormData() {
             }
             formData[id] = value;
 
-            if ((!value || value === '') && id !== 'ReferenceOrder') {
+            // The check for 'ReferenceOrder' is now done like any other field.
+            if (!value || value === '') {
                 emptyFields.push(id);
             }
         } else {
@@ -55,9 +56,10 @@ function collectFormData() {
         }
     });
 
-    if (!$('#ReferenceOrder').val()) {
-        emptyFields.push('ReferenceOrder');
-    }
+    // This separate check is no longer necessary as it's included in the loop.
+    // if (!$('#ReferenceOrder').val()) {
+    //     emptyFields.push('ReferenceOrder');
+    // }
 
     return { formData, emptyFields };
 }
@@ -174,19 +176,11 @@ function validateCompleteForm() {
     const { formData, emptyFields } = collectFormData();
     let customErrorMessages = {};
 
-    const $referenceOrder = $('#ReferenceOrder');
-    const selectedPrefix = $referenceOrder.data('selected-prefix');
-    const currentValue = $referenceOrder.val();
-
-    if (selectedPrefix && currentValue && currentValue.length <= selectedPrefix.length) {
-        if (!emptyFields.includes('ReferenceOrder')) {
-            emptyFields.push('ReferenceOrder');
-        }
-        customErrorMessages['ReferenceOrder'] = 'You must complete the selected prefix in the Reference Order Number.';
-        $referenceOrder.next('.select2-container').addClass('select2-container--error');
-    } else if (currentValue) {
-        $referenceOrder.next('.select2-container').removeClass('select2-container--error');
-    }
+    // ================== VALIDATION LOGIC REMOVED ==================
+    // The complex validation for ReferenceOrder was here.
+    // It has been removed to simplify the validation to just "not empty",
+    // which is already handled by the collectFormData() function.
+    // ==============================================================
 
     const immediateActions = document.getElementById('InmediateActions');
     const permanentActions = document.getElementById('PermanentActions');
@@ -205,6 +199,8 @@ function validateCompleteForm() {
     }
 
     if (emptyFields.length === 0) {
+        // Clean up any previous error state for ReferenceOrder if the form is now valid
+        $('#ReferenceOrder').next('.select2-container').removeClass('select2-container--error');
         return { isValid: true, formData };
     }
 

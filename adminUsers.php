@@ -91,7 +91,7 @@ require_once 'dao/users/context_injector.php';
                             <label for="user-role-level" class="form-label">Role & Authorization Level</label>
                                 <select class="form-select" id="user-role-level" required>
                                     <option value="0:Worker">Worker</option>
-                                    <option value="1:Logistics Manager">Logistics Manager</option>
+                                    <option value="1:Logistics Manager">Trafico</option>
                                     <option value="2:Transport Specialist">Transport Specialist</option>
                                     <option value="3:Logistics Manager">Logistics Manager</option>
                                     <option value="4:Controlling">Controlling</option>
