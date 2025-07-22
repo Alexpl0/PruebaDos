@@ -43,8 +43,28 @@
     outline: none;
 }
 
+/* Password toggle button styling */
+#password-toggle {
+    width: 36px;
+    height: 36px;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
 #password-toggle i {
+    font-size: 1.2rem;
+    color: #6c757d;
     transition: color 0.2s;
+}
+
+#user-password {
+    padding-right: 44px; /* Space for the toggle button */
 }
 
 #password-toggle:hover i {

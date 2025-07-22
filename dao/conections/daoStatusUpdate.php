@@ -34,7 +34,7 @@ if (
     http_response_code(400);
     echo json_encode([
         "success" => false,
-        "message" => "Invalid or incomplete JSON data. Required: 'orderId', 'newStatusId', 'userLevel', 'userID' and 'authDate'."
+        "message" => "Invalid or incomplete JSON data."
     ]);
     exit;
 }
@@ -180,6 +180,26 @@ try {
         $orderId
     );
     $stmt->execute();
+
+    // NUEVO: Si es rechazo, actualiza también status_id en PremiumFreight
+    if ($newStatusId === 99) {
+        $stmt2 = $conex->prepare(
+            "UPDATE PremiumFreight SET status_id = 4 WHERE id = ?"
+        );
+        $stmt2->bind_param("i", $orderId);
+        $stmt2->execute();
+        $stmt2->close();
+    }
+
+    // NUEVO: Si la orden está completamente aprobada, actualiza status_id a 3
+    if ($newStatusId === intval($requiredAuthLevel)) {
+        $stmt3 = $conex->prepare(
+            "UPDATE PremiumFreight SET status_id = 3 WHERE id = ?"
+        );
+        $stmt3->bind_param("i", $orderId);
+        $stmt3->execute();
+        $stmt3->close();
+    }
 
     if ($stmt->affected_rows > 0) {
         $response = [
