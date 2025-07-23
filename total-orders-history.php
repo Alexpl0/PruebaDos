@@ -62,7 +62,7 @@ require_once 'dao/users/context_injector.php';
                     <p class="history-subtitle">Complete Premium Freight Historical Report</p>
                 </div>
                 <div class="col-md-4 text-end">
-                    <button class="btn btn-back" onclick="history.back()">
+                    <button class="btn btn-back" onclick="window.location.href='orders.php'">
                         <i class="fas fa-arrow-left"></i> Back to Orders
                     </button>
                 </div>

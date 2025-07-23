@@ -84,7 +84,7 @@
     // Comprueba la disponibilidad de la variable global URLPF.
     if (typeof URLPF === 'undefined') {
         console.warn('URLPF global variable is not defined.');
-        window.URLPF = window.URLPF || 'https://grammermx.com/Logistica/PremiumFreight/';
+        window.URLPF = window.URLPF || 'https://grammermx.com/Jesus/PruebaDos/';
     }
 
     console.log("NumOrder management functions initialized.");

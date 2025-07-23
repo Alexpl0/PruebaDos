@@ -132,7 +132,7 @@ window.loginUsuario = loginUsuario;
 
 // Nueva función para manejar la sesión del usuario
 async function handleUserSession() {
-    const response = await fetch('https://grammermx.com/Logistica/PremiumFreight/dao/users/loginSession.php', {
+    const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/users/loginSession.php', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

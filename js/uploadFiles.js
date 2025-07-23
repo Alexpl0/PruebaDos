@@ -174,7 +174,7 @@ function uploadFileWithProgress(progressElement, file, endpointUrl, formData) {
 if (typeof URLPF === 'undefined') {
     console.warn('URLPF global variable is not defined. Make sure this script runs after the URLPF is defined in your PHP page.');
     // Fallback a URLPF hardcodeada solo como último recurso
-    window.URLPF = window.URLPF || 'https://grammermx.com/Logistica/PremiumFreight/';
+    window.URLPF = window.URLPF || 'https://grammermx.com/Jesus/PruebaDos/';
 }
 
 // Exportar funciones para su uso en otros módulos
