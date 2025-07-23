@@ -91,15 +91,19 @@ function validateCompanyIds() {
 function handleRecoveryFileVisibility() {
     const recoverySelect = document.getElementById('Recovery');
     const fileContainer = document.getElementById('recoveryFileContainer');
-    if (!recoverySelect || !fileContainer) return;
+    const fileInput = document.getElementById('recoveryFile'); // Get the file input
+    if (!recoverySelect || !fileContainer || !fileInput) return;
 
     const selectedText = recoverySelect.options[recoverySelect.selectedIndex]?.text || '';
     const isNoRecovery = selectedText.toUpperCase().includes('NO RECOVERY');
     
-    fileContainer.style.display = isNoRecovery ? 'none' : 'block';
     if (isNoRecovery) {
-        const fileInput = document.getElementById('recoveryFile');
-        if (fileInput) fileInput.value = '';
+        fileContainer.style.display = 'none';
+        fileInput.value = ''; // Clear the file input
+        fileInput.required = false; // Make it not required
+    } else {
+        fileContainer.style.display = 'block';
+        fileInput.required = true; // Make it required
     }
 }
 

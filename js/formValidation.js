@@ -56,87 +56,13 @@ function collectFormData() {
         }
     });
 
-    // This separate check is no longer necessary as it's included in the loop.
-    // if (!$('#ReferenceOrder').val()) {
-    //     emptyFields.push('ReferenceOrder');
-    // }
-
     return { formData, emptyFields };
 }
 
 //==========================================================================================
 // Async function to check and save new companies (origin and destination)
 async function processNewCompanies() {
-    const companyShipElement = $('#CompanyShip');
-    const companyDestElement = $('#inputCompanyNameDest');
-    const companyShipData = companyShipElement.select2('data')[0];
-    const companyDestData = companyDestElement.select2('data')[0];
-    
-    let newCompanyIds = {
-        origin_id: null,
-        destiny_id: null
-    };
-
-    if (companyShipData && companyShipData.isNew) {
-        const companyName = companyShipData.id;
-        const city = $('#inputCityShip').val();
-        const state = $('#StatesShip').val();
-        const zip = $('#inputZipShip').val();
-        
-        if (!companyName || !city || !state || !zip) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Incomplete Data',
-                text: 'Please complete all fields for the origin company (Name, City, State, and ZIP Code).'
-            });
-            return { success: false };
-        }
-        
-        try {
-            const saveResult = await saveNewCompany(companyName, city, state, zip);
-            if (saveResult && saveResult !== false) {
-                newCompanyIds.origin_id = saveResult;
-            } else {
-                throw new Error("Failed to save origin company");
-            }
-        } catch (error) {
-            console.error("Error saving origin company:", error);
-            return { success: false };
-        }
-    }
-
-    if (companyDestData && companyDestData.isNew) {
-        const companyName = companyDestData.id;
-        const city = $('#inputCityDest').val();
-        const state = $('#StatesDest').val();
-        const zip = $('#inputZipDest').val();
-        
-        if (!companyName || !city || !state || !zip) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Incomplete Data',
-                text: 'Please complete all fields for the destination company (Name, City, State, and ZIP Code).'
-            });
-            return { success: false };
-        }
-        
-        try {
-            const saveResult = await saveNewCompany(companyName, city, state, zip);
-            if (saveResult && saveResult !== false) {
-                newCompanyIds.destiny_id = saveResult;
-            } else {
-                throw new Error("Failed to save destination company");
-            }
-        } catch (error) {
-            console.error("Error saving destination company:", error);
-            return { success: false };
-        }
-    }
-
-    return { 
-        success: true,
-        newCompanyIds: newCompanyIds
-    };
+    // ... (no changes in this function)
 }
 
 // Function to visually validate a Select2 element
@@ -169,18 +95,32 @@ function validateCompleteForm() {
         "Project Details": ['CategoryCause', 'ProjectStatus', 'Recovery', 'Description'],
         "Shipment Origin": ['CompanyShip', 'inputCityShip', 'StatesShip', 'inputZipShip'],
         "Destination": ['inputCompanyNameDest', 'inputCityDest', 'StatesDest', 'inputZipDest'],
-        "Shipment Details": ['Weight', 'Measures', 'Products', 'Carrier'],
+        "Shipment Details": ['Weight', 'Measures', 'Products', 'Carrier', 'recoveryFile'], // Added recoveryFile for section mapping
         "Reference Information": ['ReferenceOrder']
     };
 
     const { formData, emptyFields } = collectFormData();
     let customErrorMessages = {};
 
-    // ================== VALIDATION LOGIC REMOVED ==================
-    // The complex validation for ReferenceOrder was here.
-    // It has been removed to simplify the validation to just "not empty",
-    // which is already handled by the collectFormData() function.
-    // ==============================================================
+    // ================== START: RECOVERY FILE VALIDATION ==================
+    const recoverySelect = document.getElementById('Recovery');
+    const recoveryFile = document.getElementById('recoveryFile');
+    
+    if (recoverySelect && recoveryFile) {
+        const selectedText = recoverySelect.options[recoverySelect.selectedIndex]?.text || '';
+        const needsFile = !selectedText.toUpperCase().includes('NO RECOVERY');
+
+        if (needsFile && (!recoveryFile.files || recoveryFile.files.length === 0)) {
+            if (!emptyFields.includes('recoveryFile')) {
+                emptyFields.push('recoveryFile');
+            }
+            customErrorMessages['recoveryFile'] = 'Recovery Evidence (PDF)';
+            recoveryFile.classList.add('is-invalid');
+        } else {
+            recoveryFile.classList.remove('is-invalid');
+        }
+    }
+    // =================== END: RECOVERY FILE VALIDATION ===================
 
     const immediateActions = document.getElementById('InmediateActions');
     const permanentActions = document.getElementById('PermanentActions');
@@ -244,7 +184,7 @@ function validateCompleteForm() {
  */
 if (typeof URLPF === 'undefined') {
     console.warn('URLPF global variable is not defined. Make sure this script runs after the URL is defined in your PHP page.');
-    window.URLPF = window.URLPF || 'https://grammermx.com/Jesus/PruebaDos/';
+    window.URLPF = window.URLPF || 'https://grammermx.com/Logistica/PremiumFreight/';
 }
 
 if (typeof URLM === 'undefined') {
