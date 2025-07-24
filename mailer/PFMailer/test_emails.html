@@ -135,10 +135,21 @@
 
     <div class="card">
         <h2>Weekly Summary Test</h2>
+        <p>This sends the summary of pending orders to each approver.</p>
         <div class="button-row">
-            <button id="test-weekly-summary" class="warning">Send Weekly Summary</button>
+            <button id="test-weekly-summary" class="warning">Send Approver Summaries</button>
         </div>
         <div id="weekly-result" class="result"></div>
+    </div>
+    
+    <!-- ===== NUEVA TARJETA PARA EL REPORTE DE ESTADÍSTICAS ===== -->
+    <div class="card">
+        <h2>Weekly Statistics Report Test</h2>
+        <p>This sends the global weekly performance report to managers.</p>
+        <div class="button-row">
+            <button id="test-statistics-report" class="secondary">Send Statistics Report</button>
+        </div>
+        <div id="statistics-result" class="result"></div>
     </div>
 
     <div class="card">
@@ -374,6 +385,48 @@
                     Swal.fire({
                         icon: 'error',
                         title: 'Weekly Summary Error',
+                        text: error.message
+                    });
+                }
+            });
+
+            // ===== NUEVO LISTENER PARA EL REPORTE DE ESTADÍSTICAS =====
+            document.getElementById('test-statistics-report').addEventListener('click', async function() {
+                showLoadingProgress('Generating Statistics Report', 'This might take a moment...');
+                updateProgress(10, 'Collecting data...');
+
+                try {
+                    const response = await fetch('test_email_functions.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'weekly_statistics_report' })
+                    });
+                    
+                    updateProgress(70, 'Generating email...');
+                    const data = await response.json();
+                    updateProgress(100, 'Completed');
+
+                    setTimeout(() => {
+                        Swal.close();
+                        showResult('statistics-result', data, data.success);
+                        
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Statistics Report Sent',
+                                text: 'The weekly statistics report has been sent to managers',
+                                timer: 3000,
+                                showConfirmButton: false
+                            });
+                        }
+                    }, 500);
+                    
+                } catch (error) {
+                    Swal.close();
+                    showResult('statistics-result', { error: error.message }, false);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Statistics Report Error',
                         text: error.message
                     });
                 }

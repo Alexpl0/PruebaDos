@@ -290,6 +290,63 @@ class PFMailer {
         return $result;
     }
 
+    // ===== NUEVO MÉTODO PARA EL REPORTE SEMANAL =====
+    
+    /**
+     * Generates and sends the weekly statistics report to a predefined list of recipients.
+     * @return array A result array with success status and message.
+     */
+    public function sendWeeklyStatisticsReport() {
+        try {
+            logAction("Iniciando sendWeeklyStatisticsReport", 'WEEKLY_STATS');
+            
+            // 1. Get statistics data
+            $reporter = new PFWeeklyReporter();
+            $stats = $reporter->generateWeeklyStats();
+
+            if (empty($stats)) {
+                logAction("No se generaron estadísticas para el reporte semanal.", 'WEEKLY_STATS');
+                return ['success' => false, 'message' => 'No statistics were generated for the weekly report.'];
+            }
+
+            // 2. Get the HTML content from the template
+            $emailBody = $this->templates->getWeeklyStatisticsTemplate($stats);
+
+            // 3. Define recipients for the report (ej. gerentes, directores)
+            // IMPORTANTE: Definir aquí la lista de correos que recibirán el reporte.
+            $recipients = [
+                ['email' => 'manager1@grammer.com', 'name' => 'Manager One'],
+                ['email' => 'director.area@grammer.com', 'name' => 'Area Director'],
+            ];
+
+            // En modo de desarrollo, todos se redirigen a TEST_EMAIL
+            if (TEST_MODE) {
+                $this->setEmailRecipients(TEST_EMAIL, 'Test Recipient');
+            } else {
+                 $this->mail->clearAddresses();
+                 foreach ($recipients as $recipient) {
+                    $this->mail->addAddress($recipient['email'], $recipient['name']);
+                 }
+            }
+
+            // 4. Configure and send the email
+            $this->mail->Subject = "Premium Freight Weekly Report: " . date('M d, Y');
+            $this->mail->Body = $emailBody;
+
+            if ($this->mail->send()) {
+                logAction("Reporte semanal de estadísticas enviado exitosamente.", 'WEEKLY_STATS');
+                return ['success' => true, 'message' => 'Weekly statistics report sent successfully.'];
+            } else {
+                logAction("Error enviando el reporte semanal: " . $this->mail->ErrorInfo, 'WEEKLY_STATS_ERROR');
+                return ['success' => false, 'message' => 'Failed to send weekly report: ' . $this->mail->ErrorInfo];
+            }
+
+        } catch (Exception $e) {
+            logAction("Excepción en sendWeeklyStatisticsReport: " . $e->getMessage(), 'WEEKLY_STATS_FATAL');
+            return ['success' => false, 'message' => 'A server exception occurred: ' . $e->getMessage()];
+        }
+    }
+
     public function sendStatusNotification($orderId, $status, $rejectorInfo = null) {
         try {
             $orderData = $this->services->getOrderDetails($orderId);

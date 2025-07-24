@@ -759,6 +759,119 @@ class PFEmailTemplates {
     }
     
     /**
+     * Template for the weekly statistics report.
+     * @param array $stats The statistics data from PFWeeklyReporter.
+     * @return string The HTML content of the email.
+     */
+    public function getWeeklyStatisticsTemplate($stats) {
+        // --- Data Formatting ---
+        $totalCost = number_format($stats['total_cost'] ?? 0, 2);
+        $totalApproved = $stats['total_approved'] ?? 0;
+        $totalRejected = $stats['total_rejected'] ?? 0;
+        $approvalRate = $stats['approval_rate'] ?? 'N/A';
+        $avgApprovalTime = $stats['average_approval_time'] ?? 'N/A';
+
+        // <<< NUEVOS DATOS >>>
+        $topUser = $stats['top_requesting_user']['name'] ?? 'N/A';
+        $topUserCount = $stats['top_requesting_user']['request_count'] ?? 0;
+        $topUserCost = number_format($stats['top_requesting_user']['total_cost'] ?? 0, 2);
+
+        $topArea = $stats['top_spending_area']['area'] ?? 'N/A';
+        $topAreaSpent = number_format($stats['top_spending_area']['total_spent'] ?? 0, 2);
+
+        $slowestApprover = $stats['slowest_approver']['name'] ?? 'N/A';
+        $slowestApproverTime = $stats['slowest_approver']['duration_formatted'] ?? 'N/A';
+
+        $reportDate = date('F d, Y');
+        $weekRange = date('M d', strtotime('-7 days')) . ' - ' . date('M d');
+
+        return '<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Freight Weekly Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
+        .container { max-width: 700px; margin: 20px auto; background-color: #ffffff; border-collapse: collapse; border: 1px solid #ddd; }
+        .header { background-color: #034C8C; color: #ffffff; padding: 20px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; }
+        .header p { margin: 5px 0 0; font-size: 14px; }
+        .content { padding: 25px; }
+        .section-title { font-size: 18px; color: #034C8C; border-bottom: 2px solid #eeeeee; padding-bottom: 5px; margin-bottom: 15px; }
+        .stats-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
+        .stats-table td { padding: 12px; border: 1px solid #dddddd; font-size: 14px; }
+        .stats-table .label { background-color: #f9f9f9; font-weight: bold; color: #333333; width: 60%; }
+        .stats-table .value { text-align: right; font-weight: bold; color: #034C8C; }
+        /* <<< NUEVOS ESTILOS PARA DETALLES >>> */
+        .value .detail { font-size: 12px; color: #555; font-weight: normal; display: block; margin-top: 4px; }
+        .footer { background-color: #f1f1f1; color: #666666; padding: 15px; text-align: center; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <table class="container" cellpadding="0" cellspacing="0">
+        <tr>
+            <td class="header">
+                <h1>Weekly Performance Report</h1>
+                <p>Premium Freight System | ' . $weekRange . '</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="content">
+                <h2 class="section-title">General Summary</h2>
+                <table class="stats-table" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td class="label">Total Approved Orders</td>
+                        <td class="value">' . $totalApproved . '</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Total Rejected Orders</td>
+                        <td class="value">' . $totalRejected . '</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Approval Rate</td>
+                        <td class="value">' . $approvalRate . '%</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Total Cost of Approved Shipments</td>
+                        <td class="value">€ ' . $totalCost . '</td>
+                    </tr>
+                </table>
+
+                <!-- <<< SECCIÓN MODIFICADA >>> -->
+                <h2 class="section-title">Performance Highlights</h2>
+                <table class="stats-table" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td class="label">Top Requesting User</td>
+                        <td class="value">' . htmlspecialchars($topUser) . '<span class="detail">' . $topUserCount . ' requests | Total Cost: € ' . $topUserCost . '</span></td>
+                    </tr>
+                    <tr>
+                        <td class="label">Top Spending Area</td>
+                        <td class="value">' . htmlspecialchars($topArea) . '<span class="detail">Total Spent: € ' . $topAreaSpent . '</span></td>
+                    </tr>
+                    <tr>
+                        <td class="label">Longest Approval Step</td>
+                        <td class="value">' . htmlspecialchars($slowestApprover) . '<span class="detail">Time taken: ' . $slowestApproverTime . '</span></td>
+                    </tr>
+                    <tr>
+                        <td class="label">Average Approval Time (Creation to Finish)</td>
+                        <td class="value">' . $avgApprovalTime . '</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td class="footer">
+                This is an automated report generated on ' . $reportDate . '.<br>
+                &copy; ' . date('Y') . ' GRAMMER AG - All rights reserved.
+            </td>
+        </tr>
+    </table>
+</body>
+</html>';
+    }
+
+    /**
      * Generate order rows for templates
      */
     private function generateOrderRows($orders, $approverId, $bulkApproveToken = null) {

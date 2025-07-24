@@ -37,7 +37,7 @@ export function renderApprovalTimeChart() {
     }
 
     // Ordena y traduce los estados para la gráfica
-    const statusTranslation = { 'nuevo': 'New', 'revision': 'In Review', 'aprobado': 'Approved', 'rechazado': 'Rejected' };
+    const statusTranslation = { 'new': 'New', 'review': 'In Review', 'approved': 'Approved', 'rejected': 'Rejected' };
     const statusOrder = ['New', 'In Review', 'Approved', 'Rejected'];
     const categories = [];
     const seriesData = [];
