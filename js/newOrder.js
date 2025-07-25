@@ -125,6 +125,14 @@ async function submitForm(event) {
     // =================== END: LOADING MODAL ===================
 
     try {
+        // ================== CORRECCIÓN: ESPERAR LA CONVERSIÓN DE MONEDA ==================
+        // Esto asegura que el cálculo de euros esté completo antes de la validación y el envío.
+        // El usuario verá el modal de carga mientras esto sucede.
+        if (typeof calculateEuros === 'function' && typeof getSelectedCurrency === 'function') {
+            await calculateEuros(getSelectedCurrency());
+        }
+        // ================================================================================
+
         // 1. Process new companies if any
         let originId = null;
         let destinyId = null;
@@ -148,7 +156,7 @@ async function submitForm(event) {
             carrierId = $('#Carrier').val();
         }
 
-        // ================== NEW: Process new Reference Order if needed ==================
+        // NEW: Process new Reference Order if needed
         let numOrderId = null;
         if (window.hasNewNumOrderToSave && window.hasNewNumOrderToSave()) {
             numOrderId = await window.saveNewNumOrder();
@@ -157,7 +165,6 @@ async function submitForm(event) {
         if (!numOrderId) {
             numOrderId = $('#ReferenceOrder').val();
         }
-        // ==============================================================================
 
         // 2. Validate form
         const validationResult = validateCompleteForm();
@@ -178,7 +185,6 @@ async function submitForm(event) {
         const quotedCost = parseFloat(formData['QuotedCost']);
         range = calculateAuthorizationRange(euros);
 
-        // ================== MODIFIED: Payload updated for new reference field ==================
         const payload = {
             user_id: window.PF_CONFIG.user.id || 1,
             date: new Date().toISOString().slice(0, 19).replace('T', ' '),
@@ -199,14 +205,13 @@ async function submitForm(event) {
             products: formData['Products'],
             carrier: carrierId,
             quoted_cost: quotedCost,
-            num_order_id: numOrderId, // Replaces 'reference' and 'reference_number'
+            num_order_id: numOrderId,
             origin_id: finalOriginId,
             destiny_id: finalDestinyId,
             status_id: 1,
             required_auth_level: range,
             moneda: getSelectedCurrency()
         };
-        // =====================================================================================
         
         // 5. Submit form data
         const response = await sendFormDataAsync(payload);
@@ -229,20 +234,14 @@ async function submitForm(event) {
             }
         }
         
-        // 7. Send approval notification using the imported function
-        const notificationResult = await sendApprovalNotification(orderId);
+        // 7. Send approval notification (DESACTIVADO PARA PRUEBAS)
+        // const notificationResult = await sendApprovalNotification(orderId);
 
         // 8. Show final success message
         Swal.fire({
             icon: 'success',
             title: 'Order Created Successfully!',
-            html: `
-                Order <strong>#${orderId}</strong> has been created successfully.<br><br>
-                ${notificationResult.success ? 
-                    '<i class="fas fa-check-circle text-success"></i> Approval notification sent.' : 
-                    `<i class="fas fa-exclamation-triangle text-warning"></i> Order created, but notification failed: ${notificationResult.message}`
-                }
-            `,
+            html: `Order <strong>#${orderId}</strong> has been created successfully.`,
             confirmButtonText: 'Go to Generated Orders'
         }).then((result) => {
             if (result.isConfirmed) {
@@ -327,6 +326,11 @@ function updateCharCounter(textarea, counterSelector, minLength) {
 }
 
 // Helper function to get the selected currency.
-function getSelectedCurrency() {
+// This function depends on currencyUtils.js, ensure it's loaded.
+function getSelectedCurrency() {    
+    if (typeof selectedCurrency !== 'undefined') {
+        return selectedCurrency;
+    }
+    // Fallback if the global variable is not available for some reason
     return document.getElementById('USD')?.classList.contains('active') ? 'USD' : 'MXN';
 }

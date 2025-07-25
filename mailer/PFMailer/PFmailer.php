@@ -315,7 +315,7 @@ class PFMailer {
             // IMPORTANTE: Definir aquí la lista de correos que recibirán el reporte.
             $recipients = [
                 ['email' => 'extern.jesus.perez@grammer.com', 'name' => 'Jesus Perez'],
-                 // ['email' => 'manager1@grammer.com', 'name' => 'Manager One'],
+                ['email' => 'extern.alejandro.torres@grammer.com', 'name' => 'Alejandro Torres'],
             ];
 
             // En modo de desarrollo, todos se redirigen a TEST_EMAIL

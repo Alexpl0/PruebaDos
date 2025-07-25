@@ -765,13 +765,14 @@ class PFEmailTemplates {
      */
     public function getWeeklyStatisticsTemplate($stats) {
         // --- Data Formatting ---
-        $totalCost = number_format($stats['total_cost'] ?? 0, 2);
+        $totalGenerated = $stats['total_generated'] ?? 0;
+        $totalPending = $stats['total_pending'] ?? 0; // <-- NUEVO
         $totalApproved = $stats['total_approved'] ?? 0;
         $totalRejected = $stats['total_rejected'] ?? 0;
+        $totalCost = number_format($stats['total_cost'] ?? 0, 2);
         $approvalRate = $stats['approval_rate'] ?? 'N/A';
         $avgApprovalTime = $stats['average_approval_time'] ?? 'N/A';
 
-        // <<< NUEVOS DATOS >>>
         $topUser = $stats['top_requesting_user']['name'] ?? 'N/A';
         $topUserCount = $stats['top_requesting_user']['request_count'] ?? 0;
         $topUserCost = number_format($stats['top_requesting_user']['total_cost'] ?? 0, 2);
@@ -803,7 +804,6 @@ class PFEmailTemplates {
         .stats-table td { padding: 12px; border: 1px solid #dddddd; font-size: 14px; }
         .stats-table .label { background-color: #f9f9f9; font-weight: bold; color: #333333; width: 60%; }
         .stats-table .value { text-align: right; font-weight: bold; color: #034C8C; }
-        /* <<< NUEVOS ESTILOS PARA DETALLES >>> */
         .value .detail { font-size: 12px; color: #555; font-weight: normal; display: block; margin-top: 4px; }
         .footer { background-color: #f1f1f1; color: #666666; padding: 15px; text-align: center; font-size: 12px; }
     </style>
@@ -821,6 +821,14 @@ class PFEmailTemplates {
                 <h2 class="section-title">General Summary</h2>
                 <table class="stats-table" cellpadding="0" cellspacing="0">
                     <tr>
+                        <td class="label">Total Generated Requests</td>
+                        <td class="value">' . $totalGenerated . '</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Orders Pending / In Progress</td>
+                        <td class="value">' . $totalPending . '</td>
+                    </tr>
+                    <tr>
                         <td class="label">Total Approved Orders</td>
                         <td class="value">' . $totalApproved . '</td>
                     </tr>
@@ -829,7 +837,7 @@ class PFEmailTemplates {
                         <td class="value">' . $totalRejected . '</td>
                     </tr>
                     <tr>
-                        <td class="label">Approval Rate</td>
+                        <td class="label">Approval Rate (of processed orders)</td>
                         <td class="value">' . $approvalRate . '%</td>
                     </tr>
                     <tr>
@@ -838,12 +846,11 @@ class PFEmailTemplates {
                     </tr>
                 </table>
 
-                <!-- <<< SECCIÓN MODIFICADA >>> -->
-                <h2 class="section-title">Performance Highlights</h2>
+                <h2 class="section-title">Performance Highlights (Based on Approved Orders)</h2>
                 <table class="stats-table" cellpadding="0" cellspacing="0">
                     <tr>
                         <td class="label">Top Requesting User</td>
-                        <td class="value">' . htmlspecialchars($topUser) . '<span class="detail">' . $topUserCount . ' requests | Total Cost: € ' . $topUserCost . '</span></td>
+                        <td class="value">' . htmlspecialchars($topUser) . '<span class="detail">' . $topUserCount . ' approved requests | Total Cost: € ' . $topUserCost . '</span></td>
                     </tr>
                     <tr>
                         <td class="label">Top Spending Area</td>
@@ -851,7 +858,7 @@ class PFEmailTemplates {
                     </tr>
                     <tr>
                         <td class="label">Longest Approval Step</td>
-                        <td class="value">' . htmlspecialchars($slowestApprover) . '<span class="detail">Time taken: ' . $slowestApproverTime . '</span></td>
+                        <td class="value">' . htmlspecialchars($slowestApprover) . '<span class="detail">Avg. time taken: ' . $slowestApproverTime . '</span></td>
                     </tr>
                     <tr>
                         <td class="label">Average Approval Time (Creation to Finish)</td>
