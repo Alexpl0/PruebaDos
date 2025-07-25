@@ -1,12 +1,22 @@
 /**
  * Password Reset JavaScript
- * Handles reset requests and password changes with encryption
+ * Handles reset requests and password changes with encryption.
+ * All display strings are in English, but comments explaining the logic are in Spanish.
  */
 
 document.addEventListener('DOMContentLoaded', function () {
     console.log('Password Reset JS loaded');
+
+    // Asegurarse de que PF_CONFIG exista.
+    if (typeof window.PF_CONFIG === 'undefined') {
+        console.error('PF_CONFIG is not defined. Make sure it is injected into the HTML before this script.');
+        // Puedes inicializarlo para evitar errores, aunque los valores serán nulos.
+        window.PF_CONFIG = {};
+    } else {
+        console.log('PF_CONFIG initialized:', window.PF_CONFIG);
+    }
     
-    // Load PasswordManager if not already loaded
+    // Cargar PasswordManager si no está ya cargado.
     if (typeof PasswordManager === 'undefined') {
         const script = document.createElement('script');
         script.src = 'js/PasswordManager.js';
@@ -21,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 /**
- * Initialize logic depending on the present form
+ * Inicializa la lógica dependiendo del formulario que esté presente.
  */
 function initializePasswordReset() {
     console.log('Initializing password reset functionality');
@@ -32,10 +42,11 @@ function initializePasswordReset() {
     if (document.getElementById('reset-form')) {
         initializeResetForm();
     }
+    console.log('Password Reset JS fully loaded');
 }
 
 /**
- * Initialize the recovery form
+ * Inicializa el formulario de recuperación.
  */
 function initializeRecoveryForm() {
     console.log('Initializing recovery form');
@@ -45,7 +56,7 @@ function initializeRecoveryForm() {
 }
 
 /**
- * Initialize the password reset form
+ * Inicializa el formulario para restablecer la contraseña.
  */
 function initializeResetForm() {
     console.log('Initializing reset form');
@@ -58,16 +69,16 @@ function initializeResetForm() {
         return;
     }
 
-    // Add form submit handler
+    // Añadir el manejador para el envío del formulario.
     form.addEventListener('submit', handleResetSubmit);
     
-    // Initialize password strength and match indicators
+    // Inicializar los indicadores de fortaleza y coincidencia de contraseña.
     initializePasswordIndicators();
     
-    // Setup password visibility toggles
+    // Configurar los botones para mostrar/ocultar contraseña.
     setupPasswordToggles();
     
-    // Add real-time validation
+    // Añadir validación en tiempo real.
     newPasswordInput.addEventListener('input', function() {
         updatePasswordStrength();
         if (confirmPasswordInput.value) {
@@ -81,10 +92,10 @@ function initializeResetForm() {
 }
 
 /**
- * Initialize password strength and match indicators
+ * Inicializa los indicadores de fortaleza y coincidencia de contraseña.
  */
 function initializePasswordIndicators() {
-    // Ensure password strength indicator exists with proper structure
+    // Asegurar que el contenedor del indicador de fortaleza exista con la estructura correcta.
     const strengthContainer = document.querySelector('.password-strength');
     if (strengthContainer && !strengthContainer.querySelector('.strength-fill')) {
         strengthContainer.innerHTML = `
@@ -95,12 +106,12 @@ function initializePasswordIndicators() {
         `;
     }
     
-    // Initialize with blank state
+    // Inicializar con un estado en blanco.
     resetPasswordStrength();
 }
 
 /**
- * Setup password visibility toggles
+ * Configura los botones para mostrar/ocultar la contraseña.
  */
 function setupPasswordToggles() {
     const toggleIcons = document.querySelectorAll('.toggle-password-icon');
@@ -123,7 +134,7 @@ function setupPasswordToggles() {
 }
 
 /**
- * Handles the recovery form submission
+ * Maneja el envío del formulario de recuperación.
  */
 async function handleRecoverySubmit(event) {
     event.preventDefault();
@@ -146,7 +157,7 @@ async function handleRecoverySubmit(event) {
     });
 
     try {
-        const response = await fetch(URLPF + 'dao/users/daoPasswordReset.php', {
+        const response = await fetch(PF_CONFIG.app.baseURL + 'dao/users/daoPasswordReset.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email })
@@ -177,7 +188,7 @@ async function handleRecoverySubmit(event) {
 }
 
 /**
- * Handles the password reset form submission
+ * Maneja el envío del formulario para restablecer la contraseña.
  */
 async function handleResetSubmit(event) {
     event.preventDefault();
@@ -185,10 +196,19 @@ async function handleResetSubmit(event) {
 
     const newPassword = document.getElementById('new-password').value;
     const confirmPassword = document.getElementById('confirm-password').value;
-    const token = document.getElementById('reset-token').value;
-    const userId = document.getElementById('user-id').value;
 
-    // Validation
+    // --- CORRECCIÓN ---
+    // Leer los datos desde el objeto global PF_CONFIG en lugar de elementos HTML inexistentes.
+    const token = window.PF_CONFIG.resetToken;
+    const userId = window.PF_CONFIG.resetUserId;
+    // --- FIN DE LA CORRECCIÓN ---
+
+    // Validación
+    if (!token || !userId) {
+        Swal.fire('Error', 'Missing token or user ID. Please try the recovery link again.', 'error');
+        console.error('Token or userId is missing from PF_CONFIG', window.PF_CONFIG);
+        return;
+    }
     if (!newPassword || !confirmPassword) {
         Swal.fire('Error', 'Please enter and confirm your new password.', 'error');
         return;
@@ -198,7 +218,7 @@ async function handleResetSubmit(event) {
         return;
     }
 
-    // Password strength validation
+    // Validación de la fortaleza de la contraseña.
     if (typeof PasswordManager !== 'undefined') {
         const passwordValidation = PasswordManager.validateStrength(newPassword);
         if (!passwordValidation.isValid) {
@@ -206,14 +226,14 @@ async function handleResetSubmit(event) {
             return;
         }
     } else {
-        // Fallback validation
+        // Validación de respaldo.
         if (!isStrongPassword(newPassword)) {
             Swal.fire('Error', 'Password must be at least 8 characters long and include both letters and numbers.', 'error');
             return;
         }
     }
 
-    // Show progress
+    // Mostrar progreso.
     Swal.fire({
         title: 'Updating password...',
         html: `
@@ -227,12 +247,12 @@ async function handleResetSubmit(event) {
         didOpen: () => Swal.showLoading()
     });
 
-    // Send password as plain text for backend encryption
+    // Enviar la contraseña en texto plano para que el backend la encripte.
     let passwordToSend = newPassword;
     console.log('Sending plain password to backend for encryption');
 
     try {
-        const response = await fetch(URLPF + 'dao/users/daoPasswordUpdate.php', {
+        const response = await fetch(PF_CONFIG.app.baseURL + 'dao/users/daoPasswordUpdate.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -258,7 +278,7 @@ async function handleResetSubmit(event) {
                 `,
                 confirmButtonText: 'Go to Login'
             }).then(() => {
-                window.location.href = 'index.php';
+                window.location.href = PF_CONFIG.app.baseURL + 'index.php';
             });
         } else {
             Swal.fire('Error', result.message || 'Could not update the password.', 'error');
@@ -271,7 +291,7 @@ async function handleResetSubmit(event) {
 }
 
 /**
- * Reset password strength indicator to blank state
+ * Restablece el indicador de fortaleza de la contraseña a su estado inicial.
  */
 function resetPasswordStrength() {
     const strengthFill = document.querySelector('.strength-fill');
@@ -296,7 +316,7 @@ function resetPasswordStrength() {
 }
 
 /**
- * Updates the password strength indicator
+ * Actualiza el indicador de fortaleza de la contraseña.
  */
 function updatePasswordStrength() {
     const password = document.getElementById('new-password').value;
@@ -305,36 +325,38 @@ function updatePasswordStrength() {
 
     if (!strengthFill || !strengthLevel) return;
     
-    // Handle empty password
+    // Manejar el caso de contraseña vacía.
     if (!password) {
         resetPasswordStrength();
         return;
     }
 
-    // Use PasswordManager if available
+    // Usar PasswordManager si está disponible.
     if (typeof PasswordManager !== 'undefined') {
         const validation = PasswordManager.validateStrength(password);
-        const colors = ['#e74c3c', '#f39c12', '#f1c40f', '#27ae60'];
+        const colors = ['#e74c3c', '#f39c12', '#f1c40f', '#27ae60']; // Weak, Fair, Good, Strong
         const labels = ['Weak', 'Fair', 'Good', 'Strong'];
         
-        const colorIndex = Math.min(validation.score - 1, colors.length - 1);
+        // Asumiendo que `validateStrength` devuelve un `score` de 1 a 4.
+        const score = validation.score || 1;
+        const colorIndex = Math.min(score - 1, colors.length - 1);
         const color = colors[Math.max(0, colorIndex)];
         const label = labels[Math.max(0, colorIndex)];
-        const width = Math.max(25, (validation.score / 4) * 100);
+        const width = Math.max(25, (score / 4) * 100);
 
         strengthFill.style.width = `${width}%`;
         strengthFill.style.backgroundColor = color;
-        strengthFill.setAttribute('aria-valuenow', validation.score * 25);
+        strengthFill.setAttribute('aria-valuenow', score * 25);
         strengthLevel.textContent = label;
         strengthLevel.style.color = color;
     } else {
-        // Fallback method
+        // Método de respaldo.
         updatePasswordStrengthFallback();
     }
 }
 
 /**
- * Fallback password strength update
+ * Actualización de fortaleza de contraseña (método de respaldo).
  */
 function updatePasswordStrengthFallback() {
     const password = document.getElementById('new-password').value;
@@ -380,7 +402,7 @@ function updatePasswordStrengthFallback() {
 }
 
 /**
- * Checks if passwords match and updates the match text
+ * Verifica si las contraseñas coinciden y actualiza el texto del indicador.
  */
 function checkPasswordMatch() {
     const password = document.getElementById('new-password').value;
@@ -405,7 +427,7 @@ function checkPasswordMatch() {
 }
 
 /**
- * Validates email format
+ * Valida el formato del email.
  */
 function isValidEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -413,23 +435,10 @@ function isValidEmail(email) {
 }
 
 /**
- * Validates that the password is strong (fallback)
+ * Valida que la contraseña sea fuerte (método de respaldo).
  */
 function isStrongPassword(password) {
     return password.length >= 8 &&
         /[a-zA-Z]/.test(password) &&
         /\d/.test(password);
 }
-
-/**
- * Set base URLs if not defined
- */
-if (typeof window.URLPF === 'undefined') {
-    window.URLPF = 'https://grammermx.com/Jesus/PruebaDos/';
-}
-
-if (typeof window.URLM === 'undefined') {
-    window.URLM = 'https://grammermx.com/Jesus/Mailer/';
-}
-
-console.log('Password Reset JS fully loaded');

@@ -29,6 +29,7 @@ require_once __DIR__ . '/../Phpmailer/Exception.php';
 require_once __DIR__ . '/PFEmailServices.php';
 require_once __DIR__ . '/PFEmailTemplates.php';
 require_once __DIR__ . '/PFDB.php';
+require_once __DIR__ . '/PFWeeklyReporter.php'; // <-- LÍNEA CORREGIDA Y AÑADIDA
 
 
 // --- Definición de constantes basada en el entorno ---
@@ -290,8 +291,6 @@ class PFMailer {
         return $result;
     }
 
-    // ===== NUEVO MÉTODO PARA EL REPORTE SEMANAL =====
-    
     /**
      * Generates and sends the weekly statistics report to a predefined list of recipients.
      * @return array A result array with success status and message.
@@ -315,8 +314,8 @@ class PFMailer {
             // 3. Define recipients for the report (ej. gerentes, directores)
             // IMPORTANTE: Definir aquí la lista de correos que recibirán el reporte.
             $recipients = [
-                ['email' => 'manager1@grammer.com', 'name' => 'Manager One'],
-                ['email' => 'director.area@grammer.com', 'name' => 'Area Director'],
+                ['email' => 'extern.jesus.perez@grammer.com', 'name' => 'Jesus Perez'],
+                 // ['email' => 'manager1@grammer.com', 'name' => 'Manager One'],
             ];
 
             // En modo de desarrollo, todos se redirigen a TEST_EMAIL
@@ -439,7 +438,7 @@ class PFMailer {
     public function sendVerificationEmail($userId) {
         try {
             $user = $this->services->getUser($userId);
-            if (!$user || $user['verified'] == 1) return false;
+            if (!$user || !empty($user['verified'])) return false;
             
             $token = $this->generateVerificationToken($userId);
             if (!$token) return false;
