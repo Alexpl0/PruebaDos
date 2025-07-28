@@ -403,18 +403,5 @@ function generateDetailedKPIsHTML(stats) {
     `;
 }
 
-/**
- * Actualiza la sección de KPIs detallados
- */
-export function updateDetailedKPIs() {
-    const container = document.getElementById('detailedKPIsContainer');
-    if (!container) {
-        console.error("Error: El contenedor 'detailedKPIsContainer' no existe en el DOM.");
-        return;
-    }
 
-    // Actualiza el contenido del contenedor con los KPIs detallados
-    container.textContent = "Actualizando KPIs detallados..."; // Ejemplo de actualización
-    // Aquí iría el resto de la lógica para actualizar los KPIs detallados
-}
 
