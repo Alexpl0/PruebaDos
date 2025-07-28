@@ -105,7 +105,9 @@ async function initializeDashboard() {
         $('#dateRange').on('apply.daterangepicker', triggerFilterUpdate);
 
         // 5. Realiza la primera actualización de todas las visualizaciones
-        triggerFilterUpdate();
+        updateKPIs(); // Actualiza los KPIs principales
+        updateDetailedKPIs(); // Llama a la función del archivo kpi.js
+        triggerFilterUpdate(); // Actualiza todas las visualizaciones
 
         // 6. Configura el botón de refrescar datos
         document.getElementById('refreshData')?.addEventListener('click', async () => {
