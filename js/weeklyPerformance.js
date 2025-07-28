@@ -1,7 +1,6 @@
 /**
  * WEEKLY PERFORMANCE DASHBOARD - MAIN JAVASCRIPT
- * 
- * Este módulo maneja toda la funcionalidad de la página de rendimiento semanal,
+ * * Este módulo maneja toda la funcionalidad de la página de rendimiento semanal,
  * incluyendo la carga de datos, visualizaciones, filtros y exportaciones.
  */
 
@@ -21,25 +20,111 @@ if (typeof URLPF !== 'undefined') {
 // Almacenamiento de datos y gráficas
 let weeklyData = {};
 let charts = {};
-let currentDateRange = {
-    start: moment().subtract(7, 'days').format('YYYY-MM-DD'),
-    end: moment().format('YYYY-MM-DD')
+let currentWeek = {
+    start: moment().startOf('isoWeek'),
+    end: moment().endOf('isoWeek'),
+    weekNumber: moment().isoWeek(),
+    year: moment().year()
 };
 
-// Paleta de colores moderna
+// Paleta de colores usando variables del sistema existente
 const colorPalette = {
-    primary: ['#667eea', '#764ba2', '#f093fb', '#f5576c'],
-    success: ['#4facfe', '#00f2fe', '#43e97b', '#38f9d7'],
-    gradient: {
-        primary: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        success: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-        warning: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-        info: 'linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%)'
+    primary: '#034C8C',
+    primaryLight: '#4A90D9', 
+    primaryDark: '#002856',
+    accent: '#00A3E0',
+    success: '#218621',
+    warning: '#F59E0B',
+    danger: '#E41A23',
+    info: '#3B82F6',
+    gradients: {
+        primary: 'linear-gradient(135deg, #034C8C 0%, #002856 100%)',
+        success: 'linear-gradient(135deg, #218621 0%, #16a34a 100%)',
+        warning: 'linear-gradient(135deg, #F59E0B 0%, #f59e0b 100%)',
+        info: 'linear-gradient(135deg, #3B82F6 0%, #00A3E0 100%)',
+        danger: 'linear-gradient(135deg, #E41A23 0%, #dc2626 100%)'
     }
 };
 
 // ========================================================================
-// 2. FUNCIONES DE CARGA DE DATOS
+// 2. SELECTOR DE SEMANAS
+// ========================================================================
+
+/**
+ * Inicializa el selector de semanas
+ */
+function initializeWeekSelector() {
+    updateWeekDisplay();
+    
+    // Event listeners para navegación
+    document.getElementById('prevWeek').addEventListener('click', () => {
+        currentWeek.start.subtract(1, 'week');
+        currentWeek.end.subtract(1, 'week');
+        currentWeek.weekNumber = currentWeek.start.isoWeek();
+        currentWeek.year = currentWeek.start.year();
+        updateWeekDisplay();
+        updateAllVisualizations();
+    });
+    
+    document.getElementById('nextWeek').addEventListener('click', () => {
+        const nextWeekStart = moment(currentWeek.start).add(1, 'week');
+        const today = moment();
+        
+        // No permitir navegar a semanas futuras
+        if (nextWeekStart.isAfter(today, 'week')) {
+            showErrorMessage('Cannot navigate to future weeks');
+            return;
+        }
+        
+        currentWeek.start.add(1, 'week');
+        currentWeek.end.add(1, 'week');
+        currentWeek.weekNumber = currentWeek.start.isoWeek();
+        currentWeek.year = currentWeek.start.year();
+        updateWeekDisplay();
+        updateAllVisualizations();
+    });
+}
+
+/**
+ * Actualiza la visualización del selector de semanas
+ */
+function updateWeekDisplay() {
+    const weekDisplay = document.getElementById('weekDisplay');
+    const prevBtn = document.getElementById('prevWeek');
+    const nextBtn = document.getElementById('nextWeek');
+    
+    if (!weekDisplay) return;
+    
+    const weekInfo = `Week ${currentWeek.weekNumber} of ${currentWeek.year}`;
+    const weekDates = `${currentWeek.start.format('MMM DD')} - ${currentWeek.end.format('MMM DD')}`;
+    
+    weekDisplay.innerHTML = `
+        <div class="week-info">${weekInfo}</div>
+        <div class="week-dates">${weekDates}</div>
+    `;
+    
+    // Deshabilitar navegación futura
+    const today = moment();
+    const nextWeekStart = moment(currentWeek.start).add(1, 'week');
+    nextBtn.disabled = nextWeekStart.isAfter(today, 'week');
+    
+    // Opcional: limitar cuánto atrás se puede ir (ej: máximo 1 año)
+    const oneYearAgo = moment().subtract(1, 'year');
+    prevBtn.disabled = currentWeek.start.isBefore(oneYearAgo, 'week');
+}
+
+/**
+ * Obtiene el rango de fechas actual en formato para la API
+ */
+function getCurrentDateRange() {
+    return {
+        start: currentWeek.start.format('YYYY-MM-DD'),
+        end: currentWeek.end.format('YYYY-MM-DD')
+    };
+}
+
+// ========================================================================
+// 3. FUNCIONES DE CARGA DE DATOS
 // ========================================================================
 
 /**
@@ -49,7 +134,8 @@ async function loadWeeklyData() {
     try {
         showLoading(true);
         
-        const url = `${WEEKLY_KPIS_URL}?start_date=${currentDateRange.start}&end_date=${currentDateRange.end}`;
+        const dateRange = getCurrentDateRange();
+        const url = `${WEEKLY_KPIS_URL}?start_date=${dateRange.start}&end_date=${dateRange.end}`;
         const response = await fetch(url, {
             method: 'GET',
             headers: {
@@ -168,8 +254,8 @@ function generateWeeklySummary() {
     const container = document.getElementById('weeklySummaryContainer');
     if (!container || !weeklyData) return;
 
-    const currentDate = new Date();
-    const weekRange = `${moment(currentDateRange.start).format('MMM DD')} - ${moment(currentDateRange.end).format('MMM DD, YYYY')}`;
+    const weekInfo = `Week ${currentWeek.weekNumber} of ${currentWeek.year}`;
+    const weekRange = `${currentWeek.start.format('MMM DD')} - ${currentWeek.end.format('MMM DD, YYYY')}`;
     
     const html = `
         <div class="weekly-summary-container">
@@ -178,7 +264,7 @@ function generateWeeklySummary() {
                     <i class="fas fa-chart-line me-2"></i>
                     Weekly Performance Report
                 </h3>
-                <span class="kpis-subtitle">Premium Freight System | ${weekRange}</span>
+                <span class="kpis-subtitle">Premium Freight System | ${weekInfo} (${weekRange})</span>
             </div>
             
             <div class="kpis-content">
@@ -273,7 +359,7 @@ function generateWeeklySummary() {
             <div class="kpis-footer">
                 <small class="text-muted">
                     <i class="fas fa-info-circle me-1"></i>
-                    This is an automated report generated on ${currentDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    This is an automated report generated on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                 </small>
             </div>
         </div>
@@ -318,7 +404,7 @@ function renderTrendsChart() {
                 }
             }
         },
-        colors: ['#667eea', '#4facfe'],
+        colors: [colorPalette.primary, colorPalette.accent],
         stroke: {
             width: 3,
             curve: 'smooth'
@@ -328,7 +414,10 @@ function renderTrendsChart() {
         },
         title: {
             text: 'Daily Performance Trend',
-            align: 'left'
+            align: 'left',
+            style: {
+                fontFamily: 'Merriweather, serif'
+            }
         },
         grid: {
             borderColor: '#e7e7e7',
@@ -367,9 +456,10 @@ function renderStatusChart() {
             height: 400
         },
         labels: ['Approved', 'Pending', 'Rejected'],
-        colors: ['#4facfe', '#f093fb', '#ff6b6b'],
+        colors: [colorPalette.success, colorPalette.warning, colorPalette.danger],
         legend: {
-            position: 'bottom'
+            position: 'bottom',
+            fontFamily: 'Merriweather, serif'
         },
         responsive: [{
             breakpoint: 480,
@@ -407,7 +497,7 @@ function renderTopPerformersChart() {
             type: 'bar',
             height: 350
         },
-        colors: ['#667eea'],
+        colors: [colorPalette.primary],
         plotOptions: {
             bar: {
                 borderRadius: 4,
@@ -448,7 +538,7 @@ function renderAreaPerformanceChart() {
             height: 350,
             type: 'area'
         },
-        colors: ['#4facfe', '#f093fb'],
+        colors: [colorPalette.accent, colorPalette.warning],
         dataLabels: {
             enabled: false
         },
@@ -500,7 +590,7 @@ function renderApprovalTimesChart() {
             }
         },
         labels: ['< 1h', '1-4h', '4-24h', '> 24h'],
-        colors: ['#4facfe', '#667eea', '#f093fb', '#ff6b6b']
+        colors: [colorPalette.success, colorPalette.primary, colorPalette.warning, colorPalette.danger]
     };
 
     if (charts.approvalTimes) {
@@ -529,7 +619,7 @@ function renderCostAnalysisChart() {
                 enabled: false
             }
         },
-        colors: ['#f093fb'],
+        colors: [colorPalette.warning],
         fill: {
             type: 'gradient',
             gradient: {
@@ -642,13 +732,20 @@ function exportToExcel() {
         return;
     }
 
+    if (typeof XLSX === 'undefined') {
+        showErrorMessage('Excel export library not loaded');
+        return;
+    }
+
     try {
         const workbook = XLSX.utils.book_new();
+        const dateRange = getCurrentDateRange();
         
         // Crear hoja de resumen
         const summaryData = [
             ['Weekly Performance Report'],
-            ['Period', `${currentDateRange.start} to ${currentDateRange.end}`],
+            ['Week', `${currentWeek.weekNumber} of ${currentWeek.year}`],
+            ['Period', `${dateRange.start} to ${dateRange.end}`],
             [''],
             ['Metric', 'Value'],
             ['Total Generated Requests', weeklyData.total_generated || 0],
@@ -667,7 +764,7 @@ function exportToExcel() {
         XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
 
         // Guardar archivo
-        const fileName = `weekly-performance-${currentDateRange.start}-to-${currentDateRange.end}.xlsx`;
+        const fileName = `weekly-performance-week${currentWeek.weekNumber}-${currentWeek.year}.xlsx`;
         XLSX.writeFile(workbook, fileName);
 
         // Mostrar mensaje de éxito
@@ -689,8 +786,13 @@ function exportToExcel() {
  * Exporta los datos a PDF
  */
 function exportToPDF() {
-    if (typeof jsPDF === 'undefined') {
-        showErrorMessage('PDF library not loaded');
+    if (typeof window.jspdf === 'undefined') {
+        showErrorMessage('PDF library not available. Please try again or contact support.');
+        return;
+    }
+
+    if (!weeklyData) {
+        showErrorMessage('No data available to export');
         return;
     }
 
@@ -702,12 +804,13 @@ function exportToPDF() {
         doc.setFontSize(20);
         doc.text('Weekly Performance Report', 20, 30);
         
-        // Período
+        // Información de la semana
         doc.setFontSize(12);
-        doc.text(`Period: ${currentDateRange.start} to ${currentDateRange.end}`, 20, 50);
+        doc.text(`Week ${currentWeek.weekNumber} of ${currentWeek.year}`, 20, 45);
+        doc.text(`Period: ${getCurrentDateRange().start} to ${getCurrentDateRange().end}`, 20, 55);
 
         // Métricas principales
-        let yPos = 70;
+        let yPos = 75;
         doc.setFontSize(14);
         doc.text('Performance Metrics:', 20, yPos);
         
@@ -746,7 +849,7 @@ function exportToPDF() {
         });
 
         // Guardar PDF
-        const fileName = `weekly-performance-${currentDateRange.start}-to-${currentDateRange.end}.pdf`;
+        const fileName = `weekly-performance-week${currentWeek.weekNumber}-${currentWeek.year}.pdf`;
         doc.save(fileName);
 
         // Mostrar mensaje de éxito
@@ -803,29 +906,6 @@ async function updateAllVisualizations() {
     }
 }
 
-/**
- * Inicializa el selector de rango de fechas
- */
-function initializeDateRangePicker() {
-    $('#dateRange').daterangepicker({
-        startDate: moment().subtract(7, 'days'),
-        endDate: moment(),
-        ranges: {
-            'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-            'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-            'This Month': [moment().startOf('month'), moment().endOf('month')],
-            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-        },
-        locale: {
-            format: 'DD/MM/YYYY'
-        }
-    }, function(start, end) {
-        currentDateRange.start = start.format('YYYY-MM-DD');
-        currentDateRange.end = end.format('YYYY-MM-DD');
-        updateAllVisualizations();
-    });
-}
-
 // ========================================================================
 // 9. INICIALIZACIÓN
 // ========================================================================
@@ -838,7 +918,7 @@ async function initializeWeeklyPerformance() {
         console.log('Initializing Weekly Performance Dashboard...');
 
         // Inicializar componentes
-        initializeDateRangePicker();
+        initializeWeekSelector();
 
         // Event listeners
         document.getElementById('refreshData')?.addEventListener('click', updateAllVisualizations);

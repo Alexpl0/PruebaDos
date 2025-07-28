@@ -73,25 +73,36 @@ require_once 'dao/users/context_injector.php';
                     <div class="card-body">
                         <div class="row align-items-end">
                             <div class="col-md-4">
-                                <label for="dateRange" class="form-label">
-                                    <i class="fas fa-calendar-alt me-2"></i>Analysis Period
+                                <label for="weekSelector" class="form-label">
+                                    <i class="fas fa-calendar-week me-2"></i>Analysis Week
                                 </label>
-                                <input type="text" class="form-control" id="dateRange">
+                                <div class="week-selector" id="weekSelector">
+                                    <button type="button" class="week-nav-btn" id="prevWeek">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <div class="week-display" id="weekDisplay">
+                                        <div class="week-info">Week of 2025</div>
+                                        <div class="week-dates">Loading...</div>
+                                    </div>
+                                    <button type="button" class="week-nav-btn" id="nextWeek">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="col-md-3">
-                                <button id="refreshData" class="btn btn-primary">
+                                <button id="refreshData" class="btn btn-primary" disabled>
                                     <i class="fas fa-sync-alt me-2"></i>Refresh Data
                                 </button>
                             </div>
                             <div class="col-md-5">
                                 <div class="btn-group float-end">
-                                    <button id="exportExcel" class="btn btn-outline-success">
+                                    <button id="exportExcel" class="btn btn-outline-success" disabled>
                                         <i class="fas fa-file-excel me-2"></i>Export to Excel
                                     </button>
-                                    <button id="exportPDF" class="btn btn-outline-danger">
+                                    <button id="exportPDF" class="btn btn-outline-danger" disabled>
                                         <i class="fas fa-file-pdf me-2"></i>Export to PDF
                                     </button>
-                                    <button id="printReport" class="btn btn-outline-primary">
+                                    <button id="printReport" class="btn btn-outline-primary" disabled>
                                         <i class="fas fa-print me-2"></i>Print Report
                                     </button>
                                 </div>
@@ -288,14 +299,56 @@ require_once 'dao/users/context_injector.php';
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
-    <!-- Librerías de Gráficos y Fechas -->
+    <!-- Librerías de Gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.35.0/dist/apexcharts.min.js"></script>
     
     <!-- Librerías de Exportación -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        // Verificar que jsPDF esté disponible antes de cargar la página
+        let jsPDFLoaded = false;
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        script.onload = function() {
+            jsPDFLoaded = true;
+            console.log('jsPDF library loaded successfully');
+            // Habilitar botones cuando las bibliotecas estén listas
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(() => {
+                    enableButtons();
+                }, 1000);
+            });
+        };
+        script.onerror = function() {
+            console.error('Failed to load jsPDF library');
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(() => {
+                    enableButtons(false);
+                }, 1000);
+            });
+        };
+        document.head.appendChild(script);
+        
+        // Función para habilitar/deshabilitar botones
+        function enableButtons(enablePDF = true) {
+            const buttons = ['refreshData', 'exportExcel', 'printReport'];
+            buttons.forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) btn.disabled = false;
+            });
+            
+            const pdfBtn = document.getElementById('exportPDF');
+            if (pdfBtn) {
+                pdfBtn.disabled = !enablePDF;
+                if (!enablePDF) {
+                    pdfBtn.title = 'PDF export unavailable - library failed to load';
+                    pdfBtn.classList.add('btn-secondary');
+                    pdfBtn.classList.remove('btn-outline-danger');
+                }
+            }
+        }
+    </script>
     
     <!-- Archivos JS locales -->
     <script src="js/header.js" type="module"></script>
