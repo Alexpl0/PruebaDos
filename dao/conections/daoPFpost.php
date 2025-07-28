@@ -88,8 +88,9 @@ try {
     $reference = null;
     $referenceNumberId = intval($data['num_order_id']);
 
+    // CORRECCIÓN: Se cambió el tipo de dato para 'quoted_cost' de 's' a 'd' (double).
     $stmt->bind_param(
-        "isssssdssssssssisisiisiiis",
+        "isssssdssssssssidisiisiiis",
         $userId, $date, $data['planta'], $data['code_planta'], $data['transport'],
         $data['in_out_bound'], $data['cost_euros'], $data['description'], $data['area'],
         $data['int_ext'], $data['paid_by'], $data['category_cause'], $data['project_status'],
@@ -106,15 +107,18 @@ try {
     $premiumFreightId = $stmt->insert_id;
     $stmt->close();
 
+    // Si $premiumFreightId es 0, es muy probable que la clave primaria de la tabla no sea AUTO_INCREMENT
+    if (empty($premiumFreightId)) {
+        $conex->rollback();
+        throw new Exception("Failed to retrieve insert_id. Please check if the primary key of the 'PremiumFreight' table is set to AUTO_INCREMENT.");
+    }
+
     $sqlApproval = "INSERT INTO PremiumFreightApprovals (premium_freight_id, user_id, approval_date, status_id, act_approv) VALUES (?, ?, NOW(), ?, 0)";
     $stmtApproval = $conex->prepare($sqlApproval);
     $stmtApproval->bind_param("iii", $premiumFreightId, $userId, $statusId);
     $stmtApproval->execute();
     $stmtApproval->close();
 
-    // =================================================================================
-    // NUEVO: Insertar el primer registro en el historial de aprobaciones
-    // =================================================================================
     $sqlHistory = "INSERT INTO ApprovalHistory (premium_freight_id, user_id, action_type, approval_level_reached, comments) VALUES (?, ?, 'CREATED', 0, 'Order created successfully')";
     $stmtHistory = $conex->prepare($sqlHistory);
     if ($stmtHistory) {
@@ -122,7 +126,6 @@ try {
         $stmtHistory->execute();
         $stmtHistory->close();
     }
-    // =================================================================================
 
     $conex->commit();
     $conex->close();
@@ -134,7 +137,7 @@ try {
     ]);
 
 } catch (Exception $e) {
-    if (isset($conex)) {
+    if (isset($conex) && $conex->ping()) {
         $conex->rollback();
         $conex->close();
     }

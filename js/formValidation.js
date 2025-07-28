@@ -47,7 +47,6 @@ function collectFormData() {
             }
             formData[id] = value;
 
-            // The check for 'ReferenceOrder' is now done like any other field.
             if (!value || value === '') {
                 emptyFields.push(id);
             }
@@ -103,20 +102,28 @@ function validateCompleteForm() {
     let customErrorMessages = {};
 
     // ================== START: RECOVERY FILE VALIDATION ==================
+    // This section handles your first requirement.
+    // It ensures that if a recovery option (other than 'NO RECOVERY') is selected,
+    // the user MUST upload a PDF file before submitting the form.
     const recoverySelect = document.getElementById('Recovery');
     const recoveryFile = document.getElementById('recoveryFile');
     
     if (recoverySelect && recoveryFile) {
         const selectedText = recoverySelect.options[recoverySelect.selectedIndex]?.text || '';
+        // 'needsFile' becomes true if any option besides "NO RECOVERY" is chosen.
         const needsFile = !selectedText.toUpperCase().includes('NO RECOVERY');
 
+        // If a file is required but not provided, we add it to the list of errors.
         if (needsFile && (!recoveryFile.files || recoveryFile.files.length === 0)) {
             if (!emptyFields.includes('recoveryFile')) {
                 emptyFields.push('recoveryFile');
             }
+            // We add a user-friendly name for the error message.
             customErrorMessages['recoveryFile'] = 'Recovery Evidence (PDF)';
+            // And apply a visual style to indicate the error.
             recoveryFile.classList.add('is-invalid');
         } else {
+            // If the condition is not met, or the file is provided, remove the error style.
             recoveryFile.classList.remove('is-invalid');
         }
     }
@@ -139,7 +146,6 @@ function validateCompleteForm() {
     }
 
     if (emptyFields.length === 0) {
-        // Clean up any previous error state for ReferenceOrder if the form is now valid
         $('#ReferenceOrder').next('.select2-container').removeClass('select2-container--error');
         return { isValid: true, formData };
     }

@@ -68,7 +68,7 @@ if (APP_ENVIRONMENT === 'development') {
     define('SMTP_HOST', 'smtp.hostinger.com');
     define('SMTP_PORT', 465);
     define('SMTP_USER', 'specialfreight@grammermx.com');
-    define('SMTP_PASS', 'Freight***2025');
+    define('SMTP_PASS', 'FreightSystem***2025');
     define('SMTP_SECURE', 'ssl');
     define('SMTP_FROM_NAME', 'Premium Freight System');
 
@@ -315,7 +315,9 @@ class PFMailer {
             // IMPORTANTE: Definir aquí la lista de correos que recibirán el reporte.
             $recipients = [
                 ['email' => 'extern.jesus.perez@grammer.com', 'name' => 'Jesus Perez'],
-                ['email' => 'extern.alejandro.torres@grammer.com', 'name' => 'Alejandro Torres'],
+                ['email' => 'dulce.mata@grammer.com', 'name' => 'Dulce Mata'],
+                ['email' => 'carlos.plazola@grammer.com', 'name' => 'Carlos Plazola'],
+                ['email' => 'margarita.ortega@grammer.com', 'name' => 'Margarita Ortega'],
             ];
 
             // En modo de desarrollo, todos se redirigen a TEST_EMAIL

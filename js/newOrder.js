@@ -1,13 +1,17 @@
 /**
- * Premium Freight - New Order Management (Refactored)
+ * Premium Freight - New Order Management (Refactored & Updated)
  * * This module handles the creation of new Premium Freight orders.
- * It now imports notification functions from the central mailer.js module.
- * MODIFICADO: Se importa la función de inicialización desde referenceSelect.js
+ * * It now includes conditional logic for the Recovery and ReferenceOrder fields.
  */
 
 // 1. Importar dependencias
 import { sendApprovalNotification } from './mailer.js';
-import { initializeReferenceSelector } from './referenceSelect.js';
+// Import all necessary functions from the new module
+import {
+    initializeReferenceSelector,
+    initializeFullReferenceSelector,
+    initializeLimitedReferenceSelector
+} from './referenceSelect.js';
 
 // Global variable for the required authorization level.
 let range = 0;
@@ -91,7 +95,7 @@ function validateCompanyIds() {
 function handleRecoveryFileVisibility() {
     const recoverySelect = document.getElementById('Recovery');
     const fileContainer = document.getElementById('recoveryFileContainer');
-    const fileInput = document.getElementById('recoveryFile'); // Get the file input
+    const fileInput = document.getElementById('recoveryFile');
     if (!recoverySelect || !fileContainer || !fileInput) return;
 
     const selectedText = recoverySelect.options[recoverySelect.selectedIndex]?.text || '';
@@ -99,11 +103,37 @@ function handleRecoveryFileVisibility() {
     
     if (isNoRecovery) {
         fileContainer.style.display = 'none';
-        fileInput.value = ''; // Clear the file input
-        fileInput.required = false; // Make it not required
+        fileInput.value = '';
+        fileInput.required = false;
     } else {
         fileContainer.style.display = 'block';
-        fileInput.required = true; // Make it required
+        fileInput.required = true;
+    }
+}
+
+/**
+ * NEW FUNCTION
+ * This function handles your second requirement.
+ * It dynamically changes the options available in the 'ReferenceOrder' select
+ * based on the value of the 'Recovery' select.
+ */
+function handleReferenceOrderFiltering() {
+    const recoverySelect = document.getElementById('Recovery');
+    if (!recoverySelect) return;
+
+    const selectedText = recoverySelect.options[recoverySelect.selectedIndex]?.text || '';
+    const isNoRecovery = selectedText.toUpperCase().includes('NO RECOVERY');
+
+    // Clear the current selection in ReferenceOrder to prevent
+    // carrying over a value that might not be valid in the new context.
+    $('#ReferenceOrder').val(null).trigger('change');
+
+    if (isNoRecovery) {
+        // If "NO RECOVERY" is selected, initialize the selector with full AJAX capabilities.
+        initializeFullReferenceSelector();
+    } else {
+        // Otherwise, initialize the selector with the limited, static list of options.
+        initializeLimitedReferenceSelector();
     }
 }
 
@@ -111,7 +141,6 @@ function handleRecoveryFileVisibility() {
 async function submitForm(event) {
     event.preventDefault();
 
-    // ================== START: LOADING MODAL ==================
     Swal.fire({
         title: 'Submitting Order',
         html: 'Please wait while your request is being processed...',
@@ -122,18 +151,12 @@ async function submitForm(event) {
             Swal.showLoading();
         }
     });
-    // =================== END: LOADING MODAL ===================
 
     try {
-        // ================== CORRECCIÓN: ESPERAR LA CONVERSIÓN DE MONEDA ==================
-        // Esto asegura que el cálculo de euros esté completo antes de la validación y el envío.
-        // El usuario verá el modal de carga mientras esto sucede.
         if (typeof calculateEuros === 'function' && typeof getSelectedCurrency === 'function') {
             await calculateEuros(getSelectedCurrency());
         }
-        // ================================================================================
 
-        // 1. Process new companies if any
         let originId = null;
         let destinyId = null;
         if (window.hasNewCompaniesToSave && window.hasNewCompaniesToSave()) {
@@ -143,7 +166,6 @@ async function submitForm(event) {
             destinyId = result.destinyId;
         }
 
-        // Process new carrier if needed
         let carrierId = null;
         if (window.hasNewCarrierToSave && window.hasNewCarrierToSave()) {
             const carrierResult = await window.processNewCarrier();
@@ -156,7 +178,6 @@ async function submitForm(event) {
             carrierId = $('#Carrier').val();
         }
 
-        // NEW: Process new Reference Order if needed
         let numOrderId = null;
         if (window.hasNewNumOrderToSave && window.hasNewNumOrderToSave()) {
             numOrderId = await window.saveNewNumOrder();
@@ -166,14 +187,12 @@ async function submitForm(event) {
             numOrderId = $('#ReferenceOrder').val();
         }
 
-        // 2. Validate form
         const validationResult = validateCompleteForm();
         if (!validationResult.isValid) {
             throw new Error(validationResult.message || 'Please check the form for errors.');
         }
         const formData = validationResult.formData;
 
-        // 3. Get company IDs (new or existing)
         const companyValidation = validateCompanyIds();
         const finalOriginId = originId || companyValidation.originId;
         const finalDestinyId = destinyId || companyValidation.destinyId;
@@ -181,7 +200,6 @@ async function submitForm(event) {
             throw new Error('Please select valid origin and destination companies.');
         }
 
-        // 4. Prepare payload
         const quotedCost = parseFloat(formData['QuotedCost']);
         range = calculateAuthorizationRange(euros);
 
@@ -213,7 +231,6 @@ async function submitForm(event) {
             moneda: getSelectedCurrency()
         };
         
-        // 5. Submit form data
         const response = await sendFormDataAsync(payload);
         if (!response || !response.success) {
             throw new Error(response?.message || 'Failed to create order.');
@@ -224,7 +241,6 @@ async function submitForm(event) {
             throw new Error("Order was created, but its ID is missing in the server response.");
         }
 
-        // 6. Upload recovery file if needed
         const recoveryFile = document.getElementById('recoveryFile');
         const needsFile = !document.getElementById('Recovery').options[document.getElementById('Recovery').selectedIndex].text.includes('NO RECOVERY');
         if (needsFile && recoveryFile?.files.length > 0) {
@@ -234,10 +250,6 @@ async function submitForm(event) {
             }
         }
         
-        // 7. Send approval notification (DESACTIVADO PARA PRUEBAS)
-        // const notificationResult = await sendApprovalNotification(orderId);
-
-        // 8. Show final success message
         Swal.fire({
             icon: 'success',
             title: 'Order Created Successfully!',
@@ -263,20 +275,30 @@ async function submitForm(event) {
 document.addEventListener('DOMContentLoaded', function() {
     initializeCompanySelectors();
     initializeCarrierSelector();
-    // La llamada ahora funciona a través de la importación del módulo
+    // This initializes the Reference Selector to its default (full) state.
     initializeReferenceSelector();
     initializeCurrencySelectors();
 
     document.getElementById('enviar')?.addEventListener('click', submitForm);
     
+    // --- MODIFIED EVENT LISTENER SETUP FOR RECOVERY ---
     const recoverySelect = document.getElementById('Recovery');
     if (recoverySelect) {
-        recoverySelect.addEventListener('change', handleRecoveryFileVisibility);
-        if (window.jQuery && $.fn.select2) {
-            $('#Recovery').on('select2:select', handleRecoveryFileVisibility);
-        }
-        handleRecoveryFileVisibility();
+        // This single handler will now manage both the file input visibility
+        // and the reference order filtering.
+        const recoveryChangeHandler = () => {
+            handleRecoveryFileVisibility();
+            handleReferenceOrderFiltering();
+        };
+
+        // We use jQuery's .on() to reliably handle both standard change
+        // and the select2:select event.
+        $('#Recovery').on('change', recoveryChangeHandler);
+
+        // Run the handler on page load to set the initial state correctly.
+        recoveryChangeHandler();
     }
+    // --- END OF MODIFICATION ---
     
     // Setup for description text areas
     const immediateActions = document.getElementById('InmediateActions');
@@ -326,11 +348,9 @@ function updateCharCounter(textarea, counterSelector, minLength) {
 }
 
 // Helper function to get the selected currency.
-// This function depends on currencyUtils.js, ensure it's loaded.
 function getSelectedCurrency() {    
     if (typeof selectedCurrency !== 'undefined') {
         return selectedCurrency;
     }
-    // Fallback if the global variable is not available for some reason
     return document.getElementById('USD')?.classList.contains('active') ? 'USD' : 'MXN';
 }

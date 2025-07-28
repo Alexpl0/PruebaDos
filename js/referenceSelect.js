@@ -1,100 +1,131 @@
 /**
- * referenceSelect.js
- * * This file initializes the Select2 component for the 'ReferenceOrder' field.
- * 1. Preloads all options from the server to avoid "searching" states.
- * 2. Ensures all data is of the correct type (string) to prevent errors.
- * 3. Allows the user to type freely to complete the order number after selecting a prefix.
- * 4. Validates that the user adds at least one digit/character after selecting a prefix.
- * 5. It is an ES6 module and exports its initialization function.
+ * referenceSelect.js (Updated Version)
+ * ------------------------------------
+ * Manages the initialization of the Reference Order Select2 component.
+ * It supports two modes, which can be switched dynamically:
+ * 1. Full Mode: Preloads all valid order numbers from the server and allows creating new ones (tags).
+ * 2. Limited Mode: Shows a predefined, static list of specific order numbers for recovery scenarios.
+ *
+ * This file is an ES6 module and exports the necessary functions to be controlled from newOrder.js.
  */
+
+// Helper function to get the base URL from the global config object.
+function getBaseUrl() {
+    if (window.PF_CONFIG && window.PF_CONFIG.app && window.PF_CONFIG.app.baseURL) {
+        return window.PF_CONFIG.app.baseURL;
+    }
+    console.warn("PF_CONFIG.app.baseURL not found, using a fallback URL.");
+    return 'https://grammermx.com/Jesus/PruebaDos/'; // Fallback URL
+}
 
 /**
- * Initializes the selector for the Reference Order field.
- * It is exported to be used in other modules like newOrder.js
+ * Initializes the Reference Order selector with FULL functionality.
+ * It preloads all order numbers and allows users to create new ones.
+ * This is the default mode.
  */
-export function initializeReferenceSelector() {
-    if (typeof jQuery === 'undefined' || typeof jQuery.fn.select2 === 'undefined') {
-        console.error("Critical Error: jQuery or Select2 have not been loaded. Cannot initialize the reference selector.");
+export function initializeFullReferenceSelector() {
+    const $select = $('#ReferenceOrder');
+    if (!$select.length) {
+        console.error("Critical Error: The #ReferenceOrder element was not found.");
         return;
     }
 
-    const $referenceOrder = $('#ReferenceOrder');
-    if (!$referenceOrder.length) {
-        console.error("Critical Error: The #ReferenceOrder element was not found on the page.");
-        return;
+    // If Select2 is already initialized, destroy it to re-configure.
+    if ($select.hasClass("select2-hidden-accessible")) {
+        $select.select2('destroy');
+        $select.empty(); // Clear previous options and data
     }
 
-    fetch(window.PF_CONFIG.app.baseURL + 'dao/elements/daoNumOrders.php')
+    fetch(getBaseUrl() + 'dao/elements/daoNumOrders.php')
         .then(response => {
-            if (!response.ok) {
-                throw new Error(`Network error while loading orders: ${response.statusText}`);
-            }
+            if (!response.ok) throw new Error(`Network error: ${response.statusText}`);
             return response.json();
         })
-        .then(response => {
-            if (response && response.status === 'success' && Array.isArray(response.data)) {
-                
-                const sanitizedData = response.data.map(item => ({
-                    id: item.id,
-                    text: String(item.text || '')
+        .then(apiResponse => {
+            if (apiResponse && apiResponse.status === 'success' && Array.isArray(apiResponse.data)) {
+                const sanitizedData = apiResponse.data.map(item => ({
+                    id: String(item.id || ''), // Ensure ID is a string
+                    text: String(item.text || '') // Ensure text is a string
                 }));
 
-                $referenceOrder.select2({
-                    placeholder: 'Select a prefix or type the full number',
+                $select.select2({
+                    width: '100%',
+                    placeholder: 'Search or enter an order number',
                     data: sanitizedData,
-                    tags: true,
+                    tags: true, // Allow creating new tags
                     createTag: function(params) {
                         const term = $.trim(params.term);
-                        if (term === '') {
-                            return null;
+                        if (term === '' || !/^\d+$/.test(term)) {
+                            return null; // Only allow numeric tags
                         }
                         return {
                             id: term,
                             text: term,
-                            isNew: true
+                            isNew: true // Flag for new tags
                         };
-                    }
+                    },
+                    dropdownParent: $select.parent()
                 });
-
             } else {
-                throw new Error("The data format received for the reference orders is invalid.");
+                throw new Error("Invalid data format received for reference orders.");
             }
         })
         .catch(error => {
-            console.error("Failed to load or initialize the reference selector:", error);
-            $referenceOrder.select2({
-                placeholder: 'Error loading prefixes. Enter the number manually.',
+            console.error("Failed to load or initialize the full reference selector:", error);
+            // Provide a fallback if the fetch fails
+            $select.select2({
+                width: '100%',
+                placeholder: 'Error loading. Enter number manually.',
                 tags: true,
                 createTag: function(params) {
                     const term = $.trim(params.term);
-                    if (term === '') { return null; }
+                    if (term === '') return null;
                     return { id: term, text: term, isNew: true };
-                }
+                },
+                dropdownParent: $select.parent()
             });
         });
+}
 
-    $referenceOrder.on('select2:select', function(e) {
-        try {
-            const data = e.params.data;
-            
-            if (data && !data.isNew) {
-                const prefix = data.text;
-                $(this).data('selected-prefix', prefix);
+/**
+ * Initializes the Reference Order selector with a LIMITED, static list of options.
+ * This is used when a "Recovery" option is selected.
+ */
+export function initializeLimitedReferenceSelector() {
+    const $select = $('#ReferenceOrder');
+    if (!$select.length) {
+        console.error("Critical Error: The #ReferenceOrder element was not found.");
+        return;
+    }
 
-                setTimeout(() => {
-                    const select2Instance = $(this).data('select2');
-                    if (select2Instance && select2Instance.$dropdown) {
-                        const searchField = select2Instance.$dropdown.find('.select2-search__field');
-                        if (searchField.length) {
-                            searchField.val(prefix).focus();
-                        }
-                    }
-                }, 10);
-            } else {
-                 $(this).data('selected-prefix', '');
-            }
-        } catch (err) {
-            console.error("Unexpected error in the 'select2:select' event handler for ReferenceOrder:", err);
-        }
+    // If Select2 is already initialized, destroy it to re-configure.
+    if ($select.hasClass("select2-hidden-accessible")) {
+        $select.select2('destroy');
+        $select.empty(); // Clear previous options and data
+    }
+
+    // These are the specific options required when recovery is active.
+    // ID: 42 -> Text: 486406
+    // ID: 43 -> Text: 347427
+    const limitedData = [
+        { id: '42', text: '486406' },
+        { id: '43', text: '347427' }
+    ];
+
+    $select.select2({
+        width: '100%',
+        placeholder: 'Select a recovery order number',
+        data: limitedData,
+        tags: false, // DO NOT allow creating new tags in this mode
+        dropdownParent: $select.parent()
     });
+}
+
+/**
+ * Main initialization function to be called on page load.
+ * It defaults to initializing the full selector.
+ * This function is kept for backward compatibility if you were calling it directly.
+ */
+export function initializeReferenceSelector() {
+    initializeFullReferenceSelector();
 }
