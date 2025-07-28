@@ -16,7 +16,7 @@ import { charts, maps } from './configDashboard.js';
 
 // Módulos de la interfaz de usuario (Filtros, Exportaciones, KPIs)
 import { initializeDateRangePicker, initializeFilters, getFilterValues } from './ui/filters.js';
-import { updateKPIs } from './ui/kpi.js';
+import { updateKPIs, updateDetailedKPIsTable } from './ui/kpi.js';
 import { initializeExportButtons } from './ui/exporters.js';
 
 // Módulos de renderizado de cada una de las gráficas
@@ -46,6 +46,7 @@ import { renderWordCloud } from './charts/wordCloud.js';
 export function updateAllVisualizations() {
     // Primero, actualiza los KPIs que son más rápidos
     updateKPIs();
+    updateDetailedKPIsTable(); // 👈 Añade esta línea
 
     // Luego, renderiza o actualiza todas las gráficas
     renderAreaDistributionChart();

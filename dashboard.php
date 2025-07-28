@@ -120,7 +120,18 @@ require_once 'dao/users/context_injector.php';
         </div>
 
         <div class="row mb-4">
-            <div class="col-md-12"><div class="card"><div class="card-body"><h5 class="card-title">Detailed KPIs</h5><div class="row" id="detailedKPIs"><div class="col-md-3 col-sm-6 mb-3"><div class="card stats-card border-primary"><div class="card-body p-3"><div class="title">Average Cost</div><div class="value" id="kpiAvgCost">€0</div></div></div></div><div class="col-md-3 col-sm-6 mb-3"><div class="card stats-card border-success"><div class="card-body p-3"><div class="title">Internal/External Ratio</div><div class="value" id="kpiIntExtRatio">0:0</div></div></div></div><div class="col-md-3 col-sm-6 mb-3"><div class="card stats-card border-info"><div class="card-body p-3"><div class="title">Average Approval Time</div><div class="value" id="kpiAvgApprovalTime">0 days</div></div></div></div><div class="col-md-3 col-sm-6 mb-3"><div class="card stats-card border-warning"><div class="card-body p-3"><div class="title">Total Weight</div><div class="value" id="kpiTotalWeight">0 kg</div></div></div></div></div></div></div></div>
+            <div class="col-md-12">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Detailed KPIs</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="detailedKPIsContainer">
+                            <!-- El contenido se genera automáticamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <!-- Gráficos -->
