@@ -113,12 +113,41 @@ require_once 'dao/users/context_injector.php';
         
         <!-- KPIs principales -->
         <div class="row mb-4" id="filterscards">
-            <div class="col-md-3"><div class="card bg-primary text-white"><div class="card-body"><h5 class="card-title">Total Shipments</h5><h2 id="kpiTotalEnvios" class="display-4">0</h2></div></div></div>
-            <div class="col-md-3"><div class="card bg-success text-white"><div class="card-body"><h5 class="card-title">Total Cost (€)</h5><h2 id="kpiCostoTotal" class="display-4">0</h2></div></div></div>
-            <div class="col-md-3"><div class="card bg-info text-white"><div class="card-body"><h5 class="card-title">Approval %</h5><h2 id="kpiApprovalRate" class="display-4">0%</h5></div></div></div>
-            <div class="col-md-3"><div class="card bg-warning text-dark"><div class="card-body"><h5 class="card-title">Recovery %</h5><h2 id="kpiRecoveryRate" class="display-4">0%</h2></div></div></div>
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Shipments</h5>
+                        <h2 id="kpiTotalEnvios" class="display-4">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Cost (€)</h5>
+                        <h2 id="kpiCostoTotal" class="display-4">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Approval %</h5>
+                        <h2 id="kpiApprovalRate" class="display-4">0%</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-dark">
+                    <div class="card-body">
+                        <h5 class="card-title">Recovery %</h5>
+                        <h2 id="kpiRecoveryRate" class="display-4">0%</h2>
+                    </div>
+                </div>
+            </div>
         </div>
 
+        <!-- 👈 SECCIÓN DE KPIs DETALLADOS - YA ESTÁ CORRECTAMENTE CONFIGURADA -->
         <div class="row mb-4">
             <div class="col-md-12">
                 <div class="card shadow mb-4">
@@ -136,32 +165,165 @@ require_once 'dao/users/context_injector.php';
         
         <!-- Gráficos -->
         <div class="row mb-4">
-            <div class="col-md-6"><div class="card h-100"><div class="card-body"><h5 class="card-title">Distribution by Area and Type</h5><div id="chartAreaDistribution" style="height: 350px;"></div></div></div></div>
-            <div class="col-md-6"><div class="card h-100"><div class="card-body"><h5 class="card-title">Payment Responsibility</h5><div class="row"><div class="col-md-8"><div id="chartPaidBy" style="height: 350px;"></div></div><div class="col-md-4"><div id="paidByStats" class="mt-4"></div></div></div></div></div></div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Distribution by Area and Type</h5>
+                        <div id="chartAreaDistribution" style="height: 350px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Payment Responsibility</h5>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div id="chartPaidBy" style="height: 350px;"></div>
+                            </div>
+                            <div class="col-md-4">
+                                <div id="paidByStats" class="mt-4"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+        
         <div class="row mb-4">
-            <div class="col-md-7"><div class="card h-100"><div class="card-body"><h5 class="card-title">Main Causes</h5><div id="chartCauses" style="height: 350px;"></div></div></div></div>
-            <div class="col-md-5"><div class="card h-100"><div class="card-body"><h5 class="card-title">Cost Categories</h5><div id="chartCostCategories" style="height: 350px;"></div></div></div></div>
+            <div class="col-md-7">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Main Causes</h5>
+                        <div id="chartCauses" style="height: 350px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Cost Categories</h5>
+                        <div id="chartCostCategories" style="height: 350px;"></div>
+                    </div>
+                </div>
+            </div>
         </div>
+        
         <div class="row mb-4">
-            <div class="col-md-6"><div class="card h-100"><div class="card-body"><h5 class="card-title">Average Approval Time</h5><div id="chartApprovalTime" style="height: 350px;"></div></div></div></div>
-            <div class="col-md-6"><div class="card h-100"><div class="card-body"><h5 class="card-title">Transportation Methods</h5><div id="chartTransport" style="height: 350px;"></div></div></div></div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Average Approval Time</h5>
+                        <div id="chartApprovalTime" style="height: 350px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Transportation Methods</h5>
+                        <div id="chartTransport" style="height: 350px;"></div>
+                    </div>
+                </div>
+            </div>
         </div>
+        
         <div class="row mb-4">
-            <div class="col-md-4"><div class="card h-100"><div class="card-body"><h5 class="card-title">Recovery Files Status</h5><div id="chartRecoveryFiles" style="height: 300px;"></div></div></div></div>
-            <div class="col-md-8"><div class="card h-100"><div class="card-body"><h5 class="card-title">Top 10 Products with Most Incidents</h5><div id="chartProducts" style="height: 300px;"></div></div></div></div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Recovery Files Status</h5>
+                        <div id="chartRecoveryFiles" style="height: 300px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Top 10 Products with Most Incidents</h5>
+                        <div id="chartProducts" style="height: 300px;"></div>
+                    </div>
+                </div>
+            </div>
         </div>
+        
         <div class="row mb-4">
-            <div class="col-md-12"><div class="card"><div class="card-body"><h5 class="card-title">Top User and Plant by Orders Generated</h5><div id="topUserPlantOrdersChart" style="height: 400px;"></div></div></div></div>
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Top User and Plant by Orders Generated</h5>
+                        <div id="topUserPlantOrdersChart" style="height: 400px;"></div>
+                    </div>
+                </div>
+            </div>
         </div>
+        
         <div class="row mb-4">
-            <div class="col-md-12"><div class="card"><div class="card-body"><h5 class="card-title">Origins and Destinations Map</h5><div id="mapOriginDestiny"></div><div id="routesTableContainer" class="mt-3"><table id="routesTable" class="table table-striped table-hover"><thead><tr><th>Origin</th><th>Destination</th><th>Transport</th><th>Shipments</th></tr></thead><tbody></tbody></table></div></div></div></div>
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Origins and Destinations Map</h5>
+                        <div id="mapOriginDestiny"></div>
+                        <div id="routesTableContainer" class="mt-3">
+                            <table id="routesTable" class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Origin</th>
+                                        <th>Destination</th>
+                                        <th>Transport</th>
+                                        <th>Shipments</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+        
         <div class="row mb-4">
-            <div class="col-md-12"><div class="card"><div class="card-body"><h5 class="card-title">Plant Comparison</h5><div id="plantComparisonChart" style="height: 450px;"></div></div></div></div>
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Plant Comparison</h5>
+                        <div id="plantComparisonChart" style="height: 450px;"></div>
+                    </div>
+                </div>
+            </div>
         </div>
+        
         <div class="row mb-4">
-            <div class="col-md-12"><div class="card"><div class="card-header"><ul class="nav nav-tabs card-header-tabs" id="analysisTabs" role="tablist"><li class="nav-item" role="presentation"><button class="nav-link active" id="trends-tab" data-bs-toggle="tab" data-bs-target="#trends" type="button" role="tab" aria-controls="trends" aria-selected="true">Time Trends</button></li><li class="nav-item" role="presentation"><button class="nav-link" id="correlations-tab" data-bs-toggle="tab" data-bs-target="#correlations" type="button" role="tab" aria-controls="correlations" aria-selected="false">Correlations</button></li><li class="nav-item" role="presentation"><button class="nav-link" id="forecast-tab" data-bs-toggle="tab" data-bs-target="#forecast" type="button" role="tab" aria-controls="forecast" aria-selected="false">Forecasts</button></li></ul></div><div class="card-body"><div class="tab-content" id="analysisTabsContent"><div class="tab-pane fade show active" id="trends" role="tabpanel" aria-labelledby="trends-tab"><div id="chartTimeSeries" style="height: 400px;"></div></div><div class="tab-pane fade" id="correlations" role="tabpanel" aria-labelledby="correlations-tab"><div id="chartCorrelation" style="height: 400px;"></div></div><div class="tab-pane fade" id="forecast" role="tabpanel" aria-labelledby="forecast-tab"><div id="chartForecast" style="height: 400px;"></div></div></div></div></div></div>
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <ul class="nav nav-tabs card-header-tabs" id="analysisTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="trends-tab" data-bs-toggle="tab" data-bs-target="#trends" type="button" role="tab" aria-controls="trends" aria-selected="true">Time Trends</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="correlations-tab" data-bs-toggle="tab" data-bs-target="#correlations" type="button" role="tab" aria-controls="correlations" aria-selected="false">Correlations</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="forecast-tab" data-bs-toggle="tab" data-bs-target="#forecast" type="button" role="tab" aria-controls="forecast" aria-selected="false">Forecasts</button>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-content" id="analysisTabsContent">
+                            <div class="tab-pane fade show active" id="trends" role="tabpanel" aria-labelledby="trends-tab">
+                                <div id="chartTimeSeries" style="height: 400px;"></div>
+                            </div>
+                            <div class="tab-pane fade" id="correlations" role="tabpanel" aria-labelledby="correlations-tab">
+                                <div id="chartCorrelation" style="height: 400px;"></div>
+                            </div>
+                            <div class="tab-pane fade" id="forecast" role="tabpanel" aria-labelledby="forecast-tab">
+                                <div id="chartForecast" style="height: 400px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
     
@@ -187,8 +349,7 @@ require_once 'dao/users/context_injector.php';
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
     <!-- Archivos JS locales -->
-        <script src="js/header.js" type="module"></script>
-
+    <script src="js/header.js" type="module"></script>
     <script type="module" src="js/dashboard.js"></script>
 
     <?php 

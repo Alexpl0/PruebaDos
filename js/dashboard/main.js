@@ -16,7 +16,7 @@ import { charts, maps } from './configDashboard.js';
 
 // Módulos de la interfaz de usuario (Filtros, Exportaciones, KPIs)
 import { initializeDateRangePicker, initializeFilters, getFilterValues } from './ui/filters.js';
-import { updateKPIs, updateDetailedKPIsTable } from './ui/kpi.js';
+import { updateKPIs, updateDetailedKPIsTable } from './ui/kpi.js'; // 👈 AÑADIDA updateDetailedKPIsTable
 import { initializeExportButtons } from './ui/exporters.js';
 
 // Módulos de renderizado de cada una de las gráficas
@@ -46,7 +46,7 @@ import { renderWordCloud } from './charts/wordCloud.js';
 export function updateAllVisualizations() {
     // Primero, actualiza los KPIs que son más rápidos
     updateKPIs();
-    updateDetailedKPIsTable(); // 👈 Añade esta línea
+    updateDetailedKPIsTable(); // 👈 AÑADIDA LLAMADA A LA TABLA DETALLADA
 
     // Luego, renderiza o actualiza todas las gráficas
     renderAreaDistributionChart();
@@ -105,9 +105,7 @@ async function initializeDashboard() {
         $('#dateRange').on('apply.daterangepicker', triggerFilterUpdate);
 
         // 5. Realiza la primera actualización de todas las visualizaciones
-        updateKPIs(); // Actualiza los KPIs principales
-        updateDetailedKPIs(); // Llama a la función del archivo kpi.js
-        triggerFilterUpdate(); // Actualiza todas las visualizaciones
+        triggerFilterUpdate();
 
         // 6. Configura el botón de refrescar datos
         document.getElementById('refreshData')?.addEventListener('click', async () => {
