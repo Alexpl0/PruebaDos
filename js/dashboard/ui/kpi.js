@@ -42,45 +42,6 @@ export function updateKPIs() {
     // Si no hay órdenes que requieran recovery, el porcentaje es 0.
     const recoveryRate = ordersWithRecoveryFile.length > 0 ? (withEvidence / ordersWithRecoveryFile.length) * 100 : 0;
     document.getElementById('kpiRecoveryRate').textContent = recoveryRate.toFixed(1) + '%';
-    
-    updateDetailedKPIs(filteredData, costoTotal);
-}
-
-export function updateDetailedKPIs(data, costoTotal) {
-    const costoPromedio = data.length > 0 ? costoTotal / data.length : 0;
-    document.getElementById('kpiAvgCost').textContent = '€' + formatNumber(costoPromedio, 2);
-    
-    const internos = data.filter(item => (item.int_ext || '').includes('INTERNAL')).length;
-    const externos = data.filter(item => (item.int_ext || '').includes('EXTERNAL')).length;
-    document.getElementById('kpiIntExtRatio').textContent = `${internos}:${externos}`;
-    
-    const tiempoPromedio = calcularTiempoPromedioAprobacion(data);
-    document.getElementById('kpiAvgApprovalTime').textContent = tiempoPromedio.toFixed(1) + ' days';
-    
-    const pesoTotal = data.reduce((sum, item) => sum + parseFloat(item.weight || 0), 0);
-    document.getElementById('kpiTotalWeight').textContent = formatNumber(pesoTotal) + ' kg';
-}
-
-function calcularTiempoPromedioAprobacion(data) {
-    const itemsConAprobacion = data.filter(item => item.date && item.approval_date);
-    
-    let tiempoPromedio = 0;
-    
-    if (itemsConAprobacion.length > 0) {
-        const tiempoTotal = itemsConAprobacion.reduce((sum, item) => {
-            const createDate = new Date(item.date);
-            const approvalDate = new Date(item.approval_date);
-            
-            const diffTime = Math.abs(approvalDate - createDate);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
-            return sum + diffDays;
-        }, 0);
-        
-        tiempoPromedio = tiempoTotal / itemsConAprobacion.length;
-    }
-    
-    return tiempoPromedio;
 }
 
 // =================== NUEVA FUNCIONALIDAD: TABLA DE KPIs DETALLADOS ===================
@@ -402,6 +363,3 @@ function generateDetailedKPIsHTML(stats) {
         </div>
     `;
 }
-
-
-
