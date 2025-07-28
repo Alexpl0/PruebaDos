@@ -15,6 +15,15 @@
 import { getFilteredData } from '../dataDashboard.js';
 import { formatNumber } from '../utilsDashboard.js';
 
+// URL del nuevo endpoint para KPIs detallados
+let WEEKLY_KPIS_URL;
+if (typeof URLPF !== 'undefined') {
+    WEEKLY_KPIS_URL = URLPF + 'dao/conections/daoWeeklyKPIs.php';
+} else {
+    console.warn('URL global variable is not defined. Using fallback URL for Weekly KPIs.');
+    WEEKLY_KPIS_URL = 'https://grammermx.com/Jesus/PruebaDos/dao/conections/daoWeeklyKPIs.php';
+}
+
 export function updateKPIs() {
     const filteredData = getFilteredData();
     
@@ -48,9 +57,9 @@ export function updateKPIs() {
 
 /**
  * Actualiza la sección de KPIs detallados con una tabla bonita
- * Esta función reemplaza la sección "Detailed KPIs" con información estilo reporte semanal
+ * Esta función obtiene datos del nuevo endpoint y genera la tabla
  */
-export function updateDetailedKPIsTable() {
+export async function updateDetailedKPIsTable() {
     const container = document.getElementById('detailedKPIsContainer');
     
     if (!container) {
@@ -59,197 +68,74 @@ export function updateDetailedKPIsTable() {
     }
 
     try {
-        const stats = calculateDetailedStatistics();
-        const html = generateDetailedKPIsHTML(stats);
-        container.innerHTML = html;
+        // Mostrar loading mientras se cargan los datos
+        container.innerHTML = `
+            <div class="d-flex justify-content-center align-items-center" style="height: 200px;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <span class="ms-3">Loading detailed statistics...</span>
+            </div>
+        `;
+
+        // Obtener datos del endpoint
+        const statsData = await fetchWeeklyKPIs();
         
-        // Añadir animación de entrada
-        container.style.opacity = '0';
-        setTimeout(() => {
-            container.style.transition = 'opacity 0.3s ease-in-out';
-            container.style.opacity = '1';
-        }, 100);
+        if (statsData.status === 'success') {
+            const html = generateDetailedKPIsHTML(statsData.data);
+            container.innerHTML = html;
+            
+            // Añadir animación de entrada
+            container.style.opacity = '0';
+            setTimeout(() => {
+                container.style.transition = 'opacity 0.3s ease-in-out';
+                container.style.opacity = '1';
+            }, 100);
+        } else {
+            throw new Error(statsData.message || 'Failed to load statistics');
+        }
         
     } catch (error) {
         console.error('Error updating detailed KPIs table:', error);
         container.innerHTML = `
-            <div class="alert alert-danger">
+            <div class="alert alert-danger m-3">
                 <i class="fas fa-exclamation-triangle me-2"></i>
-                Error loading detailed KPIs. Please try refreshing the page.
+                Error loading detailed KPIs: ${error.message}
+                <br><small>Please try refreshing the page or contact support.</small>
             </div>
         `;
     }
 }
 
 /**
- * Calcula las estadísticas detalladas basadas en los datos filtrados
- * @returns {Object} Objeto con todas las estadísticas calculadas
+ * Realiza petición al endpoint de KPIs semanales
+ * @returns {Promise<Object>} Datos de estadísticas semanales
  */
-function calculateDetailedStatistics() {
-    const data = getFilteredData();
-    
-    if (!data || data.length === 0) {
-        return getEmptyStatistics();
-    }
+async function fetchWeeklyKPIs() {
+    try {
+        const response = await fetch(WEEKLY_KPIS_URL, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin' // Para incluir las cookies de sesión
+        });
 
-    // General Summary Statistics
-    const totalGenerated = data.length;
-    const totalPending = data.filter(item => 
-        item.status_name && (
-            item.status_name.toLowerCase().includes('pending') ||
-            item.status_name.toLowerCase().includes('progress') ||
-            item.status_name.toLowerCase().includes('waiting') ||
-            item.status_name.toLowerCase().includes('proceso')
-        )
-    ).length;
-    
-    const totalApproved = data.filter(item => 
-        item.status_name && (
-            item.status_name.toLowerCase().includes('approved') ||
-            item.status_name.toLowerCase().includes('aprobado')
-        )
-    ).length;
-    
-    const totalRejected = data.filter(item => 
-        item.status_name && (
-            item.status_name.toLowerCase().includes('rejected') ||
-            item.status_name.toLowerCase().includes('rechazado')
-        )
-    ).length;
-
-    // Approval Rate Calculation
-    const processedOrders = totalApproved + totalRejected;
-    const approvalRate = processedOrders > 0 ? ((totalApproved / processedOrders) * 100).toFixed(1) : 'N/A';
-
-    // Total Cost Calculation (solo órdenes aprobadas)
-    const approvedOrders = data.filter(item => 
-        item.status_name && (
-            item.status_name.toLowerCase().includes('approved') ||
-            item.status_name.toLowerCase().includes('aprobado')
-        )
-    );
-    
-    const totalCost = approvedOrders.reduce((sum, item) => {
-        const cost = parseFloat(item.cost_euros || item.total_cost || item.cost || 0);
-        return sum + cost;
-    }, 0);
-
-    // Performance Highlights - Top Requesting User
-    const userStats = {};
-    approvedOrders.forEach(item => {
-        const userName = item.creator_name || item.name || 'Unknown User';
-        if (!userStats[userName]) {
-            userStats[userName] = { count: 0, totalCost: 0 };
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        userStats[userName].count++;
-        userStats[userName].totalCost += parseFloat(item.cost_euros || item.total_cost || item.cost || 0);
-    });
 
-    const topUser = Object.entries(userStats).reduce((max, [name, stats]) => {
-        return stats.count > (max.count || 0) ? { name, ...stats } : max;
-    }, { name: 'N/A', count: 0, totalCost: 0 });
+        const data = await response.json();
+        return data;
 
-    // Top Spending Area
-    const areaStats = {};
-    approvedOrders.forEach(item => {
-        const area = item.creator_plant || item.planta || item.plant || 'Unknown Area';
-        if (!areaStats[area]) {
-            areaStats[area] = 0;
-        }
-        areaStats[area] += parseFloat(item.cost_euros || item.total_cost || item.cost || 0);
-    });
-
-    const topArea = Object.entries(areaStats).reduce((max, [area, spent]) => {
-        return spent > (max.totalSpent || 0) ? { area, totalSpent: spent } : max;
-    }, { area: 'N/A', totalSpent: 0 });
-
-    // Average Approval Time & Slowest Approver
-    const approvalTimes = [];
-    const approverStats = {};
-    
-    data.forEach(item => {
-        if (item.approval_date && item.date) {
-            const createdDate = new Date(item.date);
-            const approvedDate = new Date(item.approval_date);
-            const timeDiff = approvedDate - createdDate;
-            
-            if (timeDiff > 0) {
-                approvalTimes.push(timeDiff);
-                
-                const approverName = item.approver_name || 'Unknown Approver';
-                if (!approverStats[approverName]) {
-                    approverStats[approverName] = [];
-                }
-                approverStats[approverName].push(timeDiff);
-            }
-        }
-    });
-
-    const avgApprovalTime = approvalTimes.length > 0 
-        ? formatDuration(approvalTimes.reduce((sum, time) => sum + time, 0) / approvalTimes.length)
-        : 'N/A';
-
-    // Find slowest approver
-    const slowestApprover = Object.entries(approverStats).reduce((slowest, [name, times]) => {
-        const avgTime = times.reduce((sum, time) => sum + time, 0) / times.length;
-        return avgTime > (slowest.avgTime || 0) 
-            ? { name, avgTime, duration: formatDuration(avgTime) }
-            : slowest;
-    }, { name: 'N/A', duration: 'N/A' });
-
-    return {
-        totalGenerated,
-        totalPending,
-        totalApproved,
-        totalRejected,
-        approvalRate,
-        totalCost,
-        topUser,
-        topArea,
-        avgApprovalTime,
-        slowestApprover
-    };
-}
-
-/**
- * Retorna estadísticas vacías cuando no hay datos
- */
-function getEmptyStatistics() {
-    return {
-        totalGenerated: 0,
-        totalPending: 0,
-        totalApproved: 0,
-        totalRejected: 0,
-        approvalRate: 'N/A',
-        totalCost: 0,
-        topUser: { name: 'N/A', count: 0, totalCost: 0 },
-        topArea: { area: 'N/A', totalSpent: 0 },
-        avgApprovalTime: 'N/A',
-        slowestApprover: { name: 'N/A', duration: 'N/A' }
-    };
-}
-
-/**
- * Formatea una duración en milisegundos a texto legible
- */
-function formatDuration(milliseconds) {
-    if (!milliseconds || milliseconds <= 0) return 'N/A';
-    
-    const days = Math.floor(milliseconds / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((milliseconds % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60));
-    
-    if (days > 0) {
-        return `${days}d ${hours}h`;
-    } else if (hours > 0) {
-        return `${hours}h ${minutes}m`;
-    } else {
-        return `${minutes}m`;
+    } catch (error) {
+        console.error('Error fetching weekly KPIs:', error);
+        throw error;
     }
 }
 
 /**
- * Genera el HTML de la tabla de KPIs detallados
+ * Genera el HTML de la tabla de KPIs detallados usando datos del endpoint
  */
 function generateDetailedKPIsHTML(stats) {
     const currentDate = new Date();
@@ -275,27 +161,27 @@ function generateDetailedKPIsHTML(stats) {
                     <div class="stats-grid">
                         <div class="stat-item">
                             <div class="stat-label">Total Generated Requests</div>
-                            <div class="stat-value primary">${formatNumber(stats.totalGenerated)}</div>
+                            <div class="stat-value primary">${formatNumber(stats.total_generated)}</div>
                         </div>
                         <div class="stat-item">
                             <div class="stat-label">Orders Pending / In Progress</div>
-                            <div class="stat-value warning">${formatNumber(stats.totalPending)}</div>
+                            <div class="stat-value warning">${formatNumber(stats.total_pending)}</div>
                         </div>
                         <div class="stat-item">
                             <div class="stat-label">Total Approved Orders</div>
-                            <div class="stat-value success">${formatNumber(stats.totalApproved)}</div>
+                            <div class="stat-value success">${formatNumber(stats.total_approved)}</div>
                         </div>
                         <div class="stat-item">
                             <div class="stat-label">Total Rejected Orders</div>
-                            <div class="stat-value danger">${formatNumber(stats.totalRejected)}</div>
+                            <div class="stat-value danger">${formatNumber(stats.total_rejected)}</div>
                         </div>
                         <div class="stat-item">
                             <div class="stat-label">Approval Rate (of processed orders)</div>
-                            <div class="stat-value info">${stats.approvalRate}${stats.approvalRate !== 'N/A' ? '%' : ''}</div>
+                            <div class="stat-value info">${stats.approval_rate}%</div>
                         </div>
                         <div class="stat-item">
                             <div class="stat-label">Total Cost of Approved Shipments</div>
-                            <div class="stat-value primary">€ ${formatNumber(stats.totalCost, 2)}</div>
+                            <div class="stat-value primary">€ ${formatNumber(stats.total_cost, 2)}</div>
                         </div>
                     </div>
                 </div>
@@ -312,9 +198,9 @@ function generateDetailedKPIsHTML(stats) {
                                 <i class="fas fa-user-crown me-2"></i>
                                 Top Requesting User
                             </div>
-                            <div class="highlight-value">${stats.topUser.name}</div>
+                            <div class="highlight-value">${stats.top_requesting_user.name}</div>
                             <div class="highlight-detail">
-                                ${formatNumber(stats.topUser.count)} approved requests | Total Cost: € ${formatNumber(stats.topUser.totalCost, 2)}
+                                ${formatNumber(stats.top_requesting_user.request_count)} approved requests | Total Cost: € ${formatNumber(stats.top_requesting_user.total_cost, 2)}
                             </div>
                         </div>
                         
@@ -323,9 +209,9 @@ function generateDetailedKPIsHTML(stats) {
                                 <i class="fas fa-building me-2"></i>
                                 Top Spending Area
                             </div>
-                            <div class="highlight-value">${stats.topArea.area}</div>
+                            <div class="highlight-value">${stats.top_spending_area.area}</div>
                             <div class="highlight-detail">
-                                Total Spent: € ${formatNumber(stats.topArea.totalSpent, 2)}
+                                Total Spent: € ${formatNumber(stats.top_spending_area.total_spent, 2)}
                             </div>
                         </div>
                         
@@ -334,9 +220,9 @@ function generateDetailedKPIsHTML(stats) {
                                 <i class="fas fa-clock me-2"></i>
                                 Longest Approval Step
                             </div>
-                            <div class="highlight-value">${stats.slowestApprover.name}</div>
+                            <div class="highlight-value">${stats.slowest_approver.name}</div>
                             <div class="highlight-detail">
-                                Avg. time taken: ${stats.slowestApprover.duration}
+                                Avg. time taken: ${stats.slowest_approver.duration_formatted}
                             </div>
                         </div>
                         
@@ -345,7 +231,7 @@ function generateDetailedKPIsHTML(stats) {
                                 <i class="fas fa-stopwatch me-2"></i>
                                 Average Approval Time
                             </div>
-                            <div class="highlight-value">${stats.avgApprovalTime}</div>
+                            <div class="highlight-value">${stats.average_approval_time}</div>
                             <div class="highlight-detail">
                                 Creation to Finish
                             </div>
@@ -358,6 +244,7 @@ function generateDetailedKPIsHTML(stats) {
                 <small class="text-muted">
                     <i class="fas fa-info-circle me-1"></i>
                     This is an automated report generated on ${currentDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    <br>Data range: ${stats.date_range ? new Date(stats.date_range.start).toLocaleDateString() + ' to ' + new Date(stats.date_range.end).toLocaleDateString() : 'Last 7 days'}
                 </small>
             </div>
         </div>
