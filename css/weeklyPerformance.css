@@ -1,0 +1,574 @@
+/**
+ * WEEKLY PERFORMANCE DASHBOARD STYLES
+ * Modern, professional styling for the weekly performance analytics page
+ */
+
+/* ================= VARIABLES Y CONFIGURACIÓN BASE ================= */
+:root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --info-gradient: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+    --danger-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+    
+    --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    --card-shadow-hover: 0 20px 60px rgba(0, 0, 0, 0.2);
+    --border-radius-sm: 8px;
+    --border-radius-md: 12px;
+    --border-radius-lg: 16px;
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    
+    --text-primary: #2d3748;
+    --text-secondary: #718096;
+    --text-light: #a0aec0;
+    --bg-light: #f7fafc;
+    --bg-white: #ffffff;
+    --border-color: #e2e8f0;
+}
+
+/* ================= HEADER Y TÍTULO PRINCIPAL ================= */
+.performance-header {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 2rem 0;
+    margin: -1.5rem -15px 2rem -15px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.performance-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transform: rotate(45deg);
+    animation: shimmer 4s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) rotate(45deg); }
+}
+
+.performance-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.performance-subtitle {
+    font-size: 1.1rem;
+    margin: 0.5rem 0 0 0;
+    opacity: 0.9;
+    font-weight: 300;
+}
+
+/* ================= CARDS Y CONTENEDORES GENERALES ================= */
+.card {
+    border: none;
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--card-shadow);
+    transition: var(--transition-smooth);
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--card-shadow-hover);
+}
+
+.card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.25rem 1.5rem;
+}
+
+.card-title {
+    color: var(--text-primary);
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.card-title i {
+    color: #667eea;
+}
+
+/* ================= FILTROS ================= */
+.filter-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+}
+
+.filter-card .card-body {
+    padding: 1.5rem;
+}
+
+.filter-card .form-label {
+    color: white;
+    font-weight: 500;
+}
+
+.filter-card .form-control {
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-radius: var(--border-radius-sm);
+}
+
+.filter-card .form-control:focus {
+    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+    color: white;
+}
+
+.filter-card .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* ================= TARJETAS DE MÉTRICAS ================= */
+.metric-card {
+    background: var(--bg-white);
+    border-radius: var(--border-radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--card-shadow);
+    transition: var(--transition-smooth);
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+}
+
+.metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--primary-gradient);
+}
+
+.metric-card.primary::before { background: var(--primary-gradient); }
+.metric-card.success::before { background: var(--success-gradient); }
+.metric-card.warning::before { background: var(--warning-gradient); }
+.metric-card.info::before { background: var(--info-gradient); }
+.metric-card.danger::before { background: var(--danger-gradient); }
+
+.metric-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--card-shadow-hover);
+}
+
+.metric-card:hover .metric-icon {
+    transform: scale(1.1);
+}
+
+.metric-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    margin-bottom: 1rem;
+    transition: var(--transition-smooth);
+}
+
+.metric-card.primary .metric-icon { background: var(--primary-gradient); }
+.metric-card.success .metric-icon { background: var(--success-gradient); }
+.metric-card.warning .metric-icon { background: var(--warning-gradient); }
+.metric-card.info .metric-icon { background: var(--info-gradient); }
+.metric-card.danger .metric-icon { background: var(--danger-gradient); }
+
+.metric-content h3 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1.1;
+}
+
+.metric-content p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin: 0.5rem 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.metric-trend {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: rgba(34, 197, 94, 0.1);
+    color: #16a34a;
+}
+
+.metric-trend.negative {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+}
+
+.metric-trend i {
+    margin-right: 0.25rem;
+}
+
+/* ================= TARJETAS DE GRÁFICOS ================= */
+.chart-card {
+    height: 100%;
+}
+
+.chart-card .card-body {
+    padding: 1.5rem;
+}
+
+/* ================= SUMMARY CARD ================= */
+.summary-card {
+    margin-bottom: 2rem;
+}
+
+#weeklySummaryContainer {
+    padding: 0;
+}
+
+/* Usar los estilos existentes de detailed-kpis-container para la tabla summary */
+.weekly-summary-container {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+    overflow: hidden;
+    margin: 0;
+}
+
+.weekly-summary-container .kpis-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.weekly-summary-container .kpis-content {
+    padding: 2rem;
+}
+
+.weekly-summary-container .section-title {
+    color: #667eea;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0 0 1.5rem 0;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e3e6f0;
+    display: flex;
+    align-items: center;
+}
+
+.weekly-summary-container .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.weekly-summary-container .stat-item {
+    background: #fff;
+    border: 1px solid #e3e6f0;
+    border-radius: 8px;
+    padding: 1.25rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.weekly-summary-container .stat-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 4px;
+    height: 100%;
+    background: #667eea;
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
+}
+
+.weekly-summary-container .stat-item:hover::before {
+    transform: scaleY(1);
+}
+
+.weekly-summary-container .stat-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
+    border-color: #667eea;
+}
+
+.weekly-summary-container .highlights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.weekly-summary-container .highlight-item {
+    background: linear-gradient(135deg, #fff 0%, #f8f9ff 100%);
+    border: 1px solid #e3e6f0;
+    border-radius: 10px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.weekly-summary-container .highlight-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+    border-color: #667eea;
+}
+
+/* ================= INSIGHTS CARD ================= */
+.insights-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 1px solid #dee2e6;
+}
+
+.insights-card .card-header {
+    background: linear-gradient(135deg, #495057 0%, #6c757d 100%);
+    color: white;
+    border-bottom: none;
+}
+
+.insights-card .card-title i {
+    color: #ffc107;
+}
+
+#insightsContainer {
+    min-height: 150px;
+}
+
+.insight-item {
+    background: white;
+    border-left: 4px solid #667eea;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+    border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.insight-item:last-child {
+    margin-bottom: 0;
+}
+
+.insight-item.positive {
+    border-left-color: #10b981;
+}
+
+.insight-item.warning {
+    border-left-color: #f59e0b;
+}
+
+.insight-item.negative {
+    border-left-color: #ef4444;
+}
+
+.insight-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.insight-description {
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* ================= LOADING OVERLAY ================= */
+#loadingOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.spinner-container {
+    text-align: center;
+    background: white;
+    padding: 2rem 3rem;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--card-shadow-hover);
+}
+
+/* ================= BOTONES PERSONALIZADOS ================= */
+.btn-outline-success:hover {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-color: #10b981;
+}
+
+.btn-outline-danger:hover {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    border-color: #ef4444;
+}
+
+.btn-outline-primary:hover {
+    background: var(--primary-gradient);
+    border-color: #667eea;
+}
+
+.btn-primary {
+    background: var(--primary-gradient);
+    border-color: #667eea;
+    border: none;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+/* ================= RESPONSIVE DESIGN ================= */
+@media (max-width: 768px) {
+    .performance-header {
+        margin: -1.5rem -15px 1rem -15px;
+        padding: 1.5rem 1rem;
+    }
+    
+    .performance-title {
+        font-size: 2rem;
+    }
+    
+    .performance-subtitle {
+        font-size: 1rem;
+    }
+    
+    .metric-card {
+        margin-bottom: 1rem;
+        padding: 1.25rem;
+    }
+    
+    .metric-content h3 {
+        font-size: 1.8rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .filter-card .btn-group {
+        width: 100%;
+        margin-top: 1rem;
+    }
+    
+    .filter-card .btn-group .btn {
+        flex: 1;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .performance-title {
+        font-size: 1.75rem;
+    }
+    
+    .metric-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.25rem;
+    }
+    
+    .metric-content h3 {
+        font-size: 1.6rem;
+    }
+    
+    .card-header {
+        padding: 1rem;
+    }
+    
+    .weekly-summary-container .kpis-content {
+        padding: 1.5rem;
+    }
+    
+    .weekly-summary-container .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    .weekly-summary-container .highlights-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+/* ================= ANIMACIONES ADICIONALES ================= */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.card.animate {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* ================= TOOLTIPS Y HINTS ================= */
+[data-bs-toggle="tooltip"] {
+    cursor: help;
+}
+
+.info-icon {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    margin-left: 0.5rem;
+}
+
+.info-icon:hover {
+    color: var(--text-secondary);
+}
+
+/* ================= SCROLLBAR PERSONALIZADO ================= */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
+}

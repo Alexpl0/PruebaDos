@@ -4,6 +4,7 @@
  * - Reads user context from `window.PF_CONFIG`.
  * - Creates the header on DOMContentLoaded.
  * - Initializes the tour system only after Driver.js has successfully loaded.
+ * - Added Charts dropdown menu with Dashboard and Weekly Performance options.
  */
 
 // Se mantiene la ruta de importación correcta.
@@ -37,6 +38,50 @@ function loadStyle(href) {
 }
 
 /**
+ * Creates a navigation link with active state detection
+ * @param {string} href - The URL of the link
+ * @param {string} text - The text to display
+ * @param {string} iconClass - The icon class for the link
+ * @returns {string} HTML string for the navigation link
+ */
+function navLink(href, text, iconClass = '') {
+    const currentPage = window.location.pathname.split('/').pop() || 'index.php';
+    const isActive = href === currentPage ? 'active' : '';
+    const iconHTML = iconClass ? `<i class="${iconClass} nav__link-icon"></i>` : '';
+    return `<li class="nav__item"><a href="${href}" class="nav__link ${isActive}">${iconHTML} ${text}</a></li>`;
+}
+
+/**
+ * Creates a dropdown navigation menu for Charts section
+ * @returns {string} HTML string for the charts dropdown
+ */
+function createChartsDropdown() {
+    const currentPage = window.location.pathname.split('/').pop() || 'index.php';
+    const chartsPages = ['dashboard.php', 'weeklyPerformance.php'];
+    const isChartsActive = chartsPages.includes(currentPage) ? 'active' : '';
+    
+    return `
+        <li class="nav__item nav__item-dropdown dropdown">
+            <a href="#" class="nav__link ${isChartsActive}" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-chart-bar nav__link-icon"></i> Analytics
+            </a>
+            <ul class="dropdown-menu">
+                <li>
+                    <a class="dropdown-item ${currentPage === 'dashboard.php' ? 'active' : ''}" href="dashboard.php">
+                        <i class="fas fa-tachometer-alt me-2"></i> Main Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item ${currentPage === 'weeklyPerformance.php' ? 'active' : ''}" href="weeklyPerformance.php">
+                        <i class="fas fa-chart-line me-2"></i> Weekly Performance
+                    </a>
+                </li>
+            </ul>
+        </li>
+    `;
+}
+
+/**
  * Creates the header HTML based on the user context.
  * @param {boolean} isPublicPage - If it is a public page (login, etc.)
  */
@@ -50,18 +95,7 @@ function createHeader(isPublicPage = false) {
     const authLevel = user.authorizationLevel;
     const userName = user.name;
     const userId = user.id;
-    const currentPage = window.location.pathname.split('/').pop() || 'index.php';
 
-    function navLink(href, text, iconClass = '') {
-        const isActive = href === currentPage ? 'active' : '';
-        const iconHTML = iconClass ? `<i class="${iconClass} nav__link-icon"></i>` : '';
-        return `<li class="nav__item"><a href="${href}" class="nav__link ${isActive}">${iconHTML} ${text}</a></li>`;
-    }
-
-    // --- CORRECCIÓN ---
-    // Se ha añadido el atributo `data-bs-toggle="dropdown"` al enlace del menú de ayuda.
-    // Este atributo es requerido por Bootstrap 5 para que el menú desplegable funcione.
-    // También se añadió la clase "dropdown" al `<li>` para una mejor compatibilidad.
     const helpDropdownHTML = `
         <li class="nav__item nav__item-dropdown dropdown" id="help-nav-item" style="display: none;">
             <a href="#" class="nav__link" data-bs-toggle="dropdown" aria-expanded="false">
@@ -74,19 +108,20 @@ function createHeader(isPublicPage = false) {
     `;
 
     let navItems = '';
-    // User-level based navigation logic (remains the same)
+    
+    // User-level based navigation logic with updated Charts dropdown
     if (userId === 36) { // Super User
         navItems += navLink('profile.php', 'My Profile', 'fas fa-user-shield');
         navItems += navLink('newOrder.php', 'New Order', 'fas fa-plus-circle');
         navItems += navLink('orders.php', 'Generated Orders', 'fas fa-list-alt');
         navItems += navLink('adminUsers.php', 'Admin User', 'fas fa-users-cog');
-        navItems += navLink('dashboard.php', 'Charts', 'fas fa-chart-bar');
+        navItems += createChartsDropdown(); // 👈 Updated: Charts dropdown instead of single link
         navItems += helpDropdownHTML;
     } else if (authLevel > 0) { // Admin
         navItems += navLink('profile.php', 'My Profile', 'fas fa-user-shield');
         navItems += navLink('newOrder.php', 'New Order', 'fas fa-plus-circle');
         navItems += navLink('orders.php', 'Generated Orders', 'fas fa-list-alt');
-        navItems += navLink('dashboard.php', 'Charts', 'fas fa-chart-bar');
+        navItems += createChartsDropdown(); // 👈 Updated: Charts dropdown instead of single link
         navItems += helpDropdownHTML;
     } else { // Regular User
         navItems += navLink('profile.php', 'My Profile', 'fas fa-user');
@@ -123,7 +158,6 @@ function createHeader(isPublicPage = false) {
 }
 
 function createPublicHeader() {
-    // --- CORRECCIÓN (Aplicada también aquí por consistencia) ---
     const helpDropdownHTML = `
         <li class="nav__item nav__item-dropdown dropdown" id="help-nav-item" style="display: none;">
             <a href="#" class="nav__link" data-bs-toggle="dropdown" aria-expanded="false">

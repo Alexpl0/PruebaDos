@@ -147,21 +147,7 @@ require_once 'dao/users/context_injector.php';
             </div>
         </div>
 
-        <!-- 👈 SECCIÓN DE KPIs DETALLADOS - YA ESTÁ CORRECTAMENTE CONFIGURADA -->
-        <div class="row mb-4">
-            <div class="col-md-12">
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">Detailed KPIs</h6>
-                    </div>
-                    <div class="card-body p-0">
-                        <div id="detailedKPIsContainer">
-                            <!-- El contenido se genera automáticamente -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- 👈 SECCIÓN DE KPIs DETALLADOS REMOVIDA - Ahora está en weeklyPerformance.php -->
         
         <!-- Gráficos -->
         <div class="row mb-4">
