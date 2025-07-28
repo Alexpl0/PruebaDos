@@ -46,7 +46,7 @@ export function updateKPIs() {
     updateDetailedKPIs(filteredData, costoTotal);
 }
 
-function updateDetailedKPIs(data, costoTotal) {
+export function updateDetailedKPIs(data, costoTotal) {
     const costoPromedio = data.length > 0 ? costoTotal / data.length : 0;
     document.getElementById('kpiAvgCost').textContent = '€' + formatNumber(costoPromedio, 2);
     
@@ -402,3 +402,4 @@ function generateDetailedKPIsHTML(stats) {
         </div>
     `;
 }
+
