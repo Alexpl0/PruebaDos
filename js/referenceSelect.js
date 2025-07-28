@@ -15,7 +15,7 @@ function getBaseUrl() {
         return window.PF_CONFIG.app.baseURL;
     }
     console.warn("PF_CONFIG.app.baseURL not found, using a fallback URL.");
-    return 'https://grammermx.com/Jesus/PruebaDos/'; // Fallback URL
+    return 'https://grammermx.com/Logistica/PremiumFreight/'; // Fallback URL
 }
 
 /**

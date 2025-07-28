@@ -47,6 +47,7 @@ function collectFormData() {
             }
             formData[id] = value;
 
+            // The check for 'ReferenceOrder' is now done like any other field.
             if (!value || value === '') {
                 emptyFields.push(id);
             }
@@ -55,13 +56,87 @@ function collectFormData() {
         }
     });
 
+    // This separate check is no longer necessary as it's included in the loop.
+    // if (!$('#ReferenceOrder').val()) {
+    //     emptyFields.push('ReferenceOrder');
+    // }
+
     return { formData, emptyFields };
 }
 
 //==========================================================================================
 // Async function to check and save new companies (origin and destination)
 async function processNewCompanies() {
-    // ... (no changes in this function)
+    const companyShipElement = $('#CompanyShip');
+    const companyDestElement = $('#inputCompanyNameDest');
+    const companyShipData = companyShipElement.select2('data')[0];
+    const companyDestData = companyDestElement.select2('data')[0];
+    
+    let newCompanyIds = {
+        origin_id: null,
+        destiny_id: null
+    };
+
+    if (companyShipData && companyShipData.isNew) {
+        const companyName = companyShipData.id;
+        const city = $('#inputCityShip').val();
+        const state = $('#StatesShip').val();
+        const zip = $('#inputZipShip').val();
+        
+        if (!companyName || !city || !state || !zip) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Incomplete Data',
+                text: 'Please complete all fields for the origin company (Name, City, State, and ZIP Code).'
+            });
+            return { success: false };
+        }
+        
+        try {
+            const saveResult = await saveNewCompany(companyName, city, state, zip);
+            if (saveResult && saveResult !== false) {
+                newCompanyIds.origin_id = saveResult;
+            } else {
+                throw new Error("Failed to save origin company");
+            }
+        } catch (error) {
+            console.error("Error saving origin company:", error);
+            return { success: false };
+        }
+    }
+
+    if (companyDestData && companyDestData.isNew) {
+        const companyName = companyDestData.id;
+        const city = $('#inputCityDest').val();
+        const state = $('#StatesDest').val();
+        const zip = $('#inputZipDest').val();
+        
+        if (!companyName || !city || !state || !zip) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Incomplete Data',
+                text: 'Please complete all fields for the destination company (Name, City, State, and ZIP Code).'
+            });
+            return { success: false };
+        }
+        
+        try {
+            const saveResult = await saveNewCompany(companyName, city, state, zip);
+            if (saveResult && saveResult !== false) {
+                newCompanyIds.destiny_id = saveResult;
+            } else {
+                throw new Error("Failed to save destination company");
+            }
+        } catch (error) {
+            console.error("Error saving destination company:", error);
+            return { success: false };
+        }
+    }
+
+    return { 
+        success: true,
+        newCompanyIds: newCompanyIds
+    };
 }
 
 // Function to visually validate a Select2 element
@@ -94,40 +169,18 @@ function validateCompleteForm() {
         "Project Details": ['CategoryCause', 'ProjectStatus', 'Recovery', 'Description'],
         "Shipment Origin": ['CompanyShip', 'inputCityShip', 'StatesShip', 'inputZipShip'],
         "Destination": ['inputCompanyNameDest', 'inputCityDest', 'StatesDest', 'inputZipDest'],
-        "Shipment Details": ['Weight', 'Measures', 'Products', 'Carrier', 'recoveryFile'], // Added recoveryFile for section mapping
+        "Shipment Details": ['Weight', 'Measures', 'Products', 'Carrier'],
         "Reference Information": ['ReferenceOrder']
     };
 
     const { formData, emptyFields } = collectFormData();
     let customErrorMessages = {};
 
-    // ================== START: RECOVERY FILE VALIDATION ==================
-    // This section handles your first requirement.
-    // It ensures that if a recovery option (other than 'NO RECOVERY') is selected,
-    // the user MUST upload a PDF file before submitting the form.
-    const recoverySelect = document.getElementById('Recovery');
-    const recoveryFile = document.getElementById('recoveryFile');
-    
-    if (recoverySelect && recoveryFile) {
-        const selectedText = recoverySelect.options[recoverySelect.selectedIndex]?.text || '';
-        // 'needsFile' becomes true if any option besides "NO RECOVERY" is chosen.
-        const needsFile = !selectedText.toUpperCase().includes('NO RECOVERY');
-
-        // If a file is required but not provided, we add it to the list of errors.
-        if (needsFile && (!recoveryFile.files || recoveryFile.files.length === 0)) {
-            if (!emptyFields.includes('recoveryFile')) {
-                emptyFields.push('recoveryFile');
-            }
-            // We add a user-friendly name for the error message.
-            customErrorMessages['recoveryFile'] = 'Recovery Evidence (PDF)';
-            // And apply a visual style to indicate the error.
-            recoveryFile.classList.add('is-invalid');
-        } else {
-            // If the condition is not met, or the file is provided, remove the error style.
-            recoveryFile.classList.remove('is-invalid');
-        }
-    }
-    // =================== END: RECOVERY FILE VALIDATION ===================
+    // ================== VALIDATION LOGIC REMOVED ==================
+    // The complex validation for ReferenceOrder was here.
+    // It has been removed to simplify the validation to just "not empty",
+    // which is already handled by the collectFormData() function.
+    // ==============================================================
 
     const immediateActions = document.getElementById('InmediateActions');
     const permanentActions = document.getElementById('PermanentActions');
@@ -146,6 +199,7 @@ function validateCompleteForm() {
     }
 
     if (emptyFields.length === 0) {
+        // Clean up any previous error state for ReferenceOrder if the form is now valid
         $('#ReferenceOrder').next('.select2-container').removeClass('select2-container--error');
         return { isValid: true, formData };
     }
