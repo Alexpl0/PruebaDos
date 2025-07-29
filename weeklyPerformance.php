@@ -503,7 +503,7 @@ require_once 'dao/users/context_injector.php';
     
     <!-- Local JS Files -->
     <script src="js/header.js" type="module"></script>
-    <script type="module" src="js/weeklykpi/weeklyPerformance.js"></script>
+    <script type="module" src="js/weeklyPerformance.js"></script>
 
     <?php 
     // Carga condicional del JS del asistente.
