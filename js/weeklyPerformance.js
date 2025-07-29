@@ -62,10 +62,10 @@ function initializeSelectors() {
     updateWeekDisplay();
     initializePlantSelector();
     
-    // Event listeners para navegación de semanas
+    // Event listeners for week navigation
     const prevBtn = document.getElementById('prevWeek');
     const nextBtn = document.getElementById('nextWeek');
-    
+
     if (prevBtn) {
         prevBtn.addEventListener('click', () => {
             currentWeek.start.subtract(1, 'week');
@@ -76,13 +76,13 @@ function initializeSelectors() {
             updateAllVisualizations();
         });
     }
-    
+
     if (nextBtn) {
         nextBtn.addEventListener('click', () => {
             const nextWeekStart = moment(currentWeek.start).add(1, 'week');
             const today = moment();
-            
-            // No permitir navegar a semanas futuras
+
+            // Do not allow navigation to future weeks
             if (nextWeekStart.isAfter(today, 'week')) {
                 showErrorMessage('Cannot navigate to future weeks');
                 return;
@@ -642,7 +642,7 @@ function generateWeeklySummary() {
     
     container.innerHTML = html;
     
-    // Re-asignar event listeners a los nuevos botones
+    // Re-assign event listeners to the new buttons
     setTimeout(() => {
         assignExportButtonListeners();
     }, 100);
@@ -1252,7 +1252,7 @@ function generateInsights() {
 
     const insights = [];
 
-    // Insight sobre approval rate
+    // Approval rate insight
     const approvalRate = weeklyData.approval_rate || 0;
     if (approvalRate > 80) {
         insights.push({
@@ -1268,7 +1268,7 @@ function generateInsights() {
         });
     }
 
-    // Insight sobre top user
+    // Top user insight
     if (weeklyData.top_requesting_user && weeklyData.top_requesting_user.name !== 'N/A') {
         insights.push({
             type: 'positive',
@@ -1277,7 +1277,7 @@ function generateInsights() {
         });
     }
 
-    // Insight sobre costos
+    // Cost insight
     const totalCost = weeklyData.total_cost || 0;
     if (totalCost > 10000) {
         insights.push({
@@ -1287,7 +1287,7 @@ function generateInsights() {
         });
     }
 
-    // Si no hay insights, mostrar mensaje por defecto
+    // Default message if no insights
     if (insights.length === 0) {
         insights.push({
             type: 'info',
@@ -1419,11 +1419,11 @@ function exportToExcel() {
     }
 
     try {
-        // Mostrar loading
+        // Show loading
         if (typeof Swal !== 'undefined') {
             Swal.fire({
-                title: 'Generando Excel',
-                html: 'Preparando archivo con múltiples hojas...',
+                title: 'Generating Excel',
+                html: 'Preparing file with multiple sheets...',
                 allowOutsideClick: false,
                 didOpen: () => {
                     Swal.showLoading();
@@ -1479,11 +1479,11 @@ function exportToExcel() {
             return;
         }
 
-        // Guardar archivo
+        // Save file
         const fileName = `Weekly-Performance-${currentWeek.weekNumber}-${currentWeek.year}_${exportDate}.xlsx`;
         XLSX.writeFile(workbook, fileName);
 
-        // Cerrar loading y mostrar éxito
+        // Close loading and show success
         if (typeof Swal !== 'undefined') {
             Swal.fire({
                 title: 'Export Successful',
@@ -1624,11 +1624,11 @@ async function exportToPDF() {
         return;
     }
 
-    // Muestra una ventana de carga elegante
+    // Show a nice loading window
     if (typeof Swal !== 'undefined') {
         Swal.fire({
-            title: 'Generando PDF',
-            html: 'Preparando gráficas para exportación...<br><div class="mt-2"><small>Esto puede tomar unos segundos</small></div>',
+            title: 'Generating PDF',
+            html: 'Preparing charts for export...<br><div class="mt-2"><small>This may take a few seconds</small></div>',
             allowOutsideClick: false,
             didOpen: () => {
                 Swal.showLoading();
