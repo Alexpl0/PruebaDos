@@ -123,7 +123,7 @@ require_once 'dao/users/context_injector.php';
                         </h5>
                     </div>
                     <div class="card-body p-0">
-                        <div id="weeklySummaryContainer">
+                        <div id="summaryContainer">
                             <!-- Weekly summary table will be generated here -->
                         </div>
                     </div>
@@ -139,7 +139,7 @@ require_once 'dao/users/context_injector.php';
                         <i class="fas fa-chart-bar"></i>
                     </div>
                     <div class="metric-content">
-                        <h3 id="totalRequests">0</h3>
+                        <h3 id="totalGenerated">0</h3>
                         <p>Total Requests</p>
                         <span class="metric-trend" id="requestsTrend">
                             <i class="fas fa-arrow-up"></i> 0%
@@ -181,7 +181,7 @@ require_once 'dao/users/context_injector.php';
                         <i class="fas fa-clock"></i>
                     </div>
                     <div class="metric-content">
-                        <h3 id="avgTime">0h</h3>
+                        <h3 id="averageApprovalTime">0h</h3>
                         <p>Avg. Approval Time</p>
                         <span class="metric-trend" id="timeTrend">
                             <i class="fas fa-arrow-down"></i> 0%
