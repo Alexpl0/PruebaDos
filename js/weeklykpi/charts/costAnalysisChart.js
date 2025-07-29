@@ -21,91 +21,61 @@ export class CostAnalysisChart {
         const dailyCosts = weeklyData.daily_costs;
         const dates = dailyCosts.map(item => {
             const date = new Date(item.approval_date);
-            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            return date.toLocaleDateString('es-MX', { month: 'short', day: 'numeric' });
         });
         const costs = dailyCosts.map(item => parseFloat(item.daily_cost) || 0);
         const orders = dailyCosts.map(item => parseInt(item.daily_count) || 0);
 
         const options = {
             series: [
-                {
-                    name: 'Daily Cost (€)',
-                    type: 'column',
-                    data: costs
-                },
-                {
-                    name: 'Number of Orders',
-                    type: 'line',
-                    data: orders
-                }
+                { name: 'Costo Diario (€)', type: 'column', data: costs },
+                { name: 'Órdenes', type: 'line', data: orders }
             ],
             chart: {
                 type: 'line',
                 height: 400,
-                toolbar: {
-                    show: true
-                }
+                toolbar: { show: true }
             },
-            colors: ['#034C8C', '#218621'],
-            stroke: {
-                width: [0, 3]
-            },
+            colors: ['#00A3E0', '#218621'],
+            stroke: { width: [0, 4] },
             plotOptions: {
                 bar: {
                     columnWidth: '60%',
                     endingShape: 'rounded'
                 }
             },
-            dataLabels: {
-                enabled: false
-            },
+            dataLabels: { enabled: false },
             xaxis: {
                 categories: dates,
-                title: {
-                    text: 'Date'
-                }
+                title: { text: 'Día', style: { fontSize: '16px', fontWeight: 700 } }
             },
             yaxis: [
                 {
-                    title: {
-                        text: 'Daily Cost (€)'
-                    },
+                    title: { text: 'Costo Diario (€)', style: { fontSize: '16px', fontWeight: 700 } },
                     labels: {
-                        formatter: function(value) {
-                            return '€' + utilityService.formatNumber(value, 0);
-                        }
+                        formatter: value => '€' + utilityService.formatNumber(value, 0)
                     }
                 },
                 {
                     opposite: true,
-                    title: {
-                        text: 'Number of Orders'
-                    },
+                    title: { text: 'Órdenes', style: { fontSize: '16px', fontWeight: 700 } },
                     min: 0
                 }
             ],
             legend: {
-                position: 'top'
+                position: 'top',
+                fontSize: '16px',
+                fontWeight: 700
             },
             tooltip: {
                 shared: true,
                 intersect: false,
                 y: [
-                    {
-                        formatter: function(value) {
-                            return '€' + utilityService.formatNumber(value, 2);
-                        }
-                    },
-                    {
-                        formatter: function(value) {
-                            return value + ' orders';
-                        }
-                    }
+                    { formatter: value => '€' + utilityService.formatNumber(value, 2) },
+                    { formatter: value => value + ' órdenes' }
                 ]
             },
-            grid: {
-                borderColor: '#e7e7e7'
-            },
+            grid: { borderColor: '#e7e7e7' },
             fill: {
                 type: 'gradient',
                 gradient: {

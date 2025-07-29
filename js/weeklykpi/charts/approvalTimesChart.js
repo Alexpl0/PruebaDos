@@ -21,67 +21,93 @@ export class ApprovalTimesChart {
         const timeData = weeklyData.approval_times_distribution;
         const categories = timeData.map(item => item.time_category);
         const counts = timeData.map(item => parseInt(item.count) || 0);
-        const colors = ['#218621', '#F59E0B', '#E41A23', '#034C8C'];
+        const colors = ['#00A3E0', '#218621', '#F59E0B', '#E41A23']; // Más vivos
 
         const options = {
             series: counts,
             chart: {
-                type: 'pie',
-                height: 400,
-                toolbar: {
-                    show: true
-                }
+                type: 'donut', // Cambia a donut
+                height: 380,
+                toolbar: { show: true }
             },
             labels: categories,
             colors: colors,
             legend: {
-                position: 'bottom',
-                fontSize: '14px'
+                position: 'top', // Leyenda arriba
+                fontSize: '16px',
+                fontWeight: 600,
+                markers: { width: 18, height: 18 }
             },
             plotOptions: {
                 pie: {
-                    expandOnClick: false,
                     donut: {
-                        size: '0%'
+                        size: '65%',
+                        labels: {
+                            show: true,
+                            name: {
+                                show: true,
+                                fontSize: '18px',
+                                fontWeight: 700,
+                                offsetY: -10
+                            },
+                            value: {
+                                show: true,
+                                fontSize: '22px',
+                                fontWeight: 700,
+                                color: '#034C8C',
+                                offsetY: 10,
+                                formatter: function (val) {
+                                    return val + ' reqs';
+                                }
+                            },
+                            total: {
+                                show: true,
+                                label: 'Total',
+                                fontSize: '18px',
+                                fontWeight: 700,
+                                color: '#002856',
+                                formatter: function (w) {
+                                    return w.globals.seriesTotals.reduce((a, b) => a + b, 0) + ' reqs';
+                                }
+                            }
+                        }
                     }
                 }
             },
             dataLabels: {
                 enabled: true,
-                formatter: function(val, opts) {
-                    const count = opts.w.config.series[opts.seriesIndex];
-                    return count + '\n(' + val.toFixed(1) + '%)';
-                },
                 style: {
-                    fontSize: '12px',
+                    fontSize: '16px',
                     fontWeight: 'bold'
+                },
+                formatter: function (val, opts) {
+                    const count = opts.w.config.series[opts.seriesIndex];
+                    return `${count} (${val.toFixed(1)}%)`;
                 }
             },
             tooltip: {
                 y: {
-                    formatter: function(value, { seriesIndex }) {
+                    formatter: function (value, { seriesIndex }) {
                         const total = counts.reduce((a, b) => a + b, 0);
                         const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
                         const avgHours = timeData[seriesIndex]?.avg_hours;
-                        
-                        let tooltip = `${value} requests (${percentage}%)`;
+                        let tooltip = `<b>${value} solicitudes</b> (${percentage}%)`;
                         if (avgHours && avgHours !== 'N/A') {
-                            tooltip += `<br>Avg: ${avgHours}h`;
+                            tooltip += `<br><span style="color:#218621">Promedio: ${avgHours}h</span>`;
                         }
                         return tooltip;
                     }
                 }
             },
+            grid: {
+                borderColor: '#e7e7e7'
+            },
             responsive: [
                 {
                     breakpoint: 768,
                     options: {
-                        chart: {
-                            height: 300
-                        },
-                        legend: {
-                            position: 'bottom'
-                        }
+                        chart: { height: 260 },
+                        legend: { fontSize: '13px' }
                     }
                 }
             ]

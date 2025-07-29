@@ -18,95 +18,62 @@ export class TopPerformersChart {
             this.chart.destroy();
         }
 
-        const topPerformers = weeklyData.top_performers.slice(0, 10); // Top 10
+        const topPerformers = weeklyData.top_performers.slice(0, 10);
         const names = topPerformers.map(p => p.name);
         const requests = topPerformers.map(p => parseInt(p.approved_requests) || 0);
         const costs = topPerformers.map(p => parseFloat(p.total_cost) || 0);
 
         const options = {
             series: [
-                {
-                    name: 'Approved Requests',
-                    type: 'column',
-                    data: requests
-                },
-                {
-                    name: 'Total Cost (€)',
-                    type: 'line',
-                    data: costs
-                }
+                { name: 'Solicitudes Aprobadas', type: 'column', data: requests },
+                { name: 'Costo Total (€)', type: 'line', data: costs }
             ],
             chart: {
                 type: 'line',
                 height: 400,
-                toolbar: {
-                    show: true
-                }
+                toolbar: { show: true }
             },
-            colors: ['#034C8C', '#E41A23'],
-            stroke: {
-                width: [0, 3]
-            },
+            colors: ['#00A3E0', '#E41A23'],
+            stroke: { width: [0, 4] },
             plotOptions: {
                 bar: {
                     horizontal: false,
-                    columnWidth: '70%',
+                    columnWidth: '60%',
                     endingShape: 'rounded'
                 }
             },
-            dataLabels: {
-                enabled: false
-            },
+            dataLabels: { enabled: false },
             xaxis: {
                 categories: names,
-                labels: {
-                    rotate: -45,
-                    style: {
-                        fontSize: '12px'
-                    }
-                }
+                labels: { rotate: -45, style: { fontSize: '14px', fontWeight: 700 } }
             },
             yaxis: [
                 {
-                    title: {
-                        text: 'Number of Requests'
-                    },
+                    title: { text: 'Solicitudes', style: { fontSize: '16px', fontWeight: 700 } },
                     min: 0
                 },
                 {
                     opposite: true,
-                    title: {
-                        text: 'Total Cost (€)'
-                    },
+                    title: { text: 'Costo Total (€)', style: { fontSize: '16px', fontWeight: 700 } },
                     labels: {
-                        formatter: function(value) {
-                            return '€' + utilityService.formatNumber(value, 0);
-                        }
+                        formatter: value => '€' + utilityService.formatNumber(value, 0)
                     }
                 }
             ],
             legend: {
-                position: 'top'
+                position: 'top',
+                fontSize: '16px',
+                fontWeight: 700
             },
             tooltip: {
                 shared: true,
                 intersect: false,
                 y: [
-                    {
-                        formatter: function(value) {
-                            return value + ' requests';
-                        }
-                    },
-                    {
-                        formatter: function(value) {
-                            return '€' + utilityService.formatNumber(value, 2);
-                        }
-                    }
+                    { formatter: value => value + ' solicitudes' },
+                    { formatter: value => '€' + utilityService.formatNumber(value, 2) }
                 ]
             },
-            grid: {
-                borderColor: '#e7e7e7'
-            }
+            grid: { borderColor: '#e7e7e7' }
         };
 
         this.chart = new ApexCharts(container, options);

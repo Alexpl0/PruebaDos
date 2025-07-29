@@ -155,44 +155,144 @@ class UIService {
      * Genera el resumen semanal
      */
     generateWeeklySummary(weeklyData) {
-        const container = document.getElementById('summaryContainer');
+        const container = document.getElementById('weeklySummaryContainer');
         if (!container || !weeklyData) return;
 
-        const currentWeek = dataService.getCurrentWeek();
-        const selectedPlant = dataService.getSelectedPlant();
+        const weekInfo = `Week ${weeklyData.week_number || ''} of ${weeklyData.year || ''}`;
+        const weekRange = `${weeklyData.start_date || ''} - ${weeklyData.end_date || ''}`;
+        const plantInfo = weeklyData.selected_plant ? ` - ${weeklyData.selected_plant}` : '';
 
-        const html = `
-            <div class="summary-header">
-                <h4>Weekly Summary</h4>
-                <p class="summary-period">
-                    Week ${currentWeek.weekNumber}, ${currentWeek.year} 
-                    (${currentWeek.start.format('MMM DD')} - ${currentWeek.end.format('MMM DD, YYYY')})
-                    ${selectedPlant ? `- Plant: ${selectedPlant}` : ''}
-                </p>
-            </div>
-            <div class="summary-content">
-                <div class="summary-stats">
-                    <div class="stat-item">
-                        <span class="stat-label">Total Requests:</span>
-                        <span class="stat-value">${weeklyData.total_generated || 0}</span>
+        container.innerHTML = `
+            <div class="dashboard-summary-card card animate">
+                <div class="dashboard-summary-header" style="background: var(--primary-gradient); color: #fff; padding: 1.2rem 2rem; display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <h3 style="margin:0;font-size:1.4rem;font-weight:700;letter-spacing:0.5px;">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Weekly Performance Summary
+                        </h3>
+                        <div style="font-size:1rem;opacity:0.85;">
+                            ${weekInfo} <span style="font-weight:400;">(${weekRange})</span>${plantInfo}
+                        </div>
                     </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Approval Rate:</span>
-                        <span class="stat-value success">${weeklyData.approval_rate || 0}%</span>
+                    <div>
+                        <button id="exportExcel" class="btn btn-sm btn-outline-light me-2" title="Export to Excel"><i class="fas fa-file-excel"></i></button>
+                        <button id="exportPDF" class="btn btn-sm btn-outline-light me-2" title="Export to PDF"><i class="fas fa-file-pdf"></i></button>
+                        <button id="printReport" class="btn btn-sm btn-outline-light" title="Print"><i class="fas fa-print"></i></button>
                     </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Total Cost:</span>
-                        <span class="stat-value">€${utilityService.formatNumber(weeklyData.total_cost || 0, 2)}</span>
+                </div>
+                <div class="dashboard-summary-body" style="padding:2rem;">
+                    <div class="row g-3">
+                        <div class="col-6 col-md-3">
+                            <div class="metric-card primary">
+                                <div class="metric-icon"><i class="fas fa-file-alt"></i></div>
+                                <div class="metric-content">
+                                    <h3>${utilityService.formatNumber(weeklyData.total_generated || 0)}</h3>
+                                    <p>Total Generated</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="metric-card warning">
+                                <div class="metric-icon"><i class="fas fa-hourglass-half"></i></div>
+                                <div class="metric-content">
+                                    <h3>${utilityService.formatNumber(weeklyData.total_pending || 0)}</h3>
+                                    <p>Pending/In Progress</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="metric-card success">
+                                <div class="metric-icon"><i class="fas fa-check-circle"></i></div>
+                                <div class="metric-content">
+                                    <h3>${utilityService.formatNumber(weeklyData.total_approved || 0)}</h3>
+                                    <p>Approved</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="metric-card danger">
+                                <div class="metric-icon"><i class="fas fa-times-circle"></i></div>
+                                <div class="metric-content">
+                                    <h3>${utilityService.formatNumber(weeklyData.total_rejected || 0)}</h3>
+                                    <p>Rejected</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Avg. Approval Time:</span>
-                        <span class="stat-value">${weeklyData.average_approval_time || 'N/A'}</span>
+                    <div class="row g-3 mt-3">
+                        <div class="col-6 col-md-3">
+                            <div class="metric-card info">
+                                <div class="metric-icon"><i class="fas fa-percentage"></i></div>
+                                <div class="metric-content">
+                                    <h3>${weeklyData.approval_rate || 0}%</h3>
+                                    <p>Approval Rate</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="metric-card primary">
+                                <div class="metric-icon"><i class="fas fa-euro-sign"></i></div>
+                                <div class="metric-content">
+                                    <h3>€${utilityService.formatNumber(weeklyData.total_cost || 0, 2)}</h3>
+                                    <p>Total Cost</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="metric-card info">
+                                <div class="metric-icon"><i class="fas fa-stopwatch"></i></div>
+                                <div class="metric-content">
+                                    <h3>${weeklyData.average_approval_time || 'N/A'}</h3>
+                                    <p>Avg. Approval Time</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="metric-card success">
+                                <div class="metric-icon"><i class="fas fa-user-crown"></i></div>
+                                <div class="metric-content">
+                                    <h3 style="font-size:1.1rem;">${weeklyData.top_requesting_user?.name || 'N/A'}</h3>
+                                    <p>Top User</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                    <div class="row g-3 mt-3">
+                        <div class="col-6 col-md-4">
+                            <div class="metric-card info">
+                                <div class="metric-icon"><i class="fas fa-building"></i></div>
+                                <div class="metric-content">
+                                    <h3 style="font-size:1.1rem;">${weeklyData.top_spending_area?.area || 'N/A'}</h3>
+                                    <p>Top Area</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="metric-card warning">
+                                <div class="metric-icon"><i class="fas fa-clock"></i></div>
+                                <div class="metric-content">
+                                    <h3 style="font-size:1.1rem;">${weeklyData.slowest_approver?.name || 'N/A'}</h3>
+                                    <p>Slowest Approver</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="metric-card info">
+                                <div class="metric-icon"><i class="fas fa-info-circle"></i></div>
+                                <div class="metric-content">
+                                    <h3 style="font-size:1.1rem;">${weeklyData.slowest_approver?.duration_formatted || 'N/A'}</h3>
+                                    <p>Longest Approval Step</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="dashboard-summary-footer" style="background: #f8fafc; color: #666; font-size:0.95rem; padding: 0.8rem 2rem;">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Report generated on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                 </div>
             </div>
         `;
-
-        container.innerHTML = html;
     }
 
     /**

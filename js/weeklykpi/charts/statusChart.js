@@ -14,7 +14,6 @@ export class StatusChart {
         const container = document.getElementById(this.containerId);
         if (!container || !weeklyData) return;
 
-        // Destruir gráfica existente
         if (this.chart) {
             this.chart.destroy();
         }
@@ -30,28 +29,41 @@ export class StatusChart {
             chart: {
                 type: 'donut',
                 height: 350,
-                toolbar: {
-                    show: true
-                }
+                toolbar: { show: true }
             },
-            labels: ['Pending', 'Approved', 'Rejected'],
+            labels: ['Pendientes', 'Aprobadas', 'Rechazadas'],
             colors: ['#F59E0B', '#218621', '#E41A23'],
             legend: {
-                position: 'bottom',
-                fontSize: '14px'
+                position: 'top',
+                fontSize: '16px',
+                fontWeight: 700,
+                markers: { width: 18, height: 18 }
             },
             plotOptions: {
                 pie: {
                     donut: {
-                        size: '60%',
+                        size: '65%',
                         labels: {
                             show: true,
+                            name: {
+                                show: true,
+                                fontSize: '18px',
+                                fontWeight: 700
+                            },
+                            value: {
+                                show: true,
+                                fontSize: '22px',
+                                fontWeight: 700,
+                                color: '#034C8C',
+                                formatter: val => val + ' reqs'
+                            },
                             total: {
                                 show: true,
                                 label: 'Total',
-                                formatter: function(w) {
-                                    return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
-                                }
+                                fontSize: '18px',
+                                fontWeight: 700,
+                                color: '#002856',
+                                formatter: w => w.globals.seriesTotals.reduce((a, b) => a + b, 0) + ' reqs'
                             }
                         }
                     }
@@ -62,15 +74,14 @@ export class StatusChart {
                     formatter: function(value) {
                         const total = statusData.reduce((a, b) => a + b, 0);
                         const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                        return value + ' (' + percentage + '%)';
+                        return `<b>${value} solicitudes</b> (${percentage}%)`;
                     }
                 }
             },
             dataLabels: {
                 enabled: true,
-                formatter: function(val, opts) {
-                    return opts.w.config.series[opts.seriesIndex];
-                }
+                style: { fontSize: '16px', fontWeight: 'bold' },
+                formatter: (val, opts) => `${opts.w.config.series[opts.seriesIndex]} (${val.toFixed(1)}%)`
             }
         };
 

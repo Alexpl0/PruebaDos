@@ -24,18 +24,11 @@ export class AreaPerformanceChart {
         const colors = utilityService.generateColors(areas.length);
 
         const options = {
-            series: [
-                {
-                    name: 'Total Cost',
-                    data: costs
-                }
-            ],
+            series: [{ name: 'Costo Total', data: costs }],
             chart: {
                 type: 'bar',
                 height: 400,
-                toolbar: {
-                    show: true
-                }
+                toolbar: { show: true }
             },
             colors: colors,
             plotOptions: {
@@ -47,43 +40,29 @@ export class AreaPerformanceChart {
             },
             dataLabels: {
                 enabled: true,
-                formatter: function(val) {
-                    return '€' + utilityService.formatNumber(val, 0);
-                },
-                style: {
-                    colors: ['#fff']
-                }
+                formatter: val => '€' + utilityService.formatNumber(val, 0),
+                style: { colors: ['#fff'], fontSize: '16px', fontWeight: 700 }
             },
             xaxis: {
                 categories: areas,
-                title: {
-                    text: 'Total Cost (€)'
-                },
+                title: { text: 'Costo Total (€)', style: { fontSize: '16px', fontWeight: 700 } },
                 labels: {
-                    formatter: function(value) {
-                        return '€' + utilityService.formatNumber(value, 0);
-                    }
+                    formatter: value => '€' + utilityService.formatNumber(value, 0)
                 }
             },
             yaxis: {
-                title: {
-                    text: 'Business Areas'
-                }
+                title: { text: 'Áreas', style: { fontSize: '16px', fontWeight: 700 } }
             },
-            legend: {
-                show: false
-            },
+            legend: { show: false },
             tooltip: {
                 y: {
-                    formatter: function(value, { dataPointIndex }) {
+                    formatter: (value, { dataPointIndex }) => {
                         const area = areaData[dataPointIndex];
-                        return `€${utilityService.formatNumber(value, 2)}<br>Requests: ${area.total_requests}`;
+                        return `€${utilityService.formatNumber(value, 2)}<br>Solicitudes: ${area.total_requests}`;
                     }
                 }
             },
-            grid: {
-                borderColor: '#e7e7e7'
-            }
+            grid: { borderColor: '#e7e7e7' }
         };
 
         this.chart = new ApexCharts(container, options);

@@ -12,96 +12,51 @@ export class TrendsChart {
 
     render(weeklyData) {
         const container = document.getElementById(this.containerId);
-        if (!container || !weeklyData) return;
+        if (!container || !weeklyData || !weeklyData.daily_trends) return;
 
-        // Destruir gráfica existente
         if (this.chart) {
             this.chart.destroy();
         }
 
-        // Preparar datos diarios
-        const dailyData = this.prepareDailyData(weeklyData);
+        const daily = weeklyData.daily_trends;
+        const dates = daily.map(d => d.date_label);
+        const generated = daily.map(d => d.generated || 0);
+        const approved = daily.map(d => d.approved || 0);
+        const rejected = daily.map(d => d.rejected || 0);
 
         const options = {
             series: [
-                {
-                    name: 'Generated',
-                    data: dailyData.generated
-                },
-                {
-                    name: 'Approved',
-                    data: dailyData.approved
-                },
-                {
-                    name: 'Rejected',
-                    data: dailyData.rejected
-                }
+                { name: 'Generadas', data: generated },
+                { name: 'Aprobadas', data: approved },
+                { name: 'Rechazadas', data: rejected }
             ],
             chart: {
                 type: 'line',
-                height: 350,
-                toolbar: {
-                    show: true,
-                    tools: {
-                        download: true,
-                        selection: false,
-                        zoom: false,
-                        zoomin: false,
-                        zoomout: false,
-                        pan: false,
-                        reset: false
-                    }
-                },
-                animations: {
-                    enabled: true,
-                    easing: 'easeinout',
-                    speed: 800
-                }
+                height: 380,
+                toolbar: { show: true }
             },
-            colors: ['#034C8C', '#218621', '#E41A23'],
-            stroke: {
-                width: 3,
-                curve: 'smooth'
-            },
-            markers: {
-                size: 6,
-                strokeWidth: 2,
-                fillOpacity: 1,
-                hover: {
-                    size: 8
-                }
-            },
+            colors: ['#00A3E0', '#218621', '#E41A23'],
+            stroke: { width: 4, curve: 'smooth' },
+            markers: { size: 7, strokeWidth: 3, hover: { size: 10 } },
             xaxis: {
-                categories: dailyData.dates,
-                title: {
-                    text: 'Date'
-                }
+                categories: dates,
+                title: { text: 'Día', style: { fontSize: '16px', fontWeight: 700 } }
             },
             yaxis: {
-                title: {
-                    text: 'Number of Requests'
-                },
+                title: { text: 'Solicitudes', style: { fontSize: '16px', fontWeight: 700 } },
                 min: 0
             },
             legend: {
-                position: 'top'
+                position: 'top',
+                fontSize: '16px',
+                fontWeight: 700
             },
             tooltip: {
                 shared: true,
                 intersect: false,
-                y: {
-                    formatter: function(value) {
-                        return value + ' requests';
-                    }
-                }
+                y: { formatter: val => val + ' solicitudes' }
             },
-            grid: {
-                borderColor: '#e7e7e7',
-                row: {
-                    colors: ['#f3f3f3', 'transparent'],
-                    opacity: 0.5
-                }
-            }
+            grid: { borderColor: '#e7e7e7' }
         };
 
         this.chart = new ApexCharts(container, options);
