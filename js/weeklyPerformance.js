@@ -63,39 +63,49 @@ function initializeSelectors() {
     initializePlantSelector();
     
     // Event listeners para navegación de semanas
-    document.getElementById('prevWeek').addEventListener('click', () => {
-        currentWeek.start.subtract(1, 'week');
-        currentWeek.end.subtract(1, 'week');
-        currentWeek.weekNumber = currentWeek.start.isoWeek();
-        currentWeek.year = currentWeek.start.year();
-        updateWeekDisplay();
-        updateAllVisualizations();
-    });
+    const prevBtn = document.getElementById('prevWeek');
+    const nextBtn = document.getElementById('nextWeek');
     
-    document.getElementById('nextWeek').addEventListener('click', () => {
-        const nextWeekStart = moment(currentWeek.start).add(1, 'week');
-        const today = moment();
-        
-        // No permitir navegar a semanas futuras
-        if (nextWeekStart.isAfter(today, 'week')) {
-            showErrorMessage('Cannot navigate to future weeks');
-            return;
-        }
-        
-        currentWeek.start.add(1, 'week');
-        currentWeek.end.add(1, 'week');
-        currentWeek.weekNumber = currentWeek.start.isoWeek();
-        currentWeek.year = currentWeek.start.year();
-        updateWeekDisplay();
-        updateAllVisualizations();
-    });
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            currentWeek.start.subtract(1, 'week');
+            currentWeek.end.subtract(1, 'week');
+            currentWeek.weekNumber = currentWeek.start.isoWeek();
+            currentWeek.year = currentWeek.start.year();
+            updateWeekDisplay();
+            updateAllVisualizations();
+        });
+    }
+    
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            const nextWeekStart = moment(currentWeek.start).add(1, 'week');
+            const today = moment();
+            
+            // No permitir navegar a semanas futuras
+            if (nextWeekStart.isAfter(today, 'week')) {
+                showErrorMessage('Cannot navigate to future weeks');
+                return;
+            }
+            
+            currentWeek.start.add(1, 'week');
+            currentWeek.end.add(1, 'week');
+            currentWeek.weekNumber = currentWeek.start.isoWeek();
+            currentWeek.year = currentWeek.start.year();
+            updateWeekDisplay();
+            updateAllVisualizations();
+        });
+    }
 
     // Event listener para el selector de planta
-    document.getElementById('plantSelector').addEventListener('change', (e) => {
-        selectedPlant = e.target.value;
-        console.log('Plant selected:', selectedPlant);
-        updateAllVisualizations();
-    });
+    const plantSelector = document.getElementById('plantSelector');
+    if (plantSelector) {
+        plantSelector.addEventListener('change', (e) => {
+            selectedPlant = e.target.value;
+            console.log('Plant selected:', selectedPlant);
+            updateAllVisualizations();
+        });
+    }
 }
 
 /**
@@ -103,27 +113,44 @@ function initializeSelectors() {
  */
 function updateWeekDisplay() {
     const weekDisplay = document.getElementById('weekDisplay');
+    const weekNumber = document.getElementById('weekNumber');
+    const weekDates = document.getElementById('weekDates');
     const prevBtn = document.getElementById('prevWeek');
     const nextBtn = document.getElementById('nextWeek');
     
-    if (!weekDisplay) return;
-    
+    // Información de la semana
     const weekInfo = `Week ${currentWeek.weekNumber} of ${currentWeek.year}`;
-    const weekDates = `${currentWeek.start.format('MMM DD')} - ${currentWeek.end.format('MMM DD')}`;
+    const weekDateRange = `${currentWeek.start.format('MMM DD')} - ${currentWeek.end.format('MMM DD')}`;
     
-    weekDisplay.innerHTML = `
-        <div class="week-info">${weekInfo}</div>
-        <div class="week-dates">${weekDates}</div>
-    `;
+    // Actualizar elementos individuales si existen
+    if (weekNumber) {
+        weekNumber.textContent = weekInfo;
+    }
+    
+    if (weekDates) {
+        weekDates.textContent = weekDateRange;
+    }
+    
+    // Fallback: actualizar contenedor completo si los elementos individuales no existen
+    if (!weekNumber && !weekDates && weekDisplay) {
+        weekDisplay.innerHTML = `
+            <div class="week-info fw-bold">${weekInfo}</div>
+            <div class="week-dates">${weekDateRange}</div>
+        `;
+    }
     
     // Deshabilitar navegación futura
     const today = moment();
     const nextWeekStart = moment(currentWeek.start).add(1, 'week');
-    nextBtn.disabled = nextWeekStart.isAfter(today, 'week');
+    if (nextBtn) {
+        nextBtn.disabled = nextWeekStart.isAfter(today, 'week');
+    }
     
     // Opcional: limitar cuánto atrás se puede ir (ej: máximo 1 año)
     const oneYearAgo = moment().subtract(1, 'year');
-    prevBtn.disabled = currentWeek.start.isBefore(oneYearAgo, 'week');
+    if (prevBtn) {
+        prevBtn.disabled = currentWeek.start.isBefore(oneYearAgo, 'week');
+    }
 }
 
 /**
@@ -345,17 +372,29 @@ function showErrorMessage(message) {
 function updateMetricCards() {
     if (!weeklyData || Object.keys(weeklyData).length === 0) return;
 
-    // Total Requests
-    document.getElementById('totalRequests').textContent = formatNumber(weeklyData.total_generated || 0);
+    // Total Requests - usando el ID correcto del HTML
+    const totalRequestsEl = document.getElementById('totalRequests');
+    if (totalRequestsEl) {
+        totalRequestsEl.textContent = formatNumber(weeklyData.total_generated || 0);
+    }
     
     // Approval Rate
-    document.getElementById('approvalRate').textContent = `${weeklyData.approval_rate || 0}%`;
+    const approvalRateEl = document.getElementById('approvalRate');
+    if (approvalRateEl) {
+        approvalRateEl.textContent = `${weeklyData.approval_rate || 0}%`;
+    }
     
     // Total Cost
-    document.getElementById('totalCost').textContent = `€${formatNumber(weeklyData.total_cost || 0, 2)}`;
+    const totalCostEl = document.getElementById('totalCost');
+    if (totalCostEl) {
+        totalCostEl.textContent = `€${formatNumber(weeklyData.total_cost || 0, 2)}`;
+    }
     
-    // Average Time
-    document.getElementById('avgTime').textContent = weeklyData.average_approval_time || 'N/A';
+    // Average Time - usando el ID correcto del HTML
+    const avgTimeEl = document.getElementById('avgTime');
+    if (avgTimeEl) {
+        avgTimeEl.textContent = weeklyData.average_approval_time || 'N/A';
+    }
 
     // TODO: Implementar cálculo de trends comparando con período anterior
     updateTrends();
@@ -422,14 +461,26 @@ function updateTrendElement(elementId, change, higherIsBetter, unit = '%') {
  * @param {object} previousData - Datos de la semana anterior.
  */
 function updateTrends(currentData, previousData) {
+    if (!currentData) {
+        currentData = weeklyData;
+    }
+    
     if (!previousData) {
         // Si no hay datos de la semana anterior, ocultar tendencias
-        document.querySelectorAll('.metric-trend').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.metric-trend').forEach(el => {
+            if (el.id.includes('Trend')) {
+                el.style.display = 'none';
+            }
+        });
         return;
     }
 
     // Asegurarse de que los elementos de tendencia estén visibles
-    document.querySelectorAll('.metric-trend').forEach(el => el.style.display = 'inline-flex');
+    document.querySelectorAll('.metric-trend').forEach(el => {
+        if (el.id.includes('Trend')) {
+            el.style.display = 'inline-flex';
+        }
+    });
 
     // 1. Tendencia de Solicitudes Totales
     const requestsChange = calculatePercentageChange(currentData.total_generated, previousData.total_generated);
@@ -1841,7 +1892,10 @@ async function initializeWeeklyPerformance() {
         initializeExportButtons();
 
         // Event listener para el botón de refresh
-        document.getElementById('refreshData')?.addEventListener('click', updateAllVisualizations);
+        const refreshBtn = document.getElementById('refreshData');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', updateAllVisualizations);
+        }
 
         // Cargar datos iniciales
         await updateAllVisualizations();
