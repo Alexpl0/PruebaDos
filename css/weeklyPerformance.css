@@ -172,7 +172,7 @@
 
 .plant-selector .form-select {
     width: 100%;
-    min-height: 45px;
+    height: 60px;
 }
 
 /* Week selector specific styles - MEJORADO */
@@ -185,7 +185,7 @@
     padding: 0;
     overflow: hidden;
     width: 100%;
-    min-height: 45px;
+    max-height: 60px;
     transition: var(--transition-normal);
 }
 
@@ -205,7 +205,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 45px;
+    max-width: 45px;
     height: 100%;
     font-size: 1rem;
 }
@@ -442,6 +442,7 @@
     border: 1px solid rgba(255, 255, 255, 0.3);
     color: var(--white);
     text-decoration: none;
+    max-width: 100px;
 }
 
 .kpis-export-buttons .btn:hover {

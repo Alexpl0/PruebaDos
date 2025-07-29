@@ -542,7 +542,7 @@ function assignExportButtonListeners() {
         exportExcel.removeEventListener('click', exportToExcel);
         exportExcel.addEventListener('click', exportToExcel);
         exportExcel.disabled = false;
-        exportExcel.innerHTML = '<i class="fas fa-file-excel me-1"></i>Excel (Multiple Sheets)';
+        exportExcel.innerHTML = '<i class="fas fa-file-excel me-1"></i>Excel';
         exportExcel.title = 'Export data to Excel with multiple sheets for each dataset';
     }
     
@@ -550,7 +550,7 @@ function assignExportButtonListeners() {
         exportPDF.removeEventListener('click', exportToPDF);
         exportPDF.addEventListener('click', exportToPDF);
         exportPDF.disabled = false;
-        exportPDF.innerHTML = '<i class="fas fa-file-pdf me-1"></i>PDF (Multiple Pages)';
+        exportPDF.innerHTML = '<i class="fas fa-file-pdf me-1"></i>PDF';
         exportPDF.title = 'Export all charts to PDF with individual pages for each chart';
     }
     
