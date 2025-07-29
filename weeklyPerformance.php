@@ -175,9 +175,9 @@ require_once 'dao/users/context_injector.php';
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
-            <div class="loading-text">Cargando datos del dashboard...</div>
+            <div class="loading-text">Loading dashboard data...</div>
             <div class="mt-2">
-                <small class="text-muted">Esto puede tomar unos segundos</small>
+                <small class="text-muted">This may take a few seconds</small>
             </div>
         </div>
     </div>
@@ -192,7 +192,7 @@ require_once 'dao/users/context_injector.php';
                 Weekly Performance Dashboard
             </h1>
             <p class="performance-subtitle">
-                Análisis completo de KPIs y métricas semanales para Premium Freight
+                Complete analysis of weekly KPIs and metrics for Premium Freight
             </p>
         </div>
         
@@ -204,17 +204,17 @@ require_once 'dao/users/context_injector.php';
                         <div class="filter-container">
                             <div class="filter-section">
                                 <label for="weekSelector" class="form-label">
-                                    <i class="fas fa-calendar-week"></i> Semana de Análisis
+                                    <i class="fas fa-calendar-week"></i> Analysis Week
                                 </label>
                                 <div class="week-selector" id="weekSelector">
-                                    <button type="button" class="week-nav-btn" id="prevWeek" title="Semana anterior (Ctrl + ←)">
+                                    <button type="button" class="week-nav-btn" id="prevWeek" title="Previous week (Ctrl + ←)">
                                         <i class="fas fa-chevron-left"></i>
                                     </button>
                                     <div class="week-display text-center mx-3" id="weekDisplay">
-                                        <div class="week-info fw-bold" id="weekNumber">Semana de 2025</div>
-                                        <div class="week-dates" id="weekDates">Cargando...</div>
+                                        <div class="week-info fw-bold" id="weekNumber">Week of 2025</div>
+                                        <div class="week-dates" id="weekDates">Loading...</div>
                                     </div>
-                                    <button type="button" class="week-nav-btn" id="nextWeek" title="Semana siguiente (Ctrl + →)">
+                                    <button type="button" class="week-nav-btn" id="nextWeek" title="Next week (Ctrl + →)">
                                         <i class="fas fa-chevron-right"></i>
                                     </button>
                                 </div>
@@ -222,20 +222,20 @@ require_once 'dao/users/context_injector.php';
                             
                             <div class="filter-section">
                                 <label for="plantSelector" class="form-label">
-                                    <i class="fas fa-industry"></i> Filtro de Planta
+                                    <i class="fas fa-industry"></i> Plant Filter
                                 </label>
                                 <div class="plant-selector">
                                     <select class="form-select" id="plantSelector">
-                                        <option value="">Todas las Plantas</option>
-                                        <!-- Opciones se poblarán dinámicamente -->
+                                        <option value="">All Plants</option>
+                                        <!-- Options will be populated dynamically -->
                                     </select>
                                 </div>
                             </div>
                         </div>
                         
                         <div class="refresh-container">
-                            <button id="refreshData" class="btn btn-refresh" disabled title="Actualizar datos (Ctrl + R)">
-                                <i class="fas fa-sync-alt me-2"></i>Actualizar Datos
+                            <button id="refreshData" class="btn btn-refresh" disabled title="Refresh data (Ctrl + R)">
+                                <i class="fas fa-sync-alt me-2"></i>Refresh Data
                             </button>
                         </div>
                     </div>
@@ -247,7 +247,7 @@ require_once 'dao/users/context_injector.php';
         <div class="row mb-4">
             <div class="col-12">
                 <div id="weeklySummaryContainer" class="animate">
-                    <!-- El resumen semanal se generará aquí dinámicamente -->
+                    <!-- The weekly summary will be generated here dynamically -->
                 </div>
             </div>
         </div>
@@ -261,9 +261,9 @@ require_once 'dao/users/context_injector.php';
                     </div>
                     <div class="metric-content">
                         <h3 id="totalRequests">0</h3>
-                        <p>Total Generadas</p>
+                        <p>Total Generated</p>
                         <span class="metric-trend" id="requestsTrend">
-                            <i class="fas fa-info-circle"></i> Esta semana
+                            <i class="fas fa-info-circle"></i> This week
                         </span>
                     </div>
                 </div>
@@ -275,9 +275,9 @@ require_once 'dao/users/context_injector.php';
                     </div>
                     <div class="metric-content">
                         <h3 id="approvalRate">0%</h3>
-                        <p>Tasa de Aprobación</p>
+                        <p>Approval Rate</p>
                         <span class="metric-trend" id="approvalTrend">
-                            <i class="fas fa-percentage"></i> Del total
+                            <i class="fas fa-percentage"></i> Of total
                         </span>
                     </div>
                 </div>
@@ -289,9 +289,9 @@ require_once 'dao/users/context_injector.php';
                     </div>
                     <div class="metric-content">
                         <h3 id="totalCost">€0</h3>
-                        <p>Costo Total</p>
+                        <p>Total Cost</p>
                         <span class="metric-trend" id="costTrend">
-                            <i class="fas fa-calculator"></i> Aprobados
+                            <i class="fas fa-calculator"></i> Approved
                         </span>
                     </div>
                 </div>
@@ -303,9 +303,9 @@ require_once 'dao/users/context_injector.php';
                     </div>
                     <div class="metric-content">
                         <h3 id="avgTime">0h</h3>
-                        <p>Tiempo Promedio</p>
+                        <p>Average Time</p>
                         <span class="metric-trend" id="timeTrend">
-                            <i class="fas fa-stopwatch"></i> Aprobación
+                            <i class="fas fa-stopwatch"></i> Approval
                         </span>
                     </div>
                 </div>
@@ -318,7 +318,7 @@ require_once 'dao/users/context_injector.php';
                 <div class="card chart-card animate">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
-                            <i class="fas fa-chart-line me-2"></i>Análisis de Tendencias Semanales
+                            <i class="fas fa-chart-line me-2"></i>Weekly Trends Analysis
                         </h5>
                     </div>
                     <div class="card-body">
@@ -330,7 +330,7 @@ require_once 'dao/users/context_injector.php';
                 <div class="card chart-card animate">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
-                            <i class="fas fa-pie-chart me-2"></i>Distribución por Estado
+                            <i class="fas fa-pie-chart me-2"></i>Status Distribution
                         </h5>
                     </div>
                     <div class="card-body">
@@ -346,7 +346,7 @@ require_once 'dao/users/context_injector.php';
                 <div class="card chart-card animate">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
-                            <i class="fas fa-users me-2"></i>Top Performers (Solicitudes Aprobadas)
+                            <i class="fas fa-users me-2"></i>Top Performers (Approved Requests)
                         </h5>
                     </div>
                     <div class="card-body">
@@ -358,7 +358,7 @@ require_once 'dao/users/context_injector.php';
                 <div class="card chart-card animate">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
-                            <i class="fas fa-building me-2"></i>Rendimiento por Área (Órdenes Aprobadas)
+                            <i class="fas fa-building me-2"></i>Area Performance (Approved Orders)
                         </h5>
                     </div>
                     <div class="card-body">
@@ -374,7 +374,7 @@ require_once 'dao/users/context_injector.php';
                 <div class="card chart-card animate">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
-                            <i class="fas fa-stopwatch me-2"></i>Distribución de Tiempos de Aprobación
+                            <i class="fas fa-stopwatch me-2"></i>Approval Time Distribution
                         </h5>
                     </div>
                     <div class="card-body">
@@ -386,7 +386,7 @@ require_once 'dao/users/context_injector.php';
                 <div class="card chart-card animate">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
-                            <i class="fas fa-chart-area me-2"></i>Análisis de Costos Diarios (Solo Órdenes Aprobadas)
+                            <i class="fas fa-chart-area me-2"></i>Daily Cost Analysis (Approved Orders Only)
                         </h5>
                     </div>
                     <div class="card-body">
@@ -402,14 +402,14 @@ require_once 'dao/users/context_injector.php';
                 <div class="card insights-card animate">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
-                            <i class="fas fa-lightbulb me-2"></i>Insights de Rendimiento y Recomendaciones
+                            <i class="fas fa-lightbulb me-2"></i>Performance Insights & Recommendations
                         </h5>
                     </div>
                     <div class="card-body">
                         <div id="insightsContainer">
                             <div class="text-center p-4">
                                 <i class="fas fa-chart-bar fa-2x text-muted mb-3"></i>
-                                <p class="text-muted">Los insights se generarán automáticamente después de cargar los datos.</p>
+                                <p class="text-muted">Insights will be generated automatically after loading data.</p>
                             </div>
                         </div>
                     </div>
@@ -531,7 +531,7 @@ require_once 'dao/users/context_injector.php';
         });
 
         // Función de utilidad para mostrar estado de carga
-        function showGlobalLoading(show = true, message = 'Cargando...') {
+        function showGlobalLoading(show = true, message = 'Loading...') {
             const overlay = document.getElementById('loadingOverlay');
             const text = overlay.querySelector('.loading-text');
             
