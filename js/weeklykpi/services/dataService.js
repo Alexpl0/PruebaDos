@@ -148,6 +148,10 @@ class DataService {
         }
     }
 
+    setCurrentWeek(weekObj) {
+        this.currentWeek = weekObj;
+    }
+
     // Getters
     getWeeklyData() { return this.weeklyData; }
     getAvailablePlants() { return this.availablePlants; }

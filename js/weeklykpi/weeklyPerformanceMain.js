@@ -19,26 +19,41 @@ class WeeklyPerformanceDashboard {
      */
     async initialize() {
         try {
-            console.log('Initializing Weekly Performance Dashboard...');
-            
-            // Initialize services
+            // Mostrar SweetAlert de carga
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Cargando información',
+                    html: 'Por favor espera mientras se cargan los datos del dashboard...',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+            }
+
+            // Inicializar servicios
             await dataService.initialize();
             chartService.initialize();
             exportService.initialize();
             uiService.initialize();
             
-            // Initialize UI components
+            // Inicializar UI y listeners
             this.initializeSelectors();
             this.initializeEventListeners();
             
-            // Load initial data
+            // Cargar datos iniciales AUTOMÁTICAMENTE (llama aunque no esté inicializado)
             await this.updateAllVisualizations();
 
             this.isInitialized = true;
             console.log('Weekly Performance Dashboard initialized successfully');
 
+            // Cerrar SweetAlert de carga
+            if (typeof Swal !== 'undefined') {
+                Swal.close();
+            }
         } catch (error) {
             console.error('Error initializing Weekly Performance Dashboard:', error);
+            if (typeof Swal !== 'undefined') {
+                Swal.close();
+            }
             uiService.showErrorMessage('Failed to initialize dashboard: ' + error.message);
         }
     }
@@ -74,8 +89,7 @@ class WeeklyPerformanceDashboard {
      * Update all visualizations
      */
     async updateAllVisualizations() {
-        if (!this.isInitialized) return;
-
+        // Elimina el if (!this.isInitialized) return; para permitir la carga inicial
         try {
             uiService.showLoading(true);
             
