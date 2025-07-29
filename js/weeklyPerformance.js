@@ -1383,7 +1383,117 @@ function exportToExcel() {
 }
 
 /**
- * Exporta todas las gráficas visibles a PDF - MEJORADO con páginas individuales
+ * Verifica si una gráfica está completamente renderizada y lista para exportar
+ * @param {string} chartId - ID del contenedor de la gráfica
+ * @param {Object} chartObj - Objeto de la gráfica ApexCharts
+ * @returns {boolean} - True si la gráfica está lista
+ */
+function isChartReady(chartId, chartObj) {
+    const container = document.getElementById(chartId);
+    
+    if (!container || !isElementVisible(container)) {
+        return false;
+    }
+    
+    if (!chartObj || typeof chartObj.dataURI !== 'function') {
+        return false;
+    }
+    
+    // Verificar que el SVG tenga dimensiones válidas
+    const svg = container.querySelector('svg');
+    if (!svg) {
+        return false;
+    }
+    
+    const width = svg.getAttribute('width');
+    const height = svg.getAttribute('height');
+    
+    if (!width || !height || width === 'NaN' || height === 'NaN' || width === '0' || height === '0') {
+        return false;
+    }
+    
+    return true;
+}
+
+/**
+ * Espera a que una gráfica esté completamente renderizada
+ * @param {string} chartId - ID del contenedor
+ * @param {Object} chartObj - Objeto de la gráfica
+ * @param {number} maxWait - Tiempo máximo de espera en ms
+ * @returns {Promise<boolean>} - Resolve cuando la gráfica esté lista
+ */
+function waitForChartReady(chartId, chartObj, maxWait = 5000) {
+    return new Promise((resolve) => {
+        const startTime = Date.now();
+        
+        const checkReady = () => {
+            if (isChartReady(chartId, chartObj)) {
+                resolve(true);
+                return;
+            }
+            
+            if (Date.now() - startTime > maxWait) {
+                console.warn(`Chart ${chartId} not ready after ${maxWait}ms`);
+                resolve(false);
+                return;
+            }
+            
+            setTimeout(checkReady, 100);
+        };
+        
+        checkReady();
+    });
+}
+
+/**
+ * Obtiene la imagen de una gráfica de forma segura
+ * @param {Object} chartObj - Objeto de la gráfica ApexCharts
+ * @returns {Promise<string|null>} - DataURL de la imagen o null si falla
+ */
+async function getChartImage(chartObj) {
+    try {
+        // Intentar obtener la imagen con diferentes opciones
+        const options = [
+            { pixelRatio: 2, scale: 2 },
+            { pixelRatio: 1, scale: 1 },
+            {}
+        ];
+        
+        for (const option of options) {
+            try {
+                const dataUrlObj = await chartObj.dataURI(option);
+                
+                if (dataUrlObj && dataUrlObj.imgURI && dataUrlObj.imgURI.startsWith('data:image/')) {
+                    // Verificar que la imagen se puede cargar
+                    const isValid = await new Promise((resolve) => {
+                        const testImg = new Image();
+                        testImg.onload = () => resolve(true);
+                        testImg.onerror = () => resolve(false);
+                        testImg.src = dataUrlObj.imgURI;
+                        
+                        // Timeout de 3 segundos
+                        setTimeout(() => resolve(false), 3000);
+                    });
+                    
+                    if (isValid) {
+                        return dataUrlObj.imgURI;
+                    }
+                }
+            } catch (optionError) {
+                console.warn('Failed to get chart image with option:', option, optionError);
+                continue;
+            }
+        }
+        
+        return null;
+    } catch (error) {
+        console.error('Error getting chart image:', error);
+        return null;
+    }
+}
+
+/**
+ * Exporta todas las gráficas visibles a PDF - MEJORADO con mejor manejo de errores
  */
 async function exportToPDF() {
     if (typeof window.jspdf === 'undefined') {
@@ -1400,7 +1510,7 @@ async function exportToPDF() {
     if (typeof Swal !== 'undefined') {
         Swal.fire({
             title: 'Generando PDF',
-            html: 'Exportando gráficas a páginas individuales...',
+            html: 'Preparando gráficas para exportación...<br><div class="mt-2"><small>Esto puede tomar unos segundos</small></div>',
             allowOutsideClick: false,
             didOpen: () => {
                 Swal.showLoading();
@@ -1417,33 +1527,62 @@ async function exportToPDF() {
         });
 
         const chartElements = [
-            { id: 'trendsChart', title: 'Weekly Trends Analysis' },
-            { id: 'statusChart', title: 'Status Distribution' },
-            { id: 'topPerformersChart', title: 'Top Performers by Approved Requests' },
-            { id: 'areaPerformanceChart', title: 'Area Performance (Approved Orders)' },
-            { id: 'approvalTimesChart', title: 'Approval Time Distribution' },
-            { id: 'costAnalysisChart', title: 'Daily Cost Analysis (Approved Orders)' }
+            { id: 'trendsChart', title: 'Weekly Trends Analysis', chartKey: 'trends' },
+            { id: 'statusChart', title: 'Status Distribution', chartKey: 'status' },
+            { id: 'topPerformersChart', title: 'Top Performers by Approved Requests', chartKey: 'topPerformers' },
+            { id: 'areaPerformanceChart', title: 'Area Performance (Approved Orders)', chartKey: 'areaPerformance' },
+            { id: 'approvalTimesChart', title: 'Approval Time Distribution', chartKey: 'approvalTimes' },
+            { id: 'costAnalysisChart', title: 'Daily Cost Analysis (Approved Orders)', chartKey: 'costAnalysis' }
         ];
 
         let isFirstPage = true;
         let exportedCharts = 0;
+        let skippedCharts = 0;
 
         for (const chartInfo of chartElements) {
-            const chartContainer = document.getElementById(chartInfo.id);
-            
-            if (!chartContainer || !isElementVisible(chartContainer)) {
-                console.log(`Skipping chart ${chartInfo.id} - not visible or not found`);
-                continue;
-            }
-
-            const chart = charts[chartInfo.id.replace('Chart', '')];
-            
-            if (!chart || typeof chart.dataURI !== 'function') {
-                console.log(`Skipping chart ${chartInfo.id} - chart object not found or no dataURI method`);
-                continue;
-            }
-
             try {
+                // Actualizar progreso
+                if (typeof Swal !== 'undefined') {
+                    Swal.update({
+                        html: `Procesando gráfica: ${chartInfo.title}...<br><div class="mt-2"><small>Gráfica ${exportedCharts + skippedCharts + 1} de ${chartElements.length}</small></div>`
+                    });
+                }
+
+                const chartContainer = document.getElementById(chartInfo.id);
+                
+                if (!chartContainer || !isElementVisible(chartContainer)) {
+                    console.log(`Skipping chart ${chartInfo.id} - not visible or not found`);
+                    skippedCharts++;
+                    continue;
+                }
+
+                const chart = charts[chartInfo.chartKey];
+                
+                if (!chart) {
+                    console.log(`Skipping chart ${chartInfo.id} - chart object not found in charts.${chartInfo.chartKey}`);
+                    skippedCharts++;
+                    continue;
+                }
+
+                // Esperar a que la gráfica esté lista
+                const isReady = await waitForChartReady(chartInfo.id, chart, 3000);
+                
+                if (!isReady) {
+                    console.warn(`Chart ${chartInfo.id} not ready for export`);
+                    skippedCharts++;
+                    continue;
+                }
+
+                // Intentar obtener la imagen
+                const imageDataURL = await getChartImage(chart);
+                
+                if (!imageDataURL) {
+                    console.error(`Failed to get image for chart ${chartInfo.id}`);
+                    skippedCharts++;
+                    continue;
+                }
+
+                // Agregar página al PDF
                 if (!isFirstPage) {
                     pdf.addPage();
                 }
@@ -1460,79 +1599,71 @@ async function exportToPDF() {
                 const plantInfo = selectedPlant ? ` - Plant: ${selectedPlant}` : '';
                 pdf.text(weekInfo + plantInfo, 40, 50);
 
-                // Obtener imagen de la gráfica
-                const dataUrlObj = await chart.dataURI({ pixelRatio: 2 });
+                // Calcular dimensiones y posición
+                const margin = 40;
+                const topMargin = 70;
+                const contentWidth = pdf.internal.pageSize.getWidth() - 2 * margin;
+                const contentHeight = pdf.internal.pageSize.getHeight() - topMargin - margin;
                 
-                if (dataUrlObj && dataUrlObj.imgURI) {
-                    const margin = 40;
-                    const topMargin = 70; // Más espacio para título
-                    const contentWidth = pdf.internal.pageSize.getWidth() - 2 * margin;
-                    const contentHeight = pdf.internal.pageSize.getHeight() - topMargin - margin;
-                    
-                    // Procesar imagen
-                    const cleanDataURL = await new Promise((resolve, reject) => {
-                        const img = new Image();
-                        img.onload = () => {
-                            const canvas = document.createElement('canvas');
-                            canvas.width = img.width;
-                            canvas.height = img.height;
-                            const ctx = canvas.getContext('2d');
-                            ctx.fillStyle = 'white';
-                            ctx.fillRect(0, 0, canvas.width, canvas.height);
-                            ctx.drawImage(img, 0, 0);
-                            resolve(canvas.toDataURL('image/png'));
-                        };
-                        img.onerror = () => reject(new Error('Failed to load image'));
-                        img.src = dataUrlObj.imgURI;
-                    });
+                // Obtener propiedades de la imagen
+                const imgProps = pdf.getImageProperties(imageDataURL);
+                const aspectRatio = imgProps.width / imgProps.height;
+                let imgWidth = contentWidth;
+                let imgHeight = imgWidth / aspectRatio;
 
-                    // Calcular dimensiones manteniendo aspect ratio
-                    const imgProps = pdf.getImageProperties(cleanDataURL);
-                    const aspectRatio = imgProps.width / imgProps.height;
-                    let imgWidth = contentWidth;
-                    let imgHeight = imgWidth / aspectRatio;
-
-                    if (imgHeight > contentHeight) {
-                        imgHeight = contentHeight;
-                        imgWidth = imgHeight * aspectRatio;
-                    }
-
-                    // Centrar imagen
-                    const xPos = (pdf.internal.pageSize.getWidth() - imgWidth) / 2;
-                    const yPos = topMargin + (contentHeight - imgHeight) / 2;
-
-                    pdf.addImage(cleanDataURL, 'PNG', xPos, yPos, imgWidth, imgHeight);
-                    exportedCharts++;
+                if (imgHeight > contentHeight) {
+                    imgHeight = contentHeight;
+                    imgWidth = imgHeight * aspectRatio;
                 }
 
+                // Centrar imagen
+                const xPos = (pdf.internal.pageSize.getWidth() - imgWidth) / 2;
+                const yPos = topMargin + (contentHeight - imgHeight) / 2;
+
+                pdf.addImage(imageDataURL, 'PNG', xPos, yPos, imgWidth, imgHeight, undefined, 'FAST');
+                
+                exportedCharts++;
                 isFirstPage = false;
 
-            } catch (error) {
-                console.error(`Failed to export chart "${chartInfo.id}":`, error);
+                console.log(`Successfully exported chart: ${chartInfo.id}`);
+
+            } catch (chartError) {
+                console.error(`Error processing chart ${chartInfo.id}:`, chartError);
+                skippedCharts++;
                 
-                // Añadir página de error
+                // Agregar página de error solo si es un error crítico
                 if (!isFirstPage) {
                     pdf.addPage();
                 }
                 
                 pdf.setFontSize(16);
-                pdf.setTextColor(255, 0, 0);
-                pdf.text(`Error rendering chart: ${chartInfo.title}`, 40, 60);
+                pdf.setTextColor(200, 0, 0);
+                pdf.text(`Chart Export Error: ${chartInfo.title}`, 40, 60);
                 pdf.setTextColor(0, 0, 0);
                 pdf.setFontSize(12);
-                pdf.text('Chart could not be exported due to technical issues.', 40, 80);
+                pdf.text('This chart could not be exported due to technical issues.', 40, 80);
+                pdf.text('Please try refreshing the data and exporting again.', 40, 100);
                 
                 isFirstPage = false;
             }
         }
 
-        // Si no se exportó ninguna gráfica
+        // Verificar resultados
         if (exportedCharts === 0) {
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
                     icon: 'warning',
-                    title: 'No Charts to Export',
-                    text: 'No visible charts were found to include in the PDF.',
+                    title: 'No Charts Exported',
+                    html: `
+                        <p>No charts could be exported to PDF.</p>
+                        <p><strong>Possible reasons:</strong></p>
+                        <ul style="text-align: left; margin: 10px 0;">
+                            <li>Charts are still loading</li>
+                            <li>No data available for selected period</li>
+                            <li>Browser compatibility issues</li>
+                        </ul>
+                        <p><small>Try refreshing the data and waiting for all charts to load before exporting.</small></p>
+                    `,
                 });
             }
             return;
@@ -1544,21 +1675,36 @@ async function exportToPDF() {
 
         // Mostrar éxito
         if (typeof Swal !== 'undefined') {
+            const message = exportedCharts === chartElements.length 
+                ? `PDF with ${exportedCharts} charts has been downloaded successfully!`
+                : `PDF with ${exportedCharts} charts downloaded. ${skippedCharts} charts were skipped.`;
+                
             Swal.fire({
                 title: 'Export Successful',
-                text: `PDF with ${exportedCharts} charts has been downloaded`,
-                icon: 'success',
-                timer: 3000
+                text: message,
+                icon: exportedCharts === chartElements.length ? 'success' : 'info',
+                timer: 4000
             });
         }
 
     } catch (error) {
         console.error('PDF export error:', error);
-        showErrorMessage('Error exporting to PDF: ' + error.message);
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Export Failed',
+                text: 'There was an error generating the PDF. Please try again.',
+            });
+        } else {
+            showErrorMessage('Error exporting to PDF: ' + error.message);
+        }
     } finally {
         // Cerrar loading
         if (typeof Swal !== 'undefined') {
-            Swal.close();
+            // Solo cerrar si no se mostró otro modal
+            if (Swal.isVisible() && Swal.getTitle()?.textContent === 'Generando PDF') {
+                Swal.close();
+            }
         }
     }
 }

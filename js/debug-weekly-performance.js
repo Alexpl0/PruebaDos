@@ -94,23 +94,108 @@ async function testDataLoading() {
     console.log('=== FIN TEST DATA ===');
 }
 
-// Función para testear las gráficas
+// Función para testear las gráficas - MEJORADA
 function testCharts() {
     console.log('=== TESTING CHARTS ===');
     
-    const chartKeys = ['trends', 'status', 'topPerformers', 'areaPerformance', 'approvalTimes', 'costAnalysis'];
+    const chartInfo = [
+        { key: 'trends', id: 'trendsChart' },
+        { key: 'status', id: 'statusChart' },
+        { key: 'topPerformers', id: 'topPerformersChart' },
+        { key: 'areaPerformance', id: 'areaPerformanceChart' },
+        { key: 'approvalTimes', id: 'approvalTimesChart' },
+        { key: 'costAnalysis', id: 'costAnalysisChart' }
+    ];
     
-    chartKeys.forEach(key => {
-        const chart = charts[key];
-        console.log(`Chart ${key}:`, chart ? 'Exists' : 'NOT FOUND');
+    chartInfo.forEach(info => {
+        const chart = charts[info.key];
+        const container = document.getElementById(info.id);
+        
+        console.log(`Chart ${info.key}:`);
+        console.log(`- Object exists:`, chart ? 'Yes' : 'No');
+        console.log(`- Container exists:`, container ? 'Yes' : 'No');
         
         if (chart) {
             console.log(`- Has dataURI method:`, typeof chart.dataURI === 'function');
             console.log(`- Element ID:`, chart.el?.id || 'Unknown');
         }
+        
+        if (container) {
+            const svg = container.querySelector('svg');
+            if (svg) {
+                console.log(`- SVG width:`, svg.getAttribute('width'));
+                console.log(`- SVG height:`, svg.getAttribute('height'));
+                console.log(`- Is visible:`, isElementVisible(container));
+            } else {
+                console.log(`- No SVG found in container`);
+            }
+        }
+        
+        console.log('---');
     });
     
     console.log('=== FIN TEST CHARTS ===');
+}
+
+// Función para testear específicamente la exportación PDF
+async function testPDFExport() {
+    console.log('=== TESTING PDF EXPORT SPECIFICALLY ===');
+    
+    try {
+        // Verificar que todas las gráficas estén listas
+        const chartsReady = await waitForAllChartsReady();
+        console.log('All charts ready:', chartsReady);
+        
+        // Testear cada gráfica individualmente
+        const chartInfo = [
+            { key: 'trends', id: 'trendsChart' },
+            { key: 'status', id: 'statusChart' },
+            { key: 'topPerformers', id: 'topPerformersChart' },
+            { key: 'areaPerformance', id: 'areaPerformanceChart' },
+            { key: 'approvalTimes', id: 'approvalTimesChart' },
+            { key: 'costAnalysis', id: 'costAnalysisChart' }
+        ];
+        
+        for (const info of chartInfo) {
+            const chart = charts[info.key];
+            const container = document.getElementById(info.id);
+            
+            console.log(`Testing ${info.key}:`);
+            
+            if (!chart || !container) {
+                console.log(`- SKIP: Chart or container missing`);
+                continue;
+            }
+            
+            if (!isElementVisible(container)) {
+                console.log(`- SKIP: Container not visible`);
+                continue;
+            }
+            
+            const isReady = isChartReady(info.id, chart);
+            console.log(`- Is ready:`, isReady);
+            
+            if (isReady) {
+                try {
+                    const imageData = await getChartImage(chart);
+                    console.log(`- Image generated:`, imageData ? 'Success' : 'Failed');
+                    
+                    if (imageData) {
+                        console.log(`- Image size:`, imageData.length, 'characters');
+                    }
+                } catch (error) {
+                    console.log(`- Image generation error:`, error.message);
+                }
+            }
+            
+            console.log('---');
+        }
+        
+    } catch (error) {
+        console.error('Error testing PDF export:', error);
+    }
+    
+    console.log('=== FIN TEST PDF EXPORT ===');
 }
 
 // Función para testear exportación
@@ -122,6 +207,11 @@ async function testExport() {
         const excelData = prepareExcelData();
         console.log('Excel data prepared:', Object.keys(excelData));
         
+        // Verificar cada hoja de Excel
+        Object.entries(excelData).forEach(([sheetName, sheetData]) => {
+            console.log(`Sheet "${sheetName}":`, sheetData.data.length, 'rows');
+        });
+        
         // Test export buttons
         const exportButtons = ['exportExcel', 'exportPDF', 'printReport'];
         exportButtons.forEach(id => {
@@ -132,6 +222,9 @@ async function testExport() {
                 console.log(`- Has click listener:`, btn.onclick !== null);
             }
         });
+        
+        // Test específico de PDF
+        await testPDFExport();
         
     } catch (error) {
         console.error('Error testing export:', error);
@@ -164,10 +257,30 @@ async function resetDashboard() {
         }
     });
     
+    // Limpiar objeto charts
+    Object.keys(charts).forEach(key => delete charts[key]);
+    
     // Reinicializar
     await initializeWeeklyPerformance();
     
     console.log('✅ DASHBOARD REINICIALIZADO');
+}
+
+// Función para forzar exportación PDF (para debugging)
+async function forcePDFExport() {
+    console.log('🔧 FORZANDO EXPORTACIÓN PDF PARA DEBUG...');
+    
+    try {
+        // Esperar a que las gráficas estén listas
+        console.log('Esperando que las gráficas estén listas...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Ejecutar exportación
+        await exportToPDF();
+        
+    } catch (error) {
+        console.error('Error en exportación forzada:', error);
+    }
 }
 
 // Instrucciones de uso
@@ -178,11 +291,16 @@ debugDashboard()     - Verificar estado general
 testPlants()         - Testear carga de plantas
 testDataLoading()    - Testear carga de datos
 testCharts()         - Testear gráficas
+testPDFExport()      - Testear exportación PDF específicamente
 testExport()         - Testear funciones de exportación
 runAllTests()        - Ejecutar todos los tests
 resetDashboard()     - Limpiar y reinicializar
+forcePDFExport()     - Forzar exportación PDF para debug
 
-💡 Usa runAllTests() para un diagnóstico completo
+💡 Si la exportación PDF falla:
+1. Ejecuta testPDFExport() para diagnóstico específico
+2. Usa forcePDFExport() para intentar forzar la exportación
+3. Usa runAllTests() para un diagnóstico completo
 `);
 
 // Hacer las funciones disponibles globalmente
@@ -191,7 +309,9 @@ window.debugWeeklyPerformance = {
     testPlants,
     testDataLoading,
     testCharts,
+    testPDFExport,
     testExport,
     runAllTests,
-    resetDashboard
+    resetDashboard,
+    forcePDFExport
 };
