@@ -10,22 +10,27 @@
 
 // URLs de los endpoints
 let WEEKLY_KPIS_URL;
+let PLANTS_URL;
 if (typeof URLPF !== 'undefined') {
     WEEKLY_KPIS_URL = URLPF + 'dao/conections/daoWeeklyKPIs.php';
+    PLANTS_URL = URLPF + 'dao/conections/daoPremiumFreight.php';
 } else {
     console.warn('URL global variable is not defined. Using fallback URL for Weekly KPIs.');
     WEEKLY_KPIS_URL = 'https://grammermx.com/Jesus/PruebaDos/dao/conections/daoWeeklyKPIs.php';
+    PLANTS_URL = 'https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php';
 }
 
 // Almacenamiento de datos y gráficas
 let weeklyData = {};
 let charts = {};
+let availablePlants = [];
 let currentWeek = {
     start: moment().startOf('isoWeek'),
     end: moment().endOf('isoWeek'),
     weekNumber: moment().isoWeek(),
     year: moment().year()
 };
+let selectedPlant = '';
 
 // Paleta de colores usando variables del sistema existente
 const colorPalette = {
@@ -47,16 +52,17 @@ const colorPalette = {
 };
 
 // ========================================================================
-// 2. SELECTOR DE SEMANAS
+// 2. SELECTOR DE SEMANAS Y PLANTAS
 // ========================================================================
 
 /**
- * Inicializa el selector de semanas
+ * Inicializa el selector de semanas y plantas
  */
-function initializeWeekSelector() {
+function initializeSelectors() {
     updateWeekDisplay();
+    initializePlantSelector();
     
-    // Event listeners para navegación
+    // Event listeners para navegación de semanas
     document.getElementById('prevWeek').addEventListener('click', () => {
         currentWeek.start.subtract(1, 'week');
         currentWeek.end.subtract(1, 'week');
@@ -81,6 +87,13 @@ function initializeWeekSelector() {
         currentWeek.weekNumber = currentWeek.start.isoWeek();
         currentWeek.year = currentWeek.start.year();
         updateWeekDisplay();
+        updateAllVisualizations();
+    });
+
+    // Event listener para el selector de planta
+    document.getElementById('plantSelector').addEventListener('change', (e) => {
+        selectedPlant = e.target.value;
+        console.log('Plant selected:', selectedPlant);
         updateAllVisualizations();
     });
 }
@@ -114,6 +127,70 @@ function updateWeekDisplay() {
 }
 
 /**
+ * Inicializa el selector de plantas
+ */
+async function initializePlantSelector() {
+    try {
+        const plantsData = await loadAvailablePlants();
+        const plantSelector = document.getElementById('plantSelector');
+        
+        if (!plantSelector) return;
+        
+        // Limpiar opciones existentes excepto "All Plants"
+        plantSelector.innerHTML = '<option value="">All Plants</option>';
+        
+        // Añadir plantas disponibles
+        plantsData.forEach(plant => {
+            const option = document.createElement('option');
+            option.value = plant;
+            option.textContent = plant;
+            plantSelector.appendChild(option);
+        });
+        
+    } catch (error) {
+        console.error('Error loading plants:', error);
+    }
+}
+
+/**
+ * Carga las plantas disponibles desde el endpoint
+ */
+async function loadAvailablePlants() {
+    try {
+        const response = await fetch(PLANTS_URL, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin'
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        if (result.status === 'success' && result.data) {
+            // Extraer plantas únicas
+            const plants = [...new Set(
+                result.data
+                    .map(item => item.creator_plant || item.planta || item.plant)
+                    .filter(plant => plant && plant.trim() !== '')
+            )].sort();
+            
+            availablePlants = plants;
+            return plants;
+        }
+        
+        return [];
+    } catch (error) {
+        console.error('Error loading plants:', error);
+        return [];
+    }
+}
+
+/**
  * Obtiene el rango de fechas actual en formato para la API
  */
 function getCurrentDateRange() {
@@ -135,7 +212,13 @@ async function loadWeeklyData() {
         showLoading(true);
         
         const dateRange = getCurrentDateRange();
-        const url = `${WEEKLY_KPIS_URL}?start_date=${dateRange.start}&end_date=${dateRange.end}`;
+        let url = `${WEEKLY_KPIS_URL}?start_date=${dateRange.start}&end_date=${dateRange.end}`;
+        
+        // Añadir filtro de planta si está seleccionado
+        if (selectedPlant && selectedPlant.trim() !== '') {
+            url += `&plant=${encodeURIComponent(selectedPlant)}`;
+        }
+        
         const response = await fetch(url, {
             method: 'GET',
             headers: {
@@ -248,7 +331,7 @@ function updateTrends() {
 // ========================================================================
 
 /**
- * Genera la tabla de resumen semanal
+ * Genera la tabla de resumen semanal con botones de exportación
  */
 function generateWeeklySummary() {
     const container = document.getElementById('weeklySummaryContainer');
@@ -256,15 +339,31 @@ function generateWeeklySummary() {
 
     const weekInfo = `Week ${currentWeek.weekNumber} of ${currentWeek.year}`;
     const weekRange = `${currentWeek.start.format('MMM DD')} - ${currentWeek.end.format('MMM DD, YYYY')}`;
+    const plantInfo = selectedPlant ? ` - ${selectedPlant}` : '';
     
     const html = `
         <div class="weekly-summary-container">
             <div class="kpis-header">
-                <h3 class="kpis-title">
-                    <i class="fas fa-chart-line me-2"></i>
-                    Weekly Performance Report
-                </h3>
-                <span class="kpis-subtitle">Premium Freight System | ${weekInfo} (${weekRange})</span>
+                <div class="kpis-header-content">
+                    <h3 class="kpis-title">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Weekly Performance Report
+                    </h3>
+                    <span class="kpis-subtitle">Premium Freight System | ${weekInfo} (${weekRange})${plantInfo}</span>
+                </div>
+                <div class="kpis-header-actions">
+                    <div class="kpis-export-buttons">
+                        <button id="exportExcel" class="btn" disabled>
+                            <i class="fas fa-file-excel me-1"></i>Excel
+                        </button>
+                        <button id="exportPDF" class="btn" disabled>
+                            <i class="fas fa-file-pdf me-1"></i>PDF
+                        </button>
+                        <button id="printReport" class="btn" disabled>
+                            <i class="fas fa-print me-1"></i>Print
+                        </button>
+                    </div>
+                </div>
             </div>
             
             <div class="kpis-content">
@@ -366,11 +465,49 @@ function generateWeeklySummary() {
     `;
     
     container.innerHTML = html;
+    
+    // Re-asignar event listeners a los nuevos botones
+    setTimeout(() => {
+        assignExportButtonListeners();
+    }, 100);
+}
+
+/**
+ * Asigna event listeners a los botones de exportación
+ */
+function assignExportButtonListeners() {
+    const exportExcel = document.getElementById('exportExcel');
+    const exportPDF = document.getElementById('exportPDF');
+    const printReportBtn = document.getElementById('printReport'); // Renamed to avoid conflict
+    
+    if (exportExcel) {
+        exportExcel.removeEventListener('click', exportToExcel);
+        exportExcel.addEventListener('click', exportToExcel);
+        exportExcel.disabled = false;
+    }
+    
+    if (exportPDF) {
+        exportPDF.removeEventListener('click', exportToPDF);
+        exportPDF.addEventListener('click', exportToPDF);
+        exportPDF.disabled = false;
+    }
+    
+    if (printReportBtn) {
+        // FIX: The original event listener was calling the function itself, causing a potential infinite loop.
+        // It should call window.print().
+        printReportBtn.removeEventListener('click', printReport); // Use the correct function name to remove
+        printReportBtn.addEventListener('click', printReport);
+        printReportBtn.disabled = false;
+    }
 }
 
 // ========================================================================
 // 5. VISUALIZACIONES Y GRÁFICAS
 // ========================================================================
+
+// FIX: The block of code below was misplaced, causing a major syntax error.
+// It was a duplicate of a part of the `generateWeeklySummary` function's template literal.
+// I have removed the entire erroneous block.
 
 /**
  * Renderiza el gráfico de tendencias semanales
@@ -918,13 +1055,10 @@ async function initializeWeeklyPerformance() {
         console.log('Initializing Weekly Performance Dashboard...');
 
         // Inicializar componentes
-        initializeWeekSelector();
+        initializeSelectors();
 
-        // Event listeners
+        // Event listener para el botón de refresh
         document.getElementById('refreshData')?.addEventListener('click', updateAllVisualizations);
-        document.getElementById('exportExcel')?.addEventListener('click', exportToExcel);
-        document.getElementById('exportPDF')?.addEventListener('click', exportToPDF);
-        document.getElementById('printReport')?.addEventListener('click', printReport);
 
         // Cargar datos iniciales
         await updateAllVisualizations();

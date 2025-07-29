@@ -41,6 +41,9 @@ try {
         $endDate = $_GET['end_date'] . ' 23:59:59';
     }
 
+    // Parámetro de planta adicional
+    $filterPlant = isset($_GET['plant']) ? $_GET['plant'] : null;
+
     // ================== ESTADÍSTICAS GENERALES ==================
     
     $orderStatsSql = "SELECT 
@@ -54,18 +57,26 @@ try {
                     LEFT JOIN User u ON pf.user_id = u.id
                     WHERE pf.date BETWEEN ? AND ?";
     
-    // Filtrar por planta si el usuario tiene una específica
+    // Construir parámetros dinámicamente
+    $params = [$startDate, $endDate];
+    $paramTypes = "ss";
+    
+    // Filtrar por planta del usuario si tiene una específica
     if ($userPlant !== null && $userPlant !== '') {
         $orderStatsSql .= " AND u.plant = ?";
+        $params[] = $userPlant;
+        $paramTypes .= "s";
+    }
+    
+    // Filtrar por planta adicional si se especifica
+    if ($filterPlant !== null && $filterPlant !== '') {
+        $orderStatsSql .= " AND u.plant = ?";
+        $params[] = $filterPlant;
+        $paramTypes .= "s";
     }
     
     $stmt = $conex->prepare($orderStatsSql);
-    if ($userPlant !== null && $userPlant !== '') {
-        $stmt->bind_param("sss", $startDate, $endDate, $userPlant);
-    } else {
-        $stmt->bind_param("ss", $startDate, $endDate);
-    }
-    
+    $stmt->bind_param($paramTypes, ...$params);
     $stmt->execute();
     $orderStats = $stmt->get_result()->fetch_assoc();
 
@@ -87,8 +98,20 @@ try {
                     WHERE pf.date BETWEEN ? AND ? 
                     AND st.name IN ('approved', 'aprobado')";
     
+    // Construir parámetros dinámicamente
+    $params = [$startDate, $endDate];
+    $paramTypes = "ss";
+    
     if ($userPlant !== null && $userPlant !== '') {
         $topUserSql .= " AND u.plant = ?";
+        $params[] = $userPlant;
+        $paramTypes .= "s";
+    }
+    
+    if ($filterPlant !== null && $filterPlant !== '') {
+        $topUserSql .= " AND u.plant = ?";
+        $params[] = $filterPlant;
+        $paramTypes .= "s";
     }
     
     $topUserSql .= " GROUP BY pf.user_id, u.name
@@ -96,12 +119,7 @@ try {
                      LIMIT 1";
     
     $stmt = $conex->prepare($topUserSql);
-    if ($userPlant !== null && $userPlant !== '') {
-        $stmt->bind_param("sss", $startDate, $endDate, $userPlant);
-    } else {
-        $stmt->bind_param("ss", $startDate, $endDate);
-    }
-    
+    $stmt->bind_param($paramTypes, ...$params);
     $stmt->execute();
     $topUser = $stmt->get_result()->fetch_assoc();
 
@@ -117,8 +135,20 @@ try {
                     WHERE pf.date BETWEEN ? AND ? 
                     AND st.name IN ('approved', 'aprobado')";
     
+    // Construir parámetros dinámicamente
+    $params = [$startDate, $endDate];
+    $paramTypes = "ss";
+    
     if ($userPlant !== null && $userPlant !== '') {
         $topAreaSql .= " AND u.plant = ?";
+        $params[] = $userPlant;
+        $paramTypes .= "s";
+    }
+    
+    if ($filterPlant !== null && $filterPlant !== '') {
+        $topAreaSql .= " AND u.plant = ?";
+        $params[] = $filterPlant;
+        $paramTypes .= "s";
     }
     
     $topAreaSql .= " GROUP BY COALESCE(pf.area, u.plant)
@@ -126,12 +156,7 @@ try {
                      LIMIT 1";
     
     $stmt = $conex->prepare($topAreaSql);
-    if ($userPlant !== null && $userPlant !== '') {
-        $stmt->bind_param("sss", $startDate, $endDate, $userPlant);
-    } else {
-        $stmt->bind_param("ss", $startDate, $endDate);
-    }
-    
+    $stmt->bind_param($paramTypes, ...$params);
     $stmt->execute();
     $topArea = $stmt->get_result()->fetch_assoc();
 
@@ -147,17 +172,24 @@ try {
                     AND st.name IN ('approved', 'aprobado')
                     AND pfa.approval_date IS NOT NULL";
     
+    // Construir parámetros dinámicamente
+    $params = [$startDate, $endDate];
+    $paramTypes = "ss";
+    
     if ($userPlant !== null && $userPlant !== '') {
         $avgTimeSql .= " AND u.plant = ?";
+        $params[] = $userPlant;
+        $paramTypes .= "s";
+    }
+    
+    if ($filterPlant !== null && $filterPlant !== '') {
+        $avgTimeSql .= " AND u.plant = ?";
+        $params[] = $filterPlant;
+        $paramTypes .= "s";
     }
     
     $stmt = $conex->prepare($avgTimeSql);
-    if ($userPlant !== null && $userPlant !== '') {
-        $stmt->bind_param("sss", $startDate, $endDate, $userPlant);
-    } else {
-        $stmt->bind_param("ss", $startDate, $endDate);
-    }
-    
+    $stmt->bind_param($paramTypes, ...$params);
     $stmt->execute();
     $avgTimeResult = $stmt->get_result()->fetch_assoc();
     
@@ -181,8 +213,20 @@ try {
                             AND st.name IN ('approved', 'aprobado')
                             AND pfa.approval_date IS NOT NULL";
     
+    // Construir parámetros dinámicamente
+    $params = [$startDate, $endDate];
+    $paramTypes = "ss";
+    
     if ($userPlant !== null && $userPlant !== '') {
         $slowestApproverSql .= " AND u_creator.plant = ?";
+        $params[] = $userPlant;
+        $paramTypes .= "s";
+    }
+    
+    if ($filterPlant !== null && $filterPlant !== '') {
+        $slowestApproverSql .= " AND u_creator.plant = ?";
+        $params[] = $filterPlant;
+        $paramTypes .= "s";
     }
     
     $slowestApproverSql .= " GROUP BY u_approver.name
@@ -191,12 +235,7 @@ try {
                             LIMIT 1";
     
     $stmt = $conex->prepare($slowestApproverSql);
-    if ($userPlant !== null && $userPlant !== '') {
-        $stmt->bind_param("sss", $startDate, $endDate, $userPlant);
-    } else {
-        $stmt->bind_param("ss", $startDate, $endDate);
-    }
-    
+    $stmt->bind_param($paramTypes, ...$params);
     $stmt->execute();
     $slowestApprover = $stmt->get_result()->fetch_assoc();
     

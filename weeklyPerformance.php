@@ -71,41 +71,45 @@ require_once 'dao/users/context_injector.php';
             <div class="col-md-12">
                 <div class="card filter-card">
                     <div class="card-body">
-                        <div class="row align-items-end">
-                            <div class="col-md-4">
-                                <label for="weekSelector" class="form-label">
-                                    <i class="fas fa-calendar-week me-2"></i>Analysis Week
-                                </label>
-                                <div class="week-selector" id="weekSelector">
-                                    <button type="button" class="week-nav-btn" id="prevWeek">
-                                        <i class="fas fa-chevron-left"></i>
-                                    </button>
-                                    <div class="week-display" id="weekDisplay">
-                                        <div class="week-info">Week of 2025</div>
-                                        <div class="week-dates">Loading...</div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="filter-section mb-3">
+                                    <label for="weekSelector" class="form-label">
+                                        <i class="fas fa-calendar-week me-2"></i>Analysis Week
+                                    </label>
+                                    <div class="week-selector" id="weekSelector">
+                                        <button type="button" class="week-nav-btn" id="prevWeek">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </button>
+                                        <div class="week-display" id="weekDisplay">
+                                            <div class="week-info">Week of 2025</div>
+                                            <div class="week-dates">Loading...</div>
+                                        </div>
+                                        <button type="button" class="week-nav-btn" id="nextWeek">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </button>
                                     </div>
-                                    <button type="button" class="week-nav-btn" id="nextWeek">
-                                        <i class="fas fa-chevron-right"></i>
-                                    </button>
+                                </div>
+                                
+                                <div class="filter-section">
+                                    <label for="plantSelector" class="form-label">
+                                        <i class="fas fa-industry me-2"></i>Plant Filter
+                                    </label>
+                                    <div class="plant-selector">
+                                        <select class="form-select" id="plantSelector">
+                                            <option value="">All Plants</option>
+                                            <!-- Options will be populated dynamically -->
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-3">
-                                <button id="refreshData" class="btn btn-primary" disabled>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-12 text-center">
+                                <button id="refreshData" class="btn btn-primary btn-refresh" disabled>
                                     <i class="fas fa-sync-alt me-2"></i>Refresh Data
                                 </button>
-                            </div>
-                            <div class="col-md-5">
-                                <div class="btn-group float-end">
-                                    <button id="exportExcel" class="btn btn-outline-success" disabled>
-                                        <i class="fas fa-file-excel me-2"></i>Export to Excel
-                                    </button>
-                                    <button id="exportPDF" class="btn btn-outline-danger" disabled>
-                                        <i class="fas fa-file-pdf me-2"></i>Export to PDF
-                                    </button>
-                                    <button id="printReport" class="btn btn-outline-primary" disabled>
-                                        <i class="fas fa-print me-2"></i>Print Report
-                                    </button>
-                                </div>
                             </div>
                         </div>
                     </div>

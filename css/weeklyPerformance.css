@@ -76,22 +76,25 @@
 }
 
 .card-header {
-    background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
+    background: linear-gradient(135deg, var(--grammer-dark-blue) 0%, var(--grammer-blue) 100%);
     border-bottom: 1px solid var(--gray-200);
     padding: 1.25rem 1.5rem;
+    color: var(--white);
 }
 
 .card-title {
-    color: var(--gray-800);
+    color: var(--white);
     font-weight: 600;
     margin: 0;
     display: flex;
     align-items: center;
     font-family: var(--body-font);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .card-title i {
-    color: var(--grammer-blue);
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 /* ================= FILTROS ================= */
@@ -103,26 +106,39 @@
 }
 
 .filter-card .card-body {
-    padding: 1.5rem;
+    padding: 2rem;
+}
+
+.filter-section {
+    margin-bottom: 0;
 }
 
 .filter-card .form-label {
     color: var(--white);
-    font-weight: 500;
+    font-weight: 600;
     font-family: var(--body-font);
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
 }
 
-.filter-card .form-control {
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.1);
+.filter-card .form-control,
+.filter-card .form-select {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.15);
     color: var(--white);
     border-radius: var(--border-radius);
     font-family: var(--body-font);
+    font-weight: 500;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
 }
 
-.filter-card .form-control:focus {
-    border-color: rgba(255, 255, 255, 0.5);
-    background: rgba(255, 255, 255, 0.2);
+.filter-card .form-control:focus,
+.filter-card .form-select:focus {
+    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.25);
     box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
     color: var(--white);
 }
@@ -131,15 +147,26 @@
     color: rgba(255, 255, 255, 0.7);
 }
 
+.filter-card .form-select option {
+    background: var(--grammer-blue);
+    color: var(--white);
+}
+
+/* Plant selector specific styles */
+.plant-selector .form-select {
+    width: 100%;
+}
+
 /* Week selector specific styles */
 .week-selector {
     display: flex;
     align-items: center;
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: var(--border-radius);
     padding: 0;
     overflow: hidden;
+    margin-bottom: 1.5rem;
 }
 
 .week-nav-btn {
@@ -152,7 +179,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 45px;
+    min-width: 50px;
+    font-size: 1rem;
 }
 
 .week-nav-btn:hover {
@@ -170,20 +198,36 @@
     text-align: center;
     padding: 0.75rem 1rem;
     color: var(--white);
-    font-weight: 500;
+    font-weight: 600;
     font-family: var(--body-font);
     background: rgba(255, 255, 255, 0.05);
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .week-info {
-    font-size: 0.9rem;
+    font-size: 1rem;
     line-height: 1.2;
+    margin-bottom: 0.25rem;
 }
 
 .week-dates {
-    font-size: 0.8rem;
-    opacity: 0.8;
-    margin-top: 0.25rem;
+    font-size: 0.85rem;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+/* Refresh button styling */
+.btn-refresh {
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    border-radius: var(--border-radius);
+    transition: var(--transition-normal);
+}
+
+.btn-refresh:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
 }
 
 /* ================= TARJETAS DE MÉTRICAS ================= */
@@ -316,6 +360,53 @@
     padding: 1.5rem 2rem;
     position: relative;
     overflow: hidden;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.kpis-header-content {
+    flex: 1;
+}
+
+.kpis-header-actions {
+    flex-shrink: 0;
+    margin-left: 2rem;
+}
+
+.kpis-export-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.kpis-export-buttons .btn {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    transition: var(--transition-normal);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: var(--white);
+    text-decoration: none;
+}
+
+.kpis-export-buttons .btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: var(--white);
+    transform: translateY(-1px);
+}
+
+.kpis-export-buttons .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.kpis-export-buttons .btn i {
+    font-size: 0.75rem;
 }
 
 .weekly-summary-container .kpis-content {
@@ -326,8 +417,7 @@
     color: var(--grammer-blue);
     font-size: 1.2rem;
     font-weight: 600;
-    padding-top: 0.75rem;
-    margin: 1.5rem 0 1.5rem 0;
+    margin: 0 0 1.5rem 0;
     padding-bottom: 0.75rem;
     border-bottom: 2px solid var(--gray-200);
     display: flex;
