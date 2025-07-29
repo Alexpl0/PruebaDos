@@ -80,9 +80,9 @@ require_once 'dao/users/context_injector.php';
                                     <button type="button" class="week-nav-btn" id="prevWeek">
                                         <i class="fas fa-chevron-left"></i>
                                     </button>
-                                    <div class="week-display" id="weekDisplay">
-                                        <div class="week-info">Week of 2025</div>
-                                        <div class="week-dates">Loading...</div>
+                                    <div class="week-display">
+                                        <div class="week-info" id="weekNumber">Week of 2025</div>
+                                        <div class="week-dates" id="weekDates">Loading...</div>
                                     </div>
                                     <button type="button" class="week-nav-btn" id="nextWeek">
                                         <i class="fas fa-chevron-right"></i>
@@ -91,11 +91,11 @@ require_once 'dao/users/context_injector.php';
                             </div>
                             
                             <div class="filter-section">
-                                <label for="plantSelector" class="form-label">
+                                <label for="plantSelect" class="form-label">
                                     <i class="fas fa-industry"></i>Plant Filter
                                 </label>
                                 <div class="plant-selector">
-                                    <select class="form-select" id="plantSelector">
+                                    <select class="form-select" id="plantSelect">
                                         <option value="">All Plants</option>
                                         <!-- Options will be populated dynamically -->
                                     </select>
