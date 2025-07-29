@@ -10,6 +10,10 @@
  */
 
 header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+
 include_once('../db/PFDB.php');
 
 // Verificar que el usuario esté autenticado
@@ -33,21 +37,33 @@ try {
                   FROM User 
                   WHERE plant IS NOT NULL 
                   AND plant != '' 
+                  AND TRIM(plant) != ''
                   ORDER BY plant ASC";
     
     $stmt = $conex->prepare($plantsSql);
+    
+    if (!$stmt) {
+        throw new Exception("Error preparing query: " . $conex->error);
+    }
+    
     $stmt->execute();
     $result = $stmt->get_result();
     
     $plants = [];
     while ($row = $result->fetch_assoc()) {
-        $plants[] = $row['plant'];
+        if ($row['plant'] && trim($row['plant']) !== '') {
+            $plants[] = trim($row['plant']);
+        }
     }
+
+    // Log para debugging
+    error_log("Plants found: " . json_encode($plants));
 
     // Preparar respuesta
     $response = [
         'status' => 'success',
         'data' => $plants,
+        'count' => count($plants),
         'user_info' => [
             'plant' => $userPlant,
             'authorization_level' => $userAuthLevel
@@ -60,10 +76,17 @@ try {
     $conex->close();
 
 } catch (Exception $e) {
+    error_log("Error in daoPlants.php: " . $e->getMessage());
+    
     http_response_code(500);
     echo json_encode([
         'status' => 'error', 
-        'message' => 'Database error: ' . $e->getMessage()
+        'message' => 'Database error: ' . $e->getMessage(),
+        'debug' => [
+            'file' => __FILE__,
+            'line' => __LINE__,
+            'user_session' => isset($_SESSION['user']) ? 'exists' : 'missing'
+        ]
     ]);
 }
 ?>

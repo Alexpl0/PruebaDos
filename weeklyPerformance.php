@@ -347,6 +347,16 @@ require_once 'dao/users/context_injector.php';
                     pdfBtn.classList.remove('btn-outline-danger');
                 }
             }
+            
+            // Inicializar tooltips de Bootstrap
+            try {
+                const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+            } catch (error) {
+                console.log('Bootstrap tooltips not available:', error);
+            }
         }
     </script>
     

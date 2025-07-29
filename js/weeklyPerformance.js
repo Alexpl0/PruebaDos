@@ -131,21 +131,32 @@ function updateWeekDisplay() {
  */
 async function initializePlantSelector() {
     try {
+        console.log('Loading plants from endpoint:', PLANTS_URL);
         const plantsData = await loadAvailablePlants();
         const plantSelector = document.getElementById('plantSelector');
         
-        if (!plantSelector) return;
+        if (!plantSelector) {
+            console.error('Plant selector element not found');
+            return;
+        }
         
         // Limpiar opciones existentes excepto "All Plants"
         plantSelector.innerHTML = '<option value="">All Plants</option>';
         
+        console.log('Plants loaded:', plantsData);
+        
         // Añadir plantas disponibles
-        plantsData.forEach(plant => {
-            const option = document.createElement('option');
-            option.value = plant;
-            option.textContent = plant;
-            plantSelector.appendChild(option);
-        });
+        if (plantsData && plantsData.length > 0) {
+            plantsData.forEach(plant => {
+                const option = document.createElement('option');
+                option.value = plant;
+                option.textContent = plant;
+                plantSelector.appendChild(option);
+            });
+            console.log('Plant selector populated with', plantsData.length, 'plants');
+        } else {
+            console.warn('No plants found or plants data is empty');
+        }
         
     } catch (error) {
         console.error('Error loading plants:', error);
@@ -153,11 +164,57 @@ async function initializePlantSelector() {
 }
 
 /**
- * Carga las plantas disponibles desde la tabla User - ACTUALIZADO
+ * Carga las plantas disponibles desde la tabla User - MEJORADO CON DEBUG
  */
 async function loadAvailablePlants() {
     try {
+        console.log('Fetching plants from:', PLANTS_URL);
+        
         const response = await fetch(PLANTS_URL, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin'
+        });
+
+        console.log('Response status:', response.status);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('Plants API response:', result);
+        
+        if (result.status === 'success' && result.data) {
+            // Los datos ya vienen como array de strings de plantas
+            const plants = result.data.filter(plant => plant && plant.trim() !== '');
+            console.log('Filtered plants:', plants);
+            
+            availablePlants = plants;
+            return plants;
+        } else {
+            console.error('Plants API returned error or no data:', result);
+            return [];
+        }
+        
+    } catch (error) {
+        console.error('Error loading plants:', error);
+        // Fallback: intentar cargar desde daoPremiumFreight.php
+        return await loadPlantsFromPremiumFreight();
+    }
+}
+
+/**
+ * Función fallback para cargar plantas desde daoPremiumFreight.php
+ */
+async function loadPlantsFromPremiumFreight() {
+    try {
+        console.log('Trying fallback endpoint for plants...');
+        const fallbackUrl = PLANTS_URL.replace('daoPlants.php', 'daoPremiumFreight.php');
+        
+        const response = await fetch(fallbackUrl, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -172,16 +229,21 @@ async function loadAvailablePlants() {
         const result = await response.json();
         
         if (result.status === 'success' && result.data) {
-            // Los datos ya vienen como array de strings de plantas
-            const plants = result.data.filter(plant => plant && plant.trim() !== '');
+            // Extraer plantas únicas de la columna creator_plant
+            const plants = [...new Set(
+                result.data
+                    .map(item => item.creator_plant)
+                    .filter(plant => plant && plant.trim() !== '')
+            )].sort();
             
+            console.log('Plants loaded from fallback:', plants);
             availablePlants = plants;
             return plants;
         }
         
         return [];
     } catch (error) {
-        console.error('Error loading plants:', error);
+        console.error('Error loading plants from fallback:', error);
         return [];
     }
 }
@@ -469,7 +531,7 @@ function generateWeeklySummary() {
 }
 
 /**
- * Asigna event listeners a los botones de exportación
+ * Asigna event listeners a los botones de exportación - MEJORADO
  */
 function assignExportButtonListeners() {
     const exportExcel = document.getElementById('exportExcel');
@@ -480,19 +542,53 @@ function assignExportButtonListeners() {
         exportExcel.removeEventListener('click', exportToExcel);
         exportExcel.addEventListener('click', exportToExcel);
         exportExcel.disabled = false;
+        exportExcel.innerHTML = '<i class="fas fa-file-excel me-1"></i>Excel (Multiple Sheets)';
+        exportExcel.title = 'Export data to Excel with multiple sheets for each dataset';
     }
     
     if (exportPDF) {
         exportPDF.removeEventListener('click', exportToPDF);
         exportPDF.addEventListener('click', exportToPDF);
         exportPDF.disabled = false;
+        exportPDF.innerHTML = '<i class="fas fa-file-pdf me-1"></i>PDF (Multiple Pages)';
+        exportPDF.title = 'Export all charts to PDF with individual pages for each chart';
     }
     
     if (printReportBtn) {
         printReportBtn.removeEventListener('click', printReport);
         printReportBtn.addEventListener('click', printReport);
         printReportBtn.disabled = false;
+        printReportBtn.innerHTML = '<i class="fas fa-print me-1"></i>Print Dashboard';
+        printReportBtn.title = 'Print the current dashboard view';
     }
+}
+
+/**
+ * Inicializa los botones de exportación en la interfaz - NUEVA FUNCIÓN
+ */
+function initializeExportButtons() {
+    // Buscar y configurar botones de exportación en toda la página
+    const exportButtons = [
+        { id: 'exportExcel', handler: exportToExcel, icon: 'fa-file-excel', text: 'Excel' },
+        { id: 'exportPDF', handler: exportToPDF, icon: 'fa-file-pdf', text: 'PDF' },
+        { id: 'printReport', handler: printReport, icon: 'fa-print', text: 'Print' }
+    ];
+
+    exportButtons.forEach(button => {
+        const element = document.getElementById(button.id);
+        if (element) {
+            element.removeEventListener('click', button.handler);
+            element.addEventListener('click', button.handler);
+            element.disabled = false;
+            
+            // Actualizar texto e icono si es necesario
+            if (!element.innerHTML.includes(button.icon)) {
+                element.innerHTML = `<i class="fas ${button.icon} me-1"></i>${button.text}`;
+            }
+        }
+    });
+
+    console.log('Export buttons initialized successfully');
 }
 
 // ========================================================================
@@ -1093,11 +1189,105 @@ function generateInsights() {
 }
 
 // ========================================================================
-// 7. FUNCIONES DE EXPORTACIÓN
+// 7. FUNCIONES DE EXPORTACIÓN - MEJORADAS CON MÚLTIPLES PÁGINAS/HOJAS
 // ========================================================================
 
 /**
- * Exporta los datos a Excel
+ * Verifica si un elemento es visible en el DOM
+ * @param {HTMLElement} el - El elemento a verificar
+ * @returns {boolean} - True si el elemento es visible
+ */
+function isElementVisible(el) {
+    if (!el) return false;
+    return el.offsetParent !== null && el.style.display !== 'none';
+}
+
+/**
+ * Prepara los datos para exportación a Excel con múltiples hojas
+ */
+function prepareExcelData() {
+    const exportData = {};
+    
+    // Hoja 1: Resumen General
+    exportData['General Summary'] = {
+        title: 'Weekly Performance Summary',
+        headers: ['Metric', 'Value'],
+        data: [
+            ['Total Generated Requests', weeklyData.total_generated || 0],
+            ['Total Pending', weeklyData.total_pending || 0],
+            ['Total Approved', weeklyData.total_approved || 0],
+            ['Total Rejected', weeklyData.total_rejected || 0],
+            ['Approval Rate (%)', weeklyData.approval_rate || 0],
+            ['Total Cost (€)', weeklyData.total_cost || 0],
+            ['Average Approval Time', weeklyData.average_approval_time || 'N/A'],
+            ['Top Requesting User', weeklyData.top_requesting_user?.name || 'N/A'],
+            ['Top Spending Area', weeklyData.top_spending_area?.area || 'N/A'],
+            ['Slowest Approver', weeklyData.slowest_approver?.name || 'N/A']
+        ]
+    };
+    
+    // Hoja 2: Top Performers
+    if (weeklyData.top_performers && weeklyData.top_performers.length > 0) {
+        exportData['Top Performers'] = {
+            title: 'Top Performers by Approved Requests',
+            headers: ['User Name', 'Approved Requests', 'Total Cost (€)'],
+            data: weeklyData.top_performers.map(performer => [
+                performer.name,
+                performer.approved_requests,
+                parseFloat(performer.total_cost).toFixed(2)
+            ])
+        };
+    }
+    
+    // Hoja 3: Area Performance
+    if (weeklyData.area_performance && weeklyData.area_performance.length > 0) {
+        exportData['Area Performance'] = {
+            title: 'Performance by Business Area',
+            headers: ['Area', 'Total Requests', 'Total Cost (€)'],
+            data: weeklyData.area_performance.map(area => [
+                area.area_name,
+                area.total_requests,
+                parseFloat(area.total_cost).toFixed(2)
+            ])
+        };
+    }
+    
+    // Hoja 4: Approval Times Distribution
+    if (weeklyData.approval_times_distribution && weeklyData.approval_times_distribution.length > 0) {
+        exportData['Approval Times'] = {
+            title: 'Approval Time Distribution',
+            headers: ['Time Category', 'Count', 'Percentage (%)', 'Average Hours'],
+            data: weeklyData.approval_times_distribution.map(timeData => {
+                const total = weeklyData.approval_times_distribution.reduce((sum, item) => sum + parseInt(item.count), 0);
+                const percentage = total > 0 ? ((parseInt(timeData.count) / total) * 100).toFixed(1) : 0;
+                return [
+                    timeData.time_category,
+                    timeData.count,
+                    percentage,
+                    timeData.avg_hours || 'N/A'
+                ];
+            })
+        };
+    }
+    
+    // Hoja 5: Daily Costs
+    if (weeklyData.daily_costs && weeklyData.daily_costs.length > 0) {
+        exportData['Daily Costs'] = {
+            title: 'Daily Cost Analysis (Approved Orders)',
+            headers: ['Date', 'Daily Cost (€)', 'Number of Orders'],
+            data: weeklyData.daily_costs.map(dailyData => [
+                dailyData.approval_date,
+                parseFloat(dailyData.daily_cost).toFixed(2),
+                dailyData.daily_count
+            ])
+        };
+    }
+    
+    return exportData;
+}
+
+/**
+ * Exporta los datos a Excel con múltiples hojas - MEJORADO
  */
 function exportToExcel() {
     if (!weeklyData) {
@@ -1111,54 +1301,91 @@ function exportToExcel() {
     }
 
     try {
-        const workbook = XLSX.utils.book_new();
-        const dateRange = getCurrentDateRange();
-        
-        // Crear hoja de resumen
-        const summaryData = [
-            ['Weekly Performance Report'],
-            ['Week', `${currentWeek.weekNumber} of ${currentWeek.year}`],
-            ['Period', `${dateRange.start} to ${dateRange.end}`],
-            [''],
-            ['Metric', 'Value'],
-            ['Total Generated Requests', weeklyData.total_generated || 0],
-            ['Total Pending', weeklyData.total_pending || 0],
-            ['Total Approved', weeklyData.total_approved || 0],
-            ['Total Rejected', weeklyData.total_rejected || 0],
-            ['Approval Rate', `${weeklyData.approval_rate || 0}%`],
-            ['Total Cost', `€${formatNumber(weeklyData.total_cost || 0, 2)}`],
-            [''],
-            ['Top Requesting User', weeklyData.top_requesting_user?.name || 'N/A'],
-            ['Top Spending Area', weeklyData.top_spending_area?.area || 'N/A'],
-            ['Average Approval Time', weeklyData.average_approval_time || 'N/A']
-        ];
+        // Mostrar loading
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Generando Excel',
+                html: 'Preparando archivo con múltiples hojas...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+        }
 
-        const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
-        XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
+        const workbook = XLSX.utils.book_new();
+        const exportDate = new Date().toISOString().slice(0, 10);
+        const exportData = prepareExcelData();
+
+        // Crear hojas para cada conjunto de datos
+        for (const [sheetKey, sheetData] of Object.entries(exportData)) {
+            const sheetName = sheetKey.replace(/[:\\/?*[\]]/g, '').substring(0, 31);
+            
+            // Crear hoja con título y datos
+            const worksheetData = [
+                [sheetData.title], // Título
+                [], // Fila vacía
+                sheetData.headers, // Headers
+                ...sheetData.data // Datos
+            ];
+            
+            const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+            
+            // Aplicar formato al título
+            if (worksheet['A1']) {
+                worksheet['A1'].s = {
+                    font: { bold: true, sz: 14 },
+                    alignment: { horizontal: 'center' }
+                };
+            }
+            
+            // Aplicar formato a los headers
+            const headerRow = 3;
+            sheetData.headers.forEach((header, colIndex) => {
+                const cellRef = XLSX.utils.encode_cell({ r: headerRow - 1, c: colIndex });
+                if (worksheet[cellRef]) {
+                    worksheet[cellRef].s = {
+                        font: { bold: true },
+                        fill: { fgColor: { rgb: "034C8C" } },
+                        font: { color: { rgb: "FFFFFF" }, bold: true }
+                    };
+                }
+            });
+            
+            XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+        }
+
+        if (workbook.SheetNames.length === 0) {
+            if (typeof Swal !== 'undefined') Swal.close();
+            showErrorMessage("No chart data available to export. Please ensure data is loaded.");
+            return;
+        }
 
         // Guardar archivo
-        const fileName = `weekly-performance-week${currentWeek.weekNumber}-${currentWeek.year}.xlsx`;
+        const fileName = `Weekly-Performance-${currentWeek.weekNumber}-${currentWeek.year}_${exportDate}.xlsx`;
         XLSX.writeFile(workbook, fileName);
 
-        // Mostrar mensaje de éxito
+        // Cerrar loading y mostrar éxito
         if (typeof Swal !== 'undefined') {
             Swal.fire({
                 title: 'Export Successful',
-                text: 'Weekly performance data has been exported to Excel',
+                text: `Excel file with ${workbook.SheetNames.length} sheets has been downloaded`,
                 icon: 'success',
                 timer: 3000
             });
         }
+
     } catch (error) {
         console.error('Export error:', error);
+        if (typeof Swal !== 'undefined') Swal.close();
         showErrorMessage('Error exporting to Excel: ' + error.message);
     }
 }
 
 /**
- * Exporta los datos a PDF
+ * Exporta todas las gráficas visibles a PDF - MEJORADO con páginas individuales
  */
-function exportToPDF() {
+async function exportToPDF() {
     if (typeof window.jspdf === 'undefined') {
         showErrorMessage('PDF library not available. Please try again or contact support.');
         return;
@@ -1169,74 +1396,170 @@ function exportToPDF() {
         return;
     }
 
+    // Muestra una ventana de carga elegante
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: 'Generando PDF',
+            html: 'Exportando gráficas a páginas individuales...',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+    }
+
     try {
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-
-        // Título
-        doc.setFontSize(20);
-        doc.text('Weekly Performance Report', 20, 30);
-        
-        // Información de la semana
-        doc.setFontSize(12);
-        doc.text(`Week ${currentWeek.weekNumber} of ${currentWeek.year}`, 20, 45);
-        doc.text(`Period: ${getCurrentDateRange().start} to ${getCurrentDateRange().end}`, 20, 55);
-
-        // Métricas principales
-        let yPos = 75;
-        doc.setFontSize(14);
-        doc.text('Performance Metrics:', 20, yPos);
-        
-        yPos += 20;
-        doc.setFontSize(11);
-        const metrics = [
-            `Total Generated Requests: ${weeklyData.total_generated || 0}`,
-            `Total Approved: ${weeklyData.total_approved || 0}`,
-            `Total Rejected: ${weeklyData.total_rejected || 0}`,
-            `Approval Rate: ${weeklyData.approval_rate || 0}%`,
-            `Total Cost: €${formatNumber(weeklyData.total_cost || 0, 2)}`,
-            `Average Approval Time: ${weeklyData.average_approval_time || 'N/A'}`
-        ];
-
-        metrics.forEach(metric => {
-            doc.text(metric, 30, yPos);
-            yPos += 15;
+        const pdf = new jsPDF({
+            orientation: 'landscape',
+            unit: 'pt',
+            format: 'a4'
         });
 
-        // Highlights
-        yPos += 10;
-        doc.setFontSize(14);
-        doc.text('Performance Highlights:', 20, yPos);
-        
-        yPos += 20;
-        doc.setFontSize(11);
-        const highlights = [
-            `Top Requesting User: ${weeklyData.top_requesting_user?.name || 'N/A'}`,
-            `Top Spending Area: ${weeklyData.top_spending_area?.area || 'N/A'}`,
-            `Slowest Approver: ${weeklyData.slowest_approver?.name || 'N/A'}`
+        const chartElements = [
+            { id: 'trendsChart', title: 'Weekly Trends Analysis' },
+            { id: 'statusChart', title: 'Status Distribution' },
+            { id: 'topPerformersChart', title: 'Top Performers by Approved Requests' },
+            { id: 'areaPerformanceChart', title: 'Area Performance (Approved Orders)' },
+            { id: 'approvalTimesChart', title: 'Approval Time Distribution' },
+            { id: 'costAnalysisChart', title: 'Daily Cost Analysis (Approved Orders)' }
         ];
 
-        highlights.forEach(highlight => {
-            doc.text(highlight, 30, yPos);
-            yPos += 15;
-        });
+        let isFirstPage = true;
+        let exportedCharts = 0;
+
+        for (const chartInfo of chartElements) {
+            const chartContainer = document.getElementById(chartInfo.id);
+            
+            if (!chartContainer || !isElementVisible(chartContainer)) {
+                console.log(`Skipping chart ${chartInfo.id} - not visible or not found`);
+                continue;
+            }
+
+            const chart = charts[chartInfo.id.replace('Chart', '')];
+            
+            if (!chart || typeof chart.dataURI !== 'function') {
+                console.log(`Skipping chart ${chartInfo.id} - chart object not found or no dataURI method`);
+                continue;
+            }
+
+            try {
+                if (!isFirstPage) {
+                    pdf.addPage();
+                }
+
+                // Añadir título de la página
+                pdf.setFontSize(16);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text(chartInfo.title, 40, 30);
+                
+                // Añadir información del período
+                pdf.setFontSize(12);
+                pdf.setFont('helvetica', 'normal');
+                const weekInfo = `Week ${currentWeek.weekNumber} of ${currentWeek.year} (${currentWeek.start.format('MMM DD')} - ${currentWeek.end.format('MMM DD, YYYY')})`;
+                const plantInfo = selectedPlant ? ` - Plant: ${selectedPlant}` : '';
+                pdf.text(weekInfo + plantInfo, 40, 50);
+
+                // Obtener imagen de la gráfica
+                const dataUrlObj = await chart.dataURI({ pixelRatio: 2 });
+                
+                if (dataUrlObj && dataUrlObj.imgURI) {
+                    const margin = 40;
+                    const topMargin = 70; // Más espacio para título
+                    const contentWidth = pdf.internal.pageSize.getWidth() - 2 * margin;
+                    const contentHeight = pdf.internal.pageSize.getHeight() - topMargin - margin;
+                    
+                    // Procesar imagen
+                    const cleanDataURL = await new Promise((resolve, reject) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.fillStyle = 'white';
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                            ctx.drawImage(img, 0, 0);
+                            resolve(canvas.toDataURL('image/png'));
+                        };
+                        img.onerror = () => reject(new Error('Failed to load image'));
+                        img.src = dataUrlObj.imgURI;
+                    });
+
+                    // Calcular dimensiones manteniendo aspect ratio
+                    const imgProps = pdf.getImageProperties(cleanDataURL);
+                    const aspectRatio = imgProps.width / imgProps.height;
+                    let imgWidth = contentWidth;
+                    let imgHeight = imgWidth / aspectRatio;
+
+                    if (imgHeight > contentHeight) {
+                        imgHeight = contentHeight;
+                        imgWidth = imgHeight * aspectRatio;
+                    }
+
+                    // Centrar imagen
+                    const xPos = (pdf.internal.pageSize.getWidth() - imgWidth) / 2;
+                    const yPos = topMargin + (contentHeight - imgHeight) / 2;
+
+                    pdf.addImage(cleanDataURL, 'PNG', xPos, yPos, imgWidth, imgHeight);
+                    exportedCharts++;
+                }
+
+                isFirstPage = false;
+
+            } catch (error) {
+                console.error(`Failed to export chart "${chartInfo.id}":`, error);
+                
+                // Añadir página de error
+                if (!isFirstPage) {
+                    pdf.addPage();
+                }
+                
+                pdf.setFontSize(16);
+                pdf.setTextColor(255, 0, 0);
+                pdf.text(`Error rendering chart: ${chartInfo.title}`, 40, 60);
+                pdf.setTextColor(0, 0, 0);
+                pdf.setFontSize(12);
+                pdf.text('Chart could not be exported due to technical issues.', 40, 80);
+                
+                isFirstPage = false;
+            }
+        }
+
+        // Si no se exportó ninguna gráfica
+        if (exportedCharts === 0) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Charts to Export',
+                    text: 'No visible charts were found to include in the PDF.',
+                });
+            }
+            return;
+        }
 
         // Guardar PDF
-        const fileName = `weekly-performance-week${currentWeek.weekNumber}-${currentWeek.year}.pdf`;
-        doc.save(fileName);
+        const fileName = `Weekly-Performance-Charts-W${currentWeek.weekNumber}-${currentWeek.year}.pdf`;
+        pdf.save(fileName);
 
-        // Mostrar mensaje de éxito
+        // Mostrar éxito
         if (typeof Swal !== 'undefined') {
             Swal.fire({
                 title: 'Export Successful',
-                text: 'Weekly performance report has been exported to PDF',
+                text: `PDF with ${exportedCharts} charts has been downloaded`,
                 icon: 'success',
                 timer: 3000
             });
         }
+
     } catch (error) {
         console.error('PDF export error:', error);
         showErrorMessage('Error exporting to PDF: ' + error.message);
+    } finally {
+        // Cerrar loading
+        if (typeof Swal !== 'undefined') {
+            Swal.close();
+        }
     }
 }
 
@@ -1274,6 +1597,14 @@ async function updateAllVisualizations() {
         renderApprovalTimesChart();
         renderCostAnalysisChart();
         generateInsights();
+        
+        // Asegurar que los botones de exportación estén configurados correctamente
+        // después de que las gráficas se hayan renderizado
+        setTimeout(() => {
+            assignExportButtonListeners();
+            initializeExportButtons();
+        }, 500);
+        
     } catch (error) {
         console.error('Error updating visualizations:', error);
     }
@@ -1292,6 +1623,9 @@ async function initializeWeeklyPerformance() {
 
         // Inicializar componentes
         initializeSelectors();
+        
+        // Inicializar botones de exportación
+        initializeExportButtons();
 
         // Event listener para el botón de refresh
         document.getElementById('refreshData')?.addEventListener('click', updateAllVisualizations);
