@@ -1,0 +1,33 @@
+{
+    "status": "success",
+    "data": {
+        "total_generated": 34,
+        "total_pending": 8,
+        "total_approved": 22,
+        "total_rejected": 4,
+        "total_cost": 12932.29,
+        "approval_rate": 84.6,
+        "average_approval_time": "10h 23m",
+        "top_requesting_user": {
+            "name": "Mario Hernandez",
+            "request_count": 4,
+            "total_cost": 3113.22
+        },
+        "top_spending_area": {
+            "area": "Sales & Projects",
+            "total_spent": 6907.13
+        },
+        "slowest_approver": {
+            "name": "Luis Olvera",
+            "duration_formatted": "15h 4m"
+        }
+    },
+    "date_range": {
+        "start": "2025-07-22 14:33:51",
+        "end": "2025-07-29 14:33:51"
+    },
+    "user_info": {
+        "plant": null,
+        "authorization_level": 10
+    }
+}

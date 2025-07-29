@@ -1,6 +1,6 @@
 /**
  * WEEKLY PERFORMANCE DASHBOARD - MAIN JAVASCRIPT
- * * Este módulo maneja toda la funcionalidad de la página de rendimiento semanal,
+ * Este módulo maneja toda la funcionalidad de la página de rendimiento semanal,
  * incluyendo la carga de datos, visualizaciones, filtros y exportaciones.
  */
 
@@ -13,11 +13,11 @@ let WEEKLY_KPIS_URL;
 let PLANTS_URL;
 if (typeof URLPF !== 'undefined') {
     WEEKLY_KPIS_URL = URLPF + 'dao/conections/daoWeeklyKPIs.php';
-    PLANTS_URL = URLPF + 'dao/conections/daoPremiumFreight.php';
+    PLANTS_URL = URLPF + 'dao/conections/daoPlants.php';
 } else {
     console.warn('URL global variable is not defined. Using fallback URL for Weekly KPIs.');
     WEEKLY_KPIS_URL = 'https://grammermx.com/Jesus/PruebaDos/dao/conections/daoWeeklyKPIs.php';
-    PLANTS_URL = 'https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php';
+    PLANTS_URL = 'https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPlants.php';
 }
 
 // Almacenamiento de datos y gráficas
@@ -127,7 +127,7 @@ function updateWeekDisplay() {
 }
 
 /**
- * Inicializa el selector de plantas
+ * Inicializa el selector de plantas - ACTUALIZADO para usar tabla User
  */
 async function initializePlantSelector() {
     try {
@@ -153,7 +153,7 @@ async function initializePlantSelector() {
 }
 
 /**
- * Carga las plantas disponibles desde el endpoint
+ * Carga las plantas disponibles desde la tabla User - ACTUALIZADO
  */
 async function loadAvailablePlants() {
     try {
@@ -172,12 +172,8 @@ async function loadAvailablePlants() {
         const result = await response.json();
         
         if (result.status === 'success' && result.data) {
-            // Extraer plantas únicas
-            const plants = [...new Set(
-                result.data
-                    .map(item => item.creator_plant || item.planta || item.plant)
-                    .filter(plant => plant && plant.trim() !== '')
-            )].sort();
+            // Los datos ya vienen como array de strings de plantas
+            const plants = result.data.filter(plant => plant && plant.trim() !== '');
             
             availablePlants = plants;
             return plants;
@@ -478,7 +474,7 @@ function generateWeeklySummary() {
 function assignExportButtonListeners() {
     const exportExcel = document.getElementById('exportExcel');
     const exportPDF = document.getElementById('exportPDF');
-    const printReportBtn = document.getElementById('printReport'); // Renamed to avoid conflict
+    const printReportBtn = document.getElementById('printReport');
     
     if (exportExcel) {
         exportExcel.removeEventListener('click', exportToExcel);
@@ -493,21 +489,15 @@ function assignExportButtonListeners() {
     }
     
     if (printReportBtn) {
-        // FIX: The original event listener was calling the function itself, causing a potential infinite loop.
-        // It should call window.print().
-        printReportBtn.removeEventListener('click', printReport); // Use the correct function name to remove
+        printReportBtn.removeEventListener('click', printReport);
         printReportBtn.addEventListener('click', printReport);
         printReportBtn.disabled = false;
     }
 }
 
 // ========================================================================
-// 5. VISUALIZACIONES Y GRÁFICAS
+// 5. VISUALIZACIONES Y GRÁFICAS - ACTUALIZADAS CON DATOS REALES
 // ========================================================================
-
-// FIX: The block of code below was misplaced, causing a major syntax error.
-// It was a duplicate of a part of the `generateWeeklySummary` function's template literal.
-// I have removed the entire erroneous block.
 
 /**
  * Renderiza el gráfico de tendencias semanales
@@ -619,16 +609,27 @@ function renderStatusChart() {
 }
 
 /**
- * Renderiza el gráfico de top performers
+ * Renderiza el gráfico de top performers - ACTUALIZADO CON DATOS REALES
  */
 function renderTopPerformersChart() {
     const container = document.getElementById('topPerformersChart');
-    if (!container) return;
+    if (!container || !weeklyData || !weeklyData.top_performers) return;
 
-    // Datos simulados - en el futuro usar datos reales del endpoint
+    // Extraer datos reales
+    const performers = weeklyData.top_performers || [];
+    
+    if (performers.length === 0) {
+        container.innerHTML = '<div class="text-center p-4"><i class="fas fa-info-circle text-muted me-2"></i>No data available for the selected period</div>';
+        return;
+    }
+
+    const names = performers.map(p => p.name);
+    const requests = performers.map(p => parseInt(p.approved_requests));
+
     const options = {
         series: [{
-            data: [44, 55, 41, 37, 22, 43, 21]
+            name: 'Approved Requests',
+            data: requests
         }],
         chart: {
             type: 'bar',
@@ -642,10 +643,46 @@ function renderTopPerformersChart() {
             }
         },
         dataLabels: {
-            enabled: false
+            enabled: true,
+            formatter: function(val) {
+                return val + ' requests';
+            }
         },
         xaxis: {
-            categories: ['User A', 'User B', 'User C', 'User D', 'User E', 'User F', 'User G'],
+            categories: names,
+            title: {
+                text: 'Number of Approved Requests',
+                style: {
+                    fontFamily: 'Merriweather, serif'
+                }
+            }
+        },
+        yaxis: {
+            title: {
+                text: 'Users',
+                style: {
+                    fontFamily: 'Merriweather, serif'
+                }
+            }
+        },
+        title: {
+            text: 'Top Users by Approved Requests',
+            align: 'left',
+            style: {
+                fontFamily: 'Merriweather, serif',
+                fontSize: '14px'
+            }
+        },
+        tooltip: {
+            y: {
+                formatter: function(val, { series, seriesIndex, dataPointIndex, w }) {
+                    const performer = performers[dataPointIndex];
+                    return `<div>
+                        <strong>${val} approved requests</strong><br>
+                        Total Cost: €${formatNumber(performer.total_cost, 2)}
+                    </div>`;
+                }
+            }
         }
     };
 
@@ -657,33 +694,106 @@ function renderTopPerformersChart() {
 }
 
 /**
- * Renderiza el gráfico de rendimiento por área
+ * Renderiza el gráfico de rendimiento por área - ACTUALIZADO CON DATOS REALES
  */
 function renderAreaPerformanceChart() {
     const container = document.getElementById('areaPerformanceChart');
-    if (!container) return;
+    if (!container || !weeklyData || !weeklyData.area_performance) return;
+
+    // Extraer datos reales
+    const areas = weeklyData.area_performance || [];
+    
+    if (areas.length === 0) {
+        container.innerHTML = '<div class="text-center p-4"><i class="fas fa-info-circle text-muted me-2"></i>No data available for the selected period</div>';
+        return;
+    }
+
+    const areaNames = areas.map(a => a.area_name);
+    const requests = areas.map(a => parseInt(a.total_requests));
+    const costs = areas.map(a => parseFloat(a.total_cost));
 
     const options = {
         series: [{
-            name: 'Requests',
-            data: [31, 40, 28, 51, 42, 109, 100]
+            name: 'Total Requests',
+            type: 'column',
+            data: requests
         }, {
-            name: 'Cost (€)',
-            data: [11, 32, 45, 32, 34, 52, 41]
+            name: 'Total Cost (€)',
+            type: 'line',
+            data: costs
         }],
         chart: {
             height: 350,
-            type: 'area'
+            type: 'line'
         },
         colors: [colorPalette.accent, colorPalette.warning],
-        dataLabels: {
-            enabled: false
-        },
         stroke: {
-            curve: 'smooth'
+            width: [0, 4]
+        },
+        dataLabels: {
+            enabled: true,
+            enabledOnSeries: [1],
+            formatter: function(val, opts) {
+                if (opts.seriesIndex === 1) {
+                    return '€' + formatNumber(val, 0);
+                }
+                return val;
+            }
         },
         xaxis: {
-            categories: ['Area A', 'Area B', 'Area C', 'Area D', 'Area E', 'Area F', 'Area G']
+            categories: areaNames,
+            title: {
+                text: 'Business Areas',
+                style: {
+                    fontFamily: 'Merriweather, serif'
+                }
+            }
+        },
+        yaxis: [{
+            title: {
+                text: 'Number of Requests',
+                style: {
+                    fontFamily: 'Merriweather, serif'
+                }
+            }
+        }, {
+            opposite: true,
+            title: {
+                text: 'Total Cost (€)',
+                style: {
+                    fontFamily: 'Merriweather, serif'
+                }
+            },
+            labels: {
+                formatter: function(val) {
+                    return '€' + formatNumber(val, 0);
+                }
+            }
+        }],
+        title: {
+            text: 'Performance by Business Area (Approved Orders)',
+            align: 'left',
+            style: {
+                fontFamily: 'Merriweather, serif',
+                fontSize: '14px'
+            }
+        },
+        legend: {
+            position: 'top',
+            horizontalAlign: 'right'
+        },
+        tooltip: {
+            shared: true,
+            intersect: false,
+            y: {
+                formatter: function(val, { series, seriesIndex, dataPointIndex, w }) {
+                    if (seriesIndex === 0) {
+                        return val + ' requests';
+                    } else {
+                        return '€' + formatNumber(val, 2);
+                    }
+                }
+            }
         }
     };
 
@@ -695,14 +805,29 @@ function renderAreaPerformanceChart() {
 }
 
 /**
- * Renderiza el gráfico de tiempos de aprobación
+ * Renderiza el gráfico de tiempos de aprobación - ACTUALIZADO CON DATOS REALES
  */
 function renderApprovalTimesChart() {
     const container = document.getElementById('approvalTimesChart');
-    if (!container) return;
+    if (!container || !weeklyData || !weeklyData.approval_times_distribution) return;
+
+    // Extraer datos reales
+    const timeDistribution = weeklyData.approval_times_distribution || [];
+    
+    if (timeDistribution.length === 0) {
+        container.innerHTML = '<div class="text-center p-4"><i class="fas fa-info-circle text-muted me-2"></i>No approval time data available</div>';
+        return;
+    }
+
+    const categories = timeDistribution.map(t => t.time_category);
+    const counts = timeDistribution.map(t => parseInt(t.count));
+
+    // Calcular porcentajes
+    const total = counts.reduce((sum, count) => sum + count, 0);
+    const percentages = counts.map(count => total > 0 ? Math.round((count / total) * 100) : 0);
 
     const options = {
-        series: [65, 75, 85, 45],
+        series: percentages,
         chart: {
             type: 'radialBar',
             height: 300
@@ -711,23 +836,59 @@ function renderApprovalTimesChart() {
             radialBar: {
                 dataLabels: {
                     name: {
-                        fontSize: '22px',
+                        fontSize: '14px',
+                        fontFamily: 'Merriweather, serif'
                     },
                     value: {
-                        fontSize: '16px',
+                        fontSize: '12px',
+                        fontFamily: 'Merriweather, serif',
+                        formatter: function(val, opts) {
+                            const count = counts[opts.seriesIndex] || 0;
+                            return `${val}%\n(${count} orders)`;
+                        }
                     },
                     total: {
                         show: true,
-                        label: 'Avg',
+                        label: 'Total Orders',
+                        fontSize: '12px',
+                        fontFamily: 'Merriweather, serif',
                         formatter: function (w) {
-                            return '2.5h'
+                            return `${total}`;
                         }
                     }
                 }
             }
         },
-        labels: ['< 1h', '1-4h', '4-24h', '> 24h'],
-        colors: [colorPalette.success, colorPalette.primary, colorPalette.warning, colorPalette.danger]
+        labels: categories,
+        colors: [colorPalette.success, colorPalette.primary, colorPalette.warning, colorPalette.danger],
+        title: {
+            text: 'Time to Approval Distribution',
+            align: 'center',
+            style: {
+                fontFamily: 'Merriweather, serif',
+                fontSize: '14px'
+            }
+        },
+        subtitle: {
+            text: 'How long it takes from request creation to approval',
+            align: 'center',
+            style: {
+                fontFamily: 'Merriweather, serif',
+                fontSize: '12px',
+                color: '#666'
+            }
+        },
+        legend: {
+            show: true,
+            position: 'bottom',
+            fontFamily: 'Merriweather, serif',
+            fontSize: '12px',
+            formatter: function(seriesName, opts) {
+                const count = counts[opts.seriesIndex] || 0;
+                const percentage = percentages[opts.seriesIndex] || 0;
+                return `${seriesName}: ${count} orders (${percentage}%)`;
+            }
+        }
     };
 
     if (charts.approvalTimes) {
@@ -738,22 +899,46 @@ function renderApprovalTimesChart() {
 }
 
 /**
- * Renderiza el gráfico de análisis de costos
+ * Renderiza el gráfico de análisis de costos - ACTUALIZADO CON DATOS REALES Y TÍTULO
  */
 function renderCostAnalysisChart() {
     const container = document.getElementById('costAnalysisChart');
-    if (!container) return;
+    if (!container || !weeklyData || !weeklyData.daily_costs) return;
+
+    // Extraer datos reales
+    const dailyCosts = weeklyData.daily_costs || [];
+    
+    if (dailyCosts.length === 0) {
+        container.innerHTML = '<div class="text-center p-4"><i class="fas fa-info-circle text-muted me-2"></i>No cost data available for the selected period</div>';
+        return;
+    }
+
+    const dates = dailyCosts.map(d => moment(d.approval_date).format('MMM DD'));
+    const costs = dailyCosts.map(d => parseFloat(d.daily_cost));
+    const counts = dailyCosts.map(d => parseInt(d.daily_count));
 
     const options = {
         series: [{
-            name: 'Total Cost',
-            data: [2400, 1398, 9800, 3908, 4800, 3800, 4300]
+            name: 'Daily Cost (Approved Orders)',
+            data: costs
         }],
         chart: {
             type: 'area',
             height: 300,
             sparkline: {
                 enabled: false
+            },
+            toolbar: {
+                show: true,
+                tools: {
+                    download: true,
+                    selection: false,
+                    zoom: true,
+                    zoomin: true,
+                    zoomout: true,
+                    pan: false,
+                    reset: true
+                }
             }
         },
         colors: [colorPalette.warning],
@@ -771,13 +956,64 @@ function renderCostAnalysisChart() {
             width: 3
         },
         xaxis: {
-            categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+            categories: dates,
+            title: {
+                text: 'Date',
+                style: {
+                    fontFamily: 'Merriweather, serif'
+                }
+            }
         },
         yaxis: {
+            title: {
+                text: 'Cost (€)',
+                style: {
+                    fontFamily: 'Merriweather, serif'
+                }
+            },
             labels: {
                 formatter: function (value) {
-                    return '€' + value.toLocaleString();
+                    return '€' + formatNumber(value, 0);
                 }
+            }
+        },
+        title: {
+            text: 'Daily Cost Trend (Approved Orders Only)',
+            align: 'left',
+            style: {
+                fontFamily: 'Merriweather, serif',
+                fontSize: '14px'
+            }
+        },
+        subtitle: {
+            text: 'Shows the total cost of approved freight requests per day',
+            align: 'left',
+            style: {
+                fontFamily: 'Merriweather, serif',
+                fontSize: '12px',
+                color: '#666'
+            }
+        },
+        dataLabels: {
+            enabled: false
+        },
+        tooltip: {
+            shared: true,
+            intersect: false,
+            y: {
+                formatter: function(val, { series, seriesIndex, dataPointIndex, w }) {
+                    const count = counts[dataPointIndex] || 0;
+                    return `<div>
+                        <strong>€${formatNumber(val, 2)}</strong><br>
+                        From ${count} approved order${count !== 1 ? 's' : ''}
+                    </div>`;
+                }
+            }
+        },
+        markers: {
+            size: 4,
+            hover: {
+                size: 6
             }
         }
     };

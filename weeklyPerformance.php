@@ -66,51 +66,47 @@ require_once 'dao/users/context_injector.php';
             <p class="performance-subtitle">Comprehensive analytics and KPIs for Premium Freight operations</p>
         </div>
         
-        <!-- Date Range Filter -->
+        <!-- Date Range Filter - ACTUALIZADO CON MEJOR ESTRUCTURA -->
         <div class="row mb-4">
             <div class="col-md-12">
                 <div class="card filter-card">
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="filter-section mb-3">
-                                    <label for="weekSelector" class="form-label">
-                                        <i class="fas fa-calendar-week me-2"></i>Analysis Week
-                                    </label>
-                                    <div class="week-selector" id="weekSelector">
-                                        <button type="button" class="week-nav-btn" id="prevWeek">
-                                            <i class="fas fa-chevron-left"></i>
-                                        </button>
-                                        <div class="week-display" id="weekDisplay">
-                                            <div class="week-info">Week of 2025</div>
-                                            <div class="week-dates">Loading...</div>
-                                        </div>
-                                        <button type="button" class="week-nav-btn" id="nextWeek">
-                                            <i class="fas fa-chevron-right"></i>
-                                        </button>
+                        <div class="filter-container">
+                            <div class="filter-section">
+                                <label for="weekSelector" class="form-label">
+                                    <i class="fas fa-calendar-week"></i>Analysis Week
+                                </label>
+                                <div class="week-selector" id="weekSelector">
+                                    <button type="button" class="week-nav-btn" id="prevWeek">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <div class="week-display" id="weekDisplay">
+                                        <div class="week-info">Week of 2025</div>
+                                        <div class="week-dates">Loading...</div>
                                     </div>
+                                    <button type="button" class="week-nav-btn" id="nextWeek">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
                                 </div>
-                                
-                                <div class="filter-section">
-                                    <label for="plantSelector" class="form-label">
-                                        <i class="fas fa-industry me-2"></i>Plant Filter
-                                    </label>
-                                    <div class="plant-selector">
-                                        <select class="form-select" id="plantSelector">
-                                            <option value="">All Plants</option>
-                                            <!-- Options will be populated dynamically -->
-                                        </select>
-                                    </div>
+                            </div>
+                            
+                            <div class="filter-section">
+                                <label for="plantSelector" class="form-label">
+                                    <i class="fas fa-industry"></i>Plant Filter
+                                </label>
+                                <div class="plant-selector">
+                                    <select class="form-select" id="plantSelector">
+                                        <option value="">All Plants</option>
+                                        <!-- Options will be populated dynamically -->
+                                    </select>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="row mt-3">
-                            <div class="col-12 text-center">
-                                <button id="refreshData" class="btn btn-primary btn-refresh" disabled>
-                                    <i class="fas fa-sync-alt me-2"></i>Refresh Data
-                                </button>
-                            </div>
+                        <div class="refresh-container">
+                            <button id="refreshData" class="btn btn-refresh" disabled>
+                                <i class="fas fa-sync-alt me-2"></i>Refresh Data
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -229,7 +225,7 @@ require_once 'dao/users/context_injector.php';
                 <div class="card chart-card">
                     <div class="card-header">
                         <h5 class="card-title">
-                            <i class="fas fa-users me-2"></i>Top Performers
+                            <i class="fas fa-users me-2"></i>Top Performers (by Approved Requests)
                         </h5>
                     </div>
                     <div class="card-body">
@@ -241,7 +237,7 @@ require_once 'dao/users/context_injector.php';
                 <div class="card chart-card">
                     <div class="card-header">
                         <h5 class="card-title">
-                            <i class="fas fa-building me-2"></i>Area Performance
+                            <i class="fas fa-building me-2"></i>Area Performance (Approved Orders)
                         </h5>
                     </div>
                     <div class="card-body">
@@ -257,7 +253,7 @@ require_once 'dao/users/context_injector.php';
                 <div class="card chart-card">
                     <div class="card-header">
                         <h5 class="card-title">
-                            <i class="fas fa-stopwatch me-2"></i>Approval Times
+                            <i class="fas fa-stopwatch me-2"></i>Approval Time Distribution
                         </h5>
                     </div>
                     <div class="card-body">
@@ -269,7 +265,7 @@ require_once 'dao/users/context_injector.php';
                 <div class="card chart-card">
                     <div class="card-header">
                         <h5 class="card-title">
-                            <i class="fas fa-chart-area me-2"></i>Cost Analysis Over Time
+                            <i class="fas fa-chart-area me-2"></i>Daily Cost Analysis (Approved Orders Only)
                         </h5>
                     </div>
                     <div class="card-body">

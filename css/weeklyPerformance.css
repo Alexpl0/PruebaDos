@@ -97,7 +97,7 @@
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-/* ================= FILTROS ================= */
+/* ================= FILTROS - MEJORADO CON MEJOR ALINEACIÓN ================= */
 .filter-card {
     background: var(--primary-gradient);
     border: none;
@@ -109,8 +109,19 @@
     padding: 2rem;
 }
 
+/* Contenedor principal de filtros con grid mejorado */
+.filter-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: start;
+    margin-bottom: 1.5rem;
+}
+
 .filter-section {
-    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
 }
 
 .filter-card .form-label {
@@ -118,9 +129,10 @@
     font-weight: 600;
     font-family: var(--body-font);
     font-size: 1rem;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0;
     display: flex;
     align-items: center;
+    gap: 0.5rem;
 }
 
 .filter-card .form-control,
@@ -133,6 +145,7 @@
     font-weight: 500;
     padding: 0.75rem 1rem;
     font-size: 0.95rem;
+    transition: var(--transition-normal);
 }
 
 .filter-card .form-control:focus,
@@ -152,12 +165,17 @@
     color: var(--white);
 }
 
-/* Plant selector specific styles */
-.plant-selector .form-select {
+/* Plant selector specific styles - MEJORADO */
+.plant-selector {
     width: 100%;
 }
 
-/* Week selector specific styles */
+.plant-selector .form-select {
+    width: 100%;
+    min-height: 45px;
+}
+
+/* Week selector specific styles - MEJORADO */
 .week-selector {
     display: flex;
     align-items: center;
@@ -166,10 +184,18 @@
     border-radius: var(--border-radius);
     padding: 0;
     overflow: hidden;
-    margin-bottom: 1.5rem;
+    width: 100%;
+    min-height: 45px;
+    transition: var(--transition-normal);
+}
+
+.week-selector:hover {
+    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .week-nav-btn {
+    margin: 0;
     background: transparent;
     border: none;
     color: var(--white);
@@ -179,11 +205,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 50px;
+    min-width: 45px;
+    height: 100%;
     font-size: 1rem;
 }
 
-.week-nav-btn:hover {
+.week-nav-btn:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.2);
     color: var(--white);
 }
@@ -203,6 +230,10 @@
     background: rgba(255, 255, 255, 0.05);
     border-left: 1px solid rgba(255, 255, 255, 0.2);
     border-right: 1px solid rgba(255, 255, 255, 0.2);
+    min-height: 45px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .week-info {
@@ -217,17 +248,38 @@
     font-weight: 400;
 }
 
-/* Refresh button styling */
+/* Botón de refresh centrado */
+.refresh-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    grid-column: 1 / -1;
+    margin-top: 1rem;
+}
+
 .btn-refresh {
     padding: 0.75rem 2rem;
     font-weight: 600;
     border-radius: var(--border-radius);
     transition: var(--transition-normal);
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: var(--white);
+    min-width: 150px;
 }
 
-.btn-refresh:hover {
+.btn-refresh:hover:not(:disabled) {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: var(--white);
+}
+
+.btn-refresh:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
 }
 
 /* ================= TARJETAS DE MÉTRICAS ================= */
@@ -417,7 +469,8 @@
     color: var(--grammer-blue);
     font-size: 1.2rem;
     font-weight: 600;
-    margin: 0 0 1.5rem 0;
+    margin: 1.5rem 0 1.5rem 0;
+    padding-bottom: 0.75rem;
     padding-bottom: 0.75rem;
     border-bottom: 2px solid var(--gray-200);
     display: flex;
@@ -487,139 +540,6 @@
 
 /* ================= INSIGHTS CARD ================= */
 .insights-card {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border: 1px solid #dee2e6;
-}
-
-.insights-card .card-header {
-    background: linear-gradient(135deg, #495057 0%, #6c757d 100%);
-    color: white;
-    border-bottom: none;
-}
-
-.insights-card .card-title i {
-    color: #ffc107;
-}
-
-#insightsContainer {
-    min-height: 150px;
-}
-
-.insight-item {
-    background: white;
-    border-left: 4px solid #667eea;
-    padding: 1rem 1.5rem;
-    margin-bottom: 1rem;
-    border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-
-.insight-item:last-child {
-    margin-bottom: 0;
-}
-
-.insight-item.positive {
-    border-left-color: #10b981;
-}
-
-.insight-item.warning {
-    border-left-color: #f59e0b;
-}
-
-.insight-item.negative {
-    border-left-color: #ef4444;
-}
-
-.insight-title {
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 0.5rem;
-}
-
-.insight-description {
-    color: var(--text-secondary);
-    margin: 0;
-    line-height: 1.5;
-}
-
-/* ================= LOADING OVERLAY ================= */
-#loadingOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.95);
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-.spinner-container {
-    text-align: center;
-    background: white;
-    padding: 2rem 3rem;
-    border-radius: var(--border-radius-lg);
-    box-shadow: var(--card-shadow-hover);
-}
-
-/* ================= BOTONES PERSONALIZADOS ================= */
-.btn-outline-success:hover {
-    background: linear-gradient(135deg, var(--success) 0%, #16a34a 100%);
-    border-color: var(--success);
-}
-
-.btn-outline-danger:hover {
-    background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
-    border-color: var(--danger);
-}
-
-.btn-outline-primary:hover {
-    background: var(--primary-gradient);
-    border-color: var(--grammer-blue);
-}
-
-.btn-primary {
-    background: var(--primary-gradient);
-    border-color: var(--grammer-blue);
-    border: none;
-    font-family: var(--body-font);
-}
-
-.btn-primary:hover {
-    background: linear-gradient(135deg, var(--grammer-dark-blue) 0%, var(--grammer-blue) 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(3, 76, 140, 0.3);
-}
-
-/* ================= LOADING OVERLAY ================= */
-#loadingOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.95);
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-.spinner-container {
-    text-align: center;
-    background: var(--white);
-    padding: 2rem 3rem;
-    border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-xl);
-    font-family: var(--body-font);
-}
-
-/* ================= INSIGHTS CARD ================= */
-.insights-card {
     background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
     border: 1px solid var(--gray-300);
 }
@@ -678,7 +598,60 @@
     font-family: var(--body-font);
 }
 
-/* ================= RESPONSIVE DESIGN ================= */
+/* ================= LOADING OVERLAY ================= */
+#loadingOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.spinner-container {
+    text-align: center;
+    background: var(--white);
+    padding: 2rem 3rem;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-xl);
+    font-family: var(--body-font);
+}
+
+/* ================= BOTONES PERSONALIZADOS ================= */
+.btn-outline-success:hover {
+    background: linear-gradient(135deg, var(--success) 0%, #16a34a 100%);
+    border-color: var(--success);
+}
+
+.btn-outline-danger:hover {
+    background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+    border-color: var(--danger);
+}
+
+.btn-outline-primary:hover {
+    background: var(--primary-gradient);
+    border-color: var(--grammer-blue);
+}
+
+.btn-primary {
+    background: var(--primary-gradient);
+    border-color: var(--grammer-blue);
+    border: none;
+    font-family: var(--body-font);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--grammer-dark-blue) 0%, var(--grammer-blue) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(3, 76, 140, 0.3);
+}
+
+/* ================= RESPONSIVE DESIGN - MEJORADO ================= */
 @media (max-width: 768px) {
     .performance-header {
         margin: -1.5rem -15px 1rem -15px;
@@ -706,14 +679,27 @@
         padding: 1rem;
     }
     
-    .filter-card .btn-group {
-        width: 100%;
-        margin-top: 1rem;
+    /* Filtros responsivos - MEJORADO */
+    .filter-container {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
     }
     
-    .filter-card .btn-group .btn {
-        flex: 1;
-        font-size: 0.9rem;
+    .week-selector {
+        max-width: 100%;
+    }
+    
+    .filter-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    .refresh-container {
+        margin-top: 1.5rem;
+    }
+    
+    .btn-refresh {
+        width: 100%;
+        max-width: 300px;
     }
 }
 
@@ -748,6 +734,29 @@
     .weekly-summary-container .highlights-grid {
         grid-template-columns: 1fr;
         gap: 1rem;
+    }
+    
+    /* Filtros móviles */
+    .filter-card .card-body {
+        padding: 1rem;
+    }
+    
+    .week-nav-btn {
+        min-width: 40px;
+        padding: 0.5rem;
+    }
+    
+    .week-display {
+        padding: 0.5rem;
+        min-height: 40px;
+    }
+    
+    .week-info {
+        font-size: 0.9rem;
+    }
+    
+    .week-dates {
+        font-size: 0.75rem;
     }
 }
 

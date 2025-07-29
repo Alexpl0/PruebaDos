@@ -31,9 +31,9 @@ try {
     $conex = $con->conectar();
     $conex->set_charset("utf8mb4");
 
-    // Configurar el rango de fechas (últimos 7 días por defecto)
-    $endDate = date('Y-m-d H:i:s');
-    $startDate = date('Y-m-d H:i:s', strtotime('-7 days'));
+    // Configurar el rango de fechas (semana actual por defecto)
+    $endDate = date('Y-m-d H:i:s'); // Fecha y hora actual
+    $startDate = date('Y-m-d H:i:s', strtotime('last monday', strtotime($endDate)));
 
     // Si se pasan parámetros de fecha, usarlos
     if (isset($_GET['start_date']) && isset($_GET['end_date'])) {
@@ -251,6 +251,179 @@ try {
         ];
     }
 
+    // ================== DATOS PARA GRÁFICAS - TOP PERFORMERS ==================
+    
+    $topPerformersSql = "SELECT 
+                            u.name,
+                            COUNT(pf.id) as approved_requests,
+                            SUM(pf.cost_euros) as total_cost
+                        FROM PremiumFreight pf
+                        JOIN User u ON pf.user_id = u.id
+                        LEFT JOIN Status st ON pf.status_id = st.id
+                        WHERE pf.date BETWEEN ? AND ? 
+                        AND st.name IN ('approved', 'aprobado')";
+    
+    // Construir parámetros dinámicamente
+    $params = [$startDate, $endDate];
+    $paramTypes = "ss";
+    
+    if ($userPlant !== null && $userPlant !== '') {
+        $topPerformersSql .= " AND u.plant = ?";
+        $params[] = $userPlant;
+        $paramTypes .= "s";
+    }
+    
+    if ($filterPlant !== null && $filterPlant !== '') {
+        $topPerformersSql .= " AND u.plant = ?";
+        $params[] = $filterPlant;
+        $paramTypes .= "s";
+    }
+    
+    $topPerformersSql .= " GROUP BY pf.user_id, u.name
+                          ORDER BY approved_requests DESC
+                          LIMIT 10";
+    
+    $stmt = $conex->prepare($topPerformersSql);
+    $stmt->bind_param($paramTypes, ...$params);
+    $stmt->execute();
+    $topPerformersResult = $stmt->get_result();
+    
+    $topPerformers = [];
+    while ($row = $topPerformersResult->fetch_assoc()) {
+        $topPerformers[] = $row;
+    }
+
+    // ================== DATOS PARA GRÁFICAS - AREA PERFORMANCE ==================
+    
+    $areaPerformanceSql = "SELECT 
+                            COALESCE(pf.area, 'Unknown Area') as area_name,
+                            COUNT(pf.id) as total_requests,
+                            SUM(pf.cost_euros) as total_cost
+                        FROM PremiumFreight pf
+                        JOIN User u ON pf.user_id = u.id
+                        LEFT JOIN Status st ON pf.status_id = st.id
+                        WHERE pf.date BETWEEN ? AND ? 
+                        AND st.name IN ('approved', 'aprobado')";
+    
+    // Construir parámetros dinámicamente
+    $params = [$startDate, $endDate];
+    $paramTypes = "ss";
+    
+    if ($userPlant !== null && $userPlant !== '') {
+        $areaPerformanceSql .= " AND u.plant = ?";
+        $params[] = $userPlant;
+        $paramTypes .= "s";
+    }
+    
+    if ($filterPlant !== null && $filterPlant !== '') {
+        $areaPerformanceSql .= " AND u.plant = ?";
+        $params[] = $filterPlant;
+        $paramTypes .= "s";
+    }
+    
+    $areaPerformanceSql .= " GROUP BY COALESCE(pf.area, 'Unknown Area')
+                            ORDER BY total_cost DESC
+                            LIMIT 10";
+    
+    $stmt = $conex->prepare($areaPerformanceSql);
+    $stmt->bind_param($paramTypes, ...$params);
+    $stmt->execute();
+    $areaPerformanceResult = $stmt->get_result();
+    
+    $areaPerformance = [];
+    while ($row = $areaPerformanceResult->fetch_assoc()) {
+        $areaPerformance[] = $row;
+    }
+
+    // ================== DATOS PARA GRÁFICAS - APPROVAL TIME DISTRIBUTION ==================
+    
+    $approvalTimesSql = "SELECT 
+                            CASE 
+                                WHEN TIMESTAMPDIFF(SECOND, pf.date, pfa.approval_date) < 3600 THEN '< 1 Hour'
+                                WHEN TIMESTAMPDIFF(SECOND, pf.date, pfa.approval_date) < 14400 THEN '1-4 Hours'  
+                                WHEN TIMESTAMPDIFF(SECOND, pf.date, pfa.approval_date) < 86400 THEN '4-24 Hours'
+                                ELSE '> 24 Hours'
+                            END as time_category,
+                            COUNT(*) as count,
+                            ROUND(AVG(TIMESTAMPDIFF(SECOND, pf.date, pfa.approval_date)) / 3600, 1) as avg_hours
+                        FROM PremiumFreight pf
+                        JOIN PremiumFreightApprovals pfa ON pf.id = pfa.premium_freight_id
+                        JOIN User u ON pf.user_id = u.id
+                        LEFT JOIN Status st ON pf.status_id = st.id
+                        WHERE pf.date BETWEEN ? AND ?
+                        AND st.name IN ('approved', 'aprobado')
+                        AND pfa.approval_date IS NOT NULL";
+    
+    // Construir parámetros dinámicamente
+    $params = [$startDate, $endDate];
+    $paramTypes = "ss";
+    
+    if ($userPlant !== null && $userPlant !== '') {
+        $approvalTimesSql .= " AND u.plant = ?";
+        $params[] = $userPlant;
+        $paramTypes .= "s";
+    }
+    
+    if ($filterPlant !== null && $filterPlant !== '') {
+        $approvalTimesSql .= " AND u.plant = ?";
+        $params[] = $filterPlant;
+        $paramTypes .= "s";
+    }
+    
+    $approvalTimesSql .= " GROUP BY time_category
+                          ORDER BY FIELD(time_category, '< 1 Hour', '1-4 Hours', '4-24 Hours', '> 24 Hours')";
+    
+    $stmt = $conex->prepare($approvalTimesSql);
+    $stmt->bind_param($paramTypes, ...$params);
+    $stmt->execute();
+    $approvalTimesResult = $stmt->get_result();
+    
+    $approvalTimes = [];
+    while ($row = $approvalTimesResult->fetch_assoc()) {
+        $approvalTimes[] = $row;
+    }
+
+    // ================== DATOS PARA GRÁFICAS - DAILY COST ANALYSIS (SOLO APROBADOS) ==================
+    
+    $dailyCostSql = "SELECT 
+                        DATE(pf.date) as approval_date,
+                        SUM(pf.cost_euros) as daily_cost,
+                        COUNT(pf.id) as daily_count
+                    FROM PremiumFreight pf
+                    JOIN User u ON pf.user_id = u.id
+                    LEFT JOIN Status st ON pf.status_id = st.id
+                    WHERE pf.date BETWEEN ? AND ?
+                    AND st.name IN ('approved', 'aprobado')";
+    
+    // Construir parámetros dinámicamente
+    $params = [$startDate, $endDate];
+    $paramTypes = "ss";
+    
+    if ($userPlant !== null && $userPlant !== '') {
+        $dailyCostSql .= " AND u.plant = ?";
+        $params[] = $userPlant;
+        $paramTypes .= "s";
+    }
+    
+    if ($filterPlant !== null && $filterPlant !== '') {
+        $dailyCostSql .= " AND u.plant = ?";
+        $params[] = $filterPlant;
+        $paramTypes .= "s";
+    }
+    
+    $dailyCostSql .= " GROUP BY DATE(pf.date)
+                      ORDER BY approval_date";
+    
+    $stmt = $conex->prepare($dailyCostSql);
+    $stmt->bind_param($paramTypes, ...$params);
+    $stmt->execute();
+    $dailyCostResult = $stmt->get_result();
+    
+    $dailyCosts = [];
+    while ($row = $dailyCostResult->fetch_assoc()) {
+        $dailyCosts[] = $row;
+    }
+
     // ================== PREPARAR RESPUESTA ==================
     
     $response = [
@@ -272,7 +445,12 @@ try {
                 'area' => $topArea['area'] ?? 'N/A',
                 'total_spent' => (float)($topArea['total_spent'] ?? 0)
             ],
-            'slowest_approver' => $slowestApproverFormatted
+            'slowest_approver' => $slowestApproverFormatted,
+            // NUEVOS DATOS PARA GRÁFICAS
+            'top_performers' => $topPerformers,
+            'area_performance' => $areaPerformance,
+            'approval_times_distribution' => $approvalTimes,
+            'daily_costs' => $dailyCosts
         ],
         'date_range' => [
             'start' => $startDate,
