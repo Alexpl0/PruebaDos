@@ -424,18 +424,38 @@ try {
         $dailyCosts[] = $row;
     }
 
+    // ================== OBTENER ESTADÍSTICAS PARA AMBAS SEMANAS ==================
+    
+    // Calcular rango de la semana anterior para tendencias
+    $prevWeekStartDate = date('Y-m-d H:i:s', strtotime($startDate . ' -7 days'));
+    $prevWeekEndDate = date('Y-m-d H:i:s', strtotime($startDate . ' -1 second'));
+
+    $currentWeekStats = getSummaryStats($conex, $startDate, $endDate, $userPlant, $filterPlant);
+    $previousWeekStats = getSummaryStats($conex, $prevWeekStartDate, $prevWeekEndDate, $userPlant, $filterPlant);
+
+    // Reemplazar los valores antiguos con los de la semana actual
+    $orderStats = [
+        'total_generated' => $currentWeekStats['total_generated'],
+        'approved_count' => $currentWeekStats['approved_count'],
+        'rejected_count' => $currentWeekStats['rejected_count'],
+        'total_cost' => $currentWeekStats['total_cost']
+    ];
+    $approvalRate = $currentWeekStats['approval_rate'];
+    $avgTimeResult = ['avg_total_seconds' => $currentWeekStats['average_approval_time_seconds']];
+
     // ================== PREPARAR RESPUESTA ==================
     
     $response = [
         'status' => 'success',
         'data' => [
             'total_generated' => (int)($orderStats['total_generated'] ?? 0),
-            'total_pending' => (int)($orderStats['pending_count'] ?? 0),
+            'total_pending' => (int)($orderStats['pending_count'] ?? 0), // Asegúrate que esta consulta siga existiendo
             'total_approved' => (int)($orderStats['approved_count'] ?? 0),
             'total_rejected' => (int)($orderStats['rejected_count'] ?? 0),
             'total_cost' => (float)($orderStats['total_cost'] ?? 0),
             'approval_rate' => $approvalRate,
             'average_approval_time' => $avgApprovalTime,
+            'average_approval_time_seconds' => $currentWeekStats['average_approval_time_seconds'], // AÑADIR ESTA LÍNEA
             'top_requesting_user' => [
                 'name' => $topUser['name'] ?? 'N/A',
                 'request_count' => (int)($topUser['request_count'] ?? 0),
@@ -450,7 +470,24 @@ try {
             'top_performers' => $topPerformers,
             'area_performance' => $areaPerformance,
             'approval_times_distribution' => $approvalTimes,
-            'daily_costs' => $dailyCosts
+            'daily_costs' => $dailyCosts,
+            // DATOS DE LA SEMANA ANTERIOR PARA TENDENCIAS
+            'trends_data' => [
+                'total_generated' => $previousWeekStats['total_generated'],
+                'total_cost' => $previousWeekStats['total_cost'],
+                'approval_rate' => $previousWeekStats['approval_rate'],
+                'average_approval_time' => formatTime($previousWeekStats['average_approval_time_seconds']),
+                'top_requesting_user' => [
+                    'name' => $topUser['name'] ?? 'N/A',
+                    'request_count' => (int)($topUser['request_count'] ?? 0),
+                    'total_cost' => (float)($topUser['total_cost'] ?? 0)
+                ],
+                'top_spending_area' => [
+                    'area' => $topArea['area'] ?? 'N/A',
+                    'total_spent' => (float)($topArea['total_spent'] ?? 0)
+                ],
+                'slowest_approver' => $slowestApproverFormatted
+            ]
         ],
         'date_range' => [
             'start' => $startDate,
@@ -494,5 +531,78 @@ function formatTime($seconds) {
     if ($minutes > 0) $formatted .= "{$minutes}m";
     
     return trim($formatted) ?: "0m";
+}
+
+/**
+ * Obtiene las estadísticas de resumen para un rango de fechas y planta dados.
+ * @param mysqli $conex Conexión a la base de datos
+ * @param string $startDate Fecha de inicio
+ * @param string $endDate Fecha de fin
+ * @param string|null $userPlant Planta del usuario
+ * @param string|null $filterPlant Planta del filtro
+ * @return array Estadísticas de resumen
+ */
+function getSummaryStats($conex, $startDate, $endDate, $userPlant, $filterPlant) {
+    // Consulta para estadísticas de órdenes
+    $statsSql = "SELECT 
+                    COUNT(pf.id) as total_generated,
+                    SUM(CASE WHEN st.name IN ('approved', 'aprobado') THEN 1 ELSE 0 END) as approved_count,
+                    SUM(CASE WHEN st.name IN ('rejected', 'rechazado') THEN 1 ELSE 0 END) as rejected_count,
+                    SUM(CASE WHEN st.name IN ('approved', 'aprobado') THEN pf.cost_euros ELSE 0 END) as total_cost
+                FROM PremiumFreight pf
+                LEFT JOIN Status st ON pf.status_id = st.id
+                LEFT JOIN User u ON pf.user_id = u.id
+                WHERE pf.date BETWEEN ? AND ?";
+
+    $params = [$startDate, $endDate];
+    $paramTypes = "ss";
+
+    if ($userPlant !== null && $userPlant !== '') {
+        $statsSql .= " AND u.plant = ?";
+        $params[] = $userPlant;
+        $paramTypes .= "s";
+    }
+    if ($filterPlant !== null && $filterPlant !== '') {
+        $statsSql .= " AND u.plant = ?";
+        $params[] = $filterPlant;
+        $paramTypes .= "s";
+    }
+
+    $stmt = $conex->prepare($statsSql);
+    $stmt->bind_param($paramTypes, ...$params);
+    $stmt->execute();
+    $stats = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    // Consulta para tiempo promedio de aprobación
+    $avgTimeSql = "SELECT AVG(TIMESTAMPDIFF(SECOND, pf.date, pfa.approval_date)) as avg_total_seconds
+                   FROM PremiumFreight pf
+                   JOIN PremiumFreightApprovals pfa ON pf.id = pfa.premium_freight_id
+                   JOIN User u ON pf.user_id = u.id
+                   LEFT JOIN Status st ON pf.status_id = st.id
+                   WHERE pf.date BETWEEN ? AND ?
+                   AND st.name IN ('approved', 'aprobado')
+                   AND pfa.approval_date IS NOT NULL";
+
+    $stmt = $conex->prepare($avgTimeSql);
+    $stmt->bind_param($paramTypes, ...$params); // Reutilizamos los mismos parámetros
+    $stmt->execute();
+    $avgTimeResult = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    // Calcular tasa de aprobación
+    $approved = $stats['approved_count'] ?? 0;
+    $rejected = $stats['rejected_count'] ?? 0;
+    $totalProcessed = $approved + $rejected;
+    $approvalRate = ($totalProcessed > 0) ? round(($approved / $totalProcessed) * 100, 1) : 0;
+
+    return [
+        'total_generated' => (int)($stats['total_generated'] ?? 0),
+        'approved_count' => (int)($stats['approved_count'] ?? 0),
+        'rejected_count' => (int)($stats['rejected_count'] ?? 0),
+        'total_cost' => (float)($stats['total_cost'] ?? 0),
+        'approval_rate' => $approvalRate,
+        'average_approval_time_seconds' => isset($avgTimeResult['avg_total_seconds']) ? (float)$avgTimeResult['avg_total_seconds'] : null
+    ];
 }
 ?>
