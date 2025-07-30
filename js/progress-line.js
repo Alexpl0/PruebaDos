@@ -10,37 +10,51 @@
  * @param {string} baseURL - La URL base de la aplicación.
  */
 export async function loadAndRenderProgress(orderId, baseURL) {
+    console.log(`[progress-line.js] ==> Iniciando carga para Order ID: ${orderId}`); // LOG A
+
     const progressSection = document.getElementById('progressSection');
     if (!progressSection) {
-        console.error('Progress section container not found.');
+        console.error('[progress-line.js] ERROR: No se encontró el elemento #progressSection. No se puede continuar.'); // LOG B
         return;
     }
+    console.log('[progress-line.js] Elemento #progressSection encontrado.'); // LOG C
 
     try {
-        const response = await fetch(`${baseURL}dao/users/daoOrderProgress.php?orderId=${orderId}`);
+        const url = `${baseURL}dao/users/daoOrderProgress.php?orderId=${orderId}`;
+        console.log(`[progress-line.js] Realizando fetch a: ${url}`); // LOG D
+
+        const response = await fetch(url);
+        
+        console.log(`[progress-line.js] Respuesta del servidor recibida con estado: ${response.status}`); // LOG E
+
         if (!response.ok) {
-             const errorData = await response.json().catch(() => null);
-             throw new Error(errorData?.message || 'Error connecting to the progress service.');
+             const errorData = await response.json().catch(() => ({ message: 'Respuesta no es un JSON válido.' }));
+             throw new Error(errorData?.message || 'Error conectando con el servicio de progreso.');
         }
         
         const data = await response.json();
+        console.log('[progress-line.js] Datos JSON recibidos:', data); // LOG F
+
         if (!data.success) {
-            throw new Error(data.message || 'Could not get order progress.');
+            throw new Error(data.message || 'La API de progreso reportó un error.');
         }
         
         if (data.showProgress === false) {
+            console.warn('[progress-line.js] La API indica que no se debe mostrar el progreso. Mensaje:', data.message); // LOG G
             showError(data.message || "Progress line not available for this order.");
             return;
         }
 
         // Si todo va bien, mostramos la sección y renderizamos
+        console.log('[progress-line.js] Renderizando línea de progreso...'); // LOG H
         progressSection.classList.remove('hidden');
         renderProgressLine(data);
+        console.log('[progress-line.js] Renderizado completado.'); // LOG I
 
     } catch (error) {
+        console.error('[progress-line.js] CATCH BLOCK: Ocurrió un error fatal.', error); // LOG J
         showError(error.message);
         progressSection.classList.remove('hidden'); // Mostrar la sección para ver el error
-        throw error;
     }
 }
 
@@ -50,7 +64,10 @@ export async function loadAndRenderProgress(orderId, baseURL) {
  */
 function renderProgressLine(data) {
     const checkpointsContainer = document.getElementById('checkpoints-container');
-    if (!checkpointsContainer) return;
+    if (!checkpointsContainer) {
+        console.error("[progress-line.js] No se encontró el elemento #checkpoints-container para renderizar.");
+        return;
+    };
     checkpointsContainer.innerHTML = ''; 
 
     data.approvers.forEach((approver, index) => {
