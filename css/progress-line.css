@@ -57,6 +57,7 @@
     transform: translateX(-50%);
 }
 
+/* MODIFICADO: Círculos con fondo transparente y borde de color */
 .checkpoint-circle {
     width: 30px;
     height: 30px;
@@ -65,23 +66,28 @@
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    color: var(--white);
-    border: 3px solid var(--white);
+    background-color: var(--white); /* Fondo blanco para que tape la línea justo detrás */
     box-shadow: var(--shadow-md);
     transition: all 0.5s ease;
     z-index: 2;
     position: relative;
+    border-style: solid;
+    border-width: 4px; /* Un borde un poco más grueso */
 }
 
-/* --- ESTADOS DE LOS CHECKPOINTS --- */
-.checkpoint-circle.pending { background-color: var(--gray-300); }
+/* --- ESTADOS DE LOS CHECKPOINTS (AHORA CON BORDES) --- */
+.checkpoint-circle.pending { 
+    border-color: var(--gray-300);
+}
 .checkpoint-circle.current {
-    background-color: var(--grammer-blue);
+    border-color: var(--grammer-blue);
     transform: scale(1.2);
 }
-.checkpoint-circle.completed { background-color: var(--success); }
+.checkpoint-circle.completed { 
+    border-color: var(--success);
+}
 .checkpoint-circle.rejected-at {
-    background-color: var(--danger);
+    border-color: var(--danger);
     transform: scale(1.2);
 }
 
