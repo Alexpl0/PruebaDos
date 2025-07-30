@@ -100,7 +100,7 @@ try {
     $historySql = "SELECT 
                        u.authorization_level as approval_level,
                        ah.action_timestamp,
-                       ah.action
+                       ah.action_type
                    FROM ApprovalHistory ah
                    INNER JOIN User u ON ah.user_id = u.id
                    WHERE ah.premium_freight_id = ? 
@@ -144,7 +144,7 @@ try {
                 'plant' => $approver['plant'],
                 'isCompleted' => !$isRejected && $currentApprovalLevel >= $level,
                 'isCurrent' => !$isRejected && $currentApprovalLevel + 1 === $level,
-                'isRejectedHere' => $isRejected && $historyEntry && $historyEntry['action'] === 'rejected',
+                'isRejectedHere' => $isRejected && $historyEntry && $historyEntry['action_type'] === 'rejected',
                 'actionTimestamp' => $historyEntry['action_timestamp'] ?? null
             ];
         } else {
