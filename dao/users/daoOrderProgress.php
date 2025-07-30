@@ -28,8 +28,8 @@ if (!isset($_GET['orderId']) || !is_numeric($_GET['orderId'])) {
 }
 
 $orderId = intval($_GET['orderId']);
-$currentUserId = $_SESSION['user']['id'];
 $currentUserPlant = $_SESSION['user']['plant'] ?? null;
+$currentUserAuthLevel = $_SESSION['user']['authorization_level'] ?? 0;
 
 try {
     $con = new LocalConector();
@@ -65,40 +65,16 @@ try {
     
     // 2. Verificar permisos de acceso según planta
     // Solo usuarios con authorization_level >= 4 pueden ver órdenes de otras plantas
-    $currentUserAuthLevel = $_SESSION['user']['authorization_level'] ?? 0;
-    
     if ($currentUserAuthLevel < 4 && $currentUserPlant != $orderPlant) {
         echo json_encode([
             'success' => false,
             'error_type' => 'plant_restriction',
-            'message' => "You don't have permission to view orders from plant $orderPlant. You can only view orders from your plant ($currentUserPlant).",
-            'details' => [
-                'user_plant' => $currentUserPlant,
-                'order_plant' => $orderPlant,
-                'user_auth_level' => $currentUserAuthLevel,
-                'required_auth_level' => 4
-            ]
+            'message' => "You don't have permission to view orders from plant $orderPlant. You can only view orders from your plant ($currentUserPlant)."
         ]);
         exit;
     }
     
-    // 3. Verificar que el usuario actual sea el creador de la orden
-    if ($orderInfo['user_id'] != $currentUserId) {
-        echo json_encode([
-            'success' => true,
-            'showProgress' => false,
-            'error_type' => 'not_creator',
-            'message' => 'Progress line is only available for the order creator',
-            'details' => [
-                'creator_name' => $orderInfo['creator_name'],
-                'can_view_order' => true,
-                'can_view_progress' => false
-            ]
-        ]);
-        exit;
-    }
-    
-    // 4. Obtener estado actual de aprobación
+    // 3. Obtener estado actual de aprobación
     $approvalSql = "SELECT 
                         act_approv, 
                         user_id as last_approver_id,
@@ -113,15 +89,30 @@ try {
     
     $currentApprovalLevel = 0;
     $rejectionReason = null;
-    $lastApproverId = null;
     $isRejected = false;
     
     if ($approvalResult->num_rows > 0) {
         $approvalInfo = $approvalResult->fetch_assoc();
         $currentApprovalLevel = intval($approvalInfo['act_approv']);
         $rejectionReason = $approvalInfo['rejection_reason'];
-        $lastApproverId = $approvalInfo['last_approver_id'];
         $isRejected = ($currentApprovalLevel === 99);
+    }
+
+    // 4. NUEVO: Obtener el historial de aprobaciones con fechas
+    $historySql = "SELECT 
+                       approval_level, 
+                       timestamp, 
+                       action 
+                   FROM ApprovalHistory 
+                   WHERE premium_freight_id = ? 
+                   ORDER BY timestamp ASC";
+    $stmt = $conex->prepare($historySql);
+    $stmt->bind_param("i", $orderId);
+    $stmt->execute();
+    $historyResult = $stmt->get_result();
+    $historyMap = [];
+    while ($row = $historyResult->fetch_assoc()) {
+        $historyMap[$row['approval_level']] = $row;
     }
     
     // 5. Obtener lista de aprobadores necesarios
@@ -129,13 +120,7 @@ try {
     $approvers = [];
     
     for ($level = 1; $level <= $requiredLevel; $level++) {
-        // Buscar aprobadores para este nivel
-        $approverSql = "SELECT 
-                            id,
-                            name, 
-                            role,
-                            authorization_level,
-                            plant
+        $approverSql = "SELECT id, name, role, authorization_level, plant
                         FROM User 
                         WHERE authorization_level = ? 
                         AND (plant = ? OR plant IS NULL)
@@ -149,6 +134,8 @@ try {
         
         if ($approverResult->num_rows > 0) {
             $approver = $approverResult->fetch_assoc();
+            $historyEntry = $historyMap[$level] ?? null;
+
             $approvers[] = [
                 'level' => $level,
                 'id' => $approver['id'],
@@ -158,10 +145,10 @@ try {
                 'plant' => $approver['plant'],
                 'isCompleted' => !$isRejected && $currentApprovalLevel >= $level,
                 'isCurrent' => !$isRejected && $currentApprovalLevel + 1 === $level,
-                'isRejectedHere' => $isRejected && $approver['id'] == $lastApproverId
+                'isRejectedHere' => $isRejected && $historyEntry && $historyEntry['action'] === 'rejected',
+                'actionTimestamp' => $historyEntry['timestamp'] ?? null // <-- NUEVO CAMPO
             ];
         } else {
-            // No se encontró aprobador para este nivel
             error_log("No approver found for level $level and plant $orderPlant");
         }
     }
@@ -171,12 +158,7 @@ try {
         echo json_encode([
             'success' => false,
             'error_type' => 'incomplete_approver_chain',
-            'message' => 'Could not find all required approvers for this order. Please contact the system administrator.',
-            'details' => [
-                'required_levels' => $requiredLevel,
-                'found_approvers' => count($approvers),
-                'order_plant' => $orderPlant
-            ]
+            'message' => 'Could not find all required approvers for this order. Please contact the system administrator.'
         ]);
         exit;
     }
@@ -184,7 +166,6 @@ try {
     // 7. Calcular porcentaje de progreso
     $progressPercentage = 0;
     if ($isRejected) {
-        // Si está rechazada, encontrar en qué nivel se rechazó
         foreach ($approvers as $index => $approver) {
             if ($approver['isRejectedHere']) {
                 $progressPercentage = (($index + 1) / count($approvers)) * 100;
@@ -192,9 +173,8 @@ try {
             }
         }
     } else {
-        // Progreso normal
         if ($currentApprovalLevel >= $requiredLevel) {
-            $progressPercentage = 100; // Completamente aprobada
+            $progressPercentage = 100;
         } else {
             $progressPercentage = ($currentApprovalLevel / $requiredLevel) * 100;
         }
@@ -202,7 +182,7 @@ try {
     
     $response = [
         'success' => true,
-        'showProgress' => true,
+        'showProgress' => true, // Siempre se muestra
         'error_type' => null,
         'orderInfo' => [
             'creator_name' => $orderInfo['creator_name'],
@@ -229,10 +209,7 @@ try {
         'success' => false,
         'error_type' => 'server_error',
         'message' => 'Internal server error',
-        'details' => [
-            'error_message' => $e->getMessage(),
-            'order_id' => $orderId
-        ]
+        'details' => [ 'error_message' => $e->getMessage() ]
     ]);
 }
 ?>

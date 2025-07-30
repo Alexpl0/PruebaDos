@@ -16,8 +16,8 @@ if (typeof URLPF !== 'undefined') {
     PLANTS_URL = URLPF + 'dao/conections/daoPlants.php';
 } else {
     console.warn('URL global variable is not defined. Using fallback URL for Weekly KPIs.');
-    WEEKLY_KPIS_URL = 'https://grammermx.com/Jesus/PruebaDos/dao/conections/daoWeeklyKPIs.php';
-    PLANTS_URL = 'https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPlants.php';
+    WEEKLY_KPIS_URL = 'https://grammermx.com/Logistica/PremiumFreight/dao/conections/daoWeeklyKPIs.php';
+    PLANTS_URL = 'https://grammermx.com/Logistica/PremiumFreight/dao/conections/daoPlants.php';
 }
 
 // Almacenamiento de datos y gráficas

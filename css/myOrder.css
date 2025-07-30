@@ -22,11 +22,10 @@
 /* --- SECCIÓN DE PROGRESO --- */
 .progress-section {
     background-color: var(--white);
-    /* Aumentamos el padding inferior para dar más espacio */
     padding: 2rem 2rem 4rem 2rem;
     border-radius: var(--border-radius-lg);
-    /* box-shadow: var(--shadow-lg); */
     position: relative;
+    box-shadow: var(--shadow-md);
 }
 
 .progress-container {
@@ -51,23 +50,12 @@
 }
 
 /* --- ESTADOS DE LA BARRA DE PROGRESO --- */
-.progress-bar.in-progress {
-    background-color: var(--grammer-blue);
-}
-
-.progress-bar.completed {
-    background-color: var(--success);
-}
-
-.progress-bar.rejected {
-    background-color: var(--danger);
-}
+.progress-bar.in-progress { background-color: var(--grammer-blue); }
+.progress-bar.completed { background-color: var(--success); }
+.progress-bar.rejected { background-color: var(--danger); }
 
 /* --- CHECKPOINTS --- */
 .checkpoints-container {
-    /* ==== CORRECCIÓN 1: Se eliminaron las propiedades de Flexbox ==== */
-    /* 'display: flex' y 'justify-content: space-between' se eliminaron */
-    /* para permitir que el posicionamiento absoluto de cada checkpoint funcione. */
     position: absolute;
     width: 100%;
     top: 50%;
@@ -75,13 +63,11 @@
 }
 
 .checkpoint {
-    /* ==== CORRECCIÓN 2: Se cambió a posicionamiento absoluto y se centró ==== */
-    position: absolute; /* Clave para que la propiedad 'left' del JS funcione. */
+    position: absolute;
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 120px;
-    /* Esto centra el checkpoint en su punto de anclaje 'left'. */
     transform: translateX(-50%);
 }
 
@@ -98,23 +84,16 @@
     box-shadow: var(--shadow-md);
     transition: all 0.5s ease;
     z-index: 2;
-    position: relative; /* Necesario para el tooltip */
+    position: relative;
 }
 
 /* --- ESTADOS DE LOS CHECKPOINTS --- */
-.checkpoint-circle.pending {
-    background-color: var(--gray-300);
-}
-
+.checkpoint-circle.pending { background-color: var(--gray-300); }
 .checkpoint-circle.current {
     background-color: var(--grammer-blue);
     transform: scale(1.2);
 }
-
-.checkpoint-circle.completed {
-    background-color: var(--success);
-}
-
+.checkpoint-circle.completed { background-color: var(--success); }
 .checkpoint-circle.rejected-at {
     background-color: var(--danger);
     transform: scale(1.2);
@@ -126,8 +105,7 @@
     text-align: center;
     font-size: 0.8rem;
     color: var(--gray-600);
-    /* Eliminamos white-space: nowrap para permitir el ajuste de línea */
-    width: 100%; /* El contenedor de info ocupa todo el ancho del checkpoint */
+    width: 100%;
 }
 
 .checkpoint-name {
@@ -137,9 +115,17 @@
 .checkpoint-role {
     font-size: 0.7rem;
     color: var(--gray-500);
-    /* Permitimos que las palabras largas se rompan y pasen a la siguiente línea */
     word-wrap: break-word;
-    line-height: 1.2; /* Mejoramos el espaciado entre líneas */
+    line-height: 1.2;
+}
+
+/* --- NUEVO ESTILO PARA LA FECHA Y HORA --- */
+.checkpoint-time {
+    font-size: 0.7rem;
+    color: var(--gray-500);
+    margin-top: 4px;
+    font-style: italic;
+    white-space: nowrap; /* Evita que la fecha se parta en dos líneas */
 }
 
 /* --- INDICADOR (CAMIÓN) --- */
@@ -158,9 +144,7 @@
 .progress-truck.rejected { color: var(--danger); }
 
 /* --- VISUALIZACIÓN DE LA ORDEN --- */
-.order-visualization {
-    margin-top: 2rem;
-}
+.order-visualization { margin-top: 2rem; }
 .svg-frame {
     border: 1px solid var(--gray-200);
     border-radius: var(--border-radius-lg);
@@ -168,24 +152,17 @@
     min-height: 400px;
     background-color: var(--white);
     box-shadow: var(--shadow-md);
-    /* Añadimos Flexbox para centrar el contenido (el SVG) */
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-/* --- ESTILOS PARA SVG RESPONSIVO --- */
-/* Este nuevo bloque de código se dirige a cualquier SVG dentro del contenedor */
 .svg-frame svg {
     width: 100%;
-    /* Un ancho máximo para que no se vea gigante en pantallas grandes */
     max-width: 800px; 
-    /* La clave para mantener la relación de aspecto */
     height: auto;
-    /* Elimina espacio extra debajo del SVG */
     display: block; 
 }
-
 
 .spinner-container {
     display: flex;
@@ -198,16 +175,14 @@
 
 /* --- ESTILOS PARA PANTALLAS PEQUEÑAS --- */
 @media (max-width: 768px) {
-    /* 1. Ocultar la información de texto debajo de los checkpoints */
     .checkpoint-info {
         display: none;
     }
 
-    /* 2. Crear y mostrar el tooltip al pasar el cursor sobre el círculo */
     .checkpoint-circle::after {
-        content: attr(data-tooltip); /* Obtiene el texto del atributo data-tooltip */
+        content: attr(data-tooltip);
         position: absolute;
-        bottom: 125%; /* Posiciona el tooltip arriba del círculo */
+        bottom: 125%;
         left: 50%;
         transform: translateX(-50%);
         background-color: var(--gray-800);
@@ -215,16 +190,13 @@
         padding: 0.5rem 0.75rem;
         border-radius: var(--border-radius);
         font-size: 0.75rem;
-        white-space: nowrap; /* Evita que el texto del tooltip se divida en varias líneas */
+        white-space: nowrap;
         z-index: 10;
-        
-        /* Oculto por defecto */
         visibility: hidden;
         opacity: 0;
         transition: opacity 0.2s ease-in-out;
     }
 
-    /* 3. Mostrar el tooltip en el evento hover */
     .checkpoint-circle:hover::after {
         visibility: visible;
         opacity: 1;
