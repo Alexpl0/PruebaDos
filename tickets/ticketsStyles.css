@@ -150,6 +150,7 @@ body {
     cursor: pointer;
     transition: all var(--transition-normal);
     box-shadow: var(--shadow-md);
+    max-width: 200px;
 }
 
 .add-btn:hover {
@@ -172,6 +173,7 @@ body {
     cursor: pointer;
     transition: all var(--transition-normal);
     font-weight: 500;
+    max-width: fit-content;
 }
 
 .filter-btn.active,
