@@ -20,10 +20,10 @@ async function initializeViewOrder() {
         if (!orderData) return;
         currentOrder = orderData;
         
-        // Cargar detalles y línea de progreso en paralelo
+        // MODIFICADO: Cargar detalles y línea de progreso en paralelo para mejorar rendimiento
         await Promise.all([
             initializeOrderDisplay(),
-            // NUEVO: Llamar a la función para cargar la línea de progreso
+            // AÑADIDO: Llamada a la función para cargar la línea de progreso
             loadAndRenderProgress(currentOrder.id, window.PF_CONFIG.app.baseURL)
         ]).catch(error => {
             // Un error en la línea de progreso no debe detener la visualización de la orden
@@ -120,8 +120,7 @@ function configureActionButtons() {
     document.getElementById('recoveryFilesBtn')?.classList.toggle('hidden', !hasRecoveryFile);
 }
 
-// ... (El resto de las funciones como openRecoveryFilesModal, handleApprovalClick, etc. permanecen sin cambios)
-// --- [COPIAR EL RESTO DE FUNCIONES DE viewOrder.js AQUÍ] ---
+// --- El resto de las funciones (openRecoveryFilesModal, etc.) permanecen igual ---
 function openRecoveryFilesModal(order) {
     if (!order) return;
 
