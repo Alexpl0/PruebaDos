@@ -15,11 +15,17 @@ let isLoading = false;
 document.addEventListener('DOMContentLoaded', initializeViewOrder);
 
 async function initializeViewOrder() {
+    console.log('[viewOrder.js] Initializing page...'); // LOG 1: Verificamos que el script inicie
     try {
         const orderData = await loadOrderData();
-        if (!orderData) return;
+        if (!orderData) {
+            console.error('[viewOrder.js] No order data loaded. Stopping initialization.'); // LOG 2: Verificamos si la carga de datos falló
+            return;
+        }
         currentOrder = orderData;
         
+        console.log(`[viewOrder.js] Order #${currentOrder.id} loaded. Preparing to render details and progress line.`); // LOG 3: Confirmamos que tenemos la orden
+
         // MODIFICADO: Cargar detalles y línea de progreso en paralelo para mejorar rendimiento
         await Promise.all([
             initializeOrderDisplay(),
@@ -27,9 +33,10 @@ async function initializeViewOrder() {
             loadAndRenderProgress(currentOrder.id, window.PF_CONFIG.app.baseURL)
         ]).catch(error => {
             // Un error en la línea de progreso no debe detener la visualización de la orden
-            console.warn("Could not load progress line, but continuing with order view:", error.message);
+            console.error("[viewOrder.js] Error during Promise.all (likely from progress line):", error.message); // LOG 4: Capturamos error específico de la promesa
         });
 
+        console.log('[viewOrder.js] Configuring action buttons and event listeners.'); // LOG 5: Confirmamos que continuamos después de las promesas
         configureActionButtons();
         setupEventListeners();
     } catch (error) {
