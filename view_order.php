@@ -142,7 +142,11 @@ require_once 'dao/users/context_injector.php';
                         <i class="fa-solid fa-truck"></i>
                     </div>
                 </div>
+                <div id="checkpoints-container" class="checkpoints-container">
+                    <!-- Los checkpoints se llenarán con JS -->
+                </div>
             </div>
+            <div id="progress-error" class="alert alert-danger mt-3 d-none"></div>
         </section>
 
         <!-- ===== SVG CONTENT CONTAINER ===== -->
