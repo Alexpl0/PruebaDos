@@ -64,7 +64,6 @@ try {
     $orderPlant = $orderInfo['order_plant'];
     
     // 2. Verificar permisos de acceso según planta
-    // Solo usuarios con authorization_level >= 4 pueden ver órdenes de otras plantas
     if ($currentUserAuthLevel < 4 && $currentUserPlant != $orderPlant) {
         echo json_encode([
             'success' => false,
@@ -77,7 +76,6 @@ try {
     // 3. Obtener estado actual de aprobación
     $approvalSql = "SELECT 
                         act_approv, 
-                        user_id as last_approver_id,
                         rejection_reason
                     FROM PremiumFreightApprovals 
                     WHERE premium_freight_id = ?";
@@ -98,14 +96,15 @@ try {
         $isRejected = ($currentApprovalLevel === 99);
     }
 
-    // 4. NUEVO: Obtener el historial de aprobaciones con fechas
+    // 4. CORREGIDO: Obtener el historial de aprobaciones con fechas y nivel de usuario
     $historySql = "SELECT 
-                       approval_level, 
-                       timestamp, 
-                       action 
-                   FROM ApprovalHistory 
-                   WHERE premium_freight_id = ? 
-                   ORDER BY timestamp ASC";
+                       u.authorization_level as approval_level,
+                       ah.timestamp,
+                       ah.action
+                   FROM ApprovalHistory ah
+                   INNER JOIN User u ON ah.user_id = u.id
+                   WHERE ah.premium_freight_id = ? 
+                   ORDER BY ah.timestamp ASC";
     $stmt = $conex->prepare($historySql);
     $stmt->bind_param("i", $orderId);
     $stmt->execute();
@@ -146,7 +145,7 @@ try {
                 'isCompleted' => !$isRejected && $currentApprovalLevel >= $level,
                 'isCurrent' => !$isRejected && $currentApprovalLevel + 1 === $level,
                 'isRejectedHere' => $isRejected && $historyEntry && $historyEntry['action'] === 'rejected',
-                'actionTimestamp' => $historyEntry['timestamp'] ?? null // <-- NUEVO CAMPO
+                'actionTimestamp' => $historyEntry['timestamp'] ?? null
             ];
         } else {
             error_log("No approver found for level $level and plant $orderPlant");
@@ -168,6 +167,7 @@ try {
     if ($isRejected) {
         foreach ($approvers as $index => $approver) {
             if ($approver['isRejectedHere']) {
+                // El progreso se detiene en el punto de rechazo
                 $progressPercentage = (($index + 1) / count($approvers)) * 100;
                 break;
             }
@@ -182,7 +182,7 @@ try {
     
     $response = [
         'success' => true,
-        'showProgress' => true, // Siempre se muestra
+        'showProgress' => true,
         'error_type' => null,
         'orderInfo' => [
             'creator_name' => $orderInfo['creator_name'],
