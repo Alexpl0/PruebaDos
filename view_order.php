@@ -179,6 +179,7 @@ require_once 'dao/users/context_injector.php';
     <!-- Custom scripts -->
     <script src="js/uploadFiles.js"></script>
     <script type="module" src="js/viewOrder.js"></script>
+    <script type="module" src="js/progress-line.js"></script>
     
     <?php 
     // Carga condicional del JS del asistente.
