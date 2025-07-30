@@ -38,6 +38,8 @@ require_once 'dao/users/context_injector.php';
     <link rel="stylesheet" href="css/myOrder.css">
     <link rel="stylesheet" href="css/tour-styles.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
+    <!-- NUEVO: Hoja de estilos para la línea de progreso -->
+    <link rel="stylesheet" href="css/progress-line.css">
     
     <!-- ================== SISTEMA DE CONTEXTO CENTRALIZADO ================== -->
     <?php

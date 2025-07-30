@@ -6,6 +6,8 @@
 import { loadAndPopulateSVG, generatePDF as svgGeneratePDF } from './svgOrders.js';
 import { approveOrder, rejectOrder } from './approval.js';
 import { sendRecoveryNotification } from './mailer.js';
+// NUEVO: Importar la función para renderizar la línea de progreso
+import { loadAndRenderProgress } from './progress-line.js';
 
 let currentOrder = null;
 let isLoading = false;
@@ -18,7 +20,16 @@ async function initializeViewOrder() {
         if (!orderData) return;
         currentOrder = orderData;
         
-        await initializeOrderDisplay();
+        // Cargar detalles y línea de progreso en paralelo
+        await Promise.all([
+            initializeOrderDisplay(),
+            // NUEVO: Llamar a la función para cargar la línea de progreso
+            loadAndRenderProgress(currentOrder.id, window.PF_CONFIG.app.baseURL)
+        ]).catch(error => {
+            // Un error en la línea de progreso no debe detener la visualización de la orden
+            console.warn("Could not load progress line, but continuing with order view:", error.message);
+        });
+
         configureActionButtons();
         setupEventListeners();
     } catch (error) {
@@ -78,7 +89,6 @@ function setupEventListeners() {
     document.getElementById('approveBtn')?.addEventListener('click', handleApprovalClick);
     document.getElementById('rejectBtn')?.addEventListener('click', handleRejectionClick);
     
-    // New event listeners for the recovery modal
     document.getElementById('recoveryFilesBtn')?.addEventListener('click', () => openRecoveryFilesModal(currentOrder));
     document.getElementById('closeRecoveryModalBtn')?.addEventListener('click', closeRecoveryFilesModal);
 }
@@ -106,15 +116,12 @@ function configureActionButtons() {
     document.getElementById('approveBtn')?.classList.toggle('hidden', !canApprove);
     document.getElementById('rejectBtn')?.classList.toggle('hidden', !canApprove);
 
-    // Show recovery files button if a recovery file exists
     const hasRecoveryFile = currentOrder.recovery_file && currentOrder.recovery_file.trim() !== '';
     document.getElementById('recoveryFilesBtn')?.classList.toggle('hidden', !hasRecoveryFile);
 }
 
-/**
- * Opens and populates the recovery files modal.
- * @param {object} order - The current order data.
- */
+// ... (El resto de las funciones como openRecoveryFilesModal, handleApprovalClick, etc. permanecen sin cambios)
+// --- [COPIAR EL RESTO DE FUNCIONES DE viewOrder.js AQUÍ] ---
 function openRecoveryFilesModal(order) {
     if (!order) return;
 
@@ -123,14 +130,12 @@ function openRecoveryFilesModal(order) {
     const alertContainer = document.getElementById('recoveryModalAlertContainer');
     if (!modal || !modalBody || !alertContainer) return;
 
-    // Clear previous content
     modalBody.innerHTML = '';
     alertContainer.innerHTML = '';
 
     const hasRecoveryFile = order.recovery_file && order.recovery_file.trim() !== '';
     const hasEvidenceFile = order.recovery_evidence && order.recovery_evidence.trim() !== '';
 
-    // Create alert if evidence is missing
     if (hasRecoveryFile && !hasEvidenceFile) {
         const creatorName = order.creator_name || 'the creator';
         alertContainer.innerHTML = `
@@ -139,14 +144,12 @@ function openRecoveryFilesModal(order) {
                 <button class="btn-send-email">Send Request Email</button>
             </div>
         `;
-        // Add event listener for the button
         const sendEmailBtn = alertContainer.querySelector('.btn-send-email');
         if (sendEmailBtn) {
             sendEmailBtn.addEventListener('click', (e) => handleSendRecoveryEmail(e, order.id));
         }
     }
     
-    // Populate PDF viewers
     const files = [
         { title: 'Recovery File', path: order.recovery_file, present: hasRecoveryFile },
         { title: 'Recovery Evidence', path: order.recovery_evidence, present: hasEvidenceFile }
@@ -180,9 +183,6 @@ function openRecoveryFilesModal(order) {
     modal.style.display = 'flex';
 }
 
-/**
- * Closes the recovery files modal.
- */
 function closeRecoveryFilesModal() {
     const modal = document.getElementById('recoveryModal');
     if (modal) {
@@ -190,11 +190,6 @@ function closeRecoveryFilesModal() {
     }
 }
 
-/**
- * Handles the click event for sending a recovery email notification.
- * @param {Event} event - The click event.
- * @param {number} orderId - The ID of the order.
- */
 async function handleSendRecoveryEmail(event, orderId) {
     const button = event.target;
     if (button.disabled) return;
@@ -203,17 +198,14 @@ async function handleSendRecoveryEmail(event, orderId) {
     button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
 
     try {
-        // The Swal notifications are handled inside sendRecoveryNotification
         await sendRecoveryNotification(orderId);
     } catch (error) {
-        // Error is also handled by Swal inside the function
         console.error("Failed to send recovery email:", error);
     } finally {
         button.disabled = false;
         button.innerHTML = 'Send Request Email';
     }
 }
-
 
 async function handleApprovalClick(event) {
     event.preventDefault();
@@ -259,7 +251,14 @@ async function refreshPageData() {
         const orderData = await loadOrderData();
         if (!orderData) return;
         currentOrder = orderData;
-        await initializeOrderDisplay();
+        
+        await Promise.all([
+            initializeOrderDisplay(),
+            loadAndRenderProgress(currentOrder.id, window.PF_CONFIG.app.baseURL)
+        ]).catch(error => {
+            console.warn("Progress line refresh failed, but view updated:", error.message);
+        });
+
         configureActionButtons();
     } catch (error) {
         console.error("Failed to refresh order data:", error);

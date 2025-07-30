@@ -1,0 +1,168 @@
+/* * progress-line.css
+ * Hoja de estilos dedicada para el componente de línea de progreso.
+ * Puede ser incluida en cualquier página que necesite esta funcionalidad.
+*/
+
+/* --- SECCIÓN DE PROGRESO --- */
+.progress-section {
+    background-color: var(--white);
+    padding: 1rem 4rem 5rem 4rem;
+    border-radius: var(--border-radius-lg);
+    position: relative;
+    box-shadow: var(--shadow-md);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 0;
+}
+
+.progress-container {
+    position: relative;
+    padding: 2rem 0;
+}
+
+.progress-track {
+    position: relative;
+    width: 100%;
+    height: 8px;
+    background-color: var(--gray-200);
+    border-radius: 4px;
+    transform: translateY(15px);
+}
+
+.progress-bar {
+    position: absolute;
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.8s ease-in-out;
+}
+
+/* --- ESTADOS DE LA BARRA DE PROGRESO --- */
+.progress-bar.in-progress { background-color: var(--grammer-blue); }
+.progress-bar.completed { background-color: var(--success); }
+.progress-bar.rejected { background-color: var(--danger); }
+
+/* --- CHECKPOINTS --- */
+.checkpoints-container {
+    position: absolute;
+    width: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.checkpoint {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 120px;
+    transform: translateX(-50%);
+}
+
+.checkpoint-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: var(--white);
+    border: 3px solid var(--white);
+    box-shadow: var(--shadow-md);
+    transition: all 0.5s ease;
+    z-index: 2;
+    position: relative;
+}
+
+/* --- ESTADOS DE LOS CHECKPOINTS --- */
+.checkpoint-circle.pending { background-color: var(--gray-300); }
+.checkpoint-circle.current {
+    background-color: var(--grammer-blue);
+    transform: scale(1.2);
+}
+.checkpoint-circle.completed { background-color: var(--success); }
+.checkpoint-circle.rejected-at {
+    background-color: var(--danger);
+    transform: scale(1.2);
+}
+
+.checkpoint-info {
+    position: absolute;
+    top: 40px;
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--gray-600);
+    width: 100%;
+}
+
+.checkpoint-name {
+    font-weight: 600;
+}
+
+.checkpoint-role {
+    font-size: 0.7rem;
+    color: var(--gray-500);
+    word-wrap: break-word;
+    line-height: 1.2;
+}
+
+.checkpoint-time {
+    font-size: 0.7rem;
+    color: var(--gray-500);
+    margin-top: 4px;
+    font-style: italic;
+    white-space: nowrap;
+}
+
+/* --- INDICADOR (CAMIÓN) --- */
+.progress-truck {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -150%);
+    font-size: 2rem;
+    transition: left 0.8s ease-in-out;
+    z-index: 3;
+    cursor: pointer;
+}
+
+.progress-truck.in-progress { color: var(--grammer-blue); }
+.progress-truck.completed { color: var(--success); }
+.progress-truck.rejected { color: var(--danger); }
+
+/* --- MANEJO DE ERRORES --- */
+#progress-error.alert {
+    margin-top: 1rem;
+}
+
+/* --- RESPONSIVE DESIGN --- */
+@media (max-width: 768px) {
+    .progress-section {
+        padding: 1rem 1rem 4rem 1rem;
+    }
+
+    .checkpoint-info {
+        display: none;
+    }
+
+    .checkpoint-circle::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: var(--gray-800);
+        color: var(--white);
+        padding: 0.5rem 0.75rem;
+        border-radius: var(--border-radius);
+        font-size: 0.75rem;
+        white-space: nowrap;
+        z-index: 10;
+        visibility: hidden;
+        opacity: 0;
+        transition: opacity 0.2s ease-in-out;
+    }
+
+    .checkpoint-circle:hover::after {
+        visibility: visible;
+        opacity: 1;
+    }
+}
