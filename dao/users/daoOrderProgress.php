@@ -99,12 +99,12 @@ try {
     // 4. CORREGIDO: Obtener el historial de aprobaciones con fechas y nivel de usuario
     $historySql = "SELECT 
                        u.authorization_level as approval_level,
-                       ah.timestamp,
+                       ah.action_timestamp,
                        ah.action
                    FROM ApprovalHistory ah
                    INNER JOIN User u ON ah.user_id = u.id
                    WHERE ah.premium_freight_id = ? 
-                   ORDER BY ah.timestamp ASC";
+                   ORDER BY ah.action_timestamp ASC";
     $stmt = $conex->prepare($historySql);
     $stmt->bind_param("i", $orderId);
     $stmt->execute();
@@ -145,7 +145,7 @@ try {
                 'isCompleted' => !$isRejected && $currentApprovalLevel >= $level,
                 'isCurrent' => !$isRejected && $currentApprovalLevel + 1 === $level,
                 'isRejectedHere' => $isRejected && $historyEntry && $historyEntry['action'] === 'rejected',
-                'actionTimestamp' => $historyEntry['timestamp'] ?? null
+                'actionTimestamp' => $historyEntry['action_timestamp'] ?? null
             ];
         } else {
             error_log("No approver found for level $level and plant $orderPlant");
