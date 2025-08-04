@@ -1,84 +1,404 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Freight Weekly Report</title>
+    <title>Propuesta de Contratación - Ximena León Soto</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
-        .container { max-width: 700px; margin: 20px auto; background-color: #ffffff; border-collapse: collapse; border: 1px solid #ddd; }
-        .header { background-color: #034C8C; color: #ffffff; padding: 20px; text-align: center; }
-        .header h1 { margin: 0; font-size: 24px; }
-        .header p { margin: 5px 0 0; font-size: 14px; }
-        .content { padding: 25px; }
-        .section-title { font-size: 18px; color: #034C8C; border-bottom: 2px solid #eeeeee; padding-bottom: 5px; margin-bottom: 15px; }
-        .stats-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
-        .stats-table td { padding: 12px; border: 1px solid #dddddd; font-size: 14px; }
-        .stats-table .label { background-color: #f9f9f9; font-weight: bold; color: #333333; width: 60%; }
-        .stats-table .value { text-align: right; font-weight: bold; color: #034C8C; }
-        /* <<< NUEVOS ESTILOS PARA DETALLES >>> */
-        .value .detail { font-size: 12px; color: #555; font-weight: normal; display: block; margin-top: 4px; }
-        .footer { background-color: #f1f1f1; color: #666666; padding: 15px; text-align: center; font-size: 12px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header .subtitle {
+            font-size: 1.2em;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+
+        .candidate-info {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+
+        .candidate-name {
+            font-size: 2em;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .candidate-title {
+            font-size: 1.1em;
+            color: #3498db;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-left: 5px solid;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+        }
+
+        .card.strengths { border-left-color: #e74c3c; }
+        .card.experience { border-left-color: #3498db; }
+        .card.technical { border-left-color: #2ecc71; }
+        .card.leadership { border-left-color: #f39c12; }
+        .card.future { border-left-color: #9b59b6; }
+        .card.personal { border-left-color: #e67e22; }
+
+        .card h3 {
+            font-size: 1.4em;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card .icon {
+            font-size: 1.5em;
+        }
+
+        .card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .card li {
+            padding: 8px 0;
+            border-bottom: 1px solid #ecf0f1;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .card li:last-child {
+            border-bottom: none;
+        }
+
+        .checkmark {
+            color: #27ae60;
+            font-weight: bold;
+            margin-top: 2px;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #ff6b6b, #feca57);
+            color: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: center;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+
+        .highlight-box h2 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+
+        .highlight-box p {
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+
+        .cta-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin-top: 30px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+
+        .cta-section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .timeline {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+
+        .timeline h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-left: 3px solid #3498db;
+            padding-left: 20px;
+            margin-left: 10px;
+            position: relative;
+        }
+
+        .timeline-item:before {
+            content: '';
+            width: 12px;
+            height: 12px;
+            background: #3498db;
+            border-radius: 50%;
+            position: absolute;
+            left: -7px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <body>
-    <table class="container" cellpadding="0" cellspacing="0">
-        <tr>
-            <td class="header">
-                <h1>Weekly Performance Report</h1>
-                <p>Premium Freight System | ' . $weekRange . '</p>
-            </td>
-        </tr>
-        <tr>
-            <td class="content">
-                <h2 class="section-title">General Summary</h2>
-                <table class="stats-table" cellpadding="0" cellspacing="0">
-                    <tr>
-                        <td class="label">Total Approved Orders</td>
-                        <td class="value">' . $totalApproved . '</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Total Rejected Orders</td>
-                        <td class="value">' . $totalRejected . '</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Approval Rate</td>
-                        <td class="value">' . $approvalRate . '%</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Total Cost of Approved Shipments</td>
-                        <td class="value">€ ' . $totalCost . '</td>
-                    </tr>
-                </table>
+    <div class="container">
+        <div class="header">
+            <h1>🌟 PROPUESTA DE CONTRATACIÓN 🌟</h1>
+            <p class="subtitle">La candidata perfecta que estábamos esperando</p>
+        </div>
 
-                <!-- <<< SECCIÓN MODIFICADA >>> -->
-                <h2 class="section-title">Performance Highlights</h2>
-                <table class="stats-table" cellpadding="0" cellspacing="0">
-                    <tr>
-                        <td class="label">Top Requesting User</td>
-                        <td class="value">' . htmlspecialchars($topUser) . '<span class="detail">' . $topUserCount . ' requests | Total Cost: € ' . $topUserCost . '</span></td>
-                    </tr>
-                    <tr>
-                        <td class="label">Top Spending Area</td>
-                        <td class="value">' . htmlspecialchars($topArea) . '<span class="detail">Total Spent: € ' . $topAreaSpent . '</span></td>
-                    </tr>
-                    <tr>
-                        <td class="label">Longest Approval Step</td>
-                        <td class="value">' . htmlspecialchars($slowestApprover) . '<span class="detail">Time taken: ' . $slowestApproverTime . '</span></td>
-                    </tr>
-                     <tr>
-                        <td class="label">Average Approval Time (Creation to Finish)</td>
-                        <td class="value">' . $avgApprovalTime . '</td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-        <tr>
-            <td class="footer">
-                This is an automated report generated on ' . $reportDate . '.<br>
-                &copy; ' . date('Y') . ' GRAMMER AG - All rights reserved.
-            </td>
-        </tr>
-    </table>
+        <div class="candidate-info">
+            <h2 class="candidate-name">Ximena León Soto</h2>
+            <p class="candidate-title">Estudiante de Ingeniería en Redes y Telecomunicaciones | Futura Desarrolladora Estrella</p>
+        </div>
+
+        <div class="highlight-box pulse">
+            <h2>🎯 ¿Por qué Ximena es LA elección correcta?</h2>
+            <p>No solo estamos contratando a una estudiante, estamos invirtiendo en el futuro de nuestro equipo. Ximena combina talento técnico, pasión genuina por la tecnología y una actitud que transformará nuestra dinámica laboral.</p>
+        </div>
+
+        <div class="grid">
+            <div class="card strengths">
+                <h3><span class="icon">💪</span> Fortalezas Clave</h3>
+                <ul>
+                    <li><span class="checkmark">✓</span> <strong>Proactividad excepcional:</strong> Toma iniciativa sin necesidad de supervisión constante</li>
+                    <li><span class="checkmark">✓</span> <strong>Hambre de aprendizaje:</strong> Absorbe conocimiento como esponja, siempre buscando mejorar</li>
+                    <li><span class="checkmark">✓</span> <strong>Inteligencia sobresaliente:</strong> Capacidad de comprensión y aplicación rápida</li>
+                    <li><span class="checkmark">✓</span> <strong>Dedicación total:</strong> Dispuesta a llegar a las 6:30 AM si es necesario</li>
+                    <li><span class="checkmark">✓</span> <strong>Personalidad excepcional:</strong> Amable, entusiasta y positiva</li>
+                </ul>
+            </div>
+
+            <div class="card technical">
+                <h3><span class="icon">💻</span> Competencias Técnicas</h3>
+                <ul>
+                    <li><span class="checkmark">✓</span> <strong>Lenguajes:</strong> Java, Python, HTML, MySQL</li>
+                    <li><span class="checkmark">✓</span> <strong>Redes:</strong> TCP/IP, Modelo OSI</li>
+                    <li><span class="checkmark">✓</span> <strong>Sistemas:</strong> Windows, Linux</li>
+                    <li><span class="checkmark">✓</span> <strong>Idiomas:</strong> Español nativo, Inglés B2</li>
+                    <li><span class="checkmark">✓</span> <strong>Base sólida</strong> a pesar de cambio de carrera</li>
+                </ul>
+            </div>
+
+            <div class="card leadership">
+                <h3><span class="icon">👑</span> Liderazgo Comprobado</h3>
+                <ul>
+                    <li><span class="checkmark">✓</span> <strong>Proyecto Integrador:</strong> Lideró desarrollo de pulsera inteligente</li>
+                    <li><span class="checkmark">✓</span> <strong>Plataforma Web:</strong> Creó aplicación completa para alertas familiares</li>
+                    <li><span class="checkmark">✓</span> <strong>Certificación en Liderazgo:</strong> Santander Open Academy 2025</li>
+                    <li><span class="checkmark">✓</span> <strong>Gestión de proyectos:</strong> Desde conceptualización hasta implementación</li>
+                </ul>
+            </div>
+
+            <div class="card experience">
+                <h3><span class="icon">🏢</span> Experiencia Práctica</h3>
+                <ul>
+                    <li><span class="checkmark">✓</span> <strong>H&M:</strong> Atención al cliente, manejo POS, trabajo en equipo</li>
+                    <li><span class="checkmark">✓</span> <strong>Doña Galleta:</strong> Gestión de inventario, flujo de efectivo</li>
+                    <li><span class="checkmark">✓</span> <strong>Notre Dame:</strong> Programa Internacional de Tecnología</li>
+                    <li><span class="checkmark">✓</span> <strong>Ciberseguridad:</strong> Certificación en privacidad digital</li>
+                </ul>
+            </div>
+
+            <div class="card future">
+                <h3><span class="icon">🚀</span> Valor a Largo Plazo</h3>
+                <ul>
+                    <li><span class="checkmark">✓</span> <strong>Disponibilidad extendida:</strong> Hasta diciembre 2026</li>
+                    <li><span class="checkmark">✓</span> <strong>Inversión inteligente:</strong> Podemos moldearla a nuestras necesidades</li>
+                    <li><span class="checkmark">✓</span> <strong>Crecimiento conjunto:</strong> Se desarrollará con la empresa</li>
+                    <li><span class="checkmark">✓</span> <strong>ROI garantizado:</strong> Su evolución será exponencial</li>
+                </ul>
+            </div>
+
+            <div class="card personal">
+                <h3><span class="icon">🌱</span> Química de Equipo</h3>
+                <ul>
+                    <li><span class="checkmark">✓</span> <strong>Vegetariana:</strong> Conexión inmediata con el jefe</li>
+                    <li><span class="checkmark">✓</span> <strong>Valores compartidos:</strong> Ética profesional sólida</li>
+                    <li><span class="checkmark">✓</span> <strong>Energía positiva:</strong> Motivará a todo el equipo</li>
+                    <li><span class="checkmark">✓</span> <strong>Adaptabilidad:</strong> Se integra fácilmente a cualquier ambiente</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="timeline">
+            <h3>📅 Trayectoria de Excelencia</h3>
+            <div class="timeline-item">
+                <strong>2023:</strong> Cambio estratégico de Derecho a Ingeniería - Demuestra claridad de objetivos
+            </div>
+            <div class="timeline-item">
+                <strong>2024:</strong> Programa Internacional en Notre Dame - Expansión de horizontes
+            </div>
+            <div class="timeline-item">
+                <strong>2025:</strong> Múltiples certificaciones - Aprendizaje continuo activo
+            </div>
+            <div class="timeline-item">
+                <strong>Futuro:</strong> Lista para potenciar nuestro equipo - ¡El momento es AHORA!
+            </div>
+        </div>
+
+        <div class="highlight-box">
+            <h2>🎉 RAZONES ADICIONALES PARA ELEGIR A XIMENA</h2>
+            <p><strong>• Mentalidad de crecimiento:</strong> Su cambio de carrera demuestra valentía y determinación<br>
+            <strong>• Factor multiplicador:</strong> Su entusiasmo contagiará a todo el equipo<br>
+            <strong>• Versatilidad:</strong> Experiencia en retail + conocimientos técnicos = perspectiva única<br>
+            <strong>• Estabilidad:</strong> Buscamos alguien comprometido, ella puede quedarse años<br>
+            <strong>• Inversión vs Gasto:</strong> No es un costo, es una inversión en nuestro futuro<br>
+            <strong>• Timing perfecto:</strong> Está en el momento ideal para absorber nuestra cultura</p>
+        </div>
+
+        <div class="cta-section">
+            <h2>🔥 LA OPORTUNIDAD ES AHORA</h2>
+            <p>Los talentos como Ximena no aparecen todos los días. Su combinación de habilidades técnicas, actitud excepcional y potencial de crecimiento la convierte en la inversión más inteligente que podemos hacer.</p>
+            <p><strong>¿La pregunta no es por qué deberíamos contratarla... sino por qué NO lo haríamos?</strong></p>
+            <a href="#" class="cta-button" onclick="alert('¡Excelente decisión! Contactemos a Ximena: leonximena83@gmail.com')">
+                ✨ SÍ, CONTRATEMOS A XIMENA ✨
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Animación sutil para los cards
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-10px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Efecto de aparición gradual
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        });
+
+        document.querySelectorAll('.card, .timeline, .highlight-box').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
 </body>
 </html>

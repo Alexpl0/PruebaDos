@@ -78,15 +78,15 @@ class PFEmailServices {
             logAction("getOrderDetails - ID de orden inválido: " . var_export($orderId, true), 'GETORDERDETAILS');
             return null;
         }
-        
+
         $orderId = (int)$orderId;
-        
+
         // Verificar cache primero
         if (isset($this->orderCache[$orderId])) {
             logAction("getOrderDetails - Orden #{$orderId}: obtenida desde cache", 'GETORDERDETAILS');
             return $this->orderCache[$orderId];
         }
-        
+
         // Consulta optimizada con LEFT JOIN para manejar órdenes sin aprobaciones
         $sql = "SELECT 
                     PF.id, 
@@ -98,34 +98,37 @@ class PFEmailServices {
                     PF.planta, 
                     PF.status_id, 
                     PF.area,
+                    PF.recovery_file, 
+                    PF.recovery_evidence, 
                     COALESCE(PFA.act_approv, 0) as current_approval_level,
                     U.name as creator_name, 
+                    U.email as creator_email, -- Agregar esta columna
                     U.plant as order_plant
                 FROM PremiumFreight PF
                 LEFT JOIN PremiumFreightApprovals PFA ON PF.id = PFA.premium_freight_id
                 INNER JOIN User U ON PF.user_id = U.id
                 WHERE PF.id = ?
                 LIMIT 1";
-        
+
         $stmt = $this->db->prepare($sql);
         if (!$stmt) {
             logAction("getOrderDetails - Error preparando consulta: " . $this->db->error, 'GETORDERDETAILS');
             return null;
         }
-        
+
         $stmt->bind_param("i", $orderId);
         $stmt->execute();
         $result = $stmt->get_result();
-        
+
         $orderData = $result->num_rows > 0 ? $result->fetch_assoc() : null;
-        
+
         // Guardar en cache si se encontró
         if ($orderData) {
             $this->orderCache[$orderId] = $orderData;
         }
-        
+
         logAction("getOrderDetails - Orden #{$orderId}: " . ($orderData ? "encontrada" : "no encontrada"), 'GETORDERDETAILS');
-        
+
         return $orderData;
     }
     

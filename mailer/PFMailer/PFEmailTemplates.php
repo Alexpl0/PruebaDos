@@ -910,5 +910,61 @@ class PFEmailTemplates {
         $rows .= '</table>';
         return $rows;
     }
+
+    /**
+     * Template for recovery notification email
+     */
+    public function generateRecoveryNotification($order) {
+        $userName = htmlspecialchars($order['creator_name'] ?? 'User', ENT_QUOTES, 'UTF-8');
+        $orderDescription = htmlspecialchars($order['description'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
+        $costFormatted = number_format((float)($order['cost_euros'] ?? 0), 2);
+        $createdDate = date('M d, Y', strtotime($order['date']));
+        $viewUrl = $this->baseUrlPF . "view_order.php?order=" . $order['id'];
+        
+        return '<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Recovery Evidence Required - Order #' . $order['id'] . '</title>
+    <style type="text/css">
+        body { margin: 0; padding: 0; background-color: #f4f4f4; font-family: Georgia, serif; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+        .header { background-color: #dc2626; padding: 30px; text-align: center; color: white; }
+        .content { padding: 30px; }
+        .order-info { background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .button { display: inline-block; background-color: #034C8C; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Recovery Evidence Required</h1>
+            <h2>Order #' . $order['id'] . '</h2>
+        </div>
+        
+        <div class="content">
+            <p>Hello ' . $userName . ',</p>
+            
+            <p>Your Premium Freight order requires recovery evidence to be uploaded. Please provide the missing documentation to complete the process.</p>
+            
+            <div class="order-info">
+                <strong>Order Details:</strong><br>
+                <strong>ID:</strong> #' . $order['id'] . '<br>
+                <strong>Description:</strong> ' . $orderDescription . '<br>
+                <strong>Cost:</strong> €' . $costFormatted . '<br>
+                <strong>Date:</strong> ' . $createdDate . '<br>
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="' . $viewUrl . '" class="button">Upload Recovery Evidence</a>
+            </div>
+            
+            <p><strong>Action Required:</strong> Please upload the recovery evidence for this order to complete the process.</p>
+        </div>
+    </div>
+</body>
+</html>';
+    }
 }
 ?>

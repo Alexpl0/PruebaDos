@@ -2,21 +2,20 @@
 /**
  * PFMailer.php
  *
- * Clase principal para el envío de correos electrónicos.
- * Modificada para operar de forma segura en un entorno de producción o desarrollo.
+ * Main class for sending emails securely in production or development environments.
  */
 
 // =========================================================================
-// CONFIGURACIÓN PRINCIPAL - ¡EDITAR ESTA SECCIÓN!
+// MAIN CONFIGURATION - EDIT THIS SECTION!
 // =========================================================================
-// Cambia esta línea a 'production' para el entorno real.
-// 'development': Usa credenciales de prueba, redirige correos y activa logs.
-// 'production':  Usa credenciales reales y desactiva logs detallados.
+// Change this line to 'production' for the real environment.
+// 'development': Uses test credentials, redirects emails, and enables logs.
+// 'production':  Uses real credentials and disables detailed logs.
 define('APP_ENVIRONMENT', 'production');
 // =========================================================================
 
 
-// --- Carga de dependencias ---
+// --- Load dependencies ---
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -31,8 +30,7 @@ require_once __DIR__ . '/PFEmailTemplates.php';
 require_once __DIR__ . '/PFDB.php';
 require_once __DIR__ . '/PFWeeklyReporter.php'; // <-- LÍNEA CORREGIDA Y AÑADIDA
 
-
-// --- Definición de constantes basada en el entorno ---
+// --- Environment-based constants ---
 if (APP_ENVIRONMENT === 'development') {
     // -- MODO DESARROLLO --
     error_reporting(E_ALL);
@@ -47,7 +45,7 @@ if (APP_ENVIRONMENT === 'development') {
     define('SMTP_USER', 'jesuspruebas@grammermx.com');
     define('SMTP_PASS', 'PremiumFreight2025');
     define('SMTP_SECURE', 'ssl');
-    define('SMTP_FROM_NAME', 'Premium Freight (Pruebas)');
+    define('SMTP_FROM_NAME', 'Premium Freight (Test)');
 
     // URLs de PRUEBAS
     define('URLM', 'https://grammermx.com/Mailer/PFMailer/');
@@ -62,7 +60,7 @@ if (APP_ENVIRONMENT === 'development') {
     ini_set('display_errors', 0);
 
     define('TEST_MODE', false);
-    define('TEST_EMAIL', ''); // No se usa en producción
+    define('TEST_EMAIL', '');
 
     // ¡¡¡IMPORTANTE!!! Coloca aquí tus credenciales de PRODUCCIÓN
     define('SMTP_HOST', 'smtp.hostinger.com');
@@ -88,7 +86,6 @@ if (!function_exists('logAction')) {
         file_put_contents($logFile, $formattedMessage, FILE_APPEND);
     }
 }
-
 
 class PFMailer {
     private $mail;
@@ -132,9 +129,9 @@ class PFMailer {
         
         // Remitente y Copia Oculta (BCC)
         $this->mail->setFrom(SMTP_USER, SMTP_FROM_NAME);
-        $this->mail->addBCC(SMTP_USER, 'Copia de Seguridad');
+        $this->mail->addBCC(SMTP_USER, 'Backup Copy');
         
-        logAction("PFMailer inicializado en modo: " . APP_ENVIRONMENT, 'INIT');
+        logAction("PFMailer initialized in mode: " . APP_ENVIRONMENT, 'INIT');
     }
 
     /**
@@ -145,10 +142,10 @@ class PFMailer {
 
         if (TEST_MODE) {
             $this->mail->addAddress(TEST_EMAIL, 'Premium Freight Test');
-            logAction("Email redirigido: Original={$originalEmail} -> Test=" . TEST_EMAIL, 'TEST_MODE');
+            logAction("Email redirected: Original={$originalEmail} -> Test=" . TEST_EMAIL, 'TEST_MODE');
         } else {
             $this->mail->addAddress($originalEmail, $originalName);
-            logAction("Email enviado a: {$originalName} <{$originalEmail}>", 'MAIL_RECIPIENT');
+            logAction("Email sent to: {$originalName} <{$originalEmail}>", 'MAIL_RECIPIENT');
         }
     }
 
@@ -163,60 +160,99 @@ class PFMailer {
     }
 
     public function sendSingleRecoveryNotification($orderId) {
+        logAction("sendSingleRecoveryNotification started for orderId: {$orderId}", 'SEND_RECOVERY');
+
         try {
-            logAction("RECOVERY_SINGLE: Iniciando para orden #{$orderId}", 'RECOVERY_SINGLE');
-
+            // Usar los services en lugar de acceso directo a BD
+            logAction("Attempting to fetch order details for orderId: {$orderId}", 'SEND_RECOVERY');
             $order = $this->services->getOrderDetails($orderId);
+            
             if (!$order) {
-                return ['success' => false, 'message' => "Orden #{$orderId} no encontrada."];
+                logAction("Order not found for orderId: {$orderId}", 'SEND_RECOVERY_ERROR');
+                return [
+                    'success' => false,
+                    'message' => "Order #{$orderId} not found."
+                ];
             }
+            logAction("Order details retrieved successfully: " . json_encode($order), 'SEND_RECOVERY');
 
+            // Verificar si la orden tiene un RecoveryFile.
+            logAction("Checking if order #{$orderId} has a recovery file...", 'SEND_RECOVERY');
             if (empty($order['recovery_file'])) {
-                return ['success' => false, 'message' => "Orden #{$orderId} no requiere archivo de recuperación."];
+                logAction("Order #{$orderId} does not require a recovery file.", 'SEND_RECOVERY_INFO');
+                return [
+                    'success' => false,
+                    'message' => "Order #{$orderId} does not require a recovery file."
+                ];
             }
-            
+            logAction("Order #{$orderId} has a recovery file: {$order['recovery_file']}", 'SEND_RECOVERY');
+
+            // Verificar si la orden tiene RecoveryEvidence.
+            logAction("Checking if order #{$orderId} already has recovery evidence...", 'SEND_RECOVERY');
             if (!empty($order['recovery_evidence'])) {
-                return ['success' => false, 'message' => "Orden #{$orderId} ya tiene evidencia de recuperación."];
+                logAction("Order #{$orderId} already has recovery evidence registered.", 'SEND_RECOVERY_INFO');
+                return [
+                    'success' => false,
+                    'message' => "Order #{$orderId} already has recovery evidence registered."
+                ];
             }
+            logAction("Order #{$orderId} does not have recovery evidence yet.", 'SEND_RECOVERY');
 
-            $user = $this->services->getUser($order['user_id']);
-            if (!$user) {
-                return ['success' => false, 'message' => "Usuario creador de la orden no encontrado."];
+            // Si tiene RecoveryFile pero no RecoveryEvidence, proceder con el envío.
+            logAction("Generating email body for orderId: {$orderId}", 'SEND_RECOVERY');
+            $emailBody = $this->templates->generateRecoveryNotification($order);
+            logAction("Email body generated successfully for orderId: {$orderId}", 'SEND_RECOVERY');
+
+            // Limpiar direcciones antes de agregar nueva
+            $this->mail->clearAddresses();
+            
+            $recipientEmail = $order['creator_email'];
+            if (empty($recipientEmail)) {
+                logAction("No creator email found for orderId: {$orderId}", 'SEND_RECOVERY_ERROR');
+                return [
+                    'success' => false,
+                    'message' => "No email address found for order creator."
+                ];
             }
-
-            $emailBody = $this->templates->getRecoveryCheckTemplate($user, [$order]);
             
-            $this->setEmailRecipients($user['email'], $user['name']);
+            logAction("Setting recipient email: {$recipientEmail}", 'SEND_RECOVERY');
             
-            $this->mail->Subject = "Recordatorio: Evidencia de Recuperación Requerida para Orden #{$orderId}";
+            // Usar el método helper para manejar TEST_MODE
+            $this->setEmailRecipients($recipientEmail, $order['creator_name'] ?? 'User');
+            
+            $this->mail->Subject = "Recovery Evidence Required for Order #{$orderId}";
             $this->mail->Body = $emailBody;
-            
-            if ($this->mail->send()) {
-                $this->services->logNotification($orderId, $user['id'], 'recovery_reminder');
-                return ['success' => true, 'message' => "Email de recordatorio enviado a {$user['email']} para la orden #{$orderId}."];
-            } else {
-                return ['success' => false, 'message' => "El servidor de correo falló. Error: " . $this->mail->ErrorInfo];
-            }
 
+            logAction("Attempting to send email to {$recipientEmail} for orderId: {$orderId}", 'SEND_RECOVERY');
+            $this->mail->send();
+            logAction("Notification sent successfully for orderId: {$orderId}", 'SEND_RECOVERY_SUCCESS');
+
+            return [
+                'success' => true,
+                'message' => "Notification successfully sent for order #{$orderId}."
+            ];
         } catch (Exception $e) {
-            logAction("RECOVERY_SINGLE: Excepción: " . $e->getMessage(), 'RECOVERY_SINGLE_ERROR');
-            return ['success' => false, 'message' => 'Excepción del servidor: ' . $e->getMessage()];
+            logAction("Error sending notification for orderId: {$orderId} - " . $e->getMessage(), 'SEND_RECOVERY_ERROR');
+            return [
+                'success' => false,
+                'message' => "Error sending the notification: " . $e->getMessage()
+            ];
         }
     }
 
     public function sendApprovalNotification($orderId) {
         try {
-            logAction("Iniciando sendApprovalNotification para orden #{$orderId}", 'SENDAPPROVAL');
+            logAction("Starting sendApprovalNotification for order #{$orderId}", 'SENDAPPROVAL');
             
             $orderDetails = $this->services->getOrderDetails($orderId);
             if (!$orderDetails) {
-                logAction("ERROR: No se encontraron detalles para la orden #{$orderId}", 'SENDAPPROVAL');
+                logAction("ERROR: No details found for order #{$orderId}", 'SENDAPPROVAL');
                 return false;
             }
             
             $nextApprovers = $this->services->getNextApprovers($orderId);
             if (empty($nextApprovers)) {
-                logAction("No hay siguientes aprobadores para la orden #{$orderId}", 'SENDAPPROVAL');
+                logAction("No next approvers for order #{$orderId}", 'SENDAPPROVAL');
                 return false;
             }
             
@@ -228,24 +264,24 @@ class PFMailer {
                     
                     $this->setEmailRecipients($approver['email'], $approver['name']);
                     
-                    $this->mail->Subject = "Premium Freight - Aprobación Requerida #$orderId";
+                    $this->mail->Subject = "Premium Freight - Approval Required #$orderId";
                     $htmlContent = $this->templates->getApprovalEmailTemplate($orderDetails, $approvalToken, $rejectToken);
                     $this->mail->Body = $htmlContent;
                     
                     if ($this->mail->send()) {
                         $emailsSent++;
-                        logAction("Correo de aprobación enviado a {$approver['name']} ({$approver['email']})", 'SENDAPPROVAL');
+                        logAction("Approval email sent to {$approver['name']} ({$approver['email']})", 'SENDAPPROVAL');
                         $this->services->logNotification($orderId, $approver['id'], 'approval_request');
                     } else {
-                        logAction("Error enviando correo a {$approver['email']}: " . $this->mail->ErrorInfo, 'SENDAPPROVAL_ERROR');
+                        logAction("Error sending email to {$approver['email']}: " . $this->mail->ErrorInfo, 'SENDAPPROVAL_ERROR');
                     }
                 } catch (Exception $e) {
-                    logAction("Excepción enviando correo a {$approver['email']}: " . $e->getMessage(), 'SENDAPPROVAL_EXCEPTION');
+                    logAction("Exception sending email to {$approver['email']}: " . $e->getMessage(), 'SENDAPPROVAL_EXCEPTION');
                 }
             }
             return $emailsSent > 0;
         } catch (Exception $e) {
-            logAction("Error en sendApprovalNotification: " . $e->getMessage(), 'SENDAPPROVAL_FATAL');
+            logAction("Error in sendApprovalNotification: " . $e->getMessage(), 'SENDAPPROVAL_FATAL');
             return false;
         }
     }
@@ -262,14 +298,14 @@ class PFMailer {
                 try {
                     $approver = $this->services->getUser($approverId);
                     if (!$approver) {
-                        $result['errors'][] = "Usuario no encontrado para ID: $approverId";
+                        $result['errors'][] = "User not found for ID: $approverId";
                         continue;
                     }
                     
                     $emailBody = $this->templates->getWeeklySummaryTemplate($groupData['orders'], $approver, $groupData['bulk_tokens']['approve'], $groupData['bulk_tokens']['reject']);
                 
                     $this->setEmailRecipients($approver['email'], $approver['name']);
-                    $this->mail->Subject = "Resumen Semanal Premium Freight - " . count($groupData['orders']) . " Órdenes Pendientes";
+                    $this->mail->Subject = "Premium Freight Weekly Summary - " . count($groupData['orders']) . " Pending Orders";
                     $this->mail->Body = $emailBody;
                     
                     if ($this->mail->send()) {
@@ -278,15 +314,15 @@ class PFMailer {
                             $this->services->logNotification($order['id'], $approverId, 'weekly_summary');
                         }
                     } else {
-                        $result['errors'][] = "Fallo al enviar a {$approver['email']}: " . $this->mail->ErrorInfo;
+                        $result['errors'][] = "Failed to send to {$approver['email']}: " . $this->mail->ErrorInfo;
                     }
                     $result['totalSent']++;
                 } catch (Exception $e) {
-                    $result['errors'][] = "Error procesando aprobador $approverId: " . $e->getMessage();
+                    $result['errors'][] = "Error processing approver $approverId: " . $e->getMessage();
                 }
             }
         } catch (Exception $e) {
-            $result['errors'][] = "Error en sendWeeklySummaryEmails: " . $e->getMessage();
+            $result['errors'][] = "Error in sendWeeklySummaryEmails: " . $e->getMessage();
         }
         return $result;
     }
@@ -474,4 +510,26 @@ class PFMailer {
             return null;
         }
     }
+
+    /*
+    public function getOrderDetails($orderId) {
+        logAction("Fetching order details for orderId: {$orderId}", 'DB_QUERY');
+        try {
+            // Usar la clase PFDB en lugar de acceso directo
+            $pfdb = new PFDB();
+            $result = $pfdb->getOrderDetails($orderId);
+
+            if (!$result) {
+                logAction("No order found for orderId: {$orderId}", 'DB_QUERY_ERROR');
+            } else {
+                logAction("Order details fetched successfully for orderId: {$orderId}", 'DB_QUERY_SUCCESS');
+            }
+
+            return $result;
+        } catch (Exception $e) {
+            logAction("Exception fetching order details for orderId: {$orderId} - " . $e->getMessage(), 'DB_QUERY_EXCEPTION');
+            return null;
+        }
+    }
+    */
 }

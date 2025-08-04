@@ -134,6 +134,8 @@ async function sendRecoveryNotification(orderId) {
         // If the HTTP response was not successful (e.g. 404, 500), throw an error.
         // The error message will be the one defined in the backend.
         if (!response.ok) {
+            // Close the loading alert before showing error
+            Swal.close();
             throw new Error(result.message || `Server responded with status: ${response.status}`);
         }
 
@@ -148,6 +150,10 @@ async function sendRecoveryNotification(orderId) {
     } catch (error) {
         // This block catches both network errors (fetch failed) and errors thrown above.
         console.error('Error in sendRecoveryNotification:', error);
+        
+        // Close loading alert if it's still open
+        Swal.close();
+        
         Swal.fire({
             icon: 'error',
             title: 'Request Failed',
