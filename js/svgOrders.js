@@ -113,7 +113,7 @@ function wrapSVGText(containerOrElementId = "DescriptionAndRootCauseValue", elem
     const lineHeight = fontSize * 1.3;
     textElement.textContent = "";
     
-    const maxCharsPerLine = 100;
+    const maxCharsPerLine = 80;
     const words = text.split(/\s+/);
     let currentLine = "";
     let firstLine = true;

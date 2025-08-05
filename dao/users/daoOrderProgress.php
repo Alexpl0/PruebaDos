@@ -64,7 +64,7 @@ try {
     $orderPlant = $orderInfo['order_plant'];
     
     // 2. Verificar permisos de acceso según planta
-    if ($currentUserAuthLevel < 4 && $currentUserPlant != $orderPlant) {
+    if ($currentUserAuthLevel < 4 && $currentUserPlant !== null && $currentUserPlant != $orderPlant) {
         echo json_encode([
             'success' => false,
             'error_type' => 'plant_restriction',
@@ -145,7 +145,11 @@ try {
                 'isCompleted' => !$isRejected && $currentApprovalLevel >= $level,
                 'isCurrent' => !$isRejected && $currentApprovalLevel + 1 === $level,
                 'isRejectedHere' => $isRejected && $historyEntry && $historyEntry['action_type'] === 'rejected',
-                'actionTimestamp' => $historyEntry['action_timestamp'] ?? null
+                'actionTimestamp' => $historyEntry && $historyEntry['action_timestamp']
+    ? (new DateTime($historyEntry['action_timestamp'], new DateTimeZone('UTC')))
+        ->setTimezone(new DateTimeZone('America/Mexico_City'))
+        ->format('Y-m-d\TH:i:sP')
+    : null
             ];
         } else {
             error_log("No approver found for level $level and plant $orderPlant");
