@@ -1,6 +1,6 @@
 /**
- * Premium Freight - Main Orders Module (Refactored for Pagination)
- * Coordinates all order-related functionality, including pagination and search.
+ * Premium Freight - Main Orders Module (Refactored for Pagination, Search, and Filtering)
+ * Coordinates all order-related functionality, including pagination, search, and warning filters.
  */
 
 import { addNotificationStyles } from './utils.js';
@@ -35,6 +35,10 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('approveBtn')?.addEventListener('click', handleApprovalClick);
         document.getElementById('rejectBtn')?.addEventListener('click', handleRejectionClick);
         setupSearchListener(); // Set up the new search handler
+        
+        // --- NEW: Setup listeners for filter buttons ---
+        setupFilterButtons();
+
     } catch (error) {
         console.error('Error setting up event listeners:', error);
         Swal.fire({ icon: 'error', title: 'Initialization Error', text: 'There was a problem initializing the application.' });
@@ -53,7 +57,7 @@ function loadOrderData(page, search = '') {
     });
 
     const URLPF = window.PF_CONFIG.app.baseURL;
-    // --- IMPORTANTE: Apuntamos al nuevo endpoint paginado ---
+    // --- IMPORTANT: Point to the new paginated endpoint ---
     const fetchUrl = new URL(`${URLPF}dao/conections/daoOrdersByPage.php`);
     fetchUrl.searchParams.append('page', page);
     fetchUrl.searchParams.append('limit', ordersPerPage);
@@ -84,6 +88,48 @@ function loadOrderData(page, search = '') {
             Swal.fire({ icon: 'error', title: 'Data Loading Error', text: 'Could not load orders data.' });
             document.getElementById("card").innerHTML = '<p class="text-center text-danger">Failed to load orders.</p>';
             document.getElementById("pagination-container").innerHTML = '';
+        });
+}
+
+// ========================================================================
+// --- NEW FUNCTION: Load data from the warnings endpoint ---
+// ========================================================================
+/**
+ * Fetches only the orders that require attention (warnings) from the specialized endpoint.
+ */
+function loadWarningData() {
+    Swal.fire({
+        title: 'Loading Warnings...', text: 'Finding orders that need attention.', allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+    });
+
+    const URLPF = window.PF_CONFIG.app.baseURL;
+    // Point to the new warnings endpoint
+    const fetchUrl = new URL(`${URLPF}dao/conections/daoWarningCards.php`);
+
+    fetch(fetchUrl)
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+            return response.json();
+        })
+        .then(apiResponse => {
+            if (apiResponse.status !== 'success' || !apiResponse.data) {
+                throw new Error('Invalid API response format for warnings');
+            }
+            
+            const { data: orders } = apiResponse;
+            window.allOrders = orders; // Update the global variable
+            
+            // Update the title to reflect the filter view
+            updatePageTitle(window.PF_CONFIG.user.plant, orders.length, orders.length, true);
+            createCards(orders);
+            // Don't call setupPagination as this view is not paginated
+            Swal.close();
+        })
+        .catch(error => {
+            console.error('Error loading warning data:', error);
+            Swal.fire({ icon: 'error', title: 'Data Loading Error', text: 'Could not load warning orders data.' });
+            document.getElementById("card").innerHTML = '<p class="text-center text-danger">Failed to load warning orders.</p>';
         });
 }
 
@@ -120,12 +166,10 @@ function setupPagination({ total, page, totalPages }) {
     // "Previous" button
     paginationContainer.appendChild(createPageLink(page - 1, '<span aria-hidden="true">&laquo;</span>', page === 1));
 
-    // Page number logic
-    const pagesToShow = 5; // How many page numbers to show around the current page
+    const pagesToShow = 5;
     const startPage = Math.max(1, page - Math.floor(pagesToShow / 2));
     const endPage = Math.min(totalPages, startPage + pagesToShow - 1);
 
-    // Show first page and ellipsis if needed
     if (startPage > 1) {
         paginationContainer.appendChild(createPageLink(1, '1'));
         if (startPage > 2) {
@@ -133,12 +177,10 @@ function setupPagination({ total, page, totalPages }) {
         }
     }
 
-    // Show page numbers around the current page
     for (let i = startPage; i <= endPage; i++) {
         paginationContainer.appendChild(createPageLink(i, i, false, i === page));
     }
 
-    // Show last page and ellipsis if needed
     if (endPage < totalPages) {
         if (endPage < totalPages - 1) {
             paginationContainer.appendChild(createPageLink(0, '...', false, false, true));
@@ -149,11 +191,10 @@ function setupPagination({ total, page, totalPages }) {
     // "Next" button
     paginationContainer.appendChild(createPageLink(page + 1, '<span aria-hidden="true">&raquo;</span>', page === totalPages));
 
-    // Add event listeners to all clickable links
     paginationContainer.querySelectorAll('.page-link').forEach(link => {
         const parentLi = link.parentElement;
         if (parentLi.classList.contains('disabled') || parentLi.classList.contains('ellipsis')) {
-            return; // Skip disabled or ellipsis items
+            return;
         }
 
         link.addEventListener('click', (e) => {
@@ -176,7 +217,6 @@ function setupSearchListener() {
         searchInput.addEventListener('input', (e) => {
             clearTimeout(debounceTimer);
             const query = e.target.value.trim();
-            // Use a debounce to avoid making API calls on every keystroke
             debounceTimer = setTimeout(() => {
                 if (query !== currentSearchQuery) {
                     currentSearchQuery = query;
@@ -187,15 +227,62 @@ function setupSearchListener() {
     }
 }
 
+// ========================================================================
+// --- NEW FUNCTION: Set up the filter buttons ---
+// ========================================================================
+/**
+ * Sets up the event listeners for the "Show Warnings" and "Show All" filter buttons.
+ */
+function setupFilterButtons() {
+    const filterBtn = document.getElementById('filterWarningsBtn');
+    const clearBtn = document.getElementById('clearFilterBtn');
+    const searchContainer = document.querySelector('.search-container');
+    const paginationContainer = document.getElementById('pagination-container');
+
+    filterBtn.addEventListener('click', () => {
+        // Hide elements not needed for the warnings view
+        searchContainer.style.display = 'none';
+        paginationContainer.style.display = 'none';
+        filterBtn.style.display = 'none';
+        clearBtn.style.display = 'inline-block'; // Show the clear button
+
+        loadWarningData(); // Load the filtered data
+    });
+
+    clearBtn.addEventListener('click', () => {
+        // Show the main view elements again
+        searchContainer.style.display = 'block';
+        paginationContainer.style.display = 'flex'; // Use 'flex' for justify-content-center
+        clearBtn.style.display = 'none';
+        filterBtn.style.display = 'inline-block';
+
+        // Reload the original view, resetting to page 1 and no search
+        currentSearchQuery = '';
+        getSearchInput().value = ''; // Visually clear the search field
+        loadOrderData(1, currentSearchQuery);
+    });
+}
+
 /**
  * Updates the page subtitle with current filter and count info.
+ * @param {string} userPlant - The plant of the logged-in user.
+ * @param {number} displayedCount - Number of cards currently shown.
+ * @param {number} totalCount - Total number of orders in the current view.
+ * @param {boolean} [isWarningView=false] - Flag to indicate if we are in the warning view.
  */
-function updatePageTitle(userPlant, displayedCount, totalCount) {
+function updatePageTitle(userPlant, displayedCount, totalCount, isWarningView = false) {
     const title2Element = document.getElementById('title2');
     if (title2Element) {
         const plantInfo = userPlant ? `from Plant: ${userPlant}` : '(Global Access)';
-        const totalInfo = totalCount > 0 ? `(Showing ${displayedCount} of ${totalCount} orders)` : '(No orders found)';
-        title2Element.textContent = `Orders ${plantInfo} ${totalInfo}`;
+        let countInfo;
+
+        if (isWarningView) {
+            title2Element.innerHTML = `Orders Requiring Attention ${plantInfo} <span style="font-weight: bold; color: #DC3545;">(Total: ${totalCount})</span>`;
+        } else {
+            countInfo = totalCount > 0 ? `(Showing ${displayedCount} of ${totalCount} orders)` : '(No orders found)';
+            title2Element.textContent = `Orders ${plantInfo} ${countInfo}`;
+        }
+        
         title2Element.style.cssText = "font-size: 1.2em; color: #666; font-weight: normal;";
     }
 }

@@ -72,6 +72,15 @@ require_once 'dao/users/context_injector.php';
             <button type="button" class="btn btn-success" onclick="window.location.href='total-orders-history.php'">
                 <i class="fas fa-history"></i>  Total History
             </button>
+            
+            <!-- =========== NUEVOS BOTONES DE FILTRADO =========== -->
+            <button type="button" id="filterWarningsBtn" class="btn btn-danger" title="Show orders that require attention">
+                <i class="fas fa-exclamation-triangle"></i> Show Warnings
+            </button>
+            <button type="button" id="clearFilterBtn" class="btn btn-info" style="display:none;" title="Return to the main list of all orders">
+                <i class="fas fa-list-ul"></i> Show All Orders
+            </button>
+            <!-- ================================================ -->
         </div>
     </div>
 
@@ -139,8 +148,7 @@ require_once 'dao/users/context_injector.php';
     <script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script>
 
     <!-- Custom scripts -->
-        <script src="js/header.js" type="module"></script>
-
+    <script src="js/header.js" type="module"></script>
     <script src="js/uploadFiles.js"></script>
     <script src="js/dataTables.js" type="module"></script>
     <script src="js/orders.js" type="module"></script>
