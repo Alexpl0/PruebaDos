@@ -15,18 +15,18 @@ include_once('../db/PFDB.php');
 // Start session to access user data
 session_start();
 
-// Check if user is authenticated and has a plant assigned
-if (!isset($_SESSION['user']) || !isset($_SESSION['user']['plant'])) {
+// Check if user is authenticated
+if (!isset($_SESSION['user'])) {
     http_response_code(401); // Unauthorized
     echo json_encode([
         'status' => 'error',
-        'message' => 'User not authenticated or plant not defined in session.'
+        'message' => 'User not authenticated.'
     ]);
     exit;
 }
 
-// Get user's plant from session
-$userPlant = $_SESSION['user']['plant'];
+// Get user's plant from session (can be null or empty for regional users)
+$userPlant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
 
 try {
     // Establish database connection
@@ -35,20 +35,27 @@ try {
     $conex->set_charset("utf8mb4");
 
     $datos = [];
-    
-    // SQL query to select products filtered by the user's plant
-    // It selects the product ID and Name
-    $query = "SELECT id, productName FROM `Products` WHERE `Plant` = ?";
 
-    $stmt = $conex->prepare($query);
+    // ================== REGLA DE FILTRO POR PLANTA O REGIONAL ==================
+    if ($userPlant === null || $userPlant === '') {
+        // Usuario regional: puede ver todos los productos
+        $query = "SELECT id, productName FROM `Products`";
+        $stmt = $conex->prepare($query);
+    } else {
+        // Usuario con planta: solo ve productos de su planta
+        $query = "SELECT id, productName FROM `Products` WHERE `Plant` = ?";
+        $stmt = $conex->prepare($query);
+        if ($stmt) {
+            $stmt->bind_param("s", $userPlant);
+        }
+    }
+    // ===========================================================================
+
     if (!$stmt) {
         throw new Exception("Error preparing statement: " . $conex->error);
     }
 
-    // Bind the user's plant parameter
-    $stmt->bind_param("s", $userPlant);
-    
-    // Execute the query
+    // Ejecuta el query (solo si hay planta, ya se hizo bind_param arriba)
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -56,7 +63,7 @@ try {
     while ($row = $result->fetch_assoc()) {
         $datos[] = $row;
     }
-    
+
     $stmt->close();
     $conex->close();
 
