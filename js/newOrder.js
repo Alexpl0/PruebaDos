@@ -241,6 +241,8 @@ async function submitForm(event) {
             throw new Error("Order was created, but its ID is missing in the server response.");
         }
 
+        // await sendApprovalNotification(orderId); // <--- COMENTADO PARA PRUEBAS
+
         const recoveryFile = document.getElementById('recoveryFile');
         const needsFile = !document.getElementById('Recovery').options[document.getElementById('Recovery').selectedIndex].text.includes('NO RECOVERY');
         if (needsFile && recoveryFile?.files.length > 0) {

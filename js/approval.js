@@ -77,11 +77,11 @@ export async function approveOrder(orderId, options = {}) {
         if (newApprovalLevel >= maxRequiredLevel) {
             // Final approval: notify creator.
             console.log(`Final approval for order #${selectedOrder.id}. Notifying creator.`);
-            await sendStatusNotification(selectedOrder.id, 'approved');
+            // await sendStatusNotification(selectedOrder.id, 'approved'); // <--- COMENTADO PARA PRUEBAS
         } else {
             // Intermediate approval: notify next approver.
             console.log(`Intermediate approval for order #${selectedOrder.id}. Notifying next approver.`);
-            await sendApprovalNotification(selectedOrder.id);
+            // await sendApprovalNotification(selectedOrder.id); // <--- COMENTADO PARA PRUEBAS
         }
         // --- END EMAIL LOGIC ---
 
@@ -160,7 +160,7 @@ export async function rejectOrder(orderId, rejectionReason = null, options = {})
         // --- EMAIL LOGIC ---
         console.log(`Order #${selectedOrder.id} rejected. Notifying creator.`);
         const rejectorInfo = { name: user.name, reason: reason };
-        await sendStatusNotification(selectedOrder.id, 'rejected', rejectorInfo);
+        // await sendStatusNotification(selectedOrder.id, 'rejected', rejectorInfo); // <--- COMENTADO PARA PRUEBAS
         // --- END EMAIL LOGIC ---
 
         Swal.fire({ icon: 'success', title: 'Order Rejected', text: `Order #${selectedOrder.id} has been rejected. Notification sent.`, timer: 2500, timerProgressBar: true });
