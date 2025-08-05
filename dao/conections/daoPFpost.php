@@ -89,17 +89,32 @@ try {
     $referenceNumberId = intval($data['num_order_id']);
 
     // CORRECCIÓN: Se cambió el tipo de dato para 'quoted_cost' de 's' a 'd' (double).
+    // Conversiones de tipo para los campos numéricos
+    $products = intval($data['products']);
+    $carrier = intval($data['carrier']);
+    $originId = intval($data['origin_id']);
+    $destinyId = intval($data['destiny_id']);
+    $weight = intval($data['weight']);
+    $quotedCost = floatval($data['quoted_cost']);
+    $costEuros = floatval($data['cost_euros']);
+
+    error_log("Bind param values: userId=$userId, date=$date, planta={$data['planta']}, code_planta={$data['code_planta']}, transport={$data['transport']}, in_out_bound={$data['in_out_bound']}, costEuros=$costEuros, description={$data['description']}, area={$data['area']}, int_ext={$data['int_ext']}, paid_by={$data['paid_by']}, category_cause={$data['category_cause']}, project_status={$data['project_status']}, recovery={$data['recovery']}, weight=$weight, measures={$data['measures']}, products=$products, carrier=$carrier, quotedCost=$quotedCost, reference=$reference, referenceNumberId=$referenceNumberId, originId=$originId, destinyId=$destinyId, statusId=$statusId, requiredAuthLevel=$requiredAuthLevel, moneda={$data['moneda']}");
+
+    error_log("Bind param types: isssssdssssssssidisiisiiis");
+
     $stmt->bind_param(
         "isssssdssssssssidisiisiiis",
         $userId, $date, $data['planta'], $data['code_planta'], $data['transport'],
         $data['in_out_bound'], $costEuros, $data['description'], $data['area'],
         $data['int_ext'], $data['paid_by'], $data['category_cause'], $data['project_status'],
-        $data['recovery'], $weight, $data['measures'], $products, // <-- Aquí va el int
+        $data['recovery'], $weight, $data['measures'], $products,
         $carrier, $quotedCost, $reference, $referenceNumberId,
         $originId, $destinyId, $statusId, $requiredAuthLevel, $data['moneda']
     );
 
+    error_log("Executing statement...");
     if (!$stmt->execute()) {
+        error_log("Statement execution error: " . $stmt->error);
         $conex->rollback();
         throw new Exception("Error executing statement: " . $stmt->error);
     }

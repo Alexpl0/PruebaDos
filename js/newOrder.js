@@ -18,7 +18,7 @@ let range = 0;
 
 // Function to send form data to the server.
 function sendFormDataAsync(payload) {
-    console.log("Sending form data to server:", payload); // Log para depuración
+    console.log("Payload to be sent:", JSON.stringify(payload, null, 2)); // Log detallado
     return new Promise((resolve, reject) => {
         fetch(window.PF_CONFIG.app.baseURL + 'dao/conections/daoPFpost.php', {
             method: 'POST',
@@ -28,13 +28,23 @@ function sendFormDataAsync(payload) {
             body: JSON.stringify(payload)
         })
         .then(response => {
+            console.log("Server response status:", response.status, response.statusText);
             if (!response.ok) {
-                throw new Error('Network response was not ok: ' + response.statusText);
+                return response.text().then(text => {
+                    console.error("Raw error response:", text);
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                });
             }
             return response.json();
         })
-        .then(data => resolve(data))
-        .catch(error => reject(error));
+        .then(data => {
+            console.log("Server response data:", data);
+            resolve(data);
+        })
+        .catch(error => {
+            console.error("Error in sendFormDataAsync:", error);
+            reject(error);
+        });
     });
 }
 
