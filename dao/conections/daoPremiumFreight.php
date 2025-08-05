@@ -17,13 +17,12 @@ try {
     $con = new LocalConector();
     $conex = $con->conectar();
 
-    // ================== MODIFICADO: Consulta SQL actualizada con JOIN a NumOrders ==================
-    // Se reemplaza pf.* para listar explícitamente las columnas y evitar conflictos.
-    // Se añade un LEFT JOIN a NumOrders y se selecciona no.Number como 'reference_number'.
+    // ================== CONSULTA SQL ACTUALIZADA ==================
     $sql = "
         SELECT 
-            pf.*, -- Se seleccionan todas las columnas de PremiumFreight
-            no.Number AS reference_number, -- Se trae el número de la orden y se renombra
+            pf.*, -- Selecciona todas las columnas de la tabla PremiumFreight
+            p.productName AS products, -- Obtiene el nombre del producto y lo renombra a 'products'
+            no.Number AS reference_number, -- Obtiene el número de referencia y lo renombra
             u.name AS creator_name,
             u.email AS creator_email,
             u.role AS creator_role,
@@ -46,7 +45,8 @@ try {
             u_approver.email AS approver_email,
             u_approver.role AS approver_role
         FROM PremiumFreight pf
-        LEFT JOIN NumOrders no ON pf.reference_number = no.ID -- El JOIN se hace por el ID
+        LEFT JOIN Products p ON pf.products = p.id
+        LEFT JOIN NumOrders no ON pf.reference_number = no.ID
         LEFT JOIN Carriers c ON pf.carrier_id = c.id
         LEFT JOIN User u ON pf.user_id = u.id
         LEFT JOIN Location lo_from ON pf.origin_id = lo_from.id
@@ -57,7 +57,6 @@ try {
     ";
     // =========================================================================================
 
-    // El resto de la lógica para filtrar y ordenar permanece igual
     if ($userPlant !== null && $userPlant !== '') {
         $sql .= " WHERE u.plant = ?";
         $stmt = $conex->prepare($sql . " ORDER BY pf.id DESC");

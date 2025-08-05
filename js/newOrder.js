@@ -6,19 +6,19 @@
 
 // 1. Importar dependencias
 import { sendApprovalNotification } from './mailer.js';
-// Import all necessary functions from the new module
 import {
     initializeReferenceSelector,
     initializeFullReferenceSelector,
     initializeLimitedReferenceSelector
 } from './referenceSelect.js';
+// Importa la función para inicializar el selector de productos
+import { initializeProductSelector } from './productSelect.js';
 
-// Global variable for the required authorization level.
 let range = 0;
 
 // Function to send form data to the server.
 function sendFormDataAsync(payload) {
-    console.log("Sending form data to server: ", window.PF_CONFIG.app.baseURL + 'dao/conections/daoPFpost.php');
+    console.log("Sending form data to server:", payload); // Log para depuración
     return new Promise((resolve, reject) => {
         fetch(window.PF_CONFIG.app.baseURL + 'dao/conections/daoPFpost.php', {
             method: 'POST',
@@ -203,6 +203,8 @@ async function submitForm(event) {
         const quotedCost = parseFloat(formData['QuotedCost']);
         range = calculateAuthorizationRange(euros);
 
+        // ================== PAYLOAD MODIFICADO ==================
+        // 'products' ahora enviará el ID del producto seleccionado.
         const payload = {
             user_id: window.PF_CONFIG.user.id || 1,
             date: new Date().toISOString().slice(0, 19).replace('T', ' '),
@@ -220,7 +222,7 @@ async function submitForm(event) {
             recovery: formData['Recovery'],
             weight: formData['Weight'],
             measures: formData['Measures'],
-            products: formData['Products'],
+            products: formData['Products'], // <-- Este valor ahora es el ID del producto
             carrier: carrierId,
             quoted_cost: quotedCost,
             num_order_id: numOrderId,
@@ -230,7 +232,8 @@ async function submitForm(event) {
             required_auth_level: range,
             moneda: getSelectedCurrency()
         };
-        
+        // =========================================================
+
         const response = await sendFormDataAsync(payload);
         if (!response || !response.success) {
             throw new Error(response?.message || 'Failed to create order.');
@@ -277,12 +280,14 @@ async function submitForm(event) {
 document.addEventListener('DOMContentLoaded', function() {
     initializeCompanySelectors();
     initializeCarrierSelector();
-    // This initializes the Reference Selector to its default (full) state.
+    // ================== NUEVA LLAMADA A FUNCIÓN ==================
+    initializeProductSelector(); // Inicializa el nuevo selector de productos
+    // =============================================================
     initializeReferenceSelector();
     initializeCurrencySelectors();
 
     document.getElementById('enviar')?.addEventListener('click', submitForm);
-    
+
     // --- MODIFIED EVENT LISTENER SETUP FOR RECOVERY ---
     const recoverySelect = document.getElementById('Recovery');
     if (recoverySelect) {

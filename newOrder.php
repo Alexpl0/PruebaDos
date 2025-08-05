@@ -234,7 +234,6 @@ require_once 'dao/users/context_injector.php';
                     <label for="Products">Products:</label>
                     <select name="Products" id="Products" class="form-select" required>
                         <option></option>
-                        <?php foreach ($jsonProducts as $product): ?><option value="<?php echo htmlspecialchars($product['PRODUCT']); ?>"><?php echo htmlspecialchars($product['PRODUCT']); ?></option><?php endforeach; ?>
                     </select>
                 </div>
             </div>

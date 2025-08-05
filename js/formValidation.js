@@ -30,24 +30,37 @@ function collectFormData() {
         if (element) {
             let value;
 
-            if (element.tagName === 'SELECT' && textFields.includes(id)) {
-                if (typeof $ !== 'undefined' && $(element).hasClass('select2-hidden-accessible')) {
-                    const selectedData = $(element).select2('data');
-                    value = (selectedData && selectedData.length > 0 && selectedData[0].text) ? selectedData[0].text : '';
-                } else {
-                    const selectedOption = element.options[element.selectedIndex];
-                    value = selectedOption ? selectedOption.text : '';
+            // ================== LÓGICA MODIFICADA PARA OBTENER VALORES ==================
+            if (element.tagName === 'SELECT') {
+                // Para el selector de productos, siempre queremos el ID (value).
+                if (id === 'Products') {
+                    value = element.value;
+                } 
+                // Para otros selectores que necesitan el texto (como planta, area, etc.)
+                else if (textFields.includes(id)) {
+                    if (typeof $ !== 'undefined' && $(element).hasClass('select2-hidden-accessible')) {
+                        const selectedData = $(element).select2('data');
+                        value = (selectedData && selectedData.length > 0 && selectedData[0].text) ? selectedData[0].text : '';
+                    } else {
+                        const selectedOption = element.options[element.selectedIndex];
+                        value = selectedOption ? selectedOption.text : '';
+                    }
+                } 
+                // Para el resto de los selectores, obtenemos el valor (value).
+                else {
+                    value = element.value;
                 }
             } else {
+                // Para inputs y textareas
                 value = element.value;
             }
+            // ===========================================================================
 
             if (typeof value === 'string') {
                 value = value.trim();
             }
             formData[id] = value;
 
-            // The check for 'ReferenceOrder' is now done like any other field.
             if (!value || value === '') {
                 emptyFields.push(id);
             }
