@@ -92,11 +92,11 @@ try {
     $stmt->bind_param(
         "isssssdssssssssidisiisiiis",
         $userId, $date, $data['planta'], $data['code_planta'], $data['transport'],
-        $data['in_out_bound'], $data['cost_euros'], $data['description'], $data['area'],
+        $data['in_out_bound'], $costEuros, $data['description'], $data['area'],
         $data['int_ext'], $data['paid_by'], $data['category_cause'], $data['project_status'],
-        $data['recovery'], $data['weight'], $data['measures'], $data['products'],
-        $data['carrier'], $data['quoted_cost'], $reference, $referenceNumberId,
-        $data['origin_id'], $data['destiny_id'], $statusId, $requiredAuthLevel, $data['moneda']
+        $data['recovery'], $weight, $data['measures'], $products, // <-- Aquí va el int
+        $carrier, $quotedCost, $reference, $referenceNumberId,
+        $originId, $destinyId, $statusId, $requiredAuthLevel, $data['moneda']
     );
 
     if (!$stmt->execute()) {

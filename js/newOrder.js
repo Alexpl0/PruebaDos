@@ -222,7 +222,7 @@ async function submitForm(event) {
             recovery: formData['Recovery'],
             weight: formData['Weight'],
             measures: formData['Measures'],
-            products: formData['Products'], // <-- Este valor ahora es el ID del producto
+            products: parseInt(formData['Products'], 10), // <-- Asegura que sea int
             carrier: carrierId,
             quoted_cost: quotedCost,
             num_order_id: numOrderId,
