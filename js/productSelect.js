@@ -7,7 +7,7 @@
 /**
  * Initializes the product selector with Select2 and AJAX data loading.
  */
-function initializeProductSelector() {
+export function initializeProductSelector() {
     const productSelect = $('#Products');
 
     // Check if the element exists before initializing
