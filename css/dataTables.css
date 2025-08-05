@@ -439,7 +439,7 @@ table.dataTable tbody tr:hover {
     align-items: center;
     justify-content: center;
     margin: 0;
-    border-radius: 8px;
+    border-radius: 8px !important;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
 }
