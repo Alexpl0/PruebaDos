@@ -63,24 +63,23 @@ require_once 'dao/users/context_injector.php';
         
         <!-- Botones de Acciones e Histórico -->
         <div class="buttons-container">
-            <button type="button" class="btn btn-warning" onclick="window.location.href='weekOrders.php'">
-                <i class="fas fa-clock"></i> Pending Approval
-            </button>
-            <button type="button" class="btn btn-primary" onclick="window.location.href='weekly-orders-history.php'">
-                <i class="fas fa-calendar-week"></i>  Weekly History
-            </button>
-            <button type="button" class="btn btn-success" onclick="window.location.href='total-orders-history.php'">
-                <i class="fas fa-history"></i>  Total History
-            </button>
-            
-            <!-- =========== NUEVOS BOTONES DE FILTRADO =========== -->
-            <button type="button" id="filterWarningsBtn" class="btn btn-danger" title="Show orders that require attention">
-                <i class="fas fa-exclamation-triangle"></i> Show Warnings
-            </button>
-            <button type="button" id="clearFilterBtn" class="btn btn-info" style="display:none;" title="Return to the main list of all orders">
-                <i class="fas fa-list-ul"></i> Show All Orders
-            </button>
-            <!-- ================================================ -->
+            <div class="btn-group" role="group" aria-label="Action Buttons">
+                <button type="button" class="btn btn-warning" onclick="window.location.href='weekOrders.php'">
+                    <i class="fas fa-clock"></i> Pending Approval
+                </button>
+                <button type="button" class="btn btn-primary" onclick="window.location.href='weekly-orders-history.php'">
+                    <i class="fas fa-calendar-week"></i>  Weekly History
+                </button>
+                <button type="button" class="btn btn-success" onclick="window.location.href='total-orders-history.php'">
+                    <i class="fas fa-history"></i>  Total History
+                </button>
+                <button type="button" id="filterWarningsBtn" class="btn btn-danger" title="Show orders that require attention">
+                    <i class="fas fa-exclamation-triangle"></i> Show Warnings
+                </button>
+                <button type="button" id="clearFilterBtn" class="btn btn-info" style="display:none;" title="Return to the main list of all orders">
+                    <i class="fas fa-list-ul"></i> Show All Orders
+                </button>
+            </div>
         </div>
     </div>
 
