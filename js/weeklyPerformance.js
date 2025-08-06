@@ -676,7 +676,7 @@ function assignExportButtonListeners() {
         printReportBtn.removeEventListener('click', printReport);
         printReportBtn.addEventListener('click', printReport);
         printReportBtn.disabled = false;
-        printReportBtn.innerHTML = '<i class="fas fa-print me-1"></i>Print Dashboard';
+        printReportBtn.innerHTML = '<i class="fas fa-print me-1"></i>Print';
         printReportBtn.title = 'Print the current dashboard view';
     }
 }
