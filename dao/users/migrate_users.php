@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../db/cors_config.php';
-// migrate_users.php (Versión para Web)
+// migrate_users.php (Versión 2)
 // --- INSTRUCCIONES ---
 // 1. Sube este archivo a la misma carpeta donde está tu 'daoUserAdmin.php'.
 // 2. Sube el archivo 'migration_interface.html' a la misma carpeta.
@@ -52,11 +52,22 @@ try {
         throw new Exception("Error al preparar la sentencia de inserción: " . $conex->error);
     }
 
+    // Array para rastrear correos ya procesados en esta ejecución
+    $processedEmails = [];
+
     // 2. Iteramos sobre cada usuario para procesarlo e insertarlo
     while ($row = $result->fetch_assoc()) {
-        $email = $row['Correo'];
+        $email = trim($row['Correo']);
         $name = $row['Usuario'];
         $plainPassword = $row['PASSWORD']; // Usamos la columna PASSWORD
+
+        // --- NUEVA VALIDACIÓN: Revisar duplicados en el origen ---
+        if (isset($processedEmails[$email])) {
+            $logMessages[] = "[OMITIDO] El email '$email' está duplicado en los datos de origen. Se procesó solo la primera aparición.";
+            $response['skipped']++;
+            continue;
+        }
+        $processedEmails[$email] = true; // Marcar como procesado
 
         // Verificamos si el email ya existe en la nueva tabla
         $checkStmt = $conex->prepare("SELECT id FROM `User` WHERE email = ?");
@@ -65,7 +76,7 @@ try {
         $checkStmt->store_result();
 
         if ($checkStmt->num_rows > 0) {
-            $logMessages[] = "[OMITIDO] El usuario con email '$email' ya existe.";
+            $logMessages[] = "[OMITIDO] El usuario con email '$email' ya existe en la tabla 'User'.";
             $response['skipped']++;
             $checkStmt->close();
             continue;
@@ -75,10 +86,10 @@ try {
         // 3. Encriptamos la contraseña
         $encryptedPassword = PasswordManager::prepareForStorage($plainPassword);
 
-        // 4. Asignamos los valores fijos
+        // 4. Asignamos los valores fijos (con la planta actualizada)
         $role = 'Worker';
         $authorization_level = 0;
-        $plant = '3330';
+        $plant = '3310'; // --- CAMBIO: Planta actualizada a 3310 ---
         $verified = 1;
 
         // 5. Insertamos el nuevo registro

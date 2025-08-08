@@ -62,6 +62,9 @@ async function loginUsuario() {
     const email = emailInput.value.trim();
     const password = passwordInput.value;
 
+    // DEBUG: Mostrar lo que se va a enviar
+    console.log('Login attempt:', { email, passwordLength: password.length, password });
+
     if (!email || !password) {
         return Swal.fire('Warning', 'Please enter email and password.', 'warning');
     }
@@ -77,13 +80,19 @@ async function loginUsuario() {
     const URLPF = window.PF_CONFIG.app.baseURL;
 
     try {
+        const requestBody = { email, password, action: 'login' };
+        console.log('Request body:', requestBody);
+
         const response = await fetch(`${URLPF}dao/users/daoLogin.php`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password, action: 'login' })
+            body: JSON.stringify(requestBody)
         });
 
+        // DEBUG: Mostrar status y respuesta cruda
+        console.log('Response status:', response.status);
         const data = await response.json();
+        console.log('Response data:', data);
         
         if (!response.ok) {
             // NUEVO: Manejo específico para usuario no verificado
