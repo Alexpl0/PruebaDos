@@ -2,7 +2,6 @@
  * index.js (Completo y Refactorizado)
  * Handles login and verification resend functionality.
  */
-console.log('index.js loaded - version 2025-07-21');
 
 document.addEventListener('DOMContentLoaded', function() {
     // ... (el resto del DOMContentLoaded se mantiene igual)
@@ -78,11 +77,11 @@ async function loginUsuario() {
     const password = passwordInput.value;
 
     // DEBUG extra: Mostrar la contraseña encriptada como la espera el backend
-    const encryptedPassword = encryptPassword(password);
-    console.log('Encrypted password (backend style):', encryptedPassword);
+    // const encryptedPassword = encryptPassword(password);
+    // console.log('Encrypted password (backend style):', encryptedPassword);
 
     // DEBUG: Mostrar lo que se va a enviar
-    console.log('Login attempt:', { email, passwordLength: password.length, password });
+    // console.log('Login attempt:', { email, passwordLength: password.length, password });
 
     if (!email || !password) {
         return Swal.fire('Warning', 'Please enter email and password.', 'warning');
@@ -100,7 +99,7 @@ async function loginUsuario() {
 
     try {
         const requestBody = { email, password, action: 'login' };
-        console.log('Request body:', requestBody);
+        // console.log('Request body:', requestBody);
 
         const response = await fetch(`${URLPF}dao/users/daoLogin.php`, {
             method: 'POST',
@@ -109,9 +108,9 @@ async function loginUsuario() {
         });
 
         // DEBUG: Mostrar status y respuesta cruda
-        console.log('Response status:', response.status);
+        // console.log('Response status:', response.status);
         const data = await response.json();
-        console.log('Response data:', data);
+        // console.log('Response data:', data);
         
         if (!response.ok) {
             // NUEVO: Manejo específico para usuario no verificado
@@ -173,7 +172,7 @@ async function handleUserSession() {
         window.location.href = 'newOrder.php';
     } else {
         // La sesión no es válida, permanecer en la página de login
-        console.log('Invalid session or not logged in.');
+        // console.log('Invalid session or not logged in.');
     }
 }
 
