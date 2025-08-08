@@ -41,7 +41,6 @@ if ($method === 'GET' && $authLevel < 1) {
 
 // --- FIN DEL BLOQUE DE SEGURIDAD ---
 
-
 try {
     $con = new LocalConector();
     $conex = $con->conectar();
@@ -89,6 +88,7 @@ try {
             exit;
         }
         
+        // Verificar si el email ya existe
         $stmt = $conex->prepare("SELECT id FROM `User` WHERE email = ?");
         $stmt->bind_param("s", $input['email']);
         $stmt->execute();
@@ -101,7 +101,8 @@ try {
         }
         $stmt->close();
         
-        $encryptedPassword = PasswordManager::prepareForStorage($input['password']);
+        // FLUJO SIMPLIFICADO: Encriptar la contraseña directamente
+        $encryptedPassword = PasswordManager::encrypt($input['password']);
         
         $stmt = $conex->prepare("INSERT INTO `User` (name, email, plant, role, password, authorization_level) VALUES (?, ?, ?, ?, ?, ?)");
         $stmt->bind_param("sssssi", $input['name'], $input['email'], $input['plant'], $input['role'], $encryptedPassword, $input['authorization_level']);
@@ -144,6 +145,14 @@ try {
         if (isset($input['plant'])) { $updateFields[] = "plant = ?"; $params[] = $input['plant']; $types .= "s"; }
         if (isset($input['role'])) { $updateFields[] = "role = ?"; $params[] = $input['role']; $types .= "s"; }
         if (isset($input['authorization_level'])) { $updateFields[] = "authorization_level = ?"; $params[] = $input['authorization_level']; $types .= "i"; }
+        
+        // Si se proporciona una nueva contraseña, encriptarla y actualizarla
+        if (isset($input['password']) && !empty(trim($input['password']))) {
+            $encryptedPassword = PasswordManager::encrypt($input['password']);
+            $updateFields[] = "password = ?";
+            $params[] = $encryptedPassword;
+            $types .= "s";
+        }
         
         if (empty($updateFields)) {
             http_response_code(400);
@@ -198,6 +207,7 @@ try {
     }
     
 } catch (Exception $e) {
+    error_log("UserAdmin error: " . $e->getMessage());
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()]);
 }

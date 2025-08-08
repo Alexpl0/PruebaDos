@@ -81,5 +81,15 @@ class PasswordManager {
         
         return $result;
     }
+    
+    /**
+     * Preparar contraseña para almacenamiento en BD
+     * (Función simplificada para mantener compatibilidad)
+     * @param string $password Contraseña en texto plano
+     * @return string Contraseña encriptada
+     */
+    public static function prepareForStorage($password) {
+        return self::encrypt($password);
+    }
 }
 ?>
