@@ -52,7 +52,7 @@ try {
         $userPlant = $_SESSION['user']['plant']; 
 
         // El súper usuario (asumiendo que no tiene planta) verá a todos los usuarios.
-        if (empty($userPlant) || $userId == 36 || $userId === 32) {
+        if (empty($userPlant) || $userId == 36 ) {
             $stmt = $conex->prepare("SELECT id, name, email, plant, role, authorization_level FROM `User` ORDER BY id DESC");
         } else {
             $stmt = $conex->prepare("SELECT id, name, email, plant, role, authorization_level FROM `User` WHERE plant = ? ORDER BY id DESC");

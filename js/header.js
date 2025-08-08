@@ -110,7 +110,7 @@ function createHeader(isPublicPage = false) {
     let navItems = '';
     
     // User-level based navigation logic with updated Charts dropdown
-    if (userId === 36 || userId === 32) { // Super User
+    if (userId === 36 ) { // Super User
         navItems += navLink('profile.php', 'My Profile', 'fas fa-user-shield');
         navItems += navLink('newOrder.php', 'New Order', 'fas fa-plus-circle');
         navItems += navLink('orders.php', 'Generated Orders', 'fas fa-list-alt');

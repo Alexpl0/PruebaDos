@@ -54,7 +54,7 @@ if (!isset($_SESSION['user']) ||
 
     // --- NUEVA REGLA DE SÚPER USUARIO ---
     // Solo el usuario con ID 36 puede acceder a la página de administración de usuarios.
-    if ($base_name === 'adminUsers.php' && $user_id != 36 || $user_id === 32) {
+    if ($base_name === 'adminUsers.php' && $user_id != 36 || $user_id === null) {
         header('Location: newOrder.php');
         exit;
     }
