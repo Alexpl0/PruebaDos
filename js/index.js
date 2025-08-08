@@ -54,6 +54,21 @@ async function resendVerificationEmail(email) {
     }
 }
 
+/**
+ * Simula el método de encriptación del backend (PasswordManager::encrypt)
+ * @param {string} text
+ * @param {number} shift
+ * @returns {string}
+ */
+function encryptPassword(text, shift = 3) {
+    if (!text) return '';
+    let shifted = '';
+    for (let i = 0; i < text.length; i++) {
+        shifted += String.fromCharCode(text.charCodeAt(i) + shift);
+    }
+    return btoa(shifted);
+}
+
 async function loginUsuario() {
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
@@ -61,6 +76,10 @@ async function loginUsuario() {
 
     const email = emailInput.value.trim();
     const password = passwordInput.value;
+
+    // DEBUG extra: Mostrar la contraseña encriptada como la espera el backend
+    const encryptedPassword = encryptPassword(password);
+    console.log('Encrypted password (backend style):', encryptedPassword);
 
     // DEBUG: Mostrar lo que se va a enviar
     console.log('Login attempt:', { email, passwordLength: password.length, password });
