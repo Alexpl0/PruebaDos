@@ -1,13 +1,15 @@
 /**
- * index.js (Completo y Refactorizado)
+ * index.js (VERSIÓN CORREGIDA)
  * Handles login and verification resend functionality.
+ * CAMBIO PRINCIPAL: Las contraseñas se envían en texto plano al backend
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // ... (el resto del DOMContentLoaded se mantiene igual)
     const btnLogin = document.getElementById('btnLogin');
     if (btnLogin) btnLogin.disabled = true;
 
+    // Ya no necesitamos PasswordManager en el frontend para login
+    // Solo para otras funciones si las tienes
     if (typeof PasswordManager === 'undefined') {
         const script = document.createElement('script');
         script.src = 'js/PasswordManager.js';
@@ -32,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
- * NEW: Handles the logic to resend a verification email.
+ * Handles the logic to resend a verification email.
  * @param {string} email - The user's email address.
  */
 async function resendVerificationEmail(email) {
@@ -47,42 +49,25 @@ async function resendVerificationEmail(email) {
         if (!response.ok || !data.success) {
             throw new Error(data.message || 'Failed to resend email.');
         }
-        return data; // Resolve the preConfirm promise in Swal
+        return data;
     } catch (error) {
         Swal.showValidationMessage(`Request failed: ${error.message}`);
     }
 }
 
 /**
- * Simula el método de encriptación del backend (PasswordManager::encrypt)
- * @param {string} text
- * @param {number} shift
- * @returns {string}
+ * FUNCIÓN DE LOGIN CORREGIDA
+ * Ahora envía la contraseña en texto plano siempre
  */
-function encryptPassword(text, shift = 3) {
-    if (!text) return '';
-    let shifted = '';
-    for (let i = 0; i < text.length; i++) {
-        shifted += String.fromCharCode(text.charCodeAt(i) + shift);
-    }
-    return btoa(shifted);
-}
-
 async function loginUsuario() {
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const btnLogin = document.getElementById('btnLogin');
 
     const email = emailInput.value.trim();
-    const password = passwordInput.value;
+    const password = passwordInput.value; // TEXTO PLANO - sin encriptar
 
-    // DEBUG extra: Mostrar la contraseña encriptada como la espera el backend
-    // const encryptedPassword = encryptPassword(password);
-    // console.log('Encrypted password (backend style):', encryptedPassword);
-
-    // DEBUG: Mostrar lo que se va a enviar
-    // console.log('Login attempt:', { email, passwordLength: password.length, password });
-
+    // Validaciones básicas
     if (!email || !password) {
         return Swal.fire('Warning', 'Please enter email and password.', 'warning');
     }
@@ -98,22 +83,36 @@ async function loginUsuario() {
     const URLPF = window.PF_CONFIG.app.baseURL;
 
     try {
-        const requestBody = { email, password, action: 'login' };
-        // console.log('Request body:', requestBody);
+        // CAMBIO CRÍTICO: Enviar contraseña en texto plano
+        const requestBody = { 
+            email, 
+            password, // Sin encriptar - el backend se encarga
+            action: 'login' 
+        };
 
-        const response = await fetch(`${URLPF}dao/users/daoLogin.php`, {
+        // Para debugging (remover en producción)
+        console.log('Sending login request:', {
+            email,
+            passwordLength: password.length,
+            // No logear la contraseña real por seguridad
+            passwordSample: password.substring(0, 3) + '...'
+        });
+
+        const response = await fetch(`${URLPF}dao/users/daoLogin.php?debug=true`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(requestBody)
         });
 
-        // DEBUG: Mostrar status y respuesta cruda
-        // console.log('Response status:', response.status);
         const data = await response.json();
-        // console.log('Response data:', data);
+        
+        // Para debugging (remover en producción)
+        if (data.debug) {
+            console.log('Server debug info:', data.debug);
+        }
         
         if (!response.ok) {
-            // NUEVO: Manejo específico para usuario no verificado
+            // Manejo específico para usuario no verificado
             if (response.status === 403) {
                 Swal.fire({
                     title: 'Account Not Verified',
@@ -139,15 +138,23 @@ async function loginUsuario() {
             }
         } else if (data.success && data.user) {
             await Swal.fire({
-                icon: 'success', title: 'Login Successful!', text: `Welcome back, ${data.user.name}!`,
-                timer: 1500, showConfirmButton: false
+                icon: 'success', 
+                title: 'Login Successful!', 
+                text: `Welcome back, ${data.user.name}!`,
+                timer: 1500, 
+                showConfirmButton: false
             });
             window.location.href = 'newOrder.php';
         } else {
             throw new Error(data.message || 'Invalid credentials');
         }
     } catch (error) {
-        Swal.fire({ icon: 'error', title: 'Login Failed', text: error.message });
+        console.error('Login error:', error);
+        Swal.fire({ 
+            icon: 'error', 
+            title: 'Login Failed', 
+            text: error.message 
+        });
     } finally {
         btnLogin.classList.remove('loading');
         btnLogin.disabled = false;
@@ -157,22 +164,51 @@ async function loginUsuario() {
 // Hacer la función global para el `onclick` del HTML
 window.loginUsuario = loginUsuario;
 
-// Nueva función para manejar la sesión del usuario
-async function handleUserSession() {
-    const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/users/loginSession.php', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ /* tus datos */ })
-    });
-
-    const data = await response.json();
-    if (response.ok && data.success) {
-        // La sesión es válida, redirigir o mostrar información del usuario
-        window.location.href = 'newOrder.php';
+/**
+ * FUNCIÓN AUXILIAR PARA DEBUGGING
+ * Permite probar diferentes contraseñas y ver qué pasa
+ */
+function testPasswordEncryption(password) {
+    if (typeof PasswordManager !== 'undefined') {
+        const encrypted = PasswordManager.encrypt(password);
+        console.log('Testing password:', {
+            original: password,
+            originalLength: password.length,
+            encrypted: encrypted,
+            encryptedLength: encrypted.length,
+            decrypted: PasswordManager.decrypt(encrypted)
+        });
+        return encrypted;
     } else {
-        // La sesión no es válida, permanecer en la página de login
-        // console.log('Invalid session or not logged in.');
+        console.log('PasswordManager not available');
+        return null;
+    }
+}
+
+// Hacer disponible para debugging
+window.testPasswordEncryption = testPasswordEncryption;
+
+/**
+ * Nueva función para manejar la sesión del usuario
+ */
+async function handleUserSession() {
+    try {
+        const response = await fetch('https://grammermx.com/Jesus/PruebaDos/dao/users/loginSession.php', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+        });
+
+        const data = await response.json();
+        if (response.ok && data.success) {
+            // La sesión es válida, redirigir
+            window.location.href = 'newOrder.php';
+        }
+        // Si no hay sesión válida, permanecer en login
+    } catch (error) {
+        console.log('Session check failed:', error.message);
+        // Continuar en la página de login
     }
 }
 

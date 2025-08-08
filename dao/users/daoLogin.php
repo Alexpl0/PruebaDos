@@ -15,7 +15,7 @@ header('Content-Type: application/json');
 try {
     $input = json_decode(file_get_contents('php://input'), true);
     $email = $input['email'] ?? '';
-    $action = $input['action'] ?? 'login'; // Acción por defecto es 'login'
+    $action = $input['action'] ?? 'login';
 
     $con = new LocalConector();
     $conex = $con->conectar();
@@ -36,14 +36,12 @@ try {
         if ($user = $result->fetch_assoc()) {
             $userId = $user['id'];
 
-            // Generar un nuevo token de verificación para invalidar los anteriores
             $verificationToken = bin2hex(random_bytes(32));
             $insertTokenSql = "INSERT INTO EmailVerificationTokens (user_id, token, created_at) VALUES (?, ?, NOW())";
             $stmtToken = $conex->prepare($insertTokenSql);
             $stmtToken->bind_param("is", $userId, $verificationToken);
             $stmtToken->execute();
 
-            // Llamar al endpoint del mailer para enviar el correo
             $endpoint = 'https://grammermx.com/Mailer/PFMailer/PFmailVerification.php';
             $data = ['user_id' => $userId, 'action' => 'send'];
             $options = [
@@ -68,7 +66,7 @@ try {
     }
 
     // ==================================================================
-    // Lógica de Login (existente con ajustes menores)
+    // Lógica de Login CON DEBUGGING MEJORADO
     // ==================================================================
     $password = $input['password'] ?? '';
 
@@ -76,14 +74,75 @@ try {
         throw new Exception('Email and password are required');
     }
 
-    $encryptedPassword = PasswordManager::encrypt($password);
+    // DEBUG: Log información inicial
+    $debugInfo = [
+        'step' => 'initial',
+        'password_length' => strlen($password),
+        'password_appears_encrypted' => PasswordManager::isEncrypted($password),
+        'password_sample' => substr($password, 0, 10) . '...' // Solo muestra inicio por seguridad
+    ];
+
+    // AQUÍ ESTÁ EL PROBLEMA: Estás encriptando la contraseña que viene del frontend
+    // Pero en el frontend (index.js) ya NO la estás encriptando antes de enviar
+    // Sin embargo, el PasswordManager::encrypt se está aplicando siempre
+    
+    // SOLUCIÓN: Verificar si la contraseña ya viene encriptada antes de encriptarla
+    if (PasswordManager::isEncrypted($password)) {
+        // La contraseña ya viene encriptada del frontend
+        $encryptedPassword = $password;
+        $debugInfo['encryption_step'] = 'already_encrypted';
+    } else {
+        // La contraseña viene en texto plano, necesita encriptación
+        $encryptedPassword = PasswordManager::encrypt($password);
+        $debugInfo['encryption_step'] = 'encrypted_here';
+    }
+
+    $debugInfo['encrypted_length'] = strlen($encryptedPassword);
+    $debugInfo['encrypted_sample'] = substr($encryptedPassword, 0, 15) . '...';
+
     $stmt = $conex->prepare("SELECT * FROM `User` WHERE email = ?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $result = $stmt->get_result();
 
     if ($user = $result->fetch_assoc()) {
-        $passwordMatch = PasswordManager::verify($encryptedPassword, $user['password']);
+        $debugInfo['db_password_length'] = strlen($user['password']);
+        $debugInfo['db_password_appears_encrypted'] = PasswordManager::isEncrypted($user['password']);
+        
+        // AQUÍ ESTÁ OTRO PROBLEMA POTENCIAL:
+        // En la función verify, estás pasando $encryptedPassword (que puede estar doblemente encriptada)
+        // en lugar de la contraseña original
+        
+        // SOLUCIÓN CORREGIDA:
+        if (PasswordManager::isEncrypted($password)) {
+            // Si la contraseña del frontend ya venía encriptada, compararla directamente
+            $passwordMatch = ($password === $user['password']);
+            $debugInfo['comparison_method'] = 'direct_encrypted_comparison';
+        } else {
+            // Si la contraseña del frontend venía en texto plano, usar verify normal
+            $passwordMatch = PasswordManager::verify($password, $user['password']);
+            $debugInfo['comparison_method'] = 'verify_method';
+        }
+        
+        $debugInfo['password_match'] = $passwordMatch;
+        
+        // En caso de fallo, incluir debug info en la respuesta
+        if (!$passwordMatch) {
+            $debugInfo['step'] = 'password_mismatch';
+            
+            // Para debugging en desarrollo (remover en producción)
+            if (isset($_GET['debug']) && $_GET['debug'] === 'true') {
+                http_response_code(401);
+                echo json_encode([
+                    'success' => false, 
+                    'message' => 'Incorrect password',
+                    'debug' => $debugInfo
+                ]);
+                $stmt->close();
+                $conex->close();
+                exit;
+            }
+        }
         
         if ($passwordMatch) {
             if (isset($user['verified']) && $user['verified'] == 1) {
