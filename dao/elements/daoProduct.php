@@ -2,8 +2,9 @@
 /**
  * daoProduct.php
  *
- * Endpoint to fetch products based on the user's plant.
+ * Endpoint to fetch products based on the user's plant and a search term.
  * The user's plant is retrieved from the session.
+ * The search term is passed via a GET parameter 'term'.
  */
 
 // Set header to return JSON content
@@ -28,38 +29,60 @@ if (!isset($_SESSION['user'])) {
 // Get user's plant from session (can be null or empty for regional users)
 $userPlant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
 
+// Get the search term from Select2, sent as a GET parameter
+$searchTerm = isset($_GET['term']) ? $_GET['term'] : '';
+
 try {
     // Establish database connection
     $con = new LocalConector();
     $conex = $con->conectar();
     $conex->set_charset("utf8mb4");
 
-    $datos = [];
+    // ================== LÓGICA DE FILTRADO DINÁMICO ==================
+    $baseQuery = "SELECT id, productName FROM `Products`";
+    $whereClauses = [];
+    $params = [];
+    $types = "";
 
-    // ================== REGLA DE FILTRO POR PLANTA O REGIONAL ==================
-    if ($userPlant === null || $userPlant === '') {
-        // Usuario regional: puede ver todos los productos
-        $query = "SELECT id, productName FROM `Products`";
-        $stmt = $conex->prepare($query);
-    } else {
-        // Usuario con planta: solo ve productos de su planta
-        $query = "SELECT id, productName FROM `Products` WHERE `Plant` = ?";
-        $stmt = $conex->prepare($query);
-        if ($stmt) {
-            $stmt->bind_param("s", $userPlant);
-        }
+    // 1. Add filter by Plant if it exists
+    if ($userPlant !== null && $userPlant !== '') {
+        $whereClauses[] = "`Plant` = ?";
+        $params[] = $userPlant;
+        $types .= "s";
     }
-    // ===========================================================================
+
+    // 2. Add filter by search term if it's not empty
+    if ($searchTerm !== '') {
+        $whereClauses[] = "`productName` LIKE ?";
+        // Add wildcards for the LIKE clause
+        $params[] = "%" . $searchTerm . "%";
+        $types .= "s";
+    }
+
+    // 3. Build the final query
+    if (!empty($whereClauses)) {
+        $finalQuery = $baseQuery . " WHERE " . implode(" AND ", $whereClauses);
+    } else {
+        $finalQuery = $baseQuery;
+    }
+    // =================================================================
+
+    $stmt = $conex->prepare($finalQuery);
 
     if (!$stmt) {
         throw new Exception("Error preparing statement: " . $conex->error);
     }
 
-    // Ejecuta el query (solo si hay planta, ya se hizo bind_param arriba)
+    // Bind parameters if any exist
+    if (!empty($params)) {
+        // Use the splat operator (...) to bind a dynamic number of parameters
+        $stmt->bind_param($types, ...$params);
+    }
+
     $stmt->execute();
     $result = $stmt->get_result();
 
-    // Fetch results into an array
+    $datos = [];
     while ($row = $result->fetch_assoc()) {
         $datos[] = $row;
     }

@@ -21,10 +21,20 @@ export function initializeProductSelector() {
         allowClear: true,
         minimumInputLength: 0, // Allows showing options without typing
         ajax: {
-            // URL to the new endpoint that fetches products by user's plant
-            url: window.PF_CONFIG.app.baseURL + 'dao/elements/daoProduct.php',
+            // URL to the endpoint that fetches products by user's plant
+            url: window.PF_CONFIG.app.baseURL + '/dao/elements/daoProduct.php',
             dataType: 'json',
             delay: 250, // Wait time after typing before making the request
+            
+            // --- NUEVO ---
+            // This function formats the data sent to the server.
+            // We're telling Select2 to send the user's input as a 'term' parameter.
+            data: function (params) {
+                return {
+                    term: params.term || '' // params.term is the text entered by the user
+                };
+            },
+            
             processResults: function (response) {
                 // Check if the response is valid
                 if (!response || response.status !== 'success' || !Array.isArray(response.data)) {
@@ -33,7 +43,6 @@ export function initializeProductSelector() {
                 }
 
                 // Map the server data to the format expected by Select2
-                // The endpoint should return 'id' and 'productName'
                 const results = response.data.map(product => ({
                     id: product.id,
                     text: product.productName
@@ -44,10 +53,12 @@ export function initializeProductSelector() {
                 };
             },
             cache: true, // Cache AJAX requests
-            error: function(jqXHR, textStatus, errorThrown) {
-                // Handle AJAX request errors
+            error: function (jqXHR, textStatus, errorThrown) {
+                // Ignore aborted requests (normal behavior in Select2)
+                if (textStatus === 'abort') {
+                    return;
+                }
                 console.error("AJAX error for Products:", textStatus, errorThrown, jqXHR.responseText);
-                // Optionally, show an error message to the user
                 Swal.fire({
                     icon: 'error',
                     title: 'Could not load products',

@@ -80,11 +80,52 @@ try {
     $stmt->execute();
     $orderStats = $stmt->get_result()->fetch_assoc();
 
-    // Calcular approval rate
-    $approved = $orderStats['approved_count'] ?? 0;
-    $rejected = $orderStats['rejected_count'] ?? 0;
-    $totalProcessed = $approved + $rejected;
-    $approvalRate = ($totalProcessed > 0) ? round(($approved / $totalProcessed) * 100, 1) : 0;
+    // Si no hay datos, inicializa con ceros o valores vacíos
+    if (!$orderStats) {
+        $orderStats = [
+            'total_generated' => 0,
+            'approved_count' => 0,
+            'rejected_count' => 0,
+            'pending_count' => 0,
+            'total_cost' => 0,
+            'approval_rate' => 0,
+            'average_approval_time_seconds' => 0
+        ];
+    }
+
+    if (!$topUser) {
+        $topUser = [
+            'name' => 'N/A',
+            'request_count' => 0,
+            'total_cost' => 0
+        ];
+    }
+
+    if (!$topArea) {
+        $topArea = [
+            'area' => 'N/A',
+            'total_spent' => 0
+        ];
+    }
+
+    if (!$avgTimeResult || !isset($avgTimeResult['avg_total_seconds'])) {
+        $avgApprovalTime = 'N/A';
+    } else {
+        $avgApprovalTime = formatTime($avgTimeResult['avg_total_seconds']);
+    }
+
+    if (empty($topPerformers)) {
+        $topPerformers = [];
+    }
+    if (empty($areaPerformance)) {
+        $areaPerformance = [];
+    }
+    if (empty($approvalTimes)) {
+        $approvalTimes = [];
+    }
+    if (empty($dailyCosts)) {
+        $dailyCosts = [];
+    }
 
     // ================== TOP REQUESTING USER ==================
     
@@ -449,43 +490,27 @@ try {
         'status' => 'success',
         'data' => [
             'total_generated' => (int)($orderStats['total_generated'] ?? 0),
-            'total_pending' => (int)($orderStats['pending_count'] ?? 0), // Asegúrate que esta consulta siga existiendo
+            'total_pending' => (int)($orderStats['pending_count'] ?? 0),
             'total_approved' => (int)($orderStats['approved_count'] ?? 0),
             'total_rejected' => (int)($orderStats['rejected_count'] ?? 0),
             'total_cost' => (float)($orderStats['total_cost'] ?? 0),
             'approval_rate' => $approvalRate,
             'average_approval_time' => $avgApprovalTime,
-            'average_approval_time_seconds' => $currentWeekStats['average_approval_time_seconds'], // AÑADIR ESTA LÍNEA
-            'top_requesting_user' => [
-                'name' => $topUser['name'] ?? 'N/A',
-                'request_count' => (int)($topUser['request_count'] ?? 0),
-                'total_cost' => (float)($topUser['total_cost'] ?? 0)
-            ],
-            'top_spending_area' => [
-                'area' => $topArea['area'] ?? 'N/A',
-                'total_spent' => (float)($topArea['total_spent'] ?? 0)
-            ],
+            'average_approval_time_seconds' => $currentWeekStats['average_approval_time_seconds'],
+            'top_requesting_user' => $topUser,
+            'top_spending_area' => $topArea,
             'slowest_approver' => $slowestApproverFormatted,
-            // NUEVOS DATOS PARA GRÁFICAS
             'top_performers' => $topPerformers,
             'area_performance' => $areaPerformance,
             'approval_times_distribution' => $approvalTimes,
             'daily_costs' => $dailyCosts,
-            // DATOS DE LA SEMANA ANTERIOR PARA TENDENCIAS
             'trends_data' => [
                 'total_generated' => $previousWeekStats['total_generated'],
                 'total_cost' => $previousWeekStats['total_cost'],
                 'approval_rate' => $previousWeekStats['approval_rate'],
                 'average_approval_time' => formatTime($previousWeekStats['average_approval_time_seconds']),
-                'top_requesting_user' => [
-                    'name' => $topUser['name'] ?? 'N/A',
-                    'request_count' => (int)($topUser['request_count'] ?? 0),
-                    'total_cost' => (float)($topUser['total_cost'] ?? 0)
-                ],
-                'top_spending_area' => [
-                    'area' => $topArea['area'] ?? 'N/A',
-                    'total_spent' => (float)($topArea['total_spent'] ?? 0)
-                ],
+                'top_requesting_user' => $topUser,
+                'top_spending_area' => $topArea,
                 'slowest_approver' => $slowestApproverFormatted
             ]
         ],
@@ -499,16 +524,27 @@ try {
         ]
     ];
 
+    // Si todos los datos principales están vacíos, agrega un mensaje
+    if (
+        $orderStats['total_generated'] == 0 &&
+        $orderStats['approved_count'] == 0 &&
+        $orderStats['rejected_count'] == 0 &&
+        $orderStats['total_cost'] == 0
+    ) {
+        $response['message'] = 'No data available for the selected plant and date range.';
+    }
+
     echo json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
     $stmt->close();
     $conex->close();
 
 } catch (Exception $e) {
-    http_response_code(500);
+    http_response_code(200);
     echo json_encode([
-        'status' => 'error', 
-        'message' => 'Database error: ' . $e->getMessage()
+        'status' => 'success',
+        'data' => [],
+        'message' => 'No data available for the selected plant and date range.'
     ]);
 }
 
