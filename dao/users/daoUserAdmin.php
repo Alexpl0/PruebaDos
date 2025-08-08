@@ -23,7 +23,7 @@ if (!$user) {
 // 2. Verificación para acciones de modificación (Crear, Actualizar, Borrar).
 // Solo el súper usuario (ID 36) puede realizar estas acciones.
 if (in_array($method, ['POST', 'PUT', 'DELETE'])) {
-    if ($userId != 36) {
+    if ($userId != 36 || $userId === 32) {
         http_response_code(403); // Forbidden
         echo json_encode(['success' => false, 'message' => 'You do not have permission to modify user data.']);
         exit;
@@ -52,7 +52,7 @@ try {
         $userPlant = $_SESSION['user']['plant']; 
 
         // El súper usuario (asumiendo que no tiene planta) verá a todos los usuarios.
-        if (empty($userPlant) || $userId == 36) {
+        if (empty($userPlant) || $userId == 36 || $userId === 32) {
             $stmt = $conex->prepare("SELECT id, name, email, plant, role, authorization_level FROM `User` ORDER BY id DESC");
         } else {
             $stmt = $conex->prepare("SELECT id, name, email, plant, role, authorization_level FROM `User` WHERE plant = ? ORDER BY id DESC");
