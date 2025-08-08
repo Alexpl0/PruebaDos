@@ -66,7 +66,7 @@ try {
     }
 
     // ==================================================================
-    // Lógica de Login CON DEBUGGING MEJORADO
+    // Lógica de Login SIMPLIFICADA
     // ==================================================================
     $password = $input['password'] ?? '';
 
@@ -74,31 +74,11 @@ try {
         throw new Exception('Email and password are required');
     }
 
-    // DEBUG: Log información inicial
-    $debugInfo = [
-        'step' => 'initial',
-        'password_length' => strlen($password),
-        'password_appears_encrypted' => PasswordManager::isEncrypted($password),
-        'password_sample' => substr($password, 0, 10) . '...' // Solo muestra inicio por seguridad
-    ];
-
-    // AQUÍ ESTÁ EL PROBLEMA: Estás encriptando la contraseña que viene del frontend
-    // Pero en el frontend (index.js) ya NO la estás encriptando antes de enviar
-    // Sin embargo, el PasswordManager::encrypt se está aplicando siempre
-    
-    // SOLUCIÓN: Verificar si la contraseña ya viene encriptada antes de encriptarla
-    if (PasswordManager::isEncrypted($password)) {
-        // La contraseña ya viene encriptada del frontend
-        $encryptedPassword = $password;
-        $debugInfo['encryption_step'] = 'already_encrypted';
-    } else {
-        // La contraseña viene en texto plano, necesita encriptación
-        $encryptedPassword = PasswordManager::encrypt($password);
-        $debugInfo['encryption_step'] = 'encrypted_here';
-    }
-
-    $debugInfo['encrypted_length'] = strlen($encryptedPassword);
-    $debugInfo['encrypted_sample'] = substr($encryptedPassword, 0, 15) . '...';
+    // FLUJO SIMPLE: 
+    // 1. Recibir contraseña en texto plano
+    // 2. Encriptarla 
+    // 3. Comparar directamente con la BD
+    $encryptedPassword = PasswordManager::encrypt($password);
 
     $stmt = $conex->prepare("SELECT * FROM `User` WHERE email = ?");
     $stmt->bind_param("s", $email);
@@ -106,55 +86,32 @@ try {
     $result = $stmt->get_result();
 
     if ($user = $result->fetch_assoc()) {
-        $debugInfo['db_password_length'] = strlen($user['password']);
-        $debugInfo['db_password_appears_encrypted'] = PasswordManager::isEncrypted($user['password']);
-        
-        // AQUÍ ESTÁ OTRO PROBLEMA POTENCIAL:
-        // En la función verify, estás pasando $encryptedPassword (que puede estar doblemente encriptada)
-        // en lugar de la contraseña original
-        
-        // SOLUCIÓN CORREGIDA:
-        if (PasswordManager::isEncrypted($password)) {
-            // Si la contraseña del frontend ya venía encriptada, compararla directamente
-            $passwordMatch = ($password === $user['password']);
-            $debugInfo['comparison_method'] = 'direct_encrypted_comparison';
-        } else {
-            // Si la contraseña del frontend venía en texto plano, usar verify normal
-            $passwordMatch = PasswordManager::verify($password, $user['password']);
-            $debugInfo['comparison_method'] = 'verify_method';
-        }
-        
-        $debugInfo['password_match'] = $passwordMatch;
-        
-        // En caso de fallo, incluir debug info en la respuesta
-        if (!$passwordMatch) {
-            $debugInfo['step'] = 'password_mismatch';
-            
-            // Para debugging en desarrollo (remover en producción)
-            if (isset($_GET['debug']) && $_GET['debug'] === 'true') {
-                http_response_code(401);
-                echo json_encode([
-                    'success' => false, 
-                    'message' => 'Incorrect password',
-                    'debug' => $debugInfo
-                ]);
-                $stmt->close();
-                $conex->close();
-                exit;
-            }
-        }
+        // Comparación directa: ambas están encriptadas
+        $passwordMatch = ($encryptedPassword === $user['password']);
         
         if ($passwordMatch) {
             if (isset($user['verified']) && $user['verified'] == 1) {
                 $_SESSION['user'] = [
-                    'id' => $user['id'], 'name' => $user['name'], 'email' => $user['email'],
-                    'plant' => $user['plant'], 'authorization_level' => $user['authorization_level'], 'role' => $user['role']
+                    'id' => $user['id'], 
+                    'name' => $user['name'], 
+                    'email' => $user['email'],
+                    'plant' => $user['plant'], 
+                    'authorization_level' => $user['authorization_level'], 
+                    'role' => $user['role']
                 ];
                 unset($user['password']);
-                echo json_encode(['success' => true, 'status' => 'success', 'user' => $user, 'message' => 'Login successful']);
+                echo json_encode([
+                    'success' => true, 
+                    'status' => 'success', 
+                    'user' => $user, 
+                    'message' => 'Login successful'
+                ]);
             } else {
                 http_response_code(403);
-                echo json_encode(['success' => false, 'message' => 'Account not verified. Please check your email to activate your account.']);
+                echo json_encode([
+                    'success' => false, 
+                    'message' => 'Account not verified. Please check your email to activate your account.'
+                ]);
             }
         } else {
             http_response_code(401);

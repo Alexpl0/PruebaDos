@@ -1,24 +1,15 @@
 /**
- * index.js (VERSIÓN CORREGIDA)
- * Handles login and verification resend functionality.
- * CAMBIO PRINCIPAL: Las contraseñas se envían en texto plano al backend
+ * index.js (VERSIÓN SIMPLIFICADA)
+ * Solo envía contraseñas en texto plano. Sin encriptación en frontend.
  */
 
 document.addEventListener('DOMContentLoaded', function() {
     const btnLogin = document.getElementById('btnLogin');
-    if (btnLogin) btnLogin.disabled = true;
-
-    // Ya no necesitamos PasswordManager en el frontend para login
-    // Solo para otras funciones si las tienes
-    if (typeof PasswordManager === 'undefined') {
-        const script = document.createElement('script');
-        script.src = 'js/PasswordManager.js';
-        script.onload = () => { if (btnLogin) btnLogin.disabled = false; };
-        document.head.appendChild(script);
-    } else {
-        if (btnLogin) btnLogin.disabled = false;
+    if (btnLogin) {
+        btnLogin.disabled = false; // Ya no necesitamos esperar PasswordManager
     }
 
+    // Toggle password visibility
     const togglePassword = document.getElementById('togglePassword');
     const passwordInput = document.getElementById('password');
     togglePassword?.addEventListener('click', function() {
@@ -28,14 +19,17 @@ document.addEventListener('DOMContentLoaded', function() {
         this.classList.toggle('fa-eye-slash');
     });
 
+    // Enter key support
     document.querySelectorAll('#email, #password').forEach(input => {
-        input.addEventListener('keypress', e => { if (e.key === 'Enter') loginUsuario(); });
+        input.addEventListener('keypress', e => { 
+            if (e.key === 'Enter') loginUsuario(); 
+        });
     });
 });
 
 /**
- * Handles the logic to resend a verification email.
- * @param {string} email - The user's email address.
+ * Reenviar email de verificación
+ * @param {string} email - Email del usuario
  */
 async function resendVerificationEmail(email) {
     try {
@@ -45,6 +39,7 @@ async function resendVerificationEmail(email) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: email, action: 'resend_verification' })
         });
+        
         const data = await response.json();
         if (!response.ok || !data.success) {
             throw new Error(data.message || 'Failed to resend email.');
@@ -56,8 +51,8 @@ async function resendVerificationEmail(email) {
 }
 
 /**
- * FUNCIÓN DE LOGIN CORREGIDA
- * Ahora envía la contraseña en texto plano siempre
+ * FUNCIÓN DE LOGIN SIMPLIFICADA
+ * Envía contraseña en texto plano, el backend se encarga del resto
  */
 async function loginUsuario() {
     const emailInput = document.getElementById('email');
@@ -65,7 +60,7 @@ async function loginUsuario() {
     const btnLogin = document.getElementById('btnLogin');
 
     const email = emailInput.value.trim();
-    const password = passwordInput.value; // TEXTO PLANO - sin encriptar
+    const password = passwordInput.value; // TEXTO PLANO
 
     // Validaciones básicas
     if (!email || !password) {
@@ -83,22 +78,14 @@ async function loginUsuario() {
     const URLPF = window.PF_CONFIG.app.baseURL;
 
     try {
-        // CAMBIO CRÍTICO: Enviar contraseña en texto plano
+        // Enviar datos simples: email y contraseña en texto plano
         const requestBody = { 
             email, 
-            password, // Sin encriptar - el backend se encarga
+            password, // El backend se encarga de encriptar
             action: 'login' 
         };
 
-        // Para debugging (remover en producción)
-        console.log('Sending login request:', {
-            email,
-            passwordLength: password.length,
-            // No logear la contraseña real por seguridad
-            passwordSample: password.substring(0, 3) + '...'
-        });
-
-        const response = await fetch(`${URLPF}dao/users/daoLogin.php?debug=true`, {
+        const response = await fetch(`${URLPF}dao/users/daoLogin.php`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(requestBody)
@@ -106,13 +93,8 @@ async function loginUsuario() {
 
         const data = await response.json();
         
-        // Para debugging (remover en producción)
-        if (data.debug) {
-            console.log('Server debug info:', data.debug);
-        }
-        
         if (!response.ok) {
-            // Manejo específico para usuario no verificado
+            // Usuario no verificado
             if (response.status === 403) {
                 Swal.fire({
                     title: 'Account Not Verified',
@@ -133,10 +115,11 @@ async function loginUsuario() {
                     }
                 });
             } else {
-                // Otros errores HTTP (401, 404, etc.)
+                // Otros errores (401, 404, etc.)
                 throw new Error(data.message || `HTTP error! Status: ${response.status}`);
             }
         } else if (data.success && data.user) {
+            // Login exitoso
             await Swal.fire({
                 icon: 'success', 
                 title: 'Login Successful!', 
@@ -161,35 +144,11 @@ async function loginUsuario() {
     }
 }
 
-// Hacer la función global para el `onclick` del HTML
+// Hacer la función global
 window.loginUsuario = loginUsuario;
 
 /**
- * FUNCIÓN AUXILIAR PARA DEBUGGING
- * Permite probar diferentes contraseñas y ver qué pasa
- */
-function testPasswordEncryption(password) {
-    if (typeof PasswordManager !== 'undefined') {
-        const encrypted = PasswordManager.encrypt(password);
-        console.log('Testing password:', {
-            original: password,
-            originalLength: password.length,
-            encrypted: encrypted,
-            encryptedLength: encrypted.length,
-            decrypted: PasswordManager.decrypt(encrypted)
-        });
-        return encrypted;
-    } else {
-        console.log('PasswordManager not available');
-        return null;
-    }
-}
-
-// Hacer disponible para debugging
-window.testPasswordEncryption = testPasswordEncryption;
-
-/**
- * Nueva función para manejar la sesión del usuario
+ * Manejar sesión existente
  */
 async function handleUserSession() {
     try {
@@ -202,15 +161,15 @@ async function handleUserSession() {
 
         const data = await response.json();
         if (response.ok && data.success) {
-            // La sesión es válida, redirigir
+            // Sesión válida, redirigir
             window.location.href = 'newOrder.php';
         }
-        // Si no hay sesión válida, permanecer en login
+        // Si no hay sesión válida, quedarse en login
     } catch (error) {
+        // Error al verificar sesión, quedarse en login
         console.log('Session check failed:', error.message);
-        // Continuar en la página de login
     }
 }
 
-// Llamar a la función de manejo de sesión al cargar la página
+// Verificar sesión al cargar la página
 document.addEventListener('DOMContentLoaded', handleUserSession);
