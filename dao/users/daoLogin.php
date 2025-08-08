@@ -68,7 +68,7 @@ try {
     }
 
     // ==================================================================
-    // Lógica de Login (existente con ajustes menores)
+    // Lógica de Login 
     // ==================================================================
     $password = $input['password'] ?? '';
 
@@ -83,7 +83,7 @@ try {
     $result = $stmt->get_result();
 
     if ($user = $result->fetch_assoc()) {
-        $passwordMatch = PasswordManager::verify($encryptedPassword, $user['password']);
+        $passwordMatch = PasswordManager::verify($password, $user['password']);
         
         if ($passwordMatch) {
             if (isset($user['verified']) && $user['verified'] == 1) {
