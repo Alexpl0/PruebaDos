@@ -49,7 +49,7 @@ try {
                         SUM(CASE WHEN st.name IN ('approved', 'aprobado') THEN 1 ELSE 0 END) as approved_count,
                         SUM(CASE WHEN st.name IN ('rejected', 'rechazado') THEN 1 ELSE 0 END) as rejected_count,
                         SUM(CASE WHEN st.name NOT IN ('approved', 'aprobado', 'rejected', 'rechazado') THEN 1 ELSE 0 END) as pending_count,
-                        SUM(CASE WHEN st.name IN ('approved', 'aprobado') THEN pf.cost_euros ELSE 0 END) as total_cost
+                        SUM(CASE WHEN st.name IN ('approved', 'aprobado') THEN COALESCE(pf.cost_euros, 0) ELSE 0 END) as total_cost
                     FROM PremiumFreight pf
                     LEFT JOIN Status st ON pf.status_id = st.id
                     LEFT JOIN User u ON pf.user_id = u.id
@@ -94,9 +94,16 @@ try {
         ];
     }
 
+    // Asegurar que los valores sean numéricos
+    $orderStats['total_generated'] = (int)($orderStats['total_generated'] ?? 0);
+    $orderStats['approved_count'] = (int)($orderStats['approved_count'] ?? 0);
+    $orderStats['rejected_count'] = (int)($orderStats['rejected_count'] ?? 0);
+    $orderStats['pending_count'] = (int)($orderStats['pending_count'] ?? 0);
+    $orderStats['total_cost'] = (float)($orderStats['total_cost'] ?? 0);
+
     // Calcular approval rate
-    $approved = (int)($orderStats['approved_count'] ?? 0);
-    $rejected = (int)($orderStats['rejected_count'] ?? 0);
+    $approved = $orderStats['approved_count'];
+    $rejected = $orderStats['rejected_count'];
     $totalProcessed = $approved + $rejected;
     $approvalRate = ($totalProcessed > 0) ? round(($approved / $totalProcessed) * 100, 1) : 0;
 
@@ -105,7 +112,7 @@ try {
     $topUserSql = "SELECT 
                         u.name, 
                         COUNT(pf.id) as request_count,
-                        SUM(pf.cost_euros) as total_cost
+                        SUM(COALESCE(pf.cost_euros, 0)) as total_cost
                     FROM PremiumFreight pf
                     JOIN User u ON pf.user_id = u.id
                     LEFT JOIN Status st ON pf.status_id = st.id
@@ -133,13 +140,12 @@ try {
                      LIMIT 1";
     
     $stmt = $conex->prepare($topUserSql);
+    $topUser = null;
     if ($stmt) {
         $stmt->bind_param($userParamTypes, ...$userParams);
         $stmt->execute();
         $topUser = $stmt->get_result()->fetch_assoc();
         $stmt->close();
-    } else {
-        $topUser = null;
     }
 
     // Inicializar con valores por defecto si no hay datos
@@ -155,7 +161,7 @@ try {
     
     $topAreaSql = "SELECT 
                         COALESCE(pf.area, u.plant, 'Unknown Area') as area, 
-                        SUM(pf.cost_euros) as total_spent,
+                        SUM(COALESCE(pf.cost_euros, 0)) as total_spent,
                         COUNT(pf.id) as request_count
                     FROM PremiumFreight pf
                     JOIN User u ON pf.user_id = u.id
@@ -184,13 +190,12 @@ try {
                      LIMIT 1";
     
     $stmt = $conex->prepare($topAreaSql);
+    $topArea = null;
     if ($stmt) {
         $stmt->bind_param($areaParamTypes, ...$areaParams);
         $stmt->execute();
         $topArea = $stmt->get_result()->fetch_assoc();
         $stmt->close();
-    } else {
-        $topArea = null;
     }
 
     // Inicializar con valores por defecto si no hay datos
@@ -230,13 +235,12 @@ try {
     }
     
     $stmt = $conex->prepare($avgTimeSql);
+    $avgTimeResult = null;
     if ($stmt) {
         $stmt->bind_param($timeParamTypes, ...$timeParams);
         $stmt->execute();
         $avgTimeResult = $stmt->get_result()->fetch_assoc();
         $stmt->close();
-    } else {
-        $avgTimeResult = null;
     }
     
     $avgApprovalTime = 'N/A';
@@ -308,11 +312,11 @@ try {
     $topPerformersSql = "SELECT 
                             u.name,
                             COUNT(pf.id) as approved_requests,
-                            SUM(pf.cost_euros) as total_cost
+                            SUM(COALESCE(pf.cost_euros, 0)) as total_cost
                         FROM PremiumFreight pf
                         JOIN User u ON pf.user_id = u.id
                         LEFT JOIN Status st ON pf.status_id = st.id
-                        WHERE pf.date BETWEEN ? AND ? 
+                        WHERE pf.date BETWEEN ? AND ?
                         AND st.name IN ('approved', 'aprobado')";
     
     // Reconstruir parámetros para esta consulta
@@ -340,9 +344,8 @@ try {
     if ($stmt) {
         $stmt->bind_param($performersParamTypes, ...$performersParams);
         $stmt->execute();
-        $topPerformersResult = $stmt->get_result();
-        
-        while ($row = $topPerformersResult->fetch_assoc()) {
+        $result = $stmt->get_result();
+        while ($row = $result->fetch_assoc()) {
             $topPerformers[] = $row;
         }
         $stmt->close();
@@ -351,14 +354,14 @@ try {
     // ================== DATOS PARA GRÁFICAS - AREA PERFORMANCE ==================
     
     $areaPerformanceSql = "SELECT 
-                            COALESCE(pf.area, 'Unknown Area') as area_name,
-                            COUNT(pf.id) as total_requests,
-                            SUM(pf.cost_euros) as total_cost
-                        FROM PremiumFreight pf
-                        JOIN User u ON pf.user_id = u.id
-                        LEFT JOIN Status st ON pf.status_id = st.id
-                        WHERE pf.date BETWEEN ? AND ? 
-                        AND st.name IN ('approved', 'aprobado')";
+                                COALESCE(pf.area, 'Unknown Area') as area_name,
+                                COUNT(pf.id) as total_requests,
+                                SUM(COALESCE(pf.cost_euros, 0)) as total_cost
+                            FROM PremiumFreight pf
+                            JOIN User u ON pf.user_id = u.id
+                            LEFT JOIN Status st ON pf.status_id = st.id
+                            WHERE pf.date BETWEEN ? AND ?
+                            AND st.name IN ('approved', 'aprobado')";
     
     // Reconstruir parámetros para esta consulta
     $areaPerformanceParams = [$startDate, $endDate];
@@ -377,17 +380,15 @@ try {
     }
     
     $areaPerformanceSql .= " GROUP BY COALESCE(pf.area, 'Unknown Area')
-                            ORDER BY total_cost DESC
-                            LIMIT 10";
+                            ORDER BY total_cost DESC";
     
     $areaPerformance = [];
     $stmt = $conex->prepare($areaPerformanceSql);
     if ($stmt) {
         $stmt->bind_param($areaPerformanceParamTypes, ...$areaPerformanceParams);
         $stmt->execute();
-        $areaPerformanceResult = $stmt->get_result();
-        
-        while ($row = $areaPerformanceResult->fetch_assoc()) {
+        $result = $stmt->get_result();
+        while ($row = $result->fetch_assoc()) {
             $areaPerformance[] = $row;
         }
         $stmt->close();
@@ -397,13 +398,13 @@ try {
     
     $approvalTimesSql = "SELECT 
                             CASE 
-                                WHEN TIMESTAMPDIFF(SECOND, pf.date, pfa.approval_date) < 3600 THEN '< 1 Hour'
-                                WHEN TIMESTAMPDIFF(SECOND, pf.date, pfa.approval_date) < 14400 THEN '1-4 Hours'  
-                                WHEN TIMESTAMPDIFF(SECOND, pf.date, pfa.approval_date) < 86400 THEN '4-24 Hours'
-                                ELSE '> 24 Hours'
+                                WHEN TIMESTAMPDIFF(HOUR, pf.date, pfa.approval_date) <= 24 THEN 'Within 1 Day'
+                                WHEN TIMESTAMPDIFF(HOUR, pf.date, pfa.approval_date) <= 72 THEN '1-3 Days'
+                                WHEN TIMESTAMPDIFF(HOUR, pf.date, pfa.approval_date) <= 168 THEN '3-7 Days'
+                                ELSE 'More than 1 Week'
                             END as time_category,
                             COUNT(*) as count,
-                            ROUND(AVG(TIMESTAMPDIFF(SECOND, pf.date, pfa.approval_date)) / 3600, 1) as avg_hours
+                            AVG(TIMESTAMPDIFF(HOUR, pf.date, pfa.approval_date)) as avg_hours
                         FROM PremiumFreight pf
                         JOIN PremiumFreightApprovals pfa ON pf.id = pfa.premium_freight_id
                         JOIN User u ON pf.user_id = u.id
@@ -429,16 +430,15 @@ try {
     }
     
     $approvalTimesSql .= " GROUP BY time_category
-                          ORDER BY FIELD(time_category, '< 1 Hour', '1-4 Hours', '4-24 Hours', '> 24 Hours')";
+                          ORDER BY FIELD(time_category, 'Within 1 Day', '1-3 Days', '3-7 Days', 'More than 1 Week')";
     
     $approvalTimes = [];
     $stmt = $conex->prepare($approvalTimesSql);
     if ($stmt) {
         $stmt->bind_param($approvalTimesParamTypes, ...$approvalTimesParams);
         $stmt->execute();
-        $approvalTimesResult = $stmt->get_result();
-        
-        while ($row = $approvalTimesResult->fetch_assoc()) {
+        $result = $stmt->get_result();
+        while ($row = $result->fetch_assoc()) {
             $approvalTimes[] = $row;
         }
         $stmt->close();
@@ -448,7 +448,7 @@ try {
     
     $dailyCostSql = "SELECT 
                         DATE(pf.date) as approval_date,
-                        SUM(pf.cost_euros) as daily_cost,
+                        SUM(COALESCE(pf.cost_euros, 0)) as daily_cost,
                         COUNT(pf.id) as daily_count
                     FROM PremiumFreight pf
                     JOIN User u ON pf.user_id = u.id
@@ -473,16 +473,15 @@ try {
     }
     
     $dailyCostSql .= " GROUP BY DATE(pf.date)
-                      ORDER BY approval_date";
+                      ORDER BY DATE(pf.date)";
     
     $dailyCosts = [];
     $stmt = $conex->prepare($dailyCostSql);
     if ($stmt) {
         $stmt->bind_param($dailyCostParamTypes, ...$dailyCostParams);
         $stmt->execute();
-        $dailyCostResult = $stmt->get_result();
-        
-        while ($row = $dailyCostResult->fetch_assoc()) {
+        $result = $stmt->get_result();
+        while ($row = $result->fetch_assoc()) {
             $dailyCosts[] = $row;
         }
         $stmt->close();
@@ -493,29 +492,42 @@ try {
     $response = [
         'status' => 'success',
         'data' => [
-            'total_generated' => (int)($orderStats['total_generated'] ?? 0),
-            'total_pending' => (int)($orderStats['pending_count'] ?? 0),
-            'total_approved' => (int)($orderStats['approved_count'] ?? 0),
-            'total_rejected' => (int)($orderStats['rejected_count'] ?? 0),
-            'total_cost' => (float)($orderStats['total_cost'] ?? 0),
+            // Estadísticas generales
+            'total_generated' => $orderStats['total_generated'],
+            'total_pending' => $orderStats['pending_count'],
+            'total_approved' => $orderStats['approved_count'],
+            'total_rejected' => $orderStats['rejected_count'],
+            'total_cost' => $orderStats['total_cost'],
             'approval_rate' => $approvalRate,
+            
+            // Tiempos promedio
             'average_approval_time' => $avgApprovalTime,
             'average_approval_time_seconds' => $avgApprovalTimeSeconds,
+            
+            // Top performers y áreas
             'top_requesting_user' => $topUser,
             'top_spending_area' => $topArea,
             'slowest_approver' => $slowestApproverFormatted,
+            
+            // Datos para gráficas
             'top_performers' => $topPerformers,
             'area_performance' => $areaPerformance,
             'approval_times_distribution' => $approvalTimes,
             'daily_costs' => $dailyCosts
         ],
-        'date_range' => [
-            'start' => $startDate,
-            'end' => $endDate
-        ],
-        'user_info' => [
-            'plant' => $userPlant,
-            'authorization_level' => $userAuthLevel
+        'meta' => [
+            'date_range' => [
+                'start' => $startDate,
+                'end' => $endDate
+            ],
+            'filters' => [
+                'user_plant' => $userPlant,
+                'filter_plant' => $filterPlant
+            ],
+            'user_info' => [
+                'plant' => $userPlant,
+                'authorization_level' => $userAuthLevel
+            ]
         ]
     ];
 
@@ -542,7 +554,7 @@ try {
         'debug' => [
             'file' => __FILE__,
             'line' => __LINE__,
-            'error_trace' => $e->getTraceAsString()
+            'user_session' => isset($_SESSION['user']) ? 'exists' : 'missing'
         ]
     ]);
 }

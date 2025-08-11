@@ -264,23 +264,23 @@ require_once 'dao/users/context_injector.php';
                     <div class="metric-content">
                         <h3 id="totalRequests">0</h3>
                         <p>Total Generated</p>
-                        <span class="metric-trend" id="requestsTrend">
-                            <i class="fas fa-info-circle"></i> This week
-                        </span>
+                        <div class="metric-trend" id="requestsTrend">
+                            <i class="fas fa-minus"></i> N/A
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6 mb-3">
                 <div class="metric-card success animate">
                     <div class="metric-icon">
-                        <i class="fas fa-check-circle"></i>
+                        <i class="fas fa-percentage"></i>
                     </div>
                     <div class="metric-content">
                         <h3 id="approvalRate">0%</h3>
                         <p>Approval Rate</p>
-                        <span class="metric-trend" id="approvalTrend">
-                            <i class="fas fa-percentage"></i> Of total
-                        </span>
+                        <div class="metric-trend" id="approvalTrend">
+                            <i class="fas fa-minus"></i> N/A
+                        </div>
                     </div>
                 </div>
             </div>
@@ -292,9 +292,9 @@ require_once 'dao/users/context_injector.php';
                     <div class="metric-content">
                         <h3 id="totalCost">€0</h3>
                         <p>Total Cost</p>
-                        <span class="metric-trend" id="costTrend">
-                            <i class="fas fa-calculator"></i> Approved
-                        </span>
+                        <div class="metric-trend" id="costTrend">
+                            <i class="fas fa-minus"></i> N/A
+                        </div>
                     </div>
                 </div>
             </div>
@@ -304,11 +304,11 @@ require_once 'dao/users/context_injector.php';
                         <i class="fas fa-clock"></i>
                     </div>
                     <div class="metric-content">
-                        <h3 id="avgTime">0h</h3>
-                        <p>Average Time</p>
-                        <span class="metric-trend" id="timeTrend">
-                            <i class="fas fa-stopwatch"></i> Approval
-                        </span>
+                        <h3 id="avgTime">N/A</h3>
+                        <p>Avg. Time</p>
+                        <div class="metric-trend" id="timeTrend">
+                            <i class="fas fa-minus"></i> N/A
+                        </div>
                     </div>
                 </div>
             </div>
@@ -320,11 +320,11 @@ require_once 'dao/users/context_injector.php';
                 <div class="card chart-card animate">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
-                            <i class="fas fa-chart-line me-2"></i>Weekly Trends Analysis
+                            <i class="fas fa-chart-line me-2"></i>Performance Trends
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div id="trendsChart" style="height: 400px;"></div>
+                        <div id="trendsChart"></div>
                     </div>
                 </div>
             </div>
@@ -332,11 +332,11 @@ require_once 'dao/users/context_injector.php';
                 <div class="card chart-card animate">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
-                            <i class="fas fa-pie-chart me-2"></i>Status Distribution
+                            <i class="fas fa-chart-pie me-2"></i>Status Distribution
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div id="statusChart" style="height: 400px;"></div>
+                        <div id="statusChart"></div>
                     </div>
                 </div>
             </div>
@@ -348,11 +348,11 @@ require_once 'dao/users/context_injector.php';
                 <div class="card chart-card animate">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
-                            <i class="fas fa-users me-2"></i>Top Performers (Approved Requests)
+                            <i class="fas fa-users me-2"></i>Top Performers
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div id="topPerformersChart" style="height: 350px;"></div>
+                        <div id="topPerformersChart"></div>
                     </div>
                 </div>
             </div>
@@ -360,11 +360,11 @@ require_once 'dao/users/context_injector.php';
                 <div class="card chart-card animate">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
-                            <i class="fas fa-building me-2"></i>Area Performance (Approved Orders)
+                            <i class="fas fa-building me-2"></i>Area Performance
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div id="areaPerformanceChart" style="height: 350px;"></div>
+                        <div id="areaPerformanceChart"></div>
                     </div>
                 </div>
             </div>
@@ -376,11 +376,11 @@ require_once 'dao/users/context_injector.php';
                 <div class="card chart-card animate">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
-                            <i class="fas fa-stopwatch me-2"></i>Approval Time Distribution
+                            <i class="fas fa-clock me-2"></i>Approval Times
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div id="approvalTimesChart" style="height: 350px;"></div>
+                        <div id="approvalTimesChart"></div>
                     </div>
                 </div>
             </div>
@@ -388,11 +388,11 @@ require_once 'dao/users/context_injector.php';
                 <div class="card chart-card animate">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
-                            <i class="fas fa-chart-area me-2"></i>Daily Cost Analysis (Approved Orders Only)
+                            <i class="fas fa-euro-sign me-2"></i>Daily Cost Analysis
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div id="costAnalysisChart" style="height: 350px;"></div>
+                        <div id="costAnalysisChart"></div>
                     </div>
                 </div>
             </div>
@@ -412,6 +412,52 @@ require_once 'dao/users/context_injector.php';
                             <div class="text-center p-4">
                                 <i class="fas fa-chart-bar fa-2x text-muted mb-3"></i>
                                 <p class="text-muted">Insights will be generated automatically after loading data.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Week Navigation and Plant Selector -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card filter-card animate">
+                    <div class="card-body">
+                        <div class="filter-container">
+                            <div class="filter-section">
+                                <label for="weekSelector" class="form-label">
+                                    <i class="fas fa-calendar-week"></i> Analysis Week
+                                </label>
+                                <div class="week-selector" id="weekSelector">
+                                    <div class="week-navigation">
+                                        <button id="prevWeek" class="week-nav-btn" title="Previous Week">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </button>
+                                        <div class="week-display">
+                                            <div id="weekNumber" class="week-info">Week 32 of 2025</div>
+                                            <div id="weekDates" class="week-dates">Aug 11 - Aug 17, 2025</div>
+                                        </div>
+                                        <button id="nextWeek" class="week-nav-btn" title="Next Week">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="filter-section">
+                                <label for="plantSelector" class="form-label">
+                                    <i class="fas fa-industry"></i> Plant Filter
+                                </label>
+                                <select id="plantSelector" class="form-select">
+                                    <option value="">All Plants</option>
+                                </select>
+                            </div>
+                            
+                            <div class="refresh-container">
+                                <button id="refreshData" class="btn btn-refresh" disabled title="Refresh data (Ctrl + R)">
+                                    <i class="fas fa-sync-alt me-2"></i>Refresh Data
+                                </button>
                             </div>
                         </div>
                     </div>
