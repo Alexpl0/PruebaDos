@@ -469,12 +469,5 @@ export {
     enableDebugMode
 };
 
-// Hacer algunas funciones disponibles globalmente para compatibilidad
-window.weeklyPerformanceDashboard = {
-    initialize: initializeWeeklyPerformance,
-    refresh: updateAllVisualizations,
-    diagnostics: getDashboardDiagnostics,
-    reinitialize: reinitializeDashboard
-};
 
 console.log('📦 Weekly Performance Dashboard module loaded successfully');
