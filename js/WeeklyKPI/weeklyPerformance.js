@@ -404,7 +404,7 @@ export async function reinitializeDashboard() {
 /**
  * Habilita modo debug
  */
-export function enableDebugMode() {
+function enableDebugMode() {
     window.dashboardDebug = {
         getDiagnostics: getDashboardDiagnostics,
         reinitialize: reinitializeDashboard,
