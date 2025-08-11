@@ -56,13 +56,12 @@ let initializationStartTime = null;
  */
 export async function initializeWeeklyPerformance() {
     if (dashboardInitialized) {
-        console.warn('Dashboard already initialized');
+        // console.warn('Dashboard already initialized');
         return;
     }
 
     try {
         initializationStartTime = performance.now();
-        console.log('🚀 Initializing Weekly Performance Dashboard...');
 
         // 1. Verificar dependencias
         await verifyDependencies();
@@ -73,25 +72,21 @@ export async function initializeWeeklyPerformance() {
         }
 
         // 3. Inicializar selectores y UI
-        console.log('📅 Initializing selectors...');
         initializeSelectors();
 
         // 4. Inicializar sistema de eventos
-        console.log('⚡ Initializing event system...');
         initializeEventSystem();
 
         // 5. Configurar gestión de errores globales
         setupGlobalErrorHandling();
 
         // 6. Cargar datos iniciales
-        console.log('📊 Loading initial data...');
         await updateAllVisualizations();
 
         // 7. Finalizar inicialización
         completeInitialization();
 
     } catch (error) {
-        console.error('❌ Error initializing Weekly Performance Dashboard:', error);
         handleInitializationError(error);
     }
 }
@@ -104,63 +99,53 @@ export async function initializeWeeklyPerformance() {
  * Verifica que todas las dependencias necesarias estén disponibles
  */
 async function verifyDependencies() {
-    console.log('🔍 Verifying dependencies...');
-    
     const { available, missing } = checkLibraryAvailability();
-    
+
     // Dependencias críticas
     const criticalDependencies = ['moment', 'ApexCharts', 'jQuery'];
     const missingCritical = criticalDependencies.filter(dep => !available[dep]);
-    
+
     if (missingCritical.length > 0) {
         throw new Error(`Critical dependencies missing: ${missingCritical.join(', ')}`);
     }
-    
+
     // Dependencias opcionales
     const optionalDependencies = ['XLSX', 'jsPDF', 'Swal'];
     const missingOptional = optionalDependencies.filter(dep => !available[dep]);
-    
+
     if (missingOptional.length > 0) {
-        console.warn('⚠️ Optional dependencies missing:', missingOptional);
-        console.warn('Some features may be limited (export functionality)');
+        // console.warn('⚠️ Optional dependencies missing:', missingOptional);
+        // console.warn('Some features may be limited (export functionality)');
     }
-    
-    console.log('✅ Dependency verification completed');
 }
 
 /**
  * Configura el manejo global de errores
  */
 function setupGlobalErrorHandling() {
-    // Manejo de errores JavaScript no capturados
     window.addEventListener('error', function(event) {
-        console.error('💥 Global JavaScript error:', {
-            message: event.message,
-            filename: event.filename,
-            lineno: event.lineno,
-            colno: event.colno,
-            error: event.error
-        });
-        
-        // Solo mostrar al usuario errores críticos
+        // console.error('💥 Global JavaScript error:', {
+        //     message: event.message,
+        //     filename: event.filename,
+        //     lineno: event.lineno,
+        //     colno: event.colno,
+        //     error: event.error
+        // });
+
         if (event.message.includes('dashboard') || event.message.includes('chart')) {
             showErrorMessage('A technical error occurred. Please refresh the page.');
         }
     });
 
-    // Manejo de promesas rechazadas
     window.addEventListener('unhandledrejection', function(event) {
-        console.error('💥 Unhandled promise rejection:', event.reason);
+        // console.error('💥 Unhandled promise rejection:', event.reason);
         event.preventDefault();
-        
-        // Determinar si mostrar el error al usuario
+
         const reason = event.reason?.message || event.reason;
         if (typeof reason === 'string' && reason.includes('fetch')) {
             showErrorMessage('Network error occurred. Please check your connection.');
         }
     });
-    
-    console.log('🛡️ Global error handling configured');
 }
 
 /**
@@ -169,23 +154,19 @@ function setupGlobalErrorHandling() {
 function completeInitialization() {
     const initializationTime = performance.now() - initializationStartTime;
     dashboardInitialized = true;
-    
+
     // Validar elementos de tendencia
     import('./metrics.js').then(metricsModule => {
         metricsModule.validateTrendElements();
     });
-    
-    // Guardar timestamp de inicialización
+
     localStorage.setItem('dashboardInitialized', Date.now().toString());
-    
-    console.log(`✅ Weekly Performance Dashboard initialized successfully in ${initializationTime.toFixed(2)}ms`);
-    
+
     // Configurar refresh automático cada 30 minutos en producción
     if (window.location.hostname !== 'localhost') {
         setupAutoRefresh();
     }
-    
-    // Mostrar mensaje de éxito si está habilitado
+
     if (sessionStorage.getItem('showInitSuccess') === 'true') {
         showSuccessMessage(
             'Dashboard Ready',
@@ -194,8 +175,7 @@ function completeInitialization() {
         );
         sessionStorage.removeItem('showInitSuccess');
     }
-    
-    // Emitir evento de inicialización completada
+
     document.dispatchEvent(new CustomEvent('dashboardInitialized', {
         detail: {
             initializationTime: initializationTime,
@@ -254,21 +234,16 @@ function showErrorInterface(error) {
  */
 async function attemptBasicInitialization() {
     try {
-        console.log('🔄 Starting basic initialization...');
-        
         // Solo inicializar selectores básicos
         initializeSelectors();
-        
-        console.log('✅ Basic initialization completed');
-        
+
         showSuccessMessage(
             'Basic Mode Active',
             'Dashboard is running in basic mode. Some features may be limited.',
             5000
         );
-        
+
     } catch (fallbackError) {
-        console.error('❌ Even basic initialization failed:', fallbackError);
         showErrorMessage('Dashboard is currently unavailable. Please contact support.');
     }
 }
@@ -386,22 +361,16 @@ export function getDashboardDiagnostics() {
  */
 export async function reinitializeDashboard() {
     try {
-        console.log('🔄 Reinitializing dashboard...');
-        
-        // Marcar como no inicializado
         dashboardInitialized = false;
-        
-        // Limpiar datos en localStorage
+
         localStorage.removeItem('dashboardInitialized');
         localStorage.removeItem('lastDashboardUpdate');
-        
-        // Reinicializar
+
         await initializeWeeklyPerformance();
-        
+
         showSuccessMessage('Dashboard Reinitialized', 'Dashboard has been successfully reloaded');
-        
+
     } catch (error) {
-        console.error('❌ Reinitialization failed:', error);
         showErrorMessage('Failed to reinitialize dashboard: ' + error.message);
     }
 }
@@ -422,9 +391,6 @@ function enableDebugMode() {
             ]
         }
     };
-    
-    console.log('🐛 Debug mode enabled. Use window.dashboardDebug for debugging tools.');
-    console.log('Available commands:', Object.keys(window.dashboardDebug));
 }
 
 // ========================================================================
@@ -436,27 +402,23 @@ function enableDebugMode() {
  */
 document.addEventListener('DOMContentLoaded', async function() {
     try {
-        // Pequeño delay para asegurar que todas las dependencias estén cargadas
         await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // Verificar si ya se está inicializando
+
         if (window.dashboardInitializing) {
-            console.warn('Dashboard initialization already in progress');
+            // console.warn('Dashboard initialization already in progress');
             return;
         }
-        
+
         window.dashboardInitializing = true;
-        
-        // Inicializar dashboard
+
         await initializeWeeklyPerformance();
-        
-        // Habilitar debug en desarrollo
+
         if (window.location.hostname === 'localhost' || window.location.search.includes('debug=true')) {
             enableDebugMode();
         }
-        
+
     } catch (error) {
-        console.error('❌ Failed to start dashboard:', error);
+        // console.error('❌ Failed to start dashboard:', error);
     } finally {
         window.dashboardInitializing = false;
     }
