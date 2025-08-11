@@ -1246,7 +1246,7 @@ function renderCostAnalysisChart() {
 /**
  * Genera insights automáticos basados en los datos
  */
-function generateInsights() {
+export function generateInsights() {
     const container = document.getElementById('insightsContainer');
     if (!container || !weeklyData) return;
 

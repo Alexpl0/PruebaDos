@@ -1,372 +1,543 @@
 /**
- * SELECTORS.JS - MANEJO DE SELECTORES
- * Este módulo maneja el selector de semanas, navegación temporal
- * y el selector de plantas del dashboard.
+ * SUMMARY.JS - GENERACIÓN DE RESUMEN E INSIGHTS
+ * Este módulo maneja la generación del resumen semanal,
+ * análisis automático de insights y recomendaciones.
  */
 
-import { getCurrentWeek, setCurrentWeek, setSelectedPlant, getAvailablePlants } from './config.js';
-import { loadAvailablePlants } from './dataService.js';
-import { showErrorMessage, addEventListenerSafe } from './utils.js';
+import { getWeeklyData, getSelectedPlant, getCurrentWeek } from './config.js';
+import { formatNumber, safeUpdateElement } from './utils.js';
 
 // ========================================================================
-// INICIALIZACIÓN DE SELECTORES
-// ========================================================================
-
-/**
- * Inicializa el selector de semanas y plantas
- */
-export function initializeSelectors() {
-    updateWeekDisplay();
-    initializePlantSelector();
-    setupWeekNavigation();
-    setupPlantSelector();
-}
-
-/**
- * Configura la navegación de semanas
- */
-function setupWeekNavigation() {
-    const prevBtn = document.getElementById('prevWeek');
-    const nextBtn = document.getElementById('nextWeek');
-
-    if (prevBtn) {
-        addEventListenerSafe(prevBtn, 'click', handlePreviousWeek);
-    }
-
-    if (nextBtn) {
-        addEventListenerSafe(nextBtn, 'click', handleNextWeek);
-    }
-
-    // Añadir soporte para teclado
-    addEventListenerSafe(document, 'keydown', handleKeyboardNavigation);
-}
-
-/**
- * Configura el selector de plantas
- */
-function setupPlantSelector() {
-    const plantSelector = document.getElementById('plantSelector');
-    if (plantSelector) {
-        addEventListenerSafe(plantSelector, 'change', handlePlantChange);
-    }
-}
-
-// ========================================================================
-// MANEJO DE NAVEGACIÓN DE SEMANAS
+// GENERACIÓN DE RESUMEN SEMANAL
 // ========================================================================
 
 /**
- * Maneja la navegación a la semana anterior
+ * Genera la tabla de resumen semanal completa
  */
-function handlePreviousWeek() {
-    const currentWeek = getCurrentWeek();
-    const newWeek = {
-        start: moment(currentWeek.start).subtract(1, 'week'),
-        end: moment(currentWeek.end).subtract(1, 'week')
-    };
-    
-    newWeek.weekNumber = newWeek.start.isoWeek();
-    newWeek.year = newWeek.start.year();
-    
-    // Verificar límite hacia atrás (máximo 1 año)
-    const oneYearAgo = moment().subtract(1, 'year');
-    if (newWeek.start.isBefore(oneYearAgo, 'week')) {
-        showErrorMessage('Cannot navigate more than one year back');
-        return;
-    }
-    
-    setCurrentWeek(newWeek);
-    updateWeekDisplay();
-    
-    // Emitir evento para que otros módulos puedan reaccionar
-    dispatchWeekChangeEvent();
-}
-
-/**
- * Maneja la navegación a la semana siguiente
- */
-function handleNextWeek() {
-    const currentWeek = getCurrentWeek();
-    const nextWeekStart = moment(currentWeek.start).add(1, 'week');
-    const today = moment();
-
-    // No permitir navegación a semanas futuras
-    if (nextWeekStart.isAfter(today, 'week')) {
-        showErrorMessage('Cannot navigate to future weeks');
-        return;
-    }
-    
-    const newWeek = {
-        start: moment(currentWeek.start).add(1, 'week'),
-        end: moment(currentWeek.end).add(1, 'week')
-    };
-    
-    newWeek.weekNumber = newWeek.start.isoWeek();
-    newWeek.year = newWeek.start.year();
-    
-    setCurrentWeek(newWeek);
-    updateWeekDisplay();
-    
-    // Emitir evento para que otros módulos puedan reaccionar
-    dispatchWeekChangeEvent();
-}
-
-/**
- * Maneja la navegación por teclado
- */
-function handleKeyboardNavigation(e) {
-    // Solo activar si no estamos en un input o textarea
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+export function generateWeeklySummary() {
+    const container = document.getElementById('weeklySummaryContainer');
+    if (!container) {
+        console.error('Weekly summary container not found');
         return;
     }
 
-    if (e.ctrlKey || e.metaKey) {
-        switch (e.key) {
-            case 'ArrowLeft':
-                e.preventDefault();
-                handlePreviousWeek();
-                break;
-            case 'ArrowRight':
-                e.preventDefault();
-                handleNextWeek();
-                break;
-            case 'r':
-            case 'R':
-                e.preventDefault();
-                dispatchRefreshEvent();
-                break;
-        }
+    const weeklyData = getWeeklyData();
+    if (!weeklyData) {
+        showNoDataSummary(container);
+        return;
     }
+
+    const summaryHTML = buildSummaryHTML(weeklyData);
+    container.innerHTML = summaryHTML;
+    
+    console.log('Weekly summary generated successfully');
 }
 
 /**
- * Actualiza la visualización del selector de semanas
+ * Construye el HTML del resumen semanal
  */
-export function updateWeekDisplay() {
+function buildSummaryHTML(data) {
     const currentWeek = getCurrentWeek();
-    const weekDisplay = document.getElementById('weekDisplay');
-    const weekNumber = document.getElementById('weekNumber');
-    const weekDates = document.getElementById('weekDates');
-    const prevBtn = document.getElementById('prevWeek');
-    const nextBtn = document.getElementById('nextWeek');
+    const selectedPlant = getSelectedPlant();
     
-    // Información de la semana
     const weekInfo = `Week ${currentWeek.weekNumber} of ${currentWeek.year}`;
-    const weekDateRange = `${currentWeek.start.format('MMM DD')} - ${currentWeek.end.format('MMM DD')}`;
+    const weekRange = `${currentWeek.start.format('MMM DD')} - ${currentWeek.end.format('MMM DD, YYYY')}`;
+    const plantInfo = selectedPlant ? ` - ${selectedPlant}` : '';
     
-    // Actualizar elementos individuales si existen
-    if (weekNumber) {
-        weekNumber.textContent = weekInfo;
-    }
-    
-    if (weekDates) {
-        weekDates.textContent = weekDateRange;
-    }
-    
-    // Fallback: actualizar contenedor completo si los elementos individuales no existen
-    if (!weekNumber && !weekDates && weekDisplay) {
-        weekDisplay.innerHTML = `
-            <div class="week-info fw-bold">${weekInfo}</div>
-            <div class="week-dates">${weekDateRange}</div>
-        `;
-    }
-    
-    // Actualizar estado de botones de navegación
-    updateNavigationButtons(prevBtn, nextBtn);
+    return `
+        <div class="weekly-summary-container">
+            ${buildSummaryHeader(weekInfo, weekRange, plantInfo)}
+            <div class="kpis-content">
+                ${buildGeneralSummarySection(data)}
+                ${buildPerformanceHighlightsSection(data)}
+            </div>
+            ${buildSummaryFooter()}
+        </div>
+    `;
 }
 
 /**
- * Actualiza el estado de los botones de navegación
+ * Construye el header del resumen
  */
-function updateNavigationButtons(prevBtn, nextBtn) {
-    const currentWeek = getCurrentWeek();
-    const today = moment();
-    const nextWeekStart = moment(currentWeek.start).add(1, 'week');
-    const oneYearAgo = moment().subtract(1, 'year');
+function buildSummaryHeader(weekInfo, weekRange, plantInfo) {
+    return `
+        <div class="kpis-header">
+            <div class="kpis-header-content">
+                <h3 class="kpis-title">
+                    <i class="fas fa-chart-line me-2"></i>
+                    Weekly Performance Report
+                </h3>
+                <span class="kpis-subtitle">Premium Freight System | ${weekInfo} (${weekRange})${plantInfo}</span>
+            </div>
+            <div class="kpis-header-actions">
+                <div class="kpis-export-buttons">
+                    <button id="exportExcel" class="btn" disabled>
+                        <i class="fas fa-file-excel me-1"></i>Excel
+                    </button>
+                    <button id="exportPDF" class="btn" disabled>
+                        <i class="fas fa-file-pdf me-1"></i>PDF
+                    </button>
+                    <button id="printReport" class="btn" disabled>
+                        <i class="fas fa-print me-1"></i>Print
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Construye la sección de resumen general
+ */
+function buildGeneralSummarySection(data) {
+    return `
+        <div class="kpis-section">
+            <h4 class="section-title">
+                <i class="fas fa-chart-bar me-2"></i>
+                General Summary
+            </h4>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">Total Generated Requests</div>
+                    <div class="stat-value primary">${formatNumber(data.total_generated || 0)}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Orders Pending / In Progress</div>
+                    <div class="stat-value warning">${formatNumber(data.total_pending || 0)}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Total Approved Orders</div>
+                    <div class="stat-value success">${formatNumber(data.total_approved || 0)}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Total Rejected Orders</div>
+                    <div class="stat-value danger">${formatNumber(data.total_rejected || 0)}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Approval Rate (of processed orders)</div>
+                    <div class="stat-value info">${data.approval_rate || 0}%</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Total Cost of Approved Shipments</div>
+                    <div class="stat-value primary">€ ${formatNumber(data.total_cost || 0, 2)}</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Construye la sección de highlights de rendimiento
+ */
+function buildPerformanceHighlightsSection(data) {
+    return `
+        <div class="kpis-section">
+            <h4 class="section-title">
+                <i class="fas fa-star me-2"></i>
+                Performance Highlights (Based on Approved Orders)
+            </h4>
+            <div class="highlights-grid">
+                ${buildTopRequestingUserHighlight(data)}
+                ${buildTopSpendingAreaHighlight(data)}
+                ${buildSlowestApproverHighlight(data)}
+                ${buildAverageTimeHighlight(data)}
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Construye el highlight del top requesting user
+ */
+function buildTopRequestingUserHighlight(data) {
+    const topUser = data.top_requesting_user || {};
+    return `
+        <div class="highlight-item">
+            <div class="highlight-label">
+                <i class="fas fa-user-crown me-2"></i>
+                Top Requesting User
+            </div>
+            <div class="highlight-value">${topUser.name || 'N/A'}</div>
+            <div class="highlight-detail">
+                ${formatNumber(topUser.request_count || 0)} approved requests | Total Cost: € ${formatNumber(topUser.total_cost || 0, 2)}
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Construye el highlight del top spending area
+ */
+function buildTopSpendingAreaHighlight(data) {
+    const topArea = data.top_spending_area || {};
+    return `
+        <div class="highlight-item">
+            <div class="highlight-label">
+                <i class="fas fa-building me-2"></i>
+                Top Spending Area
+            </div>
+            <div class="highlight-value">${topArea.area || 'N/A'}</div>
+            <div class="highlight-detail">
+                Total Spent: € ${formatNumber(topArea.total_spent || 0, 2)}
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Construye el highlight del slowest approver
+ */
+function buildSlowestApproverHighlight(data) {
+    const slowestApprover = data.slowest_approver || {};
+    return `
+        <div class="highlight-item">
+            <div class="highlight-label">
+                <i class="fas fa-clock me-2"></i>
+                Longest Approval Step
+            </div>
+            <div class="highlight-value">${slowestApprover.name || 'N/A'}</div>
+            <div class="highlight-detail">
+                Avg. time taken: ${slowestApprover.duration_formatted || 'N/A'}
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Construye el highlight del average time
+ */
+function buildAverageTimeHighlight(data) {
+    return `
+        <div class="highlight-item">
+            <div class="highlight-label">
+                <i class="fas fa-stopwatch me-2"></i>
+                Average Approval Time
+            </div>
+            <div class="highlight-value">${data.average_approval_time || 'N/A'}</div>
+            <div class="highlight-detail">
+                Creation to Finish
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Construye el footer del resumen
+ */
+function buildSummaryFooter() {
+    const currentDate = new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
     
-    // Deshabilitar navegación futura
-    if (nextBtn) {
-        nextBtn.disabled = nextWeekStart.isAfter(today, 'week');
-        nextBtn.title = nextBtn.disabled ? 'Cannot navigate to future weeks' : 'Next week (Ctrl + →)';
-    }
-    
-    // Deshabilitar navegación muy hacia atrás
-    if (prevBtn) {
-        prevBtn.disabled = currentWeek.start.isBefore(oneYearAgo, 'week');
-        prevBtn.title = prevBtn.disabled ? 'Maximum history reached (1 year)' : 'Previous week (Ctrl + ←)';
-    }
+    return `
+        <div class="kpis-footer">
+            <small class="text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                This is an automated report generated on ${currentDate}
+            </small>
+        </div>
+    `;
+}
+
+/**
+ * Muestra mensaje cuando no hay datos
+ */
+function showNoDataSummary(container) {
+    container.innerHTML = `
+        <div class="weekly-summary-container">
+            <div class="kpis-header">
+                <div class="kpis-header-content">
+                    <h3 class="kpis-title">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Weekly Performance Report
+                    </h3>
+                    <span class="kpis-subtitle">No data available for the selected period</span>
+                </div>
+            </div>
+            <div class="kpis-content">
+                <div class="text-center p-5">
+                    <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No Data Available</h5>
+                    <p class="text-muted">Please select a different time period or plant, or ensure data has been loaded.</p>
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 // ========================================================================
-// MANEJO DEL SELECTOR DE PLANTAS
+// GENERACIÓN DE INSIGHTS AUTOMÁTICOS
 // ========================================================================
 
 /**
- * Inicializa el selector de plantas
+ * Genera insights automáticos basados en los datos
  */
-export async function initializePlantSelector() {
-    try {
-        console.log('Loading plants for selector...');
-        const plantsData = await loadAvailablePlants();
-        const plantSelector = document.getElementById('plantSelector');
-        
-        if (!plantSelector) {
-            console.error('Plant selector element not found');
-            return;
-        }
-        
-        populatePlantSelector(plantSelector, plantsData);
-        
-    } catch (error) {
-        console.error('Error loading plants:', error);
+export function generateInsights() {
+    const container = document.getElementById('insightsContainer');
+    if (!container) {
+        console.error('Insights container not found');
+        return;
     }
+
+    const weeklyData = getWeeklyData();
+    if (!weeklyData) {
+        showNoInsights(container);
+        return;
+    }
+
+    const insights = analyzeData(weeklyData);
+    const insightsHTML = buildInsightsHTML(insights);
+    container.innerHTML = insightsHTML;
+    
+    console.log('Insights generated:', insights);
 }
 
 /**
- * Llena el selector de plantas con los datos
+ * Analiza los datos y genera insights
  */
-function populatePlantSelector(selector, plantsData) {
-    // Limpiar opciones existentes excepto "All Plants"
-    selector.innerHTML = '<option value="">All Plants</option>';
+function analyzeData(data) {
+    const insights = [];
+
+    // Análisis de approval rate
+    insights.push(...analyzeApprovalRate(data));
     
-    console.log('Plants loaded for selector:', plantsData);
+    // Análisis de top performers
+    insights.push(...analyzeTopPerformers(data));
     
-    // Añadir plantas disponibles
-    if (plantsData && plantsData.length > 0) {
-        plantsData.forEach(plant => {
-            const option = document.createElement('option');
-            option.value = plant;
-            option.textContent = plant;
-            selector.appendChild(option);
+    // Análisis de costos
+    insights.push(...analyzeCosts(data));
+    
+    // Análisis de tiempos
+    insights.push(...analyzeApprovalTimes(data));
+    
+    // Análisis de actividad
+    insights.push(...analyzeActivity(data));
+
+    // Si no hay insights, agregar mensaje por defecto
+    if (insights.length === 0) {
+        insights.push({
+            type: 'info',
+            title: 'Performance Analysis',
+            description: 'All metrics are within normal ranges. Continue monitoring for trends.',
+            priority: 'low'
         });
-        console.log('Plant selector populated with', plantsData.length, 'plants');
-    } else {
-        console.warn('No plants found or plants data is empty');
-        
-        // Añadir opción de "No plants available"
-        const noDataOption = document.createElement('option');
-        noDataOption.value = '';
-        noDataOption.textContent = 'No plants available';
-        noDataOption.disabled = true;
-        selector.appendChild(noDataOption);
     }
+
+    return insights;
 }
 
 /**
- * Maneja el cambio en el selector de plantas
+ * Analiza la tasa de aprobación
  */
-function handlePlantChange(e) {
-    const selectedPlant = e.target.value;
-    setSelectedPlant(selectedPlant);
-    console.log('Plant selected:', selectedPlant);
+function analyzeApprovalRate(data) {
+    const insights = [];
+    const approvalRate = data.approval_rate || 0;
+
+    if (approvalRate > 90) {
+        insights.push({
+            type: 'positive',
+            title: 'Excellent Approval Rate',
+            description: `Your approval rate of ${approvalRate}% is excellent and above industry standards.`,
+            priority: 'high'
+        });
+    } else if (approvalRate > 80) {
+        insights.push({
+            type: 'positive',
+            title: 'Good Approval Rate',
+            description: `Approval rate of ${approvalRate}% is above average and performing well.`,
+            priority: 'medium'
+        });
+    } else if (approvalRate < 60) {
+        insights.push({
+            type: 'warning',
+            title: 'Low Approval Rate Alert',
+            description: `Consider reviewing request quality - current approval rate of ${approvalRate}% could be improved.`,
+            priority: 'high'
+        });
+    } else if (approvalRate < 75) {
+        insights.push({
+            type: 'info',
+            title: 'Approval Rate Opportunity',
+            description: `Approval rate of ${approvalRate}% has room for improvement. Consider request quality training.`,
+            priority: 'medium'
+        });
+    }
+
+    return insights;
+}
+
+/**
+ * Analiza los top performers
+ */
+function analyzeTopPerformers(data) {
+    const insights = [];
     
-    // Emitir evento para que otros módulos puedan reaccionar
-    dispatchPlantChangeEvent(selectedPlant);
+    if (data.top_requesting_user && data.top_requesting_user.name !== 'N/A') {
+        const topUser = data.top_requesting_user;
+        insights.push({
+            type: 'positive',
+            title: 'Top Performer Identified',
+            description: `${topUser.name} is leading with ${topUser.request_count} approved requests, contributing €${formatNumber(topUser.total_cost, 2)} in value.`,
+            priority: 'medium'
+        });
+    }
+
+    return insights;
+}
+
+/**
+ * Analiza los costos
+ */
+function analyzeCosts(data) {
+    const insights = [];
+    const totalCost = data.total_cost || 0;
+    const totalRequests = data.total_generated || 0;
+    const avgCostPerRequest = totalRequests > 0 ? totalCost / totalRequests : 0;
+
+    if (totalCost > 10000) {
+        insights.push({
+            type: 'warning',
+            title: 'High Cost Alert',
+            description: `Total cost of €${formatNumber(totalCost, 2)} is notably high. Consider cost optimization strategies.`,
+            priority: 'high'
+        });
+    }
+
+    if (avgCostPerRequest > 500) {
+        insights.push({
+            type: 'info',
+            title: 'High Average Cost',
+            description: `Average cost per request (€${formatNumber(avgCostPerRequest, 2)}) is above normal. Review pricing strategies.`,
+            priority: 'medium'
+        });
+    }
+
+    return insights;
+}
+
+/**
+ * Analiza los tiempos de aprobación
+ */
+function analyzeApprovalTimes(data) {
+    const insights = [];
+    
+    if (data.slowest_approver && data.slowest_approver.name !== 'N/A') {
+        insights.push({
+            type: 'info',
+            title: 'Approval Time Opportunity',
+            description: `${data.slowest_approver.name} is taking longer than average (${data.slowest_approver.duration_formatted}). Consider workflow optimization.`,
+            priority: 'medium'
+        });
+    }
+
+    return insights;
+}
+
+/**
+ * Analiza la actividad general
+ */
+function analyzeActivity(data) {
+    const insights = [];
+    const totalRequests = data.total_generated || 0;
+
+    if (totalRequests === 0) {
+        insights.push({
+            type: 'warning',
+            title: 'No Activity',
+            description: 'No requests were generated this week. Consider investigating system usage or user engagement.',
+            priority: 'high'
+        });
+    } else if (totalRequests < 5) {
+        insights.push({
+            type: 'info',
+            title: 'Low Activity',
+            description: 'Very few requests generated this week. Consider investigating system usage patterns.',
+            priority: 'medium'
+        });
+    } else if (totalRequests > 100) {
+        insights.push({
+            type: 'positive',
+            title: 'High Activity',
+            description: `Excellent engagement with ${totalRequests} requests generated. System is being well utilized.`,
+            priority: 'low'
+        });
+    }
+
+    return insights;
+}
+
+/**
+ * Construye el HTML de los insights
+ */
+function buildInsightsHTML(insights) {
+    // Ordenar insights por prioridad
+    const sortedInsights = insights.sort((a, b) => {
+        const priorityOrder = { high: 3, medium: 2, low: 1 };
+        return priorityOrder[b.priority] - priorityOrder[a.priority];
+    });
+
+    return sortedInsights.map(insight => `
+        <div class="insight-item ${insight.type}">
+            <div class="insight-header">
+                <div class="insight-title">${insight.title}</div>
+                <div class="insight-priority priority-${insight.priority}">${insight.priority}</div>
+            </div>
+            <div class="insight-description">${insight.description}</div>
+        </div>
+    `).join('');
+}
+
+/**
+ * Muestra mensaje cuando no hay insights
+ */
+function showNoInsights(container) {
+    container.innerHTML = `
+        <div class="text-center p-4">
+            <i class="fas fa-lightbulb fa-2x text-muted mb-3"></i>
+            <p class="text-muted">No insights available. Load data to generate automatic analysis.</p>
+        </div>
+    `;
 }
 
 // ========================================================================
-// OBTENCIÓN DE VALORES ACTUALES
+// FUNCIONES DE EXPORTACIÓN DE DATOS DEL RESUMEN
 // ========================================================================
 
 /**
- * Obtiene el rango de fechas actual para mostrar en la UI
+ * Prepara los datos del resumen para exportación
  */
-export function getCurrentDateRangeForDisplay() {
+export function prepareSummaryForExport() {
+    const data = getWeeklyData();
+    if (!data) return null;
+
     const currentWeek = getCurrentWeek();
+    const selectedPlant = getSelectedPlant();
+
     return {
-        weekNumber: currentWeek.weekNumber,
-        year: currentWeek.year,
-        startDate: currentWeek.start.format('MMM DD'),
-        endDate: currentWeek.end.format('MMM DD, YYYY'),
-        fullRange: `${currentWeek.start.format('MMM DD')} - ${currentWeek.end.format('MMM DD, YYYY')}`
+        metadata: {
+            week: currentWeek.weekNumber,
+            year: currentWeek.year,
+            dateRange: `${currentWeek.start.format('YYYY-MM-DD')} to ${currentWeek.end.format('YYYY-MM-DD')}`,
+            plant: selectedPlant || 'All Plants',
+            generatedAt: new Date().toISOString()
+        },
+        summary: {
+            totalGenerated: data.total_generated || 0,
+            totalPending: data.total_pending || 0,
+            totalApproved: data.total_approved || 0,
+            totalRejected: data.total_rejected || 0,
+            approvalRate: data.approval_rate || 0,
+            totalCost: data.total_cost || 0,
+            averageApprovalTime: data.average_approval_time || 'N/A'
+        },
+        highlights: {
+            topRequestingUser: data.top_requesting_user || {},
+            topSpendingArea: data.top_spending_area || {},
+            slowestApprover: data.slowest_approver || {},
+            averageTime: data.average_approval_time || 'N/A'
+        },
+        insights: analyzeData(data)
     };
-}
-
-/**
- * Obtiene la información de la planta seleccionada
- */
-export function getSelectedPlantInfo() {
-    const availablePlants = getAvailablePlants();
-    const plantSelector = document.getElementById('plantSelector');
-    
-    return {
-        selected: plantSelector ? plantSelector.value : '',
-        available: availablePlants,
-        hasSelection: plantSelector ? plantSelector.value !== '' : false
-    };
-}
-
-// ========================================================================
-// EVENTOS PERSONALIZADOS
-// ========================================================================
-
-/**
- * Emite evento cuando cambia la semana
- */
-function dispatchWeekChangeEvent() {
-    const event = new CustomEvent('weekChanged', {
-        detail: {
-            week: getCurrentWeek(),
-            dateRange: getCurrentDateRangeForDisplay()
-        }
-    });
-    document.dispatchEvent(event);
-}
-
-/**
- * Emite evento cuando cambia la planta
- */
-function dispatchPlantChangeEvent(selectedPlant) {
-    const event = new CustomEvent('plantChanged', {
-        detail: {
-            plant: selectedPlant,
-            plantInfo: getSelectedPlantInfo()
-        }
-    });
-    document.dispatchEvent(event);
-}
-
-/**
- * Emite evento de refresh
- */
-function dispatchRefreshEvent() {
-    const event = new CustomEvent('dataRefreshRequested', {
-        detail: {
-            timestamp: new Date(),
-            source: 'keyboard'
-        }
-    });
-    document.dispatchEvent(event);
-}
-
-// ========================================================================
-// FUNCIONES DE UTILIDAD PARA SELECTORES
-// ========================================================================
-
-/**
- * Resetea el selector de plantas a "All Plants"
- */
-export function resetPlantSelector() {
-    const plantSelector = document.getElementById('plantSelector');
-    if (plantSelector) {
-        plantSelector.value = '';
-        setSelectedPlant('');
-        dispatchPlantChangeEvent('');
-    }
-}
-
-/**
- * Establece la semana actual a hoy
- */
-export function goToCurrentWeek() {
-    const currentWeek = {
-        start: moment().startOf('isoWeek'),
-        end: moment().endOf('isoWeek'),
-        weekNumber: moment().isoWeek(),
-        year: moment().year()
-    };
-    
-    setCurrentWeek(currentWeek);
-    updateWeekDisplay();
-    dispatchWeekChangeEvent();
 }

@@ -1,18 +1,16 @@
 <?php
 /**
- * daoWeeklyKPIs.php
+ * daoWeeklyKPIs.php - CORREGIDO
  * 
  * Endpoint específico para obtener las estadísticas detalladas semanales
  * que alimentan la tabla de KPIs detallados del dashboard.
- * 
- * Este endpoint replica la funcionalidad de PFWeeklyReporter.php
- * pero adaptado para trabajar con la estructura del dashboard actual.
- * 
- * @author      GRAMMER AG
- * @since       2025-07-28
  */
 
 header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+
 include_once('../db/PFDB.php');
 
 // Verificar que el usuario esté autenticado
@@ -76,56 +74,31 @@ try {
     }
     
     $stmt = $conex->prepare($orderStatsSql);
+    if (!$stmt) {
+        throw new Exception("Error preparing order stats query: " . $conex->error);
+    }
+    
     $stmt->bind_param($paramTypes, ...$params);
     $stmt->execute();
     $orderStats = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
 
-    // Si no hay datos, inicializa con ceros o valores vacíos
+    // Inicializar con valores por defecto si no hay datos
     if (!$orderStats) {
         $orderStats = [
             'total_generated' => 0,
             'approved_count' => 0,
             'rejected_count' => 0,
             'pending_count' => 0,
-            'total_cost' => 0,
-            'approval_rate' => 0,
-            'average_approval_time_seconds' => 0
-        ];
-    }
-
-    if (!$topUser) {
-        $topUser = [
-            'name' => 'N/A',
-            'request_count' => 0,
             'total_cost' => 0
         ];
     }
 
-    if (!$topArea) {
-        $topArea = [
-            'area' => 'N/A',
-            'total_spent' => 0
-        ];
-    }
-
-    if (!$avgTimeResult || !isset($avgTimeResult['avg_total_seconds'])) {
-        $avgApprovalTime = 'N/A';
-    } else {
-        $avgApprovalTime = formatTime($avgTimeResult['avg_total_seconds']);
-    }
-
-    if (empty($topPerformers)) {
-        $topPerformers = [];
-    }
-    if (empty($areaPerformance)) {
-        $areaPerformance = [];
-    }
-    if (empty($approvalTimes)) {
-        $approvalTimes = [];
-    }
-    if (empty($dailyCosts)) {
-        $dailyCosts = [];
-    }
+    // Calcular approval rate
+    $approved = (int)($orderStats['approved_count'] ?? 0);
+    $rejected = (int)($orderStats['rejected_count'] ?? 0);
+    $totalProcessed = $approved + $rejected;
+    $approvalRate = ($totalProcessed > 0) ? round(($approved / $totalProcessed) * 100, 1) : 0;
 
     // ================== TOP REQUESTING USER ==================
     
@@ -139,20 +112,20 @@ try {
                     WHERE pf.date BETWEEN ? AND ? 
                     AND st.name IN ('approved', 'aprobado')";
     
-    // Construir parámetros dinámicamente
-    $params = [$startDate, $endDate];
-    $paramTypes = "ss";
+    // Reconstruir parámetros para esta consulta
+    $userParams = [$startDate, $endDate];
+    $userParamTypes = "ss";
     
     if ($userPlant !== null && $userPlant !== '') {
         $topUserSql .= " AND u.plant = ?";
-        $params[] = $userPlant;
-        $paramTypes .= "s";
+        $userParams[] = $userPlant;
+        $userParamTypes .= "s";
     }
     
     if ($filterPlant !== null && $filterPlant !== '') {
         $topUserSql .= " AND u.plant = ?";
-        $params[] = $filterPlant;
-        $paramTypes .= "s";
+        $userParams[] = $filterPlant;
+        $userParamTypes .= "s";
     }
     
     $topUserSql .= " GROUP BY pf.user_id, u.name
@@ -160,9 +133,23 @@ try {
                      LIMIT 1";
     
     $stmt = $conex->prepare($topUserSql);
-    $stmt->bind_param($paramTypes, ...$params);
-    $stmt->execute();
-    $topUser = $stmt->get_result()->fetch_assoc();
+    if ($stmt) {
+        $stmt->bind_param($userParamTypes, ...$userParams);
+        $stmt->execute();
+        $topUser = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+    } else {
+        $topUser = null;
+    }
+
+    // Inicializar con valores por defecto si no hay datos
+    if (!$topUser) {
+        $topUser = [
+            'name' => 'N/A',
+            'request_count' => 0,
+            'total_cost' => 0
+        ];
+    }
 
     // ================== TOP SPENDING AREA ==================
     
@@ -176,20 +163,20 @@ try {
                     WHERE pf.date BETWEEN ? AND ? 
                     AND st.name IN ('approved', 'aprobado')";
     
-    // Construir parámetros dinámicamente
-    $params = [$startDate, $endDate];
-    $paramTypes = "ss";
+    // Reconstruir parámetros para esta consulta
+    $areaParams = [$startDate, $endDate];
+    $areaParamTypes = "ss";
     
     if ($userPlant !== null && $userPlant !== '') {
         $topAreaSql .= " AND u.plant = ?";
-        $params[] = $userPlant;
-        $paramTypes .= "s";
+        $areaParams[] = $userPlant;
+        $areaParamTypes .= "s";
     }
     
     if ($filterPlant !== null && $filterPlant !== '') {
         $topAreaSql .= " AND u.plant = ?";
-        $params[] = $filterPlant;
-        $paramTypes .= "s";
+        $areaParams[] = $filterPlant;
+        $areaParamTypes .= "s";
     }
     
     $topAreaSql .= " GROUP BY COALESCE(pf.area, u.plant)
@@ -197,9 +184,22 @@ try {
                      LIMIT 1";
     
     $stmt = $conex->prepare($topAreaSql);
-    $stmt->bind_param($paramTypes, ...$params);
-    $stmt->execute();
-    $topArea = $stmt->get_result()->fetch_assoc();
+    if ($stmt) {
+        $stmt->bind_param($areaParamTypes, ...$areaParams);
+        $stmt->execute();
+        $topArea = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+    } else {
+        $topArea = null;
+    }
+
+    // Inicializar con valores por defecto si no hay datos
+    if (!$topArea) {
+        $topArea = [
+            'area' => 'N/A',
+            'total_spent' => 0
+        ];
+    }
 
     // ================== AVERAGE APPROVAL TIME ==================
     
@@ -213,30 +213,37 @@ try {
                     AND st.name IN ('approved', 'aprobado')
                     AND pfa.approval_date IS NOT NULL";
     
-    // Construir parámetros dinámicamente
-    $params = [$startDate, $endDate];
-    $paramTypes = "ss";
+    // Reconstruir parámetros para esta consulta
+    $timeParams = [$startDate, $endDate];
+    $timeParamTypes = "ss";
     
     if ($userPlant !== null && $userPlant !== '') {
         $avgTimeSql .= " AND u.plant = ?";
-        $params[] = $userPlant;
-        $paramTypes .= "s";
+        $timeParams[] = $userPlant;
+        $timeParamTypes .= "s";
     }
     
     if ($filterPlant !== null && $filterPlant !== '') {
         $avgTimeSql .= " AND u.plant = ?";
-        $params[] = $filterPlant;
-        $paramTypes .= "s";
+        $timeParams[] = $filterPlant;
+        $timeParamTypes .= "s";
     }
     
     $stmt = $conex->prepare($avgTimeSql);
-    $stmt->bind_param($paramTypes, ...$params);
-    $stmt->execute();
-    $avgTimeResult = $stmt->get_result()->fetch_assoc();
+    if ($stmt) {
+        $stmt->bind_param($timeParamTypes, ...$timeParams);
+        $stmt->execute();
+        $avgTimeResult = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+    } else {
+        $avgTimeResult = null;
+    }
     
     $avgApprovalTime = 'N/A';
+    $avgApprovalTimeSeconds = null;
     if ($avgTimeResult && $avgTimeResult['avg_total_seconds'] !== null) {
-        $avgApprovalTime = formatTime($avgTimeResult['avg_total_seconds']);
+        $avgApprovalTimeSeconds = (float)$avgTimeResult['avg_total_seconds'];
+        $avgApprovalTime = formatTime($avgApprovalTimeSeconds);
     }
 
     // ================== SLOWEST APPROVER ==================
@@ -254,20 +261,20 @@ try {
                             AND st.name IN ('approved', 'aprobado')
                             AND pfa.approval_date IS NOT NULL";
     
-    // Construir parámetros dinámicamente
-    $params = [$startDate, $endDate];
-    $paramTypes = "ss";
+    // Reconstruir parámetros para esta consulta
+    $slowestParams = [$startDate, $endDate];
+    $slowestParamTypes = "ss";
     
     if ($userPlant !== null && $userPlant !== '') {
         $slowestApproverSql .= " AND u_creator.plant = ?";
-        $params[] = $userPlant;
-        $paramTypes .= "s";
+        $slowestParams[] = $userPlant;
+        $slowestParamTypes .= "s";
     }
     
     if ($filterPlant !== null && $filterPlant !== '') {
         $slowestApproverSql .= " AND u_creator.plant = ?";
-        $params[] = $filterPlant;
-        $paramTypes .= "s";
+        $slowestParams[] = $filterPlant;
+        $slowestParamTypes .= "s";
     }
     
     $slowestApproverSql .= " GROUP BY u_approver.name
@@ -276,9 +283,13 @@ try {
                             LIMIT 1";
     
     $stmt = $conex->prepare($slowestApproverSql);
-    $stmt->bind_param($paramTypes, ...$params);
-    $stmt->execute();
-    $slowestApprover = $stmt->get_result()->fetch_assoc();
+    $slowestApprover = null;
+    if ($stmt) {
+        $stmt->bind_param($slowestParamTypes, ...$slowestParams);
+        $stmt->execute();
+        $slowestApprover = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+    }
     
     $slowestApproverFormatted = [
         'name' => 'N/A',
@@ -304,34 +315,37 @@ try {
                         WHERE pf.date BETWEEN ? AND ? 
                         AND st.name IN ('approved', 'aprobado')";
     
-    // Construir parámetros dinámicamente
-    $params = [$startDate, $endDate];
-    $paramTypes = "ss";
+    // Reconstruir parámetros para esta consulta
+    $performersParams = [$startDate, $endDate];
+    $performersParamTypes = "ss";
     
     if ($userPlant !== null && $userPlant !== '') {
         $topPerformersSql .= " AND u.plant = ?";
-        $params[] = $userPlant;
-        $paramTypes .= "s";
+        $performersParams[] = $userPlant;
+        $performersParamTypes .= "s";
     }
     
     if ($filterPlant !== null && $filterPlant !== '') {
         $topPerformersSql .= " AND u.plant = ?";
-        $params[] = $filterPlant;
-        $paramTypes .= "s";
+        $performersParams[] = $filterPlant;
+        $performersParamTypes .= "s";
     }
     
     $topPerformersSql .= " GROUP BY pf.user_id, u.name
                           ORDER BY approved_requests DESC
                           LIMIT 10";
     
-    $stmt = $conex->prepare($topPerformersSql);
-    $stmt->bind_param($paramTypes, ...$params);
-    $stmt->execute();
-    $topPerformersResult = $stmt->get_result();
-    
     $topPerformers = [];
-    while ($row = $topPerformersResult->fetch_assoc()) {
-        $topPerformers[] = $row;
+    $stmt = $conex->prepare($topPerformersSql);
+    if ($stmt) {
+        $stmt->bind_param($performersParamTypes, ...$performersParams);
+        $stmt->execute();
+        $topPerformersResult = $stmt->get_result();
+        
+        while ($row = $topPerformersResult->fetch_assoc()) {
+            $topPerformers[] = $row;
+        }
+        $stmt->close();
     }
 
     // ================== DATOS PARA GRÁFICAS - AREA PERFORMANCE ==================
@@ -346,34 +360,37 @@ try {
                         WHERE pf.date BETWEEN ? AND ? 
                         AND st.name IN ('approved', 'aprobado')";
     
-    // Construir parámetros dinámicamente
-    $params = [$startDate, $endDate];
-    $paramTypes = "ss";
+    // Reconstruir parámetros para esta consulta
+    $areaPerformanceParams = [$startDate, $endDate];
+    $areaPerformanceParamTypes = "ss";
     
     if ($userPlant !== null && $userPlant !== '') {
         $areaPerformanceSql .= " AND u.plant = ?";
-        $params[] = $userPlant;
-        $paramTypes .= "s";
+        $areaPerformanceParams[] = $userPlant;
+        $areaPerformanceParamTypes .= "s";
     }
     
     if ($filterPlant !== null && $filterPlant !== '') {
         $areaPerformanceSql .= " AND u.plant = ?";
-        $params[] = $filterPlant;
-        $paramTypes .= "s";
+        $areaPerformanceParams[] = $filterPlant;
+        $areaPerformanceParamTypes .= "s";
     }
     
     $areaPerformanceSql .= " GROUP BY COALESCE(pf.area, 'Unknown Area')
                             ORDER BY total_cost DESC
                             LIMIT 10";
     
-    $stmt = $conex->prepare($areaPerformanceSql);
-    $stmt->bind_param($paramTypes, ...$params);
-    $stmt->execute();
-    $areaPerformanceResult = $stmt->get_result();
-    
     $areaPerformance = [];
-    while ($row = $areaPerformanceResult->fetch_assoc()) {
-        $areaPerformance[] = $row;
+    $stmt = $conex->prepare($areaPerformanceSql);
+    if ($stmt) {
+        $stmt->bind_param($areaPerformanceParamTypes, ...$areaPerformanceParams);
+        $stmt->execute();
+        $areaPerformanceResult = $stmt->get_result();
+        
+        while ($row = $areaPerformanceResult->fetch_assoc()) {
+            $areaPerformance[] = $row;
+        }
+        $stmt->close();
     }
 
     // ================== DATOS PARA GRÁFICAS - APPROVAL TIME DISTRIBUTION ==================
@@ -395,36 +412,39 @@ try {
                         AND st.name IN ('approved', 'aprobado')
                         AND pfa.approval_date IS NOT NULL";
     
-    // Construir parámetros dinámicamente
-    $params = [$startDate, $endDate];
-    $paramTypes = "ss";
+    // Reconstruir parámetros para esta consulta
+    $approvalTimesParams = [$startDate, $endDate];
+    $approvalTimesParamTypes = "ss";
     
     if ($userPlant !== null && $userPlant !== '') {
         $approvalTimesSql .= " AND u.plant = ?";
-        $params[] = $userPlant;
-        $paramTypes .= "s";
+        $approvalTimesParams[] = $userPlant;
+        $approvalTimesParamTypes .= "s";
     }
     
     if ($filterPlant !== null && $filterPlant !== '') {
         $approvalTimesSql .= " AND u.plant = ?";
-        $params[] = $filterPlant;
-        $paramTypes .= "s";
+        $approvalTimesParams[] = $filterPlant;
+        $approvalTimesParamTypes .= "s";
     }
     
     $approvalTimesSql .= " GROUP BY time_category
                           ORDER BY FIELD(time_category, '< 1 Hour', '1-4 Hours', '4-24 Hours', '> 24 Hours')";
     
-    $stmt = $conex->prepare($approvalTimesSql);
-    $stmt->bind_param($paramTypes, ...$params);
-    $stmt->execute();
-    $approvalTimesResult = $stmt->get_result();
-    
     $approvalTimes = [];
-    while ($row = $approvalTimesResult->fetch_assoc()) {
-        $approvalTimes[] = $row;
+    $stmt = $conex->prepare($approvalTimesSql);
+    if ($stmt) {
+        $stmt->bind_param($approvalTimesParamTypes, ...$approvalTimesParams);
+        $stmt->execute();
+        $approvalTimesResult = $stmt->get_result();
+        
+        while ($row = $approvalTimesResult->fetch_assoc()) {
+            $approvalTimes[] = $row;
+        }
+        $stmt->close();
     }
 
-    // ================== DATOS PARA GRÁFICAS - DAILY COST ANALYSIS (SOLO APROBADOS) ==================
+    // ================== DATOS PARA GRÁFICAS - DAILY COST ANALYSIS ==================
     
     $dailyCostSql = "SELECT 
                         DATE(pf.date) as approval_date,
@@ -436,53 +456,37 @@ try {
                     WHERE pf.date BETWEEN ? AND ?
                     AND st.name IN ('approved', 'aprobado')";
     
-    // Construir parámetros dinámicamente
-    $params = [$startDate, $endDate];
-    $paramTypes = "ss";
+    // Reconstruir parámetros para esta consulta
+    $dailyCostParams = [$startDate, $endDate];
+    $dailyCostParamTypes = "ss";
     
     if ($userPlant !== null && $userPlant !== '') {
         $dailyCostSql .= " AND u.plant = ?";
-        $params[] = $userPlant;
-        $paramTypes .= "s";
+        $dailyCostParams[] = $userPlant;
+        $dailyCostParamTypes .= "s";
     }
     
     if ($filterPlant !== null && $filterPlant !== '') {
         $dailyCostSql .= " AND u.plant = ?";
-        $params[] = $filterPlant;
-        $paramTypes .= "s";
+        $dailyCostParams[] = $filterPlant;
+        $dailyCostParamTypes .= "s";
     }
     
     $dailyCostSql .= " GROUP BY DATE(pf.date)
                       ORDER BY approval_date";
     
-    $stmt = $conex->prepare($dailyCostSql);
-    $stmt->bind_param($paramTypes, ...$params);
-    $stmt->execute();
-    $dailyCostResult = $stmt->get_result();
-    
     $dailyCosts = [];
-    while ($row = $dailyCostResult->fetch_assoc()) {
-        $dailyCosts[] = $row;
+    $stmt = $conex->prepare($dailyCostSql);
+    if ($stmt) {
+        $stmt->bind_param($dailyCostParamTypes, ...$dailyCostParams);
+        $stmt->execute();
+        $dailyCostResult = $stmt->get_result();
+        
+        while ($row = $dailyCostResult->fetch_assoc()) {
+            $dailyCosts[] = $row;
+        }
+        $stmt->close();
     }
-
-    // ================== OBTENER ESTADÍSTICAS PARA AMBAS SEMANAS ==================
-    
-    // Calcular rango de la semana anterior para tendencias
-    $prevWeekStartDate = date('Y-m-d H:i:s', strtotime($startDate . ' -7 days'));
-    $prevWeekEndDate = date('Y-m-d H:i:s', strtotime($startDate . ' -1 second'));
-
-    $currentWeekStats = getSummaryStats($conex, $startDate, $endDate, $userPlant, $filterPlant);
-    $previousWeekStats = getSummaryStats($conex, $prevWeekStartDate, $prevWeekEndDate, $userPlant, $filterPlant);
-
-    // Reemplazar los valores antiguos con los de la semana actual
-    $orderStats = [
-        'total_generated' => $currentWeekStats['total_generated'],
-        'approved_count' => $currentWeekStats['approved_count'],
-        'rejected_count' => $currentWeekStats['rejected_count'],
-        'total_cost' => $currentWeekStats['total_cost']
-    ];
-    $approvalRate = $currentWeekStats['approval_rate'];
-    $avgTimeResult = ['avg_total_seconds' => $currentWeekStats['average_approval_time_seconds']];
 
     // ================== PREPARAR RESPUESTA ==================
     
@@ -496,23 +500,14 @@ try {
             'total_cost' => (float)($orderStats['total_cost'] ?? 0),
             'approval_rate' => $approvalRate,
             'average_approval_time' => $avgApprovalTime,
-            'average_approval_time_seconds' => $currentWeekStats['average_approval_time_seconds'],
+            'average_approval_time_seconds' => $avgApprovalTimeSeconds,
             'top_requesting_user' => $topUser,
             'top_spending_area' => $topArea,
             'slowest_approver' => $slowestApproverFormatted,
             'top_performers' => $topPerformers,
             'area_performance' => $areaPerformance,
             'approval_times_distribution' => $approvalTimes,
-            'daily_costs' => $dailyCosts,
-            'trends_data' => [
-                'total_generated' => $previousWeekStats['total_generated'],
-                'total_cost' => $previousWeekStats['total_cost'],
-                'approval_rate' => $previousWeekStats['approval_rate'],
-                'average_approval_time' => formatTime($previousWeekStats['average_approval_time_seconds']),
-                'top_requesting_user' => $topUser,
-                'top_spending_area' => $topArea,
-                'slowest_approver' => $slowestApproverFormatted
-            ]
+            'daily_costs' => $dailyCosts
         ],
         'date_range' => [
             'start' => $startDate,
@@ -535,23 +530,25 @@ try {
     }
 
     echo json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-
-    $stmt->close();
     $conex->close();
 
 } catch (Exception $e) {
-    http_response_code(200);
+    error_log("Error in daoWeeklyKPIs.php: " . $e->getMessage());
+    
+    http_response_code(500);
     echo json_encode([
-        'status' => 'success',
-        'data' => [],
-        'message' => 'No data available for the selected plant and date range.'
+        'status' => 'error',
+        'message' => 'Database error: ' . $e->getMessage(),
+        'debug' => [
+            'file' => __FILE__,
+            'line' => __LINE__,
+            'error_trace' => $e->getTraceAsString()
+        ]
     ]);
 }
 
 /**
  * Formatea segundos en una cadena legible (Días, Horas, Minutos)
- * @param int $seconds
- * @return string
  */
 function formatTime($seconds) {
     if ($seconds === null || $seconds < 0) return "N/A";
@@ -567,78 +564,5 @@ function formatTime($seconds) {
     if ($minutes > 0) $formatted .= "{$minutes}m";
     
     return trim($formatted) ?: "0m";
-}
-
-/**
- * Obtiene las estadísticas de resumen para un rango de fechas y planta dados.
- * @param mysqli $conex Conexión a la base de datos
- * @param string $startDate Fecha de inicio
- * @param string $endDate Fecha de fin
- * @param string|null $userPlant Planta del usuario
- * @param string|null $filterPlant Planta del filtro
- * @return array Estadísticas de resumen
- */
-function getSummaryStats($conex, $startDate, $endDate, $userPlant, $filterPlant) {
-    // Consulta para estadísticas de órdenes
-    $statsSql = "SELECT 
-                    COUNT(pf.id) as total_generated,
-                    SUM(CASE WHEN st.name IN ('approved', 'aprobado') THEN 1 ELSE 0 END) as approved_count,
-                    SUM(CASE WHEN st.name IN ('rejected', 'rechazado') THEN 1 ELSE 0 END) as rejected_count,
-                    SUM(CASE WHEN st.name IN ('approved', 'aprobado') THEN pf.cost_euros ELSE 0 END) as total_cost
-                FROM PremiumFreight pf
-                LEFT JOIN Status st ON pf.status_id = st.id
-                LEFT JOIN User u ON pf.user_id = u.id
-                WHERE pf.date BETWEEN ? AND ?";
-
-    $params = [$startDate, $endDate];
-    $paramTypes = "ss";
-
-    if ($userPlant !== null && $userPlant !== '') {
-        $statsSql .= " AND u.plant = ?";
-        $params[] = $userPlant;
-        $paramTypes .= "s";
-    }
-    if ($filterPlant !== null && $filterPlant !== '') {
-        $statsSql .= " AND u.plant = ?";
-        $params[] = $filterPlant;
-        $paramTypes .= "s";
-    }
-
-    $stmt = $conex->prepare($statsSql);
-    $stmt->bind_param($paramTypes, ...$params);
-    $stmt->execute();
-    $stats = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
-
-    // Consulta para tiempo promedio de aprobación
-    $avgTimeSql = "SELECT AVG(TIMESTAMPDIFF(SECOND, pf.date, pfa.approval_date)) as avg_total_seconds
-                   FROM PremiumFreight pf
-                   JOIN PremiumFreightApprovals pfa ON pf.id = pfa.premium_freight_id
-                   JOIN User u ON pf.user_id = u.id
-                   LEFT JOIN Status st ON pf.status_id = st.id
-                   WHERE pf.date BETWEEN ? AND ?
-                   AND st.name IN ('approved', 'aprobado')
-                   AND pfa.approval_date IS NOT NULL";
-
-    $stmt = $conex->prepare($avgTimeSql);
-    $stmt->bind_param($paramTypes, ...$params); // Reutilizamos los mismos parámetros
-    $stmt->execute();
-    $avgTimeResult = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
-
-    // Calcular tasa de aprobación
-    $approved = $stats['approved_count'] ?? 0;
-    $rejected = $stats['rejected_count'] ?? 0;
-    $totalProcessed = $approved + $rejected;
-    $approvalRate = ($totalProcessed > 0) ? round(($approved / $totalProcessed) * 100, 1) : 0;
-
-    return [
-        'total_generated' => (int)($stats['total_generated'] ?? 0),
-        'approved_count' => (int)($stats['approved_count'] ?? 0),
-        'rejected_count' => (int)($stats['rejected_count'] ?? 0),
-        'total_cost' => (float)($stats['total_cost'] ?? 0),
-        'approval_rate' => $approvalRate,
-        'average_approval_time_seconds' => isset($avgTimeResult['avg_total_seconds']) ? (float)$avgTimeResult['avg_total_seconds'] : null
-    ];
 }
 ?>

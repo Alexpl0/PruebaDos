@@ -465,7 +465,6 @@ document.addEventListener('DOMContentLoaded', async function() {
 export {
     updateAllVisualizations,
     getDashboardDiagnostics,
-    reinitializeDashboard,
     enableDebugMode
 };
 

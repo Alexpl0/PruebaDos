@@ -1,5 +1,5 @@
 /**
- * SELECTORS.JS - MANEJO DE SELECTORES
+ * SELECTORS.JS - MANEJO DE SELECTORES - CORREGIDO
  * Este módulo maneja el selector de semanas, navegación temporal
  * y el selector de plantas del dashboard.
  */
@@ -17,8 +17,13 @@ import { showErrorMessage, addEventListenerSafe } from './utils.js';
  */
 export function initializeSelectors() {
     updateWeekDisplay();
-    initializePlantSelector();
     setupWeekNavigation();
+    
+    // Inicializar selector de plantas de forma asíncrona
+    initializePlantSelector().catch(error => {
+        console.error('Error initializing plant selector:', error);
+    });
+    
     setupPlantSelector();
 }
 
@@ -31,10 +36,14 @@ function setupWeekNavigation() {
 
     if (prevBtn) {
         addEventListenerSafe(prevBtn, 'click', handlePreviousWeek);
+    } else {
+        console.warn('Previous week button not found in DOM');
     }
 
     if (nextBtn) {
         addEventListenerSafe(nextBtn, 'click', handleNextWeek);
+    } else {
+        console.warn('Next week button not found in DOM');
     }
 
     // Añadir soporte para teclado
@@ -48,6 +57,51 @@ function setupPlantSelector() {
     const plantSelector = document.getElementById('plantSelector');
     if (plantSelector) {
         addEventListenerSafe(plantSelector, 'change', handlePlantChange);
+        console.log('Plant selector event listener configured');
+    } else {
+        console.warn('Plant selector element not found - will skip plant-based filtering');
+        // Crear un selector básico dinámicamente si no existe
+        createFallbackPlantSelector();
+    }
+}
+
+/**
+ * Crea un selector de plantas básico si no existe en el DOM
+ */
+function createFallbackPlantSelector() {
+    // Buscar un contenedor donde podamos insertar el selector
+    const possibleContainers = [
+        document.querySelector('.week-selector'),
+        document.querySelector('.dashboard-header'),
+        document.querySelector('.container-fluid'),
+        document.querySelector('main')
+    ];
+    
+    const container = possibleContainers.find(el => el !== null);
+    
+    if (container) {
+        console.log('Creating fallback plant selector');
+        
+        const selectorHtml = `
+            <div class="plant-selector-fallback" style="margin: 10px 0;">
+                <label for="plantSelector" class="form-label">Plant:</label>
+                <select id="plantSelector" class="form-select" style="max-width: 200px; display: inline-block;">
+                    <option value="">All Plants</option>
+                </select>
+            </div>
+        `;
+        
+        // Insertar al principio del contenedor
+        container.insertAdjacentHTML('afterbegin', selectorHtml);
+        
+        // Configurar el event listener para el nuevo selector
+        const newSelector = document.getElementById('plantSelector');
+        if (newSelector) {
+            addEventListenerSafe(newSelector, 'change', handlePlantChange);
+            console.log('Fallback plant selector created and configured');
+        }
+    } else {
+        console.warn('No suitable container found for fallback plant selector');
     }
 }
 
@@ -171,8 +225,52 @@ export function updateWeekDisplay() {
         `;
     }
     
+    // Si no hay ningún elemento de display, crear uno básico
+    if (!weekNumber && !weekDates && !weekDisplay) {
+        createFallbackWeekDisplay(weekInfo, weekDateRange);
+    }
+    
     // Actualizar estado de botones de navegación
     updateNavigationButtons(prevBtn, nextBtn);
+}
+
+/**
+ * Crea un display de semana básico si no existe
+ */
+function createFallbackWeekDisplay(weekInfo, weekDateRange) {
+    const possibleContainers = [
+        document.querySelector('.dashboard-header'),
+        document.querySelector('.container-fluid'),
+        document.querySelector('main')
+    ];
+    
+    const container = possibleContainers.find(el => el !== null);
+    
+    if (container) {
+        const displayHtml = `
+            <div class="week-display-fallback" style="margin: 10px 0; text-align: center;">
+                <div class="week-navigation">
+                    <button id="prevWeek" class="btn btn-outline-secondary btn-sm me-2">
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </button>
+                    <span class="week-info">
+                        <strong>${weekInfo}</strong><br>
+                        <small>${weekDateRange}</small>
+                    </span>
+                    <button id="nextWeek" class="btn btn-outline-secondary btn-sm ms-2">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        container.insertAdjacentHTML('afterbegin', displayHtml);
+        
+        // Reconfigurar los event listeners para los nuevos botones
+        setupWeekNavigation();
+        
+        console.log('Fallback week display created');
+    }
 }
 
 /**
@@ -211,7 +309,8 @@ export async function initializePlantSelector() {
         const plantSelector = document.getElementById('plantSelector');
         
         if (!plantSelector) {
-            console.error('Plant selector element not found');
+            console.warn('Plant selector element not found, will create fallback');
+            // El fallback se creará en setupPlantSelector si es necesario
             return;
         }
         
@@ -219,6 +318,11 @@ export async function initializePlantSelector() {
         
     } catch (error) {
         console.error('Error loading plants:', error);
+        // En caso de error, todavía intentamos poblar con datos por defecto
+        const plantSelector = document.getElementById('plantSelector');
+        if (plantSelector) {
+            populatePlantSelector(plantSelector, ['1640', '3310', '3330', '3510']);
+        }
     }
 }
 
@@ -226,6 +330,11 @@ export async function initializePlantSelector() {
  * Llena el selector de plantas con los datos
  */
 function populatePlantSelector(selector, plantsData) {
+    if (!selector) {
+        console.warn('Cannot populate plant selector: element not found');
+        return;
+    }
+    
     // Limpiar opciones existentes excepto "All Plants"
     selector.innerHTML = '<option value="">All Plants</option>';
     
@@ -258,7 +367,7 @@ function populatePlantSelector(selector, plantsData) {
 function handlePlantChange(e) {
     const selectedPlant = e.target.value;
     setSelectedPlant(selectedPlant);
-    console.log('Plant selected:', selectedPlant);
+    console.log('Plant selected:', selectedPlant || 'All Plants');
     
     // Emitir evento para que otros módulos puedan reaccionar
     dispatchPlantChangeEvent(selectedPlant);
@@ -292,7 +401,8 @@ export function getSelectedPlantInfo() {
     return {
         selected: plantSelector ? plantSelector.value : '',
         available: availablePlants,
-        hasSelection: plantSelector ? plantSelector.value !== '' : false
+        hasSelection: plantSelector ? plantSelector.value !== '' : false,
+        selectorExists: !!plantSelector
     };
 }
 
@@ -352,6 +462,8 @@ export function resetPlantSelector() {
         plantSelector.value = '';
         setSelectedPlant('');
         dispatchPlantChangeEvent('');
+    } else {
+        console.warn('Cannot reset plant selector: element not found');
     }
 }
 
@@ -369,4 +481,33 @@ export function goToCurrentWeek() {
     setCurrentWeek(currentWeek);
     updateWeekDisplay();
     dispatchWeekChangeEvent();
+}
+
+/**
+ * Verifica si todos los elementos necesarios están presentes en el DOM
+ */
+export function validateSelectorElements() {
+    const elements = {
+        weekDisplay: !!document.getElementById('weekDisplay'),
+        weekNumber: !!document.getElementById('weekNumber'),
+        weekDates: !!document.getElementById('weekDates'),
+        prevWeek: !!document.getElementById('prevWeek'),
+        nextWeek: !!document.getElementById('nextWeek'),
+        plantSelector: !!document.getElementById('plantSelector')
+    };
+    
+    const missing = Object.entries(elements)
+        .filter(([key, exists]) => !exists)
+        .map(([key]) => key);
+    
+    if (missing.length > 0) {
+        console.warn('Missing selector elements:', missing);
+        console.log('Available elements:', Object.entries(elements).filter(([key, exists]) => exists).map(([key]) => key));
+    }
+    
+    return {
+        allPresent: missing.length === 0,
+        missing: missing,
+        present: Object.entries(elements).filter(([key, exists]) => exists).map(([key]) => key)
+    };
 }
