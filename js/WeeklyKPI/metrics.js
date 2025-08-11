@@ -4,7 +4,7 @@
  * cálculo de tendencias y visualización de KPIs.
  */
 
-import { getWeeklyData } from './config.js';
+import { getWeeklyData, getCurrentWeek } from './config.js';
 import { formatNumber, calculatePercentageChange, safeUpdateElement } from './utils.js';
 
 // ========================================================================
