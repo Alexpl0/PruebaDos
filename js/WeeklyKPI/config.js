@@ -14,7 +14,7 @@ export const API_ENDPOINTS = {
             return URLPF + 'dao/conections/daoWeeklyKPIs.php';
         } else {
             console.warn('URL global variable is not defined. Using fallback URL for Weekly KPIs.');
-            return 'https://grammermx.com/Logistica/PremiumFreight/dao/conections/daoWeeklyKPIs.php';
+            return 'https://grammermx.com/Jesus/PruebaDos/dao/conections/daoWeeklyKPIs.php';
         }
     })(),
     
@@ -22,7 +22,7 @@ export const API_ENDPOINTS = {
         if (typeof URLPF !== 'undefined') {
             return URLPF + 'dao/conections/daoPlants.php';
         } else {
-            return 'https://grammermx.com/Logistica/PremiumFreight/dao/conections/daoPlants.php';
+            return 'https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPlants.php';
         }
     })()
 };
