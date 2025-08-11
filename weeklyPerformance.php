@@ -2,6 +2,8 @@
 /**
  * weeklyPerformance.php - Weekly Performance Analytics Dashboard
  * This page shows detailed weekly statistics and KPIs with enhanced visualizations.
+ * 
+ * UPDATED: Now uses modular JavaScript architecture
  */
 
 // 1. Manejar sesión y autenticación.
@@ -467,43 +469,15 @@ require_once 'dao/users/context_injector.php';
         loadJSPDF().catch(error => {
             console.warn('PDF functionality will be limited:', error);
         });
-
-        // Función para verificar disponibilidad de bibliotecas
-        function checkLibraryAvailability() {
-            const libraries = {
-                moment: typeof moment !== 'undefined',
-                ApexCharts: typeof ApexCharts !== 'undefined',
-                XLSX: typeof XLSX !== 'undefined',
-                jsPDF: jsPDFLoaded,
-                Swal: typeof Swal !== 'undefined',
-                jQuery: typeof $ !== 'undefined',
-                Bootstrap: typeof bootstrap !== 'undefined'
-            };
-
-            console.log('Library availability check:', libraries);
-            
-            const missing = Object.entries(libraries)
-                .filter(([name, available]) => !available)
-                .map(([name]) => name);
-
-            if (missing.length > 0) {
-                console.warn('Missing libraries:', missing);
-            }
-
-            return libraries;
-        }
-
-        // Verificar bibliotecas cuando el DOM esté listo
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(() => {
-                checkLibraryAvailability();
-            }, 1000);
-        });
     </script>
     
     <!-- Local JS Files -->
     <script src="js/header.js" type="module"></script>
-    <script type="module" src="js/weeklyPerformance.js"></script>
+    
+    <!-- ================== MÓDULO PRINCIPAL - WEEKLY PERFORMANCE ================== -->
+    <!-- Solo necesitamos importar el módulo principal - todo lo demás se maneja internamente -->
+    <script type="module" src="js/WeeklyKPI/weeklyPerformance.js"></script>
+    <!-- ============================================================================= -->
 
     <?php 
     // Carga condicional del JS del asistente.
@@ -511,7 +485,7 @@ require_once 'dao/users/context_injector.php';
         <script src="js/assistant.js"></script>
     <?php endif; ?>
 
-    <!-- Global Error Handling -->
+    <!-- Global Error Handling (mantener para compatibilidad) -->
     <script>
         // Manejo global de errores
         window.addEventListener('error', function(event) {
@@ -530,7 +504,7 @@ require_once 'dao/users/context_injector.php';
             event.preventDefault();
         });
 
-        // Función de utilidad para mostrar estado de carga
+        // Función de utilidad para mostrar estado de carga (legacy support)
         function showGlobalLoading(show = true, message = 'Loading...') {
             const overlay = document.getElementById('loadingOverlay');
             const text = overlay.querySelector('.loading-text');
@@ -543,7 +517,7 @@ require_once 'dao/users/context_injector.php';
             }
         }
 
-        // Función para mostrar mensajes de estado
+        // Función para mostrar mensajes de estado (legacy support)
         function showStatusMessage(type, title, message, timer = 3000) {
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
@@ -559,6 +533,23 @@ require_once 'dao/users/context_injector.php';
                 console.log(`${type.toUpperCase()}: ${title} - ${message}`);
                 alert(`${title}: ${message}`);
             }
+        }
+
+        // DEBUG: Mostrar información de módulos cargados
+        console.log('📦 Weekly Performance Dashboard - Modular Architecture');
+        console.log('📁 Main module: js/WeeklyKPI/weeklyPerformance.js');
+        console.log('🧩 Sub-modules will be loaded automatically');
+        
+        // Función global para debugging (solo en desarrollo)
+        if (window.location.hostname === 'localhost' || window.location.search.includes('debug=true')) {
+            window.debugDashboard = () => {
+                if (window.weeklyPerformanceDashboard && window.weeklyPerformanceDashboard.diagnostics) {
+                    console.table(window.weeklyPerformanceDashboard.diagnostics());
+                } else {
+                    console.log('Dashboard not yet initialized or debug tools not available');
+                }
+            };
+            console.log('🐛 Debug mode available. Use debugDashboard() to see diagnostics.');
         }
     </script>
 </body>
