@@ -419,51 +419,6 @@ require_once 'dao/users/context_injector.php';
             </div>
         </div>
 
-        <!-- Week Navigation and Plant Selector -->
-        <div class="row mb-4">
-            <div class="col-md-12">
-                <div class="card filter-card animate">
-                    <div class="card-body">
-                        <div class="filter-container">
-                            <div class="filter-section">
-                                <label for="weekSelector" class="form-label">
-                                    <i class="fas fa-calendar-week"></i> Analysis Week
-                                </label>
-                                <div class="week-selector" id="weekSelector">
-                                    <div class="week-navigation">
-                                        <button id="prevWeek" class="week-nav-btn" title="Previous Week">
-                                            <i class="fas fa-chevron-left"></i>
-                                        </button>
-                                        <div class="week-display">
-                                            <div id="weekNumber" class="week-info">Week 32 of 2025</div>
-                                            <div id="weekDates" class="week-dates">Aug 11 - Aug 17, 2025</div>
-                                        </div>
-                                        <button id="nextWeek" class="week-nav-btn" title="Next Week">
-                                            <i class="fas fa-chevron-right"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="filter-section">
-                                <label for="plantSelector" class="form-label">
-                                    <i class="fas fa-industry"></i> Plant Filter
-                                </label>
-                                <select id="plantSelector" class="form-select">
-                                    <option value="">All Plants</option>
-                                </select>
-                            </div>
-                            
-                            <div class="refresh-container">
-                                <button id="refreshData" class="btn btn-refresh" disabled title="Refresh data (Ctrl + R)">
-                                    <i class="fas fa-sync-alt me-2"></i>Refresh Data
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </main>
     
     <!-- ================== BIBLIOTECAS JS ================== -->
