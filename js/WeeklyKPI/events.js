@@ -274,21 +274,24 @@ export async function updateAllVisualizations() {
         // 2. Actualizar métricas
         updateAllMetricCards();
         
-        // 3. Generar resumen
+        // 3. Actualizar tendencias (nueva línea)
+        updateTrends();
+        
+        // 4. Generar resumen
         generateWeeklySummary();
         
-        // 4. Renderizar gráficas
+        // 5. Renderizar gráficas
         renderAllCharts();
         
-        // 5. Generar insights
+        // 6. Generar insights
         generateInsights();
         
-        // 6. Configurar botones de exportación (con delay para que las gráficas se rendericen)
+        // 7. Configurar botones de exportación (con delay para que las gráficas se rendericen)
         setTimeout(() => {
             initializeExportButtons();
         }, 500);
         
-        // 7. Actualizar timestamp de última actualización
+        // 8. Actualizar timestamp de última actualización
         localStorage.setItem('lastDashboardUpdate', Date.now().toString());
         
         // Emitir evento de finalización

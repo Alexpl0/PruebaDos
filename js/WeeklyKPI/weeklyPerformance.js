@@ -170,6 +170,11 @@ function completeInitialization() {
     const initializationTime = performance.now() - initializationStartTime;
     dashboardInitialized = true;
     
+    // Validar elementos de tendencia
+    import('./metrics.js').then(metricsModule => {
+        metricsModule.validateTrendElements();
+    });
+    
     // Guardar timestamp de inicialización
     localStorage.setItem('dashboardInitialized', Date.now().toString());
     

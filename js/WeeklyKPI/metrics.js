@@ -80,11 +80,28 @@ export function updateTrends(currentData = null, previousData = null) {
     }
     
     if (!previousData) {
-        // Si no hay datos de la semana anterior, ocultar tendencias
-        hideTrendIndicators();
+        // Necesitamos cargar los datos de la semana anterior
+        console.log('Loading previous week data for trends...');
+        loadPreviousWeekData().then(prevData => {
+            if (prevData) {
+                updateTrendsWithData(currentData, prevData);
+            } else {
+                hideTrendIndicators();
+            }
+        }).catch(error => {
+            console.error('Error loading previous week data:', error);
+            hideTrendIndicators();
+        });
         return;
     }
 
+    updateTrendsWithData(currentData, previousData);
+}
+
+/**
+ * Actualiza las tendencias con los datos proporcionados
+ */
+function updateTrendsWithData(currentData, previousData) {
     // Mostrar los indicadores de tendencia
     showTrendIndicators();
 
@@ -93,6 +110,55 @@ export function updateTrends(currentData = null, previousData = null) {
     updateApprovalRateTrend(currentData, previousData);
     updateCostTrend(currentData, previousData);
     updateTimeTrend(currentData, previousData);
+    
+    console.log('Trends updated successfully');
+}
+
+/**
+ * Carga los datos de la semana anterior
+ */
+async function loadPreviousWeekData() {
+    try {
+        const currentWeek = getCurrentWeek();
+        const previousWeek = {
+            start: moment(currentWeek.start).subtract(1, 'week').format('YYYY-MM-DD'),
+            end: moment(currentWeek.end).subtract(1, 'week').format('YYYY-MM-DD')
+        };
+        
+        const selectedPlant = getSelectedPlant();
+        let url = `${API_ENDPOINTS.WEEKLY_KPIS}?start_date=${previousWeek.start}&end_date=${previousWeek.end}`;
+        
+        if (selectedPlant && selectedPlant.trim() !== '') {
+            url += `&plant=${encodeURIComponent(selectedPlant)}`;
+        }
+        
+        console.log('Loading previous week data from:', url);
+        
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            credentials: 'same-origin'
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+            return result.data || {};
+        } else {
+            throw new Error(result.message || 'Failed to load previous week data');
+        }
+        
+    } catch (error) {
+        console.error('Error loading previous week data:', error);
+        return null;
+    }
 }
 
 /**
@@ -144,11 +210,14 @@ function updateTimeTrend(currentData, previousData) {
  */
 function updateTrendElement(elementId, change, higherIsBetter, unit = '%') {
     const element = document.getElementById(elementId);
-    if (!element) return;
+    if (!element) {
+        console.warn(`Trend element not found: ${elementId}`);
+        return;
+    }
 
-    if (change === null || isNaN(change)) {
+    if (change === null || change === undefined || isNaN(change)) {
         element.innerHTML = `<i class="fas fa-minus"></i> N/A`;
-        element.className = 'metric-trend';
+        element.className = 'metric-trend neutral';
         return;
     }
 
@@ -158,10 +227,13 @@ function updateTrendElement(elementId, change, higherIsBetter, unit = '%') {
     
     // Determina el ícono de la flecha
     let iconClass = 'fa-minus';
-    if (change > 0.1) iconClass = 'fa-arrow-up';
-    if (change < -0.1) iconClass = 'fa-arrow-down';
+    if (Math.abs(change) > 0.1) {
+        iconClass = change > 0 ? 'fa-arrow-up' : 'fa-arrow-down';
+    }
 
-    element.innerHTML = `<i class="fas ${iconClass}"></i> ${change.toFixed(1)}${unit}`;
+    // Formato del valor
+    const formattedValue = Math.abs(change) < 0.1 ? '0.0' : change.toFixed(1);
+    element.innerHTML = `<i class="fas ${iconClass}"></i> ${formattedValue}${unit}`;
     
     // Asigna la clase correcta para el color
     element.className = 'metric-trend'; // Limpia clases anteriores
@@ -172,6 +244,8 @@ function updateTrendElement(elementId, change, higherIsBetter, unit = '%') {
     } else {
         element.classList.add('neutral');
     }
+    
+    console.log(`Updated trend ${elementId}: ${formattedValue}${unit} (${isPositive ? 'positive' : isNegative ? 'negative' : 'neutral'})`);
 }
 
 /**
@@ -200,6 +274,26 @@ function showTrendIndicators() {
             element.style.display = 'inline-flex';
         }
     });
+}
+
+/**
+ * Verifica que todos los elementos de tendencia existen en el DOM
+ */
+export function validateTrendElements() {
+    const trendElements = ['requestsTrend', 'approvalTrend', 'costTrend', 'timeTrend'];
+    const results = {};
+    
+    trendElements.forEach(elementId => {
+        const element = document.getElementById(elementId);
+        results[elementId] = {
+            exists: !!element,
+            visible: element ? element.style.display !== 'none' : false,
+            hasParent: element ? !!element.parentElement : false
+        };
+    });
+    
+    console.log('Trend elements validation:', results);
+    return results;
 }
 
 // ========================================================================
