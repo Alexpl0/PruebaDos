@@ -457,16 +457,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 });
 
-// ========================================================================
-// EXPORTS PARA USO EXTERNO
-// ========================================================================
 
-// Exportar funciones principales para uso desde otros scripts
-export {
-    updateAllVisualizations,
-    getDashboardDiagnostics,
-    enableDebugMode
-};
 
 
 console.log('📦 Weekly Performance Dashboard module loaded successfully');
