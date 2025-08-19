@@ -170,7 +170,7 @@ try {
             break;
 
         case 'recovery_check':
-            $result = $mailer->sendRecoveryNotifications(); // Este también devuelve un array estructurado
+            $result = $mailer->sendRecoveryCheckEmails(); // Este también devuelve un array estructurado
             if ($result['success']) {
                 sendJsonSuccess($result['message'], $result['data']);
             } else {

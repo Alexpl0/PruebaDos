@@ -417,13 +417,21 @@ class PFMailer {
 
     public function sendRecoveryCheckEmails() {
         $result = ['totalSent' => 0, 'success' => 0, 'errors' => []];
+        // Correos fijos que siempre deben recibir el email
+        $alwaysRecipients = [
+            ['email' => 'dulce.mata@grammer.com', 'name' => 'Dulce Mata'],
+            ['email' => 'carlos.plazola@grammer.com', 'name' => 'Carlos Plazola'],
+            ['email' => 'margarita.ortega@grammer.com', 'name' => 'Margarita Ortega'],
+            // Agrega más si lo necesitas
+        ];
         try {
             if (!$this->db) throw new Exception("Conexión a DB no establecida");
 
             $sql = "SELECT PF.id, PF.user_id, PF.description, PF.cost_euros, PF.date, PF.recovery_file, PF.area, U.name, U.email
                     FROM PremiumFreight PF INNER JOIN User U ON PF.user_id = U.id
                     WHERE PF.recovery_file IS NOT NULL AND PF.recovery_file != ''
-                    AND (PF.recovery_evidence IS NULL OR PF.recovery_evidence = '')";
+                    AND (PF.recovery_evidence IS NULL OR PF.recovery_evidence = '')
+                    AND PF.status_id != 4";
             
             $stmt = $this->db->prepare($sql);
             $stmt->execute();
@@ -441,6 +449,12 @@ class PFMailer {
                 try {
                     $emailBody = $this->templates->getRecoveryCheckTemplate($userInfo['user'], $userInfo['orders']);
                     $this->setEmailRecipients($userInfo['user']['email'], $userInfo['user']['name']);
+                    
+                    // Agregar destinatarios fijos (CC)
+                    foreach ($alwaysRecipients as $recipient) {
+                        $this->mail->addCC($recipient['email'], $recipient['name']);
+                    }
+                    
                     $this->mail->Subject = "Premium Freight - Evidencia de Recuperación Requerida";
                     $this->mail->Body = $emailBody;
                     
@@ -453,6 +467,8 @@ class PFMailer {
                 } catch (Exception $e) {
                     $result['errors'][] = "Error enviando a {$userInfo['user']['email']}: " . $e->getMessage();
                 }
+                // Limpiar CC para el siguiente ciclo
+                $this->mail->clearCCs();
             }
         } catch (Exception $e) {
             $result['errors'][] = "Error en sendRecoveryCheckEmails: " . $e->getMessage();

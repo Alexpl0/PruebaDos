@@ -107,9 +107,11 @@ export function initializeLimitedReferenceSelector() {
     // These are the specific options required when recovery is active.
     // ID: 42 -> Text: 486406
     // ID: 43 -> Text: 347427
+    // ID: 55 -> Text: 344030
     const limitedData = [
         { id: '42', text: '486406' },
-        { id: '43', text: '347427' }
+        { id: '43', text: '347427' },
+        { id: '55', text: '324030' }
     ];
 
     $select.select2({
