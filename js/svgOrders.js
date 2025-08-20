@@ -7,7 +7,7 @@
 // --- SVG mapping and configuration ---
 // Define the mapping between SVG element IDs and order object properties
 const svgMap = {
-    'RequestingPlantValue': 'planta', // CORREGIDO: usar creator_plant de daoPremiumFreight.php
+    'RequestingPlantValue': 'planta',
     'PlantCodeValue': 'creator_plant',
     'DateValue': 'date', 
     'TransportValue': 'transport',
@@ -21,10 +21,6 @@ const svgMap = {
     'RecoveryValue': 'recovery',
     'DescriptionAndRootCauseValue': 'description',
     'IssuerValue': 'creator_name',
-    'PlantManagerValue': '',
-    'SeniorManagerValue': '',
-    'ManagerOPSDivisionValue': '',
-    'SRVPRegionalValue': '',
     'CompanyNameShipValue': 'origin_company_name',
     'CityShipValue': 'origin_city',
     'StateShipValue': 'origin_state',
@@ -50,20 +46,26 @@ const svgMap = {
         return `${order.weight || '0'} ${measureAbbr}`;
     },
     'ProductValue': 'products',
-    'CarrierNameValue': 'carrier', // CORREGIDO: viene directamente de daoPremiumFreight.php
+    'CarrierNameValue': 'carrier',
     'QuotedCostValue': (order) => `$ ${order.quoted_cost || '0'} ${order.moneda || 'MXN'}`,
     'ReferenceNumberValue': 'reference_number',
     'IdPfValue': 'id',
     
-    // Campos de aprobadores - REVISAR NOMBRES
-    'TrafficValue': 'approver_level_1',        // ⚠️ Verificar si es "TafficValue" o "TrafficValue"
-    'TransportationValue': 'approver_level_2', 
-    'LogisticsValue': 'approver_level_3',
-    'ControllingValue': 'approver_level_4',   // ⚠️ Verificar si es "ControllingValue" o "ControllingValue"
-    'PlantManagerValue': 'approver_level_5',   // ⚠️ Verificar si es "PlanManagerValue" o "PlantManagerValue"
-    'SeniorManagerValue': 'approver_level_6',
-    'ManagerOPSDivisionValue': 'approver_level_7',
-    'SRVPRegionalValue': 'approver_level_8',
+    // NUEVO: Campo dinámico de aprobadores
+    'ApprovalsValue': (order) => {
+        const approvers = [];
+        
+        // Recopilar todos los aprobadores que no estén vacíos
+        for (let level = 1; level <= 8; level++) {
+            const approverName = order[`approver_level_${level}`];
+            if (approverName && approverName.trim() !== '') {
+                approvers.push(approverName.trim());
+            }
+        }
+        
+        // Unir con " • " como separador
+        return approvers.join(' • ');
+    }
 };
 
 /**
@@ -166,6 +168,84 @@ function wrapSVGText(containerOrElementId = "DescriptionAndRootCauseValue", elem
 }
 
 /**
+ * NUEVO: Aplica texto con wrapping específico para el campo de aprobadores
+ * @param {HTMLElement} container - El contenedor con el SVG
+ * @param {string} elementId - ID del elemento a aplicar wrapping
+ * @param {number} maxWidth - Ancho máximo en píxeles (default: 420px)
+ */
+function wrapApprovalsText(container, elementId = 'ApprovalsValue', maxWidth = 420) {
+    let textElement;
+    
+    if (typeof container === 'string') {
+        textElement = document.getElementById(container);
+    } else if (container instanceof HTMLElement) {
+        textElement = container.querySelector(`#${elementId}`);
+    } else {
+        console.error('[SVG] wrapApprovalsText: Invalid container provided');
+        return;
+    }
+    
+    if (!textElement) {
+        console.warn(`[SVG] Approvals text element not found: ${elementId}`);
+        return;
+    }
+    
+    const text = textElement.textContent.trim();
+    if (!text) return;
+    
+    const x = textElement.getAttribute("x");
+    const y = textElement.getAttribute("y");
+    const fontSize = parseFloat(textElement.style.fontSize || "3.175px");
+    const lineHeight = fontSize * 1.2; // Espaciado más compacto para aprobadores
+    
+    textElement.textContent = "";
+    
+    // Dividir por el separador " • "
+    const approvers = text.split(' • ');
+    let currentLine = "";
+    let firstLine = true;
+    
+    approvers.forEach((approver, index) => {
+        const separator = index > 0 ? ' • ' : '';
+        const testLine = currentLine + separator + approver;
+        
+        // Estimación aproximada: 1px ≈ 0.6 caracteres para fuente típica
+        const estimatedWidth = testLine.length * (fontSize * 0.6);
+        
+        if (estimatedWidth > maxWidth && currentLine.length > 0) {
+            // Crear nueva línea
+            const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+            tspan.setAttribute("x", x);
+            
+            if (firstLine) {
+                firstLine = false;
+            } else {
+                tspan.setAttribute("dy", `${lineHeight}px`);
+            }
+            
+            tspan.textContent = currentLine;
+            textElement.appendChild(tspan);
+            currentLine = approver;
+        } else {
+            currentLine = testLine;
+        }
+    });
+    
+    // Agregar la última línea
+    if (currentLine.length > 0) {
+        const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+        tspan.setAttribute("x", x);
+        
+        if (!firstLine) {
+            tspan.setAttribute("dy", `${lineHeight}px`);
+        }
+        
+        tspan.textContent = currentLine;
+        textElement.appendChild(tspan);
+    }
+}
+
+/**
  * CORREGIDO: Loads SVG template, populates it with order data, and displays it in a specified container
  * @param {Object} selectedOrder - The order data to populate the SVG with
  * @param {string} containerId - The ID of the container to display the populated SVG
@@ -189,18 +269,10 @@ async function loadAndPopulateSVG(selectedOrder, containerId = 'svgPreview') {
         const svgElementIds = Array.from(allElementsWithId).map(el => el.id).filter(id => id.includes('Value'));
         console.log(`[SVG] 🔍 Elementos con ID 'Value' encontrados en el SVG:`, svgElementIds.sort());
 
-        // NUEVO: Debug detallado de los datos de aprobadores
-        console.log(`[SVG] 🔍 DEBUGGING APPROVERS for order ${selectedOrder.id}:`);
-        console.log('Raw approver data:', {
-            approver_level_1: selectedOrder.approver_level_1,
-            approver_level_2: selectedOrder.approver_level_2,
-            approver_level_3: selectedOrder.approver_level_3,
-            approver_level_4: selectedOrder.approver_level_4,
-            approver_level_5: selectedOrder.approver_level_5,
-            approver_level_6: selectedOrder.approver_level_6,
-            approver_level_7: selectedOrder.approver_level_7,
-            approver_level_8: selectedOrder.approver_level_8,
-        });
+        // NUEVO: Debug de aprobadores dinámicos
+        console.log(`[SVG] 🔍 DEBUGGING DYNAMIC APPROVERS for order ${selectedOrder.id}:`);
+        const dynamicApprovers = svgMap.ApprovalsValue(selectedOrder);
+        console.log('Generated approvers string:', dynamicApprovers);
 
         // Populate SVG fields with order data
         for (const [svgId, orderKey] of Object.entries(svgMap)) {
@@ -216,16 +288,15 @@ async function loadAndPopulateSVG(selectedOrder, containerId = 'svgPreview') {
                     valueToSet = selectedOrder[orderKey] || '';
                 }
                 
-                // CORREGIDO: Log específico para campos de aprobadores
-                if (svgId.includes('Value') && typeof orderKey === 'string' && orderKey.includes('approver_level')) {
-                    console.log(`[SVG] ✅ Setting ${svgId} (${orderKey}) = "${valueToSet}"`);
+                // Log específico para el campo de aprobadores
+                if (svgId === 'ApprovalsValue') {
+                    console.log(`[SVG] ✅ Setting ${svgId} = "${valueToSet}"`);
                 }
                 
                 element.textContent = valueToSet;
             } else {
-                // NUEVO: Log específico para elementos no encontrados de aprobadores
-                if (svgId.includes('Value') && typeof orderKey === 'string' && orderKey.includes('approver_level')) {
-                    console.error(`[SVG] ❌ APPROVER ELEMENT NOT FOUND: ${svgId} (mapping to ${orderKey})`);
+                if (svgId === 'ApprovalsValue') {
+                    console.error(`[SVG] ❌ APPROVALS ELEMENT NOT FOUND: ${svgId}`);
                 } else {
                     console.warn(`[SVG] Element not found in SVG: ${svgId}`);
                 }
@@ -241,8 +312,10 @@ async function loadAndPopulateSVG(selectedOrder, containerId = 'svgPreview') {
         // Display the populated SVG in the specified container
         targetContainer.innerHTML = tempDiv.innerHTML;
         
-        // CORRECCIÓN CRÍTICA: Apply text wrapping pasando el contenedor específico
+        // CORRECCIÓN CRÍTICA: Apply text wrapping
         wrapSVGText(targetContainer, 'DescriptionAndRootCauseValue');
+        // NUEVO: Apply wrapping específico para aprobadores
+        wrapApprovalsText(targetContainer, 'ApprovalsValue', 420);
         
         console.log(`[SVG] Successfully loaded SVG for order ${selectedOrder.id}`);
         return true;
