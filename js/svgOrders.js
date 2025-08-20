@@ -53,6 +53,17 @@ const svgMap = {
     'CarrierNameValue': 'carrier', // CORREGIDO: viene directamente de daoPremiumFreight.php
     'QuotedCostValue': (order) => `$ ${order.quoted_cost || '0'} ${order.moneda || 'MXN'}`,
     'ReferenceNumberValue': 'reference_number',
+    'IdPfValue': 'id',
+    
+    // Campos de aprobadores - estos serán manejados de manera especial
+    'TafficValue': 'approver_level_1',
+    'TransportationValue': 'approver_level_2', 
+    'LogisticsValue': 'approver_level_3',
+    'ControllingValue': 'approver_level_4',
+    'PlanManagerValue': 'approver_level_5',
+    'SeniorManagerValue': 'approver_level_6',
+    'ManagerOPSDivisionValue': 'approver_level_7',
+    'SRVPRegionalValue': 'approver_level_8',
 };
 
 /**

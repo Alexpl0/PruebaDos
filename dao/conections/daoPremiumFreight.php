@@ -68,8 +68,52 @@ try {
     $stmt->execute();
     $result = $stmt->get_result();
 
+    // Obtener información de aprobadores para cada orden
+    $approversQuery = "
+        SELECT 
+            ah.premium_freight_id,
+            u.authorization_level,
+            u.name as approver_name,
+            ah.action_type,
+            ah.action_timestamp
+        FROM ApprovalHistory ah
+        INNER JOIN User u ON ah.user_id = u.id
+        WHERE ah.premium_freight_id IN (
+            SELECT DISTINCT pf.id FROM PremiumFreight pf
+            " . ($userPlant !== null && $userPlant !== '' ? "INNER JOIN User u2 ON pf.user_id = u2.id WHERE u2.plant = ?" : "") . "
+        )
+        AND ah.action_type = 'approved'
+        ORDER BY ah.premium_freight_id, u.authorization_level";
+
+    $approversStmt = $conex->prepare($approversQuery);
+    if ($userPlant !== null && $userPlant !== '') {
+        $approversStmt->bind_param("s", $userPlant);
+    }
+    $approversStmt->execute();
+    $approversResult = $approversStmt->get_result();
+
+    // Organizar aprobadores por orden y nivel
+    $orderApprovers = [];
+    while ($approver = $approversResult->fetch_assoc()) {
+        $orderId = $approver['premium_freight_id'];
+        $level = $approver['authorization_level'];
+        $orderApprovers[$orderId][$level] = $approver['approver_name'];
+    }
+
     $datos = [];
     while ($row = $result->fetch_assoc()) {
+        $orderId = $row['id'];
+        
+        // Agregar información de aprobadores
+        $row['approver_level_1'] = $orderApprovers[$orderId][1] ?? '';
+        $row['approver_level_2'] = $orderApprovers[$orderId][2] ?? '';
+        $row['approver_level_3'] = $orderApprovers[$orderId][3] ?? '';
+        $row['approver_level_4'] = $orderApprovers[$orderId][4] ?? '';
+        $row['approver_level_5'] = $orderApprovers[$orderId][5] ?? '';
+        $row['approver_level_6'] = $orderApprovers[$orderId][6] ?? '';
+        $row['approver_level_7'] = $orderApprovers[$orderId][7] ?? '';
+        $row['approver_level_8'] = $orderApprovers[$orderId][8] ?? '';
+        
         $datos[] = $row;
     }
 
