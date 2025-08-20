@@ -56,11 +56,11 @@ const svgMap = {
     'IdPfValue': 'id',
     
     // Campos de aprobadores - REVISAR NOMBRES
-    'TafficValue': 'approver_level_1',        // ⚠️ Verificar si es "TafficValue" o "TrafficValue"
+    'TrafficValue': 'approver_level_1',        // ⚠️ Verificar si es "TafficValue" o "TrafficValue"
     'TransportationValue': 'approver_level_2', 
     'LogisticsValue': 'approver_level_3',
     'ControllingValue': 'approver_level_4',   // ⚠️ Verificar si es "ControllingValue" o "ControlingValue"
-    'PlanManagerValue': 'approver_level_5',   // ⚠️ Verificar si es "PlanManagerValue" o "PlantManagerValue"
+    'PlantManagerValue': 'approver_level_5',   // ⚠️ Verificar si es "PlanManagerValue" o "PlantManagerValue"
     'SeniorManagerValue': 'approver_level_6',
     'ManagerOPSDivisionValue': 'approver_level_7',
     'SRVPRegionalValue': 'approver_level_8',
@@ -258,7 +258,7 @@ async function loadAndPopulateSVG(selectedOrder, containerId = 'svgPreview') {
  * @returns {HTMLElement} - The prepared container element
  */
 async function prepareOffscreenSVG(selectedOrder) {
-    const svgPath = 'PremiumFreight - Copy.svg';
+    const svgPath = 'PremiumFreight.svg';
     console.log(`[SVG] Intentando cargar el SVG desde: ${svgPath}`);
     
     const response = await fetch(svgPath);
