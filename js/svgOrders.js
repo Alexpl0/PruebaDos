@@ -173,14 +173,21 @@ function wrapSVGText(containerOrElementId = "DescriptionAndRootCauseValue", elem
  */
 async function loadAndPopulateSVG(selectedOrder, containerId = 'svgPreview') {
     try {
-        console.log(`[SVG] Loading SVG for order ${selectedOrder.id} in container ${containerId}`);
+        const svgPath = 'PremiumFreight.svg';
+        console.log(`[SVG] Intentando cargar el SVG desde: ${svgPath}`);
+        console.log(`[SVG] 🌍 Ruta completa del SVG: ${window.location.origin}${window.location.pathname.replace(/[^/]*$/, '')}${svgPath}`);
         
-        const response = await fetch('PremiumFreight.svg');
+        const response = await fetch(svgPath);
         if (!response.ok) throw new Error(`Error HTTP! estado: ${response.status}`);
         
         const svgText = await response.text();
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = svgText;
+
+        // NUEVO: Debug de todos los elementos con ID en el SVG
+        const allElementsWithId = tempDiv.querySelectorAll('[id]');
+        const svgElementIds = Array.from(allElementsWithId).map(el => el.id).filter(id => id.includes('Value'));
+        console.log(`[SVG] 🔍 Elementos con ID 'Value' encontrados en el SVG:`, svgElementIds.sort());
 
         // NUEVO: Debug detallado de los datos de aprobadores
         console.log(`[SVG] 🔍 DEBUGGING APPROVERS for order ${selectedOrder.id}:`);
@@ -193,16 +200,6 @@ async function loadAndPopulateSVG(selectedOrder, containerId = 'svgPreview') {
             approver_level_6: selectedOrder.approver_level_6,
             approver_level_7: selectedOrder.approver_level_7,
             approver_level_8: selectedOrder.approver_level_8,
-        });
-
-        // CORREGIDO: Debug de los datos que se están mapeando
-        console.log(`[SVG] Mapping data for order ${selectedOrder.id}:`, {
-            creator_name: selectedOrder.creator_name,
-            description: selectedOrder.description?.substring(0, 50) + '...',
-            cost_euros: selectedOrder.cost_euros,
-            carrier: selectedOrder.carrier,
-            origin_company_name: selectedOrder.origin_company_name,
-            destiny_company_name: selectedOrder.destiny_company_name
         });
 
         // Populate SVG fields with order data
@@ -219,14 +216,19 @@ async function loadAndPopulateSVG(selectedOrder, containerId = 'svgPreview') {
                     valueToSet = selectedOrder[orderKey] || '';
                 }
                 
-                // CORREGIDO: Log específico para campos de aprobadores - verificar que orderKey sea string
+                // CORREGIDO: Log específico para campos de aprobadores
                 if (svgId.includes('Value') && typeof orderKey === 'string' && orderKey.includes('approver_level')) {
-                    console.log(`[SVG] 📝 Setting ${svgId} (${orderKey}) = "${valueToSet}"`);
+                    console.log(`[SVG] ✅ Setting ${svgId} (${orderKey}) = "${valueToSet}"`);
                 }
                 
                 element.textContent = valueToSet;
             } else {
-                console.warn(`[SVG] Element not found in SVG: ${svgId}`);
+                // NUEVO: Log específico para elementos no encontrados de aprobadores
+                if (svgId.includes('Value') && typeof orderKey === 'string' && orderKey.includes('approver_level')) {
+                    console.error(`[SVG] ❌ APPROVER ELEMENT NOT FOUND: ${svgId} (mapping to ${orderKey})`);
+                } else {
+                    console.warn(`[SVG] Element not found in SVG: ${svgId}`);
+                }
             }
         }
         
@@ -256,7 +258,10 @@ async function loadAndPopulateSVG(selectedOrder, containerId = 'svgPreview') {
  * @returns {HTMLElement} - The prepared container element
  */
 async function prepareOffscreenSVG(selectedOrder) {
-    const response = await fetch('PremiumFreight.svg');
+    const svgPath = 'PremiumFreight - Copy.svg';
+    console.log(`[SVG] Intentando cargar el SVG desde: ${svgPath}`);
+    
+    const response = await fetch(svgPath);
     if (!response.ok) throw new Error(`Error HTTP! estado: ${response.status}`);
     
     const svgText = await response.text();
