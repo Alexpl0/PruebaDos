@@ -303,6 +303,17 @@ async function loadAndPopulateSVG(selectedOrder, containerId = 'svgPreview') {
             }
         }
         
+        // NUEVO: Limpiar elementos que no están en el svgMap
+        svgElementIds.forEach(elementId => {
+            if (!svgMap.hasOwnProperty(elementId)) {
+                const element = tempDiv.querySelector(`#${elementId}`);
+                if (element) {
+                    element.textContent = ''; // Limpiar el contenido
+                    console.log(`[SVG] 🧹 Clearing unmapped element: ${elementId}`);
+                }
+            }
+        });
+        
         // CORREGIDO: Obtener el contenedor de destino
         const targetContainer = document.getElementById(containerId);
         if (!targetContainer) {
@@ -361,6 +372,19 @@ async function prepareOffscreenSVG(selectedOrder) {
             }
         }
     }
+
+    // NUEVO: Limpiar elementos no mapeados también en PDF
+    const allElementsWithId = container.querySelectorAll('[id]');
+    const svgElementIds = Array.from(allElementsWithId).map(el => el.id).filter(id => id.includes('Value'));
+    
+    svgElementIds.forEach(elementId => {
+        if (!svgMap.hasOwnProperty(elementId)) {
+            const element = container.querySelector(`#${elementId}`);
+            if (element) {
+                element.textContent = '';
+            }
+        }
+    });
 
     // Add the container to the DOM
     document.body.appendChild(container);

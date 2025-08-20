@@ -24,15 +24,15 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
-     inkscape:zoom="11.313709"
-     inkscape:cx="457.58645"
-     inkscape:cy="496.16796"
+     inkscape:zoom="2.8284273"
+     inkscape:cx="306.17722"
+     inkscape:cy="439.29006"
      inkscape:window-width="1920"
      inkscape:window-height="991"
      inkscape:window-x="1491"
      inkscape:window-y="1034"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer4"
+     inkscape:current-layer="layer1"
      showgrid="true"
      showguides="true">
     <sodipodi:guide
@@ -54,6 +54,16 @@
        empspacing="5"
        enabled="true"
        visible="true" />
+    <sodipodi:guide
+       position="47.310804,155.83959"
+       orientation="1,0"
+       id="guide9"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="160.94302,158.51734"
+       orientation="1,0"
+       id="guide10"
+       inkscape:locked="false" />
   </sodipodi:namedview>
   <defs
      id="defs1">
@@ -304,7 +314,7 @@
        x="174.73146"
        y="50.272728">RecoveryValue</text>
     <text
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;writing-mode:lr-tb;display:none;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
        id="PlantManagerValue"
        x="134.97255"
        y="128.9921">PlantManagerValue</text>
@@ -330,23 +340,23 @@
        x="48.962902"
        y="59.461487">DescriptionAndRootCauseValue</text>
     <text
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;writing-mode:lr-tb;display:none;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
        id="TrafficValue"
        x="48.136856"
        y="129.01549">TrafficValue</text>
     <text
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;writing-mode:lr-tb;display:none;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
        id="TransportationValue"
-       x="70.088127"
+       x="66.913124"
        y="129.01549">TransportationValue</text>
     <text
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;writing-mode:lr-tb;display:none;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
        id="ControllingValue"
-       x="113.99731"
+       x="113.46814"
        y="129.01617"><tspan
          sodipodi:role="line"
          id="tspan8-1"
-         x="113.99731"
+         x="113.46814"
          y="129.01617">ControllingValue</tspan></text>
     <text
        style="font-style:normal;font-variant:normal;font-weight:900;font-stretch:normal;font-size:5.64444px;font-family:Arial;-inkscape-font-specification:'Arial, Heavy';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
@@ -354,10 +364,15 @@
        x="64.374886"
        y="18.544605">IdPfValue</text>
     <text
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;writing-mode:lr-tb;display:none;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
        id="LogisticsValue"
-       x="95.283073"
+       x="93.695572"
        y="128.95406">LogisticsValue</text>
+    <text
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
+       id="ApprovalsValue"
+       x="49.667263"
+       y="129.1525">ApprovalsValue</text>
   </g>
   <g
      inkscape:groupmode="layer"
@@ -766,8 +781,8 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="matrix(1.0283916,0,0,1.0283916,-0.24789398,-7.6746182)"
-     sodipodi:insensitive="true"
-     style="display:inline">
+     style="display:inline"
+     sodipodi:insensitive="true">
     <path
        d="m 46.50325,30.106806 h 58.04936 V 29.82776 H 46.50325 Z"
        style="display:inline;fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.387564"
