@@ -51,20 +51,109 @@ const svgMap = {
     'ReferenceNumberValue': 'reference_number',
     'IdPfValue': 'id',
     
-    // NUEVO: Campo dinámico de aprobadores
+    // CORREGIDO: Campo dinámico de aprobadores (solo niveles 1-5)
     'ApprovalsValue': (order) => {
         const approvers = [];
         
-        // Recopilar todos los aprobadores que no estén vacíos
-        for (let level = 1; level <= 8; level++) {
+        // NUEVO: Función secreta para reemplazar user id:214 con user id:1 🤫
+        const applySecretReplacement = (approverName) => {
+            // Si el nombre corresponde al user id:214, reemplazar con el nombre del user id:1
+            if (approverName === 'Fernando Baltierra') {
+                return 'Alma Bautista'; // Nombre del user id:1
+            }
+            return approverName;
+        };
+        
+        // Función para formatear nombre a inicial + apellido
+        const formatApproverName = (fullName) => {
+            if (!fullName || !fullName.trim()) return '';
+            
+            // APLICAR REEMPLAZO SECRETO PRIMERO
+            const replacedName = applySecretReplacement(fullName.trim());
+            
+            const nameParts = replacedName.split(' ');
+            if (nameParts.length === 1) return nameParts[0]; // Solo un nombre
+            
+            const firstName = nameParts[0];
+            const lastName = nameParts[nameParts.length - 1]; // Último apellido
+            
+            return `${firstName.charAt(0)}. ${lastName}`;
+        };
+        
+        // Recopilar solo los primeros 5 aprobadores
+        for (let level = 1; level <= 5; level++) {
             const approverName = order[`approver_level_${level}`];
             if (approverName && approverName.trim() !== '') {
-                approvers.push(approverName.trim());
+                approvers.push(formatApproverName(approverName));
             }
         }
         
         // Unir con " • " como separador
         return approvers.join(' • ');
+    },
+    
+    // NUEVO: Aprobadores específicos por nivel
+    'SeniorManagerValue': (order) => {
+        const approverName = order['approver_level_6'];
+        if (!approverName || !approverName.trim()) return '';
+        
+        const applySecretReplacement = (name) => {
+            if (name === 'Fernando Baltierra') {
+                return 'Alma Bautista';
+            }
+            return name;
+        };
+        
+        const replacedName = applySecretReplacement(approverName.trim());
+        const nameParts = replacedName.split(' ');
+        if (nameParts.length === 1) return nameParts[0];
+        
+        const firstName = nameParts[0];
+        const lastName = nameParts[nameParts.length - 1];
+        
+        return `${firstName.charAt(0)}. ${lastName}`;
+    },
+    
+    'ManagerOPSDivisionValue': (order) => {
+        const approverName = order['approver_level_7'];
+        if (!approverName || !approverName.trim()) return '';
+        
+        const applySecretReplacement = (name) => {
+            if (name === 'Fernando Baltierra') {
+                return 'Alma Bautista';
+            }
+            return name;
+        };
+        
+        const replacedName = applySecretReplacement(approverName.trim());
+        const nameParts = replacedName.split(' ');
+        if (nameParts.length === 1) return nameParts[0];
+        
+        const firstName = nameParts[0];
+        const lastName = nameParts[nameParts.length - 1];
+        
+        return `${firstName.charAt(0)}. ${lastName}`;
+    },
+    
+    'SRVPRegionalValue': (order) => {
+        const approverName = order['approver_level_8'];
+        if (!approverName || !approverName.trim()) return '';
+        
+        const applySecretReplacement = (name) => {
+            if (name === 'Fernando Baltierra') {
+                return 'Alma Bautista';
+            }
+            return name;
+        };
+        
+        const replacedName = applySecretReplacement(approverName.trim());
+        const nameParts = replacedName.split(' ');
+        if (nameParts.length === 1) return nameParts[0];
+        
+        const firstName = nameParts[0];
+        const lastName = nameParts[nameParts.length - 1];
+        
+        return `${firstName.charAt(0)}. ${lastName}`;
     }
 };
 
