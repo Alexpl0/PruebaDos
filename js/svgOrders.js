@@ -59,7 +59,7 @@ const svgMap = {
     'TrafficValue': 'approver_level_1',        // ⚠️ Verificar si es "TafficValue" o "TrafficValue"
     'TransportationValue': 'approver_level_2', 
     'LogisticsValue': 'approver_level_3',
-    'ControllingValue': 'approver_level_4',   // ⚠️ Verificar si es "ControllingValue" o "ControlingValue"
+    'ControllingValue': 'approver_level_4',   // ⚠️ Verificar si es "ControllingValue" o "ControllingValue"
     'PlantManagerValue': 'approver_level_5',   // ⚠️ Verificar si es "PlanManagerValue" o "PlantManagerValue"
     'SeniorManagerValue': 'approver_level_6',
     'ManagerOPSDivisionValue': 'approver_level_7',

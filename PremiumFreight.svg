@@ -24,9 +24,9 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
-     inkscape:zoom="4.0000002"
-     inkscape:cx="470.99997"
-     inkscape:cy="547.37497"
+     inkscape:zoom="2.0000001"
+     inkscape:cx="380.99998"
+     inkscape:cy="464.24997"
      inkscape:window-width="1920"
      inkscape:window-height="991"
      inkscape:window-x="1491"
@@ -337,16 +337,16 @@
     <text
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
        id="TransportationValue"
-       x="64.267288"
+       x="70.088127"
        y="129.01549">TransportationValue</text>
     <text
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
        id="ControllingValue"
-       x="108.17648"
+       x="113.99731"
        y="129.01617"><tspan
          sodipodi:role="line"
          id="tspan8-1"
-         x="108.17648"
+         x="113.99731"
          y="129.01617">ControlingValue</tspan></text>
     <text
        style="font-style:normal;font-variant:normal;font-weight:900;font-stretch:normal;font-size:5.64444px;font-family:Arial;-inkscape-font-specification:'Arial, Heavy';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
@@ -356,7 +356,7 @@
     <text
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;writing-mode:lr-tb;display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.388056"
        id="LogisticsValue"
-       x="89.462234"
+       x="95.283073"
        y="128.95406">LogisticsValue</text>
   </g>
   <g
