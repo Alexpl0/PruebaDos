@@ -55,12 +55,12 @@ const svgMap = {
     'ReferenceNumberValue': 'reference_number',
     'IdPfValue': 'id',
     
-    // Campos de aprobadores - estos serán manejados de manera especial
-    'TafficValue': 'approver_level_1',
+    // Campos de aprobadores - REVISAR NOMBRES
+    'TafficValue': 'approver_level_1',        // ⚠️ Verificar si es "TafficValue" o "TrafficValue"
     'TransportationValue': 'approver_level_2', 
     'LogisticsValue': 'approver_level_3',
-    'ControllingValue': 'approver_level_4',
-    'PlanManagerValue': 'approver_level_5',
+    'ControllingValue': 'approver_level_4',   // ⚠️ Verificar si es "ControllingValue" o "ControlingValue"
+    'PlanManagerValue': 'approver_level_5',   // ⚠️ Verificar si es "PlanManagerValue" o "PlantManagerValue"
     'SeniorManagerValue': 'approver_level_6',
     'ManagerOPSDivisionValue': 'approver_level_7',
     'SRVPRegionalValue': 'approver_level_8',
@@ -182,6 +182,19 @@ async function loadAndPopulateSVG(selectedOrder, containerId = 'svgPreview') {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = svgText;
 
+        // NUEVO: Debug detallado de los datos de aprobadores
+        console.log(`[SVG] 🔍 DEBUGGING APPROVERS for order ${selectedOrder.id}:`);
+        console.log('Raw approver data:', {
+            approver_level_1: selectedOrder.approver_level_1,
+            approver_level_2: selectedOrder.approver_level_2,
+            approver_level_3: selectedOrder.approver_level_3,
+            approver_level_4: selectedOrder.approver_level_4,
+            approver_level_5: selectedOrder.approver_level_5,
+            approver_level_6: selectedOrder.approver_level_6,
+            approver_level_7: selectedOrder.approver_level_7,
+            approver_level_8: selectedOrder.approver_level_8,
+        });
+
         // CORREGIDO: Debug de los datos que se están mapeando
         console.log(`[SVG] Mapping data for order ${selectedOrder.id}:`, {
             creator_name: selectedOrder.creator_name,
@@ -196,13 +209,22 @@ async function loadAndPopulateSVG(selectedOrder, containerId = 'svgPreview') {
         for (const [svgId, orderKey] of Object.entries(svgMap)) {
             const element = tempDiv.querySelector(`#${svgId}`);
             if (element) {
+                let valueToSet = '';
+                
                 if (svgId === 'DateValue') {
-                    element.textContent = formatDate(selectedOrder.date);
+                    valueToSet = formatDate(selectedOrder.date);
                 } else if (typeof orderKey === 'function') {
-                    element.textContent = orderKey(selectedOrder);
+                    valueToSet = orderKey(selectedOrder);
                 } else {
-                    element.textContent = selectedOrder[orderKey] || '';
+                    valueToSet = selectedOrder[orderKey] || '';
                 }
+                
+                // NUEVO: Log específico para campos de aprobadores
+                if (svgId.includes('Value') && orderKey.includes('approver_level')) {
+                    console.log(`[SVG] 📝 Setting ${svgId} (${orderKey}) = "${valueToSet}"`);
+                }
+                
+                element.textContent = valueToSet;
             } else {
                 console.warn(`[SVG] Element not found in SVG: ${svgId}`);
             }
