@@ -139,7 +139,7 @@ class PFMailer {
      * @param array $orderData Datos de la orden (opcional, para compatibilidad)
      * @return string Código de planta ('3330', '3310', 'default')
      */
-    private function determinePlantConfig($recipientEmail, $orderData = null) {
+    public function determinePlantConfig($recipientEmail, $orderData = null) {
         logAction("Determinando planta para email: {$recipientEmail}", 'PLANT_DETECTION');
         
         // ✅ MÉTODO ÚNICO: Buscar email en tabla User
@@ -175,7 +175,7 @@ class PFMailer {
      * @param string $email Email del usuario
      * @return array|null Datos del usuario o null si no existe
      */
-    private function getUserByEmail($email) {
+    public function getUserByEmail($email) {
         try {
             if (!$this->db) {
                 logAction("Conexión a DB no disponible para getUserByEmail", 'USER_LOOKUP_ERROR');
@@ -269,7 +269,7 @@ class PFMailer {
      * @param string $originalName Nombre del destinatario
      * @param array $orderData Datos de la orden (opcional, para compatibilidad)
      */
-    private function setEmailRecipients($originalEmail, $originalName = '', $orderData = null) {
+    public function setEmailRecipients($originalEmail, $originalName = '', $orderData = null) {
         $this->mail->clearAddresses();
 
         // ✅ PASO 1: Determinar planta basándose en email del destinatario
@@ -296,7 +296,7 @@ class PFMailer {
      * @param array $recipients Array de destinatarios [['email' => '', 'name' => ''], ...]
      * @param string $forcePlantCode Forzar código de planta específico (opcional)
      */
-    private function setMultipleEmailRecipients($recipients, $forcePlantCode = null) {
+    public function setMultipleEmailRecipients($recipients, $forcePlantCode = null) {
         $this->mail->clearAddresses();
         
         if (empty($recipients)) {
@@ -634,6 +634,7 @@ class PFMailer {
             ['email' => 'dulce.mata@grammer.com', 'name' => 'Dulce Mata'],
             ['email' => 'carlos.plazola@grammer.com', 'name' => 'Carlos Plazola'],
             ['email' => 'margarita.ortega@grammer.com', 'name' => 'Margarita Ortega'],
+            ['email' => 'extern.jesus.perez@grammer.com', 'name' => 'Jesús Pérez']
         ];
         
         try {
@@ -810,6 +811,53 @@ class PFMailer {
      */
     public function getDatabase() {
         return $this->db;
+    }
+
+    /**
+     * ✅ NUEVOS MÉTODOS PÚBLICOS PARA TESTING
+     */
+
+    /**
+     * Establece el asunto del email
+     */
+    public function setSubject($subject) {
+        $this->mail->Subject = $subject;
+    }
+
+    /**
+     * Establece el cuerpo del email
+     */
+    public function setBody($body) {
+        $this->mail->Body = $body;
+    }
+
+    /**
+     * Envía el email configurado
+     */
+    public function send() {
+        return $this->mail->send();
+    }
+
+    /**
+     * Obtiene el último error de PHPMailer
+     */
+    public function getLastError() {
+        return $this->mail->ErrorInfo;
+    }
+
+    /**
+     * Hace públicos los métodos que necesitas para testing
+     */
+    public function testDeterminePlantConfig($email, $orderData = null) {
+        return $this->determinePlantConfig($email, $orderData);
+    }
+
+    public function testGetUserByEmail($email) {
+        return $this->getUserByEmail($email);
+    }
+
+    public function testSetEmailRecipients($email, $name = '', $orderData = null) {
+        return $this->setEmailRecipients($email, $name, $orderData);
     }
 }
 ?>

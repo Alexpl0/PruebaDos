@@ -1,251 +1,1018 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Freight - Test Email Functions</title>
-    <!-- Add SweetAlert2 -->
+    <title>Premium Freight - Email Testing Suite</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f8f9fa;
-        }
-        h1 {
-            color: #034C8C;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .card {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        h2 {
-            color: #333;
-            margin-top: 0;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        input, select {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        * {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
         }
-        .button-row {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
+
+        body {
+            font-family: 'Axiforma', 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #032221 0%, #03624C 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #000F01;
         }
-        button {
-            background-color: #034C8C;
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #F1F7F6;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #00DF81, #2CC295);
             color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
-            cursor: pointer;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.3em;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: #e9f0ef;
+            border-bottom: 3px solid #AACBC4;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .nav-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-tab {
             flex: 1;
+            min-width: 200px;
+            padding: 20px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #095544;
+            transition: all 0.3s ease;
+            position: relative;
+            text-align: center;
         }
-        button:hover {
-            background-color: #023b6a;
+
+        .nav-tab.active {
+            color: #03624C;
+            background: #F1F7F6;
         }
-        button.secondary {
-            background-color: #6c757d;
+
+        .nav-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #00DF81, #2CC295);
         }
-        button.secondary:hover {
-            background-color: #5a6268;
+
+        .nav-tab:hover:not(.active) {
+            color: #00DF81;
+            background: rgba(44, 194, 149, 0.05);
         }
-        button.success {
-            background-color: #28a745;
+
+        .content {
+            padding: 40px;
         }
-        button.success:hover {
-            background-color: #218838;
+
+        .tab-content {
+            display: none;
         }
-        button.warning {
-            background-color: #ffc107;
-            color: #212529;
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
         }
-        button.warning:hover {
-            background-color: #e0a800;
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .result {
-            margin-top: 15px;
+
+        .section {
+            background: linear-gradient(145deg, #ffffff, #F1F7F6);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.18);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #00DF81, #2CC295, #17876D, #095544);
+            background-size: 400% 400%;
+            animation: gradientShift 3s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .section h2 {
+            font-size: 1.8em;
+            color: #000F01;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .section-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #00DF81, #2CC295);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 223, 129, 0.3);
+        }
+
+        .section-description {
+            color: #03624C;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            font-size: 1.1em;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #000F01;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input, 
+        .form-group select {
+            width: 100%;
             padding: 15px;
-            background-color: #f8f9fa;
-            border-radius: 4px;
-            border-left: 4px solid #6c757d;
+            border: 2px solid #AACBC4;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus, 
+        .form-group select:focus {
+            outline: none;
+            border-color: #00DF81;
+            box-shadow: 0 0 0 4px rgba(0, 223, 129, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 18px 25px;
+            border: none;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #095544, #17876D);
+            color: white;
+            box-shadow: 0 4px 15px rgba(23, 135, 109, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #00DF81, #2CC295);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 223, 129, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #063D2B, #084E3A);
+            color: white;
+            box-shadow: 0 4px 15px rgba(8, 78, 58, 0.4);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #03624C, #2FA98C);
+            color: white;
+            box-shadow: 0 4px 15px rgba(3, 98, 76, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #707070, #505050);
+            color: white;
+            box-shadow: 0 4px 15px rgba(112, 112, 112, 0.4);
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            background: #e9f0ef;
+            border-radius: 15px;
+            border-left: 5px solid #707070;
             min-height: 20px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
         }
+
         .success-result {
-            border-left-color: #28a745;
+            border-left-color: #00DF81;
+            background: linear-gradient(135deg, #e0f8f0, #d1f2e8);
         }
+
         .error-result {
-            border-left-color: #dc3545;
+            border-left-color: #e57373; /* Using a generic red for errors for usability */
+            background: linear-gradient(135deg, #ffebee, #ffcdd2);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.18);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: 800;
+            background: linear-gradient(135deg, #00DF81, #03624C);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #707070;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .logic-flow {
+            background: linear-gradient(135deg, #e0f2f1, #b2dfdb);
+            border: 2px solid #2CC295;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .logic-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .logic-step {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .logic-step:hover {
+            transform: translateY(-3px);
+        }
+
+        .step-number {
+            background: linear-gradient(135deg, #17876D, #095544);
+            color: white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin: 0 auto 15px;
+            box-shadow: 0 4px 15px rgba(23, 135, 109, 0.3);
+        }
+
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 25px;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .user-table th {
+            background: linear-gradient(135deg, #00DF81, #2CC295);
+            color: white;
+            padding: 20px 15px;
+            text-align: left;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 14px;
+        }
+
+        .user-table td {
+            padding: 15px;
+            border-bottom: 1px solid #AACBC4;
+            vertical-align: middle;
+        }
+
+        .user-table tr:hover {
+            background: linear-gradient(135deg, #f1f7f6, #e9f0ef);
+        }
+
+        .plant-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .plant-3330 {
+            background: #03624C; /* Bangladesh Green */
+        }
+
+        .plant-3310 {
+            background: #095544; /* Forest */
+        }
+
+        .plant-null {
+            background: #707070; /* Stone */
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 15, 1, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid transparent;
+            border-top: 4px solid #00DF81;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border-left: 5px solid;
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, #e0f2f1, #b2dfdb);
+            border-left-color: #2CC295;
+            color: #03624C;
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, #f5f5f5, #e0e0e0);
+            border-left-color: #707070;
+            color: #000F01;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .header {
+                padding: 25px;
+            }
+
+            .header h1 {
+                font-size: 2.2em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .form-grid,
+            .button-grid,
+            .stats-grid,
+            .logic-steps {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+            }
+
+            .nav-tab {
+                min-width: auto;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Premium Freight - Email Testing</h1>
-
-    <div class="card">
-        <h2>Approval Email Test</h2>
-        <div class="form-group">
-            <label for="orderId">Order ID:</label>
-            <input type="number" id="orderId" placeholder="Enter order ID">
-        </div>
-        <div class="button-row">
-            <button id="test-approval" class="success">Send Approval Email</button>
-        </div>
-        <div id="approval-result" class="result"></div>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
     </div>
 
-    <div class="card">
-        <h2>Status Notification Test</h2>
-        <div class="form-group">
-            <label for="status-order-id">Order ID:</label>
-            <input type="number" id="status-order-id" placeholder="Enter order ID">
+    <div class="container">
+        <div class="header">
+            <h1><i class="fa-solid fa-rocket"></i> Premium Freight Email Testing Suite</h1>
+            <p>Centro de testing completo para el sistema de correos multi-planta</p>
         </div>
-        <div class="form-group">
-            <label for="status-type">Status Type:</label>
-            <select id="status-type">
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
-            </select>
-        </div>
-        <div class="button-row">
-            <button id="test-status" class="success">Send Status Notification</button>
-        </div>
-        <div id="status-result" class="result"></div>
-    </div>
 
-    <div class="card">
-        <h2>Weekly Summary Test</h2>
-        <p>This sends the summary of pending orders to each approver.</p>
-        <div class="button-row">
-            <button id="test-weekly-summary" class="warning">Send Approver Summaries</button>
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="switchTab('production-tests')">
+                <i class="fa-solid fa-envelope"></i> Tests de Producción
+            </button>
+            <button class="nav-tab" onclick="switchTab('plant-system')">
+                <i class="fa-solid fa-industry"></i> Sistema Multi-Planta
+            </button>
+            <button class="nav-tab" onclick="switchTab('advanced-tests')">
+                <i class="fa-solid fa-wrench"></i> Tests Avanzados
+            </button>
         </div>
-        <div id="weekly-result" class="result"></div>
-    </div>
-    
-    <!-- ===== NUEVA TARJETA PARA EL REPORTE DE ESTADÍSTICAS ===== -->
-    <div class="card">
-        <h2>Weekly Statistics Report Test</h2>
-        <p>This sends the global weekly performance report to managers.</p>
-        <div class="button-row">
-            <button id="test-statistics-report" class="secondary">Send Statistics Report</button>
-        </div>
-        <div id="statistics-result" class="result"></div>
-    </div>
 
-    <div class="card">
-        <h2>Recovery Check Test</h2>
-        <div class="button-row">
-            <button id="test-recovery-check" class="warning">Send Recovery Check</button>
-        </div>
-        <div id="recovery-result" class="result"></div>
-    </div>
-
-    <script>
-        // Wait for DOM to be fully loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            // Helper function to show results
-            function showResult(elementId, data, isSuccess) {
-                const resultElement = document.getElementById(elementId);
-                resultElement.textContent = JSON.stringify(data, null, 2);
-                resultElement.classList.remove('success-result', 'error-result');
-                resultElement.classList.add(isSuccess ? 'success-result' : 'error-result');
-            }
-
-            // Helper function to show loading with progress (Fixed version)
-            function showLoadingProgress(title, text) {
-                return Swal.fire({
-                    title: title,
-                    html: `
-                        <div style="margin: 20px 0;">
-                            <p>${text}</p>
-                            <div id="progress-container" style="
-                                width: 100%;
-                                height: 20px;
-                                background-color: #f0f0f0;
-                                border-radius: 10px;
-                                margin: 20px 0;
-                                overflow: hidden;
-                            ">
-                                <div id="progress-fill" style="
-                                    width: 0%;
-                                    height: 100%;
-                                    background: linear-gradient(90deg, #034C8C, #28a745);
-                                    border-radius: 10px;
-                                    transition: width 0.3s ease;
-                                "></div>
-                            </div>
-                            <div id="progress-text" style="
-                                font-size: 14px;
-                                color: #666;
-                                text-align: center;
-                            ">Starting...</div>
+        <div class="content">
+            <div id="production-tests" class="tab-content active">
+                <div class="section">
+                    <h2>
+                        <div class="section-icon"><i class="fa-solid fa-envelope-open-text"></i></div>
+                        Notificación de Aprobación
+                    </h2>
+                    <p class="section-description">
+                        Envía una notificación de aprobación a los usuarios apropiados para una orden específica.
+                    </p>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="orderId">ID de la Orden</label>
+                            <input type="number" id="orderId" placeholder="Ingresa el ID de la orden">
                         </div>
-                    `,
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    showConfirmButton: false,
-                    didOpen: () => {
-                        Swal.showLoading();
+                    </div>
+                    
+                    <div class="button-grid">
+                        <button id="test-approval" class="btn btn-success">
+                            <i class="fa-solid fa-paper-plane"></i> Enviar Notificación de Aprobación
+                        </button>
+                    </div>
+                    
+                    <div id="approval-result" class="result" style="display: none;"></div>
+                </div>
+
+                <div class="section">
+                    <h2>
+                        <div class="section-icon"><i class="fa-solid fa-clipboard-list"></i></div>
+                        Notificación de Estado
+                    </h2>
+                    <p class="section-description">
+                        Notifica al creador de una orden sobre el cambio de estado (aprobada o rechazada).
+                    </p>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="status-order-id">ID de la Orden</label>
+                            <input type="number" id="status-order-id" placeholder="Ingresa el ID de la orden">
+                        </div>
+                        <div class="form-group">
+                            <label for="status-type">Tipo de Estado</label>
+                            <select id="status-type">
+                                <option value="approved"><i class="fa-solid fa-check-circle"></i> Aprobada</option>
+                                <option value="rejected"><i class="fa-solid fa-times-circle"></i> Rechazada</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="button-grid">
+                        <button id="test-status" class="btn btn-info">
+                            <i class="fa-solid fa-inbox"></i> Enviar Notificación de Estado
+                        </button>
+                    </div>
+                    
+                    <div id="status-result" class="result" style="display: none;"></div>
+                </div>
+
+                <div class="section">
+                    <h2>
+                        <div class="section-icon"><i class="fa-solid fa-chart-pie"></i></div>
+                        Reportes Semanales
+                    </h2>
+                    <p class="section-description">
+                        Envía reportes semanales y estadísticas a los usuarios correspondientes.
+                    </p>
+                    
+                    <div class="button-grid">
+                        <button id="test-weekly-summary" class="btn btn-warning">
+                            <i class="fa-solid fa-file-alt"></i> Resumen para Aprobadores
+                        </button>
+                        <button id="test-statistics-report" class="btn btn-secondary">
+                            <i class="fa-solid fa-chart-line"></i> Reporte de Estadísticas
+                        </button>
+                        <button id="test-recovery-check" class="btn btn-warning">
+                            <i class="fa-solid fa-search"></i> Verificación de Recovery
+                        </button>
+                    </div>
+                    
+                    <div id="weekly-result" class="result" style="display: none;"></div>
+                    <div id="statistics-result" class="result" style="display: none;"></div>
+                    <div id="recovery-result" class="result" style="display: none;"></div>
+                </div>
+            </div>
+
+            <div id="plant-system" class="tab-content">
+                <div class="alert alert-info">
+                    <h4><i class="fa-solid fa-brain"></i> Sistema Simplificado Multi-Planta</h4>
+                    <p>Este sistema utiliza una lógica simple: <strong>Email → Tabla User → Campo Plant → Configuración SMTP</strong></p>
+                </div>
+
+                <div class="logic-flow">
+                    <h3><i class="fa-solid fa-sync-alt"></i> Flujo de Detección de Planta</h3>
+                    <div class="logic-steps">
+                        <div class="logic-step">
+                            <div class="step-number">1</div>
+                            <strong>Buscar Email</strong><br>
+                            <small>En tabla User</small>
+                        </div>
+                        <div class="logic-step">
+                            <div class="step-number">2</div>
+                            <strong>Revisar Plant</strong><br>
+                            <small>Campo 'plant' del usuario</small>
+                        </div>
+                        <div class="logic-step">
+                            <div class="step-number">3</div>
+                            <strong>Elegir Config</strong><br>
+                            <small>3330=QRO, 3310=Tetla, NULL=Default</small>
+                        </div>
+                        <div class="logic-step">
+                            <div class="step-number">4</div>
+                            <strong>Configurar SMTP</strong><br>
+                            <small>Usar cuenta correcta</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>
+                        <div class="section-icon"><i class="fa-solid fa-users"></i></div>
+                        Gestión de Usuarios de Prueba
+                    </h2>
+                    <p class="section-description">
+                        Verificar y crear usuarios de prueba para validar el sistema multi-planta.
+                    </p>
+                    
+                    <div class="button-grid">
+                        <button class="btn btn-info" onclick="checkTestUsers()">
+                            <i class="fa-solid fa-eye"></i> Ver Usuarios Existentes
+                        </button>
+                        <button class="btn btn-warning" onclick="createTestUsers()">
+                            <i class="fa-solid fa-plus"></i> Crear Usuarios de Prueba
+                        </button>
+                    </div>
+
+                    <div id="plant-stats" class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalUsers">0</div>
+                            <div class="stat-label">Total Usuarios</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="queretaroUsers">0</div>
+                            <div class="stat-label">Querétaro (3330)</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="tetlaUsers">0</div>
+                            <div class="stat-label">Tetla (3310)</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="regionalUsers">0</div>
+                            <div class="stat-label">Regional/Sin Planta</div>
+                        </div>
+                    </div>
+
+                    <div id="usersResults" class="result" style="display: none;"></div>
+                    <div id="usersTable" style="display: none;"></div>
+                </div>
+
+                <div class="section">
+                    <h2>
+                        <div class="section-icon"><i class="fa-solid fa-bullseye"></i></div>
+                        Testing de Detección
+                    </h2>
+                    <p class="section-description">
+                        Verificar que el sistema detecta correctamente la planta según el email del destinatario.
+                    </p>
+                    
+                    <div class="button-grid">
+                        <button class="btn btn-primary" onclick="testPlantDetection()">
+                            <i class="fa-solid fa-search"></i> Probar Detección de Plantas
+                        </button>
+                    </div>
+
+                    <div id="detectionResults" class="result" style="display: none;"></div>
+                </div>
+
+                <div class="section">
+                    <h2>
+                        <div class="section-icon"><i class="fa-solid fa-envelope"></i></div>
+                        Testing de Envío Individual
+                    </h2>
+                    <p class="section-description">
+                        Enviar un email a un usuario específico y verificar que se use la configuración SMTP correcta.
+                    </p>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="recipientEmail">Email del Destinatario</label>
+                            <select id="recipientEmail">
+                                <option value="test.queretaro@grammer.com">test.queretaro@grammer.com (→ Querétaro)</option>
+                                <option value="test.tetla@grammer.com">test.tetla@grammer.com (→ Tetla)</option>
+                                <option value="test.regional@grammer.com">test.regional@grammer.com (→ Default)</option>
+                                <option value="extern.jesus.perez@grammer.com">extern.jesus.perez@grammer.com</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="testMessage">Mensaje de Prueba</label>
+                            <input type="text" id="testMessage" value="Prueba del sistema simplificado multi-planta ✅" placeholder="Mensaje personalizado...">
+                        </div>
+                    </div>
+                    
+                    <div class="button-grid">
+                        <button class="btn btn-success" onclick="testIndividualEmail()">
+                            <i class="fa-solid fa-rocket"></i> Enviar Email de Prueba
+                        </button>
+                    </div>
+
+                    <div id="individualResults" class="result" style="display: none;"></div>
+                </div>
+
+                <div class="section">
+                    <h2>
+                        <div class="section-icon"><i class="fa-solid fa-globe"></i></div>
+                        Testing Masivo Multi-Planta
+                    </h2>
+                    <p class="section-description">
+                        Enviar emails a usuarios de todas las plantas para verificar que cada uno use la configuración SMTP correcta.
+                    </p>
+
+                    <div class="alert alert-warning">
+                        <h4><i class="fa-solid fa-info-circle"></i> Comportamiento Esperado:</h4>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li><strong>test.queretaro@grammer.com</strong> → desde <code>queretaro@grammermx.com</code></li>
+                            <li><strong>test.tetla@grammer.com</strong> → desde <code>tetla@grammermx.com</code></li>
+                            <li><strong>test.regional@grammer.com</strong> → desde <code>specialfreight@grammermx.com</code></li>
+                            <li><strong>Usuario no encontrado</strong> → desde <code>specialfreight@grammermx.com</code></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="button-grid">
+                        <button class="btn btn-warning" onclick="testAllPlantConfigs()">
+                            <i class="fa-solid fa-globe"></i> Ejecutar Testing Masivo
+                        </button>
+                    </div>
+
+                    <div id="massiveResults" class="result" style="display: none;"></div>
+                </div>
+            </div>
+
+            <div id="advanced-tests" class="tab-content">
+                <div class="section">
+                    <h2>
+                        <div class="section-icon"><i class="fa-solid fa-lock"></i></div>
+                        Gestión de Usuarios
+                    </h2>
+                    <p class="section-description">
+                        Tests para funcionalidades avanzadas de gestión de usuarios y autenticación.
+                    </p>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="verificationUserId">ID de Usuario para Verificación</label>
+                            <input type="number" id="verificationUserId" placeholder="ID del usuario">
+                        </div>
+                        <div class="form-group">
+                            <label for="resetEmail">Email para Reset de Contraseña</label>
+                            <input type="email" id="resetEmail" placeholder="email@ejemplo.com">
+                        </div>
+                    </div>
+                    
+                    <div class="button-grid">
+                        <button class="btn btn-info" onclick="testVerificationEmail()">
+                            <i class="fa-solid fa-envelope-circle-check"></i> Test Verificación de Email
+                        </button>
+                        <button class="btn btn-secondary" onclick="testPasswordReset()">
+                            <i class="fa-solid fa-key"></i> Test Reset de Contraseña
+                        </button>
+                    </div>
+
+                    <div id="verification-result" class="result" style="display: none;"></div>
+                    <div id="password-result" class="result" style="display: none;"></div>
+                </div>
+
+                <div class="section">
+                    <h2>
+                        <div class="section-icon"><i class="fa-solid fa-tools"></i></div>
+                        Diagnósticos del Sistema
+                    </h2>
+                    <p class="section-description">
+                        Herramientas para diagnosticar y verificar el estado del sistema de correos.
+                    </p>
+                    
+                    <div class="button-grid">
+                        <button class="btn btn-info" onclick="checkSystemStatus()">
+                            <i class="fa-solid fa-search"></i> Verificar Estado del Sistema
+                        </button>
+                        <button class="btn btn-warning" onclick="testSMTPConnections()">
+                            <i class="fa-solid fa-plug"></i> Probar Conexiones SMTP
+                        </button>
+                    </div>
+
+                    <div id="system-result" class="result" style="display: none;"></div>
+                    <div id="smtp-result" class="result" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+        // =================================================================
+        // FUNCIONES DE NAVEGACIÓN Y UI
+        // =================================================================
+
+        function switchTab(tabId) {
+            // Ocultar todas las tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remover clase active de todos los botones
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Mostrar tab seleccionada
+            document.getElementById(tabId).classList.add('active');
+            
+            // Activar botón correspondiente
+            event.target.classList.add('active');
+        }
+
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        function showResult(elementId, data, isSuccess = true) {
+            const container = document.getElementById(elementId);
+            container.style.display = 'block';
+            container.innerHTML = JSON.stringify(data, null, 2);
+            container.classList.remove('success-result', 'error-result');
+            container.classList.add(isSuccess ? 'success-result' : 'error-result');
+            container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function showLoadingProgress(title, text) {
+            return Swal.fire({
+                title: title,
+                html: `
+                    <div style="margin: 20px 0;">
+                        <p>${text}</p>
+                        <div id="progress-container" style="
+                            width: 100%;
+                            height: 20px;
+                            background-color: #f0f0f0;
+                            border-radius: 10px;
+                            margin: 20px 0;
+                            overflow: hidden;
+                        ">
+                            <div id="progress-fill" style="
+                                width: 0%;
+                                height: 100%;
+                                background: linear-gradient(90deg, #FF6B6B, #4ECDC4);
+                                border-radius: 10px;
+                                transition: width 0.3s ease;
+                            "></div>
+                        </div>
+                        <div id="progress-text" style="
+                            font-size: 14px;
+                            color: #666;
+                            text-align: center;
+                        ">Iniciando...</div>
+                    </div>
+                `,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+        }
+
+        function updateProgress(percentage, text) {
+            const progressFill = document.getElementById('progress-fill');
+            const progressText = document.getElementById('progress-text');
+            if (progressFill) {
+                progressFill.style.width = percentage + '%';
+            }
+            if (progressText) {
+                progressText.textContent = text;
+            }
+        }
+
+        async function makeRequest(url, method = 'POST', data = null) {
+            try {
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
                     }
-                });
-            }
+                };
 
-            // Helper function to update progress (Fixed version)
-            function updateProgress(percentage, text) {
-                const progressFill = document.getElementById('progress-fill');
-                const progressText = document.getElementById('progress-text');
-                if (progressFill) {
-                    progressFill.style.width = percentage + '%';
+                if (data && method !== 'GET') {
+                    options.body = JSON.stringify(data);
                 }
-                if (progressText) {
-                    progressText.textContent = text;
-                }
-            }
 
-            // Test approval email
+                const response = await fetch(url, options);
+                const result = await response.json();
+
+                return result;
+
+            } catch (error) {
+                throw error;
+            }
+        }
+
+        // =================================================================
+        // FUNCIONES DE TESTS DE PRODUCCIÓN (TAB 1)
+        // =================================================================
+
+        // Test approval email
+        document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('test-approval').addEventListener('click', async function() {
                 const orderId = document.getElementById('orderId').value;
                 if (!orderId) {
-                    showResult('approval-result', { error: 'Please enter an order ID' }, false);
+                    showResult('approval-result', { error: 'Por favor ingresa un ID de orden' }, false);
                     return;
                 }
 
-                showLoadingProgress('Sending Approval Email', 'Processing request...');
-                updateProgress(25, 'Validating data...');
+                showLoadingProgress('Enviando Notificación de Aprobación', 'Procesando solicitud...');
+                updateProgress(25, 'Validando datos...');
 
                 try {
-                    updateProgress(50, 'Connecting to server...');
+                    updateProgress(50, 'Conectando al servidor...');
                     
-                    const response = await fetch('PFmailNotification.php', {
+                    const response = await fetch('test_email_functions.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ orderId: orderId })
+                        body: JSON.stringify({ action: 'approval_notification', orderId: orderId })
                     });
                     
-                    updateProgress(75, 'Sending email...');
+                    updateProgress(75, 'Enviando email...');
                     const data = await response.json();
                     
-                    updateProgress(100, 'Completed');
+                    updateProgress(100, 'Completado');
                     
                     setTimeout(() => {
                         Swal.close();
@@ -254,16 +1021,16 @@
                         if (data.success) {
                             Swal.fire({
                                 icon: 'success',
-                                title: 'Email Sent',
-                                text: 'The approval email was sent successfully',
+                                title: '✅ Email Enviado',
+                                text: 'La notificación de aprobación fue enviada exitosamente',
                                 timer: 2000,
                                 showConfirmButton: false
                             });
                         } else {
                             Swal.fire({
                                 icon: 'error',
-                                title: 'Error',
-                                text: data.message || 'Error sending email'
+                                title: '❌ Error',
+                                text: data.message || 'Error enviando email'
                             });
                         }
                     }, 500);
@@ -273,7 +1040,7 @@
                     showResult('approval-result', { error: error.message }, false);
                     Swal.fire({
                         icon: 'error',
-                        title: 'Connection Error',
+                        title: 'Error de Conexión',
                         text: error.message
                     });
                 }
@@ -285,30 +1052,24 @@
                 const statusType = document.getElementById('status-type').value;
                 
                 if (!orderId) {
-                    showResult('status-result', { error: 'Please enter an order ID' }, false);
+                    showResult('status-result', { error: 'Por favor ingresa un ID de orden' }, false);
                     return;
                 }
 
-                showLoadingProgress('Sending Status Notification', 'Preparing notification...');
-                updateProgress(20, 'Validating information...');
+                showLoadingProgress('Enviando Notificación de Estado', 'Preparando notificación...');
+                updateProgress(20, 'Validando información...');
 
                 try {
-                    updateProgress(40, 'Generating email content...');
+                    updateProgress(40, 'Generando contenido del email...');
                     
-                    const response = await fetch('test_email_functions.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            action: 'status_notification',
-                            orderId: orderId,
-                            status: statusType
-                        })
+                    const data = await makeRequest('test_email_functions.php', 'POST', { 
+                        action: 'status_notification',
+                        orderId: orderId,
+                        status: statusType
                     });
                     
-                    updateProgress(80, 'Sending notification...');
-                    const data = await response.json();
-                    
-                    updateProgress(100, 'Completed');
+                    updateProgress(80, 'Enviando notificación...');
+                    updateProgress(100, 'Completado');
                     
                     setTimeout(() => {
                         Swal.close();
@@ -317,8 +1078,8 @@
                         if (data.success) {
                             Swal.fire({
                                 icon: 'success',
-                                title: 'Notification Sent',
-                                text: 'The status notification was sent successfully',
+                                title: '📬 Notificación Enviada',
+                                text: 'La notificación de estado fue enviada exitosamente',
                                 timer: 2000,
                                 showConfirmButton: false
                             });
@@ -330,7 +1091,7 @@
                     showResult('status-result', { error: error.message }, false);
                     Swal.fire({
                         icon: 'error',
-                        title: 'Error',
+                        title: '❌ Error',
                         text: error.message
                     });
                 }
@@ -338,30 +1099,22 @@
 
             // Test weekly summary
             document.getElementById('test-weekly-summary').addEventListener('click', async function() {
-                showLoadingProgress('Sending Weekly Summary', 'This operation may take several minutes...');
-                updateProgress(10, 'Collecting weekly data...');
+                showLoadingProgress('Enviando Resumen Semanal', 'Esta operación puede tomar varios minutos...');
+                updateProgress(10, 'Recopilando datos semanales...');
 
                 try {
-                    updateProgress(25, 'Querying database...');
+                    updateProgress(25, 'Consultando base de datos...');
                     
-                    const response = await fetch('test_email_functions.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: 'weekly_summary' })
-                    });
+                    const data = await makeRequest('test_email_functions.php', 'POST', { action: 'weekly_summary' });
                     
-                    updateProgress(50, 'Generating reports...');
+                    updateProgress(50, 'Generando reportes...');
                     
-                    // Simulate additional progress for weekly summary
-                    setTimeout(() => updateProgress(65, 'Processing statistics...'), 1000);
-                    setTimeout(() => updateProgress(80, 'Preparing emails...'), 2000);
-                    
-                    const data = await response.json();
-                    
-                    updateProgress(95, 'Sending to recipients...');
+                    setTimeout(() => updateProgress(65, 'Procesando estadísticas...'), 1000);
+                    setTimeout(() => updateProgress(80, 'Preparando emails...'), 2000);
+                    updateProgress(95, 'Enviando a destinatarios...');
                     
                     setTimeout(() => {
-                        updateProgress(100, 'Weekly summary completed');
+                        updateProgress(100, 'Resumen semanal completado');
                         
                         setTimeout(() => {
                             Swal.close();
@@ -370,8 +1123,8 @@
                             if (data.success) {
                                 Swal.fire({
                                     icon: 'success',
-                                    title: 'Weekly Summary Sent',
-                                    text: 'The weekly summary has been sent to all recipients',
+                                    title: '📋 Resumen Enviado',
+                                    text: 'El resumen semanal ha sido enviado a todos los destinatarios',
                                     timer: 3000,
                                     showConfirmButton: false
                                 });
@@ -384,27 +1137,22 @@
                     showResult('weekly-result', { error: error.message }, false);
                     Swal.fire({
                         icon: 'error',
-                        title: 'Weekly Summary Error',
+                        title: 'Error en Resumen Semanal',
                         text: error.message
                     });
                 }
             });
 
-            // ===== NUEVO LISTENER PARA EL REPORTE DE ESTADÍSTICAS =====
+            // Test statistics report
             document.getElementById('test-statistics-report').addEventListener('click', async function() {
-                showLoadingProgress('Generating Statistics Report', 'This might take a moment...');
-                updateProgress(10, 'Collecting data...');
+                showLoadingProgress('Generando Reporte de Estadísticas', 'Esto puede tomar un momento...');
+                updateProgress(10, 'Recopilando datos...');
 
                 try {
-                    const response = await fetch('test_email_functions.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: 'weekly_statistics_report' })
-                    });
+                    const data = await makeRequest('test_email_functions.php', 'POST', { action: 'weekly_statistics_report' });
                     
-                    updateProgress(70, 'Generating email...');
-                    const data = await response.json();
-                    updateProgress(100, 'Completed');
+                    updateProgress(70, 'Generando email...');
+                    updateProgress(100, 'Completado');
 
                     setTimeout(() => {
                         Swal.close();
@@ -413,8 +1161,8 @@
                         if (data.success) {
                             Swal.fire({
                                 icon: 'success',
-                                title: 'Statistics Report Sent',
-                                text: 'The weekly statistics report has been sent to managers',
+                                title: '📈 Reporte Enviado',
+                                text: 'El reporte de estadísticas semanales ha sido enviado a los gerentes',
                                 timer: 3000,
                                 showConfirmButton: false
                             });
@@ -426,7 +1174,7 @@
                     showResult('statistics-result', { error: error.message }, false);
                     Swal.fire({
                         icon: 'error',
-                        title: 'Statistics Report Error',
+                        title: 'Error en Reporte de Estadísticas',
                         text: error.message
                     });
                 }
@@ -434,29 +1182,21 @@
 
             // Test recovery check
             document.getElementById('test-recovery-check').addEventListener('click', async function() {
-                showLoadingProgress('Executing Recovery Check', 'Analyzing pending data...');
-                updateProgress(15, 'Scanning records...');
+                showLoadingProgress('Ejecutando Verificación de Recovery', 'Analizando datos pendientes...');
+                updateProgress(15, 'Escaneando registros...');
 
                 try {
-                    updateProgress(30, 'Identifying pending items...');
+                    updateProgress(30, 'Identificando elementos pendientes...');
                     
-                    const response = await fetch('test_email_functions.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: 'recovery_check' })
-                    });
+                    const data = await makeRequest('test_email_functions.php', 'POST', { action: 'recovery_check' });
                     
-                    updateProgress(60, 'Processing recoveries...');
+                    updateProgress(60, 'Procesando recoveries...');
                     
-                    // Simulate progress for recovery check
-                    setTimeout(() => updateProgress(80, 'Generating recovery reports...'), 1000);
-                    
-                    const data = await response.json();
-                    
-                    updateProgress(95, 'Sending notifications...');
+                    setTimeout(() => updateProgress(80, 'Generando reportes de recovery...'), 1000);
+                    updateProgress(95, 'Enviando notificaciones...');
                     
                     setTimeout(() => {
-                        updateProgress(100, 'Verification completed');
+                        updateProgress(100, 'Verificación completada');
                         
                         setTimeout(() => {
                             Swal.close();
@@ -465,8 +1205,8 @@
                             if (data.success) {
                                 Swal.fire({
                                     icon: 'success',
-                                    title: 'Verification Completed',
-                                    text: 'The recovery verification was executed successfully',
+                                    title: '🔍 Verificación Completada',
+                                    text: 'La verificación de recovery fue ejecutada exitosamente',
                                     timer: 2000,
                                     showConfirmButton: false
                                 });
@@ -479,11 +1219,529 @@
                     showResult('recovery-result', { error: error.message }, false);
                     Swal.fire({
                         icon: 'error',
-                        title: 'Verification Error',
+                        title: 'Error de Verificación',
                         text: error.message
                     });
                 }
             });
+        });
+
+        // =================================================================
+        // FUNCIONES DE SISTEMA MULTI-PLANTA (TAB 2)
+        // =================================================================
+
+        async function checkTestUsers() {
+            try {
+                showLoading();
+                
+                const result = await makeRequest('test_email_functions?action=check_test_users', 'GET');
+                
+                hideLoading();
+                
+                if (result.success) {
+                    showResult('usersResults', result);
+                    displayUsersTable(result.data.users);
+                    
+                    // Actualizar estadísticas
+                    document.getElementById('totalUsers').textContent = result.data.total_users;
+                    document.getElementById('queretaroUsers').textContent = result.data.plant_statistics['3330'];
+                    document.getElementById('tetlaUsers').textContent = result.data.plant_statistics['3310'];
+                    document.getElementById('regionalUsers').textContent = result.data.plant_statistics['null'];
+                    
+                    Swal.fire({
+                        icon: 'info',
+                        title: '👥 Usuarios Encontrados',
+                        html: `
+                            <div style="text-align: left; margin: 15px 0;">
+                                <p><strong>Total usuarios:</strong> ${result.data.total_users}</p>
+                                <p><strong>Querétaro (3330):</strong> ${result.data.plant_statistics['3330']}</p>
+                                <p><strong>Tetla (3310):</strong> ${result.data.plant_statistics['3310']}</p>
+                                <p><strong>Sin planta:</strong> ${result.data.plant_statistics['null']}</p>
+                            </div>
+                        `,
+                        confirmButtonColor: '#FF6B6B'
+                    });
+                } else {
+                    throw new Error(result.message);
+                }
+                
+            } catch (error) {
+                hideLoading();
+                Swal.fire({
+                    icon: 'error',
+                    title: '❌ Error verificando usuarios',
+                    text: error.message
+                });
+            }
+        }
+
+        async function createTestUsers() {
+            try {
+                const confirmation = await Swal.fire({
+                    title: '➕ ¿Crear Usuarios de Prueba?',
+                    html: `
+                        <div style="text-align: left; margin: 15px 0;">
+                            <p>Se crearán los siguientes usuarios:</p>
+                            <ul>
+                                <li><strong>test.queretaro@grammer.com</strong> (plant: 3330)</li>
+                                <li><strong>test.tetla@grammer.com</strong> (plant: 3310)</li>
+                                <li><strong>test.regional@grammer.com</strong> (plant: NULL)</li>
+                            </ul>
+                        </div>
+                    `,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, crear',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#28a745'
+                });
+
+                if (!confirmation.isConfirmed) return;
+                
+                showLoading();
+                
+                const result = await makeRequest('test_email_functions?action=create_test_users', 'GET');
+                
+                hideLoading();
+                
+                if (result.success) {
+                    showResult('usersResults', result);
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: '✅ Usuarios Creados',
+                        html: `
+                            <div style="text-align: left; margin: 15px 0;">
+                                <p><strong>Usuarios creados:</strong> ${result.data.total_created}</p>
+                                <p><strong>Errores:</strong> ${result.data.total_errors}</p>
+                                ${result.data.errors.length > 0 ? 
+                                  '<p><small>Ver detalles en el área de resultados</small></p>' : ''}
+                            </div>
+                        `,
+                        confirmButtonColor: '#28a745'
+                    });
+                    
+                    // Actualizar lista de usuarios
+                    setTimeout(checkTestUsers, 1000);
+                } else {
+                    throw new Error(result.message);
+                }
+                
+            } catch (error) {
+                hideLoading();
+                Swal.fire({
+                    icon: 'error',
+                    title: '❌ Error creando usuarios',
+                    text: error.message
+                });
+            }
+        }
+
+        function displayUsersTable(users) {
+            const tableContainer = document.getElementById('usersTable');
+            
+            if (!users || users.length === 0) {
+                tableContainer.style.display = 'none';
+                return;
+            }
+            
+            let tableHTML = `
+                <h3 style="margin: 20px 0;">👥 Usuarios en Base de Datos</h3>
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Planta</th>
+                            <th>Nivel Auth</th>
+                            <th>Configuración Esperada</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            users.forEach(user => {
+                const plantClass = user.plant === '3330' ? 'plant-3330' : 
+                                 user.plant === '3310' ? 'plant-3310' : 'plant-null';
+                
+                const plantName = user.plant === '3330' ? 'Querétaro' : 
+                                 user.plant === '3310' ? 'Tetla' : 'Regional/Default';
+                
+                const expectedConfig = user.plant === '3330' ? 'queretaro@grammermx.com' :
+                                      user.plant === '3310' ? 'tetla@grammermx.com' : 'specialfreight@grammermx.com';
+                
+                tableHTML += `
+                    <tr>
+                        <td>${user.id}</td>
+                        <td>${user.name}</td>
+                        <td>${user.email}</td>
+                        <td>
+                            <span class="plant-badge ${plantClass}">
+                                ${plantName} (${user.plant || 'NULL'})
+                            </span>
+                        </td>
+                        <td>${user.authorization_level}</td>
+                        <td><small>${expectedConfig}</small></td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+            
+            tableContainer.innerHTML = tableHTML;
+            tableContainer.style.display = 'block';
+        }
+
+        async function testPlantDetection() {
+            try {
+                showLoading();
+                
+                const result = await makeRequest('test_email_functions?action=test_plant_detection', 'GET');
+                
+                hideLoading();
+                
+                if (result.success) {
+                    showResult('detectionResults', result);
+                    
+                    const correctDetections = result.data.test_results.filter(r => !r.error).length;
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: '🎯 Detección Completada',
+                        html: `
+                            <div style="text-align: left; margin: 15px 0;">
+                                <p><strong>Tests ejecutados:</strong> ${result.data.total_tests}</p>
+                                <p><strong>Detecciones correctas:</strong> ${correctDetections}</p>
+                                <br>
+                                <h4>🧠 Lógica Aplicada:</h4>
+                                <ol style="text-align: left; margin-left: 20px;">
+                                    <li>${result.data.logic_explanation.step_1}</li>
+                                    <li>${result.data.logic_explanation.step_2}</li>
+                                    <li>${result.data.logic_explanation.step_3}</li>
+                                    <li>${result.data.logic_explanation.step_4}</li>
+                                </ol>
+                            </div>
+                        `,
+                        confirmButtonColor: '#FF6B6B'
+                    });
+                } else {
+                    throw new Error(result.message);
+                }
+                
+            } catch (error) {
+                hideLoading();
+                Swal.fire({
+                    icon: 'error',
+                    title: '❌ Error en detección',
+                    text: error.message
+                });
+            }
+        }
+
+        async function testIndividualEmail() {
+            const recipientEmail = document.getElementById('recipientEmail').value;
+            const testMessage = document.getElementById('testMessage').value;
+            
+            if (!recipientEmail) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: '⚠️ Email Requerido',
+                    text: 'Selecciona un email de destinatario'
+                });
+                return;
+            }
+            
+            try {
+                showLoading();
+                
+                const result = await makeRequest('test_email_functions', 'POST', {
+                    action: 'test_email_to_specific_user',
+                    recipient_email: recipientEmail,
+                    message: testMessage
+                });
+                
+                hideLoading();
+                
+                if (result.success) {
+                    showResult('individualResults', result);
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: '🚀 Email Enviado',
+                        html: `
+                            <div style="text-align: left; margin: 15px 0;">
+                                <p><strong>Destinatario:</strong> ${result.data.recipient.email}</p>
+                                <p><strong>Planta detectada:</strong> ${result.data.smtp_config_used.plant_name}</p>
+                                <p><strong>Enviado desde:</strong> ${result.data.smtp_config_used.smtp_username}</p>
+                                <br>
+                                <p style="color: #28a745;">✅ Verifica tu bandeja de entrada!</p>
+                            </div>
+                        `,
+                        confirmButtonColor: '#28a745'
+                    });
+                } else {
+                    throw new Error(result.message);
+                }
+                
+            } catch (error) {
+                hideLoading();
+                Swal.fire({
+                    icon: 'error',
+                    title: '❌ Error enviando email',
+                    text: error.message
+                });
+            }
+        }
+
+        async function testAllPlantConfigs() {
+            try {
+                const confirmation = await Swal.fire({
+                    title: '🌐 ¿Ejecutar Testing Masivo?',
+                    html: `
+                        <div style="text-align: left; margin: 15px 0;">
+                            <p>Se enviará un email a cada configuración de planta:</p>
+                            <ul>
+                                <li>Querétaro → queretaro@grammermx.com</li>
+                                <li>Tetla → tetla@grammermx.com</li>
+                                <li>Regional → specialfreight@grammermx.com</li>
+                                <li>No encontrado → specialfreight@grammermx.com</li>
+                            </ul>
+                        </div>
+                    `,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, ejecutar',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#ffc107'
+                });
+
+                if (!confirmation.isConfirmed) return;
+                
+                showLoading();
+                
+                const result = await makeRequest('test_email_functions', 'POST', {
+                    action: 'test_all_plant_configs'
+                });
+                
+                hideLoading();
+                
+                if (result.success) {
+                    showResult('massiveResults', result);
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: '🌐 Testing Masivo Completado',
+                        html: `
+                            <div style="text-align: left; margin: 15px 0;">
+                                <p><strong>Total intentos:</strong> ${result.data.summary.total_attempts}</p>
+                                <p><strong>Envíos exitosos:</strong> ${result.data.summary.successful_sends}</p>
+                                <p><strong>Fallos:</strong> ${result.data.summary.failed_sends}</p>
+                                <br>
+                                <p style="color: #28a745;">✅ Revisa tu bandeja de entrada para ver los emails desde diferentes cuentas!</p>
+                            </div>
+                        `,
+                        confirmButtonColor: '#28a745'
+                    });
+                } else {
+                    throw new Error(result.message);
+                }
+                
+            } catch (error) {
+                hideLoading();
+                Swal.fire({
+                    icon: 'error',
+                    title: '❌ Error en testing masivo',
+                    text: error.message
+                });
+            }
+        }
+
+        // =================================================================
+        // FUNCIONES DE TESTS AVANZADOS (TAB 3)
+        // =================================================================
+
+        async function testVerificationEmail() {
+            const userId = document.getElementById('verificationUserId').value;
+            
+            if (!userId) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: '⚠️ ID Requerido',
+                    text: 'Ingresa un ID de usuario válido'
+                });
+                return;
+            }
+            
+            try {
+                showLoading();
+                
+                const result = await makeRequest('test_email_functions.php', 'POST', {
+                    action: 'verification',
+                    userId: userId
+                });
+                
+                hideLoading();
+                showResult('verification-result', result, result.success);
+                
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '📧 Email de Verificación Enviado',
+                        text: result.message
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '❌ Error',
+                        text: result.message
+                    });
+                }
+                
+            } catch (error) {
+                hideLoading();
+                showResult('verification-result', { error: error.message }, false);
+                Swal.fire({
+                    icon: 'error',
+                    title: '❌ Error',
+                    text: error.message
+                });
+            }
+        }
+
+        async function testPasswordReset() {
+            const email = document.getElementById('resetEmail').value;
+            
+            if (!email) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: '⚠️ Email Requerido',
+                    text: 'Ingresa un email válido'
+                });
+                return;
+            }
+            
+            try {
+                showLoading();
+                
+                const result = await makeRequest('test_email_functions.php', 'POST', {
+                    action: 'password_reset',
+                    email: email
+                });
+                
+                hideLoading();
+                showResult('password-result', result, result.success);
+                
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '🔑 Email de Reset Enviado',
+                        text: result.message
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '❌ Error',
+                        text: result.message
+                    });
+                }
+                
+            } catch (error) {
+                hideLoading();
+                showResult('password-result', { error: error.message }, false);
+                Swal.fire({
+                    icon: 'error',
+                    title: '❌ Error',
+                    text: error.message
+                });
+            }
+        }
+
+        async function checkSystemStatus() {
+            try {
+                showLoading();
+                
+                const response = await fetch('verify_plant_setup.php?format=json');
+                const result = await response.json();
+                
+                hideLoading();
+                showResult('system-result', result, true);
+                
+                if (result.summary) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: '🔍 Estado del Sistema',
+                        html: `
+                            <div style="text-align: left; margin: 15px 0;">
+                                <p><strong>Total Usuarios:</strong> ${result.summary.total_users}</p>
+                                <p><strong>Con Planta:</strong> ${result.summary.users_with_plant}</p>
+                                <p><strong>Sin Planta:</strong> ${result.summary.users_without_plant}</p>
+                                <p><strong>Entorno:</strong> ${result.environment}</p>
+                            </div>
+                        `
+                    });
+                }
+                
+            } catch (error) {
+                hideLoading();
+                showResult('system-result', { error: error.message }, false);
+                Swal.fire({
+                    icon: 'error',
+                    title: '❌ Error',
+                    text: error.message
+                });
+            }
+        }
+
+        async function testSMTPConnections() {
+            try {
+                showLoading();
+                
+                const result = await makeRequest('test_plant_config.php?action=test_smtp_connections', 'GET');
+                
+                hideLoading();
+                showResult('smtp-result', result, result.success);
+                
+                if (result.success) {
+                    const successRate = `${result.data.successful_connections}/${result.data.total_configs}`;
+                    Swal.fire({
+                        icon: 'success',
+                        title: '🔌 Test de Conexiones Completado',
+                        text: `Conexiones exitosas: ${successRate}`
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '❌ Error en Conexiones',
+                        text: result.message
+                    });
+                }
+                
+            } catch (error) {
+                hideLoading();
+                showResult('smtp-result', { error: error.message }, false);
+                Swal.fire({
+                    icon: 'error',
+                    title: '❌ Error',
+                    text: error.message
+                });
+            }
+        }
+
+        // =================================================================
+        // INICIALIZACIÓN
+        // =================================================================
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Premium Freight Email Testing Suite loaded');
+            
+            // Cargar datos iniciales del sistema multi-planta
+            setTimeout(() => {
+                checkTestUsers();
+            }, 1000);
         });
     </script>
 </body>
