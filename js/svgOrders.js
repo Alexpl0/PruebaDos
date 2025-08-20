@@ -219,8 +219,8 @@ async function loadAndPopulateSVG(selectedOrder, containerId = 'svgPreview') {
                     valueToSet = selectedOrder[orderKey] || '';
                 }
                 
-                // NUEVO: Log específico para campos de aprobadores
-                if (svgId.includes('Value') && orderKey.includes('approver_level')) {
+                // CORREGIDO: Log específico para campos de aprobadores - verificar que orderKey sea string
+                if (svgId.includes('Value') && typeof orderKey === 'string' && orderKey.includes('approver_level')) {
                     console.log(`[SVG] 📝 Setting ${svgId} (${orderKey}) = "${valueToSet}"`);
                 }
                 
