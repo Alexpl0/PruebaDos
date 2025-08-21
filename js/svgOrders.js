@@ -511,7 +511,7 @@ function applyTextWrappingForPDF(container, selectedOrder) {
     
     tempTextElement.textContent = "";
     
-    const maxCharsPerLine = 101;
+    const maxCharsPerLine = 80;
     const words = text.split(/\s+/);
     let currentLine = "";
     let firstLine = true;

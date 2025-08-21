@@ -84,9 +84,9 @@ function calculateAuthorizationRange(quotedCost) {
     }
 
     if (cost <= 1500) return 5;
-    if (cost <= 3000) return 6;
-    if (cost <= 5000) return 7;
-    return 8; // For costs > 5000
+    if (cost <= 5000) return 6;
+    if (cost <= 10000) return 7;
+    return 8; // For costs > 10000
 }
 
 // Function to validate and obtain company IDs.
