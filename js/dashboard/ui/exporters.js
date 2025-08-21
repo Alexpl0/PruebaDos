@@ -3,6 +3,7 @@
  * Implementa la exportación a formatos avanzados como Excel (con múltiples hojas) y PDF.
  */
 
+import { getDataTableButtons } from '../../dataTables.js';
 import { charts, chartData } from '../configDashboard.js';
 
 /**
@@ -31,6 +32,33 @@ export function exportToExcel() {
     const wb = XLSX.utils.book_new();
     const exportDate = new Date().toISOString().slice(0, 10);
 
+    // NUEVA: Agregar la hoja de DataTables como primera hoja
+    const dashboardData = getDashboardDataForExport(); // Necesitarás crear esta función
+    if (dashboardData && dashboardData.length > 0) {
+        const dataTableButtons = getDataTableButtons('Dashboard Orders Export', dashboardData);
+        
+        // Crear la hoja usando el mismo formato que DataTables
+        const headers = ['ID', 'Plant', 'Plant Code', 'Date', 'In/Out Bound', 'Reference', 'Creator', 
+                        'Area', 'Description', 'Category', 'Cost (€)', 'Transport', 'Carrier', 
+                        'Origin Company', 'Origin City', 'Destiny Company', 'Destiny City', 'Status'];
+        
+        const tableData = dashboardData.map(order => [
+            order.id || '-', order.planta || '-', order.code_planta || '-', order.date || '-',
+            order.in_out_bound || '-', order.reference_number || '-', order.creator_name || '-',
+            order.area || '-', order.description || '-', order.category_cause || '-',
+            order.cost_euros ? `€${parseFloat(order.cost_euros).toFixed(2)}` : '-',
+            order.transport || '-', order.carrier || '-',
+            order.origin_company_name || '-', order.origin_city || '-',
+            order.destiny_company_name || '-', order.destiny_city || '-',
+            getOrderStatusText(order) // Función para obtener el texto del status
+        ]);
+
+        const dataToSheet = [headers, ...tableData];
+        const ws = XLSX.utils.aoa_to_sheet(dataToSheet);
+        XLSX.utils.book_append_sheet(wb, ws, 'Orders Summary');
+    }
+
+    // Continuar con las hojas de gráficas existentes
     for (const key in chartData) {
         if (Object.hasOwnProperty.call(chartData, key)) {
             const chartInfo = chartData[key];
@@ -47,6 +75,31 @@ export function exportToExcel() {
     }
     
     XLSX.writeFile(wb, `Dashboard_Export_${exportDate}.xlsx`);
+}
+
+// Función auxiliar para obtener datos del dashboard
+function getDashboardDataForExport() {
+    // Aquí necesitarás acceder a los datos que tienes en tu dashboard
+    // Esto depende de cómo tengas organizados tus datos
+    // Por ejemplo, si tienes una variable global con los datos:
+    return window.dashboardOrdersData || [];
+}
+
+// Función auxiliar para obtener el texto del status
+function getOrderStatusText(order) {
+    const approvalStatus = parseInt(order.approval_status, 10);
+    const requiredLevel = parseInt(order.required_auth_level, 10);
+
+    if (isNaN(approvalStatus) || isNaN(requiredLevel)) {
+        return 'Unknown';
+    }
+    if (approvalStatus === 99) {
+        return 'Rejected';
+    }
+    if (approvalStatus >= requiredLevel) {
+        return 'Approved';
+    }
+    return 'In Review';
 }
 
 /**

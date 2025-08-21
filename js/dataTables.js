@@ -157,3 +157,6 @@ function updateQuickStats(orders) {
     document.getElementById('pendingOrdersCount').textContent = stats.pending;
     document.getElementById('rejectedOrdersCount').textContent = stats.rejected;
 }
+
+// En dataTables.js, agregar al final del archivo:
+export { getDataTableButtons };
