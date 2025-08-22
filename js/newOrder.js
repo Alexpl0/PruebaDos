@@ -1,7 +1,7 @@
 /**
  * Premium Freight - New Order Management (Refactored & Updated)
- * * This module handles the creation of new Premium Freight orders.
- * * It now includes conditional logic for the Recovery and ReferenceOrder fields.
+ * This module handles the creation of new Premium Freight orders.
+ * It now includes conditional logic for the Recovery and ReferenceOrder fields.
  */
 
 // 1. Importar dependencias
@@ -15,6 +15,53 @@ import {
 import { initializeProductSelector } from './productSelect.js';
 
 let range = 0;
+
+/**
+ * Function to format text to sentence case
+ * Capitalizes first letter of sentences and maintains proper nouns
+ */
+function formatToSentenceCase(text) {
+    if (!text || typeof text !== 'string') return '';
+    
+    // Common proper nouns that should remain capitalized
+    const properNouns = [
+        'Grammer', 'BMW', 'Mercedes', 'Audi', 'Volkswagen', 'Ford', 'GM', 'General Motors',
+        'Toyota', 'Honda', 'Nissan', 'Hyundai', 'Kia', 'Mazda', 'Subaru', 'Mitsubishi',
+        'Chrysler', 'Jeep', 'Ram', 'Dodge', 'Cadillac', 'Buick', 'Chevrolet', 'GMC',
+        'Lincoln', 'Mercury', 'Pontiac', 'Saturn', 'Hummer', 'Saab', 'Volvo', 'Jaguar',
+        'Land Rover', 'Bentley', 'Rolls-Royce', 'Aston Martin', 'Lotus', 'McLaren',
+        'Ferrari', 'Lamborghini', 'Maserati', 'Alfa Romeo', 'Fiat', 'Lancia', 'Peugeot',
+        'Citroën', 'Renault', 'Dacia', 'Skoda', 'Seat', 'Cupra', 'Mexico', 'USA', 'US',
+        'Canada', 'Germany', 'France', 'Italy', 'Spain', 'UK', 'China', 'Japan', 'Korea',
+        'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday',
+        'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
+        'September', 'October', 'November', 'December', 'COVID', 'AI', 'IT', 'QA', 'QC'
+    ];
+    
+    // First, trim and clean the text
+    let formattedText = text.trim();
+    
+    // Convert to lowercase first
+    formattedText = formattedText.toLowerCase();
+    
+    // Restore proper nouns
+    properNouns.forEach(noun => {
+        const regex = new RegExp(`\\b${noun.toLowerCase()}\\b`, 'gi');
+        formattedText = formattedText.replace(regex, noun);
+    });
+    
+    // Capitalize first letter of sentences (after period, exclamation, question mark)
+    formattedText = formattedText.replace(/(^|[.!?]\s+)([a-z])/g, (match, prefix, letter) => {
+        return prefix + letter.toUpperCase();
+    });
+    
+    // Capitalize after colon if it starts a new thought
+    formattedText = formattedText.replace(/:\s+([a-z])/g, (match, letter) => {
+        return ': ' + letter.toUpperCase();
+    });
+    
+    return formattedText;
+}
 
 // Function to send form data to the server.
 function sendFormDataAsync(payload) {
@@ -317,28 +364,58 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     // --- END OF MODIFICATION ---
     
-    // Setup for description text areas
+    // Setup for description text areas - UPDATED to include new fields
+    const generalDescription = document.getElementById('GeneralDescription');
+    const rootCause = document.getElementById('RootCause');
     const immediateActions = document.getElementById('InmediateActions');
     const permanentActions = document.getElementById('PermanentActions');
-    if (immediateActions && permanentActions) {
+    
+    if (generalDescription && rootCause && immediateActions && permanentActions) {
         const updateAndValidate = () => {
             updateDescription();
+            updateCharCounter(generalDescription, '#generalCounter', 50);
+            updateCharCounter(rootCause, '#rootCauseCounter', 50);
             updateCharCounter(immediateActions, '#immediateCounter', 50);
             updateCharCounter(permanentActions, '#permanentCounter', 50);
         };
+        
+        generalDescription.addEventListener('input', updateAndValidate);
+        rootCause.addEventListener('input', updateAndValidate);
         immediateActions.addEventListener('input', updateAndValidate);
         permanentActions.addEventListener('input', updateAndValidate);
+        
         updateAndValidate();
     }
 });
 
-// Helper function to update the combined description field.
+// Helper function to update the combined description field - UPDATED
 function updateDescription() {
+    const generalValue = document.getElementById('GeneralDescription')?.value.trim() || '';
+    const rootCauseValue = document.getElementById('RootCause')?.value.trim() || '';
     const immediateValue = document.getElementById('InmediateActions')?.value.trim() || '';
     const permanentValue = document.getElementById('PermanentActions')?.value.trim() || '';
     const descriptionField = document.getElementById('Description');
+    
     if (descriptionField) {
-        descriptionField.value = `IMMEDIATE ACTIONS:\n${immediateValue}\n\nPERMANENT ACTIONS:\n${permanentValue}`;
+        let combinedDescription = '';
+        
+        if (generalValue) {
+            combinedDescription += `GENERAL DESCRIPTION:\n${formatToSentenceCase(generalValue)}\n\n`;
+        }
+        
+        if (rootCauseValue) {
+            combinedDescription += `ROOT CAUSE:\n${formatToSentenceCase(rootCauseValue)}\n\n`;
+        }
+        
+        if (immediateValue) {
+            combinedDescription += `IMMEDIATE ACTIONS:\n${formatToSentenceCase(immediateValue)}\n\n`;
+        }
+        
+        if (permanentValue) {
+            combinedDescription += `PERMANENT ACTIONS:\n${formatToSentenceCase(permanentValue)}`;
+        }
+        
+        descriptionField.value = combinedDescription.trim();
     }
 }
 

@@ -13,7 +13,8 @@ function collectFormData() {
         'Area', 'IntExt', 'PaidBy', 'CategoryCause', 'ProjectStatus', 'Recovery',
         'Weight', 'Measures', 'Products', 'Carrier', 'QuotedCost', 'ReferenceOrder',
         'CompanyShip', 'inputCityShip', 'StatesShip', 'inputZipShip',
-        'inputCompanyNameDest', 'inputCityDest', 'StatesDest', 'inputZipDest'
+        'inputCompanyNameDest', 'inputCityDest', 'StatesDest', 'inputZipDest',
+        'GeneralDescription', 'RootCause' // Added new fields
     ];
 
     const textFields = [
@@ -109,8 +110,10 @@ function validateCompleteForm() {
         "Shipment Origin": ['CompanyShip', 'inputCityShip', 'StatesShip', 'inputZipShip'],
         "Destination": ['inputCompanyNameDest', 'inputCityDest', 'StatesDest', 'inputZipDest'],
         // MODIFICACIÓN: Se añade 'recoveryFile' para que el mensaje de error sepa a qué sección pertenece.
+        // Also added new description fields
         "Shipment Details": ['Weight', 'Measures', 'Products', 'Carrier', 'recoveryFile'],
-        "Reference Information": ['ReferenceOrder']
+        "Reference Information": ['ReferenceOrder'],
+        "Description Details": ['GeneralDescription', 'RootCause'] // New section for new fields
     };
 
     const { formData, emptyFields } = collectFormData();
@@ -141,21 +144,41 @@ function validateCompleteForm() {
     }
     // =================== FIN: BLOQUE DE CÓDIGO AÑADIDO ===================
 
+    // ================== VALIDACIÓN DE NUEVOS CAMPOS DE DESCRIPCIÓN ==================
+    const generalDescription = document.getElementById('GeneralDescription');
+    const rootCause = document.getElementById('RootCause');
     const immediateActions = document.getElementById('InmediateActions');
     const permanentActions = document.getElementById('PermanentActions');
     const minLength = 50;
     
+    // Validate GeneralDescription
+    if (generalDescription && generalDescription.value.length < minLength) {
+        if (!emptyFields.includes('General Description (minimum 50 characters)')) {
+            emptyFields.push('General Description (minimum 50 characters)');
+        }
+    }
+    
+    // Validate RootCause
+    if (rootCause && rootCause.value.length < minLength) {
+        if (!emptyFields.includes('Root Cause (minimum 50 characters)')) {
+            emptyFields.push('Root Cause (minimum 50 characters)');
+        }
+    }
+    
+    // Validate Immediate Actions
     if (immediateActions && immediateActions.value.length < minLength) {
         if (!emptyFields.includes('Immediate Actions (minimum 50 characters)')) {
             emptyFields.push('Immediate Actions (minimum 50 characters)');
         }
     }
     
+    // Validate Permanent Actions
     if (permanentActions && permanentActions.value.length < minLength) {
         if (!emptyFields.includes('Permanent Actions (minimum 50 characters)')) {
             emptyFields.push('Permanent Actions (minimum 50 characters)');
         }
     }
+    // =================== FIN: VALIDACIÓN DE NUEVOS CAMPOS ===================
 
     if (emptyFields.length === 0) {
         // Clean up any previous error state for ReferenceOrder if the form is now valid

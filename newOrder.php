@@ -186,13 +186,27 @@ require_once 'dao/users/context_injector.php';
                 <small class="text-muted">Please upload a PDF file as evidence for recovery</small>
             </div>
 
-            <!-- Descriptions -->
+            <!-- Descriptions Section - UPDATED -->
+            <h2 class="mt-4">Description</h2>
             <div id="SectDescription" class="mb-3">
-                <h3 style="justify-self: center;">Description</h3>
                 <textarea id="Description" style="display: none;" name="Description" class="form-control" placeholder="Description" required></textarea>
+                
+                <!-- General Description -->
+                <label for="GeneralDescription">General Description</label>
+                <textarea id="GeneralDescription" name="GeneralDescription" class="form-control" placeholder="General Description" required minlength="50"></textarea>
+                <div id="generalCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">50 characters required</span> - <span class="char-count">0/50</span></div>
+                
+                <!-- Root Cause -->
+                <label for="RootCause">Root Cause</label>
+                <textarea id="RootCause" name="RootCause" class="form-control" placeholder="Root Cause" required minlength="50"></textarea>
+                <div id="rootCauseCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">50 characters required</span> - <span class="char-count">0/50</span></div>
+                
+                <!-- Immediate Actions -->
                 <label for="InmediateActions">Immediate Actions</label>
                 <textarea id="InmediateActions" name="InmediateActions" class="form-control" placeholder="Immediate Actions" required minlength="50"></textarea>
                 <div id="immediateCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">50 characters required</span> - <span class="char-count">0/50</span></div>
+                
+                <!-- Permanent Actions -->
                 <label for="PermanentActions">Permanent Actions</label>
                 <textarea id="PermanentActions" name="PermanentActions" class="form-control" placeholder="Permanent Actions" required minlength="50"></textarea>
                 <div id="permanentCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">50 characters required</span> - <span class="char-count">0/50</span></div>

@@ -99,19 +99,14 @@
    SECTION-SPECIFIC STYLES
    ==================================== */
 
-/* Description section */
+/* Description section - UPDATED STYLES */
 #SectDescription {
     display: flex;
     flex-direction: column;
     width: 100%;
 }
 
-#SectDescription h3 {
-    text-align: center;
-    margin-bottom: 1rem;
-    color: var(--dark-color);
-}
-
+/* All textareas in the description section */
 #SectDescription textarea {
     height: 70px;
     width: 100%;
@@ -130,17 +125,27 @@
     box-shadow: 0 0 0 0.25rem rgba(3, 76, 140, 0.25);
 }
 
-/* Fixed - Character counters spacing */
+/* Character counters for all description fields */
+#generalCounter,
+#rootCauseCounter,
 #immediateCounter,
 #permanentCounter {
     margin-bottom: 1.5rem;
     font-size: 0.85rem;
 }
 
-/* Fixed - Ensure proper spacing between counter and next label */
-#SectDescription label[for="PermanentActions"] {
+/* Ensure proper spacing between textareas and their labels */
+#SectDescription label {
     display: block;
     margin-top: 0.5rem;
+    margin-bottom: var(--spacing-sm);
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+/* First label doesn't need top margin */
+#SectDescription label:first-of-type {
+    margin-top: 0;
 }
 
 /* MeasuresDiv - special case with side-by-side elements */
@@ -215,12 +220,6 @@
     color: var(--white);
 }
 
-/* =====================================================
-   REMOVED OBSOLETE STYLES for #SectReference
-   The new select #ReferenceOrder will use generic
-   select and Select2 styles, so no specific CSS is needed.
-   ===================================================== */
-
 /* Recovery file upload container */
 #recoveryFileContainer {
     display: none; /* Initially hidden */
@@ -256,7 +255,7 @@
     border-color: var(--first-color);
 }
 
-/* Section headings */
+/* Section headings - CONSISTENT STYLING */
 #plant-form h2 {
     width: 100%;
     text-align: left;
