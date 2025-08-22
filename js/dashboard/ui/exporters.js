@@ -3,9 +3,6 @@
  * Implementa la exportación a formatos avanzados como Excel (con múltiples hojas) y PDF.
  */
 
-import { getDataTableButtons } from '../../dataTables.js';
-import { charts, chartData } from '../configDashboard.js';
-
 /**
  * Verifica si un elemento es visible en el DOM.
  */
@@ -97,10 +94,10 @@ export function exportToExcel() {
     const exportDate = new Date().toISOString().slice(0, 10);
     let sheetsAdded = 0;
 
-    // Hoja 1: Datos del Dashboard/DataTable
+    // 🎨 Hoja 1: Datos del Dashboard/DataTable CON DISEÑO BONITO
     const dashboardData = getDashboardDataForExport();
     if (dashboardData && dashboardData.length > 0) {
-        console.log(`📋 Adding orders sheet with ${dashboardData.length} orders`);
+        console.log(`📋 Adding styled orders sheet with ${dashboardData.length} orders`);
         
         const headers = ['ID', 'Plant', 'Plant Code', 'Date', 'In/Out Bound', 'Reference', 'Creator', 
                         'Area', 'Description', 'Category', 'Cost (€)', 'Transport', 'Carrier', 
@@ -117,7 +114,7 @@ export function exportToExcel() {
             order.area || '-', 
             order.description || '-', 
             order.category_cause || '-',
-            order.cost_euros ? `€${parseFloat(order.cost_euros).toFixed(2)}` : '-',
+            order.cost_euros ? parseFloat(order.cost_euros) : 0, // Número para formato
             order.transport || '-', 
             order.carrier || '-',
             order.origin_company_name || '-', 
@@ -130,22 +127,166 @@ export function exportToExcel() {
         const dataToSheet = [headers, ...tableData];
         const ws = XLSX.utils.aoa_to_sheet(dataToSheet);
         
-        // Ajustar ancho de columnas
-        const colWidths = headers.map(() => ({ wch: 15 }));
+        // 🎨 APLICAR ESTILOS AVANZADOS
+        
+        // 1. Configurar anchos de columnas
+        const colWidths = [
+            { wch: 8 },   // ID
+            { wch: 20 },  // Plant
+            { wch: 12 },  // Plant Code
+            { wch: 12 },  // Date
+            { wch: 12 },  // In/Out Bound
+            { wch: 15 },  // Reference
+            { wch: 18 },  // Creator
+            { wch: 15 },  // Area
+            { wch: 25 },  // Description
+            { wch: 18 },  // Category
+            { wch: 12 },  // Cost
+            { wch: 15 },  // Transport
+            { wch: 20 },  // Carrier
+            { wch: 25 },  // Origin Company
+            { wch: 15 },  // Origin City
+            { wch: 25 },  // Destiny Company
+            { wch: 15 },  // Destiny City
+            { wch: 12 }   // Status
+        ];
         ws['!cols'] = colWidths;
+        
+        // 2. Crear rango de encabezados
+        const headerRange = `A1:${String.fromCharCode(65 + headers.length - 1)}1`;
+        
+        // 3. Estilos para encabezados
+        const headerStyle = {
+            font: { 
+                bold: true, 
+                color: { rgb: "FFFFFF" }, 
+                size: 12,
+                name: "Calibri"
+            },
+            fill: { 
+                fgColor: { rgb: "2E75B6" } // Azul profesional
+            },
+            alignment: { 
+                horizontal: "center", 
+                vertical: "center" 
+            },
+            border: {
+                top: { style: "thin", color: { rgb: "000000" } },
+                bottom: { style: "thin", color: { rgb: "000000" } },
+                left: { style: "thin", color: { rgb: "000000" } },
+                right: { style: "thin", color: { rgb: "000000" } }
+            }
+        };
+        
+        // 4. Aplicar estilos a los encabezados
+        headers.forEach((header, index) => {
+            const cellAddress = String.fromCharCode(65 + index) + '1';
+            if (!ws[cellAddress]) ws[cellAddress] = { t: 's', v: header };
+            ws[cellAddress].s = headerStyle;
+        });
+        
+        // 5. Estilos para las filas de datos
+        const dataRowStyle = {
+            font: { 
+                size: 10,
+                name: "Calibri"
+            },
+            alignment: { 
+                vertical: "center" 
+            },
+            border: {
+                top: { style: "thin", color: { rgb: "D0D0D0" } },
+                bottom: { style: "thin", color: { rgb: "D0D0D0" } },
+                left: { style: "thin", color: { rgb: "D0D0D0" } },
+                right: { style: "thin", color: { rgb: "D0D0D0" } }
+            }
+        };
+        
+        // 6. Aplicar estilos a las filas de datos y colores alternados
+        tableData.forEach((row, rowIndex) => {
+            const actualRowIndex = rowIndex + 2; // +2 porque empezamos desde la fila 2
+            const isEvenRow = rowIndex % 2 === 0;
+            
+            row.forEach((cell, colIndex) => {
+                const cellAddress = String.fromCharCode(65 + colIndex) + actualRowIndex;
+                
+                if (!ws[cellAddress]) {
+                    ws[cellAddress] = { t: 's', v: cell };
+                }
+                
+                // Clonar el estilo base
+                const cellStyle = JSON.parse(JSON.stringify(dataRowStyle));
+                
+                // Color de fondo alternado
+                if (isEvenRow) {
+                    cellStyle.fill = { fgColor: { rgb: "F8F9FA" } }; // Gris muy claro
+                } else {
+                    cellStyle.fill = { fgColor: { rgb: "FFFFFF" } }; // Blanco
+                }
+                
+                // Formato especial para columna de Cost (columna K, índice 10)
+                if (colIndex === 10 && typeof cell === 'number') {
+                    cellStyle.numFmt = '€#,##0.00';
+                    cellStyle.alignment = { horizontal: "right", vertical: "center" };
+                }
+                
+                // Formato especial para columna de Status (última columna)
+                if (colIndex === headers.length - 1) {
+                    cellStyle.alignment = { horizontal: "center", vertical: "center" };
+                    cellStyle.font.bold = true;
+                    
+                    // Colores según el estado
+                    if (cell === 'Approved') {
+                        cellStyle.font.color = { rgb: "28A745" }; // Verde
+                    } else if (cell === 'Rejected') {
+                        cellStyle.font.color = { rgb: "DC3545" }; // Rojo
+                    } else if (cell === 'In Review') {
+                        cellStyle.font.color = { rgb: "FFC107" }; // Amarillo/Naranja
+                    } else {
+                        cellStyle.font.color = { rgb: "6C757D" }; // Gris
+                    }
+                }
+                
+                // Alineación especial para ID
+                if (colIndex === 0) {
+                    cellStyle.alignment = { horizontal: "center", vertical: "center" };
+                }
+                
+                ws[cellAddress].s = cellStyle;
+            });
+        });
+        
+        // 7. Configurar altura de filas
+        ws['!rows'] = [
+            { hpt: 25 }, // Altura del encabezado
+            ...Array(tableData.length).fill({ hpt: 20 }) // Altura de las filas de datos
+        ];
+        
+        // 8. Agregar autofiltro
+        ws['!autofilter'] = { ref: `A1:${String.fromCharCode(65 + headers.length - 1)}${tableData.length + 1}` };
+        
+        // 9. Freezar la primera fila (encabezados)
+        ws['!freeze'] = { xSplit: 0, ySplit: 1 };
         
         XLSX.utils.book_append_sheet(wb, ws, 'Orders Data');
         sheetsAdded++;
     }
 
-    // Hoja 2: Datos de gráficas (si existen)
+    // 📊 Hojas 2+: Datos de gráficas (SIN DISEÑO ESPECIAL - normales)
     if (typeof chartData !== 'undefined') {
         for (const key in chartData) {
             if (Object.hasOwnProperty.call(chartData, key)) {
                 const chartInfo = chartData[key];
                 const sheetName = chartInfo.title.replace(/[:\\/?*[\]]/g, '').substring(0, 31);
                 const dataToSheet = [chartInfo.headers, ...chartInfo.data];
+                
+                // Crear hoja normal sin estilos especiales
                 const ws = XLSX.utils.aoa_to_sheet(dataToSheet);
+                
+                // Solo ajustar ancho de columnas básico
+                const colWidths = chartInfo.headers.map(() => ({ wch: 15 }));
+                ws['!cols'] = colWidths;
+                
                 XLSX.utils.book_append_sheet(wb, ws, sheetName);
                 sheetsAdded++;
             }
@@ -159,16 +300,16 @@ export function exportToExcel() {
     }
     
     const fileName = `Dashboard_Export_${exportDate}.xlsx`;
-    console.log(`✅ Saving Excel file: ${fileName} with ${sheetsAdded} sheets`);
+    console.log(`✅ Saving styled Excel file: ${fileName} with ${sheetsAdded} sheets`);
     XLSX.writeFile(wb, fileName);
     
     // Mostrar mensaje de éxito
     if (typeof Swal !== 'undefined') {
         Swal.fire({
             icon: 'success',
-            title: 'Export Successful',
-            text: `Excel file exported with ${sheetsAdded} sheet(s)`,
-            timer: 3000
+            title: 'Export Successful! 🎨',
+            html: `Excel file exported with ${sheetsAdded} sheet(s)<br><small>First sheet includes beautiful styling!</small>`,
+            timer: 4000
         });
     }
 }
