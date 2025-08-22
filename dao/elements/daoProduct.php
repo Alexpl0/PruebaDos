@@ -2,8 +2,7 @@
 /**
  * daoProduct.php
  *
- * Endpoint to fetch products based on the user's plant and a search term.
- * The user's plant is retrieved from the session.
+ * Endpoint to fetch products based on a search term.
  * The search term is passed via a GET parameter 'term'.
  */
 
@@ -26,9 +25,6 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-// Get user's plant from session (can be null or empty for regional users)
-$userPlant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
-
 // Get the search term from Select2, sent as a GET parameter
 $searchTerm = isset($_GET['term']) ? $_GET['term'] : '';
 
@@ -38,20 +34,13 @@ try {
     $conex = $con->conectar();
     $conex->set_charset("utf8mb4");
 
-    // ================== LÓGICA DE FILTRADO DINÁMICO ==================
+    // ================== LÓGICA DE FILTRADO ==================
     $baseQuery = "SELECT id, productName FROM `Products`";
     $whereClauses = [];
     $params = [];
     $types = "";
 
-    // 1. Add filter by Plant if it exists
-    if ($userPlant !== null && $userPlant !== '') {
-        $whereClauses[] = "`Plant` = ?";
-        $params[] = $userPlant;
-        $types .= "s";
-    }
-
-    // 2. Add filter by search term if it's not empty
+    // Add filter by search term if it's not empty
     if ($searchTerm !== '') {
         $whereClauses[] = "`productName` LIKE ?";
         // Add wildcards for the LIKE clause
@@ -59,13 +48,13 @@ try {
         $types .= "s";
     }
 
-    // 3. Build the final query
+    // Build the final query
     if (!empty($whereClauses)) {
         $finalQuery = $baseQuery . " WHERE " . implode(" AND ", $whereClauses);
     } else {
         $finalQuery = $baseQuery;
     }
-    // =================================================================
+    // ========================================================
 
     $stmt = $conex->prepare($finalQuery);
 
