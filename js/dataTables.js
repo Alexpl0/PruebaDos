@@ -17,6 +17,7 @@ let currentFilters = {};
  * Muestra un mensaje de error usando SweetAlert2
  */
 function showErrorMessage(title, message) {
+    console.log('🚨 [showErrorMessage]', title, message);
     if (typeof Swal !== 'undefined') {
         Swal.fire({
             icon: 'error',
@@ -33,6 +34,7 @@ function showErrorMessage(title, message) {
  * Muestra un toast de información
  */
 function showInfoToast(message) {
+    console.log('ℹ️ [showInfoToast]', message);
     if (typeof Swal !== 'undefined') {
         Swal.fire({
             toast: true,
@@ -52,6 +54,7 @@ function showInfoToast(message) {
  * Muestra un toast de éxito
  */
 function showSuccessToast(message) {
+    console.log('✅ [showSuccessToast]', message);
     if (typeof Swal !== 'undefined') {
         Swal.fire({
             toast: true,
@@ -71,6 +74,7 @@ function showSuccessToast(message) {
  * Muestra una ventana de carga
  */
 function showLoading(title, message) {
+    console.log('⏳ [showLoading]', title, message);
     if (typeof Swal !== 'undefined') {
         Swal.fire({
             title: title,
@@ -89,8 +93,12 @@ function showLoading(title, message) {
  * Configura el toggle para mostrar/ocultar filtros
  */
 function setupToggleFilters(toggleButtonId, panelBodyId) {
+    console.log('🔀 [setupToggleFilters] Setting up toggle for:', toggleButtonId, panelBodyId);
     const toggleButton = document.getElementById(toggleButtonId);
     const panelBody = document.getElementById(panelBodyId);
+    
+    console.log('- Toggle button found:', !!toggleButton);
+    console.log('- Panel body found:', !!panelBody);
     
     if (toggleButton && panelBody) {
         toggleButton.addEventListener('click', function() {
@@ -110,6 +118,9 @@ function setupToggleFilters(toggleButtonId, panelBodyId) {
         
         // Inicialmente oculto
         panelBody.style.display = 'none';
+        console.log('✅ [setupToggleFilters] Toggle setup completed');
+    } else {
+        console.warn('⚠️ [setupToggleFilters] Toggle elements not found');
     }
 }
 
@@ -117,17 +128,23 @@ function setupToggleFilters(toggleButtonId, panelBodyId) {
  * Genera los filtros dinámicamente desde el backend
  */
 async function generateFilters(apiUrl) {
+    console.log('🔧 [generateFilters] Generating filters from:', apiUrl);
     try {
         const response = await fetch(`${apiUrl}?action=getFilterOptions`);
+        console.log('- Response status:', response.status);
+        
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const filterData = await response.json();
+        console.log('- Filter data received:', filterData);
         availableFilters = filterData;
         
         // Generar HTML de filtros
         const filterContainer = document.getElementById('filterContainer');
+        console.log('- Filter container found:', !!filterContainer);
+        
         if (filterContainer && filterData) {
             let filtersHTML = '';
             
@@ -156,10 +173,11 @@ async function generateFilters(apiUrl) {
             });
             
             filterContainer.innerHTML = filtersHTML;
+            console.log('✅ [generateFilters] Filters HTML generated');
         }
         
     } catch (error) {
-        console.error('Error generating filters:', error);
+        console.error('💥 [generateFilters] Error generating filters:', error);
         showErrorMessage('Filter Error', 'Could not load filter options');
     }
 }
@@ -168,9 +186,12 @@ async function generateFilters(apiUrl) {
  * Aplica los filtros a los datos
  */
 function applyFilters(data) {
+    console.log('🔍 [applyFilters] Applying filters to data:', data?.length || 'unknown length');
+    
     // Obtener valores de filtros
     const filters = {};
     const filterElements = document.querySelectorAll('[id^="filter_"]');
+    console.log('- Filter elements found:', filterElements.length);
     
     filterElements.forEach(element => {
         const filterKey = element.id.replace('filter_', '');
@@ -180,10 +201,11 @@ function applyFilters(data) {
         }
     });
     
+    console.log('- Active filters:', filters);
     currentFilters = filters;
     
     // Aplicar filtros
-    return data.filter(order => {
+    const filteredData = data.filter(order => {
         let matches = true;
         
         Object.keys(filters).forEach(filterKey => {
@@ -202,19 +224,27 @@ function applyFilters(data) {
         
         return matches;
     });
+    
+    console.log('✅ [applyFilters] Filters applied, result:', filteredData.length, 'items');
+    return filteredData;
 }
 
 /**
  * Limpia todos los filtros
  */
 function clearFilters(data) {
+    console.log('🧹 [clearFilters] Clearing all filters');
+    
     // Limpiar campos de filtro
     const filterElements = document.querySelectorAll('[id^="filter_"]');
+    console.log('- Filter elements to clear:', filterElements.length);
+    
     filterElements.forEach(element => {
         element.value = '';
     });
     
     currentFilters = {};
+    console.log('✅ [clearFilters] All filters cleared');
     return data; // Retornar todos los datos sin filtrar
 }
 
@@ -222,24 +252,71 @@ function clearFilters(data) {
  * Carga los datos de órdenes desde el backend
  */
 async function loadOrdersData() {
+    console.log('🌐 [loadOrdersData] Starting data load...');
+    
     try {
         const baseURL = window.PF_CONFIG.app.baseURL;
-        const response = await fetch(`${baseURL}dao/conections/daoPremiumFreight.php?action=getAllOrders`);
+        const url = `${baseURL}dao/conections/daoPremiumFreight.php?action=getAllOrders`;
+        console.log('- Request URL:', url);
+        
+        const response = await fetch(url);
+        console.log('- Response status:', response.status);
+        console.log('- Response ok:', response.ok);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
+        console.log('- Raw response data:', data);
+        console.log('- Data type:', typeof data);
+        console.log('- Data structure:', {
+            hasStatus: 'status' in data,
+            hasData: 'data' in data,
+            hasOrders: 'orders' in data,
+            isArray: Array.isArray(data)
+        });
+        
+        // ✅ AQUÍ ESTÁ EL FIX: Extraer correctamente los datos del objeto respuesta
+        let orders = [];
         
         if (data.error) {
             throw new Error(data.message || 'Unknown server error');
         }
         
-        return data.orders || data || [];
+        // El backend devuelve: {status: 'success', data: Array(83), user_info: {...}}
+        if (data.status === 'success' && data.data && Array.isArray(data.data)) {
+            orders = data.data;
+            console.log('✅ [loadOrdersData] Orders extracted from data.data');
+        } 
+        // Fallback para otras estructuras posibles
+        else if (data.orders && Array.isArray(data.orders)) {
+            orders = data.orders;
+            console.log('✅ [loadOrdersData] Orders extracted from data.orders');
+        }
+        // Si la respuesta directa es un array
+        else if (Array.isArray(data)) {
+            orders = data;
+            console.log('✅ [loadOrdersData] Direct array response');
+        }
+        // Si no encuentra estructura conocida
+        else {
+            console.warn('⚠️ [loadOrdersData] Unknown response structure, returning empty array');
+            orders = [];
+        }
+        
+        console.log('✅ [loadOrdersData] Final orders array:', {
+            length: orders.length,
+            firstOrder: orders[0] || 'No orders',
+            type: typeof orders,
+            isArray: Array.isArray(orders)
+        });
+        
+        return orders;
         
     } catch (error) {
-        console.error('Error loading orders data:', error);
+        console.error('💥 [loadOrdersData] Error loading orders data:', error);
+        console.error('- Error stack:', error.stack);
         throw error;
     }
 }
@@ -248,6 +325,8 @@ async function loadOrdersData() {
  * Genera botones para DataTables (exportar, etc.)
  */
 function getDataTableButtons(title, data) {
+    console.log('🔘 [getDataTableButtons] Generating buttons for:', title, 'with', data?.length || 'unknown', 'items');
+    
     return [
         {
             extend: 'excelHtml5',
