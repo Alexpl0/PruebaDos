@@ -178,33 +178,51 @@ export async function geocodeLocation(city, state, country, retries = 2) {
 }
 
 /**
- * Coordenadas fallback para ciudades comunes
+ * Geocodificación alternativa usando múltiples servicios
  */
-const FALLBACK_COORDINATES = {
-    'Highland Park, Michigan': { lat: 42.4031, lng: -83.0897 },
-    'Nuevo Laredo, Tamaulipas': { lat: 27.4764, lng: -99.5075 },
-    'Tetla, Tlaxcala': { lat: 19.2167, lng: -98.1167 },
-    'Shannon, Mississippi': { lat: 34.1251, lng: -88.7120 },
-    'Moore, South Carolina': { lat: 34.9540, lng: -81.9540 },
-    'Longkou, Yantai, Shandong': { lat: 37.6461, lng: 120.3267 },
-    'Toluca, Estado de México': { lat: 19.2927, lng: -99.6557 },
-    'Queretaro, Queretaro': { lat: 20.5888, lng: -100.3899 },
-    'Saltillo, Coahuila': { lat: 25.4260, lng: -101.0053 },
-    'Puebla, Puebla': { lat: 19.0414, lng: -98.2063 }
-};
+export async function geocodeLocationAlternative(city, state, country) {
+    const services = [
+        // Servicio principal (Nominatim)
+        {
+            name: 'Nominatim',
+            url: (query) => `https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`,
+            parseResponse: (data) => data.length > 0 ? { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) } : null
+        },
+        // Servicio alternativo (puede agregar más)
+        {
+            name: 'LocationIQ',
+            url: (query) => `https://us1.locationiq.com/v1/search.php?key=YOUR_API_KEY&q=${query}&format=json&limit=1`,
+            parseResponse: (data) => data.length > 0 ? { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) } : null
+        }
+    ];
 
-/**
- * Obtiene coordenadas usando cache o coordenadas fallback
- */
-export function getCoordinatesWithFallback(city, state, country) {
-    const cacheKey = `${city}-${state || 'N/A'}-${country || 'N/A'}`;
-    const fallbackKey = `${city}, ${state || ''}`;
-
-    // Buscar en fallback
-    if (FALLBACK_COORDINATES[fallbackKey]) {
-        return FALLBACK_COORDINATES[fallbackKey];
+    const query = encodeURIComponent(`${city}, ${state || ''}, ${country || ''}`);
+    
+    for (const service of services) {
+        try {
+            console.log(`🔍 Trying ${service.name} for: ${city}`);
+            
+            const response = await fetch(service.url(query), {
+                headers: {
+                    'User-Agent': 'PremiumFreightDashboard/1.0'
+                }
+            });
+            
+            if (!response.ok) continue;
+            
+            const data = await response.json();
+            const coords = service.parseResponse(data);
+            
+            if (coords) {
+                console.log(`✅ ${service.name} successful for: ${city}`);
+                return coords;
+            }
+            
+        } catch (error) {
+            console.warn(`${service.name} failed for ${city}:`, error.message);
+            continue;
+        }
     }
-
-    // Si no hay fallback, retornar null (o implementar cache si lo deseas)
+    
     return null;
 }
