@@ -125,9 +125,8 @@
     box-shadow: 0 0 0 0.25rem rgba(3, 76, 140, 0.25);
 }
 
-/* Character counters for all description fields */
+/* Character counters for description fields (Root Cause doesn't have counter) */
 #generalCounter,
-#rootCauseCounter,
 #immediateCounter,
 #permanentCounter {
     margin-bottom: 1.5rem;

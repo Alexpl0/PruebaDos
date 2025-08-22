@@ -113,7 +113,7 @@ function validateCompleteForm() {
         // Also added new description fields
         "Shipment Details": ['Weight', 'Measures', 'Products', 'Carrier', 'recoveryFile'],
         "Reference Information": ['ReferenceOrder'],
-        "Description Details": ['GeneralDescription', 'RootCause'] // New section for new fields
+        "Description Details": ['GeneralDescription', 'RootCause'] // New section for new fields (RootCause no minimum chars)
     };
 
     const { formData, emptyFields } = collectFormData();
@@ -158,10 +158,10 @@ function validateCompleteForm() {
         }
     }
     
-    // Validate RootCause
-    if (rootCause && rootCause.value.length < minLength) {
-        if (!emptyFields.includes('Root Cause (minimum 50 characters)')) {
-            emptyFields.push('Root Cause (minimum 50 characters)');
+    // Root Cause doesn't need minimum character validation - just check if it's not empty
+    if (rootCause && rootCause.value.trim() === '') {
+        if (!emptyFields.includes('RootCause')) {
+            emptyFields.push('RootCause');
         }
     }
     

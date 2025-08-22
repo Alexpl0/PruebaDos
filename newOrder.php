@@ -198,8 +198,7 @@ require_once 'dao/users/context_injector.php';
                 
                 <!-- Root Cause -->
                 <label for="RootCause">Root Cause</label>
-                <textarea id="RootCause" name="RootCause" class="form-control" placeholder="Root Cause" required minlength="50"></textarea>
-                <div id="rootCauseCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">50 characters required</span> - <span class="char-count">0/50</span></div>
+                <textarea id="RootCause" name="RootCause" class="form-control" placeholder="Root Cause" required></textarea>
                 
                 <!-- Immediate Actions -->
                 <label for="InmediateActions">Immediate Actions</label>

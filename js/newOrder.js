@@ -374,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const updateAndValidate = () => {
             updateDescription();
             updateCharCounter(generalDescription, '#generalCounter', 50);
-            updateCharCounter(rootCause, '#rootCauseCounter', 50);
+            // Root Cause doesn't need character validation - just update description
             updateCharCounter(immediateActions, '#immediateCounter', 50);
             updateCharCounter(permanentActions, '#permanentCounter', 50);
         };
