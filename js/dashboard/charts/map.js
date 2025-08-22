@@ -9,7 +9,7 @@
 
 import { getFilteredData } from '../dataDashboard.js';
 import { maps, dataTablesConfig, chartData } from '../configDashboard.js';
-import { geocodeLocation } from '../utilsDashboard.js';
+import { geocodeLocation, getCoordinatesWithFallback } from '../utilsDashboard.js';
 
 // Referencias globales para la instancia de la tabla y la ruta seleccionada
 let routesTable = null;
