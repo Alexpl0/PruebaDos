@@ -28,24 +28,32 @@ document.addEventListener('DOMContentLoaded', async function () {
         const baseURL = window.PF_CONFIG.app.baseURL;
         await generateFilters(`${baseURL}dao/conections/daoPremiumFreight.php`);
         
-        loadTotalHistoryData();
+        await loadTotalHistoryData();
 
         // Asignar eventos a los botones de filtro
-        document.getElementById('applyFilters').addEventListener('click', () => {
-            const filteredData = applyFilters(allOrdersData);
-            populateTotalDataTable(filteredData); // Repopulate with filtered data
-            updateQuickStats(filteredData);
-            showInfoToast(`Filters applied. Found ${filteredData.length} orders.`);
-        });
+        const applyButton = document.getElementById('applyFilters');
+        const clearButton = document.getElementById('clearFilters');
+        
+        if (applyButton) {
+            applyButton.addEventListener('click', () => {
+                const filteredData = applyFilters(allOrdersData);
+                populateTotalDataTable(filteredData);
+                updateQuickStats(filteredData);
+                showInfoToast(`Filters applied. Found ${filteredData.length} orders.`);
+            });
+        }
 
-        document.getElementById('clearFilters').addEventListener('click', () => {
-            const clearedData = clearFilters(allOrdersData);
-            populateTotalDataTable(clearedData); // Repopulate with all data
-            updateQuickStats(clearedData);
-            showInfoToast('Filters cleared.');
-        });
+        if (clearButton) {
+            clearButton.addEventListener('click', () => {
+                const clearedData = clearFilters(allOrdersData);
+                populateTotalDataTable(clearedData);
+                updateQuickStats(clearedData);
+                showInfoToast('Filters cleared.');
+            });
+        }
 
     } catch (error) {
+        console.error('Initialization error:', error);
         showErrorMessage('Initialization Error', 'Failed to initialize the total history page.');
     }
 });
@@ -63,7 +71,9 @@ async function loadTotalHistoryData() {
     } catch (error) {
         showErrorMessage('Data Loading Error', `Could not load orders data: ${error.message}`);
     } finally {
-        Swal.close();
+        if (typeof Swal !== 'undefined') {
+            Swal.close();
+        }
     }
 }
 
@@ -106,28 +116,32 @@ function populateTotalDataTable(orders) {
         ];
     });
 
-    if ($.fn.DataTable.isDataTable('#totalHistoryTable')) {
-        $('#totalHistoryTable').DataTable().clear().destroy();
+    // Verificar si DataTable existe y destruirla
+    const table = $('#totalHistoryTable');
+    if ($.fn.DataTable.isDataTable(table)) {
+        table.DataTable().clear().destroy();
     }
 
-    $('#totalHistoryTable').DataTable({
+    // Crear nueva DataTable
+    table.DataTable({
         data: tableData,
         dom: 'Bfrtip',
-        buttons: getDataTableButtons('Total Orders History', orders), // Pass original data for export formatting
+        buttons: getDataTableButtons('Total Orders History', orders),
         scrollX: true,
         scrollY: '400px',
         responsive: false,
         order: [[0, 'desc']],
         // This callback runs for each row created, applying the background color
         createdRow: function(row, data, dataIndex) {
-            const order = orders[dataIndex]; // Get the original order object for this row
+            const order = orders[dataIndex];
             if (order) {
                 const statusInfo = getOrderStatus(order);
-                $(row).addClass(statusInfo.className); // Add class like 'status-approved' to the <tr>
+                $(row).addClass(statusInfo.className);
             }
         }
     });
 
+    // Agregar event listeners para los botones PDF
     document.querySelectorAll('.generate-pdf-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
             const order = allOrdersData.find(o => o.id == btn.dataset.orderId);
@@ -152,8 +166,15 @@ function updateQuickStats(orders) {
             stats.pending++;
         }
     });
-    document.getElementById('totalOrdersCount').textContent = stats.total;
-    document.getElementById('approvedOrdersCount').textContent = stats.approved;
-    document.getElementById('pendingOrdersCount').textContent = stats.pending;
-    document.getElementById('rejectedOrdersCount').textContent = stats.rejected;
+    
+    // Verificar que los elementos existan antes de actualizar
+    const totalElement = document.getElementById('totalOrdersCount');
+    const approvedElement = document.getElementById('approvedOrdersCount');
+    const pendingElement = document.getElementById('pendingOrdersCount');
+    const rejectedElement = document.getElementById('rejectedOrdersCount');
+    
+    if (totalElement) totalElement.textContent = stats.total;
+    if (approvedElement) approvedElement.textContent = stats.approved;
+    if (pendingElement) pendingElement.textContent = stats.pending;
+    if (rejectedElement) rejectedElement.textContent = stats.rejected;
 }

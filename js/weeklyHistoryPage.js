@@ -15,7 +15,7 @@ import {
 } from './dataTables.js';
 
 let allOrdersData = [];
-let filteredOrdersData = []; // Variable para mantener los datos de la semana actual
+let filteredOrdersData = [];
 let currentWeekOffset = 0;
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -27,29 +27,39 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Cargar todos los datos una vez
         showLoading('Loading Orders Data', 'Please wait...');
         allOrdersData = await loadOrdersData();
-        Swal.close();
+        if (typeof Swal !== 'undefined') {
+            Swal.close();
+        }
         
         // Mostrar la semana actual
         await displayWeekData(currentWeekOffset);
     } catch (error) {
+        console.error('Initialization error:', error);
         showErrorMessage('Initialization Error', 'Failed to initialize the weekly history page.');
     }
 });
 
 function setupWeekNavigation() {
-    document.getElementById('prevWeek')?.addEventListener('click', () => {
-        if (currentWeekOffset < 52) { // Limitar a 1 año atrás
-            currentWeekOffset++;
-            displayWeekData(currentWeekOffset);
-        }
-    });
+    const prevButton = document.getElementById('prevWeek');
+    const nextButton = document.getElementById('nextWeek');
+    
+    if (prevButton) {
+        prevButton.addEventListener('click', () => {
+            if (currentWeekOffset < 52) { // Limitar a 1 año atrás
+                currentWeekOffset++;
+                displayWeekData(currentWeekOffset);
+            }
+        });
+    }
 
-    document.getElementById('nextWeek')?.addEventListener('click', () => {
-        if (currentWeekOffset > 0) {
-            currentWeekOffset--;
-            displayWeekData(currentWeekOffset);
-        }
-    });
+    if (nextButton) {
+        nextButton.addEventListener('click', () => {
+            if (currentWeekOffset > 0) {
+                currentWeekOffset--;
+                displayWeekData(currentWeekOffset);
+            }
+        });
+    }
 }
 
 function displayWeekData(weekOffset) {
@@ -110,14 +120,16 @@ function populateWeeklyDataTable(orders) {
         `<button class="btn btn-sm btn-outline-primary generate-pdf-btn" data-order-id="${order.id}" title="View as PDF"><i class="fas fa-file-pdf"></i></button>`
     ]);
 
-    if ($.fn.DataTable.isDataTable('#weeklyHistoryTable')) {
-        $('#weeklyHistoryTable').DataTable().clear().destroy();
+    // Verificar si DataTable existe y destruirla
+    const table = $('#weeklyHistoryTable');
+    if ($.fn.DataTable.isDataTable(table)) {
+        table.DataTable().clear().destroy();
     }
 
-    $('#weeklyHistoryTable').DataTable({
+    // Crear nueva DataTable
+    table.DataTable({
         data: tableData,
         dom: 'Bfrtip',
-        // MODIFICACIÓN CLAVE: Pasamos los datos de las órdenes a la función que crea los botones
         buttons: getDataTableButtons(`Weekly Orders History - Week ${getWeekNumber(new Date())}`, orders),
         scrollX: true,
         scrollY: '400px',
@@ -125,9 +137,9 @@ function populateWeeklyDataTable(orders) {
         order: [[0, 'desc']]
     });
 
+    // Agregar event listeners para los botones PDF
     document.querySelectorAll('.generate-pdf-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
-            // Se busca en `allOrdersData` para asegurar que tenemos el objeto completo
             const order = allOrdersData.find(o => o.id == btn.dataset.orderId);
             if (order) await generatePDF(order);
         });
