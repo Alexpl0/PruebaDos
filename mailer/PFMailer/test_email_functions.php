@@ -293,8 +293,9 @@ try {
                             'user_exists' => !empty($userData),
                             'user_plant' => $userData['plant'] ?? null,
                             'user_name' => $userData['name'] ?? null,
-                            'expected_config' => $detectedPlant === 'default' ? 'specialfreight@grammermx.com' : 
-                                               ($detectedPlant === '3330' ? 'queretaro@grammermx.com' : 'tetla@grammermx.com')
+                            // ✅ CORREGIDO: Mostrar las cuentas REALES que se usan
+                            'expected_config' => $detectedPlant === 'default' ? 'premiumfreight@grammermx.com' : 
+                                               ($detectedPlant === '3330' ? 'specialfreight@grammermx.com' : 'premium_freight@grammermx.com')
                         ];
                         
                     } catch (Exception $e) {

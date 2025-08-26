@@ -796,10 +796,10 @@
                     <div class="alert alert-warning">
                         <h4><i class="fa-solid fa-info-circle"></i> Comportamiento Esperado:</h4>
                         <ul style="margin: 10px 0; padding-left: 20px;">
-                            <li><strong>test.queretaro@grammer.com</strong> → desde <code>queretaro@grammermx.com</code></li>
-                            <li><strong>test.tetla@grammer.com</strong> → desde <code>tetla@grammermx.com</code></li>
-                            <li><strong>test.regional@grammer.com</strong> → desde <code>specialfreight@grammermx.com</code></li>
-                            <li><strong>Usuario no encontrado</strong> → desde <code>specialfreight@grammermx.com</code></li>
+                            <li><strong>test.queretaro@grammer.com</strong> → desde <code>specialfreight@grammermx.com</code></li>
+                            <li><strong>test.tetla@grammer.com</strong> → desde <code>premium_freight@grammermx.com</code></li>
+                            <li><strong>test.regional@grammer.com</strong> → desde <code>premiumfreight@grammermx.com</code></li>
+                            <li><strong>Usuario no encontrado</strong> → desde <code>premiumfreight@grammermx.com</code></li>
                         </ul>
                     </div>
                     
@@ -1368,8 +1368,8 @@
                 const plantName = user.plant === '3330' ? 'Querétaro' : 
                                  user.plant === '3310' ? 'Tetla' : 'Regional/Default';
                 
-                const expectedConfig = user.plant === '3330' ? 'queretaro@grammermx.com' :
-                                      user.plant === '3310' ? 'tetla@grammermx.com' : 'specialfreight@grammermx.com';
+                const expectedConfig = user.plant === '3330' ? 'specialfreight@grammermx.com' :
+                                      user.plant === '3310' ? 'premium_freight@grammermx.com' : 'premiumfreight@grammermx.com';
                 
                 tableHTML += `
                     <tr>
