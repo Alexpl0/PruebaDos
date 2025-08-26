@@ -331,7 +331,7 @@
         }
 
         .error-result {
-            border-left-color: #e57373; /* Using a generic red for errors for usability */
+            border-left-color: #e57373;
             background: linear-gradient(135deg, #ffebee, #ffcdd2);
         }
 
@@ -458,15 +458,15 @@
         }
 
         .plant-3330 {
-            background: #03624C; /* Bangladesh Green */
+            background: #03624C;
         }
 
         .plant-3310 {
-            background: #095544; /* Forest */
+            background: #095544;
         }
 
         .plant-null {
-            background: #707070; /* Stone */
+            background: #707070;
         }
 
         .loading-overlay {
@@ -617,8 +617,8 @@
                         <div class="form-group">
                             <label for="status-type">Tipo de Estado</label>
                             <select id="status-type">
-                                <option value="approved"><i class="fa-solid fa-check-circle"></i> Aprobada</option>
-                                <option value="rejected"><i class="fa-solid fa-times-circle"></i> Rechazada</option>
+                                <option value="approved">Aprobada</option>
+                                <option value="rejected">Rechazada</option>
                             </select>
                         </div>
                     </div>
@@ -849,6 +849,32 @@
 
                 <div class="section">
                     <h2>
+                        <div class="section-icon"><i class="fa-solid fa-users-gear"></i></div>
+                        Reset Masivo de Contraseñas
+                    </h2>
+                    <p class="section-description">
+                        Enviar emails de recuperación de contraseña a todos los usuarios de una planta específica.
+                    </p>
+                    
+                    <div class="alert alert-warning">
+                        <h4><i class="fa-solid fa-exclamation-triangle"></i> Operación Masiva</h4>
+                        <p>Esta acción enviará emails de reset de contraseña a <strong>todos los usuarios</strong> de la planta seleccionada que tengan email válido.</p>
+                    </div>
+                    
+                    <div class="button-grid">
+                        <button class="btn btn-warning" onclick="bulkPasswordResetPlant3310()">
+                            <i class="fa-solid fa-paper-plane"></i> Reset Masivo - Planta 3310 (Tetla)
+                        </button>
+                        <button class="btn btn-info" onclick="completeBulkPasswordReset3310()">
+                            <i class="fa-solid fa-paper-plane"></i> Completar Envío Pendiente - Planta 3310
+                        </button>
+                    </div>
+
+                    <div id="bulk-reset-result" class="result" style="display: none;"></div>
+                </div>
+
+                <div class="section">
+                    <h2>
                         <div class="section-icon"><i class="fa-solid fa-tools"></i></div>
                         Diagnósticos del Sistema
                     </h2>
@@ -874,24 +900,25 @@
 
 <script>
         // =================================================================
+        // CONFIGURACIÓN BASE - URL DEL ENDPOINT
+        // =================================================================
+        
+        const API_BASE_URL = 'test_email_functions.php';
+        
+        // =================================================================
         // FUNCIONES DE NAVEGACIÓN Y UI
         // =================================================================
 
         function switchTab(tabId) {
-            // Ocultar todas las tabs
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
             });
             
-            // Remover clase active de todos los botones
             document.querySelectorAll('.nav-tab').forEach(btn => {
                 btn.classList.remove('active');
             });
             
-            // Mostrar tab seleccionada
             document.getElementById(tabId).classList.add('active');
-            
-            // Activar botón correspondiente
             event.target.classList.add('active');
         }
 
@@ -929,7 +956,7 @@
                             <div id="progress-fill" style="
                                 width: 0%;
                                 height: 100%;
-                                background: linear-gradient(90deg, #FF6B6B, #4ECDC4);
+                                background: linear-gradient(90deg, #00DF81, #2CC295);
                                 border-radius: 10px;
                                 transition: width 0.3s ease;
                             "></div>
@@ -961,8 +988,15 @@
             }
         }
 
-        async function makeRequest(url, method = 'POST', data = null) {
+        // =================================================================
+        // FUNCIÓN CORREGIDA PARA HACER REQUESTS
+        // =================================================================
+        
+        async function makeRequest(action, data = {}, method = 'POST') {
             try {
+                showLoading();
+                console.log(`🌐 Making ${method} request for action: ${action}`);
+                
                 const options = {
                     method: method,
                     headers: {
@@ -970,261 +1004,41 @@
                     }
                 };
 
-                if (data && method !== 'GET') {
+                let finalUrl = API_BASE_URL;
+                
+                // Agregar la acción a los datos
+                if (action) {
+                    data.action = action;
+                }
+                
+                if (method === 'GET') {
+                    const params = new URLSearchParams(data);
+                    finalUrl += '?' + params.toString();
+                } else {
                     options.body = JSON.stringify(data);
                 }
 
-                const response = await fetch(url, options);
+                console.log(`🌐 Final URL: ${finalUrl}`);
+                console.log(`📤 Request data:`, data);
+                
+                const response = await fetch(finalUrl, options);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const result = await response.json();
-
+                console.log('📨 Response received:', result);
+                
                 return result;
-
+                
             } catch (error) {
+                console.error('❌ Request failed:', error);
                 throw error;
+            } finally {
+                hideLoading();
             }
         }
-
-        // =================================================================
-        // FUNCIONES DE TESTS DE PRODUCCIÓN (TAB 1)
-        // =================================================================
-
-        // Test approval email
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('test-approval').addEventListener('click', async function() {
-                const orderId = document.getElementById('orderId').value;
-                if (!orderId) {
-                    showResult('approval-result', { error: 'Por favor ingresa un ID de orden' }, false);
-                    return;
-                }
-
-                showLoadingProgress('Enviando Notificación de Aprobación', 'Procesando solicitud...');
-                updateProgress(25, 'Validando datos...');
-
-                try {
-                    updateProgress(50, 'Conectando al servidor...');
-                    
-                    const response = await fetch('test_email_functions.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: 'approval_notification', orderId: orderId })
-                    });
-                    
-                    updateProgress(75, 'Enviando email...');
-                    const data = await response.json();
-                    
-                    updateProgress(100, 'Completado');
-                    
-                    setTimeout(() => {
-                        Swal.close();
-                        showResult('approval-result', data, data.success);
-                        
-                        if (data.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: '✅ Email Enviado',
-                                text: 'La notificación de aprobación fue enviada exitosamente',
-                                timer: 2000,
-                                showConfirmButton: false
-                            });
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: '❌ Error',
-                                text: data.message || 'Error enviando email'
-                            });
-                        }
-                    }, 500);
-                    
-                } catch (error) {
-                    Swal.close();
-                    showResult('approval-result', { error: error.message }, false);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error de Conexión',
-                        text: error.message
-                    });
-                }
-            });
-
-            // Test status notification
-            document.getElementById('test-status').addEventListener('click', async function() {
-                const orderId = document.getElementById('status-order-id').value;
-                const statusType = document.getElementById('status-type').value;
-                
-                if (!orderId) {
-                    showResult('status-result', { error: 'Por favor ingresa un ID de orden' }, false);
-                    return;
-                }
-
-                showLoadingProgress('Enviando Notificación de Estado', 'Preparando notificación...');
-                updateProgress(20, 'Validando información...');
-
-                try {
-                    updateProgress(40, 'Generando contenido del email...');
-                    
-                    const data = await makeRequest('test_email_functions.php', 'POST', { 
-                        action: 'status_notification',
-                        orderId: orderId,
-                        status: statusType
-                    });
-                    
-                    updateProgress(80, 'Enviando notificación...');
-                    updateProgress(100, 'Completado');
-                    
-                    setTimeout(() => {
-                        Swal.close();
-                        showResult('status-result', data, data.success);
-                        
-                        if (data.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: '📬 Notificación Enviada',
-                                text: 'La notificación de estado fue enviada exitosamente',
-                                timer: 2000,
-                                showConfirmButton: false
-                            });
-                        }
-                    }, 500);
-                    
-                } catch (error) {
-                    Swal.close();
-                    showResult('status-result', { error: error.message }, false);
-                    Swal.fire({
-                        icon: 'error',
-                        title: '❌ Error',
-                        text: error.message
-                    });
-                }
-            });
-
-            // Test weekly summary
-            document.getElementById('test-weekly-summary').addEventListener('click', async function() {
-                showLoadingProgress('Enviando Resumen Semanal', 'Esta operación puede tomar varios minutos...');
-                updateProgress(10, 'Recopilando datos semanales...');
-
-                try {
-                    updateProgress(25, 'Consultando base de datos...');
-                    
-                    const data = await makeRequest('test_email_functions.php', 'POST', { action: 'weekly_summary' });
-                    
-                    updateProgress(50, 'Generando reportes...');
-                    
-                    setTimeout(() => updateProgress(65, 'Procesando estadísticas...'), 1000);
-                    setTimeout(() => updateProgress(80, 'Preparando emails...'), 2000);
-                    updateProgress(95, 'Enviando a destinatarios...');
-                    
-                    setTimeout(() => {
-                        updateProgress(100, 'Resumen semanal completado');
-                        
-                        setTimeout(() => {
-                            Swal.close();
-                            showResult('weekly-result', data, data.success);
-                            
-                            if (data.success) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: '📋 Resumen Enviado',
-                                    text: 'El resumen semanal ha sido enviado a todos los destinatarios',
-                                    timer: 3000,
-                                    showConfirmButton: false
-                                });
-                            }
-                        }, 500);
-                    }, 1000);
-                    
-                } catch (error) {
-                    Swal.close();
-                    showResult('weekly-result', { error: error.message }, false);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error en Resumen Semanal',
-                        text: error.message
-                    });
-                }
-            });
-
-            // Test statistics report
-            document.getElementById('test-statistics-report').addEventListener('click', async function() {
-                showLoadingProgress('Generando Reporte de Estadísticas', 'Esto puede tomar un momento...');
-                updateProgress(10, 'Recopilando datos...');
-
-                try {
-                    const data = await makeRequest('test_email_functions.php', 'POST', { action: 'weekly_statistics_report' });
-                    
-                    updateProgress(70, 'Generando email...');
-                    updateProgress(100, 'Completado');
-
-                    setTimeout(() => {
-                        Swal.close();
-                        showResult('statistics-result', data, data.success);
-                        
-                        if (data.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: '📈 Reporte Enviado',
-                                text: 'El reporte de estadísticas semanales ha sido enviado a los gerentes',
-                                timer: 3000,
-                                showConfirmButton: false
-                            });
-                        }
-                    }, 500);
-                    
-                } catch (error) {
-                    Swal.close();
-                    showResult('statistics-result', { error: error.message }, false);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error en Reporte de Estadísticas',
-                        text: error.message
-                    });
-                }
-            });
-
-            // Test recovery check
-            document.getElementById('test-recovery-check').addEventListener('click', async function() {
-                showLoadingProgress('Ejecutando Verificación de Recovery', 'Analizando datos pendientes...');
-                updateProgress(15, 'Escaneando registros...');
-
-                try {
-                    updateProgress(30, 'Identificando elementos pendientes...');
-                    
-                    const data = await makeRequest('test_email_functions.php', 'POST', { action: 'recovery_check' });
-                    
-                    updateProgress(60, 'Procesando recoveries...');
-                    
-                    setTimeout(() => updateProgress(80, 'Generando reportes de recovery...'), 1000);
-                    updateProgress(95, 'Enviando notificaciones...');
-                    
-                    setTimeout(() => {
-                        updateProgress(100, 'Verificación completada');
-                        
-                        setTimeout(() => {
-                            Swal.close();
-                            showResult('recovery-result', data, data.success);
-                            
-                            if (data.success) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: '🔍 Verificación Completada',
-                                    text: 'La verificación de recovery fue ejecutada exitosamente',
-                                    timer: 2000,
-                                    showConfirmButton: false
-                                });
-                            }
-                        }, 500);
-                    }, 800);
-                    
-                } catch (error) {
-                    Swal.close();
-                    showResult('recovery-result', { error: error.message }, false);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error de Verificación',
-                        text: error.message
-                    });
-                }
-            });
-        });
 
         // =================================================================
         // FUNCIONES DE SISTEMA MULTI-PLANTA (TAB 2)
@@ -1232,15 +1046,11 @@
 
         async function checkTestUsers() {
             try {
-                showLoading();
-                
-                const result = await makeRequest('test_email_functions?action=check_test_users', 'GET');
-                
-                hideLoading();
+                const result = await makeRequest('check_test_users', {}, 'GET');
                 
                 if (result.success) {
-                    showResult('usersResults', result);
                     displayUsersTable(result.data.users);
+                    showResult('usersResults', result, true);
                     
                     // Actualizar estadísticas
                     document.getElementById('totalUsers').textContent = result.data.total_users;
@@ -1259,14 +1069,14 @@
                                 <p><strong>Sin planta:</strong> ${result.data.plant_statistics['null']}</p>
                             </div>
                         `,
-                        confirmButtonColor: '#FF6B6B'
+                        confirmButtonColor: '#00DF81'
                     });
                 } else {
                     throw new Error(result.message);
                 }
                 
             } catch (error) {
-                hideLoading();
+                showResult('usersResults', { message: 'Error: ' + error.message }, false);
                 Swal.fire({
                     icon: 'error',
                     title: '❌ Error verificando usuarios',
@@ -1298,14 +1108,10 @@
 
                 if (!confirmation.isConfirmed) return;
                 
-                showLoading();
-                
-                const result = await makeRequest('test_email_functions?action=create_test_users', 'GET');
-                
-                hideLoading();
+                const result = await makeRequest('create_test_users', {}, 'GET');
                 
                 if (result.success) {
-                    showResult('usersResults', result);
+                    showResult('usersResults', result, true);
                     
                     Swal.fire({
                         icon: 'success',
@@ -1328,7 +1134,7 @@
                 }
                 
             } catch (error) {
-                hideLoading();
+                showResult('usersResults', { message: 'Error: ' + error.message }, false);
                 Swal.fire({
                     icon: 'error',
                     title: '❌ Error creando usuarios',
@@ -1398,14 +1204,10 @@
 
         async function testPlantDetection() {
             try {
-                showLoading();
-                
-                const result = await makeRequest('test_email_functions?action=test_plant_detection', 'GET');
-                
-                hideLoading();
+                const result = await makeRequest('test_plant_detection', {}, 'GET');
                 
                 if (result.success) {
-                    showResult('detectionResults', result);
+                    showResult('detectionResults', result, true);
                     
                     const correctDetections = result.data.test_results.filter(r => !r.error).length;
                     
@@ -1426,14 +1228,14 @@
                                 </ol>
                             </div>
                         `,
-                        confirmButtonColor: '#FF6B6B'
+                        confirmButtonColor: '#00DF81'
                     });
                 } else {
                     throw new Error(result.message);
                 }
                 
             } catch (error) {
-                hideLoading();
+                showResult('detectionResults', { message: 'Error: ' + error.message }, false);
                 Swal.fire({
                     icon: 'error',
                     title: '❌ Error en detección',
@@ -1456,18 +1258,13 @@
             }
             
             try {
-                showLoading();
-                
-                const result = await makeRequest('test_email_functions', 'POST', {
-                    action: 'test_email_to_specific_user',
+                const result = await makeRequest('test_email_to_specific_user', {
                     recipient_email: recipientEmail,
                     message: testMessage
-                });
-                
-                hideLoading();
+                }, 'POST');
                 
                 if (result.success) {
-                    showResult('individualResults', result);
+                    showResult('individualResults', result, true);
                     
                     Swal.fire({
                         icon: 'success',
@@ -1488,7 +1285,7 @@
                 }
                 
             } catch (error) {
-                hideLoading();
+                showResult('individualResults', { message: 'Error: ' + error.message }, false);
                 Swal.fire({
                     icon: 'error',
                     title: '❌ Error enviando email',
@@ -1505,10 +1302,10 @@
                         <div style="text-align: left; margin: 15px 0;">
                             <p>Se enviará un email a cada configuración de planta:</p>
                             <ul>
-                                <li>Querétaro → queretaro@grammermx.com</li>
-                                <li>Tetla → tetla@grammermx.com</li>
-                                <li>Regional → specialfreight@grammermx.com</li>
-                                <li>No encontrado → specialfreight@grammermx.com</li>
+                                <li>Querétaro → specialfreight@grammermx.com</li>
+                                <li>Tetla → premium_freight@grammermx.com</li>
+                                <li>Regional → premiumfreight@grammermx.com</li>
+                                <li>No encontrado → premiumfreight@grammermx.com</li>
                             </ul>
                         </div>
                     `,
@@ -1521,16 +1318,10 @@
 
                 if (!confirmation.isConfirmed) return;
                 
-                showLoading();
-                
-                const result = await makeRequest('test_email_functions', 'POST', {
-                    action: 'test_all_plant_configs'
-                });
-                
-                hideLoading();
+                const result = await makeRequest('test_all_plant_configs', {}, 'POST');
                 
                 if (result.success) {
-                    showResult('massiveResults', result);
+                    showResult('massiveResults', result, true);
                     
                     Swal.fire({
                         icon: 'success',
@@ -1551,7 +1342,7 @@
                 }
                 
             } catch (error) {
-                hideLoading();
+                showResult('massiveResults', { message: 'Error: ' + error.message }, false);
                 Swal.fire({
                     icon: 'error',
                     title: '❌ Error en testing masivo',
@@ -1559,6 +1350,234 @@
                 });
             }
         }
+
+        // =================================================================
+        // FUNCIONES DE TESTS DE PRODUCCIÓN (TAB 1)
+        // =================================================================
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('test-approval').addEventListener('click', async function() {
+                const orderId = document.getElementById('orderId').value;
+                if (!orderId) {
+                    showResult('approval-result', { error: 'Por favor ingresa un ID de orden' }, false);
+                    return;
+                }
+
+                showLoadingProgress('Enviando Notificación de Aprobación', 'Procesando solicitud...');
+                updateProgress(25, 'Validando datos...');
+
+                try {
+                    updateProgress(50, 'Conectando al servidor...');
+                    
+                    const data = await makeRequest('approval_notification', { orderId: orderId }, 'POST');
+                    
+                    updateProgress(75, 'Enviando email...');
+                    updateProgress(100, 'Completado');
+                    
+                    setTimeout(() => {
+                        Swal.close();
+                        showResult('approval-result', data, data.success);
+                        
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '✅ Email Enviado',
+                                text: 'La notificación de aprobación fue enviada exitosamente',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: '❌ Error',
+                                text: data.message || 'Error enviando email'
+                            });
+                        }
+                    }, 500);
+                    
+                } catch (error) {
+                    Swal.close();
+                    showResult('approval-result', { error: error.message }, false);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de Conexión',
+                        text: error.message
+                    });
+                }
+            });
+
+            document.getElementById('test-status').addEventListener('click', async function() {
+                const orderId = document.getElementById('status-order-id').value;
+                const statusType = document.getElementById('status-type').value;
+                
+                if (!orderId) {
+                    showResult('status-result', { error: 'Por favor ingresa un ID de orden' }, false);
+                    return;
+                }
+
+                showLoadingProgress('Enviando Notificación de Estado', 'Preparando notificación...');
+                updateProgress(20, 'Validando información...');
+
+                try {
+                    updateProgress(40, 'Generando contenido del email...');
+                    
+                    const data = await makeRequest('status_notification', { 
+                        orderId: orderId,
+                        status: statusType
+                    }, 'POST');
+                    
+                    updateProgress(80, 'Enviando notificación...');
+                    updateProgress(100, 'Completado');
+                    
+                    setTimeout(() => {
+                        Swal.close();
+                        showResult('status-result', data, data.success);
+                        
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '📬 Notificación Enviada',
+                                text: 'La notificación de estado fue enviada exitosamente',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        }
+                    }, 500);
+                    
+                } catch (error) {
+                    Swal.close();
+                    showResult('status-result', { error: error.message }, false);
+                    Swal.fire({
+                        icon: 'error',
+                        title: '❌ Error',
+                        text: error.message
+                    });
+                }
+            });
+
+            document.getElementById('test-weekly-summary').addEventListener('click', async function() {
+                showLoadingProgress('Enviando Resumen Semanal', 'Esta operación puede tomar varios minutos...');
+                updateProgress(10, 'Recopilando datos semanales...');
+
+                try {
+                    updateProgress(25, 'Consultando base de datos...');
+                    
+                    const data = await makeRequest('weekly_summary', {}, 'POST');
+                    
+                    updateProgress(50, 'Generando reportes...');
+                    setTimeout(() => updateProgress(65, 'Procesando estadísticas...'), 1000);
+                    setTimeout(() => updateProgress(80, 'Preparando emails...'), 2000);
+                    updateProgress(95, 'Enviando a destinatarios...');
+                    
+                    setTimeout(() => {
+                        updateProgress(100, 'Resumen semanal completado');
+                        
+                        setTimeout(() => {
+                            Swal.close();
+                            showResult('weekly-result', data, data.success);
+                            
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '📋 Resumen Enviado',
+                                    text: 'El resumen semanal ha sido enviado a todos los destinatarios',
+                                    timer: 3000,
+                                    showConfirmButton: false
+                                });
+                            }
+                        }, 500);
+                    }, 1000);
+                    
+                } catch (error) {
+                    Swal.close();
+                    showResult('weekly-result', { error: error.message }, false);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error en Resumen Semanal',
+                        text: error.message
+                    });
+                }
+            });
+
+            document.getElementById('test-statistics-report').addEventListener('click', async function() {
+                showLoadingProgress('Generando Reporte de Estadísticas', 'Esto puede tomar un momento...');
+                updateProgress(10, 'Recopilando datos...');
+
+                try {
+                    const data = await makeRequest('weekly_statistics_report', {}, 'POST');
+                    
+                    updateProgress(70, 'Generando email...');
+                    updateProgress(100, 'Completado');
+
+                    setTimeout(() => {
+                        Swal.close();
+                        showResult('statistics-result', data, data.success);
+                        
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '📈 Reporte Enviado',
+                                text: 'El reporte de estadísticas semanales ha sido enviado a los gerentes',
+                                timer: 3000,
+                                showConfirmButton: false
+                            });
+                        }
+                    }, 500);
+                    
+                } catch (error) {
+                    Swal.close();
+                    showResult('statistics-result', { error: error.message }, false);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error en Reporte de Estadísticas',
+                        text: error.message
+                    });
+                }
+            });
+
+            document.getElementById('test-recovery-check').addEventListener('click', async function() {
+                showLoadingProgress('Ejecutando Verificación de Recovery', 'Analizando datos pendientes...');
+                updateProgress(15, 'Escaneando registros...');
+
+                try {
+                    updateProgress(30, 'Identificando elementos pendientes...');
+                    
+                    const data = await makeRequest('recovery_check', {}, 'POST');
+                    
+                    updateProgress(60, 'Procesando recoveries...');
+                    setTimeout(() => updateProgress(80, 'Generando reportes de recovery...'), 1000);
+                    updateProgress(95, 'Enviando notificaciones...');
+                    
+                    setTimeout(() => {
+                        updateProgress(100, 'Verificación completada');
+                        
+                        setTimeout(() => {
+                            Swal.close();
+                            showResult('recovery-result', data, data.success);
+                            
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '🔍 Verificación Completada',
+                                    text: 'La verificación de recovery fue ejecutada exitosamente',
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                            }
+                        }, 500);
+                    }, 800);
+                    
+                } catch (error) {
+                    Swal.close();
+                    showResult('recovery-result', { error: error.message }, false);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de Verificación',
+                        text: error.message
+                    });
+                }
+            });
+        });
 
         // =================================================================
         // FUNCIONES DE TESTS AVANZADOS (TAB 3)
@@ -1577,14 +1596,8 @@
             }
             
             try {
-                showLoading();
+                const result = await makeRequest('verification', { userId: userId }, 'POST');
                 
-                const result = await makeRequest('test_email_functions.php', 'POST', {
-                    action: 'verification',
-                    userId: userId
-                });
-                
-                hideLoading();
                 showResult('verification-result', result, result.success);
                 
                 if (result.success) {
@@ -1602,7 +1615,6 @@
                 }
                 
             } catch (error) {
-                hideLoading();
                 showResult('verification-result', { error: error.message }, false);
                 Swal.fire({
                     icon: 'error',
@@ -1625,14 +1637,8 @@
             }
             
             try {
-                showLoading();
+                const result = await makeRequest('password_reset', { email: email }, 'POST');
                 
-                const result = await makeRequest('test_email_functions.php', 'POST', {
-                    action: 'password_reset',
-                    email: email
-                });
-                
-                hideLoading();
                 showResult('password-result', result, result.success);
                 
                 if (result.success) {
@@ -1650,7 +1656,6 @@
                 }
                 
             } catch (error) {
-                hideLoading();
                 showResult('password-result', { error: error.message }, false);
                 Swal.fire({
                     icon: 'error',
@@ -1660,33 +1665,207 @@
             }
         }
 
+        // =================================================================
+        // NUEVA FUNCIÓN PARA RESET MASIVO PLANTA 3310
+        // =================================================================
+
+        async function bulkPasswordResetPlant3310() {
+            try {
+                const confirmation = await Swal.fire({
+                    title: '⚠️ ¿Reset Masivo para Planta 3310?',
+                    html: `
+                        <div style="text-align: left; margin: 15px 0;">
+                            <h4>Se enviará email de recuperación de contraseña a:</h4>
+                            <ul>
+                                <li>✅ Todos los usuarios de planta 3310 (Tetla)</li>
+                                <li>✅ Que tengan email válido registrado</li>
+                                <li>✅ Usando cuenta premium_freight@grammermx.com</li>
+                            </ul>
+                            <br>
+                            <p><strong>⚠️ Importante:</strong> Esta operación puede tomar varios minutos si hay muchos usuarios.</p>
+                        </div>
+                    `,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, enviar a todos',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#ffc107',
+                    cancelButtonColor: '#6c757d'
+                });
+
+                if (!confirmation.isConfirmed) return;
+                
+                showLoadingProgress('Enviando Reset Masivo', 'Buscando usuarios de planta 3310...');
+                updateProgress(10, 'Consultando base de datos...');
+                
+                setTimeout(() => updateProgress(25, 'Generando tokens de recuperación...'), 1000);
+                setTimeout(() => updateProgress(40, 'Configurando SMTP para Tetla...'), 2000);
+                setTimeout(() => updateProgress(60, 'Enviando emails (esto puede tardar)...'), 3000);
+                
+                const result = await makeRequest('bulk_password_reset_plant_3310', {}, 'POST');
+                
+                updateProgress(90, 'Finalizando proceso...');
+                updateProgress(100, 'Completado');
+                
+                setTimeout(() => {
+                    Swal.close();
+                    showResult('bulk-reset-result', result, result.success);
+                    
+                    if (result.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '📧 Reset Masivo Completado',
+                            html: `
+                                <div style="text-align: left; margin: 15px 0;">
+                                    <h4>📊 Resumen del Envío:</h4>
+                                    <p><strong>Total usuarios encontrados:</strong> ${result.data.total_users_found}</p>
+                                    <p><strong>Emails enviados exitosamente:</strong> ${result.data.successful_sends}</p>
+                                    <p><strong>Fallos:</strong> ${result.data.failed_sends}</p>
+                                    <p><strong>Cuenta SMTP usada:</strong> ${result.data.plant_info.smtp_account}</p>
+                                    <br>
+                                    <p style="color: #28a745;">✅ Los usuarios pueden revisar su bandeja de entrada para el link de recuperación.</p>
+                                </div>
+                            `,
+                            confirmButtonColor: '#28a745'
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: '❌ Error en Reset Masivo',
+                            text: result.message,
+                            footer: 'Revisa el área de resultados para más detalles'
+                        });
+                    }
+                }, 1000);
+                
+            } catch (error) {
+                Swal.close();
+                showResult('bulk-reset-result', { message: 'Error: ' + error.message }, false);
+                Swal.fire({
+                    icon: 'error',
+                    title: '❌ Error de Conexión',
+                    text: error.message
+                });
+            }
+        }
+
+        async function completeBulkPasswordReset3310() {
+            try {
+                const confirmation = await Swal.fire({
+                    title: '📧 ¿Completar Envío Pendiente?',
+                    html: `
+                        <div style="text-align: left; margin: 15px 0;">
+                            <h4>📋 Situación Actual:</h4>
+                            <p>✅ <strong>49 usuarios</strong> ya recibieron el email correctamente</p>
+                            <p>⏳ <strong>Usuarios restantes</strong> recibirán el email ahora</p>
+                            
+                            <br>
+                            <h4>🔧 Configuración:</h4>
+                            <ul>
+                                <li>Solo enviará a usuarios de planta 3310 que NO están en la lista de enviados</li>
+                                <li>Usará cuenta: premium_freight@grammermx.com</li>
+                                <li>Pausa de 2 segundos entre envíos para evitar límites</li>
+                            </ul>
+                            
+                            <br>
+                            <div style="background-color: #fff3cd; padding: 10px; border-radius: 5px;">
+                                <p><strong>⚠️ Nota:</strong> Esta función evitará duplicados automáticamente.</p>
+                            </div>
+                        </div>
+                    `,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, completar envío',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#17a2b8',
+                    cancelButtonColor: '#6c757d'
+                });
+
+                if (!confirmation.isConfirmed) return;
+                
+                showLoadingProgress('Completando Envío Pendiente', 'Identificando usuarios restantes...');
+                updateProgress(10, 'Consultando base de datos...');
+                
+                setTimeout(() => updateProgress(25, 'Excluyendo usuarios ya enviados...'), 1000);
+                setTimeout(() => updateProgress(40, 'Generando tokens para usuarios pendientes...'), 2000);
+                setTimeout(() => updateProgress(60, 'Configurando SMTP para Tetla...'), 3000);
+                setTimeout(() => updateProgress(75, 'Enviando emails con pausa entre envíos...'), 4000);
+                
+                const result = await makeRequest('complete_bulk_password_reset_plant_3310', {}, 'POST');
+                
+                updateProgress(95, 'Finalizando proceso...');
+                updateProgress(100, 'Envío completado');
+                
+                setTimeout(() => {
+                    Swal.close();
+                    showResult('bulk-reset-result', result, result.success);
+                    
+                    if (result.success) {
+                        const data = result.data;
+                        Swal.fire({
+                            icon: 'success',
+                            title: '📧 Envío Pendiente Completado',
+                            html: `
+                                <div style="text-align: left; margin: 15px 0;">
+                                    <h4>📊 Resumen Final:</h4>
+                                    <p><strong>Total usuarios en planta:</strong> ${data.summary.total_users_in_plant}</p>
+                                    <p><strong>Enviados previamente:</strong> ${data.summary.previously_sent}</p>
+                                    <p><strong>Enviados ahora:</strong> ${data.summary.now_sent}</p>
+                                    <p><strong>Fallos restantes:</strong> ${data.summary.remaining_failed}</p>
+                                    
+                                    <br>
+                                    <div style="background-color: #d4edda; padding: 10px; border-radius: 5px;">
+                                        <p><strong>✅ Estado:</strong> ${data.summary.previously_sent + data.summary.now_sent} de ${data.summary.total_users_in_plant} usuarios han recibido el email</p>
+                                    </div>
+                                    
+                                    <br>
+                                    <p><strong>Cuenta SMTP usada:</strong> ${data.plant_info.smtp_account}</p>
+                                </div>
+                            `,
+                            confirmButtonColor: '#28a745'
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: '❌ Error Completando Envío',
+                            text: result.message,
+                            footer: 'Revisa el área de resultados para más detalles'
+                        });
+                    }
+                }, 1000);
+                
+            } catch (error) {
+                Swal.close();
+                showResult('bulk-reset-result', { message: 'Error: ' + error.message }, false);
+                Swal.fire({
+                    icon: 'error',
+                    title: '❌ Error de Conexión',
+                    text: error.message
+                });
+            }
+        }
+
         async function checkSystemStatus() {
             try {
-                showLoading();
+                const result = await makeRequest('check_smtp_configs', {}, 'GET');
                 
-                const response = await fetch('verify_plant_setup.php?format=json');
-                const result = await response.json();
+                showResult('system-result', result, result.success);
                 
-                hideLoading();
-                showResult('system-result', result, true);
-                
-                if (result.summary) {
+                if (result.success) {
                     Swal.fire({
                         icon: 'info',
                         title: '🔍 Estado del Sistema',
                         html: `
                             <div style="text-align: left; margin: 15px 0;">
-                                <p><strong>Total Usuarios:</strong> ${result.summary.total_users}</p>
-                                <p><strong>Con Planta:</strong> ${result.summary.users_with_plant}</p>
-                                <p><strong>Sin Planta:</strong> ${result.summary.users_without_plant}</p>
-                                <p><strong>Entorno:</strong> ${result.environment}</p>
+                                <p><strong>Entorno:</strong> ${result.data.environment}</p>
+                                <p><strong>Modo Test:</strong> ${result.data.test_mode ? 'Sí' : 'No'}</p>
+                                <p><strong>Configuraciones:</strong> ${result.data.total_configs}</p>
                             </div>
                         `
                     });
                 }
                 
             } catch (error) {
-                hideLoading();
                 showResult('system-result', { error: error.message }, false);
                 Swal.fire({
                     icon: 'error',
@@ -1698,19 +1877,15 @@
 
         async function testSMTPConnections() {
             try {
-                showLoading();
+                const result = await makeRequest('check_smtp_configs', {}, 'GET');
                 
-                const result = await makeRequest('test_plant_config.php?action=test_smtp_connections', 'GET');
-                
-                hideLoading();
                 showResult('smtp-result', result, result.success);
                 
                 if (result.success) {
-                    const successRate = `${result.data.successful_connections}/${result.data.total_configs}`;
                     Swal.fire({
                         icon: 'success',
                         title: '🔌 Test de Conexiones Completado',
-                        text: `Conexiones exitosas: ${successRate}`
+                        text: `Configuraciones verificadas: ${result.data.total_configs}`
                     });
                 } else {
                     Swal.fire({
@@ -1721,7 +1896,6 @@
                 }
                 
             } catch (error) {
-                hideLoading();
                 showResult('smtp-result', { error: error.message }, false);
                 Swal.fire({
                     icon: 'error',

@@ -496,7 +496,7 @@ try {
                         </div>
                         
                         <div style='background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0;'>
-                            <h3>📧 Mensaje de Prueba:</h3>
+                            <h3>🔧 Mensaje de Prueba:</h3>
                             <p>{$testMessage}</p>
                         </div>
                         
@@ -623,7 +623,9 @@ try {
                     }
                 }
                 
-                $successCount = count(array_filter($results, function($r) { return $r['status'] === 'sent'; }));
+                $successCount = count(array_filter($results, function($r) { 
+                    return $r['status'] === 'sent'; 
+                }));
                 
                 sendJsonSuccess("Test masivo completado: {$successCount}/" . count($results) . " exitosos", [
                     'results' => $results,
@@ -632,16 +634,284 @@ try {
                         'successful_sends' => $successCount,
                         'failed_sends' => count($results) - $successCount,
                         'expected_behavior' => [
-                            'test.queretaro@grammer.com' => 'queretaro@grammermx.com',
-                            'test.tetla@grammer.com' => 'tetla@grammermx.com',
-                            'test.regional@grammer.com' => 'specialfreight@grammermx.com',
-                            'nonexistent@grammer.com' => 'specialfreight@grammermx.com'
+                            'test.queretaro@grammer.com' => 'specialfreight@grammermx.com',
+                            'test.tetla@grammer.com' => 'premium_freight@grammermx.com',
+                            'test.regional@grammer.com' => 'premiumfreight@grammermx.com',
+                            'nonexistent@grammer.com' => 'premiumfreight@grammermx.com'
                         ]
                     ]
                 ]);
 
             } catch (Exception $e) {
                 sendJsonError("Error en test masivo: " . $e->getMessage());
+            }
+            break;
+
+        case 'bulk_password_reset_plant_3310':
+            // Enviar emails de recuperación de contraseña a todos los usuarios de la planta 3310
+            try {
+                $db = $mailer->getDatabase();
+                
+                if (!$db) {
+                    sendJsonError('No se pudo conectar a la base de datos');
+                }
+                
+                // Buscar todos los usuarios de la planta 3310
+                $sql = "SELECT id, name, email FROM User WHERE plant = '3310' AND email IS NOT NULL AND email != ''";
+                $stmt = $db->prepare($sql);
+                $stmt->execute();
+                $users = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+                
+                if (empty($users)) {
+                    sendJsonError('No se encontraron usuarios en la planta 3310 con email válido');
+                }
+                
+                $results = [];
+                $successCount = 0;
+                $errors = [];
+                
+                foreach ($users as $user) {
+                    try {
+                        // Validar que el email no termine en @example.com
+                        if (preg_match('/@example\.com$/', $user['email'])) {
+                            $errors[] = "Correo omitido para {$user['name']} ({$user['email']}): dominio no permitido.";
+                            continue;
+                        }
+
+                        // Generar token único para cada usuario
+                        $token = bin2hex(random_bytes(32));
+                        
+                        // Guardar token en BD (reutilizar lógica del sistema)
+                        $tokenSql = "INSERT INTO EmailPasswordTokens (user_id, token, created_at) VALUES (?, ?, NOW())
+                                     ON DUPLICATE KEY UPDATE token = VALUES(token), created_at = NOW(), used_at = NULL";
+                        $tokenStmt = $db->prepare($tokenSql);
+                        $tokenStmt->bind_param("is", $user['id'], $token);
+                        
+                        if (!$tokenStmt->execute()) {
+                            $errors[] = "Error generando token para {$user['name']}: " . $tokenStmt->error;
+                            continue;
+                        }
+                        
+                        // Enviar email usando la función existente
+                        $emailSent = $mailer->sendPasswordResetEmail($user, $token);
+                        
+                        if ($emailSent) {
+                            $successCount++;
+                            $results[] = [
+                                'user_id' => $user['id'],
+                                'name' => $user['name'],
+                                'email' => $user['email'],
+                                'status' => 'sent',
+                                'token' => $token, // Para debugging (quitar en producción)
+                                'smtp_used' => $mailer->getCurrentPlantInfo()['username']
+                            ];
+                        } else {
+                            $errors[] = "Error enviando a {$user['name']} ({$user['email']}): " . $mailer->getLastError();
+                            $results[] = [
+                                'user_id' => $user['id'],
+                                'name' => $user['name'],
+                                'email' => $user['email'],
+                                'status' => 'failed',
+                                'error' => $mailer->getLastError()
+                            ];
+                        }
+                        
+                        // Pausa entre envíos para no sobrecargar el servidor SMTP
+                        sleep(1);
+                        
+                    } catch (Exception $e) {
+                        $errors[] = "Excepción procesando {$user['name']}: " . $e->getMessage();
+                        $results[] = [
+                            'user_id' => $user['id'],
+                            'name' => $user['name'],
+                            'email' => $user['email'],
+                            'status' => 'error',
+                            'error' => $e->getMessage()
+                        ];
+                    }
+                }
+                
+                sendJsonSuccess("Reset masivo completado para planta 3310", [
+                    'total_users_found' => count($users),
+                    'successful_sends' => $successCount,
+                    'failed_sends' => count($errors),
+                    'results' => $results,
+                    'errors' => $errors,
+                    'plant_info' => [
+                        'plant_code' => '3310',
+                        'plant_name' => 'Tetla',
+                        'smtp_account' => $mailer->getCurrentPlantInfo()['username'] ?? 'unknown'
+                    ],
+                    'instructions' => 'Los usuarios pueden usar los tokens recibidos para restablecer sus contraseñas'
+                ]);
+
+            } catch (Exception $e) {
+                sendJsonError('Error en reset masivo para planta 3310: ' . $e->getMessage());
+            }
+            break;
+
+        case 'complete_bulk_password_reset_plant_3310':
+            // Completar envío de emails de recuperación excluyendo usuarios que ya recibieron
+            try {
+                $db = $mailer->getDatabase();
+                
+                if (!$db) {
+                    sendJsonError('No se pudo conectar a la base de datos');
+                }
+                
+                // Lista de emails que YA recibieron el reset (exitosos anteriores)
+                $alreadySentEmails = [
+                    'extern.roberto.botello@grammer.com',
+                    'margarita.ortega@grammer.com',
+                    'Israel.Rivera@grammer.com',
+                    'alfonso.ranz@grammer.com',
+                    'miriam.larios@grammer.com',
+                    'sergio.Carrasco@grammer.com',
+                    'Humberto.Zavala@grammer.com',
+                    'Rosa.Villordo@grammer.com',
+                    'Sol.Vazquez@grammer.com',
+                    'Adrian.Trejo@grammer.com',
+                    'John.Perez@grammer.com',
+                    'Enrique.Pena@grammer.com',
+                    'Luis.Parra@grammer.com',
+                    'Joel.Nieto@grammer.com',
+                    'Recibo.Materiales@grammer.com',
+                    'Osvaldo.Luna@grammer.com',
+                    'Christian.Juarez@grammer.com',
+                    'Katya.Hernandez@grammer.com',
+                    'Guillermo.Hernandez@grammer.com',
+                    'Daniel.Gonzalez@grammer.com',
+                    'Natali.Empedrado@grammer.com',
+                    'Ivan.Diaz@grammer.com',
+                    'Ivan.Cortes@grammer.com',
+                    'Leticia.Caceres@grammer.com',
+                    'Diana.Cabrera@grammer.com',
+                    'Daniel.Vieyra@grammer.com',
+                    'Hector.Vazquez@grammer.com',
+                    'Maria.Trejo@grammer.com',
+                    'Erubiel.Trejo@grammer.com',
+                    'Pascual.Texis@grammer.com',
+                    'Heriberto.Serrano@grammer.com',
+                    'Jose.Sanchez@grammer.com',
+                    'Erika.Sanchez@grammer.com',
+                    'Carlos.Rubi@grammer.com',
+                    'Leonardo.Rosas@grammer.com',
+                    'Laboratorio.Pruebas@grammer.com',
+                    'Betsaida.Perez@grammer.com',
+                    'Rafael.Montiel@grammer.com',
+                    'Recibo.Inspeccion@grammer.com',
+                    'Joseph.Hernandez@grammer.com',
+                    'Francisco.Hernandez@grammer.com',
+                    'DiegoJordan.Hernandez@grammer.com',
+                    'Guadalupe.Gonzalez@grammer.com',
+                    'Luisenrique.Garcia@grammer.com',
+                    'Adan.Garcia@grammer.com',
+                    'Alexis.Flores@grammer.com',
+                    'Adrian.Flores@grammer.com',
+                    'Rodolfo.Delrazo@grammer.com',
+                    'Andrea.Cervantes@grammer.com',
+                    'Luis.Berriel@grammer.com',
+                    'Citlali.Balderas@grammer.com'
+                ];
+                
+                // Normalizar emails para comparación (lowercase)
+                $alreadySentNormalized = array_map('strtolower', $alreadySentEmails);
+                
+                // Buscar todos los usuarios de la planta 3310 que NO están en la lista de enviados
+                $placeholders = str_repeat('?,', count($alreadySentNormalized) - 1) . '?';
+                $sql = "SELECT id, name, email FROM User 
+                        WHERE plant = '3310' 
+                        AND email IS NOT NULL 
+                        AND email != ''
+                        AND LOWER(email) NOT IN ($placeholders)";
+                
+                $stmt = $db->prepare($sql);
+                $stmt->bind_param(str_repeat('s', count($alreadySentNormalized)), ...$alreadySentNormalized);
+                $stmt->execute();
+                $pendingUsers = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+                
+                if (empty($pendingUsers)) {
+                    sendJsonSuccess('No hay usuarios pendientes de recibir el reset de contraseña', [
+                        'already_sent_count' => count($alreadySentEmails),
+                        'pending_count' => 0,
+                        'message' => 'Todos los usuarios de la planta 3310 ya recibieron su email de reset'
+                    ]);
+                }
+                
+                $results = [];
+                $successCount = 0;
+                $errors = [];
+                
+                foreach ($pendingUsers as $user) {
+                    try {
+                        // Generar token único para cada usuario
+                        $token = bin2hex(random_bytes(32));
+                        
+                        // Guardar token en BD
+                        $tokenSql = "INSERT INTO EmailPasswordTokens (user_id, token, created_at) VALUES (?, ?, NOW())
+                                    ON DUPLICATE KEY UPDATE token = VALUES(token), created_at = NOW(), used_at = NULL";
+                        $tokenStmt = $db->prepare($tokenSql);
+                        $tokenStmt->bind_param("is", $user['id'], $token);
+                        
+                        if (!$tokenStmt->execute()) {
+                            $errors[] = "Error generando token para {$user['name']}: " . $tokenStmt->error;
+                            continue;
+                        }
+                        
+                        // Enviar email usando la función existente
+                        $emailSent = $mailer->sendPasswordResetEmail($user, $token);
+                        
+                        if ($emailSent) {
+                            $successCount++;
+                            $results[] = [
+                                'user_id' => $user['id'],
+                                'name' => $user['name'],
+                                'email' => $user['email'],
+                                'status' => 'sent',
+                                'smtp_used' => $mailer->getCurrentPlantInfo()['username']
+                            ];
+                        } else {
+                            $errors[] = "Error enviando a {$user['name']} ({$user['email']}): " . $mailer->getLastError();
+                            $results[] = [
+                                'user_id' => $user['id'],
+                                'name' => $user['name'],
+                                'email' => $user['email'],
+                                'status' => 'failed',
+                                'error' => $mailer->getLastError()
+                            ];
+                        }
+                        
+                        // Pausa entre envíos
+                        sleep(1);
+                        
+                    } catch (Exception $e) {
+                        $errors[] = "Excepción procesando {$user['name']}: " . $e->getMessage();
+                        $results[] = [
+                            'user_id' => $user['id'],
+                            'name' => $user['name'],
+                            'email' => $user['email'],
+                            'status' => 'error',
+                            'error' => $e->getMessage()
+                        ];
+                    }
+                }
+                
+                sendJsonSuccess("Proceso de envío completado", [
+                    'total_users_found' => count($pendingUsers),
+                    'successful_sends' => $successCount,
+                    'failed_sends' => count($errors),
+                    'results' => $results,
+                    'errors' => $errors,
+                    'plant_info' => [
+                        'plant_code' => '3310',
+                        'plant_name' => 'Tetla',
+                        'smtp_account' => $mailer->getCurrentPlantInfo()['username'] ?? 'unknown'
+                    ],
+                    'instructions' => 'Los usuarios pueden usar los tokens recibidos para restablecer sus contraseñas'
+                ]);
+
+            } catch (Exception $e) {
+                sendJsonError('Error completando reset masivo para planta 3310: ' . $e->getMessage());
             }
             break;
 
@@ -667,7 +937,8 @@ try {
                     'check_test_users' => 'Verificar usuarios de prueba',
                     'create_test_users' => 'Crear usuarios de prueba',
                     'test_email_to_specific_user' => 'Enviar email a usuario específico',
-                    'test_all_plant_configs' => 'Probar todas las configuraciones de planta'
+                    'test_all_plant_configs' => 'Probar todas las configuraciones de planta',
+                    'bulk_password_reset_plant_3310' => 'Reseteo masivo de contraseñas para planta 3310'
                 ],
                 'usage_examples' => [
                     'GET' => [
