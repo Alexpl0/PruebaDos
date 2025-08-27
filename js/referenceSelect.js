@@ -111,7 +111,8 @@ export function initializeLimitedReferenceSelector() {
     const limitedData = [
         { id: '42', text: '486406' },
         { id: '43', text: '347427' },
-        { id: '55', text: '324030' }
+        { id: '55', text: '324030' },
+        { id: '67', text: '351959' }
     ];
 
     $select.select2({
