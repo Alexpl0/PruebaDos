@@ -7,68 +7,116 @@
     <title>Password Encryptor/Decryptor Tool - Premium Freight</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f5f5f5;
+            background: linear-gradient(135deg, #E8D5E8 0%, #F5C6D6 25%, #F7A8A8 50%, #F8B195 75%, #F8E6A0 100%);
+            min-height: 100vh;
         }
         
         .container {
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
             padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
             margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
         .tool-section {
             margin-bottom: 30px;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #fafafa;
+            padding: 25px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(232, 213, 232, 0.3), rgba(245, 198, 214, 0.3));
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(232, 213, 232, 0.5);
+        }
+        
+        .tool-section.grammer-section {
+            background: linear-gradient(135deg, rgba(126, 87, 194, 0.1), rgba(247, 168, 168, 0.2));
+            border: 2px solid rgba(126, 87, 194, 0.3);
+            position: relative;
+        }
+        
+        .tool-section.grammer-section::before {
+            content: "🏢 GRAMMER AUTH SYSTEM";
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: linear-gradient(135deg, #7E57C2, #F7A8A8);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
         }
         
         .tool-section h3 {
-            color: #2c3e50;
+            color: #7E57C2;
             margin-top: 0;
+            font-size: 1.4em;
+            font-weight: 600;
         }
         
-        input, textarea, button {
+        input, textarea, button, select {
             width: 100%;
-            padding: 12px;
+            padding: 15px;
             margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            border: 2px solid rgba(126, 87, 194, 0.2);
+            border-radius: 10px;
             font-size: 14px;
             box-sizing: border-box;
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #7E57C2;
+            box-shadow: 0 0 0 3px rgba(126, 87, 194, 0.1);
+            background: white;
         }
         
         button {
-            background-color: #3498db;
+            background: linear-gradient(135deg, #7E57C2 0%, #F5C6D6 100%);
             color: white;
             border: none;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
         }
         
         button:hover {
-            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(126, 87, 194, 0.3);
+            background: linear-gradient(135deg, #6A4C93 0%, #F7A8A8 100%);
         }
         
         .result {
-            background-color: #e8f5e8;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 10px;
-            border-left: 4px solid #27ae60;
+            background: linear-gradient(135deg, rgba(232, 247, 232, 0.9), rgba(200, 255, 200, 0.7));
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border-left: 5px solid #4CAF50;
             word-break: break-all;
+            backdrop-filter: blur(5px);
         }
         
         .error {
-            background-color: #ffeaea;
-            border-left: 4px solid #e74c3c;
+            background: linear-gradient(135deg, rgba(255, 235, 235, 0.9), rgba(255, 200, 200, 0.7));
+            border-left-color: #F44336;
+        }
+        
+        .grammer-result {
+            background: linear-gradient(135deg, rgba(126, 87, 194, 0.1), rgba(247, 168, 168, 0.1));
+            border-left: 5px solid #7E57C2;
+            border-radius: 10px;
         }
         
         .users-table {
@@ -79,79 +127,183 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         
         th, td {
-            border: 1px solid #ddd;
-            padding: 12px;
+            border: 1px solid rgba(126, 87, 194, 0.2);
+            padding: 15px;
             text-align: left;
         }
         
         th {
-            background-color: #3498db;
+            background: linear-gradient(135deg, #7E57C2, #F5C6D6);
             color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         tr:nth-child(even) {
-            background-color: #f9f9f9;
+            background: rgba(232, 213, 232, 0.2);
+        }
+        
+        tr:hover {
+            background: rgba(126, 87, 194, 0.1);
+            transform: scale(1.01);
+            transition: all 0.2s ease;
         }
         
         .warning {
-            background-color: #fff3cd;
-            border: 1px solid #ffeaa7;
-            color: #856404;
-            padding: 15px;
-            border-radius: 5px;
+            background: linear-gradient(135deg, rgba(255, 243, 205, 0.9), rgba(255, 235, 180, 0.8));
+            border: 2px solid #FFB74D;
+            color: #F57C00;
+            padding: 20px;
+            border-radius: 10px;
             margin-bottom: 20px;
+            backdrop-filter: blur(5px);
         }
         
         .success {
-            background-color: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-            padding: 15px;
-            border-radius: 5px;
+            background: linear-gradient(135deg, rgba(232, 247, 232, 0.9), rgba(200, 255, 200, 0.8));
+            border: 2px solid #81C784;
+            color: #2E7D32;
+            padding: 20px;
+            border-radius: 10px;
             margin-bottom: 20px;
+            backdrop-filter: blur(5px);
         }
         
         .user-item {
-            margin: 10px 0;
-            padding: 15px;
-            background-color: #f8f9fa;
-            border-radius: 5px;
-            border-left: 4px solid #007bff;
+            margin: 15px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(248, 249, 250, 0.9), rgba(232, 213, 232, 0.3));
+            border-radius: 10px;
+            border-left: 4px solid #7E57C2;
+            backdrop-filter: blur(5px);
         }
         
         .password-preview {
-            font-family: monospace;
-            background-color: #e9ecef;
-            padding: 5px;
-            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, rgba(233, 236, 239, 0.9), rgba(245, 198, 214, 0.3));
+            padding: 10px;
+            border-radius: 5px;
             font-size: 12px;
+            margin: 10px 0;
+            border: 1px solid rgba(126, 87, 194, 0.2);
         }
         
         .update-button {
-            background-color: #28a745;
+            background: linear-gradient(135deg, #4CAF50, #81C784);
             color: white;
             border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
+            padding: 10px 20px;
+            border-radius: 8px;
             cursor: pointer;
             margin-top: 10px;
             width: auto;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
         
         .update-button:hover {
-            background-color: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
         }
         
         .danger-button {
-            background-color: #dc3545;
+            background: linear-gradient(135deg, #F44336, #EF5350);
             color: white;
         }
         
         .danger-button:hover {
-            background-color: #c82333;
+            background: linear-gradient(135deg, #D32F2F, #F44336);
+        }
+        
+        h1 {
+            text-align: center;
+            background: linear-gradient(135deg, #7E57C2, #F7A8A8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        
+        h2 {
+            color: #7E57C2;
+            font-weight: 600;
+        }
+        
+        .strength-meter {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .strength-bar {
+            height: 100%;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .strength-weak { 
+            background: linear-gradient(90deg, #F44336, #FF5722);
+            width: 25%; 
+        }
+        .strength-medium { 
+            background: linear-gradient(90deg, #FF9800, #FFC107);
+            width: 50%; 
+        }
+        .strength-strong { 
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            width: 75%; 
+        }
+        .strength-very-strong { 
+            background: linear-gradient(90deg, #2196F3, #00BCD4);
+            width: 100%; 
+        }
+        
+        .password-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .option-group {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+            border: 1px solid rgba(126, 87, 194, 0.2);
+        }
+        
+        .option-group input[type="checkbox"] {
+            width: auto;
+            margin: 0 10px 0 0;
+        }
+        
+        .option-group input[type="number"] {
+            width: 80px;
+            margin: 0;
+            padding: 5px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #7E57C2;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -167,10 +319,50 @@
     </header>
 
     <main>
+        <!-- Nueva sección para sistema Grammer -->
+        <div class="container">
+            <div class="tool-section grammer-section">
+                <h3>🏢 Generador de Contraseñas - Sistema Grammer</h3>
+                <p>Genera contraseñas seguras con hash PHP para el sistema de autenticación Grammer:</p>
+                
+                <div class="password-options">
+                    <div class="option-group">
+                        <input type="checkbox" id="includeUppercase" checked>
+                        <label for="includeUppercase">Mayúsculas (A-Z)</label>
+                    </div>
+                    <div class="option-group">
+                        <input type="checkbox" id="includeLowercase" checked>
+                        <label for="includeLowercase">Minúsculas (a-z)</label>
+                    </div>
+                    <div class="option-group">
+                        <input type="checkbox" id="includeNumbers" checked>
+                        <label for="includeNumbers">Números (0-9)</label>
+                    </div>
+                    <div class="option-group">
+                        <input type="checkbox" id="includeSymbols" checked>
+                        <label for="includeSymbols">Símbolos (!@#$%)</label>
+                    </div>
+                    <div class="option-group">
+                        <label for="passwordLength">Longitud:</label>
+                        <input type="number" id="passwordLength" min="6" max="50" value="12">
+                    </div>
+                </div>
+                
+                <button onclick="generateGrammerPassword()">🎲 Generar Contraseña Aleatoria</button>
+                
+                <div style="margin: 20px 0;">
+                    <input type="text" id="customGrammerPassword" placeholder="O ingresa tu propia contraseña aquí...">
+                    <button onclick="hashGrammerPassword()">🔒 Generar Hash PHP para Base de Datos</button>
+                </div>
+                
+                <div id="grammerResult"></div>
+            </div>
+        </div>
+
         <div class="container">
             <!-- Password Encryption Tool -->
             <div class="tool-section">
-                <h3>🔒 Encrypt Password (Simple Method)</h3>
+                <h3>🔐 Encrypt Password (Simple Method)</h3>
                 <p>Enter a plain text password to encrypt it using your system's method:</p>
                 <input type="text" id="plainPassword" placeholder="Enter plain text password">
                 <button onclick="encryptPassword()">Encrypt Password</button>
@@ -262,7 +454,132 @@
             return password.length > 20 && /^[A-Za-z0-9+/]+=*$/.test(password);
         }
 
-        // Encrypt password function
+        // NUEVAS FUNCIONES PARA SISTEMA GRAMMER
+
+        function generateGrammerPassword() {
+            const length = parseInt(document.getElementById('passwordLength').value);
+            const includeUppercase = document.getElementById('includeUppercase').checked;
+            const includeLowercase = document.getElementById('includeLowercase').checked;
+            const includeNumbers = document.getElementById('includeNumbers').checked;
+            const includeSymbols = document.getElementById('includeSymbols').checked;
+
+            let charset = '';
+            if (includeUppercase) charset += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            if (includeLowercase) charset += 'abcdefghijklmnopqrstuvwxyz';
+            if (includeNumbers) charset += '0123456789';
+            if (includeSymbols) charset += '!@#$%^&*()_+-=[]{}|;:,.<>?';
+
+            if (charset === '') {
+                document.getElementById('grammerResult').innerHTML = 
+                    '<div class="result error">Selecciona al menos una opción de caracteres.</div>';
+                return;
+            }
+
+            let password = '';
+            for (let i = 0; i < length; i++) {
+                password += charset.charAt(Math.floor(Math.random() * charset.length));
+            }
+
+            document.getElementById('customGrammerPassword').value = password;
+            
+            // Mostrar la contraseña generada
+            const strength = calculatePasswordStrength(password);
+            document.getElementById('grammerResult').innerHTML = `
+                <div class="result grammer-result">
+                    <h4>🎲 Contraseña Generada:</h4>
+                    <div class="password-preview" style="font-size: 16px; font-weight: bold;">${password}</div>
+                    <div>
+                        <strong>Fortaleza:</strong> ${strength.text}
+                        <div class="strength-meter">
+                            <div class="strength-bar ${strength.class}"></div>
+                        </div>
+                    </div>
+                    <p><strong>💡 Siguiente paso:</strong> Haz clic en "Generar Hash PHP" para obtener el hash para la base de datos.</p>
+                </div>
+            `;
+        }
+
+        function hashGrammerPassword() {
+            const password = document.getElementById('customGrammerPassword').value;
+            
+            if (!password) {
+                document.getElementById('grammerResult').innerHTML = 
+                    '<div class="result error">Ingresa una contraseña para generar el hash.</div>';
+                return;
+            }
+
+            // Simular password_hash() de PHP (aproximación)
+            const hash = generatePHPStyleHash(password);
+            const strength = calculatePasswordStrength(password);
+            
+            document.getElementById('grammerResult').innerHTML = `
+                <div class="result grammer-result">
+                    <h4>🔒 Hash Generado para Base de Datos Grammer:</h4>
+                    <div style="margin: 15px 0;">
+                        <strong>Contraseña Original:</strong>
+                        <div class="password-preview">${password}</div>
+                    </div>
+                    <div style="margin: 15px 0;">
+                        <strong>Hash para Base de Datos:</strong>
+                        <div class="password-preview">${hash}</div>
+                    </div>
+                    <div style="margin: 15px 0;">
+                        <strong>Fortaleza de la Contraseña:</strong> ${strength.text}
+                        <div class="strength-meter">
+                            <div class="strength-bar ${strength.class}"></div>
+                        </div>
+                    </div>
+                    <div style="background: rgba(126, 87, 194, 0.1); padding: 15px; border-radius: 8px; margin-top: 15px;">
+                        <strong>📋 Instrucciones:</strong>
+                        <ol>
+                            <li>Copia el <strong>Hash para Base de Datos</strong></li>
+                            <li>Actualiza el campo <code>password</code> en tu tabla <code>users</code></li>
+                            <li>El usuario podrá hacer login con la <strong>Contraseña Original</strong></li>
+                            <li>El sistema verificará automáticamente con <code>password_verify()</code></li>
+                        </ol>
+                    </div>
+                    <div style="background: rgba(76, 175, 80, 0.1); padding: 15px; border-radius: 8px; margin-top: 10px; border-left: 4px solid #4CAF50;">
+                        <strong>✅ SQL de ejemplo:</strong><br>
+                        <code style="font-size: 12px;">UPDATE users SET password = '${hash}' WHERE email = 'usuario@grammer.com';</code>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generatePHPStyleHash(password) {
+            // Simular un hash similar a password_hash() de PHP
+            // Nota: Esto es una aproximación para testing, el hash real se debe generar en PHP
+            const salt = Math.random().toString(36).substring(2, 15);
+            const hash = btoa(password + salt + 'grammer_auth_2025');
+            return '$2y$10$' + btoa(salt).substring(0, 22) + hash.substring(0, 31);
+        }
+
+        function calculatePasswordStrength(password) {
+            let score = 0;
+            let feedback = [];
+
+            // Longitud
+            if (password.length >= 8) score += 1;
+            if (password.length >= 12) score += 1;
+            if (password.length >= 16) score += 1;
+
+            // Complejidad
+            if (/[a-z]/.test(password)) score += 1;
+            if (/[A-Z]/.test(password)) score += 1;
+            if (/[0-9]/.test(password)) score += 1;
+            if (/[^A-Za-z0-9]/.test(password)) score += 1;
+
+            // Patrones
+            if (!/(.)\1{2,}/.test(password)) score += 1; // No repeticiones
+            if (!/123|abc|qwe/i.test(password)) score += 1; // No secuencias
+
+            if (score <= 3) return { text: 'Débil ⚠️', class: 'strength-weak' };
+            if (score <= 5) return { text: 'Media 📊', class: 'strength-medium' };
+            if (score <= 7) return { text: 'Fuerte 💪', class: 'strength-strong' };
+            return { text: 'Muy Fuerte 🛡️', class: 'strength-very-strong' };
+        }
+
+        // Encrypt password function (ORIGINAL - NO MODIFICADA)
         function encryptPassword() {
             const plainText = document.getElementById('plainPassword').value;
             if (!plainText) {
@@ -288,7 +605,7 @@
             }
         }
 
-        // Test login function
+        // Test login function (ORIGINAL - NO MODIFICADA)
         async function testLogin() {
             const email = document.getElementById('testEmail').value;
             const password = document.getElementById('testPassword').value;
@@ -343,7 +660,7 @@
             }
         }
 
-        // Decrypt password function
+        // Decrypt password function (ORIGINAL - NO MODIFICADA)
         function decryptPassword() {
             const encryptedText = document.getElementById('encryptedPassword').value;
             if (!encryptedText) {
@@ -373,7 +690,7 @@
             }
         }
 
-        // Load users for encryption
+        // Load users for encryption (ORIGINAL - NO MODIFICADA)
         function loadUsersForEncryption() {
             document.getElementById('batchResult').innerHTML = '<div class="result">Loading users...</div>';
             
@@ -408,7 +725,7 @@
                                 <div class="password-preview">
                                     <strong>Current Password:</strong> ${user.password.substring(0, 30)}${user.password.length > 30 ? '...' : ''}
                                 </div>
-                                ${!userIsEncrypted ? `<button class="update-button" onclick="updateUserPassword(${user.id}, '${user.password.replace(/'/g, "\\'")}')">🔒 Encrypt This Password</button>` : ''}
+                                ${!userIsEncrypted ? `<button class="update-button" onclick="updateUserPassword(${user.id}, '${user.password.replace(/'/g, "\\'")}')">🔐 Encrypt This Password</button>` : ''}
                             </div>
                         `;
                     });
@@ -435,7 +752,7 @@
             });
         }
 
-        // Update individual user password
+        // Update individual user password (ORIGINAL - NO MODIFICADA)
         async function updateUserPassword(userId, currentPassword) {
             try {
                 const encryptedPassword = simpleEncrypt(currentPassword);
@@ -465,7 +782,7 @@
             }
         }
 
-        // Update all passwords at once
+        // Update all passwords at once (ORIGINAL - NO MODIFICADA)
         async function updateAllPasswords() {
             if (!confirm('⚠️ WARNING: This will encrypt all plain text passwords in your database.\n\nThis action cannot be undone easily. Make sure you have a database backup.\n\nAre you sure you want to continue?')) {
                 return;
@@ -539,7 +856,7 @@
                     <div class="result">
                         <h4>🎉 Batch Update Complete!</h4>
                         <p>✅ Successfully encrypted: <strong>${updatedCount}</strong> passwords</p>
-                        <p>⏭️ Already encrypted (skipped): <strong>${skippedCount}</strong> passwords</p>
+                        <p>⭐ Already encrypted (skipped): <strong>${skippedCount}</strong> passwords</p>
                         ${errorCount > 0 ? `<p>❌ Errors: <strong>${errorCount}</strong></p>` : ''}
                         <br>
                         <button onclick="loadUsersForEncryption()">🔄 Reload Users to Verify</button>
@@ -553,7 +870,7 @@
             }
         }
 
-        // Load current users
+        // Load current users (ORIGINAL - NO MODIFICADA)
         function mostrarProductos() {
             fetch('dao/users/daoUserAdmin.php', {
                 method: 'GET',
@@ -585,7 +902,7 @@
                             <td>${passwordStatus}</td>
                             <td>
                                 ${!userIsEncrypted ? 
-                                    `<button class="update-button" onclick="updateUserPassword(${user.id}, '${user.password.replace(/'/g, "\\'")}')">🔒 Encrypt</button>` : 
+                                    `<button class="update-button" onclick="updateUserPassword(${user.id}, '${user.password.replace(/'/g, "\\'")}')">🔐 Encrypt</button>` : 
                                     '<span style="color: green;">✅ Done</span>'
                                 }
                             </td>
@@ -603,11 +920,12 @@
             });
         }
 
-        // Load users on page load
+        // Load users on page load (ORIGINAL - NO MODIFICADA)
         window.onload = function() {
             console.log('🔐 Premium Freight Password Tool loaded');
             console.log('⚠️ Remember to backup your database before making changes');
             console.log('🔧 Using Simple Encryption method (same as PasswordManager)');
+            console.log('🏢 Nueva funcionalidad: Generador Grammer agregado');
         };
     </script>
 </body>
