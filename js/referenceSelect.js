@@ -118,6 +118,7 @@ export function initializeLimitedReferenceSelector() {
         { id: '57', text: '349877' },
         { id: '71', text: '337848' },
         { id: '72', text: '352149' }
+        
     ];
 
     $select.select2({
