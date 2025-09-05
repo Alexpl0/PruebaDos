@@ -14,7 +14,8 @@ function collectFormData() {
         'Weight', 'Measures', 'Products', 'Carrier', 'QuotedCost', 'ReferenceOrder',
         'CompanyShip', 'inputCityShip', 'StatesShip', 'inputZipShip',
         'inputCompanyNameDest', 'inputCityDest', 'StatesDest', 'inputZipDest',
-        'FirstWhy', 'SecondWhy', 'ThirdWhy', 'FourthWhy', 'FifthWhy' // Updated fields
+        'FirstWhy', 'SecondWhy', 'ThirdWhy', 'FourthWhy', 'FifthWhy', // Updated fields
+        'CorrectiveAction', 'PersonResponsible', 'TargetDate' // NUEVOS CAMPOS
     ];
 
     const textFields = [
@@ -111,7 +112,8 @@ function validateCompleteForm() {
         "Destination": ['inputCompanyNameDest', 'inputCityDest', 'StatesDest', 'inputZipDest'],
         "Shipment Details": ['Weight', 'Measures', 'Products', 'Carrier', 'recoveryFile'],
         "Reference Information": ['ReferenceOrder'],
-        "5 Why's Analysis": ['FirstWhy', 'SecondWhy', 'ThirdWhy', 'FourthWhy', 'FifthWhy'] // Updated section
+        "5 Why's Analysis": ['FirstWhy', 'SecondWhy', 'ThirdWhy', 'FourthWhy', 'FifthWhy'], // Updated section
+        "Corrective Action Plan": ['CorrectiveAction', 'PersonResponsible', 'TargetDate'] // NUEVA SECCIÓN
     };
 
     const { formData, emptyFields } = collectFormData();
@@ -175,6 +177,31 @@ function validateCompleteForm() {
         }
     }
     // =================== FIN: VALIDACIÓN 5 WHY'S ===================
+
+    // ================== VALIDACIÓN CORRECTIVE ACTION PLAN ==================
+    const correctiveAction = document.getElementById('CorrectiveAction');
+    const correctiveMinLength = 50;
+    
+    if (correctiveAction && correctiveAction.value.length < correctiveMinLength) {
+        if (!emptyFields.includes('Corrective Action (minimum 50 characters)')) {
+            emptyFields.push('Corrective Action (minimum 50 characters)');
+        }
+    }
+
+    // Validar fecha target
+    const targetDate = document.getElementById('TargetDate');
+    if (targetDate && targetDate.value) {
+        const selectedDate = new Date(targetDate.value);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset time to start of day
+        
+        if (selectedDate < today) {
+            if (!emptyFields.includes('Target Date cannot be in the past')) {
+                emptyFields.push('Target Date cannot be in the past');
+            }
+        }
+    }
+    // =================== FIN: VALIDACIÓN CORRECTIVE ACTION PLAN ===================
 
     if (emptyFields.length === 0) {
         // Clean up any previous error state for ReferenceOrder if the form is now valid

@@ -241,6 +241,55 @@ require_once 'dao/users/context_injector.php';
                 <div id="fifthWhyCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">30 characters required</span> - <span class="char-count">0/30</span></div>
             </div>
 
+            <!-- NUEVA SECCIÓN: Corrective Action Plan -->
+            <h2 class="mt-4">
+                Corrective Action Plan 
+                <i class="fas fa-clipboard-check text-success ms-2" data-bs-toggle="tooltip" data-bs-placement="top" 
+                   title="Define the corrective actions, responsible person, and target completion date for addressing the root cause."></i>
+            </h2>
+            <div id="SectCorrectiveAction" class="mb-3">
+                <!-- Primera fila: Corrective Action -->
+                <div id="DivCorrectiveAction" class="mb-3 w-100">
+                    <label for="CorrectiveAction">
+                        Corrective Action Description
+                        <i class="fas fa-info-circle text-primary ms-1" data-bs-toggle="tooltip" data-bs-placement="right" 
+                           title="Describe the specific actions that will be taken to address the root cause and prevent recurrence."></i>
+                    </label>
+                    <textarea id="CorrectiveAction" name="CorrectiveAction" class="form-control" 
+                        placeholder="Describe the corrective actions to be implemented (e.g., 'Implement backup carrier selection process and create contingency planning documentation')" 
+                        required minlength="50" rows="3"></textarea>
+                    <div id="correctiveActionCounter" class="text-muted small mt-1">
+                        <span class="text-danger">50 characters required</span> - <span class="char-count">0/50</span>
+                    </div>
+                </div>
+                
+                <!-- Segunda fila: Person Responsible y Target Date -->
+                <div id="SectResponsibleAndDate" class="mb-3">
+                    <div id="DivPersonResponsible" class="mb-2">
+                        <label for="PersonResponsible">
+                            Person Responsible
+                            <i class="fas fa-info-circle text-primary ms-1" data-bs-toggle="tooltip" data-bs-placement="right" 
+                               title="Name and role of the person responsible for implementing the corrective actions."></i>
+                        </label>
+                        <input type="text" id="PersonResponsible" name="PersonResponsible" class="form-control" 
+                            placeholder="Name and Role (e.g., 'John Smith - Logistics Manager')" required>
+                    </div>
+                    
+                    <div id="DivTargetDate" class="mb-2">
+                        <label for="TargetDate">
+                            Target Completion Date
+                            <i class="fas fa-info-circle text-primary ms-1" data-bs-toggle="tooltip" data-bs-placement="right" 
+                               title="Expected date for completion of all corrective actions."></i>
+                        </label>
+                        <input type="date" id="TargetDate" name="TargetDate" class="form-control" required>
+                        <div id="weekNumber" class="text-muted small mt-1">
+                            <i class="fas fa-calendar-week me-1"></i>
+                            <span id="weekDisplay">Select a date to see week number</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Ship From -->
             <h2 class="mt-4">Ship From</h2>
             <div id="SectShip" class="mb-3">

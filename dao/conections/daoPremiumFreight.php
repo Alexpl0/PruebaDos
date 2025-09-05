@@ -17,7 +17,7 @@ try {
     $con = new LocalConector();
     $conex = $con->conectar();
 
-    // ================== CONSULTA SQL ACTUALIZADA ==================
+    // ================== CONSULTA SQL ACTUALIZADA CON CORRECTIVE ACTION PLAN ==================
     $sql = "
         SELECT 
             pf.*, -- Selecciona todas las columnas de la tabla PremiumFreight
@@ -43,7 +43,14 @@ try {
             pfa.act_approv AS approval_status,
             u_approver.name AS approver_name,
             u_approver.email AS approver_email,
-            u_approver.role AS approver_role
+            u_approver.role AS approver_role,
+            -- Campos del Corrective Action Plan
+            cap.cap_id,
+            cap.corrective_action,
+            cap.person_responsible,
+            cap.due_date,
+            cap.status AS corrective_action_status,
+            cap.creation_date AS corrective_action_creation_date
         FROM PremiumFreight pf
         LEFT JOIN Products p ON pf.products = p.id
         LEFT JOIN NumOrders no ON pf.reference_number = no.ID
@@ -54,6 +61,7 @@ try {
         LEFT JOIN Status st ON pf.status_id = st.id
         LEFT JOIN PremiumFreightApprovals pfa ON pf.id = pfa.premium_freight_id
         LEFT JOIN User u_approver ON pfa.user_id = u_approver.id
+        LEFT JOIN CorrectiveActionPlan cap ON pf.id = cap.premium_freight_id
     ";
     // =========================================================================================
 
@@ -113,6 +121,23 @@ try {
         $row['approver_level_6'] = $orderApprovers[$orderId][6] ?? '';
         $row['approver_level_7'] = $orderApprovers[$orderId][7] ?? '';
         $row['approver_level_8'] = $orderApprovers[$orderId][8] ?? '';
+        
+        // Organizar información del Corrective Action Plan
+        $row['corrective_action_plan'] = null;
+        if (!empty($row['cap_id'])) {
+            $row['corrective_action_plan'] = [
+                'cap_id' => $row['cap_id'],
+                'corrective_action' => $row['corrective_action'],
+                'person_responsible' => $row['person_responsible'],
+                'due_date' => $row['due_date'],
+                'status' => $row['corrective_action_status'],
+                'creation_date' => $row['corrective_action_creation_date']
+            ];
+        }
+        
+        // Limpiar campos duplicados del plan correctivo del nivel principal
+        unset($row['cap_id'], $row['corrective_action'], $row['person_responsible'], 
+             $row['due_date'], $row['corrective_action_status'], $row['corrective_action_creation_date']);
         
         $datos[] = $row;
     }

@@ -39,6 +39,7 @@ require_once 'dao/users/context_injector.php';
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/view-order.css">
+    <link rel="stylesheet" href="css/corrective-action-plan.css">
     <link rel="stylesheet" href="css/recovery-modal.css">
     <link rel="stylesheet" href="css/tour-styles.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
@@ -149,6 +150,11 @@ require_once 'dao/users/context_injector.php';
             <div id="progress-error" class="alert alert-danger mt-3 d-none"></div>
         </section>
 
+        <!-- ===== NUEVA SECCIÓN: CORRECTIVE ACTION PLAN ===== -->
+        <div id="correctiveActionContainer">
+            <!-- El contenido se llenará con JavaScript -->
+        </div>
+
         <!-- ===== SVG CONTENT CONTAINER ===== -->
         <div class="svg-container">
             <div class="svg-content">
@@ -182,6 +188,7 @@ require_once 'dao/users/context_injector.php';
 
     <!-- Custom scripts -->
     <script src="js/uploadFiles.js"></script>
+    <script src="js/correctiveActionPlan.js"></script>
     <script type="module" src="js/viewOrder.js"></script>
     
     <?php 

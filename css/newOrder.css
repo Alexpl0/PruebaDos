@@ -581,6 +581,114 @@
 }
 
 /* ====================================
+   CORRECTIVE ACTION PLAN SECTION
+   ==================================== */
+
+/* Corrective Action Plan section layout */
+#SectCorrectiveAction {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: var(--border-radius-lg);
+    border: 1px solid #e9ecef;
+    margin-bottom: 2rem;
+}
+
+/* Corrective Action textarea - full width */
+#DivCorrectiveAction {
+    width: 100%;
+}
+
+#CorrectiveAction {
+    width: 100%;
+    min-height: 80px;
+    padding: var(--spacing-sm);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--border-radius);
+    resize: vertical;
+    font-family: var(--body-font);
+    transition: all var(--transition-fast);
+    box-shadow: var(--shadow-sm);
+    border-left: 4px solid #17a2b8; /* Info blue color */
+}
+
+#CorrectiveAction:focus {
+    border-color: var(--grammer-blue);
+    box-shadow: 0 0 0 0.25rem rgba(3, 76, 140, 0.25);
+}
+
+/* Responsible and Date section - two columns */
+#SectResponsibleAndDate {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    width: 100%;
+}
+
+#DivPersonResponsible,
+#DivTargetDate {
+    flex: 1 1 calc(50% - 0.5rem);
+    min-width: 250px;
+}
+
+/* Target Date specific styling */
+#TargetDate {
+    width: 100%;
+    height: 38px;
+    padding: var(--spacing-sm);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    background-color: var(--white);
+    transition: all var(--transition-fast);
+    box-shadow: var(--shadow-sm);
+}
+
+#TargetDate:focus {
+    border-color: var(--grammer-blue);
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(3, 76, 140, 0.25);
+}
+
+/* Week number display */
+#weekNumber {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+}
+
+#weekDisplay {
+    margin-left: 0.25rem;
+}
+
+/* Character counter for corrective action */
+#correctiveActionCounter {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+}
+
+/* Responsive adjustments for Corrective Action Plan */
+@media (max-width: 768px) {
+    #SectResponsibleAndDate {
+        flex-direction: column;
+    }
+    
+    #DivPersonResponsible,
+    #DivTargetDate {
+        flex: 1 1 100%;
+        min-width: 100%;
+    }
+    
+    #SectCorrectiveAction {
+        padding: 1rem;
+    }
+}
+
+/* ====================================
    RESPONSIVE ADJUSTMENTS
    ==================================== */
 

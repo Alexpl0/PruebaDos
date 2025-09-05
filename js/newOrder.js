@@ -260,7 +260,7 @@ async function submitForm(event) {
         const quotedCost = parseFloat(formData['QuotedCost']);
         range = calculateAuthorizationRange(euros);
 
-        // ================== PAYLOAD UPDATED FOR 5 WHY'S ==================
+        // ================== PAYLOAD UPDATED WITH CORRECTIVE ACTION PLAN ==================
         const payload = {
             user_id: window.PF_CONFIG.user.id || 1,
             date: new Date().toISOString().slice(0, 19).replace('T', ' '),
@@ -286,7 +286,11 @@ async function submitForm(event) {
             destiny_id: finalDestinyId,
             status_id: 1,
             required_auth_level: range,
-            moneda: getSelectedCurrency()
+            moneda: getSelectedCurrency(),
+            // NUEVOS CAMPOS DEL CORRECTIVE ACTION PLAN
+            corrective_action: formData['CorrectiveAction'],
+            person_responsible: formData['PersonResponsible'],
+            target_date: formData['TargetDate']
         };
         // ===============================================================
 
@@ -377,12 +381,57 @@ document.addEventListener('DOMContentLoaded', function() {
         updateAndValidate();
     }
 
+    // NUEVO: Setup for Corrective Action Plan
+    const correctiveAction = document.getElementById('CorrectiveAction');
+    const targetDate = document.getElementById('TargetDate');
+    
+    if (correctiveAction) {
+        correctiveAction.addEventListener('input', () => {
+            updateCharCounter(correctiveAction, '#correctiveActionCounter', 50);
+        });
+        updateCharCounter(correctiveAction, '#correctiveActionCounter', 50);
+    }
+    
+    if (targetDate) {
+        targetDate.addEventListener('change', updateWeekNumber);
+        // Set minimum date to today
+        const today = new Date().toISOString().split('T')[0];
+        targetDate.min = today;
+    }
+
     // Initialize Bootstrap tooltips
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 });
+
+// NUEVA FUNCIÓN: Update week number display
+function updateWeekNumber() {
+    const targetDateInput = document.getElementById('TargetDate');
+    const weekDisplay = document.getElementById('weekDisplay');
+    
+    if (!targetDateInput || !weekDisplay) return;
+    
+    const selectedDate = targetDateInput.value;
+    if (!selectedDate) {
+        weekDisplay.textContent = 'Select a date to see week number';
+        return;
+    }
+    
+    const date = new Date(selectedDate);
+    const weekNumber = getWeekNumber(date);
+    const year = date.getFullYear();
+    
+    weekDisplay.textContent = `Week ${weekNumber} of ${year}`;
+}
+
+// NUEVA FUNCIÓN: Calculate week number
+function getWeekNumber(date) {
+    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+    const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+}
 
 // Helper function to update the combined description field - UPDATED FOR 5 WHY'S
 function updateDescription() {

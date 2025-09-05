@@ -66,17 +66,18 @@ try {
     $conex->set_charset("utf8mb4");
     $conex->begin_transaction();
 
-    $sql = "INSERT INTO PremiumFreight (
-                user_id, date, planta, code_planta, transport, in_out_bound,
-                cost_euros, description, area, int_ext, paid_by, category_cause,
-                project_status, recovery, weight, measures, products,
-                carrier_id, quoted_cost, reference, reference_number,
-                origin_id, destiny_id, status_id, required_auth_level, moneda
-            ) VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-            )";
-
-    $stmt = $conex->prepare($sql);
+    // INSERT ORDER
+    $stmt = $conex->prepare("
+        INSERT INTO PremiumFreight (
+            user_id, date, planta, code_planta, transport, in_out_bound,
+            cost_euros, description, area, int_ext, paid_by, category_cause,
+            project_status, recovery, weight, measures, products,
+            carrier_id, quoted_cost, reference, reference_number,
+            origin_id, destiny_id, status_id, required_auth_level, moneda
+        ) VALUES (
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+        )
+    ");
     if (!$stmt) {
         throw new Exception("Error preparing statement: " . $conex->error);
     }
@@ -100,7 +101,7 @@ try {
 
     error_log("Bind param values: userId=$userId, date=$date, planta={$data['planta']}, code_planta={$data['code_planta']}, transport={$data['transport']}, in_out_bound={$data['in_out_bound']}, costEuros=$costEuros, description={$data['description']}, area={$data['area']}, int_ext={$data['int_ext']}, paid_by={$data['paid_by']}, category_cause={$data['category_cause']}, project_status={$data['project_status']}, recovery={$data['recovery']}, weight=$weight, measures={$data['measures']}, products=$products, carrier=$carrier, quotedCost=$quotedCost, reference=$reference, referenceNumberId=$referenceNumberId, originId=$originId, destinyId=$destinyId, statusId=$statusId, requiredAuthLevel=$requiredAuthLevel, moneda={$data['moneda']}");
 
-    error_log("Bind param types: isssssdssssssssidisiisiiis");
+    error_log("Bind param types: isssssdssssssssidisiis");
 
     $stmt->bind_param(
         "isssssdssssssssidisiisiiis",
@@ -140,6 +141,26 @@ try {
         $stmtHistory->bind_param("ii", $premiumFreightId, $userId);
         $stmtHistory->execute();
         $stmtHistory->close();
+    }
+
+    // NUEVO: Crear Corrective Action Plan si se proporcionaron los datos
+    if (!empty($data['corrective_action']) && !empty($data['person_responsible']) && !empty($data['target_date'])) {
+        $capStmt = $conex->prepare("
+            INSERT INTO `CorrectiveActionPlan` 
+            (premium_freight_id, corrective_action, person_responsible, due_date, status) 
+            VALUES (?, ?, ?, ?, 'On Track')
+        ");
+        $capStmt->bind_param("isss", 
+            $premiumFreightId, 
+            $data['corrective_action'], 
+            $data['person_responsible'], 
+            $data['target_date']
+        );
+        
+        if (!$capStmt->execute()) {
+            error_log("Failed to create corrective action plan for order: " . $premiumFreightId);
+        }
+        $capStmt->close();
     }
 
     $conex->commit();
