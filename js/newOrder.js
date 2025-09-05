@@ -381,7 +381,7 @@ document.addEventListener('DOMContentLoaded', function() {
         updateAndValidate();
     }
 
-    // NUEVO: Setup for Corrective Action Plan
+    // UPDATED: Setup for Corrective Action Plan
     const correctiveAction = document.getElementById('CorrectiveAction');
     const targetDate = document.getElementById('TargetDate');
     
@@ -393,10 +393,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     if (targetDate) {
+        // CORREGIDO: Usar el evento 'change' en lugar de 'input' para input type="date"
         targetDate.addEventListener('change', updateWeekNumber);
+        
         // Set minimum date to today
         const today = new Date().toISOString().split('T')[0];
         targetDate.min = today;
+        
+        // Trigger initial update
+        updateWeekNumber();
     }
 
     // Initialize Bootstrap tooltips
@@ -406,31 +411,75 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// NUEVA FUNCIÓN: Update week number display
+// UPDATED: Update week number display function
 function updateWeekNumber() {
     const targetDateInput = document.getElementById('TargetDate');
     const weekDisplay = document.getElementById('weekDisplay');
     
-    if (!targetDateInput || !weekDisplay) return;
-    
-    const selectedDate = targetDateInput.value;
-    if (!selectedDate) {
-        weekDisplay.textContent = 'Select a date to see week number';
+    if (!targetDateInput || !weekDisplay) {
+        console.log('Target date input or week display element not found');
         return;
     }
     
-    const date = new Date(selectedDate);
-    const weekNumber = getWeekNumber(date);
-    const year = date.getFullYear();
+    const selectedDate = targetDateInput.value;
+    console.log('Selected date:', selectedDate); // Debug log
     
-    weekDisplay.textContent = `Week ${weekNumber} of ${year}`;
+    if (!selectedDate) {
+        weekDisplay.textContent = 'Select a date to see week number';
+        weekDisplay.style.color = '#6c757d';
+        return;
+    }
+    
+    try {
+        const date = new Date(selectedDate + 'T00:00:00'); // Add time to avoid timezone issues
+        const weekNumber = getWeekNumber(date);
+        const year = date.getFullYear();
+        
+        // Calculate days until target date
+        const today = new Date();
+        const timeDiff = date.getTime() - today.getTime();
+        const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+        
+        let weekText = `Week ${weekNumber} of ${year}`;
+        
+        if (daysDiff > 0) {
+            weekText += ` (${daysDiff} days from now)`;
+            weekDisplay.style.color = '#28a745'; // Green for future dates
+        } else if (daysDiff === 0) {
+            weekText += ` (Today)`;
+            weekDisplay.style.color = '#ffc107'; // Yellow for today
+        } else {
+            weekText += ` (${Math.abs(daysDiff)} days ago)`;
+            weekDisplay.style.color = '#dc3545'; // Red for past dates
+        }
+        
+        weekDisplay.textContent = weekText;
+        console.log('Week display updated:', weekText); // Debug log
+        
+    } catch (error) {
+        console.error('Error calculating week number:', error);
+        weekDisplay.textContent = 'Invalid date';
+        weekDisplay.style.color = '#dc3545';
+    }
 }
 
-// NUEVA FUNCIÓN: Calculate week number
+// UPDATED: Calculate week number function (ISO week date system)
 function getWeekNumber(date) {
-    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-    const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
-    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+    // Copy date so don't modify original
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    
+    // Set to nearest Thursday: current date + 4 - current day number
+    // Make Sunday's day number 7
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    
+    // Get first day of year
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    
+    // Calculate full weeks to nearest Thursday
+    const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    
+    return weekNo;
 }
 
 // Helper function to update the combined description field - UPDATED FOR 5 WHY'S

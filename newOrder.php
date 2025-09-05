@@ -248,8 +248,8 @@ require_once 'dao/users/context_injector.php';
                    title="Define the corrective actions, responsible person, and target completion date for addressing the root cause."></i>
             </h2>
             <div id="SectCorrectiveAction" class="mb-3">
-                <!-- Primera fila: Corrective Action -->
-                <div id="DivCorrectiveAction" class="mb-3 w-100">
+                <!-- Primera fila: Corrective Action - ancho completo -->
+                <div id="DivCorrectiveAction" class="w-100">
                     <label for="CorrectiveAction">
                         Corrective Action Description
                         <i class="fas fa-info-circle text-primary ms-1" data-bs-toggle="tooltip" data-bs-placement="right" 
@@ -263,9 +263,9 @@ require_once 'dao/users/context_injector.php';
                     </div>
                 </div>
                 
-                <!-- Segunda fila: Person Responsible y Target Date -->
-                <div id="SectResponsibleAndDate" class="mb-3">
-                    <div id="DivPersonResponsible" class="mb-2">
+                <!-- Segunda fila: Person Responsible y Target Date - dos columnas -->
+                <div id="SectResponsibleAndDate">
+                    <div id="DivPersonResponsible">
                         <label for="PersonResponsible">
                             Person Responsible
                             <i class="fas fa-info-circle text-primary ms-1" data-bs-toggle="tooltip" data-bs-placement="right" 
@@ -275,14 +275,14 @@ require_once 'dao/users/context_injector.php';
                             placeholder="Name and Role (e.g., 'John Smith - Logistics Manager')" required>
                     </div>
                     
-                    <div id="DivTargetDate" class="mb-2">
+                    <div id="DivTargetDate">
                         <label for="TargetDate">
                             Target Completion Date
                             <i class="fas fa-info-circle text-primary ms-1" data-bs-toggle="tooltip" data-bs-placement="right" 
                                title="Expected date for completion of all corrective actions."></i>
                         </label>
                         <input type="date" id="TargetDate" name="TargetDate" class="form-control" required>
-                        <div id="weekNumber" class="text-muted small mt-1">
+                        <div id="weekNumber">
                             <i class="fas fa-calendar-week me-1"></i>
                             <span id="weekDisplay">Select a date to see week number</span>
                         </div>

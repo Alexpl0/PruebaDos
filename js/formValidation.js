@@ -188,10 +188,10 @@ function validateCompleteForm() {
         }
     }
 
-    // Validar fecha target
+    // UPDATED: Validar fecha target con mejor manejo
     const targetDate = document.getElementById('TargetDate');
     if (targetDate && targetDate.value) {
-        const selectedDate = new Date(targetDate.value);
+        const selectedDate = new Date(targetDate.value + 'T00:00:00'); // Evitar problemas de timezone
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Reset time to start of day
         
