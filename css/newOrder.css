@@ -133,18 +133,58 @@
     font-size: 0.85rem;
 }
 
-/* Ensure proper spacing between textareas and their labels */
+/* Character counters for 5 Why's fields */
+#firstWhyCounter,
+#secondWhyCounter,
+#thirdWhyCounter,
+#fourthWhyCounter,
+#fifthWhyCounter {
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+}
+
+/* Help icons styling */
+.fas.fa-info-circle,
+.fas.fa-question-circle {
+    cursor: help;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.fas.fa-info-circle:hover,
+.fas.fa-question-circle:hover {
+    opacity: 1;
+}
+
+/* Enhanced label styling for 5 Why's */
 #SectDescription label {
     display: block;
     margin-top: 0.5rem;
     margin-bottom: var(--spacing-sm);
     font-weight: 600;
     color: var(--gray-700);
+    font-size: 1rem;
 }
 
-/* First label doesn't need top margin */
-#SectDescription label:first-of-type {
-    margin-top: 0;
+/* Progressive color coding for the 5 Why's */
+#FirstWhy {
+    border-left: 4px solid #3b82f6; /* Blue */
+}
+
+#SecondWhy {
+    border-left: 4px solid #10b981; /* Green */
+}
+
+#ThirdWhy {
+    border-left: 4px solid #f59e0b; /* Yellow */
+}
+
+#FourthWhy {
+    border-left: 4px solid #ef4444; /* Red */
+}
+
+#FifthWhy {
+    border-left: 4px solid #8b5cf6; /* Purple */
 }
 
 /* MeasuresDiv - special case with side-by-side elements */

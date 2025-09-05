@@ -186,29 +186,59 @@ require_once 'dao/users/context_injector.php';
                 <small class="text-muted">Please upload a PDF file as evidence for recovery</small>
             </div>
 
-            <!-- Descriptions Section - UPDATED -->
-            <h2 class="mt-4">Description</h2>
+            <!-- Descriptions Section - UPDATED TO 5 WHY'S -->
+            <h2 class="mt-4">
+                5 Why's Analysis 
+                <i class="fas fa-question-circle text-info ms-2" data-bs-toggle="tooltip" data-bs-placement="top" 
+                   title="The 5 Why's is a root cause analysis technique. Start with the observable problem and ask 'Why?' for each answer to drill down to the root cause."></i>
+            </h2>
             <div id="SectDescription" class="mb-3">
                 <textarea id="Description" style="display: none;" name="Description" class="form-control" placeholder="Description" required></textarea>
                 
-                <!-- General Description -->
-                <label for="GeneralDescription">General Description</label>
-                <textarea id="GeneralDescription" name="GeneralDescription" class="form-control" placeholder="General Description" required minlength="50"></textarea>
-                <div id="generalCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">50 characters required</span> - <span class="char-count">0/50</span></div>
+                <!-- 1st Why: Observable Fact -->
+                <label for="FirstWhy">
+                    1st Why - Observable Fact 
+                    <i class="fas fa-info-circle text-primary ms-1" data-bs-toggle="tooltip" data-bs-placement="right" 
+                       title="Describe the observable problem or issue that occurred. What exactly happened?"></i>
+                </label>
+                <textarea id="FirstWhy" name="FirstWhy" class="form-control" placeholder="What is the observable problem or fact? (e.g., 'The shipment arrived 3 days late')" required minlength="30"></textarea>
+                <div id="firstWhyCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">30 characters required</span> - <span class="char-count">0/30</span></div>
                 
-                <!-- Root Cause -->
-                <label for="RootCause">Root Cause</label>
-                <textarea id="RootCause" name="RootCause" class="form-control" placeholder="Root Cause" required></textarea>
+                <!-- 2nd Why: Reason to 1st Why -->
+                <label for="SecondWhy">
+                    2nd Why - Reason to 1st Why 
+                    <i class="fas fa-info-circle text-primary ms-1" data-bs-toggle="tooltip" data-bs-placement="right" 
+                       title="Why did the observable fact happen? What was the immediate cause?"></i>
+                </label>
+                <textarea id="SecondWhy" name="SecondWhy" class="form-control" placeholder="Why did this problem occur? (e.g., 'Because the carrier had vehicle breakdown')" required minlength="30"></textarea>
+                <div id="secondWhyCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">30 characters required</span> - <span class="char-count">0/30</span></div>
                 
-                <!-- Immediate Actions -->
-                <label for="InmediateActions">Immediate Actions</label>
-                <textarea id="InmediateActions" name="InmediateActions" class="form-control" placeholder="Immediate Actions" required minlength="50"></textarea>
-                <div id="immediateCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">50 characters required</span> - <span class="char-count">0/50</span></div>
+                <!-- 3rd Why: Processes, Decisions, Constraints -->
+                <label for="ThirdWhy">
+                    3rd Why - Processes, Decisions, Constraints 
+                    <i class="fas fa-info-circle text-primary ms-1" data-bs-toggle="tooltip" data-bs-placement="right" 
+                       title="Why did the immediate cause happen? Look at processes, decisions, or constraints that led to this."></i>
+                </label>
+                <textarea id="ThirdWhy" name="ThirdWhy" class="form-control" placeholder="Why did that reason occur? Focus on processes or decisions (e.g., 'Because we didn't have backup carriers contracted')" required minlength="30"></textarea>
+                <div id="thirdWhyCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">30 characters required</span> - <span class="char-count">0/30</span></div>
                 
-                <!-- Permanent Actions -->
-                <label for="PermanentActions">Permanent Actions</label>
-                <textarea id="PermanentActions" name="PermanentActions" class="form-control" placeholder="Permanent Actions" required minlength="50"></textarea>
-                <div id="permanentCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">50 characters required</span> - <span class="char-count">0/50</span></div>
+                <!-- 4th Why: Structural Issues -->
+                <label for="FourthWhy">
+                    4th Why - Structural Issues 
+                    <i class="fas fa-info-circle text-primary ms-1" data-bs-toggle="tooltip" data-bs-placement="right" 
+                       title="Why do those processes or decisions exist? Look at structural or systemic issues."></i>
+                </label>
+                <textarea id="FourthWhy" name="FourthWhy" class="form-control" placeholder="Why does this structural issue exist? (e.g., 'Because our carrier selection process doesn't include contingency planning')" required minlength="30"></textarea>
+                <div id="fourthWhyCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">30 characters required</span> - <span class="char-count">0/30</span></div>
+                
+                <!-- 5th Why: Root Cause -->
+                <label for="FifthWhy">
+                    5th Why - The Root Cause 
+                    <i class="fas fa-info-circle text-primary ms-1" data-bs-toggle="tooltip" data-bs-placement="right" 
+                       title="This should reveal the fundamental root cause. Why does the structural issue exist?"></i>
+                </label>
+                <textarea id="FifthWhy" name="FifthWhy" class="form-control" placeholder="What is the fundamental root cause? (e.g., 'Because we lack a comprehensive risk management framework for logistics')" required minlength="30"></textarea>
+                <div id="fifthWhyCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">30 characters required</span> - <span class="char-count">0/30</span></div>
             </div>
 
             <!-- Ship From -->

@@ -260,8 +260,7 @@ async function submitForm(event) {
         const quotedCost = parseFloat(formData['QuotedCost']);
         range = calculateAuthorizationRange(euros);
 
-        // ================== PAYLOAD MODIFICADO ==================
-        // 'products' ahora enviará el ID del producto seleccionado.
+        // ================== PAYLOAD UPDATED FOR 5 WHY'S ==================
         const payload = {
             user_id: window.PF_CONFIG.user.id || 1,
             date: new Date().toISOString().slice(0, 19).replace('T', ' '),
@@ -270,7 +269,7 @@ async function submitForm(event) {
             transport: formData['transport'],
             in_out_bound: formData['InOutBound'],
             cost_euros: (typeof euros === 'number' && !isNaN(euros)) ? euros : 0,
-            description: formData['Description'],
+            description: formData['Description'], // This will contain the merged 5 Why's
             area: formData['Area'],
             int_ext: formData['IntExt'],
             paid_by: formData['PaidBy'],
@@ -279,7 +278,7 @@ async function submitForm(event) {
             recovery: formData['Recovery'],
             weight: formData['Weight'],
             measures: formData['Measures'],
-            products: parseInt(formData['Products'], 10), // <-- Asegura que sea int
+            products: parseInt(formData['Products'], 10),
             carrier: carrierId,
             quoted_cost: quotedCost,
             num_order_id: numOrderId,
@@ -289,7 +288,7 @@ async function submitForm(event) {
             required_auth_level: range,
             moneda: getSelectedCurrency()
         };
-        // =========================================================
+        // ===============================================================
 
         const response = await sendFormDataAsync(payload);
         if (!response || !response.success) {
@@ -300,8 +299,6 @@ async function submitForm(event) {
         if (!orderId) {
             throw new Error("Order was created, but its ID is missing in the server response.");
         }
-
-        // await sendApprovalNotification(orderId); // <--- COMENTADO PARA PRUEBAS
 
         const recoveryFile = document.getElementById('recoveryFile');
         const needsFile = !document.getElementById('Recovery').options[document.getElementById('Recovery').selectedIndex].text.includes('NO RECOVERY');
@@ -337,89 +334,93 @@ async function submitForm(event) {
 document.addEventListener('DOMContentLoaded', function() {
     initializeCompanySelectors();
     initializeCarrierSelector();
-    // ================== NUEVA LLAMADA A FUNCIÓN ==================
-    initializeProductSelector(); // Inicializa el nuevo selector de productos
-    // =============================================================
+    initializeProductSelector();
     initializeReferenceSelector();
     initializeCurrencySelectors();
 
     document.getElementById('enviar')?.addEventListener('click', submitForm);
 
-    // --- MODIFIED EVENT LISTENER SETUP FOR RECOVERY ---
+    // Recovery event handlers (keep existing)
     const recoverySelect = document.getElementById('Recovery');
     if (recoverySelect) {
-        // This single handler will now manage both the file input visibility
-        // and the reference order filtering.
         const recoveryChangeHandler = () => {
             handleRecoveryFileVisibility();
             handleReferenceOrderFiltering();
         };
-
-        // We use jQuery's .on() to reliably handle both standard change
-        // and the select2:select event.
         $('#Recovery').on('change', recoveryChangeHandler);
-
-        // Run the handler on page load to set the initial state correctly.
         recoveryChangeHandler();
     }
-    // --- END OF MODIFICATION ---
     
-    // Setup for description text areas - UPDATED to include new fields
-    const generalDescription = document.getElementById('GeneralDescription');
-    const rootCause = document.getElementById('RootCause');
-    const immediateActions = document.getElementById('InmediateActions');
-    const permanentActions = document.getElementById('PermanentActions');
+    // Setup for 5 Why's text areas - UPDATED
+    const firstWhy = document.getElementById('FirstWhy');
+    const secondWhy = document.getElementById('SecondWhy');
+    const thirdWhy = document.getElementById('ThirdWhy');
+    const fourthWhy = document.getElementById('FourthWhy');
+    const fifthWhy = document.getElementById('FifthWhy');
     
-    if (generalDescription && rootCause && immediateActions && permanentActions) {
+    if (firstWhy && secondWhy && thirdWhy && fourthWhy && fifthWhy) {
         const updateAndValidate = () => {
             updateDescription();
-            updateCharCounter(generalDescription, '#generalCounter', 50);
-            // Root Cause doesn't need character validation - just update description
-            updateCharCounter(immediateActions, '#immediateCounter', 50);
-            updateCharCounter(permanentActions, '#permanentCounter', 50);
+            updateCharCounter(firstWhy, '#firstWhyCounter', 30);
+            updateCharCounter(secondWhy, '#secondWhyCounter', 30);
+            updateCharCounter(thirdWhy, '#thirdWhyCounter', 30);
+            updateCharCounter(fourthWhy, '#fourthWhyCounter', 30);
+            updateCharCounter(fifthWhy, '#fifthWhyCounter', 30);
         };
         
-        generalDescription.addEventListener('input', updateAndValidate);
-        rootCause.addEventListener('input', updateAndValidate);
-        immediateActions.addEventListener('input', updateAndValidate);
-        permanentActions.addEventListener('input', updateAndValidate);
+        firstWhy.addEventListener('input', updateAndValidate);
+        secondWhy.addEventListener('input', updateAndValidate);
+        thirdWhy.addEventListener('input', updateAndValidate);
+        fourthWhy.addEventListener('input', updateAndValidate);
+        fifthWhy.addEventListener('input', updateAndValidate);
         
         updateAndValidate();
     }
+
+    // Initialize Bootstrap tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
 });
 
-// Helper function to update the combined description field - UPDATED
+// Helper function to update the combined description field - UPDATED FOR 5 WHY'S
 function updateDescription() {
-    const generalValue = document.getElementById('GeneralDescription')?.value.trim() || '';
-    const rootCauseValue = document.getElementById('RootCause')?.value.trim() || '';
-    const immediateValue = document.getElementById('InmediateActions')?.value.trim() || '';
-    const permanentValue = document.getElementById('PermanentActions')?.value.trim() || '';
+    const firstWhyValue = document.getElementById('FirstWhy')?.value.trim() || '';
+    const secondWhyValue = document.getElementById('SecondWhy')?.value.trim() || '';
+    const thirdWhyValue = document.getElementById('ThirdWhy')?.value.trim() || '';
+    const fourthWhyValue = document.getElementById('FourthWhy')?.value.trim() || '';
+    const fifthWhyValue = document.getElementById('FifthWhy')?.value.trim() || '';
     const descriptionField = document.getElementById('Description');
     
     if (descriptionField) {
-        let combinedDescription = '';
+        let combinedDescription = '5 WHY\'S ANALYSIS:\n\n';
         
-        if (generalValue) {
-            combinedDescription += `GENERAL DESCRIPTION:\n${formatToSentenceCase(generalValue)}\n\n`;
+        if (firstWhyValue) {
+            combinedDescription += `1st WHY - OBSERVABLE FACT:\n${formatToSentenceCase(firstWhyValue)}\n\n`;
         }
         
-        if (rootCauseValue) {
-            combinedDescription += `ROOT CAUSE:\n${formatToSentenceCase(rootCauseValue)}\n\n`;
+        if (secondWhyValue) {
+            combinedDescription += `2nd WHY - REASON TO 1st WHY:\n${formatToSentenceCase(secondWhyValue)}\n\n`;
         }
         
-        if (immediateValue) {
-            combinedDescription += `IMMEDIATE ACTIONS:\n${formatToSentenceCase(immediateValue)}\n\n`;
+        if (thirdWhyValue) {
+            combinedDescription += `3rd WHY - PROCESSES, DECISIONS, CONSTRAINTS:\n${formatToSentenceCase(thirdWhyValue)}\n\n`;
         }
         
-        if (permanentValue) {
-            combinedDescription += `PERMANENT ACTIONS:\n${formatToSentenceCase(permanentValue)}`;
+        if (fourthWhyValue) {
+            combinedDescription += `4th WHY - STRUCTURAL ISSUES:\n${formatToSentenceCase(fourthWhyValue)}\n\n`;
+        }
+        
+        if (fifthWhyValue) {
+            combinedDescription += `5th WHY - ROOT CAUSE:\n${formatToSentenceCase(fifthWhyValue)}`;
         }
         
         descriptionField.value = combinedDescription.trim();
     }
 }
 
-// Helper function to update character counters for textareas.
+// Helper function to update character counters (keep existing)
 function updateCharCounter(textarea, counterSelector, minLength) {
     const length = textarea.value.length;
     const counterElement = document.querySelector(counterSelector);
@@ -441,7 +442,7 @@ function updateCharCounter(textarea, counterSelector, minLength) {
     }
 }
 
-// Helper function to get the selected currency.
+// Helper function to get the selected currency (keep existing)
 function getSelectedCurrency() {    
     if (typeof selectedCurrency !== 'undefined') {
         return selectedCurrency;

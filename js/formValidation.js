@@ -14,7 +14,7 @@ function collectFormData() {
         'Weight', 'Measures', 'Products', 'Carrier', 'QuotedCost', 'ReferenceOrder',
         'CompanyShip', 'inputCityShip', 'StatesShip', 'inputZipShip',
         'inputCompanyNameDest', 'inputCityDest', 'StatesDest', 'inputZipDest',
-        'GeneralDescription', 'RootCause' // Added new fields
+        'FirstWhy', 'SecondWhy', 'ThirdWhy', 'FourthWhy', 'FifthWhy' // Updated fields
     ];
 
     const textFields = [
@@ -109,76 +109,72 @@ function validateCompleteForm() {
         "Project Details": ['CategoryCause', 'ProjectStatus', 'Recovery', 'Description'],
         "Shipment Origin": ['CompanyShip', 'inputCityShip', 'StatesShip', 'inputZipShip'],
         "Destination": ['inputCompanyNameDest', 'inputCityDest', 'StatesDest', 'inputZipDest'],
-        // MODIFICACIÓN: Se añade 'recoveryFile' para que el mensaje de error sepa a qué sección pertenece.
-        // Also added new description fields
         "Shipment Details": ['Weight', 'Measures', 'Products', 'Carrier', 'recoveryFile'],
         "Reference Information": ['ReferenceOrder'],
-        "Description Details": ['GeneralDescription', 'RootCause'] // New section for new fields (RootCause no minimum chars)
+        "5 Why's Analysis": ['FirstWhy', 'SecondWhy', 'ThirdWhy', 'FourthWhy', 'FifthWhy'] // Updated section
     };
 
     const { formData, emptyFields } = collectFormData();
     let customErrorMessages = {};
 
-    // ================== INICIO: BLOQUE DE CÓDIGO AÑADIDO ==================
-    // Esta es la lógica que faltaba. Valida el campo del archivo de recuperación.
+    // Recovery file validation (keep existing)
     const recoverySelect = document.getElementById('Recovery');
     const recoveryFile = document.getElementById('recoveryFile');
     
     if (recoverySelect && recoveryFile) {
         const selectedText = recoverySelect.options[recoverySelect.selectedIndex]?.text || '';
-        // 'needsFile' es true si se elige cualquier opción que NO sea "NO RECOVERY".
         const needsFile = !selectedText.toUpperCase().includes('NO RECOVERY');
 
-        // Si se necesita el archivo pero no se ha subido, se marca como un error.
         if (needsFile && (!recoveryFile.files || recoveryFile.files.length === 0)) {
             if (!emptyFields.includes('recoveryFile')) {
                 emptyFields.push('recoveryFile');
             }
-            // Mensaje de error personalizado para este campo.
             customErrorMessages['recoveryFile'] = 'Recovery Evidence (PDF)';
             recoveryFile.classList.add('is-invalid');
         } else {
-            // Si no se necesita o ya se subió, se quita el estilo de error.
             recoveryFile.classList.remove('is-invalid');
         }
     }
-    // =================== FIN: BLOQUE DE CÓDIGO AÑADIDO ===================
 
-    // ================== VALIDACIÓN DE NUEVOS CAMPOS DE DESCRIPCIÓN ==================
-    const generalDescription = document.getElementById('GeneralDescription');
-    const rootCause = document.getElementById('RootCause');
-    const immediateActions = document.getElementById('InmediateActions');
-    const permanentActions = document.getElementById('PermanentActions');
-    const minLength = 50;
+    // ================== VALIDACIÓN DE 5 WHY'S ==================
+    const firstWhy = document.getElementById('FirstWhy');
+    const secondWhy = document.getElementById('SecondWhy');
+    const thirdWhy = document.getElementById('ThirdWhy');
+    const fourthWhy = document.getElementById('FourthWhy');
+    const fifthWhy = document.getElementById('FifthWhy');
+    const minLength = 30;
     
-    // Validate GeneralDescription
-    if (generalDescription && generalDescription.value.length < minLength) {
-        if (!emptyFields.includes('General Description (minimum 50 characters)')) {
-            emptyFields.push('General Description (minimum 50 characters)');
+    // Validate each Why field
+    if (firstWhy && firstWhy.value.length < minLength) {
+        if (!emptyFields.includes('1st Why - Observable Fact (minimum 30 characters)')) {
+            emptyFields.push('1st Why - Observable Fact (minimum 30 characters)');
         }
     }
     
-    // Root Cause doesn't need minimum character validation - just check if it's not empty
-    if (rootCause && rootCause.value.trim() === '') {
-        if (!emptyFields.includes('RootCause')) {
-            emptyFields.push('RootCause');
+    if (secondWhy && secondWhy.value.length < minLength) {
+        if (!emptyFields.includes('2nd Why - Reason (minimum 30 characters)')) {
+            emptyFields.push('2nd Why - Reason (minimum 30 characters)');
         }
     }
     
-    // Validate Immediate Actions
-    if (immediateActions && immediateActions.value.length < minLength) {
-        if (!emptyFields.includes('Immediate Actions (minimum 50 characters)')) {
-            emptyFields.push('Immediate Actions (minimum 50 characters)');
+    if (thirdWhy && thirdWhy.value.length < minLength) {
+        if (!emptyFields.includes('3rd Why - Processes/Decisions (minimum 30 characters)')) {
+            emptyFields.push('3rd Why - Processes/Decisions (minimum 30 characters)');
         }
     }
     
-    // Validate Permanent Actions
-    if (permanentActions && permanentActions.value.length < minLength) {
-        if (!emptyFields.includes('Permanent Actions (minimum 50 characters)')) {
-            emptyFields.push('Permanent Actions (minimum 50 characters)');
+    if (fourthWhy && fourthWhy.value.length < minLength) {
+        if (!emptyFields.includes('4th Why - Structural Issues (minimum 30 characters)')) {
+            emptyFields.push('4th Why - Structural Issues (minimum 30 characters)');
         }
     }
-    // =================== FIN: VALIDACIÓN DE NUEVOS CAMPOS ===================
+    
+    if (fifthWhy && fifthWhy.value.length < minLength) {
+        if (!emptyFields.includes('5th Why - Root Cause (minimum 30 characters)')) {
+            emptyFields.push('5th Why - Root Cause (minimum 30 characters)');
+        }
+    }
+    // =================== FIN: VALIDACIÓN 5 WHY'S ===================
 
     if (emptyFields.length === 0) {
         // Clean up any previous error state for ReferenceOrder if the form is now valid
