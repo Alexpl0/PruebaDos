@@ -124,6 +124,7 @@
 }
 
 .corrective-action-toggle {
+    margin:0;
     background: none;
     border: none;
     color: var(--grammer-blue);
@@ -133,6 +134,8 @@
     margin-top: 0.25rem;
     text-decoration: underline;
     font-weight: 500;
+    min-height: 30px;
+    max-weight: 100px;
 }
 
 .corrective-action-toggle:hover {
@@ -159,6 +162,7 @@
     gap: var(--spacing-xl);
     margin-top: var(--spacing-xl);
     padding: var(--spacing-xl);
+    padding-bottom: 0px;
     background: var(--gray-50);
     border-radius: var(--border-radius);
     border: 1px solid var(--gray-200);
@@ -322,6 +326,7 @@
 }
 
 .file-input-wrapper {
+    max-height:50px;
     position: relative;
     display: inline-block;
     cursor: pointer;
