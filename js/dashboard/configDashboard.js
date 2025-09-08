@@ -4,7 +4,12 @@
  */
 
 // Objeto para almacenar todas las instancias de gráficos de ApexCharts
-export const charts = {};
+export const charts = {
+    // ...otras gráficas...
+    recoveryFiles: null,
+    recoveryFilesStacked: null, // 👈 Agregar esta línea
+    // ...
+};
 
 // Objeto para almacenar los datos de origen de cada gráfico para la exportación a Excel
 export const chartData = {};

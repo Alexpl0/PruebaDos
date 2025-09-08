@@ -219,7 +219,8 @@ require_once 'dao/users/context_injector.php';
                 <div class="card h-100">
                     <div class="card-body">
                         <h5 class="card-title">Recovery Files Status</h5>
-                        <div id="chartRecoveryFiles" style="height: 300px;"></div>
+                        <div id="chartRecoveryFiles" class="chart-container"></div>
+                        <div id="chartRecoveryFilesStacked" class="chart-container"></div>
                     </div>
                 </div>
             </div>
