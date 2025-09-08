@@ -108,121 +108,116 @@ export function showErrorMessage(message) {
  * @param {string} city - Nombre de la ciudad
  * @param {string} state - Nombre del estado o provincia (opcional)
  * @param {string} country - Nombre del país (opcional)
- * @param {number} retries - Número de reintentos (por defecto 2)
  * @returns {Promise<Object|null>} Promesa que resuelve a un objeto con las coordenadas {lat, lng} o null si falla
  */
-export async function geocodeLocation(city, state, country, retries = 2) {
-    // Validar parámetros de entrada
-    if (!city || city.trim() === '') {
-        console.warn('Geocoding: City parameter is required');
-        return null;
-    }
-
+export async function geocodeLocation(city, state, country) {
+    // PASO 1: CONSTRUCCIÓN DE LA CONSULTA
+    // Combina los parámetros de ubicación en un solo string de consulta
+    // encodeURIComponent escapa caracteres especiales para que sean seguros en una URL
     const query = encodeURIComponent(`${city}, ${state || ''}, ${country || ''}`);
     
-    for (let attempt = 0; attempt <= retries; attempt++) {
-        try {
-            // Agregar timeout y delay entre peticiones
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos timeout
-            
-            // Delay progresivo entre reintentos
-            if (attempt > 0) {
-                await new Promise(resolve => setTimeout(resolve, attempt * 1000));
-            }
-            
-            console.log(`Geocoding attempt ${attempt + 1}/${retries + 1} for: ${city}, ${state || 'N/A'}`);
-            
-            const response = await fetch(
-                `https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1&email=your-email@example.com`,
-                {
-                    signal: controller.signal,
-                    headers: {
-                        'User-Agent': 'PremiumFreightDashboard/1.0'
-                    }
-                }
-            );
-            
-            clearTimeout(timeoutId);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            
-            const data = await response.json();
-            
-            if (data && data.length > 0) {
-                console.log(`✅ Geocoding successful for: ${city}`);
-                return {
-                    lat: parseFloat(data[0].lat),
-                    lng: parseFloat(data[0].lon)
-                };
-            }
-            
-            // Si no hay resultados pero la petición fue exitosa, no reintentar
-            console.warn(`No results found for: ${city}, ${state || 'N/A'}`);
-            return null;
-            
-        } catch (error) {
-            console.warn(`Geocoding attempt ${attempt + 1} failed for ${city}:`, error.message);
-            
-            // Si es el último intento, registrar el error final
-            if (attempt === retries) {
-                console.error(`❌ All geocoding attempts failed for: ${city}, ${state || 'N/A'}`);
-                return null;
-            }
+    try {
+        // PASO 2: PETICIÓN AL SERVICIO DE GEOCODIFICACIÓN
+        // Realiza una petición HTTP al API de Nominatim (OpenStreetMap)
+        // format=json solicita la respuesta en formato JSON
+        // q= es el parámetro de consulta (la ubicación a geocodificar)
+        // limit=1 limita los resultados al más relevante
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`);
+        
+        // PASO 3: PROCESAMIENTO DE LA RESPUESTA
+        // Convierte la respuesta HTTP a un objeto JavaScript
+        const data = await response.json();
+        
+        // PASO 4: VALIDACIÓN Y EXTRACCIÓN DE DATOS
+        // Verifica si hay resultados disponibles
+        if (data && data.length > 0) {
+            // Si hay al menos un resultado, extrae las coordenadas y las retorna
+            // como un objeto con formato estandarizado {lat, lng}
+            return {
+                lat: parseFloat(data[0].lat),  // Latitud convertida a número
+                lng: parseFloat(data[0].lon)   // Longitud convertida a número
+            };
         }
+        
+        // Si no hay resultados, retorna null para indicar que la geocodificación falló
+        return null;
+    } catch (error) {
+        // PASO 5: MANEJO DE ERRORES
+        // Si ocurre cualquier error durante el proceso, lo registra en consola
+        console.error("Geocoding error:", error);
+        
+        // Y retorna null para indicar que la operación falló
+        return null;
     }
-    
-    return null;
 }
 
 /**
- * Geocodificación alternativa usando múltiples servicios
+ * Formatea un número para mostrar con separador de miles y decimales controlados
+ * 
+ * Esta función convierte valores numéricos a representaciones textuales amigables
+ * para la visualización, aplicando separadores de miles según la configuración
+ * regional del navegador y controlando la cantidad de decimales mostrados.
+ * 
+ * Es especialmente útil para mostrar valores monetarios, porcentajes, o cualquier
+ * valor numérico en la interfaz del dashboard.
+ * 
+ * @param {number} number - Número a formatear
+ * @param {number} maxDecimals - Número máximo de decimales a mostrar (por defecto 0)
+ * @returns {string} Representación textual del número con formato
  */
-export async function geocodeLocationAlternative(city, state, country) {
-    const services = [
-        // Servicio principal (Nominatim)
-        {
-            name: 'Nominatim',
-            url: (query) => `https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`,
-            parseResponse: (data) => data.length > 0 ? { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) } : null
-        },
-        // Servicio alternativo (puede agregar más)
-        {
-            name: 'LocationIQ',
-            url: (query) => `https://us1.locationiq.com/v1/search.php?key=YOUR_API_KEY&q=${query}&format=json&limit=1`,
-            parseResponse: (data) => data.length > 0 ? { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) } : null
-        }
-    ];
+export function formatNumber(number, maxDecimals = 0) {
+    // Utiliza el método toLocaleString para aplicar formato según la configuración regional
+    // del navegador del usuario (separadores de miles apropiados)
+    
+    // El parámetro undefined como primer argumento indica que use la configuración
+    // regional predeterminada del navegador
+    
+    // El objeto de opciones {maximumFractionDigits} controla cuántos decimales mostrar como máximo
+    // Si un número tiene menos decimales que el máximo, no se añaden ceros
+    return number.toLocaleString(undefined, {maximumFractionDigits: maxDecimals});
+    
+    // Ejemplos con maxDecimals=2:
+    // 1234.56789 → "1,234.57" (redondeado)
+    // 1234 → "1,234" (sin decimales)
+    // 1234.5 → "1,234.5" (un solo decimal)
+}
 
-    const query = encodeURIComponent(`${city}, ${state || ''}, ${country || ''}`);
+/**
+ * Trunca un texto largo a una longitud máxima añadiendo "..." al final
+ * 
+ * Esta función es útil para mostrar textos largos en espacios limitados de la interfaz,
+ * como tooltips, tarjetas o celdas de tabla, evitando que desborden su contenedor.
+ * 
+ * @param {string} text - Texto a truncar
+ * @param {number} maxLength - Longitud máxima permitida (por defecto 100 caracteres)
+ * @returns {string} Texto truncado o el original si ya es más corto que el máximo
+ */
+export function truncateText(text, maxLength = 100) {
+    // Verifica primero si el texto existe y no es vacío
+    if (!text) return '';
     
-    for (const service of services) {
-        try {
-            console.log(`🔍 Trying ${service.name} for: ${city}`);
-            
-            const response = await fetch(service.url(query), {
-                headers: {
-                    'User-Agent': 'PremiumFreightDashboard/1.0'
-                }
-            });
-            
-            if (!response.ok) continue;
-            
-            const data = await response.json();
-            const coords = service.parseResponse(data);
-            
-            if (coords) {
-                console.log(`✅ ${service.name} successful for: ${city}`);
-                return coords;
-            }
-            
-        } catch (error) {
-            console.warn(`${service.name} failed for ${city}:`, error.message);
-            continue;
-        }
-    }
+    // Si el texto es más corto que la longitud máxima, lo devuelve sin cambios
+    if (text.length <= maxLength) return text;
     
-    return null;
+    // Si el texto excede la longitud máxima, lo corta y añade "..." al final
+    // substring(0, maxLength) extrae desde el inicio hasta la longitud máxima
+    return text.substring(0, maxLength) + '...';
+}
+
+/**
+ * Genera un color hexadecimal aleatorio
+ * 
+ * Esta función crea un código de color hexadecimal aleatorio,
+ * útil para generar paletas dinámicas en gráficos o visualizaciones
+ * cuando no se tiene una paleta predefinida.
+ * 
+ * @returns {string} Código de color hexadecimal (formato #RRGGBB)
+ */
+export function getRandomColor() {
+    // Math.random() genera un número aleatorio entre 0 y 1
+    // toString(16) convierte un número a su representación hexadecimal
+    // substring(2, 8) elimina el "0." del inicio y toma los siguientes 6 caracteres
+    // padStart rellena con ceros a la izquierda si no hay suficientes dígitos
+    // El símbolo # al inicio indica que es un código de color hexadecimal
+    return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
 }
