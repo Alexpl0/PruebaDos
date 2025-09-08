@@ -426,81 +426,40 @@ class CorrectiveActionPlan {
     }
 
     async handleFileUpload(files) {
-        if (!files.length) return;
+        if (!this.planData?.cap_id) {
+            this.showError('No corrective action plan found');
+            return;
+        }
 
-        for (const file of files) {
-            if (!this.validateFile(file)) continue;
+        const formData = new FormData();
+        formData.append('cap_id', this.planData.cap_id);
+        formData.append('uploaded_by', window.PF_CONFIG.user.id);
+        formData.append('evidenceFile', files[0]);
 
-            const formData = new FormData();
-            formData.append('evidenceFile', file);
-            formData.append('cap_id', this.planData.cap_id);
-            formData.append('uploaded_by', window.PF_CONFIG.user.id);
+        try {
+            const response = await fetch('dao/conections/daoUploadCorrectiveEvidence.php', {
+                method: 'POST',
+                body: formData
+            });
 
-            try {
-                const response = await fetch(`${window.PF_CONFIG.app.baseURL}dao/conections/daoUploadCorrectiveEvidence.php`, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    await this.loadFiles();
-                    this.updateFilesList();
-                    this.showSuccess(`File "${file.name}" uploaded successfully`);
-                } else {
-                    this.showError(result.message || `Failed to upload ${file.name}`);
-                }
-            } catch (error) {
-                console.error('Error uploading file:', error);
-                this.showError(`Error uploading ${file.name}`);
+            const result = await response.json();
+            
+            if (result.success) {
+                this.showSuccess('File uploaded successfully');
+                await this.loadFiles(); // Recargar la lista de archivos
+            } else {
+                throw new Error(result.message || 'Upload failed');
             }
-        }
-
-        // Clear the file input
-        document.getElementById('evidenceFileInput').value = '';
-    }
-
-    validateFile(file) {
-        const maxSize = 5 * 1024 * 1024; // 5MB
-        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-
-        if (file.size > maxSize) {
-            this.showError(`File "${file.name}" is too large. Maximum size is 5MB.`);
-            return false;
-        }
-
-        if (!allowedTypes.includes(file.type)) {
-            this.showError(`File "${file.name}" has an invalid format. Only PDF and image files are allowed.`);
-            return false;
-        }
-
-        return true;
-    }
-
-    updateFilesList() {
-        // Find the files container and update it
-        const filesContainer = document.querySelector('.files-container');
-        if (filesContainer) {
-            const canUpload = this.userPermissions.canUploadFiles;
-            filesContainer.innerHTML = `
-                ${this.renderFilesList()}
-                ${canUpload ? this.renderUploadSection() : ''}
-            `;
-        }
-    }
-
-    updateStatusBadge(newStatus) {
-        const header = document.querySelector('.corrective-action-header');
-        const badge = header.querySelector('.corrective-action-badge');
-        if (badge) {
-            badge.className = `corrective-action-badge status-${this.getStatusClass(newStatus)}`;
-            badge.textContent = newStatus;
+        } catch (error) {
+            console.error('Upload error:', error);
+            this.showError('Failed to upload file: ' + error.message);
         }
     }
 
     viewFile(fileId) {
-        window.open(`${window.PF_CONFIG.app.baseURL}dao/conections/daoViewCorrectiveFile.php?file_id=${fileId}`, '_blank');
+        // Abrir el archivo en una nueva ventana
+        const url = `dao/conections/daoViewCorrectiveFile.php?file_id=${fileId}`;
+        window.open(url, '_blank');
     }
 
     showSuccess(message) {

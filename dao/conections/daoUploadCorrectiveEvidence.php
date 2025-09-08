@@ -25,8 +25,8 @@ try {
         throw new Exception('Valid CAP ID required');
     }
     
-    if (!isset($_FILES['evidenceFile'])) {
-        throw new Exception('No file uploaded');
+    if (!isset($_FILES['evidenceFile']) || $_FILES['evidenceFile']['error'] !== UPLOAD_ERR_OK) {
+        throw new Exception('No file uploaded or upload error');
     }
     
     $file = $_FILES['evidenceFile'];
@@ -43,15 +43,17 @@ try {
         throw new Exception('Invalid file type. Only PDF and image files are allowed');
     }
     
-    // Crear directorio si no existe
-    $uploadDir = __DIR__ . '/../../uploads/corrective_evidence/';
+    // Crear directorio si no existe - CORREGIDA LA RUTA
+    $uploadDir = __DIR__ . '/../../assets/files/CorrectiveActions/';
     if (!is_dir($uploadDir)) {
-        mkdir($uploadDir, 0755, true);
+        if (!mkdir($uploadDir, 0755, true)) {
+            throw new Exception('Failed to create upload directory');
+        }
     }
     
     // Generar nombre único
     $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-    $fileName = 'corrective_' . $capId . '_' . time() . '_' . uniqid() . '.' . $extension;
+    $fileName = 'CAP_' . $capId . '_' . time() . '_' . uniqid() . '.' . $extension;
     $filePath = $uploadDir . $fileName;
     
     if (!move_uploaded_file($file['tmp_name'], $filePath)) {
@@ -64,7 +66,7 @@ try {
     $conex->set_charset("utf8mb4");
     
     $fileType = strpos($file['type'], 'image') !== false ? 'image' : 'pdf';
-    $relativePath = 'uploads/corrective_evidence/' . $fileName;
+    $relativePath = 'assets/files/CorrectiveActions/' . $fileName; // Ruta relativa corregida
     
     $stmt = $conex->prepare("
         INSERT INTO CorrectiveActionFiles (cap_id, file_name, file_path, file_type, uploaded_by) 
@@ -72,15 +74,18 @@ try {
     ");
     $stmt->bind_param("isssi", $capId, $file['name'], $relativePath, $fileType, $uploadedBy);
     
-    if ($stmt->execute()) {
-        echo json_encode([
-            'success' => true,
-            'message' => 'File uploaded successfully',
-            'file_id' => $stmt->insert_id
-        ]);
-    } else {
+    if (!$stmt->execute()) {
+        // Si falla la inserción, eliminar el archivo
+        unlink($filePath);
         throw new Exception('Failed to save file record');
     }
+    
+    echo json_encode([
+        'success' => true,
+        'message' => 'File uploaded successfully',
+        'file_id' => $stmt->insert_id,
+        'file_name' => $file['name']
+    ]);
     
     $stmt->close();
     $conex->close();
