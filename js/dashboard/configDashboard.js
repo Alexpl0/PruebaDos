@@ -7,7 +7,7 @@
 export const charts = {
     // ...otras gráficas...
     recoveryFiles: null,
-    recoveryFilesStacked: null, // 👈 Agregar esta línea
+    // Ya no necesitas recoveryFilesStacked
     // ...
 };
 
