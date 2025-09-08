@@ -19,7 +19,42 @@ try {
     $conex = $con->conectar();
     $conex->set_charset("utf8mb4");
 
-    if ($method === 'PUT') {
+    if ($method === 'GET') {
+        // NUEVO: Obtener plan correctivo por order ID
+        $orderId = $_GET['order_id'] ?? null;
+        
+        if (!$orderId || !is_numeric($orderId)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Valid order ID required']);
+            exit;
+        }
+
+        $stmt = $conex->prepare("
+            SELECT 
+                cap_id,
+                premium_freight_id,
+                corrective_action,
+                person_responsible,
+                due_date,
+                status,
+                comments,
+                creation_date
+            FROM CorrectiveActionPlan 
+            WHERE premium_freight_id = ?
+        ");
+        $stmt->bind_param("i", $orderId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($plan = $result->fetch_assoc()) {
+            echo json_encode(['success' => true, 'plan' => $plan]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'No corrective action plan found']);
+        }
+        $stmt->close();
+    }
+    
+    elseif ($method === 'PUT') {
         // Actualizar comentarios o status
         $requestBody = file_get_contents('php://input');
         $data = json_decode($requestBody, true);

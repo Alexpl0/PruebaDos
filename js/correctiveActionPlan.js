@@ -19,27 +19,25 @@ class CorrectiveActionPlan {
 
     async loadPlanData() {
         try {
-            const response = await fetch(`${window.PF_CONFIG.app.baseURL}dao/conections/daoPremiumFreight.php`);
+            // CAMBIO: Usar el endpoint específico para corrective action plans
+            const response = await fetch(`${window.PF_CONFIG.app.baseURL}dao/conections/daoCorrectivePlan.php?order_id=${this.orderId}`);
             const data = await response.json();
             
-            if (data.status === 'success') {
-                const order = data.data.find(order => order.id == this.orderId);
-                if (order && order.corrective_action_plan) {
-                    this.planData = order.corrective_action_plan;
-                    
-                    // DEBUG: Log para ver qué datos estamos recibiendo
-                    console.log('Corrective Action Plan Data:', this.planData);
-                    console.log('Comments from server:', this.planData.comments);
-                    
-                    await this.loadFiles();
-                    this.renderPlan();
-                } else {
-                    console.log('No corrective action plan found for order:', this.orderId);
-                    this.renderNoPlan();
-                }
+            console.log('API Response:', data); // DEBUG
+            
+            if (data.success) {
+                this.planData = data.plan;
+                
+                // DEBUG: Log para ver qué datos estamos recibiendo
+                console.log('Corrective Action Plan Data:', this.planData);
+                console.log('Comments from server:', this.planData.comments);
+                
+                await this.loadFiles();
+                this.renderPlan();
             } else {
-                console.error('Error in API response:', data);
-                this.renderError();
+                console.log('No corrective action plan found for order:', this.orderId);
+                console.log('API message:', data.message);
+                this.renderNoPlan();
             }
         } catch (error) {
             console.error('Error loading corrective action plan:', error);
