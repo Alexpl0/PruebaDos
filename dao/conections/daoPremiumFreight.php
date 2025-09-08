@@ -159,4 +159,18 @@ try {
     http_response_code(500);
     echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }
+
+// En la parte donde se obtienen los corrective action plans, asegúrate de que la consulta incluya los comentarios:
+$correctiveQuery = "
+    SELECT 
+        cap_id,
+        corrective_action,
+        person_responsible,
+        due_date,
+        status,
+        comments,
+        created_date
+    FROM CorrectiveActionPlan 
+    WHERE premium_freight_id = ?
+";
 ?>

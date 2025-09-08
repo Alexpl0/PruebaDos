@@ -26,11 +26,20 @@ class CorrectiveActionPlan {
                 const order = data.data.find(order => order.id == this.orderId);
                 if (order && order.corrective_action_plan) {
                     this.planData = order.corrective_action_plan;
+                    
+                    // DEBUG: Log para ver qué datos estamos recibiendo
+                    console.log('Corrective Action Plan Data:', this.planData);
+                    console.log('Comments from server:', this.planData.comments);
+                    
                     await this.loadFiles();
                     this.renderPlan();
                 } else {
+                    console.log('No corrective action plan found for order:', this.orderId);
                     this.renderNoPlan();
                 }
+            } else {
+                console.error('Error in API response:', data);
+                this.renderError();
             }
         } catch (error) {
             console.error('Error loading corrective action plan:', error);
@@ -179,7 +188,12 @@ class CorrectiveActionPlan {
 
     renderCommentsSection() {
         const canEditComments = this.userPermissions.canEditComments;
+        // Asegurarnos de que comments sea una string, incluso si es null o undefined
         const comments = this.planData.comments || '';
+        
+        // DEBUG: Log para ver qué comentarios tenemos
+        console.log('Rendering comments:', comments);
+        console.log('Can edit comments:', canEditComments);
         
         if (canEditComments) {
             return `
@@ -399,6 +413,8 @@ class CorrectiveActionPlan {
         const commentsTextarea = document.getElementById('commentsTextarea');
         const comments = commentsTextarea.value.trim();
 
+        console.log('Updating comments:', comments); // DEBUG
+
         try {
             const response = await fetch(`${window.PF_CONFIG.app.baseURL}dao/conections/daoCorrectivePlan.php`, {
                 method: 'PUT',
@@ -412,6 +428,7 @@ class CorrectiveActionPlan {
             });
 
             const result = await response.json();
+            console.log('Update comments result:', result); // DEBUG
 
             if (result.success) {
                 this.planData.comments = comments;
@@ -422,6 +439,31 @@ class CorrectiveActionPlan {
         } catch (error) {
             console.error('Error saving comments:', error);
             this.showError('Error saving comments');
+        }
+    }
+
+    // Agregar método para refrescar solo la sección de comentarios sin recargar todo
+    async refreshCommentsSection() {
+        try {
+            // Recargar los datos del plan
+            await this.loadPlanData();
+            
+            // Re-renderizar solo la sección de comentarios
+            const commentsContainer = document.querySelector('.comments-column');
+            if (commentsContainer) {
+                commentsContainer.innerHTML = `
+                    <h4 class="section-title">
+                        <i class="fas fa-comments"></i>
+                        Comments
+                    </h4>
+                    ${this.renderCommentsSection()}
+                `;
+                
+                // Re-attachar event listeners
+                this.attachEventListeners();
+            }
+        } catch (error) {
+            console.error('Error refreshing comments:', error);
         }
     }
 
