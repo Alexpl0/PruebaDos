@@ -146,12 +146,12 @@ class CorrectiveActionPlan {
         if (full.classList.contains('expanded')) {
             // Currently showing full text, collapse it
             full.classList.remove('expanded');
-            preview.classList.remove('collapsed');
+            preview.style.display = 'block'; // Mostrar preview
             toggleText.textContent = 'Show more';
         } else {
             // Currently showing preview, expand it
             full.classList.add('expanded');
-            preview.classList.add('collapsed');
+            preview.style.display = 'none'; // Ocultar preview completamente
             toggleText.textContent = 'Show less';
         }
     }

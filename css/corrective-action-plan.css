@@ -120,7 +120,7 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
     line-height: 1.4;
-    max-height: 2.8em; /* 2 lines * 1.4 line-height */
+    max-height: 2.8em;
 }
 
 .corrective-action-toggle {
@@ -149,10 +149,6 @@
 
 .corrective-action-full.expanded {
     display: block;
-}
-
-.corrective-action-preview.collapsed {
-    display: -webkit-box;
 }
 
 /* ===== COMMENTS AND FILES SECTION ===== */
