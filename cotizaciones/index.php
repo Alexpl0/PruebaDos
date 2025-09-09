@@ -1,23 +1,43 @@
+<?php
+/**
+ * index.php - Página principal del Portal de Cotización Inteligente
+ * Adaptada para usar la misma estructura y configuraciones que newOrder.php.
+ */
+
+// 1. Manejar sesión y autenticación.
+require_once '../dao/users/auth_check.php';
+
+// 2. Cargar dependencias necesarias.
+require_once '../dao/elements/daoPlantas.php';
+require_once '../dao/elements/daoTransport.php';
+require_once '../dao/elements/daoCarrier.php';
+
+// 3. Incluir el inyector de contexto.
+require_once '../dao/users/context_injector.php';
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GRAMMER Logística y Tráfico - Portal de Cotización</title>
-    
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- FontAwesome Icons -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
-    <!-- SweetAlert2 -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.10.1/sweetalert2.min.css" rel="stylesheet">
-    
-    <!-- Estilos personalizados -->
-    <link href="css/style.css" rel="stylesheet">
-    <link href="css/index.css" rel="stylesheet">
-    <link href="css/grammer-theme.css" rel="stylesheet">
+
+    <!-- Favicon -->
+    <link rel="icon" href="../assets/logo/logo.png" type="image/x-icon">
+
+    <!-- Estilos externos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
+
+    <!-- Estilos locales -->
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/header.css">
+    <link rel="stylesheet" href="../css/index.css">
+
+    <!-- Configuración del contexto -->
+    <script src="../js/config.js"></script>
 </head>
 <body>
     <!-- Header GRAMMER -->
@@ -217,52 +237,9 @@
         </div>
     </main>
 
-    <!-- Footer GRAMMER -->
-    <footer class="bg-grammer-dark text-white py-4 mt-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="footer-brand mb-2">
-                        <i class="fas fa-industry me-2"></i>
-                        <strong>GRAMMER Automotive Puebla S.A. de C.V.</strong>
-                    </div>
-                    <p class="small mb-2">
-                        Av. de la luz #24 int. 3 y 4 Acceso III<br>
-                        Parque Ind. Benito Juárez 76120, Querétaro, México
-                    </p>
-                    <p class="small text-muted mb-0">
-                        Portal de Cotización Inteligente v1.0 - Logística y Tráfico
-                    </p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <div class="footer-links mb-3">
-                        <a href="dashboard.php" class="text-light me-3">
-                            <i class="fas fa-chart-line me-1"></i>Dashboard
-                        </a>
-                        <a href="mailto:logistica@grammer.com" class="text-light me-3">
-                            <i class="fas fa-envelope me-1"></i>Soporte
-                        </a>
-                        <a href="#" class="text-light" data-bs-toggle="modal" data-bs-target="#helpModal">
-                            <i class="fas fa-question-circle me-1"></i>Ayuda
-                        </a>
-                    </div>
-                    <div class="footer-cert">
-                        <small class="text-muted">
-                            <i class="fas fa-certificate me-1"></i>
-                            Sistema certificado ISO 27001
-                        </small>
-                    </div>
-                </div>
-            </div>
-            <hr class="my-3 border-secondary">
-            <div class="row">
-                <div class="col-12 text-center">
-                    <small class="text-muted">
-                        © 2025 GRAMMER Automotive Puebla S.A. de C.V. - Todos los derechos reservados
-                    </small>
-                </div>
-            </div>
-        </div>
+    <!-- Footer -->
+    <footer class="text-center py-3">
+        <p>© 2025 GRAMMER Automotive Puebla S.A. de C.V. - Todos los derechos reservados.</p>
     </footer>
 
     <!-- Modal de Ayuda -->
