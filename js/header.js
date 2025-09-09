@@ -88,7 +88,7 @@ function createChartsDropdown() {
 function createNewOrderDropdown() {
     const currentPage = window.location.pathname.split('/').pop() || 'index.php';
     const newOrderPages = ['newOrder.php'];
-    const quotesPages = ['index.php']; // Para cotizaciones/index.php
+    const quotesPages = ['quotes.php']; // Para cotizaciones/index.php
     const currentPath = window.location.pathname;
     
     // Check if we're in the quotes section
