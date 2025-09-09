@@ -1,0 +1,336 @@
+/**
+ * Dashboard GRAMMER - CSS Optimizado
+ * Combina style.css y dashboard.css con tema corporativo GRAMMER
+ */
+
+/* ====== EXTENSIONES ESPECÍFICAS PARA DASHBOARD ====== */
+
+/* Botones personalizados adicionales */
+.btn-outline-grammer-primary {
+    color: var(--grammer-primary);
+    border-color: var(--grammer-primary);
+    background: transparent;
+    transition: all var(--transition-normal);
+}
+
+.btn-outline-grammer-primary:hover {
+    background: var(--grammer-primary);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: var(--grammer-shadow);
+}
+
+.btn-grammer-success {
+    background: var(--grammer-success);
+    border-color: var(--grammer-success);
+    color: white;
+    font-weight: 600;
+}
+
+.btn-grammer-success:hover {
+    background: color-mix(in srgb, var(--grammer-success) 90%, black);
+    border-color: color-mix(in srgb, var(--grammer-success) 90%, black);
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* ====== TABLA ESPECÍFICA PARA DASHBOARD ====== */
+#requestsTable {
+    font-size: 0.875rem;
+}
+
+#requestsTable thead th {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    border: none;
+    padding: var(--spacing-md);
+}
+
+#requestsTable tbody tr {
+    border-bottom: 1px solid var(--gray-200);
+    transition: all var(--transition-fast);
+}
+
+#requestsTable tbody tr:hover {
+    background-color: var(--grammer-light);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 51, 102, 0.1);
+}
+
+#requestsTable tbody td {
+    padding: var(--spacing-md);
+    vertical-align: middle;
+}
+
+/* ====== INDICADORES Y BADGES ESPECÍFICOS ====== */
+.quotes-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.action-buttons {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.action-buttons .btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: 0.75rem;
+    border-radius: var(--border-radius);
+    transition: all var(--transition-fast);
+}
+
+.action-buttons .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--grammer-shadow);
+}
+
+/* ====== AUTO-REFRESH INDICATOR ====== */
+.auto-refresh-indicator {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius);
+    font-size: 0.75rem;
+    backdrop-filter: blur(10px);
+}
+
+.auto-refresh-indicator i {
+    animation: pulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+    from { opacity: 0.6; }
+    to { opacity: 1; }
+}
+
+/* ====== USER INFO EN TABLA ====== */
+.user-info {
+    min-width: 140px;
+}
+
+.route-info {
+    min-width: 180px;
+    font-weight: 500;
+}
+
+/* ====== ESTADOS DE CARGA ESPECÍFICOS ====== */
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,248,255,0.95) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    border-radius: var(--border-radius-lg);
+    backdrop-filter: blur(5px);
+}
+
+/* ====== ALERTS GRAMMER ====== */
+.alert-grammer-primary {
+    background: var(--grammer-gradient-light);
+    border: 1px solid var(--grammer-accent);
+    color: var(--grammer-primary);
+}
+
+/* ====== MODALES GRAMMER ====== */
+.modal-header.bg-grammer-gradient {
+    background: var(--grammer-gradient) !important;
+}
+
+.modal-header.bg-grammer-gradient .modal-title {
+    font-weight: 700;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* ====== GRÁFICOS CONTAINERS ====== */
+.chart-container {
+    position: relative;
+    width: 100%;
+}
+
+#activityChart,
+#servicesChart {
+    width: 100% !important;
+}
+
+/* ====== RESPONSIVE ESPECÍFICO PARA DASHBOARD ====== */
+@media (max-width: 768px) {
+    #requestsTable thead {
+        display: none;
+    }
+    
+    #requestsTable tbody tr {
+        display: block;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--border-radius-lg);
+        margin-bottom: var(--spacing-md);
+        padding: var(--spacing-md);
+        background: var(--white);
+        box-shadow: var(--grammer-shadow);
+    }
+    
+    #requestsTable tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-sm) 0;
+        border-bottom: 1px solid var(--gray-200);
+    }
+    
+    #requestsTable tbody td:last-child {
+        border-bottom: none;
+    }
+    
+    #requestsTable tbody td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: var(--grammer-primary);
+        flex: 1;
+        min-width: 100px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        width: 100%;
+    }
+    
+    .action-buttons .btn {
+        text-align: center;
+        justify-content: center;
+    }
+    
+    .auto-refresh-indicator {
+        justify-content: center;
+        margin-top: var(--spacing-md);
+    }
+}
+
+@media (max-width: 576px) {
+    .container-fluid {
+        padding-left: var(--spacing-md);
+        padding-right: var(--spacing-md);
+    }
+    
+    .grammer-card-header {
+        padding: var(--spacing-md);
+    }
+    
+    .grammer-card .card-body {
+        padding: var(--spacing-md);
+    }
+    
+    .grammer-stats-card {
+        margin-bottom: var(--spacing-lg);
+    }
+    
+    .user-info,
+    .route-info {
+        min-width: auto;
+    }
+}
+
+/* ====== PRINT STYLES ====== */
+@media print {
+    .modal, 
+    .btn, 
+    .auto-refresh-indicator, 
+    #refreshBtn,
+    .action-buttons {
+        display: none !important;
+    }
+    
+    .grammer-card {
+        border: 1px solid var(--grammer-primary) !important;
+        box-shadow: none !important;
+        page-break-inside: avoid;
+    }
+    
+    .grammer-stats-card {
+        background: var(--grammer-light) !important;
+        color: var(--grammer-primary) !important;
+        border: 1px solid var(--grammer-primary) !important;
+    }
+    
+    .table {
+        font-size: 10pt !important;
+    }
+    
+    .grammer-gradient,
+    .bg-grammer-gradient {
+        background: var(--grammer-primary) !important;
+        color: white !important;
+    }
+    
+    .text-grammer-primary {
+        color: var(--grammer-primary) !important;
+    }
+}
+
+/* ====== ANIMACIONES ADICIONALES ====== */
+.grammer-stats-card {
+    transition: all var(--transition-normal);
+}
+
+.grammer-stats-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--grammer-shadow-hover);
+}
+
+.grammer-stats-card .stat-number {
+    transition: all var(--transition-fast);
+}
+
+.grammer-stats-card:hover .stat-number {
+    transform: scale(1.1);
+}
+
+/* ====== MEJORAS DE ACCESIBILIDAD ====== */
+.btn:focus,
+.form-control:focus,
+.form-select:focus {
+    outline: 2px solid var(--grammer-accent);
+    outline-offset: 2px;
+}
+
+.grammer-badge {
+    font-weight: 600;
+    letter-spacing: 0.025em;
+}
+
+/* ====== ESTADOS HOVER MEJORADOS ====== */
+.grammer-card:hover {
+    border-color: var(--grammer-accent);
+}
+
+.table-hover tbody tr:hover {
+    background-color: color-mix(in srgb, var(--grammer-light) 50%, transparent) !important;
+}
+
+/* ====== SCROLLBARS PERSONALIZADOS ====== */
+.table-responsive::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: var(--gray-100);
+    border-radius: var(--border-radius);
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: var(--grammer-accent);
+    border-radius: var(--border-radius);
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: var(--grammer-primary);
+}
