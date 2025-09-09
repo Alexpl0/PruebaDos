@@ -1,19 +1,19 @@
 <?php
 /**
- * index.php - Página principal del Portal de Cotización Inteligente
+ * quotes.php - Página principal del Portal de Cotización Inteligente
  * Adaptada para usar la misma estructura y configuraciones que newOrder.php.
  */
 
 // 1. Manejar sesión y autenticación.
-require_once '../dao/users/auth_check.php';
+require_once 'dao/users/auth_check.php';
 
 // 2. Cargar dependencias necesarias.
-require_once '../dao/elements/daoPlantas.php';
-require_once '../dao/elements/daoTransport.php';
-require_once '../dao/elements/daoCarrier.php';
+require_once 'dao/elements/daoPlantas.php';
+require_once 'dao/elements/daoTransport.php';
+require_once 'dao/elements/daoCarrier.php';
 
 // 3. Incluir el inyector de contexto.
-require_once '../dao/users/context_injector.php';
+require_once 'dao/users/context_injector.php';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -23,7 +23,7 @@ require_once '../dao/users/context_injector.php';
     <title>GRAMMER Logística y Tráfico - Portal de Cotización</title>
 
     <!-- Favicon -->
-    <link rel="icon" href="../assets/logo/logo.png" type="image/x-icon">
+    <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
 
     <!-- Estilos externos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -32,12 +32,12 @@ require_once '../dao/users/context_injector.php';
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
 
     <!-- Estilos locales -->
-    <link rel="stylesheet" href="../css/styles.css">
-    <link rel="stylesheet" href="../css/header.css">
-    <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/header.css">
+    <link rel="stylesheet" href="css/index.css">
 
     <!-- Configuración del contexto -->
-    <script src="../js/config.js"></script>
+    <script src="js/config.js"></script>
 </head>
 <body>
     <!-- Header GRAMMER -->
@@ -242,126 +242,10 @@ require_once '../dao/users/context_injector.php';
         <p>© 2025 GRAMMER Automotive Puebla S.A. de C.V. - Todos los derechos reservados.</p>
     </footer>
 
-    <!-- Modal de Ayuda -->
-    <div class="modal fade" id="helpModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-grammer-primary text-white">
-                    <h5 class="modal-title">
-                        <i class="fas fa-question-circle me-2"></i>
-                        Ayuda - Portal GRAMMER
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <h6 class="text-grammer-primary">Métodos de Envío</h6>
-                            <ul class="list-unstyled small">
-                                <li><strong>Fedex Express:</strong> Para envíos urgentes y documentos</li>
-                                <li><strong>Aéreo-Marítimo:</strong> Envíos internacionales con INCOTERMS</li>
-                                <li><strong>Nacional:</strong> Envíos domésticos a planta GRAMMER</li>
-                            </ul>
-                        </div>
-                        <div class="col-md-4">
-                            <h6 class="text-grammer-primary">¿Problemas Técnicos?</h6>
-                            <ul class="list-unstyled small">
-                                <li>Limpiar caché del navegador</li>
-                                <li>Verificar conexión a internet</li>
-                                <li>Contactar soporte IT interno</li>
-                                <li>Reportar error: logistica@grammer.com</li>
-                            </ul>
-                        </div>
-                        <div class="col-md-4">
-                            <h6 class="text-grammer-primary">Contacto Directo</h6>
-                            <ul class="list-unstyled small">
-                                <li><strong>Logística:</strong> +52 442 123-4567</li>
-                                <li><strong>Tráfico:</strong> +52 442 234-5678</li>
-                                <li><strong>Email:</strong> logistica@grammer.com</li>
-                                <li><strong>Urgencias:</strong> 24/7 disponible</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <a href="mailto:logistica@grammer.com" class="btn btn-grammer-primary">
-                        <i class="fas fa-envelope me-1"></i>
-                        Contactar Soporte
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.10.1/sweetalert2.all.min.js"></script>
-    <script src="config.js"></script>
+    <script src="js/config.js"></script>
     <script type="module" src="js/index.js"></script>
-    
-    <!-- Script para elementos adicionales -->
-    <script>
-        // Mostrar fecha y hora actual
-        document.addEventListener('DOMContentLoaded', function() {
-            const now = new Date();
-            const options = { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                timeZone: 'America/Mexico_City'
-            };
-            document.getElementById('currentDateTime').textContent = 
-                now.toLocaleDateString('es-MX', options);
-                
-            // Mostrar/ocultar botones de acción cuando se selecciona método
-            const observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    if (mutation.addedNodes.length > 0) {
-                        const methodForm = document.querySelector('.method-form-container');
-                        const actionButtons = document.getElementById('formActionButtons');
-                        
-                        if (methodForm && actionButtons) {
-                            actionButtons.style.display = 'block';
-                            actionButtons.style.animation = 'slideInUp 0.4s ease-out';
-                        }
-                    }
-                });
-            });
-            
-            observer.observe(document.getElementById('dynamicFormContainer'), {
-                childList: true,
-                subtree: true
-            });
-            
-            // Cargar estadísticas rápidas si están disponibles
-            loadQuickStats();
-        });
-        
-        // Función para cargar estadísticas rápidas
-        async function loadQuickStats() {
-            try {
-                // Aquí se puede implementar una llamada rápida a la API
-                // Por ahora, simulamos algunos datos
-                setTimeout(() => {
-                    const statsCard = document.getElementById('quickStats');
-                    if (statsCard && Math.random() > 0.7) { // 30% probabilidad de mostrar
-                        statsCard.classList.remove('d-none');
-                        
-                        // Simular datos
-                        document.getElementById('todayRequests').textContent = Math.floor(Math.random() * 15) + 1;
-                        document.getElementById('pendingQuotes').textContent = Math.floor(Math.random() * 8);
-                        document.getElementById('completedToday').textContent = Math.floor(Math.random() * 5);
-                        document.getElementById('avgResponseTime').textContent = (Math.random() * 3 + 0.5).toFixed(1) + 'h';
-                    }
-                }, 1000);
-            } catch (error) {
-                console.log('No se pudieron cargar las estadísticas rápidas');
-            }
-        }
-    </script>
 </body>
 </html>
