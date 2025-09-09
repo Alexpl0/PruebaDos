@@ -82,6 +82,41 @@ function createChartsDropdown() {
 }
 
 /**
+ * Creates a dropdown navigation menu for New Order section
+ * @returns {string} HTML string for the new order dropdown
+ */
+function createNewOrderDropdown() {
+    const currentPage = window.location.pathname.split('/').pop() || 'index.php';
+    const newOrderPages = ['newOrder.php'];
+    const quotesPages = ['index.php']; // Para cotizaciones/index.php
+    const currentPath = window.location.pathname;
+    
+    // Check if we're in the quotes section
+    const isInQuotesSection = currentPath.includes('cotizaciones/');
+    const isNewOrderActive = newOrderPages.includes(currentPage) || isInQuotesSection ? 'active' : '';
+    
+    return `
+        <li class="nav__item nav__item-dropdown dropdown">
+            <a href="#" class="nav__link ${isNewOrderActive}" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-plus-circle nav__link-icon"></i> New Order
+            </a>
+            <ul class="dropdown-menu">
+                <li>
+                    <a class="dropdown-item ${currentPage === 'newOrder.php' ? 'active' : ''}" href="newOrder.php">
+                        <i class="fas fa-shipping-fast me-2"></i> New Order
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item ${isInQuotesSection ? 'active' : ''}" href="cotizaciones/index.php">
+                        <i class="fas fa-calculator me-2"></i> Quotes
+                    </a>
+                </li>
+            </ul>
+        </li>
+    `;
+}
+
+/**
  * Creates the header HTML based on the user context.
  * @param {boolean} isPublicPage - If it is a public page (login, etc.)
  */
@@ -109,23 +144,23 @@ function createHeader(isPublicPage = false) {
 
     let navItems = '';
     
-    // User-level based navigation logic with updated Charts dropdown
+    // User-level based navigation logic with updated New Order dropdown
     if (userId === 36 ) { // Super User
         navItems += navLink('profile.php', 'My Profile', 'fas fa-user-shield');
-        navItems += navLink('newOrder.php', 'New Order', 'fas fa-plus-circle');
+        navItems += createNewOrderDropdown(); // 👈 Updated: New Order dropdown instead of single link
         navItems += navLink('orders.php', 'Generated Orders', 'fas fa-list-alt');
         navItems += navLink('adminUsers.php', 'Admin User', 'fas fa-users-cog');
-        navItems += createChartsDropdown(); // 👈 Updated: Charts dropdown instead of single link
+        navItems += createChartsDropdown();
         navItems += helpDropdownHTML;
     } else if (authLevel > 0) { // Admin
         navItems += navLink('profile.php', 'My Profile', 'fas fa-user-shield');
-        navItems += navLink('newOrder.php', 'New Order', 'fas fa-plus-circle');
+        navItems += createNewOrderDropdown(); // 👈 Updated: New Order dropdown instead of single link
         navItems += navLink('orders.php', 'Generated Orders', 'fas fa-list-alt');
-        navItems += createChartsDropdown(); // 👈 Updated: Charts dropdown instead of single link
+        navItems += createChartsDropdown();
         navItems += helpDropdownHTML;
     } else { // Regular User
         navItems += navLink('profile.php', 'My Profile', 'fas fa-user');
-        navItems += navLink('newOrder.php', 'New Order', 'fas fa-plus-circle');
+        navItems += createNewOrderDropdown(); // 👈 Updated: New Order dropdown instead of single link
         navItems += navLink('myorders.php', 'My Orders', 'fas fa-list-check');
         navItems += helpDropdownHTML;
     }
