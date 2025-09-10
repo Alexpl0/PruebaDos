@@ -37,7 +37,6 @@ require_once 'dao/users/context_injector.php';
     <!-- Estilos locales -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
-    <link rel="stylesheet" href="css/index.css">
     <link rel="stylesheet" href="cotizaciones/css/index.css">
     <link rel="stylesheet" href="css/tour-styles.css">
 
@@ -109,7 +108,8 @@ require_once 'dao/users/context_injector.php';
                     </div>
                     
                     <div class="card-body">
-                        <form id="shippingRequestForm" novalidate>
+                        <form id="shippingRequestForm" novalidate style="
+    max-width: fit-content;">
                             <!-- Selector de método y formulario dinámico -->
                             <div id="shippingMethodSelector" class="mb-4">
                                 <!-- Será llenado por JavaScript -->
