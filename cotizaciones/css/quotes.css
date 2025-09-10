@@ -30,6 +30,9 @@ header .btn-light:hover {
     margin-top: var(--spacing-sm);
 }
 
+.btn btn-outline-secondary btn-sm {
+    max-width: 240px;}
+
 /* ====== OPCIONES DE SERVICIO ====== */
 .service-option {
     background-color: var(--gray-50);

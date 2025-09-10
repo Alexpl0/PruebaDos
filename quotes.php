@@ -1,7 +1,7 @@
 <?php
 /**
  * quotes.php - Página principal del Portal de Cotización Inteligente
- * Actualizada para usar la misma estructura y estilos que index.php y newOrder.php
+ * Actualizada para usar la misma estructura y estilos que quotes.php y newOrder.php
  */
 
 // 1. Manejar sesión y autenticación.
@@ -37,7 +37,7 @@ require_once 'dao/users/context_injector.php';
     <!-- Estilos locales -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
-    <link rel="stylesheet" href="cotizaciones/css/index.css">
+    <link rel="stylesheet" href="cotizaciones/css/quotes.css">
     <link rel="stylesheet" href="css/tour-styles.css">
 
     <!-- ================== SISTEMA DE CONTEXTO CENTRALIZADO ================== -->
@@ -49,7 +49,7 @@ require_once 'dao/users/context_injector.php';
     <!-- ==================================================================== -->
 </head>
 <body>
-    <!-- Header dinámico usando el mismo sistema que index.php y newOrder.php -->
+    <!-- Header dinámico usando el mismo sistema que quotes.php y newOrder.php -->
     <div id="header-container"></div>
 
     <!-- Main Content con estructura similar a newOrder.php -->
@@ -245,7 +245,7 @@ require_once 'dao/users/context_injector.php';
     <script src="js/config.js"></script>
     <script src="js/header.js" type="module"></script>
     <script src="cotizaciones/js/config.js"></script>
-    <script type="module" src="cotizaciones/js/index.js"></script>
+    <script type="module" src="cotizaciones/js/quotes.js"></script>
 
     <!-- Script para inicializar la fecha/hora -->
     <script>
