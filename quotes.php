@@ -247,6 +247,8 @@ require_once 'dao/users/context_injector.php';
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.10.1/sweetalert2.all.min.js"></script>
     <script src="js/config.js"></script>
-    <script type="module" src="js/index.js"></script>
+    <script src="yhs/header.js"></script>
+    <script src="cotizaciones/js/config.js"></script>
+    <script type="module" src="cotizaciones/js/index.js"></script>
 </body>
 </html>
