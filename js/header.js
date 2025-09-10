@@ -88,11 +88,11 @@ function createChartsDropdown() {
 function createNewOrderDropdown() {
     const currentPage = window.location.pathname.split('/').pop() || 'index.php';
     const newOrderPages = ['newOrder.php'];
-    const quotesPages = ['quotes.php']; // Para cotizaciones/index.php
+    const quotesPages = ['quotes.php']; // Actualizado para quotes.php
     const currentPath = window.location.pathname;
     
-    // Check if we're in the quotes section
-    const isInQuotesSection = currentPath.includes('cotizaciones/');
+    // Check if estamos en quotes.php
+    const isInQuotesSection = currentPage === 'quotes.php';
     const isNewOrderActive = newOrderPages.includes(currentPage) || isInQuotesSection ? 'active' : '';
     
     return `
@@ -107,7 +107,7 @@ function createNewOrderDropdown() {
                     </a>
                 </li>
                 <li>
-                    <a class="dropdown-item ${isInQuotesSection ? 'active' : ''}" href="cotizaciones/index.php">
+                    <a class="dropdown-item ${isInQuotesSection ? 'active' : ''}" href="quotes.php">
                         <i class="fas fa-calculator me-2"></i> Quotes
                     </a>
                 </li>

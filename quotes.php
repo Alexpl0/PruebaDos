@@ -35,6 +35,7 @@ require_once 'dao/users/context_injector.php';
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="cotizaciones/css/index.css">
 
     <!-- Configuración del contexto -->
     <script src="js/config.js"></script>
