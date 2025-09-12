@@ -569,3 +569,31 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize the corrective action plan
     correctivePlan = new CorrectiveActionPlan(orderId, userPermissions);
 });
+
+async function loadCorrectiveActionPlan(orderId) {
+    try {
+        const response = await fetch(`dao/corrective_action/get_corrective_action.php?order_id=${orderId}`);
+        const data = await response.json();
+        
+        const container = document.getElementById('correctiveActionContainer');
+        
+        if (!data.success || !data.data || data.data.length === 0) {
+            // No hay Corrective Action Plan - ocultar contenedor
+            container.style.display = 'none';
+            container.classList.add('hidden');
+            return;
+        }
+        
+        // Hay Corrective Action Plan - mostrar contenedor y cargar contenido
+        container.style.display = 'block';
+        container.classList.remove('hidden');
+        
+        // Cargar el contenido del plan
+        renderCorrectiveActionPlan(data.data);
+        
+    } catch (error) {
+        console.error('Error loading corrective action plan:', error);
+        // En caso de error, ocultar la sección
+        document.getElementById('correctiveActionContainer').style.display = 'none';
+    }
+}
