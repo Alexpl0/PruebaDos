@@ -361,3 +361,14 @@ input[type="password"] {
 input[type="password"] {
     autocomplete: new-password;
 }
+
+/* Clases para ocultar/mostrar el contenedor */
+.corrective-action-hidden {
+    display: none !important;
+    visibility: hidden;
+    opacity: 0;
+}
+
+.corrective-action-section {
+    transition: opacity 0.3s ease-in-out;
+}

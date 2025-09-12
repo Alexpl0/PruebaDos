@@ -9,39 +9,72 @@ class CorrectiveActionPlan {
         this.userPermissions = userPermissions;
         this.planData = null;
         this.files = [];
+        this.container = document.getElementById('correctiveActionContainer');
         this.init();
     }
 
     init() {
+        // NUEVO: Verificar si el contenedor existe antes de proceder
+        if (!this.container) {
+            console.log('CorrectiveActionPlan: Container not found');
+            return;
+        }
+        
+        console.log('CorrectiveActionPlan: Initializing for order ID:', this.orderId);
         this.loadPlanData();
         this.setupEventListeners();
     }
 
     async loadPlanData() {
         try {
+            console.log('CorrectiveActionPlan: Loading plan data for order:', this.orderId);
+            
             // CAMBIO: Usar el endpoint específico para corrective action plans
             const response = await fetch(`${window.PF_CONFIG.app.baseURL}dao/conections/daoCorrectivePlan.php?order_id=${this.orderId}`);
             const data = await response.json();
             
-            console.log('API Response:', data); // DEBUG
+            console.log('CorrectiveActionPlan: API Response:', data);
             
-            if (data.success) {
+            if (data.success && data.plan) {
+                console.log('✅ CorrectiveActionPlan: Plan found for order', this.orderId);
                 this.planData = data.plan;
                 
                 // DEBUG: Log para ver qué datos estamos recibiendo
-                console.log('Corrective Action Plan Data:', this.planData);
-                console.log('Comments from server:', this.planData.comments);
+                console.log('CorrectiveActionPlan: Plan Data:', this.planData);
+                console.log('CorrectiveActionPlan: Comments from server:', this.planData.comments);
                 
+                // Mostrar contenedor y cargar contenido
+                this.showContainer();
                 await this.loadFiles();
                 this.renderPlan();
             } else {
-                console.log('No corrective action plan found for order:', this.orderId);
-                console.log('API message:', data.message);
-                this.renderNoPlan();
+                console.log('❌ CorrectiveActionPlan: No plan found for order', this.orderId);
+                console.log('CorrectiveActionPlan: API message:', data.message);
+                this.hideContainer();
             }
         } catch (error) {
-            console.error('Error loading corrective action plan:', error);
-            this.renderError();
+            console.error('❌ CorrectiveActionPlan: Error loading plan:', error);
+            this.hideContainer();
+        }
+    }
+
+    // NUEVO: Método para mostrar el contenedor
+    showContainer() {
+        if (this.container) {
+            console.log('CorrectiveActionPlan: Showing container');
+            this.container.style.display = 'block';
+            this.container.classList.remove('hidden', 'corrective-action-hidden');
+        }
+    }
+
+    // NUEVO: Método para ocultar el contenedor
+    hideContainer() {
+        if (this.container) {
+            console.log('CorrectiveActionPlan: Hiding container');
+            this.container.style.display = 'none';
+            this.container.classList.add('hidden', 'corrective-action-hidden');
+            // Limpiar contenido
+            this.container.innerHTML = '';
         }
     }
 
@@ -49,24 +82,26 @@ class CorrectiveActionPlan {
         if (!this.planData?.cap_id) return;
         
         try {
+            console.log('CorrectiveActionPlan: Loading files for CAP ID:', this.planData.cap_id);
             const response = await fetch(`${window.PF_CONFIG.app.baseURL}dao/conections/daoCorrectiveFiles.php?cap_id=${this.planData.cap_id}`);
             const data = await response.json();
             
             if (data.success) {
                 this.files = data.files || [];
+                console.log('CorrectiveActionPlan: Files loaded:', this.files.length, 'files');
             }
         } catch (error) {
-            console.error('Error loading files:', error);
+            console.error('CorrectiveActionPlan: Error loading files:', error);
         }
     }
 
     renderPlan() {
-        const container = document.getElementById('correctiveActionContainer');
-        if (!container) return;
+        if (!this.container) return;
 
+        console.log('CorrectiveActionPlan: Rendering plan');
         const statusBadge = this.renderStatusBadge(this.planData.status);
 
-        container.innerHTML = `
+        this.container.innerHTML = `
             <div class="corrective-action-section">
                 <div class="corrective-action-header">
                     <h3 class="corrective-action-title">
@@ -190,8 +225,8 @@ class CorrectiveActionPlan {
         const comments = this.planData.comments || '';
         
         // DEBUG: Log para ver qué comentarios tenemos
-        console.log('Rendering comments:', comments);
-        console.log('Can edit comments:', canEditComments);
+        console.log('CorrectiveActionPlan: Rendering comments:', comments);
+        console.log('CorrectiveActionPlan: Can edit comments:', canEditComments);
         
         if (canEditComments) {
             return `
@@ -315,44 +350,6 @@ class CorrectiveActionPlan {
         }
     }
 
-    renderNoPlan() {
-        const container = document.getElementById('correctiveActionContainer');
-        if (!container) return;
-
-        container.innerHTML = `
-            <div class="corrective-action-section">
-                <div class="corrective-action-header">
-                    <h3 class="corrective-action-title">
-                        <i class="fas fa-clipboard-check"></i>
-                        Corrective Action Plan
-                    </h3>
-                </div>
-                <div class="corrective-action-content">
-                    <div class="no-plan-message">
-                        <i class="fas fa-info-circle" style="font-size: 2rem; color: var(--gray-400); margin-bottom: 1rem;"></i>
-                        <p>No corrective action plan has been created for this order.</p>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    renderError() {
-        const container = document.getElementById('correctiveActionContainer');
-        if (!container) return;
-
-        container.innerHTML = `
-            <div class="corrective-action-section">
-                <div class="corrective-action-content">
-                    <div class="corrective-error">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        Error loading corrective action plan. Please try again later.
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
     setupEventListeners() {
         // File input change listener
         document.addEventListener('change', (e) => {
@@ -411,7 +408,7 @@ class CorrectiveActionPlan {
         const commentsTextarea = document.getElementById('commentsTextarea');
         const comments = commentsTextarea.value.trim();
 
-        console.log('Updating comments:', comments); // DEBUG
+        console.log('CorrectiveActionPlan: Updating comments:', comments);
 
         try {
             const response = await fetch(`${window.PF_CONFIG.app.baseURL}dao/conections/daoCorrectivePlan.php`, {
@@ -426,7 +423,7 @@ class CorrectiveActionPlan {
             });
 
             const result = await response.json();
-            console.log('Update comments result:', result); // DEBUG
+            console.log('CorrectiveActionPlan: Update comments result:', result);
 
             if (result.success) {
                 this.planData.comments = comments;
@@ -435,33 +432,8 @@ class CorrectiveActionPlan {
                 this.showError(result.message || 'Failed to save comments');
             }
         } catch (error) {
-            console.error('Error saving comments:', error);
+            console.error('CorrectiveActionPlan: Error saving comments:', error);
             this.showError('Error saving comments');
-        }
-    }
-
-    // Agregar método para refrescar solo la sección de comentarios sin recargar todo
-    async refreshCommentsSection() {
-        try {
-            // Recargar los datos del plan
-            await this.loadPlanData();
-            
-            // Re-renderizar solo la sección de comentarios
-            const commentsContainer = document.querySelector('.comments-column');
-            if (commentsContainer) {
-                commentsContainer.innerHTML = `
-                    <h4 class="section-title">
-                        <i class="fas fa-comments"></i>
-                        Comments
-                    </h4>
-                    ${this.renderCommentsSection()}
-                `;
-                
-                // Re-attachar event listeners
-                this.attachEventListeners();
-            }
-        } catch (error) {
-            console.error('Error refreshing comments:', error);
         }
     }
 
@@ -554,9 +526,16 @@ let correctivePlan = null;
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('CorrectiveActionPlan: DOM loaded, checking for order ID...');
+    
     // Check if we're on a page that should show corrective action plans
     const orderId = window.PF_CONFIG?.orderId;
-    if (!orderId) return;
+    if (!orderId) {
+        console.log('CorrectiveActionPlan: No order ID found, skipping initialization');
+        return;
+    }
+
+    console.log('CorrectiveActionPlan: Order ID found:', orderId);
 
     // Determine user permissions
     const userId = window.PF_CONFIG.user.id;
@@ -566,11 +545,16 @@ document.addEventListener('DOMContentLoaded', function() {
         canUploadFiles: true // Administrative users can upload files (will be refined)
     };
 
+    console.log('CorrectiveActionPlan: User permissions:', userPermissions);
+
     // Initialize the corrective action plan
     correctivePlan = new CorrectiveActionPlan(orderId, userPermissions);
 });
 
+// FUNCIÓN LEGACY: Mantener para compatibilidad con códigos existentes
 async function loadCorrectiveActionPlan(orderId) {
+    console.log('CorrectiveActionPlan: Legacy function called for order:', orderId);
+    
     try {
         const response = await fetch(`dao/corrective_action/get_corrective_action.php?order_id=${orderId}`);
         const data = await response.json();
@@ -578,22 +562,31 @@ async function loadCorrectiveActionPlan(orderId) {
         const container = document.getElementById('correctiveActionContainer');
         
         if (!data.success || !data.data || data.data.length === 0) {
+            console.log('CorrectiveActionPlan: Legacy - No plan found, hiding container');
             // No hay Corrective Action Plan - ocultar contenedor
-            container.style.display = 'none';
-            container.classList.add('hidden');
+            if (container) {
+                container.style.display = 'none';
+                container.classList.add('hidden');
+            }
             return;
         }
         
+        console.log('CorrectiveActionPlan: Legacy - Plan found, showing container');
         // Hay Corrective Action Plan - mostrar contenedor y cargar contenido
-        container.style.display = 'block';
-        container.classList.remove('hidden');
+        if (container) {
+            container.style.display = 'block';
+            container.classList.remove('hidden');
+        }
         
         // Cargar el contenido del plan
         renderCorrectiveActionPlan(data.data);
         
     } catch (error) {
-        console.error('Error loading corrective action plan:', error);
+        console.error('CorrectiveActionPlan: Legacy error:', error);
         // En caso de error, ocultar la sección
-        document.getElementById('correctiveActionContainer').style.display = 'none';
+        const container = document.getElementById('correctiveActionContainer');
+        if (container) {
+            container.style.display = 'none';
+        }
     }
 }
