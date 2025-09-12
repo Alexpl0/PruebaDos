@@ -1,7 +1,75 @@
 /**
  * Estilos específicos para index.html - Portal de Cotización Inteligente
  * @author Alejandro Pérez
+ * Consolidado con elementos únicos de style.css
  */
+
+/* ====== VARIABLES ADICIONALES GRAMMER (no están en styles.css) ====== */
+:root {
+    /* Colores Corporativos GRAMMER Extendidos - ÚNICOS */
+    --grammer-primary: #003366;      /* Azul oscuro corporativo */
+    --grammer-secondary: #0066CC;    /* Azul medio */
+    --grammer-success: #00AA44;      /* Verde GRAMMER */
+    --grammer-warning: #FF8800;      /* Naranja */
+    --grammer-danger: #CC0000;       /* Rojo */
+    --grammer-dark: #001122;         /* Azul muy oscuro */
+    --grammer-light: #F0F8FF;        /* Azul muy claro */
+    
+    /* Gradientes GRAMMER - ÚNICOS */
+    --grammer-gradient: linear-gradient(135deg, var(--grammer-primary) 0%, var(--grammer-secondary) 50%, var(--grammer-accent) 100%);
+    --grammer-gradient-light: linear-gradient(135deg, var(--grammer-light) 0%, #E6F3FF 100%);
+    --grammer-gradient-dark: linear-gradient(135deg, var(--grammer-dark) 0%, var(--grammer-primary) 100%);
+    
+    /* Sombras GRAMMER - ÚNICAS */
+    --grammer-shadow: 0 4px 20px rgba(0, 51, 102, 0.15);
+    --grammer-shadow-lg: 0 8px 30px rgba(0, 51, 102, 0.25);
+    --grammer-shadow-hover: 0 6px 25px rgba(0, 51, 102, 0.3);
+    
+    /* Layout adicionales - ÚNICOS */
+    --border-radius-xl: 20px;
+    
+    /* Fuentes adicionales - ÚNICAS */
+    --mono-font: 'Roboto Mono', monospace;
+}
+
+/* ====== LAYOUT PRINCIPAL DE LA APP (de style.css - ÚNICO) ====== */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.app-main-content {
+    flex: 1 0 auto; /* Crece automáticamente según el contenido */
+    padding: var(--spacing-lg);
+    box-sizing: border-box;
+}
+
+/* ====== FOOTER AUTOMÁTICO (de style.css - ÚNICO) ====== */
+.app-footer {
+    flex-shrink: 0; /* El footer nunca se contrae */
+    width: 100%;
+    background: linear-gradient(135deg, var(--grammer-dark-blue) 0%, var(--grammer-blue) 100%);
+    color: var(--white);
+    text-align: center;
+    padding: var(--spacing-lg) var(--spacing-md);
+    box-sizing: border-box;
+}
+
+.app-footer p {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+/* Asegurar que el footer se mantenga en la parte inferior cuando hay poco contenido */
+body.minimal-content .app-container {
+    min-height: 100vh;
+}
+
+body.minimal-content .app-footer {
+    margin-top: auto;
+}
 
 /* ====== HEADER PERSONALIZADO ====== */
 header {
@@ -18,6 +86,328 @@ header .btn-light:hover {
     box-shadow: var(--shadow-md);
 }
 
+/* ====== TEMA GRAMMER - ESTILOS CORPORATIVOS (de style.css - ÚNICOS) ====== */
+
+/* ====== HEADER GRAMMER ====== */
+.bg-grammer-gradient {
+    background: var(--grammer-gradient);
+    position: relative;
+    overflow: hidden;
+}
+
+.bg-grammer-gradient::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(255,255,255,0.05) 100%);
+    pointer-events: none;
+}
+
+.grammer-logo {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.grammer-brand {
+    font-weight: 900;
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.grammer-subtitle {
+    font-weight: 400;
+    font-size: 0.9rem;
+    display: block;
+    opacity: 0.95;
+}
+
+.header-actions .btn {
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.header-actions .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* ====== TARJETAS GRAMMER ====== */
+.grammer-card {
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: var(--grammer-shadow);
+    transition: all 0.3s ease;
+    background: linear-gradient(145deg, #ffffff 0%, #f8fbff 100%);
+}
+
+.grammer-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--grammer-shadow-lg);
+}
+
+.grammer-card-header {
+    background: var(--grammer-gradient-light);
+    border-bottom: 3px solid var(--grammer-accent);
+    padding: 1.5rem;
+    position: relative;
+}
+
+.grammer-card-header::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    width: 100px;
+    height: 3px;
+    background: var(--grammer-primary);
+    border-radius: 0 15px 15px 0;
+}
+
+.grammer-badge {
+    background: var(--grammer-success);
+    color: white;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    box-shadow: 0 2px 10px rgba(0, 170, 68, 0.3);
+}
+
+/* ====== SELECTOR DE MÉTODOS ====== */
+.method-selector-container {
+    animation: slideInUp 0.5s ease-out;
+}
+
+.method-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%);
+    border: 2px solid #e3f2fd;
+    border-radius: 15px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.method-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 153, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.method-card:hover::before {
+    left: 100%;
+}
+
+.method-card:hover {
+    border-color: var(--grammer-accent);
+    transform: translateY(-8px);
+    box-shadow: var(--grammer-shadow-hover);
+    background: linear-gradient(135deg, #ffffff 0%, #e6f3ff 100%);
+}
+
+.method-icon {
+    width: 80px;
+    height: 80px;
+    background: var(--grammer-gradient);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    color: white;
+    font-size: 2rem;
+    box-shadow: var(--grammer-shadow);
+    transition: all 0.3s ease;
+}
+
+.method-card:hover .method-icon {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: var(--grammer-shadow-lg);
+}
+
+.method-card h5 {
+    color: var(--grammer-primary);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.method-card p {
+    color: var(--gray-600);
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.method-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.method-features li {
+    padding: 0.3rem 0;
+    font-size: 0.8rem;
+    color: var(--gray-700);
+    position: relative;
+    padding-left: 1.2rem;
+}
+
+.method-features li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--grammer-success);
+    font-weight: bold;
+}
+
+/* ====== BOTONES GRAMMER ====== */
+.btn-grammer-primary {
+    background: var(--grammer-gradient);
+    border: none;
+    color: white;
+    font-weight: 700;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    box-shadow: var(--grammer-shadow);
+}
+
+.btn-grammer-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--grammer-shadow-lg);
+    color: white;
+}
+
+.btn-grammer-primary:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0, 163, 224, 0.25);
+}
+
+/* ====== TEXTOS GRAMMER ====== */
+.text-grammer-primary {
+    color: var(--grammer-primary) !important;
+}
+
+.text-grammer-accent {
+    color: var(--grammer-accent) !important;
+}
+
+/* ====== CARDS INFORMATIVOS ====== */
+.grammer-info-card {
+    background: var(--grammer-gradient-light);
+    border: 1px solid rgba(0, 163, 224, 0.2);
+    border-radius: 15px;
+    box-shadow: var(--grammer-shadow);
+}
+
+.grammer-stats-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%);
+    border-left: 5px solid var(--grammer-accent);
+    border-radius: 10px;
+    box-shadow: var(--grammer-shadow);
+}
+
+.info-step {
+    padding: 1rem 0.5rem;
+}
+
+.step-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.info-step:hover .step-icon {
+    transform: scale(1.1);
+}
+
+.bg-grammer-primary {
+    background-color: var(--grammer-primary) !important;
+}
+
+.bg-grammer-secondary {
+    background-color: var(--grammer-secondary) !important;
+}
+
+.bg-grammer-accent {
+    background-color: var(--grammer-accent) !important;
+}
+
+.bg-grammer-success {
+    background-color: var(--grammer-success) !important;
+}
+
+.bg-grammer-dark {
+    background: var(--grammer-gradient-dark);
+    color: white;
+}
+
+/* ====== STATS ====== */
+.stat-item {
+    text-align: center;
+    padding: 1rem 0.5rem;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--grammer-primary);
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ====== FOOTER GRAMMER ====== */
+.footer-brand {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.footer-links a {
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.footer-links a:hover {
+    color: var(--grammer-accent) !important;
+    transform: translateY(-1px);
+}
+
+.footer-cert {
+    opacity: 0.8;
+}
+
 /* ====== SECCIONES DEL FORMULARIO ====== */
 .section-header h4 {
     font-weight: 600;
@@ -31,7 +421,8 @@ header .btn-light:hover {
 }
 
 .btn btn-outline-secondary btn-sm {
-    max-width: 240px;}
+    max-width: 240px;
+}
 
 /* ====== OPCIONES DE SERVICIO ====== */
 .service-option {
@@ -279,6 +670,17 @@ header .btn-light:hover {
     }
 }
 
+@keyframes slideOutUp {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+}
+
 @keyframes spin {
     from {
         transform: rotate(0deg);
@@ -309,60 +711,6 @@ header .btn-light:hover {
     color: var(--grammer-blue);
     font-weight: 700;
     margin-bottom: var(--spacing-sm);
-}
-
-/* ====== RESPONSIVE ====== */
-@media (max-width: 768px) {
-    .section-header h4 {
-        font-size: 1.1rem;
-    }
-    
-    .service-option {
-        padding: var(--spacing-md);
-        margin-bottom: var(--spacing-sm);
-    }
-    
-    .service-option i {
-        font-size: 1.2rem;
-    }
-    
-    .package-header {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .remove-package-btn {
-        position: absolute;
-        top: var(--spacing-sm);
-        right: var(--spacing-sm);
-    }
-    
-    .package-number {
-        margin-bottom: var(--spacing-sm);
-    }
-    
-    #submitBtn, #clearFormBtn {
-        margin-bottom: var(--spacing-sm);
-    }
-    
-    header .col-md-4 {
-        margin-top: var(--spacing-md);
-        text-align: center !important;
-    }
-}
-
-@media (max-width: 576px) {
-    .card-body {
-        padding: var(--spacing-md);
-    }
-    
-    .service-option {
-        text-align: center;
-    }
-    
-    .row .col-md-6:first-child {
-        margin-bottom: var(--spacing-md);
-    }
 }
 
 /* ====== ESTADOS DE CARGA ====== */
@@ -406,6 +754,95 @@ header .btn-light:hover {
 .service-option input[type="radio"]:focus + label {
     outline: 2px solid var(--grammer-accent);
     outline-offset: 2px;
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 768px) {
+    .app-main-content {
+        padding: var(--spacing-md);
+        padding-bottom: var(--spacing-lg);
+    }
+    
+    .app-footer {
+        padding: var(--spacing-md);
+        margin-bottom: 60px; /* Solo para dar espacio al mobile-nav */
+    }
+    
+    .app-footer p {
+        font-size: 0.8rem;
+    }
+    
+    .grammer-logo {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .grammer-brand {
+        font-size: 1.2rem;
+    }
+    
+    .method-card {
+        padding: 1.5rem 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .method-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+    }
+    
+    .section-header h4 {
+        font-size: 1.1rem;
+    }
+    
+    .service-option {
+        padding: var(--spacing-md);
+        margin-bottom: var(--spacing-sm);
+        text-align: center;
+    }
+    
+    .service-option i {
+        font-size: 1.2rem;
+    }
+    
+    .package-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .remove-package-btn {
+        position: absolute;
+        top: var(--spacing-sm);
+        right: var(--spacing-sm);
+    }
+    
+    .package-number {
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    #submitBtn, #clearFormBtn {
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    header .col-md-4 {
+        margin-top: var(--spacing-md);
+        text-align: center !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .card-body {
+        padding: var(--spacing-md);
+    }
+    
+    .row .col-md-6:first-child {
+        margin-bottom: var(--spacing-md);
+    }
 }
 
 /* ====== PRINT STYLES ====== */
