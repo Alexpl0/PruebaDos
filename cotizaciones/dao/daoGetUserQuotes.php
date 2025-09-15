@@ -5,8 +5,17 @@
  * @author Alejandro Pérez
  */
 
-require_once __DIR__ . '/../../config.php';
-require_once __DIR__ . '/../../dao/users/auth_check.php';
+// Debug temporal
+file_put_contents(
+    __DIR__ . '/error_debug.log',
+    date('Y-m-d H:i:s') . " - Script started\n" .
+    "POST data: " . file_get_contents('php://input') . "\n",
+    FILE_APPEND
+);
+
+// *** RUTAS CORREGIDAS PARA ESTRUCTURA REAL ***
+require_once __DIR__ . '/config.php';  // config.php está en el mismo directorio
+require_once __DIR__ . '/../dao/users/auth_check.php';  // Ruta correcta hacia PruebaDos
 
 setCorsHeaders();
 

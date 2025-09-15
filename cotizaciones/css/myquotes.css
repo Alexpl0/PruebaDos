@@ -1,564 +1,164 @@
 /**
- * myQuotes.css - Specific styles for My Quotes History page
- * GRAMMER Logistics & Traffic Portal
- * @author Alejandro Pérez
- * Based on styles.css with specific enhancements for user quote history
+ * Fix para variables CSS GRAMMER en myQuotes.css
+ * Añadir al inicio del archivo myQuotes.css
  */
 
-/* ====== USER AVATAR AND PROFILE SECTION ====== */
-.user-avatar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 60px;
-    height: 60px;
-    background: var(--grammer-gradient-light);
-    border-radius: 50%;
-    border: 3px solid var(--grammer-accent);
-}
-
-.user-avatar i {
-    color: var(--grammer-primary);
-    filter: drop-shadow(0 2px 4px rgba(0, 51, 102, 0.2));
-}
-
-/* ====== PERSONAL STATISTICS CARDS ====== */
-.stat-card {
-    background: linear-gradient(145deg, #ffffff 0%, #f8fbff 100%);
-    border-radius: 15px;
-    padding: 1.5rem;
-    border: none;
-    box-shadow: var(--grammer-shadow);
-    transition: all 0.3s ease;
-    overflow: hidden;
-    position: relative;
-    height: 120px;
-}
-
-.stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: var(--grammer-gradient);
-}
-
-.stat-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--grammer-shadow-hover);
-}
-
-.stat-card-primary::before {
-    background: var(--grammer-gradient);
-}
-
-.stat-card-warning::before {
-    background: linear-gradient(135deg, var(--grammer-warning) 0%, #FF9800 100%);
-}
-
-.stat-card-success::before {
-    background: linear-gradient(135deg, var(--grammer-success) 0%, #4CAF50 100%);
-}
-
-.stat-card-info::before {
-    background: linear-gradient(135deg, var(--grammer-accent) 0%, #2196F3 100%);
-}
-
-.stat-content {
-    position: relative;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-
-.stat-card .stat-number {
-    font-size: 2.2rem;
-    font-weight: 700;
-    color: var(--grammer-primary);
-    margin-bottom: 0.25rem;
-    line-height: 1;
-}
-
-.stat-card .stat-label {
-    font-size: 0.85rem;
-    color: var(--gray-600);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 600;
-    margin-bottom: 0;
-}
-
-.stat-card .stat-icon {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    opacity: 0.1;
-    font-size: 2.5rem;
-    color: var(--grammer-primary);
-    transition: all 0.3s ease;
-}
-
-.stat-card:hover .stat-icon {
-    opacity: 0.2;
-    transform: scale(1.1);
-}
-
-/* ====== REQUEST CARDS FOR LIST VIEW ====== */
-.request-card {
-    background: linear-gradient(145deg, #ffffff 0%, #f8fbff 100%);
-    border: 1px solid var(--gray-200);
-    border-radius: 12px;
-    margin-bottom: 1rem;
-    padding: 0;
-    transition: all 0.3s ease;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 51, 102, 0.08);
-}
-
-.request-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--grammer-shadow);
-    border-color: var(--grammer-accent);
-}
-
-.request-card-header {
-    background: var(--grammer-gradient-light);
-    padding: 1rem 1.5rem;
-    border-bottom: 2px solid var(--grammer-accent);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.request-id {
-    font-weight: 700;
-    color: var(--grammer-primary);
-    font-size: 1.1rem;
-}
-
-.request-reference {
-    font-size: 0.8rem;
-    color: var(--gray-600);
-    background: rgba(255, 255, 255, 0.7);
-    padding: 0.25rem 0.5rem;
-    border-radius: 15px;
-}
-
-.request-card-body {
-    padding: 1.5rem;
-}
-
-.request-info-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-}
-
-.request-info-item {
-    flex: 1;
-    margin-right: 1rem;
-}
-
-.request-info-item:last-child {
-    margin-right: 0;
-}
-
-.request-info-label {
-    font-size: 0.75rem;
-    color: var(--gray-500);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-}
-
-.request-info-value {
-    font-weight: 600;
-    color: var(--grammer-primary);
-}
-
-.request-route {
-    background: rgba(0, 163, 224, 0.1);
-    padding: 0.5rem 0.75rem;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    color: var(--grammer-primary);
-    border-left: 3px solid var(--grammer-accent);
-}
-
-.request-card-footer {
-    background: var(--gray-50);
-    padding: 1rem 1.5rem;
-    border-top: 1px solid var(--gray-200);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.request-quotes-info {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.quotes-count {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-weight: 600;
-    color: var(--grammer-primary);
-}
-
-.quotes-cost-range {
-    font-size: 0.85rem;
-    color: var(--gray-600);
-}
-
-.request-actions {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.request-actions .btn {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.8rem;
-    border-radius: 6px;
-    font-weight: 600;
-}
-
-/* ====== STATUS AND METHOD BADGES ====== */
-.status-badge {
-    padding: 0.4rem 0.8rem;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.status-pending {
-    background: linear-gradient(135deg, #FFA726 0%, #FF9800 100%);
-    color: white;
-}
-
-.status-quoting {
-    background: linear-gradient(135deg, var(--grammer-accent) 0%, #2196F3 100%);
-    color: white;
-}
-
-.status-completed {
-    background: linear-gradient(135deg, var(--grammer-success) 0%, #4CAF50 100%);
-    color: white;
-}
-
-.status-canceled {
-    background: linear-gradient(135deg, #F44336 0%, #D32F2F 100%);
-    color: white;
-}
-
-.method-badge {
-    background: var(--grammer-gradient);
-    color: white;
-    padding: 0.3rem 0.6rem;
-    border-radius: 15px;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
-.service-badge {
-    background: rgba(0, 51, 102, 0.1);
-    color: var(--grammer-primary);
-    padding: 0.3rem 0.6rem;
-    border-radius: 15px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    border: 1px solid var(--grammer-primary);
-}
-
-/* ====== QUOTE INSIGHTS PANEL ====== */
-.insight-item {
-    padding: 0.75rem 0;
-    border-bottom: 1px solid var(--gray-200);
-}
-
-.insight-item:last-child {
-    border-bottom: none;
-}
-
-.insight-value {
-    font-size: 1.1rem;
-    font-weight: 700;
-}
-
-.insight-trend {
-    font-size: 0.8rem;
-    margin-top: 0.25rem;
-}
-
-.trend-up {
-    color: var(--grammer-success);
-}
-
-.trend-down {
-    color: var(--grammer-danger);
-}
-
-.trend-neutral {
-    color: var(--gray-500);
-}
-
-/* ====== CHARTS CUSTOMIZATION ====== */
-.chart-container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-}
-
-.chart-empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 200px;
-    color: var(--gray-500);
-}
-
-.chart-empty-state i {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    opacity: 0.5;
-}
-
-/* ====== RESPONSIVE ADJUSTMENTS FOR MOBILE ====== */
-@media (max-width: 768px) {
-    .stat-card {
-        height: 100px;
-        padding: 1rem;
-    }
+/* ====== VARIABLES CSS GRAMMER CORREGIDAS ====== */
+:root {
+    /* Colores GRAMMER principales */
+    --grammer-primary: #003366;
+    --grammer-secondary: #0066CC;
+    --grammer-accent: #00A3E0;
+    --grammer-success: #00AA44;
+    --grammer-warning: #FF8800;
+    --grammer-danger: #CC0000;
+    --grammer-light: #F0F8FF;
     
-    .stat-card .stat-number {
-        font-size: 1.8rem;
-    }
+    /* Gradientes GRAMMER */
+    --grammer-gradient: linear-gradient(135deg, #003366 0%, #0066CC 100%);
+    --grammer-gradient-light: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
     
-    .stat-card .stat-icon {
-        font-size: 2rem;
-        top: 0.75rem;
-        right: 0.75rem;
-    }
-    
-    .request-card-header {
-        flex-direction: column;
-        text-align: center;
-        gap: 0.5rem;
-    }
-    
-    .request-info-row {
-        flex-direction: column;
-        gap: 1rem;
-    }
-    
-    .request-info-item {
-        margin-right: 0;
-        text-align: center;
-    }
-    
-    .request-card-footer {
-        flex-direction: column;
-        gap: 1rem;
-        text-align: center;
-    }
-    
-    .request-quotes-info {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    
-    .request-actions {
-        justify-content: center;
-        width: 100%;
-    }
-    
-    .request-actions .btn {
-        flex: 1;
-        max-width: 120px;
-    }
+    /* Sombras GRAMMER */
+    --grammer-shadow: 0 4px 12px rgba(0, 51, 102, 0.15);
+    --grammer-shadow-hover: 0 8px 20px rgba(0, 51, 102, 0.25);
 }
 
-@media (max-width: 576px) {
-    .grammer-card .card-body {
-        padding: 1rem;
-    }
-    
-    .stat-card {
-        height: 90px;
-        padding: 0.75rem;
-    }
-    
-    .stat-card .stat-number {
-        font-size: 1.5rem;
-    }
-    
-    .stat-card .stat-label {
-        font-size: 0.7rem;
-    }
-    
-    .request-card-body {
-        padding: 1rem;
-    }
-    
-    .request-card-footer {
-        padding: 0.75rem 1rem;
-    }
+/* ====== CLASES UTILITY GRAMMER ====== */
+.text-grammer-primary {
+    color: var(--grammer-primary) !important;
 }
 
-/* ====== LOADING AND EMPTY STATES ====== */
-.loading-skeleton {
-    background: linear-gradient(90deg, #f0f0f0 25%, transparent 37%, #f0f0f0 63%);
-    background-size: 400% 100%;
-    animation: skeleton-loading 1.4s ease infinite;
+.text-grammer-secondary {
+    color: var(--grammer-secondary) !important;
 }
 
-@keyframes skeleton-loading {
-    0% {
-        background-position: 100% 50%;
-    }
-    100% {
-        background-position: 0% 50%;
-    }
+.text-grammer-accent {
+    color: var(--grammer-accent) !important;
 }
 
-.empty-state-illustration {
-    max-width: 200px;
-    opacity: 0.7;
-    margin-bottom: 1rem;
+.text-grammer-success {
+    color: var(--grammer-success) !important;
 }
 
-/* ====== FILTER ENHANCEMENTS ====== */
-.filter-active {
+.bg-grammer-primary {
+    background-color: var(--grammer-primary) !important;
+}
+
+.bg-grammer-secondary {
+    background-color: var(--grammer-secondary) !important;
+}
+
+.bg-grammer-accent {
+    background-color: var(--grammer-accent) !important;
+}
+
+.bg-grammer-gradient {
+    background: var(--grammer-gradient) !important;
+}
+
+/* ====== BOTONES GRAMMER ====== */
+.btn-grammer-primary {
+    background: var(--grammer-gradient) !important;
+    border: none !important;
+    color: white !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-grammer-primary:hover {
+    background: linear-gradient(135deg, #002855 0%, #0055aa 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: var(--grammer-shadow-hover) !important;
+    color: white !important;
+}
+
+.btn-grammer-success {
+    background: var(--grammer-success) !important;
+    border: none !important;
+    color: white !important;
+}
+
+.btn-grammer-success:hover {
+    background: #008833 !important;
+    color: white !important;
+}
+
+.btn-outline-grammer-primary {
+    border: 2px solid var(--grammer-primary) !important;
+    color: var(--grammer-primary) !important;
+    background: transparent !important;
+}
+
+.btn-outline-grammer-primary:hover {
+    background: var(--grammer-primary) !important;
+    color: white !important;
+}
+
+/* ====== TARJETAS GRAMMER ====== */
+.grammer-card {
+    background: white !important;
+    border: 1px solid #e6f3ff !important;
+    border-radius: 12px !important;
+    box-shadow: var(--grammer-shadow) !important;
+    overflow: hidden !important;
+    transition: all 0.3s ease !important;
+}
+
+.grammer-card:hover {
+    box-shadow: var(--grammer-shadow-hover) !important;
+    transform: translateY(-2px) !important;
+}
+
+.grammer-card-header {
+    background: var(--grammer-gradient-light) !important;
+    border-bottom: 2px solid var(--grammer-accent) !important;
+    padding: 1rem 1.5rem !important;
+}
+
+.grammer-card-header h6 {
+    color: var(--grammer-primary) !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+}
+
+/* ====== BADGES GRAMMER ====== */
+.grammer-badge {
+    padding: 0.5rem 1rem !important;
+    border-radius: 20px !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    background: var(--grammer-gradient) !important;
+    color: white !important;
+    border: none !important;
+}
+
+/* ====== INFO CARDS ====== */
+.grammer-info-card {
+    background: linear-gradient(145deg, #ffffff 0%, #f8fbff 100%) !important;
+    border: 1px solid var(--grammer-accent) !important;
+    border-radius: 10px !important;
+    box-shadow: var(--grammer-shadow) !important;
+}
+
+/* ====== FORMULARIOS ====== */
+.form-control-custom {
+    border: 2px solid #e6f3ff !important;
+    border-radius: 8px !important;
+    padding: 0.6rem 1rem !important;
+    transition: all 0.3s ease !important;
+}
+
+.form-control-custom:focus {
+    border-color: var(--grammer-accent) !important;
+    box-shadow: 0 0 0 0.2rem rgba(0, 163, 224, 0.25) !important;
+    outline: none !important;
+}
+
+/* ====== AUTO REFRESH INDICATOR ====== */
+.auto-refresh-indicator {
     background: var(--grammer-accent) !important;
     color: white !important;
-    border-color: var(--grammer-primary) !important;
-}
-
-.filter-summary {
-    background: var(--grammer-light);
-    border: 1px solid var(--grammer-accent);
-    border-radius: 8px;
-    padding: 0.75rem 1rem;
-    margin-bottom: 1rem;
-    font-size: 0.9rem;
-    color: var(--grammer-primary);
-}
-
-.filter-tag {
-    display: inline-block;
-    background: var(--grammer-accent);
-    color: white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    margin-right: 0.5rem;
-    margin-bottom: 0.25rem;
-}
-
-.filter-tag .remove-filter {
-    margin-left: 0.5rem;
-    cursor: pointer;
-    opacity: 0.8;
-}
-
-.filter-tag .remove-filter:hover {
-    opacity: 1;
-}
-
-/* ====== ANIMATION ENHANCEMENTS ====== */
-.request-card.animate-in {
-    animation: slideInUp 0.4s ease-out;
-}
-
-.request-card.animate-out {
-    animation: slideOutDown 0.3s ease-in;
-}
-
-@keyframes slideInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes slideOutDown {
-    from {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-}
-
-.stat-card.pulse {
-    animation: pulse-stat 0.6s ease;
-}
-
-@keyframes pulse-stat {
-    0% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.05);
-    }
-    100% {
-        transform: scale(1);
-    }
-}
-
-/* ====== ACCESSIBILITY IMPROVEMENTS ====== */
-.request-card:focus-within {
-    outline: 2px solid var(--grammer-accent);
-    outline-offset: 2px;
-}
-
-.btn:focus,
-.form-control:focus,
-.form-select:focus {
-    outline: 2px solid var(--grammer-accent);
-    outline-offset: 2px;
-    box-shadow: 0 0 0 0.2rem rgba(0, 163, 224, 0.25);
-}
-
-/* ====== PRINT STYLES ====== */
-@media print {
-    .header-actions,
-    .request-actions,
-    .btn,
-    .modal {
-        display: none !important;
-    }
-    
-    .request-card {
-        border: 1px solid var(--grammer-primary) !important;
-        box-shadow: none !important;
-        page-break-inside: avoid;
-        margin-bottom: 1rem !important;
-    }
-    
-    .grammer-card {
-        border: 1px solid var(--grammer-primary) !important;
-        box-shadow: none !important;
-    }
-    
-    .stat-card {
-        border: 1px solid var(--grammer-primary) !important;
-        box-shadow: none !important;
-    }
+    padding: 0.5rem 1rem !important;
+    border-radius: 15px !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
 }
