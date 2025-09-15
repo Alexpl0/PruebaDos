@@ -29,9 +29,32 @@ class CorrectiveActionPlan {
         try {
             console.log('CorrectiveActionPlan: Loading plan data for order:', this.orderId);
             
-            // CAMBIO: Usar el endpoint específico para corrective action plans
-            const response = await fetch(`${window.PF_CONFIG.app.baseURL}dao/conections/daoCorrectivePlan.php?order_id=${this.orderId}`);
-            const data = await response.json();
+            // CAMBIO: Verificar que la ruta sea correcta
+            const url = `${window.PF_CONFIG.app.baseURL}dao/conections/daoCorrectivePlan.php?order_id=${this.orderId}`;
+            console.log('CorrectiveActionPlan: Request URL:', url);
+            
+            const response = await fetch(url);
+            
+            // NUEVO: Verificar el tipo de contenido antes de parsear JSON
+            const contentType = response.headers.get('content-type');
+            console.log('CorrectiveActionPlan: Response content-type:', contentType);
+            console.log('CorrectiveActionPlan: Response status:', response.status);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const responseText = await response.text();
+            console.log('CorrectiveActionPlan: Raw response:', responseText.substring(0, 200));
+            
+            let data;
+            try {
+                data = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error('CorrectiveActionPlan: JSON parse error:', parseError);
+                console.error('CorrectiveActionPlan: Response was:', responseText);
+                throw new Error('Invalid JSON response from server');
+            }
             
             console.log('CorrectiveActionPlan: API Response:', data);
             
