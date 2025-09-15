@@ -997,34 +997,39 @@
                 showLoading();
                 console.log(`🌐 Making ${method} request for action: ${action}`);
                 
+                // Unir la acción y los datos en un solo objeto para enviar
+                const payload = { action, ...data };
+
                 const options = {
                     method: method,
                     headers: {
+                        // ✅ CORREGIDO: Especificar que el contenido es JSON
                         'Content-Type': 'application/json',
                     }
                 };
 
                 let finalUrl = API_BASE_URL;
                 
-                // Agregar la acción a los datos
-                if (action) {
-                    data.action = action;
-                }
-                
                 if (method === 'GET') {
-                    const params = new URLSearchParams(data);
+                    // Para GET, los parámetros van en la URL
+                    const params = new URLSearchParams(payload);
                     finalUrl += '?' + params.toString();
                 } else {
-                    options.body = JSON.stringify(data);
+                    // Para POST, el payload va en el body, convertido a string JSON
+                    // ✅ CORREGIDO: Usar JSON.stringify
+                    options.body = JSON.stringify(payload);
                 }
 
                 console.log(`🌐 Final URL: ${finalUrl}`);
-                console.log(`📤 Request data:`, data);
+                console.log(`📤 Request data:`, payload);
                 
                 const response = await fetch(finalUrl, options);
                 
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    // Lanzar un error más descriptivo
+                    const errorText = await response.text();
+                    console.error(`❌ HTTP Error ${response.status}: ${response.statusText}`, errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
                 }
                 
                 const result = await response.json();

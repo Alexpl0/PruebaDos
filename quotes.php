@@ -1,31 +1,31 @@
 <?php
 /**
- * quotes.php - Página principal del Portal de Cotización Inteligente
- * Actualizada para usar la misma estructura y estilos que quotes.php y newOrder.php
+ * quotes.php - Main page of Intelligent Quotation Portal
+ * Updated to use same structure and styles as quotes.php and newOrder.php
  */
 
-// 1. Manejar sesión y autenticación.
+// 1. Handle session and authentication.
 require_once 'dao/users/auth_check.php';
 
-// 2. Cargar dependencias necesarias.
+// 2. Load necessary dependencies.
 require_once 'dao/elements/daoPlantas.php';
 require_once 'dao/elements/daoTransport.php';
 require_once 'dao/elements/daoCarrier.php';
 
-// 3. Incluir el inyector de contexto.
+// 3. Include context injector.
 require_once 'dao/users/context_injector.php';
 ?>
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GRAMMER Logística y Tráfico - Portal de Cotización</title>
+    <title>GRAMMER Logistics & Traffic - Quotation Portal</title>
 
     <!-- Favicon -->
     <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
 
-    <!-- Estilos externos -->
+    <!-- External Styles -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
@@ -34,47 +34,65 @@ require_once 'dao/users/context_injector.php';
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- Estilos locales -->
+    <!-- Local Styles -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="cotizaciones/css/quotes.css">
     <link rel="stylesheet" href="css/tour-styles.css">
 
-    <!-- ================== SISTEMA DE CONTEXTO CENTRALIZADO ================== -->
+    <!-- ================== CENTRALIZED CONTEXT SYSTEM ================== -->
     <?php
-        // El inyector ya fue requerido en la parte superior del script.
+        // Context injector already required above.
     ?>
-    <!-- Incluir el módulo de configuración JS. -->
+    <!-- Include JS configuration module. -->
     <script src="js/config.js"></script>
     <!-- ==================================================================== -->
 </head>
 <body>
-    <!-- Header dinámico usando el mismo sistema que quotes.php y newOrder.php -->
+    <!-- Dynamic Header using same system as quotes.php and newOrder.php -->
     <div id="header-container"></div>
 
-    <!-- Main Content con estructura similar a newOrder.php -->
+    <!-- Navigation Buttons Section -->
+    <div class="container-fluid mt-3 mb-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="cotizaciones/dashboardQuotes.php" class="btn btn-outline-grammer-primary">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Dashboard
+                    </a>
+                    <a href="cotizaciones/myQuotes.php" class="btn btn-outline-grammer-primary">
+                        <i class="fas fa-history me-2"></i>
+                        My Quotes History
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content with structure similar to newOrder.php -->
     <main class="container my-4">
-        <!-- Título principal consistente con newOrder.php -->
+        <!-- Main title consistent with newOrder.php -->
         <div class="text-center mb-4">
-            <h1 class="mb-2">GRAMMER LOGÍSTICA Y TRÁFICO</h1>
-            <h2 class="mb-3" style="color: var(--grammer-blue);">Portal de Cotización Inteligente</h2>
+            <h1 class="mb-2">GRAMMER LOGISTICS & TRAFFIC</h1>
+            <h2 class="mb-3" style="color: var(--grammer-blue);">Intelligent Quotation Portal</h2>
             <div class="grammer-badge d-inline-flex align-items-center px-3 py-2 rounded-pill" 
                  style="background: linear-gradient(135deg, var(--grammer-blue), var(--grammer-light-blue)); color: white;">
                 <i class="fas fa-shield-alt me-2"></i>
-                Sistema Seguro
+                Secure System
             </div>
         </div>
 
         <div class="row justify-content-center">
             <div class="col-lg-10">
-                <!-- Form Card principal -->
+                <!-- Main Form Card -->
                 <div class="card grammer-card shadow-lg mb-4">
                     <div class="card-header grammer-card-header">
                         <div class="d-flex align-items-center justify-content-between">
                             <div>
                                 <h3 class="card-title h5 mb-0">
                                     <i class="fas fa-plus-circle text-grammer-accent me-2"></i>
-                                    Nueva Solicitud de Cotización
+                                    New Quotation Request
                                 </h3>
                                 <small class="text-muted">
                                     <i class="fas fa-calendar me-1"></i>
@@ -82,7 +100,7 @@ require_once 'dao/users/context_injector.php';
                                 </small>
                             </div>
                             <div class="header-actions">
-                                <a href="dashboard.php" class="btn btn-outline-primary btn-sm me-2">
+                                <a href="cotizaciones/dashboardQuotes.php" class="btn btn-outline-primary btn-sm me-2">
                                     <i class="fas fa-chart-line me-1"></i>
                                     Dashboard
                                 </a>
@@ -92,14 +110,14 @@ require_once 'dao/users/context_injector.php';
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         <li><a class="dropdown-item" href="#" onclick="grammerForm.loadDraft()">
-                                            <i class="fas fa-file-import me-2"></i>Cargar Borrador
+                                            <i class="fas fa-file-import me-2"></i>Load Draft
                                         </a></li>
                                         <li><a class="dropdown-item" href="#" onclick="grammerForm.clearDraft()">
-                                            <i class="fas fa-trash me-2"></i>Limpiar Borrador
+                                            <i class="fas fa-trash me-2"></i>Clear Draft
                                         </a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item" href="mailto:logistica@grammer.com">
-                                            <i class="fas fa-envelope me-2"></i>Soporte
+                                            <i class="fas fa-envelope me-2"></i>Support
                                         </a></li>
                                     </ul>
                                 </div>
@@ -108,33 +126,32 @@ require_once 'dao/users/context_injector.php';
                     </div>
                     
                     <div class="card-body">
-                        <form id="shippingRequestForm" novalidate style="
-    max-width: fit-content;">
-                            <!-- Selector de método y formulario dinámico -->
+                        <form id="shippingRequestForm" novalidate style="max-width: fit-content;">
+                            <!-- Method selector and dynamic form -->
                             <div id="shippingMethodSelector" class="mb-4">
-                                <!-- Será llenado por JavaScript -->
+                                <!-- Will be filled by JavaScript -->
                             </div>
                             
-                            <!-- Container para formulario dinámico -->
+                            <!-- Container for dynamic form -->
                             <div id="dynamicFormContainer">
-                                <!-- Será llenado dinámicamente por JavaScript según el método seleccionado -->
+                                <!-- Will be filled dynamically by JavaScript according to selected method -->
                             </div>
 
-                            <!-- Botones de Acción (solo visible cuando hay método seleccionado) -->
+                            <!-- Action Buttons (only visible when method is selected) -->
                             <div id="formActionButtons" class="row mt-4" style="display: none;">
                                 <div class="col-md-6">
                                     <button type="button" class="btn btn-outline-secondary w-100" id="clearFormBtn">
                                         <i class="fas fa-eraser me-1"></i>
-                                        Limpiar Formulario
+                                        Clear Form
                                     </button>
                                 </div>
                                 <div class="col-md-6">
                                     <button type="submit" class="btn btn-grammer-primary w-100" id="submitBtn">
                                         <i class="fas fa-paper-plane me-1"></i>
-                                        <span class="submit-text">Enviar Solicitud</span>
+                                        <span class="submit-text">Send Request</span>
                                         <span class="submit-loading d-none">
                                             <i class="fas fa-spinner fa-spin me-1"></i>
-                                            Enviando...
+                                            Sending...
                                         </span>
                                     </button>
                                 </div>
@@ -143,12 +160,12 @@ require_once 'dao/users/context_injector.php';
                     </div>
                 </div>
 
-                <!-- Info Card GRAMMER -->
+                <!-- GRAMMER Info Card -->
                 <div class="card grammer-info-card mb-4">
                     <div class="card-body">
                         <h5 class="card-title text-grammer-primary">
                             <i class="fas fa-info-circle me-2"></i>
-                            Cómo funciona nuestro sistema de cotización
+                            How our quotation system works
                         </h5>
                         <div class="row">
                             <div class="col-md-3 text-center mb-3">
@@ -156,8 +173,8 @@ require_once 'dao/users/context_injector.php';
                                     <div class="step-icon bg-grammer-primary">
                                         <i class="fas fa-mouse-pointer fa-lg"></i>
                                     </div>
-                                    <h6>1. Seleccionar Método</h6>
-                                    <small class="text-muted">Elige entre Fedex, Aéreo-Marítimo o Nacional</small>
+                                    <h6>1. Select Method</h6>
+                                    <small class="text-muted">Choose between Fedex, Air-Sea or Domestic</small>
                                 </div>
                             </div>
                             <div class="col-md-3 text-center mb-3">
@@ -165,8 +182,8 @@ require_once 'dao/users/context_injector.php';
                                     <div class="step-icon bg-grammer-secondary">
                                         <i class="fas fa-edit fa-lg"></i>
                                     </div>
-                                    <h6>2. Completar Datos</h6>
-                                    <small class="text-muted">Llena el formulario específico del método</small>
+                                    <h6>2. Complete Data</h6>
+                                    <small class="text-muted">Fill the method-specific form</small>
                                 </div>
                             </div>
                             <div class="col-md-3 text-center mb-3">
@@ -174,8 +191,8 @@ require_once 'dao/users/context_injector.php';
                                     <div class="step-icon bg-grammer-accent">
                                         <i class="fas fa-share fa-lg"></i>
                                     </div>
-                                    <h6>3. Envío Automático</h6>
-                                    <small class="text-muted">Se notifica a transportistas especializados</small>
+                                    <h6>3. Automatic Sending</h6>
+                                    <small class="text-muted">Specialized carriers are notified</small>
                                 </div>
                             </div>
                             <div class="col-md-3 text-center mb-3">
@@ -183,44 +200,44 @@ require_once 'dao/users/context_injector.php';
                                     <div class="step-icon bg-grammer-success">
                                         <i class="fas fa-chart-bar fa-lg"></i>
                                     </div>
-                                    <h6>4. Análisis IA</h6>
-                                    <small class="text-muted">Comparativa inteligente de opciones</small>
+                                    <h6>4. AI Analysis</h6>
+                                    <small class="text-muted">Intelligent comparison of options</small>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Stats Card (Solo visible si hay datos) -->
+                <!-- Stats Card (Only visible if there's data) -->
                 <div id="quickStats" class="card grammer-stats-card mt-4 d-none">
                     <div class="card-body">
                         <h6 class="card-title text-grammer-primary mb-3">
                             <i class="fas fa-tachometer-alt me-2"></i>
-                            Estadísticas Rápidas - Hoy
+                            Quick Stats - Today
                         </h6>
                         <div class="row">
                             <div class="col-md-3">
                                 <div class="stat-item">
                                     <div class="stat-number" id="todayRequests">0</div>
-                                    <div class="stat-label">Solicitudes</div>
+                                    <div class="stat-label">Requests</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="stat-item">
                                     <div class="stat-number" id="pendingQuotes">0</div>
-                                    <div class="stat-label">Pendientes</div>
+                                    <div class="stat-label">Pending</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="stat-item">
                                     <div class="stat-number" id="completedToday">0</div>
-                                    <div class="stat-label">Completadas</div>
+                                    <div class="stat-label">Completed</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="stat-item">
                                     <div class="stat-number" id="avgResponseTime">-</div>
-                                    <div class="stat-label">Tiempo Resp. Prom.</div>
+                                    <div class="stat-label">Avg. Response Time</div>
                                 </div>
                             </div>
                         </div>
@@ -230,26 +247,26 @@ require_once 'dao/users/context_injector.php';
         </div>
     </main>
 
-    <!-- Footer consistente con otros archivos -->
+    <!-- Footer consistent with other files -->
     <footer class="text-center py-3">
-        <p>© 2025 GRAMMER Automotive Puebla S.A. de C.V. - Todos los derechos reservados.</p>
+        <p>&copy; 2025 GRAMMER Automotive Puebla S.A. de C.V. - All rights reserved.</p>
     </footer>
 
-    <!-- Scripts en el mismo orden que newOrder.php -->
+    <!-- Scripts in same order as newOrder.php -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.10.1/sweetalert2.all.min.js"></script>
 
-    <!-- Scripts locales -->
+    <!-- Local Scripts -->
     <script src="js/config.js"></script>
     <script src="js/header.js" type="module"></script>
     <script src="cotizaciones/js/config.js"></script>
     <script type="module" src="cotizaciones/js/quotes.js"></script>
 
-    <!-- Script para inicializar la fecha/hora -->
+    <!-- Script to initialize date/time -->
     <script>
-        // Actualizar fecha y hora actual
+        // Update current date and time
         function updateDateTime() {
             const now = new Date();
             const options = { 
@@ -259,17 +276,17 @@ require_once 'dao/users/context_injector.php';
                 hour: '2-digit', 
                 minute: '2-digit' 
             };
-            const dateTimeString = now.toLocaleDateString('es-ES', options);
+            const dateTimeString = now.toLocaleDateString('en-US', options);
             const element = document.getElementById('currentDateTime');
             if (element) {
                 element.textContent = dateTimeString;
             }
         }
 
-        // Inicializar cuando el DOM esté listo
+        // Initialize when DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
             updateDateTime();
-            // Actualizar cada minuto
+            // Update every minute
             setInterval(updateDateTime, 60000);
         });
     </script>

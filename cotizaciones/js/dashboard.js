@@ -1,6 +1,7 @@
 /**
- * JavaScript para dashboard.html - Portal de Cotización Inteligente GRAMMER
- * Manejo del dashboard principal con polling automático y ApexCharts
+ * JavaScript for dashboard.html - GRAMMER Logistics Intelligent Quotation Portal
+ * Main dashboard management with automatic polling and ApexCharts
+ * Updated with navigation handling
  * @author Alejandro Pérez
  */
 
@@ -16,7 +17,7 @@ class GrammerDashboard {
         this.charts = {};
         this.lastUpdate = null;
         
-        // Configuración de colores GRAMMER
+        // GRAMMER color configuration
         this.grammerColors = {
             primary: '#003366',
             secondary: '#0066CC', 
@@ -32,14 +33,14 @@ class GrammerDashboard {
         this.loadInitialData();
         this.startAutoRefresh();
         
-        console.log('📊 GRAMMER Dashboard inicializado');
+        console.log('📊 GRAMMER Dashboard initialized');
     }
     
     /**
-     * Inicializa los elementos del DOM
+     * Initialize DOM elements
      */
     initializeElements() {
-        // Filtros
+        // Filters
         this.statusFilter = document.getElementById('statusFilter');
         this.serviceFilter = document.getElementById('serviceFilter');
         this.dateFrom = document.getElementById('dateFrom');
@@ -53,13 +54,13 @@ class GrammerDashboard {
         this.completedRequestsEl = document.getElementById('completedRequests');
         this.completionRateEl = document.getElementById('completionRate');
         
-        // Tabla y contenido
+        // Table and content
         this.requestsTableBody = document.getElementById('requestsTableBody');
         this.requestsCount = document.getElementById('requestsCount');
         this.loadingState = document.getElementById('loadingState');
         this.emptyState = document.getElementById('emptyState');
         
-        // Modales
+        // Modals
         this.requestDetailsModal = new bootstrap.Modal(document.getElementById('requestDetailsModal'));
         this.quotesModal = new bootstrap.Modal(document.getElementById('quotesModal'));
         
@@ -71,14 +72,14 @@ class GrammerDashboard {
     }
     
     /**
-     * Configura todos los event listeners
+     * Setup all event listeners
      */
     setupEventListeners() {
-        // Filtros
+        // Filters
         this.applyFiltersBtn.addEventListener('click', this.applyFilters.bind(this));
         this.refreshBtn.addEventListener('click', this.refreshData.bind(this));
         
-        // Enter en campos de fecha
+        // Enter on date fields
         this.dateFrom.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.applyFilters();
         });
@@ -87,35 +88,35 @@ class GrammerDashboard {
             if (e.key === 'Enter') this.applyFilters();
         });
         
-        // Auto-aplicar filtros cuando cambien los selects
+        // Auto-apply filters when selects change
         [this.statusFilter, this.serviceFilter].forEach(filter => {
             filter.addEventListener('change', Utils.debounce(this.applyFilters.bind(this), 500));
         });
         
-        // Detectar parámetros URL
+        // Detect URL parameters
         const urlParams = Utils.getUrlParams();
         if (urlParams.request_id) {
             setTimeout(() => this.showRequestDetails(parseInt(urlParams.request_id)), 1000);
         }
         
-        // Eventos de visibilidad para pausar/reanudar polling
+        // Visibility events for pausing/resuming polling
         document.addEventListener('visibilitychange', this.handleVisibilityChange.bind(this));
         
-        // Cleanup antes de salir
+        // Cleanup before leaving
         window.addEventListener('beforeunload', this.cleanup.bind(this));
     }
     
     /**
-     * Inicializa los gráficos con ApexCharts
+     * Initialize charts with ApexCharts
      */
     initializeCharts() {
-        // Gráfico de actividad (líneas)
+        // Activity chart (lines)
         this.charts.activity = new ApexCharts(document.querySelector("#activityChart"), {
             series: [{
-                name: 'Solicitudes',
+                name: 'Requests',
                 data: []
             }, {
-                name: 'Completadas', 
+                name: 'Completed', 
                 data: []
             }],
             chart: {
@@ -171,7 +172,7 @@ class GrammerDashboard {
         });
         this.charts.activity.render();
         
-        // Gráfico de servicios (dona)
+        // Services chart (donut)
         this.charts.services = new ApexCharts(document.querySelector("#servicesChart"), {
             series: [0, 0, 0],
             chart: {
@@ -179,7 +180,7 @@ class GrammerDashboard {
                 height: 300
             },
             colors: [this.grammerColors.secondary, this.grammerColors.accent, this.grammerColors.warning],
-            labels: ['Aéreo', 'Marítimo', 'Terrestre'],
+            labels: ['Air', 'Sea', 'Land'],
             dataLabels: {
                 enabled: true,
                 formatter: function (val) {
@@ -228,7 +229,7 @@ class GrammerDashboard {
     }
     
     /**
-     * Carga los datos iniciales
+     * Load initial data
      */
     async loadInitialData() {
         this.showLoadingState(true);
@@ -237,14 +238,14 @@ class GrammerDashboard {
             await this.refreshData();
         } catch (error) {
             Utils.handleError(error, 'Load initial data');
-            Notifications.toastError('Error cargando datos iniciales');
+            Notifications.toastError('Error loading initial data');
         } finally {
             this.showLoadingState(false);
         }
     }
     
     /**
-     * Refresca todos los datos
+     * Refresh all data
      */
     async refreshData() {
         try {
@@ -262,18 +263,18 @@ class GrammerDashboard {
             this.lastUpdate = new Date();
             this.updateAutoRefreshIndicator();
             
-            console.log('📊 Datos GRAMMER actualizados exitosamente');
+            console.log('📊 GRAMMER data updated successfully');
             
         } catch (error) {
             Utils.handleError(error, 'Refresh data');
-            Notifications.toastError('Error actualizando datos');
+            Notifications.toastError('Error updating data');
         } finally {
             Utils.setLoadingState(this.refreshBtn, false);
         }
     }
     
     /**
-     * Aplica los filtros seleccionados
+     * Apply selected filters
      */
     applyFilters() {
         this.currentFilters = {
@@ -283,30 +284,30 @@ class GrammerDashboard {
             date_to: this.dateTo.value || undefined
         };
         
-        // Limpiar valores undefined
+        // Clean undefined values
         Object.keys(this.currentFilters).forEach(key => {
             if (this.currentFilters[key] === undefined) {
                 delete this.currentFilters[key];
             }
         });
         
-        console.log('🔍 Aplicando filtros GRAMMER:', this.currentFilters);
+        console.log('🔍 Applying GRAMMER filters:', this.currentFilters);
         this.refreshData();
     }
     
     /**
-     * Actualiza la tabla de solicitudes
+     * Update requests table
      * @param {Array} requests 
      */
     updateRequestsTable(requests) {
         if (!requests || requests.length === 0) {
             this.showEmptyState(true);
-            this.requestsCount.textContent = '0 solicitudes';
+            this.requestsCount.textContent = '0 requests';
             return;
         }
         
         this.showEmptyState(false);
-        this.requestsCount.textContent = `${requests.length} solicitud${requests.length !== 1 ? 'es' : ''}`;
+        this.requestsCount.textContent = `${requests.length} request${requests.length !== 1 ? 's' : ''}`;
         
         this.requestsTableBody.innerHTML = '';
         
@@ -317,7 +318,7 @@ class GrammerDashboard {
     }
     
     /**
-     * Crea una fila de la tabla para una solicitud
+     * Create a table row for a request
      * @param {Object} request 
      * @returns {HTMLElement}
      */
@@ -327,16 +328,16 @@ class GrammerDashboard {
         row.dataset.requestId = request.id;
         
         const serviceTypeNames = {
-            'air': 'Aéreo',
-            'sea': 'Marítimo',
-            'land': 'Terrestre'
+            'air': 'Air',
+            'sea': 'Sea',
+            'land': 'Land'
         };
         
         const statusNames = {
-            'pending': 'Pendiente',
-            'quoting': 'Cotizando',
-            'completed': 'Completado',
-            'canceled': 'Cancelado'
+            'pending': 'Pending',
+            'quoting': 'Quoting',
+            'completed': 'Completed',
+            'canceled': 'Canceled'
         };
         
         const route = `${request.route_info.origin_country} → ${request.route_info.destination_country}`;
@@ -347,48 +348,48 @@ class GrammerDashboard {
             <td data-label="ID">
                 <span class="fw-bold text-grammer-primary">#${request.id}</span>
             </td>
-            <td data-label="Usuario">
+            <td data-label="User">
                 <div class="user-info">
                     <strong class="text-grammer-primary">${Utils.sanitizeString(request.user_name)}</strong>
                     <small class="text-muted d-block">${request.created_at_formatted}</small>
                 </div>
             </td>
-            <td data-label="Ruta">
+            <td data-label="Route">
                 <span class="route-info text-grammer-primary">
                     ${route}
-                    ${request.route_info.is_international ? '<i class="fas fa-globe text-grammer-accent ms-1" title="Internacional"></i>' : '<i class="fas fa-map-marker-alt text-grammer-secondary ms-1" title="Nacional"></i>'}
+                    ${request.route_info.is_international ? '<i class="fas fa-globe text-grammer-accent ms-1" title="International"></i>' : '<i class="fas fa-map-marker-alt text-grammer-secondary ms-1" title="Domestic"></i>'}
                 </span>
             </td>
-            <td data-label="Servicio">
+            <td data-label="Service">
                 <span class="grammer-badge bg-grammer-${request.service_type === 'air' ? 'secondary' : request.service_type === 'sea' ? 'accent' : 'success'}">
                     ${serviceName}
                 </span>
             </td>
-            <td data-label="Estado">
+            <td data-label="Status">
                 <span class="grammer-badge ${this.getStatusBadgeClass(request.status)}">
                     ${statusName}
                 </span>
             </td>
-            <td data-label="Cotizaciones">
+            <td data-label="Quotes">
                 <div class="d-flex align-items-center">
                     <i class="fas ${request.quote_status.has_quotes ? 'fa-check-circle text-grammer-success' : 'fa-clock text-warning'} me-1"></i>
                     <span class="fw-bold text-grammer-primary">${request.quote_status.total_quotes}</span>
                     ${request.quote_status.selected_quotes > 0 ? `<small class="text-grammer-success ms-1">(${request.quote_status.selected_quotes} sel.)</small>` : ''}
                 </div>
             </td>
-            <td data-label="Fecha">
+            <td data-label="Date">
                 <span class="text-nowrap text-grammer-primary">${request.created_at_formatted}</span>
                 <small class="text-muted d-block">${this.getTimeAgo(request.created_at)}</small>
             </td>
-            <td data-label="Acciones">
+            <td data-label="Actions">
                 <div class="action-buttons">
-                    <button class="btn btn-sm btn-outline-grammer-primary me-1" onclick="grammerDashboard.showRequestDetails(${request.id})" title="Ver detalles">
+                    <button class="btn btn-sm btn-outline-grammer-primary me-1" onclick="grammerDashboard.showRequestDetails(${request.id})" title="View details">
                         <i class="fas fa-eye"></i>
                     </button>
                     <button class="btn btn-sm ${request.quote_status.has_quotes ? 'btn-grammer-success' : 'btn-outline-secondary'}" 
                             onclick="grammerDashboard.showQuotes(${request.id})" 
                             ${!request.quote_status.has_quotes ? 'disabled' : ''}
-                            title="Ver cotizaciones">
+                            title="View quotes">
                         <i class="fas fa-calculator"></i>
                     </button>
                 </div>
@@ -399,7 +400,7 @@ class GrammerDashboard {
     }
     
     /**
-     * Obtiene la clase CSS para el badge de estado
+     * Get CSS class for status badge
      * @param {string} status 
      * @returns {string}
      */
@@ -414,7 +415,30 @@ class GrammerDashboard {
     }
     
     /**
-     * Actualiza las tarjetas de estadísticas
+     * Get time ago string
+     * @param {string} datetime 
+     * @returns {string}
+     */
+    getTimeAgo(datetime) {
+        if (!datetime) return '';
+        
+        const date = new Date(datetime);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMins / 60);
+        const diffDays = Math.floor(diffHours / 24);
+        
+        if (diffMins < 1) return 'Just now';
+        if (diffMins < 60) return `${diffMins}m ago`;
+        if (diffHours < 24) return `${diffHours}h ago`;
+        if (diffDays < 7) return `${diffDays}d ago`;
+        
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+    
+    /**
+     * Update statistics cards
      * @param {Object} stats 
      */
     updateStats(stats) {
@@ -426,7 +450,7 @@ class GrammerDashboard {
         this.pendingRequestsEl.textContent = (basic.pending || 0) + (basic.quoting || 0);
         this.completedRequestsEl.textContent = basic.completed || 0;
         
-        // Calcular tasa de éxito
+        // Calculate success rate
         const totalProcessed = (basic.completed || 0) + (basic.canceled || 0);
         const completionRate = totalProcessed > 0 ? 
             Math.round(((basic.completed || 0) / totalProcessed) * 100) : 0;
@@ -435,14 +459,14 @@ class GrammerDashboard {
     }
     
     /**
-     * Actualiza los gráficos con ApexCharts
+     * Update charts with ApexCharts
      * @param {Object} stats 
      */
     updateCharts(stats) {
-        // Actualizar gráfico de actividad
+        // Update activity chart
         if (stats.recent_activity && this.charts.activity) {
             const labels = stats.recent_activity.map(item => 
-                new Date(item.date).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })
+                new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
             );
             const requestsData = stats.recent_activity.map(item => item.requests);
             const completedData = stats.recent_activity.map(item => item.completed);
@@ -454,15 +478,15 @@ class GrammerDashboard {
             });
             
             this.charts.activity.updateSeries([{
-                name: 'Solicitudes',
+                name: 'Requests',
                 data: requestsData
             }, {
-                name: 'Completadas',
+                name: 'Completed',
                 data: completedData
             }]);
         }
         
-        // Actualizar gráfico de servicios
+        // Update services chart
         if (stats.by_service_type && this.charts.services) {
             const serviceData = [0, 0, 0]; // air, sea, land
             const serviceMap = { 'air': 0, 'sea': 1, 'land': 2 };
@@ -479,12 +503,12 @@ class GrammerDashboard {
     }
     
     /**
-     * Actualiza la lista de usuarios más activos
+     * Update most active users list
      * @param {Array} topUsers 
      */
     updateTopUsers(topUsers) {
         if (!topUsers || topUsers.length === 0) {
-            this.topUsersList.innerHTML = '<div class="text-center py-3 text-muted">Sin datos disponibles</div>';
+            this.topUsersList.innerHTML = '<div class="text-center py-3 text-muted">No data available</div>';
             return;
         }
         
@@ -494,7 +518,7 @@ class GrammerDashboard {
             const userItem = document.createElement('div');
             userItem.className = 'p-3 border-bottom border-grammer-accent';
             
-            // Obtener iniciales del usuario
+            // Get user initials
             const initials = user.user_name
                 .split(' ')
                 .map(name => name.charAt(0))
@@ -511,7 +535,7 @@ class GrammerDashboard {
                         </div>
                         <div class="ms-3">
                             <div class="fw-bold text-grammer-primary">${Utils.sanitizeString(user.user_name)}</div>
-                            <small class="text-muted">Usuario activo</small>
+                            <small class="text-muted">Active user</small>
                         </div>
                     </div>
                     <span class="grammer-badge bg-grammer-primary">${user.request_count}</span>
@@ -523,7 +547,7 @@ class GrammerDashboard {
     }
     
     /**
-     * Muestra los detalles de una solicitud
+     * Show request details
      * @param {number} requestId 
      */
     async showRequestDetails(requestId) {
@@ -532,59 +556,60 @@ class GrammerDashboard {
             modalContent.innerHTML = `
                 <div class="text-center py-4">
                     <div class="spinner-border text-grammer-primary"></div>
-                    <p class="mt-2 text-grammer-primary">Cargando detalles GRAMMER...</p>
+                    <p class="mt-2 text-grammer-primary">Loading GRAMMER details...</p>
                 </div>
             `;
             
             this.requestDetailsModal.show();
             
-            // Obtener detalles de la solicitud
+            // Get request details
             const requests = await API.getShippingRequests({ id: requestId });
             const request = requests.requests.find(r => r.id === requestId);
             
             if (!request) {
-                throw new Error('Solicitud no encontrada');
+                throw new Error('Request not found');
             }
             
             modalContent.innerHTML = this.generateRequestDetailsHTML(request);
             
         } catch (error) {
             document.getElementById('requestDetailsContent').innerHTML = 
-                '<div class="alert alert-danger">Error cargando detalles: ' + error.message + '</div>';
+                '<div class="alert alert-danger">Error loading details: ' + error.message + '</div>';
             Utils.handleError(error, 'Show request details');
         }
     }
     
     /**
-     * Genera el HTML para los detalles de una solicitud con estilo GRAMMER
+     * Generate HTML for request details with GRAMMER style
      * @param {Object} request 
      * @returns {string}
      */
     generateRequestDetailsHTML(request) {
         const serviceTypeNames = {
-            'air': 'Aéreo',
-            'sea': 'Marítimo', 
-            'land': 'Terrestre'
+            'air': 'Air',
+            'sea': 'Sea', 
+            'land': 'Land'
         };
         
         const statusNames = {
-            'pending': 'Pendiente',
-            'quoting': 'Cotizando',
-            'completed': 'Completado',
-            'canceled': 'Cancelado'
+            'pending': 'Pending',
+            'quoting': 'Quoting',
+            'completed': 'Completed',
+            'canceled': 'Canceled'
         };
 
-        // Obtener información de direcciones desde method_details
-        const originInfo = this.getOriginInfo(request);
-        const destinationInfo = this.getDestinationInfo(request);
-        const packageInfo = this.getPackageInfo(request);
+        const methodNames = {
+            'fedex': 'Fedex Express',
+            'aereo_maritimo': 'Air-Sea',
+            'nacional': 'Domestic'
+        };
         
         return `
             <div class="row">
                 <div class="col-md-6 mb-4">
                     <div class="grammer-info-card p-3">
                         <h6 class="text-grammer-primary mb-3">
-                            <i class="fas fa-info-circle me-2"></i>Información General
+                            <i class="fas fa-info-circle me-2"></i>General Information
                         </h6>
                         <div class="row g-3">
                             <div class="col-12">
@@ -592,31 +617,31 @@ class GrammerDashboard {
                                 <span class="ms-2">#${request.id}</span>
                             </div>
                             <div class="col-12">
-                                <strong class="text-grammer-primary">Referencia:</strong>
+                                <strong class="text-grammer-primary">Reference:</strong>
                                 <span class="ms-2">${request.internal_reference || 'N/A'}</span>
                             </div>
                             <div class="col-12">
-                                <strong class="text-grammer-primary">Usuario:</strong>
+                                <strong class="text-grammer-primary">User:</strong>
                                 <span class="ms-2">${Utils.sanitizeString(request.user_name)}</span>
                             </div>
                             <div class="col-12">
-                                <strong class="text-grammer-primary">Área:</strong>
+                                <strong class="text-grammer-primary">Area:</strong>
                                 <span class="ms-2">${request.company_area || 'N/A'}</span>
                             </div>
                             <div class="col-12">
-                                <strong class="text-grammer-primary">Método:</strong>
+                                <strong class="text-grammer-primary">Method:</strong>
                                 <span class="grammer-badge bg-grammer-secondary ms-2">
-                                    ${this.getMethodDisplayName(request.shipping_method)}
+                                    ${methodNames[request.shipping_method] || request.shipping_method}
                                 </span>
                             </div>
                             <div class="col-12">
-                                <strong class="text-grammer-primary">Servicio:</strong>
+                                <strong class="text-grammer-primary">Service:</strong>
                                 <span class="grammer-badge bg-grammer-accent ms-2">
                                     ${serviceTypeNames[request.service_type] || request.service_type}
                                 </span>
                             </div>
                             <div class="col-12">
-                                <strong class="text-grammer-primary">Estado:</strong>
+                                <strong class="text-grammer-primary">Status:</strong>
                                 <span class="grammer-badge ${this.getStatusBadgeClass(request.status)} ms-2">
                                     ${statusNames[request.status] || request.status}
                                 </span>
@@ -628,19 +653,19 @@ class GrammerDashboard {
                 <div class="col-md-6 mb-4">
                     <div class="grammer-info-card p-3">
                         <h6 class="text-grammer-primary mb-3">
-                            <i class="fas fa-chart-bar me-2"></i>Estado de Cotizaciones
+                            <i class="fas fa-chart-bar me-2"></i>Quote Status
                         </h6>
                         <div class="row g-3">
                             <div class="col-6">
                                 <div class="text-center">
                                     <div class="h4 text-grammer-accent">${request.quote_status.total_quotes}</div>
-                                    <small class="text-muted">Total Recibidas</small>
+                                    <small class="text-muted">Total Received</small>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="text-center">
                                     <div class="h4 text-grammer-success">${request.quote_status.selected_quotes}</div>
-                                    <small class="text-muted">Seleccionadas</small>
+                                    <small class="text-muted">Selected</small>
                                 </div>
                             </div>
                         </div>
@@ -648,13 +673,13 @@ class GrammerDashboard {
                         ${request.quote_status.has_quotes ? `
                         <div class="mt-3 text-center">
                             <button class="btn btn-grammer-primary" onclick="grammerDashboard.showQuotes(${request.id})">
-                                <i class="fas fa-calculator me-2"></i>Ver Cotizaciones
+                                <i class="fas fa-calculator me-2"></i>View Quotes
                             </button>
                         </div>
                         ` : `
                         <div class="alert alert-warning mt-3 mb-0">
                             <i class="fas fa-clock me-2"></i>
-                            Aún no se han recibido cotizaciones.
+                            No quotes received yet.
                         </div>
                         `}
                     </div>
@@ -662,1104 +687,190 @@ class GrammerDashboard {
             </div>
 
             <div class="row">
-                <div class="col-md-6 mb-4">
+                <div class="col-12">
                     <div class="grammer-info-card p-3">
                         <h6 class="text-grammer-primary mb-3">
-                            <i class="fas fa-map-marker-alt me-2"></i>Origen
+                            <i class="fas fa-route me-2"></i>Route Information
                         </h6>
                         <div class="text-grammer-primary">
-                            <div><strong>País:</strong> ${originInfo.country}</div>
-                            <div><strong>Dirección:</strong> ${originInfo.address}</div>
-                            ${originInfo.contact ? `<div><strong>Contacto:</strong> ${originInfo.contact}</div>` : ''}
-                            ${originInfo.phone ? `<div><strong>Teléfono:</strong> ${originInfo.phone}</div>` : ''}
-                            ${originInfo.email ? `<div><strong>Email:</strong> <a href="mailto:${originInfo.email}" class="text-grammer-accent">${originInfo.email}</a></div>` : ''}
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 mb-4">
-                    <div class="grammer-info-card p-3">
-                        <h6 class="text-grammer-primary mb-3">
-                            <i class="fas fa-flag-checkered me-2"></i>Destino
-                        </h6>
-                        <div class="text-grammer-primary">
-                            <div><strong>País:</strong> ${destinationInfo.country}</div>
-                            <div><strong>Dirección:</strong> ${destinationInfo.address}</div>
-                            ${destinationInfo.contact ? `<div><strong>Contacto:</strong> ${destinationInfo.contact}</div>` : ''}
-                            ${destinationInfo.company ? `<div><strong>Empresa:</strong> ${destinationInfo.company}</div>` : ''}
-                            ${destinationInfo.email ? `<div><strong>Email:</strong> <a href="mailto:${destinationInfo.email}" class="text-grammer-accent">${destinationInfo.email}</a></div>` : ''}
+                            <div><strong>Origin:</strong> ${request.route_info.origin_country || 'N/A'}</div>
+                            <div><strong>Destination:</strong> ${request.route_info.destination_country || 'N/A'}</div>
+                            <div><strong>Type:</strong> ${request.route_info.is_international ? 'International' : 'Domestic'}</div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            ${packageInfo.html}
-
-            ${this.getMethodSpecificDetailsHTML(request)}
         `;
     }
-
+    
     /**
-     * Obtiene información del origen basada en el método de envío
+     * Show quotes modal
+     * @param {number} requestId 
      */
-    getOriginInfo(request) {
-        const defaultInfo = {
-            country: request.route_info?.origin_country || 'N/A',
-            address: 'N/A',
-            contact: null,
-            phone: null,
-            email: null // Nuevo campo
-        };
-
-        if (!request.method_details) return defaultInfo;
-
-        const details = request.method_details;
-        
-        switch (request.shipping_method) {
-            case 'nacional':
-                return {
-                    country: 'México',
-                    address: details.pickup_address || 'N/A',
-                    contact: details.contact_name || null,
-                    phone: details.contact_phone || null,
-                    email: details.contact_email || null // Nuevo campo
-                };
-                
-            case 'fedex':
-                return {
-                    country: request.route_info?.origin_country || 'N/A',
-                    address: details.origin_address || 'N/A',
-                    contact: details.origin_contact_name || null,
-                    phone: details.origin_contact_phone || null,
-                    email: details.origin_contact_email || null // Nuevo campo
-                };
-                
-            case 'aereo_maritimo':
-                return {
-                    country: request.route_info?.origin_country || 'N/A',
-                    address: details.pickup_address || 'N/A',
-                    contact: details.contact_name || null,
-                    phone: details.contact_phone || null,
-                    email: details.contact_email || null // Nuevo campo
-                };
-                
-            default:
-                return defaultInfo;
+    async showQuotes(requestId) {
+        try {
+            const modalContent = document.getElementById('quotesModalContent');
+            modalContent.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border text-grammer-primary"></div>
+                    <p class="mt-2 text-grammer-primary">Loading quotes...</p>
+                </div>
+            `;
+            
+            this.quotesModal.show();
+            
+            // Get quotes
+            const quotesData = await API.getQuotes({ request_id: requestId });
+            
+            modalContent.innerHTML = this.generateQuotesHTML(quotesData.quotes);
+            
+        } catch (error) {
+            document.getElementById('quotesModalContent').innerHTML = 
+                '<div class="alert alert-danger">Error loading quotes: ' + error.message + '</div>';
+            Utils.handleError(error, 'Show quotes');
         }
     }
-
+    
     /**
-     * Obtiene información del destino basada en el método de envío
-     */
-    getDestinationInfo(request) {
-        const defaultInfo = {
-            country: request.route_info?.destination_country || 'N/A',
-            address: 'N/A',
-            contact: null,
-            company: null,
-            email: null // Nuevo campo
-        };
-
-        if (!request.method_details) return defaultInfo;
-
-        const details = request.method_details;
-        
-        switch (request.shipping_method) {
-            case 'nacional':
-                return {
-                    country: 'México',
-                    address: details.delivery_place || 'N/A',
-                    contact: null,
-                    company: null,
-                    email: null
-                };
-                
-            case 'fedex':
-                return {
-                    country: request.route_info?.destination_country || 'N/A',
-                    address: details.destination_address || 'N/A',
-                    contact: details.destination_contact_name || null,
-                    company: details.destination_company_name || null,
-                    email: details.destination_contact_email || null // Nuevo campo
-                };
-                
-            case 'aereo_maritimo':
-                return {
-                    country: request.route_info?.destination_country || 'N/A',
-                    address: details.delivery_place || 'N/A',
-                    contact: details.destination_contact_name || null,
-                    company: details.destination_company_name || null,
-                    email: null // Aéreo-marítimo no tiene email de destino
-                };
-                
-            default:
-                return defaultInfo;
-        }
-    }
-
-    /**
-     * Genera el HTML para los detalles de una solicitud con estilo GRAMMER
-     * @param {Object} request 
+     * Generate quotes HTML
+     * @param {Array} quotes 
      * @returns {string}
      */
-    generateRequestDetailsHTML(request) {
-        const serviceTypeNames = {
-            'air': 'Aéreo',
-            'sea': 'Marítimo', 
-            'land': 'Terrestre'
-        };
+    generateQuotesHTML(quotes) {
+        if (!quotes || quotes.length === 0) {
+            return '<div class="alert alert-info">No quotes available for this request.</div>';
+        }
         
-        const statusNames = {
-            'pending': 'Pendiente',
-            'quoting': 'Cotizando',
-            'completed': 'Completado',
-            'canceled': 'Cancelado'
-        };
-
-        // Obtener información de direcciones desde method_details
-        const originInfo = this.getOriginInfo(request);
-        const destinationInfo = this.getDestinationInfo(request);
-        const packageInfo = this.getPackageInfo(request);
+        let html = '<div class="row">';
         
-        return `
-            <div class="row">
-                <div class="col-md-6 mb-4">
-                    <div class="grammer-info-card p-3">
-                        <h6 class="text-grammer-primary mb-3">
-                            <i class="fas fa-info-circle me-2"></i>Información General
-                        </h6>
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">ID:</strong>
-                                <span class="ms-2">#${request.id}</span>
-                            </div>
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">Referencia:</strong>
-                                <span class="ms-2">${request.internal_reference || 'N/A'}</span>
-                            </div>
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">Usuario:</strong>
-                                <span class="ms-2">${Utils.sanitizeString(request.user_name)}</span>
-                            </div>
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">Área:</strong>
-                                <span class="ms-2">${request.company_area || 'N/A'}</span>
-                            </div>
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">Método:</strong>
-                                <span class="grammer-badge bg-grammer-secondary ms-2">
-                                    ${this.getMethodDisplayName(request.shipping_method)}
-                                </span>
-                            </div>
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">Servicio:</strong>
-                                <span class="grammer-badge bg-grammer-accent ms-2">
-                                    ${serviceTypeNames[request.service_type] || request.service_type}
-                                </span>
-                            </div>
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">Estado:</strong>
-                                <span class="grammer-badge ${this.getStatusBadgeClass(request.status)} ms-2">
-                                    ${statusNames[request.status] || request.status}
-                                </span>
-                            </div>
+        quotes.forEach((quote, index) => {
+            const costFormatted = new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: quote.currency || 'USD'
+            }).format(quote.cost);
+            
+            html += `
+                <div class="col-md-6 mb-3">
+                    <div class="card ${quote.is_selected ? 'border-success' : ''}">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <strong>${quote.carrier_name}</strong>
+                            ${quote.is_selected ? '<span class="badge bg-success">Selected</span>' : ''}
+                        </div>
+                        <div class="card-body">
+                            <div class="h5 text-grammer-primary mb-2">${costFormatted}</div>
+                            <p class="mb-2">
+                                <i class="fas fa-clock me-1"></i>
+                                <strong>Delivery:</strong> ${quote.estimated_delivery_time || 'N/A'}
+                            </p>
+                            <p class="mb-0">
+                                <i class="fas fa-calendar me-1"></i>
+                                <strong>Created:</strong> ${Utils.formatDate(quote.created_at)}
+                            </p>
                         </div>
                     </div>
                 </div>
-                
-                <div class="col-md-6 mb-4">
-                    <div class="grammer-info-card p-3">
-                        <h6 class="text-grammer-primary mb-3">
-                            <i class="fas fa-chart-bar me-2"></i>Estado de Cotizaciones
-                        </h6>
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="text-center">
-                                    <div class="h4 text-grammer-accent">${request.quote_status.total_quotes}</div>
-                                    <small class="text-muted">Total Recibidas</small>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="text-center">
-                                    <div class="h4 text-grammer-success">${request.quote_status.selected_quotes}</div>
-                                    <small class="text-muted">Seleccionadas</small>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        ${request.quote_status.has_quotes ? `
-                        <div class="mt-3 text-center">
-                            <button class="btn btn-grammer-primary" onclick="grammerDashboard.showQuotes(${request.id})">
-                                <i class="fas fa-calculator me-2"></i>Ver Cotizaciones
-                            </button>
-                        </div>
-                        ` : `
-                        <div class="alert alert-warning mt-3 mb-0">
-                            <i class="fas fa-clock me-2"></i>
-                            Aún no se han recibido cotizaciones.
-                        </div>
-                        `}
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6 mb-4">
-                    <div class="grammer-info-card p-3">
-                        <h6 class="text-grammer-primary mb-3">
-                            <i class="fas fa-map-marker-alt me-2"></i>Origen
-                        </h6>
-                        <div class="text-grammer-primary">
-                            <div><strong>País:</strong> ${originInfo.country}</div>
-                            <div><strong>Dirección:</strong> ${originInfo.address}</div>
-                            ${originInfo.contact ? `<div><strong>Contacto:</strong> ${originInfo.contact}</div>` : ''}
-                            ${originInfo.phone ? `<div><strong>Teléfono:</strong> ${originInfo.phone}</div>` : ''}
-                            ${originInfo.email ? `<div><strong>Email:</strong> <a href="mailto:${originInfo.email}" class="text-grammer-accent">${originInfo.email}</a></div>` : ''}
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 mb-4">
-                    <div class="grammer-info-card p-3">
-                        <h6 class="text-grammer-primary mb-3">
-                            <i class="fas fa-flag-checkered me-2"></i>Destino
-                        </h6>
-                        <div class="text-grammer-primary">
-                            <div><strong>País:</strong> ${destinationInfo.country}</div>
-                            <div><strong>Dirección:</strong> ${destinationInfo.address}</div>
-                            ${destinationInfo.contact ? `<div><strong>Contacto:</strong> ${destinationInfo.contact}</div>` : ''}
-                            ${destinationInfo.company ? `<div><strong>Empresa:</strong> ${destinationInfo.company}</div>` : ''}
-                            ${destinationInfo.email ? `<div><strong>Email:</strong> <a href="mailto:${destinationInfo.email}" class="text-grammer-accent">${destinationInfo.email}</a></div>` : ''}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            ${packageInfo.html}
-
-            ${this.getMethodSpecificDetailsHTML(request)}
-        `;
+            `;
+        });
+        
+        html += '</div>';
+        return html;
     }
-
+    
     /**
-     * Obtiene información del origen basada en el método de envío
+     * Show/hide loading state
      */
-    getOriginInfo(request) {
-        const defaultInfo = {
-            country: request.route_info?.origin_country || 'N/A',
-            address: 'N/A',
-            contact: null,
-            phone: null,
-            email: null // Nuevo campo
-        };
-
-        if (!request.method_details) return defaultInfo;
-
-        const details = request.method_details;
-        
-        switch (request.shipping_method) {
-            case 'nacional':
-                return {
-                    country: 'México',
-                    address: details.pickup_address || 'N/A',
-                    contact: details.contact_name || null,
-                    phone: details.contact_phone || null,
-                    email: details.contact_email || null // Nuevo campo
-                };
-                
-            case 'fedex':
-                return {
-                    country: request.route_info?.origin_country || 'N/A',
-                    address: details.origin_address || 'N/A',
-                    contact: details.origin_contact_name || null,
-                    phone: details.origin_contact_phone || null,
-                    email: details.origin_contact_email || null // Nuevo campo
-                };
-                
-            case 'aereo_maritimo':
-                return {
-                    country: request.route_info?.origin_country || 'N/A',
-                    address: details.pickup_address || 'N/A',
-                    contact: details.contact_name || null,
-                    phone: details.contact_phone || null,
-                    email: details.contact_email || null // Nuevo campo
-                };
-                
-            default:
-                return defaultInfo;
+    showLoadingState(show) {
+        if (show) {
+            this.loadingState.classList.remove('d-none');
+            this.emptyState.classList.add('d-none');
+        } else {
+            this.loadingState.classList.add('d-none');
         }
     }
-
+    
     /**
-     * Obtiene información del destino basada en el método de envío
+     * Show/hide empty state
      */
-    getDestinationInfo(request) {
-        const defaultInfo = {
-            country: request.route_info?.destination_country || 'N/A',
-            address: 'N/A',
-            contact: null,
-            company: null,
-            email: null // Nuevo campo
-        };
-
-        if (!request.method_details) return defaultInfo;
-
-        const details = request.method_details;
-        
-        switch (request.shipping_method) {
-            case 'nacional':
-                return {
-                    country: 'México',
-                    address: details.delivery_place || 'N/A',
-                    contact: null,
-                    company: null,
-                    email: null
-                };
-                
-            case 'fedex':
-                return {
-                    country: request.route_info?.destination_country || 'N/A',
-                    address: details.destination_address || 'N/A',
-                    contact: details.destination_contact_name || null,
-                    company: details.destination_company_name || null,
-                    email: details.destination_contact_email || null // Nuevo campo
-                };
-                
-            case 'aereo_maritimo':
-                return {
-                    country: request.route_info?.destination_country || 'N/A',
-                    address: details.delivery_place || 'N/A',
-                    contact: details.destination_contact_name || null,
-                    company: details.destination_company_name || null,
-                    email: null // Aéreo-marítimo no tiene email de destino
-                };
-                
-            default:
-                return defaultInfo;
+    showEmptyState(show) {
+        if (show) {
+            this.emptyState.classList.remove('d-none');
+            this.loadingState.classList.add('d-none');
+        } else {
+            this.emptyState.classList.add('d-none');
         }
     }
-
+    
     /**
-     * Genera el HTML para los detalles de una solicitud con estilo GRAMMER
-     * @param {Object} request 
-     * @returns {string}
+     * Update auto-refresh indicator
      */
-    generateRequestDetailsHTML(request) {
-        const serviceTypeNames = {
-            'air': 'Aéreo',
-            'sea': 'Marítimo', 
-            'land': 'Terrestre'
-        };
-        
-        const statusNames = {
-            'pending': 'Pendiente',
-            'quoting': 'Cotizando',
-            'completed': 'Completado',
-            'canceled': 'Cancelado'
-        };
-
-        // Obtener información de direcciones desde method_details
-        const originInfo = this.getOriginInfo(request);
-        const destinationInfo = this.getDestinationInfo(request);
-        const packageInfo = this.getPackageInfo(request);
-        
-        return `
-            <div class="row">
-                <div class="col-md-6 mb-4">
-                    <div class="grammer-info-card p-3">
-                        <h6 class="text-grammer-primary mb-3">
-                            <i class="fas fa-info-circle me-2"></i>Información General
-                        </h6>
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">ID:</strong>
-                                <span class="ms-2">#${request.id}</span>
-                            </div>
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">Referencia:</strong>
-                                <span class="ms-2">${request.internal_reference || 'N/A'}</span>
-                            </div>
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">Usuario:</strong>
-                                <span class="ms-2">${Utils.sanitizeString(request.user_name)}</span>
-                            </div>
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">Área:</strong>
-                                <span class="ms-2">${request.company_area || 'N/A'}</span>
-                            </div>
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">Método:</strong>
-                                <span class="grammer-badge bg-grammer-secondary ms-2">
-                                    ${this.getMethodDisplayName(request.shipping_method)}
-                                </span>
-                            </div>
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">Servicio:</strong>
-                                <span class="grammer-badge bg-grammer-accent ms-2">
-                                    ${serviceTypeNames[request.service_type] || request.service_type}
-                                </span>
-                            </div>
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">Estado:</strong>
-                                <span class="grammer-badge ${this.getStatusBadgeClass(request.status)} ms-2">
-                                    ${statusNames[request.status] || request.status}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 mb-4">
-                    <div class="grammer-info-card p-3">
-                        <h6 class="text-grammer-primary mb-3">
-                            <i class="fas fa-chart-bar me-2"></i>Estado de Cotizaciones
-                        </h6>
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="text-center">
-                                    <div class="h4 text-grammer-accent">${request.quote_status.total_quotes}</div>
-                                    <small class="text-muted">Total Recibidas</small>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="text-center">
-                                    <div class="h4 text-grammer-success">${request.quote_status.selected_quotes}</div>
-                                    <small class="text-muted">Seleccionadas</small>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        ${request.quote_status.has_quotes ? `
-                        <div class="mt-3 text-center">
-                            <button class="btn btn-grammer-primary" onclick="grammerDashboard.showQuotes(${request.id})">
-                                <i class="fas fa-calculator me-2"></i>Ver Cotizaciones
-                            </button>
-                        </div>
-                        ` : `
-                        <div class="alert alert-warning mt-3 mb-0">
-                            <i class="fas fa-clock me-2"></i>
-                            Aún no se han recibido cotizaciones.
-                        </div>
-                        `}
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6 mb-4">
-                    <div class="grammer-info-card p-3">
-                        <h6 class="text-grammer-primary mb-3">
-                            <i class="fas fa-map-marker-alt me-2"></i>Origen
-                        </h6>
-                        <div class="text-grammer-primary">
-                            <div><strong>País:</strong> ${originInfo.country}</div>
-                            <div><strong>Dirección:</strong> ${originInfo.address}</div>
-                            ${originInfo.contact ? `<div><strong>Contacto:</strong> ${originInfo.contact}</div>` : ''}
-                            ${originInfo.phone ? `<div><strong>Teléfono:</strong> ${originInfo.phone}</div>` : ''}
-                            ${originInfo.email ? `<div><strong>Email:</strong> <a href="mailto:${originInfo.email}" class="text-grammer-accent">${originInfo.email}</a></div>` : ''}
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 mb-4">
-                    <div class="grammer-info-card p-3">
-                        <h6 class="text-grammer-primary mb-3">
-                            <i class="fas fa-flag-checkered me-2"></i>Destino
-                        </h6>
-                        <div class="text-grammer-primary">
-                            <div><strong>País:</strong> ${destinationInfo.country}</div>
-                            <div><strong>Dirección:</strong> ${destinationInfo.address}</div>
-                            ${destinationInfo.contact ? `<div><strong>Contacto:</strong> ${destinationInfo.contact}</div>` : ''}
-                            ${destinationInfo.company ? `<div><strong>Empresa:</strong> ${destinationInfo.company}</div>` : ''}
-                            ${destinationInfo.email ? `<div><strong>Email:</strong> <a href="mailto:${destinationInfo.email}" class="text-grammer-accent">${destinationInfo.email}</a></div>` : ''}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            ${packageInfo.html}
-
-            ${this.getMethodSpecificDetailsHTML(request)}
-        `;
-    }
-
-    /**
-     * Obtiene información del origen basada en el método de envío
-     */
-    getOriginInfo(request) {
-        const defaultInfo = {
-            country: request.route_info?.origin_country || 'N/A',
-            address: 'N/A',
-            contact: null,
-            phone: null,
-            email: null // Nuevo campo
-        };
-
-        if (!request.method_details) return defaultInfo;
-
-        const details = request.method_details;
-        
-        switch (request.shipping_method) {
-            case 'nacional':
-                return {
-                    country: 'México',
-                    address: details.pickup_address || 'N/A',
-                    contact: details.contact_name || null,
-                    phone: details.contact_phone || null,
-                    email: details.contact_email || null // Nuevo campo
-                };
-                
-            case 'fedex':
-                return {
-                    country: request.route_info?.origin_country || 'N/A',
-                    address: details.origin_address || 'N/A',
-                    contact: details.origin_contact_name || null,
-                    phone: details.origin_contact_phone || null,
-                    email: details.origin_contact_email || null // Nuevo campo
-                };
-                
-            case 'aereo_maritimo':
-                return {
-                    country: request.route_info?.origin_country || 'N/A',
-                    address: details.pickup_address || 'N/A',
-                    contact: details.contact_name || null,
-                    phone: details.contact_phone || null,
-                    email: details.contact_email || null // Nuevo campo
-                };
-                
-            default:
-                return defaultInfo;
+    updateAutoRefreshIndicator() {
+        if (this.autoRefreshIndicator && this.lastUpdate) {
+            const timeStr = this.lastUpdate.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            this.autoRefreshIndicator.innerHTML = `
+                <i class="fas fa-wifi"></i>
+                <small>Updated at ${timeStr}</small>
+            `;
         }
     }
-
+    
     /**
-     * Obtiene información del destino basada en el método de envío
+     * Start auto-refresh functionality
      */
-    getDestinationInfo(request) {
-        const defaultInfo = {
-            country: request.route_info?.destination_country || 'N/A',
-            address: 'N/A',
-            contact: null,
-            company: null,
-            email: null // Nuevo campo
-        };
-
-        if (!request.method_details) return defaultInfo;
-
-        const details = request.method_details;
+    startAutoRefresh() {
+        // Refresh every 30 seconds
+        this.pollingInstance = setInterval(() => {
+            if (!document.hidden) {
+                this.refreshData();
+            }
+        }, 30000);
         
-        switch (request.shipping_method) {
-            case 'nacional':
-                return {
-                    country: 'México',
-                    address: details.delivery_place || 'N/A',
-                    contact: null,
-                    company: null,
-                    email: null
-                };
-                
-            case 'fedex':
-                return {
-                    country: request.route_info?.destination_country || 'N/A',
-                    address: details.destination_address || 'N/A',
-                    contact: details.destination_contact_name || null,
-                    company: details.destination_company_name || null,
-                    email: details.destination_contact_email || null // Nuevo campo
-                };
-                
-            case 'aereo_maritimo':
-                return {
-                    country: request.route_info?.destination_country || 'N/A',
-                    address: details.delivery_place || 'N/A',
-                    contact: details.destination_contact_name || null,
-                    company: details.destination_company_name || null,
-                    email: null // Aéreo-marítimo no tiene email de destino
-                };
-                
-            default:
-                return defaultInfo;
+        console.log('🔄 Auto-refresh started');
+    }
+    
+    /**
+     * Handle visibility change for pausing/resuming
+     */
+    handleVisibilityChange() {
+        if (document.hidden) {
+            console.log('🔄 Dashboard hidden - polling paused');
+        } else {
+            console.log('🔄 Dashboard visible - polling resumed');
+            // Refresh data when coming back
+            this.refreshData();
         }
     }
-
+    
     /**
-     * Genera el HTML para los detalles de una solicitud con estilo GRAMMER
-     * @param {Object} request 
-     * @returns {string}
+     * Cleanup resources
      */
-    generateRequestDetailsHTML(request) {
-        const serviceTypeNames = {
-            'air': 'Aéreo',
-            'sea': 'Marítimo', 
-            'land': 'Terrestre'
-        };
-        
-        const statusNames = {
-            'pending': 'Pendiente',
-            'quoting': 'Cotizando',
-            'completed': 'Completado',
-            'canceled': 'Cancelado'
-        };
-
-        // Obtener información de direcciones desde method_details
-        const originInfo = this.getOriginInfo(request);
-        const destinationInfo = this.getDestinationInfo(request);
-        const packageInfo = this.getPackageInfo(request);
-        
-        return `
-            <div class="row">
-                <div class="col-md-6 mb-4">
-                    <div class="grammer-info-card p-3">
-                        <h6 class="text-grammer-primary mb-3">
-                            <i class="fas fa-info-circle me-2"></i>Información General
-                        </h6>
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">ID:</strong>
-                                <span class="ms-2">#${request.id}</span>
-                            </div>
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">Referencia:</strong>
-                                <span class="ms-2">${request.internal_reference || 'N/A'}</span>
-                            </div>
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">Usuario:</strong>
-                                <span class="ms-2">${Utils.sanitizeString(request.user_name)}</span>
-                            </div>
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">Área:</strong>
-                                <span class="ms-2">${request.company_area || 'N/A'}</span>
-                            </div>
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">Método:</strong>
-                                <span class="grammer-badge bg-grammer-secondary ms-2">
-                                    ${this.getMethodDisplayName(request.shipping_method)}
-                                </span>
-                            </div>
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">Servicio:</strong>
-                                <span class="grammer-badge bg-grammer-accent ms-2">
-                                    ${serviceTypeNames[request.service_type] || request.service_type}
-                                </span>
-                            </div>
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">Estado:</strong>
-                                <span class="grammer-badge ${this.getStatusBadgeClass(request.status)} ms-2">
-                                    ${statusNames[request.status] || request.status}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 mb-4">
-                    <div class="grammer-info-card p-3">
-                        <h6 class="text-grammer-primary mb-3">
-                            <i class="fas fa-chart-bar me-2"></i>Estado de Cotizaciones
-                        </h6>
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="text-center">
-                                    <div class="h4 text-grammer-accent">${request.quote_status.total_quotes}</div>
-                                    <small class="text-muted">Total Recibidas</small>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="text-center">
-                                    <div class="h4 text-grammer-success">${request.quote_status.selected_quotes}</div>
-                                    <small class="text-muted">Seleccionadas</small>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        ${request.quote_status.has_quotes ? `
-                        <div class="mt-3 text-center">
-                            <button class="btn btn-grammer-primary" onclick="grammerDashboard.showQuotes(${request.id})">
-                                <i class="fas fa-calculator me-2"></i>Ver Cotizaciones
-                            </button>
-                        </div>
-                        ` : `
-                        <div class="alert alert-warning mt-3 mb-0">
-                            <i class="fas fa-clock me-2"></i>
-                            Aún no se han recibido cotizaciones.
-                        </div>
-                        `}
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6 mb-4">
-                    <div class="grammer-info-card p-3">
-                        <h6 class="text-grammer-primary mb-3">
-                            <i class="fas fa-map-marker-alt me-2"></i>Origen
-                        </h6>
-                        <div class="text-grammer-primary">
-                            <div><strong>País:</strong> ${originInfo.country}</div>
-                            <div><strong>Dirección:</strong> ${originInfo.address}</div>
-                            ${originInfo.contact ? `<div><strong>Contacto:</strong> ${originInfo.contact}</div>` : ''}
-                            ${originInfo.phone ? `<div><strong>Teléfono:</strong> ${originInfo.phone}</div>` : ''}
-                            ${originInfo.email ? `<div><strong>Email:</strong> <a href="mailto:${originInfo.email}" class="text-grammer-accent">${originInfo.email}</a></div>` : ''}
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 mb-4">
-                    <div class="grammer-info-card p-3">
-                        <h6 class="text-grammer-primary mb-3">
-                            <i class="fas fa-flag-checkered me-2"></i>Destino
-                        </h6>
-                        <div class="text-grammer-primary">
-                            <div><strong>País:</strong> ${destinationInfo.country}</div>
-                            <div><strong>Dirección:</strong> ${destinationInfo.address}</div>
-                            ${destinationInfo.contact ? `<div><strong>Contacto:</strong> ${destinationInfo.contact}</div>` : ''}
-                            ${destinationInfo.company ? `<div><strong>Empresa:</strong> ${destinationInfo.company}</div>` : ''}
-                            ${destinationInfo.email ? `<div><strong>Email:</strong> <a href="mailto:${destinationInfo.email}" class="text-grammer-accent">${destinationInfo.email}</a></div>` : ''}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            ${packageInfo.html}
-
-            ${this.getMethodSpecificDetailsHTML(request)}
-        `;
-    }
-
-    /**
-     * Obtiene información del origen basada en el método de envío
-     */
-    getOriginInfo(request) {
-        const defaultInfo = {
-            country: request.route_info?.origin_country || 'N/A',
-            address: 'N/A',
-            contact: null,
-            phone: null,
-            email: null // Nuevo campo
-        };
-
-        if (!request.method_details) return defaultInfo;
-
-        const details = request.method_details;
-        
-        switch (request.shipping_method) {
-            case 'nacional':
-                return {
-                    country: 'México',
-                    address: details.pickup_address || 'N/A',
-                    contact: details.contact_name || null,
-                    phone: details.contact_phone || null,
-                    email: details.contact_email || null // Nuevo campo
-                };
-                
-            case 'fedex':
-                return {
-                    country: request.route_info?.origin_country || 'N/A',
-                    address: details.origin_address || 'N/A',
-                    contact: details.origin_contact_name || null,
-                    phone: details.origin_contact_phone || null,
-                    email: details.origin_contact_email || null // Nuevo campo
-                };
-                
-            case 'aereo_maritimo':
-                return {
-                    country: request.route_info?.origin_country || 'N/A',
-                    address: details.pickup_address || 'N/A',
-                    contact: details.contact_name || null,
-                    phone: details.contact_phone || null,
-                    email: details.contact_email || null // Nuevo campo
-                };
-                
-            default:
-                return defaultInfo;
+    cleanup() {
+        if (this.pollingInstance) {
+            clearInterval(this.pollingInstance);
+            this.pollingInstance = null;
         }
-    }
-
-    /**
-     * Obtiene información del destino basada en el método de envío
-     */
-    getDestinationInfo(request) {
-        const defaultInfo = {
-            country: request.route_info?.destination_country || 'N/A',
-            address: 'N/A',
-            contact: null,
-            company: null,
-            email: null // Nuevo campo
-        };
-
-        if (!request.method_details) return defaultInfo;
-
-        const details = request.method_details;
         
-        switch (request.shipping_method) {
-            case 'nacional':
-                return {
-                    country: 'México',
-                    address: details.delivery_place || 'N/A',
-                    contact: null,
-                    company: null,
-                    email: null
-                };
-                
-            case 'fedex':
-                return {
-                    country: request.route_info?.destination_country || 'N/A',
-                    address: details.destination_address || 'N/A',
-                    contact: details.destination_contact_name || null,
-                    company: details.destination_company_name || null,
-                    email: details.destination_contact_email || null // Nuevo campo
-                };
-                
-            case 'aereo_maritimo':
-                return {
-                    country: request.route_info?.destination_country || 'N/A',
-                    address: details.delivery_place || 'N/A',
-                    contact: details.destination_contact_name || null,
-                    company: details.destination_company_name || null,
-                    email: null // Aéreo-marítimo no tiene email de destino
-                };
-                
-            default:
-                return defaultInfo;
+        // Destroy charts
+        if (this.charts.activity) {
+            this.charts.activity.destroy();
         }
-    }
-
-    /**
-     * Genera el HTML para los detalles de una solicitud con estilo GRAMMER
-     * @param {Object} request 
-     * @returns {string}
-     */
-    generateRequestDetailsHTML(request) {
-        const serviceTypeNames = {
-            'air': 'Aéreo',
-            'sea': 'Marítimo', 
-            'land': 'Terrestre'
-        };
-        
-        const statusNames = {
-            'pending': 'Pendiente',
-            'quoting': 'Cotizando',
-            'completed': 'Completado',
-            'canceled': 'Cancelado'
-        };
-
-        // Obtener información de direcciones desde method_details
-        const originInfo = this.getOriginInfo(request);
-        const destinationInfo = this.getDestinationInfo(request);
-        const packageInfo = this.getPackageInfo(request);
-        
-        return `
-            <div class="row">
-                <div class="col-md-6 mb-4">
-                    <div class="grammer-info-card p-3">
-                        <h6 class="text-grammer-primary mb-3">
-                            <i class="fas fa-info-circle me-2"></i>Información General
-                        </h6>
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">ID:</strong>
-                                <span class="ms-2">#${request.id}</span>
-                            </div>
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">Referencia:</strong>
-                                <span class="ms-2">${request.internal_reference || 'N/A'}</span>
-                            </div>
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">Usuario:</strong>
-                                <span class="ms-2">${Utils.sanitizeString(request.user_name)}</span>
-                            </div>
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">Área:</strong>
-                                <span class="ms-2">${request.company_area || 'N/A'}</span>
-                            </div>
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">Método:</strong>
-                                <span class="grammer-badge bg-grammer-secondary ms-2">
-                                    ${this.getMethodDisplayName(request.shipping_method)}
-                                </span>
-                            </div>
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">Servicio:</strong>
-                                <span class="grammer-badge bg-grammer-accent ms-2">
-                                    ${serviceTypeNames[request.service_type] || request.service_type}
-                                </span>
-                            </div>
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">Estado:</strong>
-                                <span class="grammer-badge ${this.getStatusBadgeClass(request.status)} ms-2">
-                                    ${statusNames[request.status] || request.status}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 mb-4">
-                    <div class="grammer-info-card p-3">
-                        <h6 class="text-grammer-primary mb-3">
-                            <i class="fas fa-chart-bar me-2"></i>Estado de Cotizaciones
-                        </h6>
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="text-center">
-                                    <div class="h4 text-grammer-accent">${request.quote_status.total_quotes}</div>
-                                    <small class="text-muted">Total Recibidas</small>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="text-center">
-                                    <div class="h4 text-grammer-success">${request.quote_status.selected_quotes}</div>
-                                    <small class="text-muted">Seleccionadas</small>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        ${request.quote_status.has_quotes ? `
-                        <div class="mt-3 text-center">
-                            <button class="btn btn-grammer-primary" onclick="grammerDashboard.showQuotes(${request.id})">
-                                <i class="fas fa-calculator me-2"></i>Ver Cotizaciones
-                            </button>
-                        </div>
-                        ` : `
-                        <div class="alert alert-warning mt-3 mb-0">
-                            <i class="fas fa-clock me-2"></i>
-                            Aún no se han recibido cotizaciones.
-                        </div>
-                        `}
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6 mb-4">
-                    <div class="grammer-info-card p-3">
-                        <h6 class="text-grammer-primary mb-3">
-                            <i class="fas fa-map-marker-alt me-2"></i>Origen
-                        </h6>
-                        <div class="text-grammer-primary">
-                            <div><strong>País:</strong> ${originInfo.country}</div>
-                            <div><strong>Dirección:</strong> ${originInfo.address}</div>
-                            ${originInfo.contact ? `<div><strong>Contacto:</strong> ${originInfo.contact}</div>` : ''}
-                            ${originInfo.phone ? `<div><strong>Teléfono:</strong> ${originInfo.phone}</div>` : ''}
-                            ${originInfo.email ? `<div><strong>Email:</strong> <a href="mailto:${originInfo.email}" class="text-grammer-accent">${originInfo.email}</a></div>` : ''}
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 mb-4">
-                    <div class="grammer-info-card p-3">
-                        <h6 class="text-grammer-primary mb-3">
-                            <i class="fas fa-flag-checkered me-2"></i>Destino
-                        </h6>
-                        <div class="text-grammer-primary">
-                            <div><strong>País:</strong> ${destinationInfo.country}</div>
-                            <div><strong>Dirección:</strong> ${destinationInfo.address}</div>
-                            ${destinationInfo.contact ? `<div><strong>Contacto:</strong> ${destinationInfo.contact}</div>` : ''}
-                            ${destinationInfo.company ? `<div><strong>Empresa:</strong> ${destinationInfo.company}</div>` : ''}
-                            ${destinationInfo.email ? `<div><strong>Email:</strong> <a href="mailto:${destinationInfo.email}" class="text-grammer-accent">${destinationInfo.email}</a></div>` : ''}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            ${packageInfo.html}
-
-            ${this.getMethodSpecificDetailsHTML(request)}
-        `;
-    }
-
-    /**
-     * Obtiene información del origen basada en el método de envío
-     */
-    getOriginInfo(request) {
-        const defaultInfo = {
-            country: request.route_info?.origin_country || 'N/A',
-            address: 'N/A',
-            contact: null,
-            phone: null,
-            email: null // Nuevo campo
-        };
-
-        if (!request.method_details) return defaultInfo;
-
-        const details = request.method_details;
-        
-        switch (request.shipping_method) {
-            case 'nacional':
-                return {
-                    country: 'México',
-                    address: details.pickup_address || 'N/A',
-                    contact: details.contact_name || null,
-                    phone: details.contact_phone || null,
-                    email: details.contact_email || null // Nuevo campo
-                };
-                
-            case 'fedex':
-                return {
-                    country: request.route_info?.origin_country || 'N/A',
-                    address: details.origin_address || 'N/A',
-                    contact: details.origin_contact_name || null,
-                    phone: details.origin_contact_phone || null,
-                    email: details.origin_contact_email || null // Nuevo campo
-                };
-                
-            case 'aereo_maritimo':
-                return {
-                    country: request.route_info?.origin_country || 'N/A',
-                    address: details.pickup_address || 'N/A',
-                    contact: details.contact_name || null,
-                    phone: details.contact_phone || null,
-                    email: details.contact_email || null // Nuevo campo
-                };
-                
-            default:
-                return defaultInfo;
+        if (this.charts.services) {
+            this.charts.services.destroy();
         }
-    }
-
-    /**
-     * Obtiene información del destino basada en el método de envío
-     */
-    getDestinationInfo(request) {
-        const defaultInfo = {
-            country: request.route_info?.destination_country || 'N/A',
-            address: 'N/A',
-            contact: null,
-            company: null,
-            email: null // Nuevo campo
-        };
-
-        if (!request.method_details) return defaultInfo;
-
-        const details = request.method_details;
         
-        switch (request.shipping_method) {
-            case 'nacional':
-                return {
-                    country: 'México',
-                    address: details.delivery_place || 'N/A',
-                    contact: null,
-                    company: null,
-                    email: null
-                };
-                
-            case 'fedex':
-                return {
-                    country: request.route_info?.destination_country || 'N/A',
-                    address: details.destination_address || 'N/A',
-                    contact: details.destination_contact_name || null,
-                    company: details.destination_company_name || null,
-                    email: details.destination_contact_email || null // Nuevo campo
-                };
-                
-            case 'aereo_maritimo':
-                return {
-                    country: request.route_info?.destination_country || 'N/A',
-                    address: details.delivery_place || 'N/A',
-                    contact: details.destination_contact_name || null,
-                    company: details.destination_company_name || null,
-                    email: null // Aéreo-marítimo no tiene email de destino
-                };
-                
-            default:
-                return defaultInfo;
-        }
+        console.log('📊 GRAMMER Dashboard cleaned up');
+    }
+}
+
+// Global instance
+let grammerDashboard;
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    grammerDashboard = new GrammerDashboard();
+    
+    // Make available globally for onclick handlers
+    window.grammerDashboard = grammerDashboard;
+});
