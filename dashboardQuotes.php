@@ -55,23 +55,7 @@ require_once 'dao/users/context_injector.php';
     <!-- Dynamic Header using same system as quotes.php -->
     <div id="header-container"></div>
 
-    <!-- Navigation Buttons Section -->
-    <div class="container-fluid mt-3 mb-4">
-        <div class="row">
-            <div class="col-12">
-                <div class="d-flex justify-content-center gap-3">
-                    <a href="cotizaciones/dashboardQuotes.php" class="btn btn-grammer-primary">
-                        <i class="fas fa-chart-line me-2"></i>
-                        Dashboard
-                    </a>
-                    <a href="cotizaciones/myQuotes.php" class="btn btn-outline-grammer-primary">
-                        <i class="fas fa-history me-2"></i>
-                        My Quotes History
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Main Content -->
     <main class="app-main-content">
@@ -242,7 +226,7 @@ require_once 'dao/users/context_injector.php';
                                 <i class="fas fa-inbox fa-3x text-grammer-accent mb-3"></i>
                                 <h5 class="text-grammer-primary">No requests found</h5>
                                 <p class="text-muted">No requests match the applied filters.</p>
-                                <a href="cotizaciones/index.php" class="btn btn-grammer-primary">
+                                <a href="index.php" class="btn btn-grammer-primary">
                                     <i class="fas fa-plus me-1"></i>
                                     Create New Request
                                 </a>

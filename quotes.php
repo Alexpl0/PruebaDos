@@ -52,34 +52,43 @@ require_once 'dao/users/context_injector.php';
     <!-- Dynamic Header using same system as quotes.php and newOrder.php -->
     <div id="header-container"></div>
 
-    <!-- Navigation Buttons Section -->
-    <div class="container-fluid mt-3 mb-4">
-        <div class="row">
-            <div class="col-12">
-                <div class="d-flex justify-content-center gap-3">
-                    <a href="cotizaciones/dashboardQuotes.php" class="btn btn-outline-grammer-primary">
-                        <i class="fas fa-chart-line me-2"></i>
-                        Dashboard
-                    </a>
-                    <a href="cotizaciones/myQuotes.php" class="btn btn-outline-grammer-primary">
-                        <i class="fas fa-history me-2"></i>
-                        My Quotes History
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Main Content with structure similar to newOrder.php -->
     <main class="container my-4">
-        <!-- Main title consistent with newOrder.php -->
+        <!-- Main title with integrated navigation -->
         <div class="text-center mb-4">
             <h1 class="mb-2">GRAMMER LOGISTICS & TRAFFIC</h1>
             <h2 class="mb-3" style="color: var(--grammer-blue);">Intelligent Quotation Portal</h2>
-            <div class="grammer-badge d-inline-flex align-items-center px-3 py-2 rounded-pill" 
-                 style="background: linear-gradient(135deg, var(--grammer-blue), var(--grammer-light-blue)); color: white;">
-                <i class="fas fa-shield-alt me-2"></i>
-                Secure System
+            
+            <!-- Navigation Cards -->
+            <div class="row justify-content-center mt-4">
+                <div class="col-md-8">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <a href="dashboardQuotes.php" class="nav-card-link text-decoration-none">
+                                <div class="nav-card h-100">
+                                    <div class="nav-card-icon">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <h6 class="nav-card-title">Dashboard</h6>
+                                    <p class="nav-card-description">View all requests and analytics</p>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="myQuotes.php" class="nav-card-link text-decoration-none">
+                                <div class="nav-card h-100">
+                                    <div class="nav-card-icon">
+                                        <i class="fas fa-history"></i>
+                                    </div>
+                                    <h6 class="nav-card-title">My Quotes History</h6>
+                                    <p class="nav-card-description">Track your personal requests</p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -100,7 +109,7 @@ require_once 'dao/users/context_injector.php';
                                 </small>
                             </div>
                             <div class="header-actions">
-                                <a href="cotizaciones/dashboardQuotes.php" class="btn btn-outline-primary btn-sm me-2">
+                                <a href="dashboardQuotes.php" class="btn btn-outline-primary btn-sm me-2">
                                     <i class="fas fa-chart-line me-1"></i>
                                     Dashboard
                                 </a>
