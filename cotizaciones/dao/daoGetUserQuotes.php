@@ -5,6 +5,17 @@
  * @author Alejandro Pérez
  */
 
+// Configurar headers y CORS al inicio
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
 // Configurar manejo de errores al inicio
 error_reporting(E_ALL);
 ini_set('log_errors', 1);
@@ -14,50 +25,35 @@ ini_set('display_errors', 0);
 require_once __DIR__ . '/config.php';  // config.php está en el mismo directorio
 
 // *** AHORA INCLUIR AUTH CHECK ***
-require_once __DIR__ . '/../dao/users/auth_check.php';  // Ruta correcta hacia PruebaDos
+require_once __DIR__ . '/../../dao/users/auth_check.php';  // Ruta correcta hacia PruebaDos
 
-// Configurar CORS headers al inicio
-setCorsHeaders();
+// Incluir conexión de base de datos
+require_once __DIR__ . '/db/db.php';
 
-// Debug temporal con mejor formato
-$debugLog = __DIR__ . '/error_debug.log';
-$debugInfo = [
-    'timestamp' => date('Y-m-d H:i:s'),
-    'method' => $_SERVER['REQUEST_METHOD'] ?? 'UNKNOWN',
-    'post_data' => file_get_contents('php://input'),
-    'session_status' => session_status(),
-    'session_id' => session_id(),
-    'user_session' => $_SESSION['user'] ?? 'NO SESSION',
-];
-
-file_put_contents($debugLog, json_encode($debugInfo, JSON_PRETTY_PRINT) . "\n\n", FILE_APPEND);
+function sendJsonResponse($success, $message, $data = null, $statusCode = 200) {
+    http_response_code($statusCode);
+    echo json_encode(['success' => $success, 'message' => $message, 'data' => $data]);
+    exit();
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     sendJsonResponse(false, 'Method not allowed. Use POST.', null, 405);
 }
 
-// Check if user is authenticated with better error details
+// Check if user is authenticated
 if (!isset($_SESSION['user']) || empty($_SESSION['user']['id'])) {
-    writeLog('warning', 'User not authenticated', [
-        'session_status' => session_status(),
-        'session_data' => isset($_SESSION['user']) ? 'exists but empty' : 'does not exist'
-    ]);
     sendJsonResponse(false, 'User not authenticated', null, 401);
 }
 
 $conex = null;
 
 try {
-    // Test database connection first
-    $conex = getDbConnection();
+    // Usar LocalConector como en daoGetQuotes.php
+    $con = new LocalConector();
+    $conex = $con->conectar();
+    
     if (!$conex) {
         throw new Exception('Database connection failed - check database configuration');
-    }
-
-    // Test connection with simple query
-    $testQuery = $conex->query("SELECT 1");
-    if (!$testQuery) {
-        throw new Exception('Database connection test failed: ' . $conex->error);
     }
 
     $input = file_get_contents('php://input');

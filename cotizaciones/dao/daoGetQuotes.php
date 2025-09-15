@@ -15,6 +15,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
+// *** INCLUIR CONFIG PRIMERO PARA EVITAR PROBLEMAS DE SESIÓN ***
+require_once __DIR__ . '/config.php';  // config.php está en el mismo directorio
+
+// *** AHORA INCLUIR AUTH CHECK ***
+require_once __DIR__ . '/../../dao/users/auth_check.php';  // Ruta correcta hacia PruebaDos
+
 require_once __DIR__ . '/db/db.php';
 
 function sendJsonResponse($success, $message, $data = null, $statusCode = 200) {
@@ -25,6 +31,11 @@ function sendJsonResponse($success, $message, $data = null, $statusCode = 200) {
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     sendJsonResponse(false, 'Method not allowed. Use POST.', null, 405);
+}
+
+// Check if user is authenticated
+if (!isset($_SESSION['user']) || empty($_SESSION['user']['id'])) {
+    sendJsonResponse(false, 'User not authenticated', null, 401);
 }
 
 $conex = null;
@@ -41,16 +52,27 @@ try {
     $con = new LocalConector();
     $conex = $con->conectar();
     
-    // Check if the request exists
-    $stmtReq = $conex->prepare("SELECT id, status, user_name FROM shipping_requests WHERE id = ?");
-    $stmtReq->bind_param("i", $requestId);
+    // Check if the request exists and belongs to user or allow admin access
+    $userCondition = "";
+    $params = [$requestId];
+    $types = "i";
+    
+    // If not admin, restrict to user's own requests
+    if ($_SESSION['user']['role'] !== 'admin') {
+        $userCondition = " AND user_name = ?";
+        $params[] = $_SESSION['user']['name'];
+        $types .= "s";
+    }
+    
+    $stmtReq = $conex->prepare("SELECT id, status, user_name FROM shipping_requests WHERE id = ?" . $userCondition);
+    $stmtReq->bind_param($types, ...$params);
     $stmtReq->execute();
     $requestResult = $stmtReq->get_result();
     $request = $requestResult->fetch_assoc();
     $stmtReq->close();
 
     if (!$request) {
-        throw new Exception('Request not found');
+        throw new Exception('Request not found or access denied');
     }
 
     // Get quotes with carrier information
