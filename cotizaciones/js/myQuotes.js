@@ -263,7 +263,7 @@ class UserQuotesHistory {
      * Fetch user quotes from API
      */
     async fetchUserQuotes() {
-        const response = await fetch('cotizaciones/dao/daoGetUserQuotes.php', {
+        const response = await fetch('../cotizaciones/dao/daoGetUserQuotes.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
