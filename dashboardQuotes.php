@@ -338,7 +338,7 @@ require_once 'dao/users/context_injector.php';
     <!-- Local Scripts -->
     <script src="js/config.js"></script>
     <script src="js/header.js" type="module"></script>
-    <script src="cotizaciones/js/config.js"></script>
+    <script src="cotizaciones/config.js"></script>
     <script type="module" src="cotizaciones/js/dashboard.js"></script>
 </body>
 </html>
