@@ -4,9 +4,9 @@
  * @author Alejandro Pérez
  */
 
-import API from 'modules/api.js';
-import Utils from 'modules/utils.js';
-import Notifications from 'modules/notifications.js';
+import API from './modules/api.js';
+import Utils from './modules/utils.js';
+import Notifications from './modules/notifications.js';
 
 class UserQuotesHistory {
     
