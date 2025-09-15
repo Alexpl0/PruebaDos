@@ -36,7 +36,6 @@ define('MAX_FILE_SIZE', 10 * 1024 * 1024); // 10MB
 define('UPLOAD_PATH', '../uploads/');
 define('LOG_PATH', '../logs/');
 
-
 // Configuración de tiempo
 define('EMAIL_CHECK_INTERVAL_MINUTES', 10);
 define('SESSION_TIMEOUT_HOURS', 8);
@@ -80,9 +79,12 @@ ini_set('display_errors', 0);  // No mostrar errores en producción
 ini_set('log_errors', 1);
 ini_set('error_log', LOG_PATH . 'php_errors.log');
 
-// Configurar sesiones
-ini_set('session.gc_maxlifetime', SESSION_TIMEOUT_HOURS * 3600);
-ini_set('session.cookie_lifetime', SESSION_TIMEOUT_HOURS * 3600);
+// *** CONFIGURACIÓN DE SESIONES CORREGIDA ***
+// Solo configurar sesiones si no están activas
+if (session_status() === PHP_SESSION_NONE) {
+    ini_set('session.gc_maxlifetime', SESSION_TIMEOUT_HOURS * 3600);
+    ini_set('session.cookie_lifetime', SESSION_TIMEOUT_HOURS * 3600);
+}
 
 /**
  * Configuración específica según el entorno

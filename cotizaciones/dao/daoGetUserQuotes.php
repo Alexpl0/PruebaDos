@@ -5,42 +5,79 @@
  * @author Alejandro Pérez
  */
 
-// Debug temporal
-file_put_contents(
-    __DIR__ . '/error_debug.log',
-    date('Y-m-d H:i:s') . " - Script started\n" .
-    "POST data: " . file_get_contents('php://input') . "\n",
-    FILE_APPEND
-);
+// Configurar manejo de errores al inicio
+error_reporting(E_ALL);
+ini_set('log_errors', 1);
+ini_set('display_errors', 0);
 
-// *** RUTAS CORREGIDAS PARA ESTRUCTURA REAL ***
+// *** INCLUIR CONFIG PRIMERO PARA EVITAR PROBLEMAS DE SESIÓN ***
 require_once __DIR__ . '/config.php';  // config.php está en el mismo directorio
+
+// *** AHORA INCLUIR AUTH CHECK ***
 require_once __DIR__ . '/../dao/users/auth_check.php';  // Ruta correcta hacia PruebaDos
 
+// Configurar CORS headers al inicio
 setCorsHeaders();
+
+// Debug temporal con mejor formato
+$debugLog = __DIR__ . '/error_debug.log';
+$debugInfo = [
+    'timestamp' => date('Y-m-d H:i:s'),
+    'method' => $_SERVER['REQUEST_METHOD'] ?? 'UNKNOWN',
+    'post_data' => file_get_contents('php://input'),
+    'session_status' => session_status(),
+    'session_id' => session_id(),
+    'user_session' => $_SESSION['user'] ?? 'NO SESSION',
+];
+
+file_put_contents($debugLog, json_encode($debugInfo, JSON_PRETTY_PRINT) . "\n\n", FILE_APPEND);
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     sendJsonResponse(false, 'Method not allowed. Use POST.', null, 405);
 }
 
-// Check if user is authenticated
+// Check if user is authenticated with better error details
 if (!isset($_SESSION['user']) || empty($_SESSION['user']['id'])) {
+    writeLog('warning', 'User not authenticated', [
+        'session_status' => session_status(),
+        'session_data' => isset($_SESSION['user']) ? 'exists but empty' : 'does not exist'
+    ]);
     sendJsonResponse(false, 'User not authenticated', null, 401);
 }
 
 $conex = null;
 
 try {
+    // Test database connection first
     $conex = getDbConnection();
     if (!$conex) {
-        throw new Exception('Database connection failed');
+        throw new Exception('Database connection failed - check database configuration');
+    }
+
+    // Test connection with simple query
+    $testQuery = $conex->query("SELECT 1");
+    if (!$testQuery) {
+        throw new Exception('Database connection test failed: ' . $conex->error);
     }
 
     $input = file_get_contents('php://input');
-    $filters = json_decode($input, true) ?? [];
+    $filters = json_decode($input, true);
+    
+    // Validate JSON
+    if ($input && !$filters && json_last_error() !== JSON_ERROR_NONE) {
+        throw new Exception('Invalid JSON input: ' . json_last_error_msg());
+    }
+    
+    $filters = $filters ?? [];
     
     $userId = $_SESSION['user']['id'];
     $userName = $_SESSION['user']['name'] ?? '';
+
+    writeLog('info', 'Processing user quotes request', [
+        'user_id' => $userId,
+        'user_name' => $userName,
+        'filters' => $filters
+    ]);
 
     // Base query to get user's requests with quote counts
     $sql = "SELECT 
@@ -68,32 +105,32 @@ try {
     $params = [$userName];
     $types = 's';
 
-    // Apply additional filters
-    if (!empty($filters['status'])) {
+    // Apply additional filters with validation
+    if (!empty($filters['status']) && in_array($filters['status'], ['pending', 'quoting', 'completed', 'canceled'])) {
         $whereConditions[] = "sr.status = ?";
         $params[] = $filters['status'];
         $types .= 's';
     }
 
-    if (!empty($filters['shipping_method'])) {
+    if (!empty($filters['shipping_method']) && in_array($filters['shipping_method'], ['fedex', 'aereo_maritimo', 'nacional'])) {
         $whereConditions[] = "sr.shipping_method = ?";
         $params[] = $filters['shipping_method'];
         $types .= 's';
     }
 
-    if (!empty($filters['service_type'])) {
+    if (!empty($filters['service_type']) && in_array($filters['service_type'], ['air', 'sea', 'land'])) {
         $whereConditions[] = "sr.service_type = ?";
         $params[] = $filters['service_type'];
         $types .= 's';
     }
 
-    if (!empty($filters['date_from'])) {
+    if (!empty($filters['date_from']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $filters['date_from'])) {
         $whereConditions[] = "DATE(sr.created_at) >= ?";
         $params[] = $filters['date_from'];
         $types .= 's';
     }
 
-    if (!empty($filters['date_to'])) {
+    if (!empty($filters['date_to']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $filters['date_to'])) {
         $whereConditions[] = "DATE(sr.created_at) <= ?";
         $params[] = $filters['date_to'];
         $types .= 's';
@@ -121,15 +158,36 @@ try {
         $types .= 'i';
     }
 
+    // Execute main query with error handling
     $stmt = $conex->prepare($sql);
-    $stmt->bind_param($types, ...$params);
-    $stmt->execute();
+    if (!$stmt) {
+        throw new Exception('Failed to prepare statement: ' . $conex->error);
+    }
+
+    if (!$stmt->bind_param($types, ...$params)) {
+        throw new Exception('Failed to bind parameters: ' . $stmt->error);
+    }
+
+    if (!$stmt->execute()) {
+        throw new Exception('Failed to execute query: ' . $stmt->error);
+    }
+
     $result = $stmt->get_result();
+    if (!$result) {
+        throw new Exception('Failed to get result: ' . $stmt->error);
+    }
 
     $requests = [];
     while ($row = $result->fetch_assoc()) {
-        $processedRequest = processUserRequestRow($row, $conex);
-        $requests[] = $processedRequest;
+        try {
+            $processedRequest = processUserRequestRow($row, $conex);
+            $requests[] = $processedRequest;
+        } catch (Exception $e) {
+            writeLog('warning', 'Error processing request row: ' . $e->getMessage(), [
+                'request_id' => $row['id'] ?? 'unknown'
+            ]);
+            // Continue with other requests instead of failing completely
+        }
     }
     $stmt->close();
 
@@ -149,8 +207,25 @@ try {
     ]);
 
 } catch (Exception $e) {
-    writeLog('error', 'Error getting user quotes: ' . $e->getMessage(), ['user_id' => $userId ?? null]);
-    sendJsonResponse(false, 'Error getting user quote history: ' . $e->getMessage(), null, 500);
+    $errorMessage = 'Error getting user quote history: ' . $e->getMessage();
+    $errorContext = [
+        'user_id' => $userId ?? null,
+        'user_name' => $userName ?? null,
+        'file' => $e->getFile(),
+        'line' => $e->getLine(),
+        'trace' => $e->getTraceAsString()
+    ];
+    
+    writeLog('error', $errorMessage, $errorContext);
+    
+    // En desarrollo, mostrar más detalles del error
+    if (defined('DEBUG_MODE') && DEBUG_MODE) {
+        sendJsonResponse(false, $errorMessage, [
+            'debug' => $errorContext
+        ], 500);
+    } else {
+        sendJsonResponse(false, 'Internal server error occurred', null, 500);
+    }
 } finally {
     if ($conex) {
         $conex->close();
@@ -227,6 +302,8 @@ function getUserMethodSpecificDetails($conex, $requestId, $method) {
  */
 function getUserFedexDetails($conex, $requestId) {
     $stmt = $conex->prepare("SELECT * FROM fedex_requests WHERE request_id = ?");
+    if (!$stmt) return null;
+    
     $stmt->bind_param("i", $requestId);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -241,6 +318,8 @@ function getUserFedexDetails($conex, $requestId) {
  */
 function getUserAereoMaritimoDetails($conex, $requestId) {
     $stmt = $conex->prepare("SELECT * FROM aereo_maritimo_requests WHERE request_id = ?");
+    if (!$stmt) return null;
+    
     $stmt->bind_param("i", $requestId);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -255,6 +334,8 @@ function getUserAereoMaritimoDetails($conex, $requestId) {
  */
 function getUserNacionalDetails($conex, $requestId) {
     $stmt = $conex->prepare("SELECT * FROM nacional_requests WHERE request_id = ?");
+    if (!$stmt) return null;
+    
     $stmt->bind_param("i", $requestId);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -279,15 +360,15 @@ function generateUserRouteInfo($methodDetails, $shippingMethod) {
     switch ($shippingMethod) {
         case 'fedex':
             return [
-                'origin_country' => extractCountryFromAddress($methodDetails['origin_address']),
-                'destination_country' => extractCountryFromAddress($methodDetails['destination_address']),
+                'origin_country' => extractCountryFromAddress($methodDetails['origin_address'] ?? ''),
+                'destination_country' => extractCountryFromAddress($methodDetails['destination_address'] ?? ''),
                 'is_international' => true
             ];
             
         case 'aereo_maritimo':
             return [
-                'origin_country' => extractCountryFromAddress($methodDetails['pickup_address']),
-                'destination_country' => extractCountryFromAddress($methodDetails['delivery_place']),
+                'origin_country' => extractCountryFromAddress($methodDetails['pickup_address'] ?? ''),
+                'destination_country' => extractCountryFromAddress($methodDetails['delivery_place'] ?? ''),
                 'is_international' => true
             ];
             
@@ -321,6 +402,8 @@ function getUserRequestQuotes($conex, $requestId) {
             ORDER BY q.cost ASC";
     
     $stmt = $conex->prepare($sql);
+    if (!$stmt) return [];
+    
     $stmt->bind_param("i", $requestId);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -394,6 +477,8 @@ function getUserBasicStats($conex, $userName, $filters) {
             FROM shipping_requests" . $whereClause['sql'];
     
     $stmt = $conex->prepare($sql);
+    if (!$stmt) return [];
+    
     if (!empty($whereClause['params'])) {
         $stmt->bind_param($whereClause['types'], ...$whereClause['params']);
     }
@@ -414,6 +499,8 @@ function getUserBasicStats($conex, $userName, $filters) {
                  WHERE sr.user_name = ?";
     
     $quoteStmt = $conex->prepare($quoteSql);
+    if (!$quoteStmt) return $stats;
+    
     $quoteStmt->bind_param("s", $userName);
     $quoteStmt->execute();
     $quoteResult = $quoteStmt->get_result();
@@ -438,6 +525,8 @@ function getUserMonthlyActivity($conex, $userName) {
             LIMIT 12";
     
     $stmt = $conex->prepare($sql);
+    if (!$stmt) return [];
+    
     $stmt->bind_param("s", $userName);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -464,6 +553,8 @@ function getUserMethodStats($conex, $userName) {
             GROUP BY shipping_method";
     
     $stmt = $conex->prepare($sql);
+    if (!$stmt) return [];
+    
     $stmt->bind_param("s", $userName);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -497,6 +588,8 @@ function getUserQuoteAnalysis($conex, $userName) {
             WHERE sr.user_name = ? AND q.id IS NOT NULL";
     
     $stmt = $conex->prepare($sql);
+    if (!$stmt) return [];
+    
     $stmt->bind_param("s", $userName);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -578,9 +671,12 @@ function extractCountryFromAddress($address) {
 function formatDateTime($datetime) {
     if (!$datetime) return '';
     
-    $date = new DateTime($datetime);
-    $date->setTimezone(new DateTimeZone(TIMEZONE));
-    
-    return $date->format('d/m/Y H:i');
+    try {
+        $date = new DateTime($datetime);
+        $date->setTimezone(new DateTimeZone(TIMEZONE));
+        return $date->format('d/m/Y H:i');
+    } catch (Exception $e) {
+        return $datetime; // Return original if formatting fails
+    }
 }
 ?>

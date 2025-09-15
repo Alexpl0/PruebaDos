@@ -264,7 +264,7 @@ class UserQuotesHistory {
      */
     async fetchUserQuotes() {
         // *** RUTA CORREGIDA PARA ESTRUCTURA REAL ***
-        const response = await fetch('../Cotizaciones/dao/daoGetUserQuotes.php', {
+        const response = await fetch('cotizaciones/dao/daoGetUserQuotes.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
