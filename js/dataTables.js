@@ -277,20 +277,40 @@ function calculateReference(referenceNumber, referenceName) {
     const refNumber = String(referenceNumber || '');
     const refName = String(referenceName || '');
     
-    // Verificar categorías en orden de prioridad
+    // ✅ NUEVA LÓGICA: Verificar categorías en orden de prioridad
+    
+    // 1. Verificar si reference_number comienza con "45"
     if (refNumber.startsWith('45')) {
+        console.log('- Found 45 in reference_number:', refNumber);
         return '45';
     }
     
+    // 2. ✅ NUEVO: Verificar si reference_name contiene palabras que comienzan con "45"
+    if (refName) {
+        // Dividir en palabras y buscar cualquiera que comience con "45"
+        const words = refName.split(/[\s\-_.,;:]+/); // Dividir por espacios, guiones, puntos, etc.
+        const has45Word = words.some(word => word.trim().startsWith('45'));
+        
+        if (has45Word) {
+            console.log('- Found word starting with 45 in reference_name:', refName);
+            return '45';
+        }
+    }
+    
+    // 3. Verificar si reference_number comienza con "3"
     if (refNumber.startsWith('3')) {
+        console.log('- Found 3 in reference_number:', refNumber);
         return '3';
     }
     
+    // 4. Verificar si reference_name incluye "CC"
     if (refName.toUpperCase().includes('CC')) {
+        console.log('- Found CC in reference_name:', refName);
         return 'CC';
     }
     
-    // Categoría por defecto
+    // 5. Categoría por defecto
+    console.log('- Default category: Order');
     return 'Order';
 }
 
