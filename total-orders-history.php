@@ -208,6 +208,8 @@ require_once 'dao/users/context_injector.php';
                                         <th>Destination City</th>
                                         <th>Status</th> <!-- NUEVA COLUMNA -->
                                         <th>Actions</th>
+                                        <th>Recovery</th>
+                                        <th>Reference</th>
                                     </tr>
                                 </thead>
                                 <tbody>

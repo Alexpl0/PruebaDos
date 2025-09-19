@@ -249,7 +249,53 @@ function clearFilters(data) {
 }
 
 /**
- * Carga los datos de órdenes desde el backend
+ * Procesa los datos de órdenes agregando campos calculados
+ */
+function processOrdersData(orders) {
+    console.log('⚙️ [processOrdersData] Processing orders data...');
+    
+    return orders.map(order => {
+        // Agregar campo Reference calculado
+        order.reference = calculateReference(order.reference_number, order.reference_name);
+        
+        // Asegurar que recovery existe (viene del endpoint)
+        if (!order.recovery) {
+            order.recovery = '';
+        }
+        
+        return order;
+    });
+}
+
+/**
+ * Calcula la categoría de referencia basada en reference_number y reference_name
+ */
+function calculateReference(referenceNumber, referenceName) {
+    console.log('🔢 [calculateReference] Calculating reference for:', { referenceNumber, referenceName });
+    
+    // Convertir a string para evitar errores
+    const refNumber = String(referenceNumber || '');
+    const refName = String(referenceName || '');
+    
+    // Verificar categorías en orden de prioridad
+    if (refNumber.startsWith('45')) {
+        return '45';
+    }
+    
+    if (refNumber.startsWith('3')) {
+        return '3';
+    }
+    
+    if (refName.toUpperCase().includes('CC')) {
+        return 'CC';
+    }
+    
+    // Categoría por defecto
+    return 'Order';
+}
+
+/**
+ * Carga los datos de órdenes desde el backend (modificada)
  */
 async function loadOrdersData() {
     console.log('🌐 [loadOrdersData] Starting data load...');
@@ -305,14 +351,19 @@ async function loadOrdersData() {
             orders = [];
         }
         
-        console.log('✅ [loadOrdersData] Final orders array:', {
-            length: orders.length,
-            firstOrder: orders[0] || 'No orders',
-            type: typeof orders,
-            isArray: Array.isArray(orders)
+        // ✅ NUEVO: Procesar los datos agregando campos calculados
+        const processedOrders = processOrdersData(orders);
+        
+        console.log('✅ [loadOrdersData] Final processed orders array:', {
+            length: processedOrders.length,
+            firstOrder: processedOrders[0] || 'No orders',
+            type: typeof processedOrders,
+            isArray: Array.isArray(processedOrders),
+            sampleReference: processedOrders[0]?.reference || 'No reference',
+            sampleRecovery: processedOrders[0]?.recovery || 'No recovery'
         });
         
-        return orders;
+        return processedOrders;
         
     } catch (error) {
         console.error('💥 [loadOrdersData] Error loading orders data:', error);
@@ -357,7 +408,7 @@ function getDataTableButtons(title, data) {
     ];
 }
 
-// Exportar las funciones necesarias
+// Exportar las funciones necesarias (actualizada)
 export { 
     getDataTableButtons,
     showErrorMessage,
@@ -368,5 +419,7 @@ export {
     generateFilters,
     applyFilters,
     clearFilters,
-    loadOrdersData
+    loadOrdersData,
+    processOrdersData,
+    calculateReference
 };

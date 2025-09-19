@@ -23,6 +23,7 @@ try {
             pf.*, -- Selecciona todas las columnas de la tabla PremiumFreight
             p.productName AS products, -- Obtiene el nombre del producto y lo renombra a 'products'
             no.Number AS reference_number, -- Obtiene el número de referencia y lo renombra
+            no.Name AS reference_name, -- Obtiene el nombre de referencia y lo renombra
             u.name AS creator_name,
             u.email AS creator_email,
             u.role AS creator_role,

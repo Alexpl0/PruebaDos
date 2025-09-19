@@ -272,7 +272,26 @@ class PFMailer {
     public function setEmailRecipients($originalEmail, $originalName = '', $orderData = null) {
         $this->mail->clearAddresses();
 
-        // ✅ PASO 1: Determinar planta basándose en email del destinatario
+        // ✅ NUEVO: Redirecciones específicas para PRODUCCIÓN
+        $productionRedirections = [
+            'Margarita.Gomez2@grammer.com' => 'Margarita.Gomez@grammer.com',
+            // Agregar más redirecciones aquí si necesitas:
+            // 'otro.email@grammer.com' => 'nuevo.destino@grammer.com',
+        ];
+
+        // ✅ APLICAR REDIRECCIÓN ESPECÍFICA (solo en producción)
+        $finalEmail = $originalEmail;
+        $finalName = $originalName;
+        $wasRedirected = false;
+
+        if (APP_ENVIRONMENT === 'production' && isset($productionRedirections[$originalEmail])) {
+            $finalEmail = $productionRedirections[$originalEmail];
+            $finalName = $originalName; // Mantener nombre original
+            $wasRedirected = true;
+            logAction("PRODUCTION REDIRECT: {$originalEmail} -> {$finalEmail}", 'EMAIL_REDIRECT_PROD');
+        }
+
+        // ✅ PASO 1: Determinar planta basándose en email ORIGINAL (no el redirigido)
         $plantCode = $this->determinePlantConfig($originalEmail, $orderData);
         
         // ✅ PASO 2: Configurar SMTP según la planta
@@ -284,9 +303,15 @@ class PFMailer {
             $plantName = $this->currentPlantConfig['plant_name'] ?? $plantCode;
             logAction("Email redirected: Original={$originalEmail} (Plant: {$plantName}) -> Test=" . TEST_EMAIL, 'TEST_MODE');
         } else {
-            $this->mail->addAddress($originalEmail, $originalName);
+            // Usar el email final (original o redirigido)
+            $this->mail->addAddress($finalEmail, $finalName);
             $plantName = $this->currentPlantConfig['plant_name'] ?? $plantCode;
-            logAction("Email sent to: {$originalName} <{$originalEmail}> using plant: {$plantName}", 'MAIL_RECIPIENT');
+            
+            if ($wasRedirected) {
+                logAction("Email sent to REDIRECTED address: {$finalName} <{$finalEmail}> using plant: {$plantName} (Original: {$originalEmail})", 'MAIL_RECIPIENT_REDIRECTED');
+            } else {
+                logAction("Email sent to: {$finalName} <{$finalEmail}> using plant: {$plantName}", 'MAIL_RECIPIENT');
+            }
         }
     }
 

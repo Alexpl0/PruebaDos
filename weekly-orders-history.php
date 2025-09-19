@@ -186,6 +186,8 @@ require_once 'dao/users/context_injector.php';
                                         <th>Destination Company</th>
                                         <th>Destination City</th>
                                         <th>Actions</th>
+                                        <th>Recovery</th>
+                                        <th>Reference</th>
                                     </tr>
                                 </thead>
                                 <tbody>
