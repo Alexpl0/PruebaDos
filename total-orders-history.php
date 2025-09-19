@@ -194,6 +194,8 @@ require_once 'dao/users/context_injector.php';
                                         <th>Plant Code</th>
                                         <th>Issue Date</th>
                                         <th>Inbound/Outbound</th>
+                                        <th>Recovery</th>
+                                        <th>Reference</th>
                                         <th>Reference Number</th>
                                         <th>Creator</th>
                                         <th>Area</th>
@@ -206,10 +208,8 @@ require_once 'dao/users/context_injector.php';
                                         <th>Origin City</th>
                                         <th>Destination Company</th>
                                         <th>Destination City</th>
-                                        <th>Status</th> <!-- NUEVA COLUMNA -->
+                                        <th>Status</th>
                                         <th>Actions</th>
-                                        <th>Recovery</th>
-                                        <th>Reference</th>
                                     </tr>
                                 </thead>
                                 <tbody>

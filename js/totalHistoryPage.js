@@ -217,13 +217,27 @@ function populateTotalDataTable(orders) {
         
         const statusInfo = getOrderStatus(order);
         return [
-            order.id || '-', order.planta || '-', order.code_planta || '-', order.date || '-',
-            order.in_out_bound || '-', order.reference_number || '-', order.creator_name || '-',
-            order.area || '-', order.description || '-', order.category_cause || '-',
+            order.id || '-', 
+            order.planta || '-', 
+            order.code_planta || '-', 
+            order.date || '-',
+            order.in_out_bound || '-', 
+            // ✅ NUEVAS COLUMNAS: Recovery y Reference después de Inbound/Outbound
+            order.recovery || '-',
+            order.reference || 'Order',
+            // Resto de columnas
+            order.reference_number || '-', 
+            order.creator_name || '-',
+            order.area || '-', 
+            order.description || '-', 
+            order.category_cause || '-',
             order.cost_euros ? `€${parseFloat(order.cost_euros).toFixed(2)}` : '-',
-            order.transport || '-', order.carrier || '-',
-            order.origin_company_name || '-', order.origin_city || '-',
-            order.destiny_company_name || '-', order.destiny_city || '-',
+            order.transport || '-', 
+            order.carrier || '-',
+            order.origin_company_name || '-', 
+            order.origin_city || '-',
+            order.destiny_company_name || '-', 
+            order.destiny_city || '-',
             // New Status Column HTML with a styled badge
             `<span class="badge ${statusInfo.badgeClass}">${statusInfo.text}</span>`,
             // Actions column
@@ -255,6 +269,41 @@ function populateTotalDataTable(orders) {
             scrollY: '400px',
             responsive: false,
             order: [[0, 'desc']],
+            columnDefs: [
+                // ✅ COLUMNA RECOVERY (índice 5)
+                {
+                    targets: 5,
+                    className: 'text-center',
+                    render: function(data, type, row) {
+                        return data || '-';
+                    }
+                },
+                // ✅ COLUMNA REFERENCE (índice 6)
+                {
+                    targets: 6,
+                    className: 'text-center',
+                    render: function(data, type, row) {
+                        let badgeClass = 'badge ';
+                        switch(data) {
+                            case '45':
+                                badgeClass += 'bg-primary';
+                                break;
+                            case '3':
+                                badgeClass += 'bg-info';
+                                break;
+                            case 'CC':
+                                badgeClass += 'bg-warning text-dark';
+                                break;
+                            case 'Order':
+                                badgeClass += 'bg-secondary';
+                                break;
+                            default:
+                                badgeClass += 'bg-light text-dark';
+                        }
+                        return `<span class="${badgeClass}">${data}</span>`;
+                    }
+                }
+            ],
             // This callback runs for each row created, applying the background color
             createdRow: function(row, data, dataIndex) {
                 const order = orders[dataIndex];
@@ -360,3 +409,6 @@ function updateQuickStats(orders) {
     
     console.log('🎉 [updateQuickStats] Stats update completed!');
 }
+
+// ✅ ELIMINAR estas líneas que estaban mal ubicadas al final del archivo:
+// No necesitamos estas definiciones aquí ya que están en columnDefs arriba
