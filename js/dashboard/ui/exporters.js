@@ -3,7 +3,7 @@
  * Implementa la exportación a formatos avanzados como Excel (con múltiples hojas) y PDF.
  */
 
-import { getDataTableButtons } from '../../dataTables.js';
+import { getDataTableButtons, calculateReference } from '../../dataTables.js';
 import { charts, chartData } from '../configDashboard.js';
 
 /**
@@ -78,6 +78,9 @@ function convertDataTableToObjects(tableData) {
             obj.cost_euros = match ? parseFloat(match[0].replace(',', '')) : 0;
         }
         
+        // ✅ NUEVO: Calcular Reference usando la función importada
+        obj.reference = calculateReference(obj.reference_number, obj.reference_name);
+        
         return obj;
     });
 }
@@ -103,6 +106,15 @@ export function exportToExcel() {
     if (dashboardData && dashboardData.length > 0) {
         console.log(`📋 Adding orders sheet with ${dashboardData.length} orders`);
         
+        // ✅ NUEVO: Procesar datos para asegurar que tienen el campo Reference calculado
+        const processedData = dashboardData.map(order => {
+            // Si no tiene reference calculado, calcularlo
+            if (!order.reference) {
+                order.reference = calculateReference(order.reference_number, order.reference_name);
+            }
+            return order;
+        });
+        
         // Reordenar headers según el nuevo orden: ID, Plant Name, Plant Code, Issue Date, Inbound/Outbound, Recovery, Reference, Reference Number, Creator, Area, Description, Category Cause, Cost [€], Transport, Carrier, Origin Company, Origin City, Destination Company, Destination City, Status
         const headers = ['ID', 'Plant Name', 'Plant Code', 'Issue Date', 'Inbound/Outbound', 
                         'Recovery', 'Reference', 'Reference Number', 'Creator', 'Area', 
@@ -110,7 +122,7 @@ export function exportToExcel() {
                         'Origin Company', 'Origin City', 'Destination Company', 'Destination City', 'Status'];
         
         // Reordenar los datos según el nuevo orden
-        const tableData = dashboardData.map(order => [
+        const tableData = processedData.map(order => [
             order.id || '-', 
             order.planta || '-', 
             order.code_planta || '-', 

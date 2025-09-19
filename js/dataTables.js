@@ -444,7 +444,7 @@ async function loadOrdersData() {
 }
 
 /**
- * Genera botones para DataTables (exportar, etc.)
+ * Genera botones para DataTables (exportar, etc.) con estilos incluidos
  */
 function getDataTableButtons(title, data) {
     console.log('🔘 [getDataTableButtons] Generating buttons for:', title, 'with', data?.length || 'unknown', 'items');
@@ -454,13 +454,51 @@ function getDataTableButtons(title, data) {
             extend: 'excelHtml5',
             title: title,
             text: '<i class="fas fa-file-excel"></i> Excel',
-            className: 'btn btn-success btn-sm'
+            className: 'btn btn-success btn-sm',
+            customize: function(xlsx) {
+                var sheet = xlsx.xl.worksheets['sheet1.xml'];
+                
+                // Aplicar estilos basados en el estado de la orden
+                $('row c[r*="21"]', sheet).each(function (index) { // Columna de Status (índice 20 = columna U)
+                    var cellValue = $(this).text();
+                    var rowIndex = index + 2; // +2 porque empezamos desde la fila 2 (después del header)
+                    
+                    if (cellValue.includes('Approved')) {
+                        // Verde para aprobados
+                        $('row[r="' + rowIndex + '"] c', sheet).attr('s', '10');
+                    } else if (cellValue.includes('Rejected')) {
+                        // Rojo para rechazados
+                        $('row[r="' + rowIndex + '"] c', sheet).attr('s', '11');
+                    } else if (cellValue.includes('In Review') || cellValue.includes('Pending')) {
+                        // Amarillo para pendientes
+                        $('row[r="' + rowIndex + '"] c', sheet).attr('s', '12');
+                    }
+                });
+            }
         },
         {
             extend: 'csvHtml5',
             title: title,
             text: '<i class="fas fa-file-csv"></i> CSV',
-            className: 'btn btn-info btn-sm'
+            className: 'btn btn-info btn-sm',
+            exportOptions: {
+                format: {
+                    body: function (data, row, column, node) {
+                        // Para CSV, agregar indicadores de estado
+                        if (column === 20) { // Columna de Status
+                            var $node = $(node);
+                            if ($node.closest('tr').hasClass('status-approved')) {
+                                return '[APPROVED] ' + data;
+                            } else if ($node.closest('tr').hasClass('status-rejected')) {
+                                return '[REJECTED] ' + data;
+                            } else if ($node.closest('tr').hasClass('status-review')) {
+                                return '[PENDING] ' + data;
+                            }
+                        }
+                        return data;
+                    }
+                }
+            }
         },
         {
             extend: 'pdfHtml5',
@@ -468,13 +506,72 @@ function getDataTableButtons(title, data) {
             text: '<i class="fas fa-file-pdf"></i> PDF',
             className: 'btn btn-danger btn-sm',
             orientation: 'landscape',
-            pageSize: 'A4'
+            pageSize: 'A4',
+            customize: function(doc) {
+                // Aplicar estilos de color en PDF
+                var rowCount = doc.content[1].table.body.length;
+                
+                for (var i = 1; i < rowCount; i++) {
+                    var statusCell = doc.content[1].table.body[i][20]; // Columna de Status
+                    
+                    if (statusCell && statusCell.text) {
+                        var statusText = statusCell.text.toString();
+                        
+                        if (statusText.includes('Approved')) {
+                            // Verde para aprobados
+                            for (var j = 0; j < doc.content[1].table.body[i].length; j++) {
+                                doc.content[1].table.body[i][j].fillColor = '#d4edda';
+                            }
+                        } else if (statusText.includes('Rejected')) {
+                            // Rojo para rechazados
+                            for (var j = 0; j < doc.content[1].table.body[i].length; j++) {
+                                doc.content[1].table.body[i][j].fillColor = '#f8d7da';
+                            }
+                        } else if (statusText.includes('In Review') || statusText.includes('Pending')) {
+                            // Amarillo para pendientes
+                            for (var j = 0; j < doc.content[1].table.body[i].length; j++) {
+                                doc.content[1].table.body[i][j].fillColor = '#fff3cd';
+                            }
+                        }
+                    }
+                }
+            }
         },
         {
             extend: 'print',
             title: title,
             text: '<i class="fas fa-print"></i> Print',
-            className: 'btn btn-secondary btn-sm'
+            className: 'btn btn-secondary btn-sm',
+            customize: function(win) {
+                // Agregar estilos CSS para impresión
+                $(win.document.body).prepend(`
+                    <style>
+                        .status-approved { background-color: #d4edda !important; }
+                        .status-rejected { background-color: #f8d7da !important; }
+                        .status-review { background-color: #fff3cd !important; }
+                        @media print {
+                            .status-approved { background-color: #d4edda !important; -webkit-print-color-adjust: exact; }
+                            .status-rejected { background-color: #f8d7da !important; -webkit-print-color-adjust: exact; }
+                            .status-review { background-color: #fff3cd !important; -webkit-print-color-adjust: exact; }
+                        }
+                    </style>
+                `);
+                
+                // Aplicar clases CSS a las filas
+                $(win.document.body).find('table tbody tr').each(function(index) {
+                    var statusCell = $(this).find('td').eq(20);
+                    if (statusCell.length) {
+                        var statusText = statusCell.text();
+                        if (statusText.includes('Approved')) {
+                            $(this).addClass('status-approved');
+                        } else if (statusText.includes('Rejected')) {
+                            $(this).addClass('status-rejected');
+                        } else if (statusText.includes('In Review') || statusText.includes('Pending')) {
+                            $(this).addClass('status-review');
+                        }
+                    }
+                });
+            }
         }
     ];
 }

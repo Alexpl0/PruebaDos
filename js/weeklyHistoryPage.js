@@ -230,7 +230,7 @@ function populateWeeklyDataTable(orders) {
         const dataTable = table.DataTable({
             data: tableData,
             dom: 'Bfrtip',
-            buttons: getDataTableButtons(`Weekly Orders History - Week ${getWeekNumber(new Date())}`, orders),
+            buttons: getWeeklyDataTableButtons(`Weekly Orders History - Week ${getWeekNumber(new Date())}`, orders), // Cambio aquí
             scrollX: true,
             scrollY: '400px',
             responsive: false,
@@ -301,4 +301,38 @@ function populateWeeklyDataTable(orders) {
     
     console.log('✅ [populateWeeklyDataTable] PDF button listeners added');
     console.log('🎉 [populateWeeklyDataTable] Table population completed successfully!');
+}
+
+// Agregar esta función después de la función displayWeekData
+function getWeeklyDataTableButtons(title, orders) {
+    console.log('🔘 [getWeeklyDataTableButtons] Generating weekly buttons for:', title);
+    
+    return [
+        {
+            extend: 'excelHtml5',
+            title: title,
+            text: '<i class="fas fa-file-excel"></i> Excel',
+            className: 'btn btn-success btn-sm'
+        },
+        {
+            extend: 'csvHtml5',
+            title: title,
+            text: '<i class="fas fa-file-csv"></i> CSV',
+            className: 'btn btn-info btn-sm'
+        },
+        {
+            extend: 'pdfHtml5',
+            title: title,
+            text: '<i class="fas fa-file-pdf"></i> PDF',
+            className: 'btn btn-danger btn-sm',
+            orientation: 'landscape',
+            pageSize: 'A4'
+        },
+        {
+            extend: 'print',
+            title: title,
+            text: '<i class="fas fa-print"></i> Print',
+            className: 'btn btn-secondary btn-sm'
+        }
+    ];
 }
