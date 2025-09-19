@@ -59,9 +59,10 @@ function getDashboardDataForExport() {
  * Convierte datos de DataTable (arrays) a objetos
  */
 function convertDataTableToObjects(tableData) {
+    // Reordenar headers según el nuevo orden solicitado
     const headers = ['id', 'planta', 'code_planta', 'date', 'in_out_bound', 
-                    'reference_number', 'creator_name', 'area', 'description', 
-                    'category_cause', 'cost_euros', 'transport', 'carrier', 
+                    'recovery', 'reference', 'reference_number', 'creator_name', 'area', 
+                    'description', 'category_cause', 'cost_euros', 'transport', 'carrier', 
                     'origin_company_name', 'origin_city', 'destiny_company_name', 
                     'destiny_city', 'status'];
     
@@ -102,16 +103,21 @@ export function exportToExcel() {
     if (dashboardData && dashboardData.length > 0) {
         console.log(`📋 Adding orders sheet with ${dashboardData.length} orders`);
         
-        const headers = ['ID', 'Plant', 'Plant Code', 'Date', 'In/Out Bound', 'Reference', 'Creator', 
-                        'Area', 'Description', 'Category', 'Cost (€)', 'Transport', 'Carrier', 
-                        'Origin Company', 'Origin City', 'Destiny Company', 'Destiny City', 'Status'];
+        // Reordenar headers según el nuevo orden: ID, Plant Name, Plant Code, Issue Date, Inbound/Outbound, Recovery, Reference, Reference Number, Creator, Area, Description, Category Cause, Cost [€], Transport, Carrier, Origin Company, Origin City, Destination Company, Destination City, Status
+        const headers = ['ID', 'Plant Name', 'Plant Code', 'Issue Date', 'Inbound/Outbound', 
+                        'Recovery', 'Reference', 'Reference Number', 'Creator', 'Area', 
+                        'Description', 'Category Cause', 'Cost [€]', 'Transport', 'Carrier', 
+                        'Origin Company', 'Origin City', 'Destination Company', 'Destination City', 'Status'];
         
+        // Reordenar los datos según el nuevo orden
         const tableData = dashboardData.map(order => [
             order.id || '-', 
             order.planta || '-', 
             order.code_planta || '-', 
             order.date || '-',
             order.in_out_bound || '-', 
+            order.recovery || '-',
+            order.reference || '-',
             order.reference_number || '-', 
             order.creator_name || '-',
             order.area || '-', 

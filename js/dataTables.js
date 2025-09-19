@@ -249,25 +249,6 @@ function clearFilters(data) {
 }
 
 /**
- * Procesa los datos de órdenes agregando campos calculados
- */
-function processOrdersData(orders) {
-    console.log('⚙️ [processOrdersData] Processing orders data...');
-    
-    return orders.map(order => {
-        // Agregar campo Reference calculado
-        order.reference = calculateReference(order.reference_number, order.reference_name);
-        
-        // Asegurar que recovery existe (viene del endpoint)
-        if (!order.recovery) {
-            order.recovery = '';
-        }
-        
-        return order;
-    });
-}
-
-/**
  * Calcula la categoría de referencia basada en reference_number y reference_name
  */
 function calculateReference(referenceNumber, referenceName) {
@@ -277,41 +258,98 @@ function calculateReference(referenceNumber, referenceName) {
     const refNumber = String(referenceNumber || '');
     const refName = String(referenceName || '');
     
+    console.log('🔍 [calculateReference] After string conversion:', { 
+        refNumber, 
+        refName,
+        refNumberType: typeof refNumber,
+        refNumberLength: refNumber.length,
+        startsWithCheck: refNumber.startsWith('45')
+    });
+    
     // ✅ NUEVA LÓGICA: Verificar categorías en orden de prioridad
     
     // 1. Verificar si reference_number comienza con "45"
     if (refNumber.startsWith('45')) {
-        console.log('- Found 45 in reference_number:', refNumber);
+        console.log('✅ [calculateReference] Found 45 in reference_number:', refNumber);
         return '45';
+    } else {
+        console.log('❌ [calculateReference] reference_number does NOT start with 45:', refNumber);
     }
     
     // 2. ✅ NUEVO: Verificar si reference_name contiene palabras que comienzan con "45"
     if (refName) {
         // Dividir en palabras y buscar cualquiera que comience con "45"
         const words = refName.split(/[\s\-_.,;:]+/); // Dividir por espacios, guiones, puntos, etc.
-        const has45Word = words.some(word => word.trim().startsWith('45'));
+        console.log('🔍 [calculateReference] Words from reference_name:', words);
+        
+        const has45Word = words.some(word => {
+            const trimmedWord = word.trim();
+            const starts45 = trimmedWord.startsWith('45');
+            console.log(`  - Word: "${trimmedWord}" starts with 45: ${starts45}`);
+            return starts45;
+        });
         
         if (has45Word) {
-            console.log('- Found word starting with 45 in reference_name:', refName);
+            console.log('✅ [calculateReference] Found word starting with 45 in reference_name:', refName);
             return '45';
+        } else {
+            console.log('❌ [calculateReference] No word starts with 45 in reference_name:', refName);
         }
     }
     
     // 3. Verificar si reference_number comienza con "3"
     if (refNumber.startsWith('3')) {
-        console.log('- Found 3 in reference_number:', refNumber);
+        console.log('✅ [calculateReference] Found 3 in reference_number:', refNumber);
         return '3';
     }
     
     // 4. Verificar si reference_name incluye "CC"
     if (refName.toUpperCase().includes('CC')) {
-        console.log('- Found CC in reference_name:', refName);
+        console.log('✅ [calculateReference] Found CC in reference_name:', refName);
         return 'CC';
     }
     
     // 5. Categoría por defecto
-    console.log('- Default category: Order');
+    console.log('⚠️ [calculateReference] Default category: Order (no match found)');
     return 'Order';
+}
+
+/**
+ * Procesa los datos de órdenes agregando campos calculados
+ */
+function processOrdersData(orders) {
+    console.log('⚙️ [processOrdersData] Processing orders data...');
+    console.log('- Total orders to process:', orders.length);
+    
+    return orders.map((order, index) => {
+        // Log algunos casos para debugging
+        if (index < 5 || order.reference_number?.toString().startsWith('45')) {
+            console.log(`📋 [processOrdersData] Processing order ${index + 1}:`, {
+                id: order.id,
+                reference_number: order.reference_number,
+                reference_name: order.reference_name,
+                reference_number_type: typeof order.reference_number
+            });
+        }
+        
+        // Agregar campo Reference calculado
+        order.reference = calculateReference(order.reference_number, order.reference_name);
+        
+        // Log el resultado
+        if (index < 5 || order.reference_number?.toString().startsWith('45')) {
+            console.log(`✅ [processOrdersData] Order ${index + 1} result:`, {
+                id: order.id,
+                calculated_reference: order.reference
+            });
+        }
+        
+        // Asegurar que recovery existe (viene del endpoint)
+        if (!order.recovery) {
+            order.recovery = '';
+        }
+        
+        return order;
+    });
 }
 
 /**
@@ -335,13 +373,6 @@ async function loadOrdersData() {
         
         const data = await response.json();
         console.log('- Raw response data:', data);
-        console.log('- Data type:', typeof data);
-        console.log('- Data structure:', {
-            hasStatus: 'status' in data,
-            hasData: 'data' in data,
-            hasOrders: 'orders' in data,
-            isArray: Array.isArray(data)
-        });
         
         // ✅ AQUÍ ESTÁ EL FIX: Extraer correctamente los datos del objeto respuesta
         let orders = [];
@@ -369,6 +400,26 @@ async function loadOrdersData() {
         else {
             console.warn('⚠️ [loadOrdersData] Unknown response structure, returning empty array');
             orders = [];
+        }
+        
+        // 🔍 DEBUG: Buscar específicamente el reference_number que mencionas
+        const debugOrder = orders.find(order => order.reference_number?.toString() === '4500948690');
+        if (debugOrder) {
+            console.log('🔍 [DEBUG] Found order with reference_number 4500948690:', {
+                id: debugOrder.id,
+                reference_number: debugOrder.reference_number,
+                reference_name: debugOrder.reference_name,
+                reference_number_type: typeof debugOrder.reference_number,
+                reference_number_value: debugOrder.reference_number,
+                full_order: debugOrder
+            });
+        } else {
+            console.log('🔍 [DEBUG] Order with reference_number 4500948690 NOT found');
+            // Buscar orders que contengan "4500948690" en cualquier campo
+            const similarOrders = orders.filter(order => 
+                JSON.stringify(order).includes('4500948690')
+            );
+            console.log('🔍 [DEBUG] Orders containing 4500948690:', similarOrders);
         }
         
         // ✅ NUEVO: Procesar los datos agregando campos calculados
