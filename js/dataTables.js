@@ -458,20 +458,42 @@ function getDataTableButtons(title, data) {
             customize: function(xlsx) {
                 var sheet = xlsx.xl.worksheets['sheet1.xml'];
                 
-                // Aplicar estilos basados en el estado de la orden
-                $('row c[r*="21"]', sheet).each(function (index) { // Columna de Status (índice 20 = columna U)
+                // Encontrar la columna de Status dinámicamente
+                var statusColumnIndex = -1;
+                $('row:first c', sheet).each(function(index) {
                     var cellValue = $(this).text();
-                    var rowIndex = index + 2; // +2 porque empezamos desde la fila 2 (después del header)
+                    if (cellValue && (cellValue.toLowerCase().includes('status') || cellValue.toLowerCase().includes('approval'))) {
+                        statusColumnIndex = index;
+                        console.log('📊 [Excel] Found Status column at index:', statusColumnIndex);
+                        return false; // break
+                    }
+                });
+                
+                if (statusColumnIndex === -1) {
+                    console.warn('⚠️ [Excel] Status column not found, trying last column');
+                    statusColumnIndex = $('row:first c', sheet).length - 1;
+                }
+                
+                // Aplicar estilos basados en el estado de la orden
+                $('row:not(:first)', sheet).each(function(rowIndex) {
+                    var $statusCell = $(this).find('c').eq(statusColumnIndex);
+                    var cellValue = $statusCell.text();
+                    var actualRowIndex = rowIndex + 2; // +2 porque empezamos desde la fila 2
+                    
+                    console.log(`📊 [Excel] Row ${actualRowIndex}, Status: "${cellValue}"`);
                     
                     if (cellValue.includes('Approved')) {
                         // Verde para aprobados
-                        $('row[r="' + rowIndex + '"] c', sheet).attr('s', '10');
+                        $(this).find('c').attr('s', '10');
+                        console.log('✅ [Excel] Applied green to approved row');
                     } else if (cellValue.includes('Rejected')) {
                         // Rojo para rechazados
-                        $('row[r="' + rowIndex + '"] c', sheet).attr('s', '11');
+                        $(this).find('c').attr('s', '11');
+                        console.log('❌ [Excel] Applied red to rejected row');
                     } else if (cellValue.includes('In Review') || cellValue.includes('Pending')) {
                         // Amarillo para pendientes
-                        $('row[r="' + rowIndex + '"] c', sheet).attr('s', '12');
+                        $(this).find('c').attr('s', '12');
+                        console.log('⏳ [Excel] Applied yellow to pending row');
                     }
                 });
             }
@@ -484,14 +506,29 @@ function getDataTableButtons(title, data) {
             exportOptions: {
                 format: {
                     body: function (data, row, column, node) {
-                        // Para CSV, agregar indicadores de estado
-                        if (column === 20) { // Columna de Status
-                            var $node = $(node);
-                            if ($node.closest('tr').hasClass('status-approved')) {
+                        // Obtener la tabla para identificar la columna de status
+                        var table = $(node).closest('table');
+                        var headers = table.find('thead th');
+                        var isStatusColumn = false;
+                        
+                        headers.each(function(index) {
+                            if (index === column) {
+                                var headerText = $(this).text().toLowerCase();
+                                if (headerText.includes('status') || headerText.includes('approval')) {
+                                    isStatusColumn = true;
+                                    return false;
+                                }
+                            }
+                        });
+                        
+                        // Para CSV, agregar indicadores de estado solo en la columna de status
+                        if (isStatusColumn) {
+                            var $row = $(node).closest('tr');
+                            if ($row.hasClass('status-approved')) {
                                 return '[APPROVED] ' + data;
-                            } else if ($node.closest('tr').hasClass('status-rejected')) {
+                            } else if ($row.hasClass('status-rejected')) {
                                 return '[REJECTED] ' + data;
-                            } else if ($node.closest('tr').hasClass('status-review')) {
+                            } else if ($row.hasClass('status-review')) {
                                 return '[PENDING] ' + data;
                             }
                         }
@@ -508,30 +545,54 @@ function getDataTableButtons(title, data) {
             orientation: 'landscape',
             pageSize: 'A4',
             customize: function(doc) {
+                // Encontrar la columna de Status dinámicamente
+                var statusColumnIndex = -1;
+                var headers = doc.content[1].table.body[0];
+                
+                headers.forEach(function(header, index) {
+                    if (header.text && typeof header.text === 'string') {
+                        var headerText = header.text.toLowerCase();
+                        if (headerText.includes('status') || headerText.includes('approval')) {
+                            statusColumnIndex = index;
+                            console.log('📊 [PDF] Found Status column at index:', statusColumnIndex);
+                            return;
+                        }
+                    }
+                });
+                
+                if (statusColumnIndex === -1) {
+                    console.warn('⚠️ [PDF] Status column not found, trying last column');
+                    statusColumnIndex = headers.length - 1;
+                }
+                
                 // Aplicar estilos de color en PDF
                 var rowCount = doc.content[1].table.body.length;
                 
                 for (var i = 1; i < rowCount; i++) {
-                    var statusCell = doc.content[1].table.body[i][20]; // Columna de Status
+                    var statusCell = doc.content[1].table.body[i][statusColumnIndex];
                     
                     if (statusCell && statusCell.text) {
                         var statusText = statusCell.text.toString();
+                        console.log(`📊 [PDF] Row ${i}, Status: "${statusText}"`);
                         
                         if (statusText.includes('Approved')) {
                             // Verde para aprobados
                             for (var j = 0; j < doc.content[1].table.body[i].length; j++) {
                                 doc.content[1].table.body[i][j].fillColor = '#d4edda';
                             }
+                            console.log('✅ [PDF] Applied green to approved row');
                         } else if (statusText.includes('Rejected')) {
                             // Rojo para rechazados
                             for (var j = 0; j < doc.content[1].table.body[i].length; j++) {
                                 doc.content[1].table.body[i][j].fillColor = '#f8d7da';
                             }
+                            console.log('❌ [PDF] Applied red to rejected row');
                         } else if (statusText.includes('In Review') || statusText.includes('Pending')) {
                             // Amarillo para pendientes
                             for (var j = 0; j < doc.content[1].table.body[i].length; j++) {
                                 doc.content[1].table.body[i][j].fillColor = '#fff3cd';
                             }
+                            console.log('⏳ [PDF] Applied yellow to pending row');
                         }
                     }
                 }
@@ -557,17 +618,40 @@ function getDataTableButtons(title, data) {
                     </style>
                 `);
                 
+                // Encontrar la columna de Status dinámicamente
+                var $table = $(win.document.body).find('table');
+                var statusColumnIndex = -1;
+                
+                $table.find('thead th').each(function(index) {
+                    var headerText = $(this).text().toLowerCase();
+                    if (headerText.includes('status') || headerText.includes('approval')) {
+                        statusColumnIndex = index;
+                        console.log('📊 [Print] Found Status column at index:', statusColumnIndex);
+                        return false; // break
+                    }
+                });
+                
+                if (statusColumnIndex === -1) {
+                    console.warn('⚠️ [Print] Status column not found, trying last column');
+                    statusColumnIndex = $table.find('thead th').length - 1;
+                }
+                
                 // Aplicar clases CSS a las filas
-                $(win.document.body).find('table tbody tr').each(function(index) {
-                    var statusCell = $(this).find('td').eq(20);
-                    if (statusCell.length) {
-                        var statusText = statusCell.text();
+                $table.find('tbody tr').each(function(index) {
+                    var $statusCell = $(this).find('td').eq(statusColumnIndex);
+                    if ($statusCell.length) {
+                        var statusText = $statusCell.text();
+                        console.log(`📊 [Print] Row ${index}, Status: "${statusText}"`);
+                        
                         if (statusText.includes('Approved')) {
                             $(this).addClass('status-approved');
+                            console.log('✅ [Print] Applied green class to approved row');
                         } else if (statusText.includes('Rejected')) {
                             $(this).addClass('status-rejected');
+                            console.log('❌ [Print] Applied red class to rejected row');
                         } else if (statusText.includes('In Review') || statusText.includes('Pending')) {
                             $(this).addClass('status-review');
+                            console.log('⏳ [Print] Applied yellow class to pending row');
                         }
                     }
                 });
