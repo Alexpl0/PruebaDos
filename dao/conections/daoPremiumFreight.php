@@ -20,10 +20,10 @@ try {
     // ================== CONSULTA SQL ACTUALIZADA CON CORRECTIVE ACTION PLAN ==================
     $sql = "
         SELECT 
-            pf.*, -- Selecciona todas las columnas de la tabla PremiumFreight
-            p.productName AS products, -- Obtiene el nombre del producto y lo renombra a 'products'
-            no.Number AS reference_number, -- Obtiene el número de referencia y lo renombra
-            no.Name AS reference_name, -- Obtiene el nombre de referencia y lo renombra
+            pf.*,
+            p.productName AS products,
+            no.Number AS reference_number,
+            no.Name AS reference_name,
             u.name AS creator_name,
             u.email AS creator_email,
             u.role AS creator_role,
@@ -51,7 +51,10 @@ try {
             cap.person_responsible,
             cap.due_date,
             cap.status AS corrective_action_status,
-            cap.creation_date AS corrective_action_creation_date
+            cap.creation_date AS corrective_action_creation_date,
+            -- Último aprobador
+            last_approver.name AS last_approver_name,
+            last_approver.email AS last_approver_email
         FROM PremiumFreight pf
         LEFT JOIN Products p ON pf.products = p.id
         LEFT JOIN NumOrders no ON pf.reference_number = no.ID
@@ -63,6 +66,18 @@ try {
         LEFT JOIN PremiumFreightApprovals pfa ON pf.id = pfa.premium_freight_id
         LEFT JOIN User u_approver ON pfa.user_id = u_approver.id
         LEFT JOIN CorrectiveActionPlan cap ON pf.id = cap.premium_freight_id
+        LEFT JOIN (
+            SELECT ah1.premium_freight_id, ah1.user_id
+            FROM ApprovalHistory ah1
+            WHERE ah1.action_type = 'APPROVED'
+            AND ah1.action_timestamp = (
+                SELECT MAX(ah2.action_timestamp)
+                FROM ApprovalHistory ah2
+                WHERE ah2.premium_freight_id = ah1.premium_freight_id
+                AND ah2.action_type = 'APPROVED'
+            )
+        ) last_approval ON pf.id = last_approval.premium_freight_id
+        LEFT JOIN User last_approver ON last_approval.user_id = last_approver.id
     ";
     // =========================================================================================
 

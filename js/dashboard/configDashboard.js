@@ -67,7 +67,7 @@ if (typeof URLPF !== 'undefined') {
     API_URL = URLPF + 'dao/conections/daoPremiumFreight.php';
 } else {
     console.warn('URL global variable is not defined. Using fallback URL.');
-    API_URL = 'https://grammermx.com/Jesus/PruebaDos/dao/conections/daoPremiumFreight.php';
+    API_URL = 'https://grammermx.com/Logistica/PremiumFreight/dao/conections/daoPremiumFreight.php';
 }
 
 // Configuración para DataTables

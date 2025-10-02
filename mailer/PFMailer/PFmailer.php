@@ -613,6 +613,7 @@ class PFMailer {
 
     /**
      * ✅ MODIFICADO: Envía notificaciones de estado con configuración SMTP dinámica
+     * y CC automático para órdenes rechazadas
      */
     public function sendStatusNotification($orderId, $status, $rejectorInfo = null) {
         try {
@@ -631,6 +632,17 @@ class PFMailer {
             // ✅ MODIFICADO: Pasar datos de orden para detección de planta
             $this->setEmailRecipients($creator['email'], $creator['name'], $orderData);
             
+            // ✅ NUEVO: Agregar CC específico para órdenes RECHAZADAS
+            if ($status === 'rejected') {
+                // Cambiar esta dirección por la que necesites
+                $rejectionNotificationEmail = 'dulce.mata@grammer.com';
+                $rejectionNotificationName = 'Dulce Mata - Transport Specialist';
+
+
+                $this->mail->addCC($rejectionNotificationEmail, $rejectionNotificationName);
+                logAction("Added CC for rejection notification: {$rejectionNotificationEmail}", 'STATUS_NOTIFICATION');
+            }
+            
             $this->mail->Subject = $subject;
             $this->mail->Body = $emailBody;
             
@@ -639,6 +651,12 @@ class PFMailer {
                 $this->services->logNotification($orderId, $creator['id'], $notificationType);
                 $plantName = $this->currentPlantConfig['plant_name'] ?? 'Unknown';
                 logAction("Status notification sent to {$creator['name']} via {$plantName}", 'STATUS_NOTIFICATION');
+                
+                // Log adicional para rechazos con CC
+                if ($status === 'rejected') {
+                    logAction("Rejection notification also sent to: {$rejectionNotificationEmail}", 'STATUS_NOTIFICATION');
+                }
+                
                 return true;
             }
             return false;
