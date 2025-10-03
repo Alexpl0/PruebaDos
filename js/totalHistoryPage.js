@@ -14,7 +14,8 @@ import {
     applyFilters, 
     clearFilters, 
     loadOrdersData, 
-    getDataTableButtons 
+    getDataTableButtons,
+    renderLastApprover  // ✅ Importar la nueva función
 } from './dataTables.js';
 
 // Variable global para almacenar todos los datos de las órdenes de esta página.
@@ -302,6 +303,12 @@ function populateTotalDataTable(orders) {
                         }
                         return `<span class="${badgeClass}">${data}</span>`;
                     }
+                },
+                // ✅ Nueva columna del último aprobador
+                {
+                    targets: 17,
+                    render: renderLastApprover,
+                    defaultContent: '-'
                 }
             ],
             // This callback runs for each row created, applying the background color

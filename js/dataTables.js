@@ -660,6 +660,25 @@ function getDataTableButtons(title, data) {
     ];
 }
 
+/**
+ * Renderiza la columna del último aprobador con formato
+ */
+function renderLastApprover(data, type, row) {
+    console.log('👤 [renderLastApprover] Rendering last approver:', data);
+    
+    if (type === 'display') {
+        if (data && data !== '-' && data !== '' && data !== null) {
+            // Mostrar nombre con email en tooltip
+            const email = row.last_approver_email || '';
+            return `<span title="${email}" style="cursor: help;" class="text-success">
+                        <i class="fas fa-user-check me-1"></i>${data}
+                    </span>`;
+        }
+        return '<span class="text-muted"><i class="fas fa-minus"></i></span>';
+    }
+    return data || '-';
+}
+
 // Exportar las funciones necesarias (actualizada)
 export { 
     getDataTableButtons,
@@ -673,5 +692,6 @@ export {
     clearFilters,
     loadOrdersData,
     processOrdersData,
-    calculateReference
+    calculateReference,
+    renderLastApprover  // ✅ Nueva función exportada
 };

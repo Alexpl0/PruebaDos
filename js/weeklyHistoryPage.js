@@ -11,7 +11,8 @@ import {
     showLoading, 
     setupToggleFilters, 
     loadOrdersData, 
-    getDataTableButtons 
+    getDataTableButtons,
+    renderLastApprover  // ✅ Importar la nueva función
 } from './dataTables.js';
 
 let allOrdersData = [];
@@ -207,6 +208,12 @@ function populateWeeklyDataTable(orders) {
             order.origin_city || '-',
             order.destiny_company_name || '-', 
             order.destiny_city || '-',
+            // ✅ Nueva columna del último aprobador
+            { 
+                data: 'last_approver_name',
+                render: renderLastApprover,
+                defaultContent: '-'
+            },
             `<button class="btn btn-sm btn-outline-primary generate-pdf-btn" data-order-id="${order.id}" title="View as PDF"><i class="fas fa-file-pdf"></i></button>`
         ];
     });
