@@ -16,7 +16,8 @@ window.PF_CONFIG = {
         email: null,
         role: 'Visitor',
         plant: null,
-        authorizationLevel: 0
+        authorizationLevel: 0,
+        approvalLevel: 0 // AGREGADO: Para compatibilidad con viewOrder.js
     },
     
     // Lee la configuración de la app (URLs)
@@ -36,6 +37,7 @@ window.PF_CONFIG = {
 // de `window.PF_CONFIG` en lugar de estas variables sueltas.
 // ==================================================================================
 window.PF_URL = window.PF_CONFIG.app.baseURL;
+window.URLPF = window.PF_CONFIG.app.baseURL; // CORREGIDO: Agregar URLPF para uploadFiles.js
 window.URLM = window.PF_CONFIG.app.mailerURL;
 window.authorizationLevel = window.PF_CONFIG.user.authorizationLevel;
 window.userName = window.PF_CONFIG.user.name;

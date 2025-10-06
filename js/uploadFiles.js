@@ -2,7 +2,31 @@
  * Módulo de manejo de subida de archivos
  * Este módulo proporciona funciones para subir archivos de recuperación y evidencia
  * para el sistema Premium Freight.
+ * 
+ * ACTUALIZACIÓN v2.0 (2025-10-06):
+ * - Usa window.PF_CONFIG.app.baseURL en lugar de URLPF directamente
+ * - Mantiene compatibilidad con URLPF para código legacy
  */
+
+/**
+ * Obtiene la URL base de forma segura
+ * @returns {string} URL base del sistema
+ */
+function getBaseURL() {
+    // Prioridad 1: window.PF_CONFIG.app.baseURL (método moderno)
+    if (window.PF_CONFIG?.app?.baseURL) {
+        return window.PF_CONFIG.app.baseURL;
+    }
+    
+    // Prioridad 2: window.URLPF (método legacy)
+    if (typeof window.URLPF !== 'undefined') {
+        return window.URLPF;
+    }
+    
+    // Fallback: URL hardcodeada como último recurso
+    console.warn('[uploadFiles.js] No URL configuration found. Using fallback URL.');
+    return 'https://grammermx.com/Jesus/PruebaDos/';
+}
 
 /**
  * Función para subir archivo de recuperación principal
@@ -23,7 +47,9 @@ function uploadRecoveryFile(premiumFreightId, userName, file) {
         formData.append('premium_freight_id', premiumFreightId);
         formData.append('userName', userName);
 
-        fetch(URLPF + 'dao/conections/daoUploadRecovery.php', {
+        const baseURL = getBaseURL();
+        
+        fetch(baseURL + 'dao/conections/daoUploadRecovery.php', {
             method: 'POST',
             body: formData
         })
@@ -41,7 +67,7 @@ function uploadRecoveryFile(premiumFreightId, userName, file) {
             }
         })
         .catch(error => {
-            console.error('Error uploading recovery file:', error);
+            console.error('[uploadFiles.js] Error uploading recovery file:', error);
             reject(error);
         });
     });
@@ -66,7 +92,9 @@ function uploadEvidenceFile(premiumFreightId, userName, file) {
         formData.append('premium_freight_id', premiumFreightId);
         formData.append('userName', userName);
 
-        fetch(URLPF + 'dao/conections/daoUploadEvidence.php', {
+        const baseURL = getBaseURL();
+
+        fetch(baseURL + 'dao/conections/daoUploadEvidence.php', {
             method: 'POST',
             body: formData
         })
@@ -84,7 +112,7 @@ function uploadEvidenceFile(premiumFreightId, userName, file) {
             }
         })
         .catch(error => {
-            console.error('Error uploading evidence file:', error);
+            console.error('[uploadFiles.js] Error uploading evidence file:', error);
             reject(error);
         });
     });
@@ -126,6 +154,7 @@ function validatePDFFile(file, maxSizeMB = 10) {
  * @param {HTMLElement} progressElement - Elemento HTML para mostrar el progreso
  * @param {File} file - Archivo que se está subiendo
  * @param {string} endpointUrl - URL del endpoint de carga
+ * @param {FormData} formData - Datos del formulario a enviar
  * @returns {Promise} Promesa que resuelve con la respuesta del servidor
  */
 function uploadFileWithProgress(progressElement, file, endpointUrl, formData) {
@@ -168,14 +197,16 @@ function uploadFileWithProgress(progressElement, file, endpointUrl, formData) {
 }
 
 /**
- * Verificación de disponibilidad de la variable URL
- * En caso de que el script se cargue antes que la variable esté definida
+ * Verificación de disponibilidad de la configuración
+ * Muestra un mensaje informativo si no se encuentra la configuración esperada
  */
-if (typeof URLPF === 'undefined') {
-    console.warn('URLPF global variable is not defined. Make sure this script runs after the URLPF is defined in your PHP page.');
-    // Fallback a URLPF hardcodeada solo como último recurso
-    window.URLPF = window.URLPF || 'https://grammermx.com/Jesus/PruebaDos/';
-}
+(function checkConfiguration() {
+    if (typeof window.PF_CONFIG === 'undefined' && typeof window.URLPF === 'undefined') {
+        console.warn('[uploadFiles.js] No URL configuration found (PF_CONFIG or URLPF). Make sure config.js is loaded before this script.');
+    } else {
+        console.log('[uploadFiles.js] Configuration loaded successfully. Using base URL:', getBaseURL());
+    }
+})();
 
 // Exportar funciones para su uso en otros módulos
 if (typeof module !== 'undefined' && module.exports) {
@@ -183,7 +214,8 @@ if (typeof module !== 'undefined' && module.exports) {
         uploadRecoveryFile,
         uploadEvidenceFile,
         validatePDFFile,
-        uploadFileWithProgress
+        uploadFileWithProgress,
+        getBaseURL
     };
 } else {
     // Exponer funciones globalmente para uso en navegador
@@ -191,4 +223,5 @@ if (typeof module !== 'undefined' && module.exports) {
     window.uploadEvidenceFile = uploadEvidenceFile;
     window.validatePDFFile = validatePDFFile;
     window.uploadFileWithProgress = uploadFileWithProgress;
+    window.getBaseURL = getBaseURL;
 }
