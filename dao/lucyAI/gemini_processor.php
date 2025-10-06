@@ -91,7 +91,7 @@ function getPremiumFreightData() {
     $scriptPath = dirname($_SERVER['PHP_SELF']);
     $baseUrl = str_replace('/dao/lucyAI', '', $scriptPath);
     
-    $url = $protocol . '://' . $host . $baseUrl . '/dao/connections/daoPremiumFreight.php';
+    $url = $protocol . '://' . $host . $baseUrl . '/dao/conections/daoPremiumFreight.php';
     
     // Usar file_get_contents con contexto de sesión
     $opts = [

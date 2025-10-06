@@ -34,7 +34,8 @@ try {
     // Verificar si los archivos existen
     $baseDir = dirname(dirname(__DIR__)); // Subir 2 niveles desde dao/lucyAI
     $checks['auth_check_exists'] = file_exists($baseDir . '/dao/users/auth_check.php');
-    $checks['daoPF_exists'] = file_exists($baseDir . '/dao/connections/daoPremiumFreight.php');
+    $checks['daoPF_exists'] = file_exists($baseDir . '/dao/conections/daoPremiumFreight.php');
+    $checks['daoPF_path_checked'] = $baseDir . '/dao/conections/daoPremiumFreight.php';
     
     echo json_encode([
         'status' => 'success',
