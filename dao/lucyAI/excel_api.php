@@ -24,11 +24,15 @@ if (!isset($_SESSION['user'])) {
 }
 
 // ==================== CONFIGURACIÓN ====================
-// TODO: Mover a variables de entorno en producción
 define('MICROSOFT_CLIENT_ID', '4a19a67f-180a-4edb-9ce2-7a6a638e55a0');
-define('MICROSOFT_CLIENT_SECRET', 'd48f7ad7-324b-480d-8b7d-874eabb9b2c2');
+define('MICROSOFT_CLIENT_SECRET', 'nzv8Q~W7cFM_~aS2pncK2_dfffuQvOHaAt5mzclt');
 define('MICROSOFT_TENANT_ID', '55c1a730-a70e-4839-b7ec-14dd88b4aa66');
 define('MICROSOFT_GRAPH_URL', 'https://graph.microsoft.com/v1.0');
+
+
+// Usuario donde se guardarán los archivos Excel
+// Puede ser un email (user@tudominio.com) o un User ID
+define('ONEDRIVE_USER', 'j.alejandro.pl_gmail.com#EXT#@jalejandroplgmail.onmicrosoft.com'); 
 
 // ==================== OBTENER DATOS DEL REQUEST ====================
 $input = json_decode(file_get_contents('php://input'), true);
@@ -152,7 +156,8 @@ function getExcelFile($fileId) {
 function getDownloadUrl($fileId) {
     $accessToken = getAccessToken();
     
-    $url = MICROSOFT_GRAPH_URL . "/me/drive/items/{$fileId}/content";
+    $userPath = urlencode(ONEDRIVE_USER);
+    $url = MICROSOFT_GRAPH_URL . "/users/{$userPath}/drive/items/{$fileId}/content";
     
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -238,7 +243,9 @@ function createEmptyWorkbook($accessToken, $fileName) {
     // Crear archivo Excel vacío usando plantilla mínima
     $excelTemplate = createMinimalExcelFile();
     
-    $url = MICROSOFT_GRAPH_URL . '/me/drive/root:/' . urlencode($fileName) . ':/content';
+    // Usar usuario específico en lugar de /me
+    $userPath = urlencode(ONEDRIVE_USER);
+    $url = MICROSOFT_GRAPH_URL . "/users/{$userPath}/drive/root:/" . urlencode($fileName) . ":/content";
     
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -360,7 +367,8 @@ function processWorksheet($accessToken, $fileId, $worksheet, $index) {
  * Renombra una worksheet
  */
 function renameWorksheet($accessToken, $fileId, $oldName, $newName) {
-    $url = MICROSOFT_GRAPH_URL . "/me/drive/items/{$fileId}/workbook/worksheets('{$oldName}')";
+    $userPath = urlencode(ONEDRIVE_USER);
+    $url = MICROSOFT_GRAPH_URL . "/users/{$userPath}/drive/items/{$fileId}/workbook/worksheets('{$oldName}')";
     
     $payload = ['name' => $newName];
     
@@ -371,7 +379,8 @@ function renameWorksheet($accessToken, $fileId, $oldName, $newName) {
  * Agrega una nueva worksheet
  */
 function addWorksheet($accessToken, $fileId, $name) {
-    $url = MICROSOFT_GRAPH_URL . "/me/drive/items/{$fileId}/workbook/worksheets/add";
+    $userPath = urlencode(ONEDRIVE_USER);
+    $url = MICROSOFT_GRAPH_URL . "/users/{$userPath}/drive/items/{$fileId}/workbook/worksheets/add";
     
     $payload = ['name' => $name];
     
@@ -400,7 +409,8 @@ function addDataToWorksheet($accessToken, $fileId, $sheetName, $worksheet) {
     $lastRow = count($values);
     $range = "A1:{$lastCol}{$lastRow}";
     
-    $url = MICROSOFT_GRAPH_URL . "/me/drive/items/{$fileId}/workbook/worksheets('{$sheetName}')/range(address='{$range}')";
+    $userPath = urlencode(ONEDRIVE_USER);
+    $url = MICROSOFT_GRAPH_URL . "/users/{$userPath}/drive/items/{$fileId}/workbook/worksheets('{$sheetName}')/range(address='{$range}')";
     
     $payload = ['values' => $values];
     
@@ -411,7 +421,8 @@ function addDataToWorksheet($accessToken, $fileId, $sheetName, $worksheet) {
  * Agrega una tabla a la worksheet
  */
 function addTable($accessToken, $fileId, $sheetName, $tableConfig) {
-    $url = MICROSOFT_GRAPH_URL . "/me/drive/items/{$fileId}/workbook/worksheets('{$sheetName}')/tables/add";
+    $userPath = urlencode(ONEDRIVE_USER);
+    $url = MICROSOFT_GRAPH_URL . "/users/{$userPath}/drive/items/{$fileId}/workbook/worksheets('{$sheetName}')/tables/add";
     
     $payload = [
         'address' => $tableConfig['range'],
@@ -422,7 +433,7 @@ function addTable($accessToken, $fileId, $sheetName, $tableConfig) {
     
     // Aplicar estilo si se especifica
     if (isset($tableConfig['style']) && isset($result['id'])) {
-        $styleUrl = MICROSOFT_GRAPH_URL . "/me/drive/items/{$fileId}/workbook/tables('{$result['id']}')";
+        $styleUrl = MICROSOFT_GRAPH_URL . "/users/{$userPath}/drive/items/{$fileId}/workbook/tables('{$result['id']}')";
         graphApiRequest($accessToken, $styleUrl, 'PATCH', ['style' => $tableConfig['style']]);
     }
     
@@ -433,7 +444,8 @@ function addTable($accessToken, $fileId, $sheetName, $tableConfig) {
  * Agrega un gráfico a la worksheet
  */
 function addChart($accessToken, $fileId, $sheetName, $chartConfig) {
-    $url = MICROSOFT_GRAPH_URL . "/me/drive/items/{$fileId}/workbook/worksheets('{$sheetName}')/charts/add";
+    $userPath = urlencode(ONEDRIVE_USER);
+    $url = MICROSOFT_GRAPH_URL . "/users/{$userPath}/drive/items/{$fileId}/workbook/worksheets('{$sheetName}')/charts/add";
     
     $payload = [
         'type' => $chartConfig['type'],
@@ -448,12 +460,12 @@ function addChart($accessToken, $fileId, $sheetName, $chartConfig) {
         $chartId = $result['id'];
         
         if (isset($chartConfig['title'])) {
-            $titleUrl = MICROSOFT_GRAPH_URL . "/me/drive/items/{$fileId}/workbook/worksheets('{$sheetName}')/charts('{$chartId}')/title";
+            $titleUrl = MICROSOFT_GRAPH_URL . "/users/{$userPath}/drive/items/{$fileId}/workbook/worksheets('{$sheetName}')/charts('{$chartId}')/title";
             graphApiRequest($accessToken, $titleUrl, 'PATCH', ['text' => $chartConfig['title']]);
         }
         
         if (isset($chartConfig['position'])) {
-            $posUrl = MICROSOFT_GRAPH_URL . "/me/drive/items/{$fileId}/workbook/worksheets('{$sheetName}')/charts('{$chartId}')";
+            $posUrl = MICROSOFT_GRAPH_URL . "/users/{$userPath}/drive/items/{$fileId}/workbook/worksheets('{$sheetName}')/charts('{$chartId}')";
             graphApiRequest($accessToken, $posUrl, 'PATCH', [
                 'top' => $chartConfig['position']['row'] * 20,
                 'left' => $chartConfig['position']['column'] * 100
@@ -468,10 +480,12 @@ function addChart($accessToken, $fileId, $sheetName, $chartConfig) {
  * Aplica formato a la worksheet
  */
 function applyFormatting($accessToken, $fileId, $sheetName, $formatting) {
+    $userPath = urlencode(ONEDRIVE_USER);
+    
     // Formato de header
     if (isset($formatting['headerRow'])) {
         $headerFormat = $formatting['headerRow'];
-        $url = MICROSOFT_GRAPH_URL . "/me/drive/items/{$fileId}/workbook/worksheets('{$sheetName}')/range(address='1:1')/format";
+        $url = MICROSOFT_GRAPH_URL . "/users/{$userPath}/drive/items/{$fileId}/workbook/worksheets('{$sheetName}')/range(address='1:1')/format";
         
         $formatPayload = [];
         if (isset($headerFormat['bold'])) {
@@ -491,7 +505,7 @@ function applyFormatting($accessToken, $fileId, $sheetName, $formatting) {
     
     // Freeze panes
     if (isset($formatting['freezePanes'])) {
-        $freezeUrl = MICROSOFT_GRAPH_URL . "/me/drive/items/{$fileId}/workbook/worksheets('{$sheetName}')/freezePanes/freezeRows";
+        $freezeUrl = MICROSOFT_GRAPH_URL . "/users/{$userPath}/drive/items/{$fileId}/workbook/worksheets('{$sheetName}')/freezePanes/freezeRows";
         graphApiRequest($accessToken, $freezeUrl, 'POST', ['count' => $formatting['freezePanes']['row']]);
     }
 }
@@ -501,9 +515,10 @@ function applyFormatting($accessToken, $fileId, $sheetName, $formatting) {
  */
 function updateWorksheet($accessToken, $fileId, $worksheet) {
     $sheetName = $worksheet['name'];
+    $userPath = urlencode(ONEDRIVE_USER);
     
     // Verificar si la hoja existe
-    $sheetsUrl = MICROSOFT_GRAPH_URL . "/me/drive/items/{$fileId}/workbook/worksheets";
+    $sheetsUrl = MICROSOFT_GRAPH_URL . "/users/{$userPath}/drive/items/{$fileId}/workbook/worksheets";
     $sheets = graphApiRequest($accessToken, $sheetsUrl, 'GET');
     
     $sheetExists = false;
@@ -528,12 +543,14 @@ function updateWorksheet($accessToken, $fileId, $worksheet) {
  * Actualiza celdas específicas
  */
 function updateCells($accessToken, $fileId, $cellUpdates) {
+    $userPath = urlencode(ONEDRIVE_USER);
+    
     foreach ($cellUpdates as $update) {
         $sheetName = $update['sheet'];
         $range = $update['range'];
         $values = $update['values'];
         
-        $url = MICROSOFT_GRAPH_URL . "/me/drive/items/{$fileId}/workbook/worksheets('{$sheetName}')/range(address='{$range}')";
+        $url = MICROSOFT_GRAPH_URL . "/users/{$userPath}/drive/items/{$fileId}/workbook/worksheets('{$sheetName}')/range(address='{$range}')";
         
         graphApiRequest($accessToken, $url, 'PATCH', ['values' => $values]);
     }
@@ -543,7 +560,8 @@ function updateCells($accessToken, $fileId, $cellUpdates) {
  * Obtiene la URL de embed para el archivo
  */
 function getEmbedUrl($accessToken, $fileId) {
-    $url = MICROSOFT_GRAPH_URL . "/me/drive/items/{$fileId}";
+    $userPath = urlencode(ONEDRIVE_USER);
+    $url = MICROSOFT_GRAPH_URL . "/users/{$userPath}/drive/items/{$fileId}";
     
     $response = graphApiRequest($accessToken, $url, 'GET');
     
