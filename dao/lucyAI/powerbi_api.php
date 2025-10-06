@@ -21,10 +21,10 @@ if (!isset($_SESSION['user'])) {
 }
 
 // ==================== CONFIGURACIÓN ====================
-define('POWERBI_CLIENT_ID', '07297fbf-6ba4-4fe3-99a1-87c93a5aaeb4');
-define('POWERBI_CLIENT_SECRET', 'PDK8Q~F-ZLtKAYWVaOHVMDq63rccxXSZ2M4-pae3');
+define('POWERBI_CLIENT_ID', 'ae866885-04f3-45df-89d4-77432de50094');
+define('POWERBI_CLIENT_SECRET', '3km8Q~Z6q2.evmfGs2kTUX2Zk7sqJQ1dSTc.RbYl');
 define('POWERBI_TENANT_ID', '1b76d39b-fc45-4afe-a05b-8d8f81f18a77');
-define('POWERBI_WORKSPACE_ID', '959d9628-e3b1-4217-aaed-ea2c0d90dc8a'); // ID del workspace "Pruebas Grammer"
+define('POWERBI_WORKSPACE_ID', '40fcad50-6205-47bd-adcb-c2cacdbff3a9'); // ID del workspace "Pruebas Grammer"
 
 
 define('POWERBI_API_URL', 'https://api.powerbi.com/v1.0/myorg');
