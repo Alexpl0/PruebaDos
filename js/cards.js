@@ -148,6 +148,7 @@ function attachCardEventListeners() {
     document.querySelectorAll('.ver-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const orderId = this.getAttribute('data-order-id'); // Obtener el ID de la orden
+            console.log('Redirecting with Order ID:', orderId); // Verificar el ID en la consola
             if (!orderId) {
                 console.error('Order ID not found for the clicked button.');
                 return;

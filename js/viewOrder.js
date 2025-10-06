@@ -29,32 +29,17 @@ async function initializeViewOrder() {
     }
 }
 
-async function loadOrderData() {
-    try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const orderId = urlParams.get('id');
-        
-        if (!orderId) {
-            throw new Error('No order ID provided');
-        }
+function loadOrderData() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('order');
 
-        const response = await fetch(`${window.PF_CONFIG.app.baseURL}dao/conections/daoPremiumFreight.php`);
-        const data = await response.json();
-        
-        if (data.success && Array.isArray(data.orders)) {
-            window.allOrders = data.orders;
-            currentOrder = data.orders.find(order => order.id == orderId);
-            
-            if (!currentOrder) {
-                throw new Error('Order not found');
-            }
-        } else {
-            throw new Error('Failed to load orders');
-        }
-    } catch (error) {
-        console.error('[viewOrder.js] Error loading order data:', error);
-        throw error;
+    if (!orderId) {
+        console.error('[viewOrder.js] No order ID provided in the URL.');
+        return;
     }
+
+    console.log('[viewOrder.js] Loading data for Order ID:', orderId);
+    // Lógica para cargar los datos de la orden...
 }
 
 async function initializeOrderDisplay() {
