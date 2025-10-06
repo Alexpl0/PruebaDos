@@ -2,8 +2,9 @@
 /**
  * daoStatusUpdate.php - Actualización de Estado de Órdenes
  * 
- * ACTUALIZACIÓN v2.0 (2025-10-06):
+ * ACTUALIZACIÓN v2.1 (2025-10-06):
  * - Migrado a tabla Approvers para validación de niveles de aprobación
+ * - CORREGIDO: user_id en lugar de id_user
  * - Mantiene authorization_level para validación de sesión
  */
 
@@ -59,11 +60,12 @@ try {
     $conex->begin_transaction();
 
     // 1. Obtener información de la orden
+    // CORREGIDO: pf.user_id en lugar de pf.id_user
     $stmt = $conex->prepare("
         SELECT pfa.act_approv, pf.required_auth_level, u.plant as creator_plant
         FROM PremiumFreight pf
         LEFT JOIN PremiumFreightApprovals pfa ON pf.id = pfa.premium_freight_id
-        LEFT JOIN User u ON pf.id_user = u.id
+        LEFT JOIN User u ON pf.user_id = u.id
         WHERE pf.id = ?
     ");
     $stmt->bind_param("i", $orderId);
@@ -155,12 +157,14 @@ try {
     $stmt->close();
 
     // 6. Registrar en el historial
+    // CORREGIDO: Usar user_id en lugar de approver_id
+    $actionType = $newStatusId === 99 ? 'REJECTED' : 'APPROVED';
     $stmt = $conex->prepare("
         INSERT INTO ApprovalHistory 
-        (premium_freight_id, approver_id, approval_level_reached, approved_at, rejection_reason)
-        VALUES (?, ?, ?, ?, ?)
+        (premium_freight_id, user_id, action_timestamp, action_type, approval_level_reached, comments)
+        VALUES (?, ?, ?, ?, ?, ?)
     ");
-    $stmt->bind_param("iiiss", $orderId, $userID, $newStatusId, $authDate, $rejectionReason);
+    $stmt->bind_param("iissis", $orderId, $userID, $authDate, $actionType, $newStatusId, $rejectionReason);
     
     if (!$stmt->execute()) {
         throw new Exception("Failed to insert approval history: " . $stmt->error);
@@ -169,14 +173,20 @@ try {
 
     // 7. Actualizar estado general de la orden si es necesario
     if ($newStatusId === 99) {
-        // Orden rechazada
-        $stmt = $conex->prepare("UPDATE PremiumFreight SET status = 'rejected' WHERE id = ?");
+        // Orden rechazada - Actualizar status_id a 4 (rejected)
+        $stmt = $conex->prepare("UPDATE PremiumFreight SET status_id = 4 WHERE id = ?");
         $stmt->bind_param("i", $orderId);
         $stmt->execute();
         $stmt->close();
     } elseif ($newStatusId >= $requiredAuthLevel) {
-        // Orden completamente aprobada
-        $stmt = $conex->prepare("UPDATE PremiumFreight SET status = 'approved' WHERE id = ?");
+        // Orden completamente aprobada - Actualizar status_id a 3 (approved)
+        $stmt = $conex->prepare("UPDATE PremiumFreight SET status_id = 3 WHERE id = ?");
+        $stmt->bind_param("i", $orderId);
+        $stmt->execute();
+        $stmt->close();
+    } elseif ($newStatusId > 0) {
+        // Orden en proceso de aprobación - Actualizar status_id a 2 (review)
+        $stmt = $conex->prepare("UPDATE PremiumFreight SET status_id = 2 WHERE id = ?");
         $stmt->bind_param("i", $orderId);
         $stmt->execute();
         $stmt->close();
