@@ -32,7 +32,8 @@ define('MICROSOFT_GRAPH_URL', 'https://graph.microsoft.com/v1.0');
 
 // Usuario donde se guardarán los archivos Excel
 // Puede ser un email (user@tudominio.com) o un User ID
-define('ONEDRIVE_USER', 'j.alejandro.pl@gmail.com'); 
+define('ONEDRIVE_USER', 'j.alejandro.pl_gmail.com#EXT#@jalejandroplgmail.onmicrosoft.com');
+
 
 // ==================== OBTENER DATOS DEL REQUEST ====================
 $input = json_decode(file_get_contents('php://input'), true);
