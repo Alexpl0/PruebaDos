@@ -147,17 +147,25 @@ function attachCardEventListeners() {
 
     document.querySelectorAll('.ver-btn').forEach(btn => {
         btn.addEventListener('click', function() {
-            const orderId = this.getAttribute('data-order-id');
+            const orderId = this.getAttribute('data-order-id'); // Obtener el ID de la orden
+            if (!orderId) {
+                console.error('Order ID not found for the clicked button.');
+                return;
+            }
             const redirectPage = currentPage.includes('myorders.php') ? 'myOrder.php' : 'view_order.php';
-            window.location.href = `${redirectPage}?order=${orderId}`;
+            window.location.href = `${redirectPage}?order=${encodeURIComponent(orderId)}`; // Redirigir con el ID
         });
     });
-    
+
     // Attach click listener ONLY to the warning badges
     document.querySelectorAll('.file-status-badge.status-warning').forEach(badge => {
         badge.addEventListener('click', function(e) {
             e.stopPropagation(); // Prevent card click event
             const orderId = this.getAttribute('data-order-id');
+            if (!orderId) {
+                console.error('Order ID not found for the warning badge.');
+                return;
+            }
             showEvidenceUploadModal(orderId);
         });
     });
