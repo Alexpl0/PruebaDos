@@ -46,7 +46,7 @@ async function loadOrderData() {
 
         // Hacer la petición al servidor para obtener los datos de la orden
         const response = await fetch(
-            `${window.PF_CONFIG.app.baseURL}dao/conections/daoGetOrder.php?order_id=${orderId}`
+            `${window.PF_CONFIG.app.baseURL}dao/conections/daoOrderProgress.php?orderId=${orderId}`
         );
 
         if (!response.ok) {
@@ -59,7 +59,18 @@ async function loadOrderData() {
             throw new Error(data.message || 'Failed to load order data');
         }
 
-        currentOrder = data.order;
+        // La respuesta de daoOrderProgress.php tiene la orden en data.order
+        currentOrder = {
+            ...data.order,
+            // Mapear current_approval_level a approval_status para compatibilidad
+            approval_status: data.order.current_approval_level,
+            // Mapear order_plant a creator_plant para compatibilidad
+            creator_plant: data.order.order_plant,
+            // Guardar también el timeline y el historial
+            approval_timeline: data.approval_timeline || [],
+            approval_history: data.approval_history || []
+        };
+        
         console.log('[viewOrder.js] Order data loaded successfully:', currentOrder);
 
     } catch (error) {
@@ -103,22 +114,108 @@ function renderOrderDetails(order) {
     const svgContent = document.getElementById('svgContent');
     if (!svgContent) return;
 
-    // Aquí puedes agregar tu lógica específica para renderizar la orden
-    // Por ahora, solo un ejemplo básico:
-    svgContent.innerHTML = `
+    // Construir HTML con los detalles de la orden
+    const detailsHtml = `
         <div class="order-details">
-            <h3>Order Details</h3>
-            <p><strong>ID:</strong> ${order.id}</p>
-            <p><strong>Description:</strong> ${order.description || 'N/A'}</p>
-            <p><strong>Status:</strong> ${getStatusText(order.approval_status)}</p>
+            <div class="order-header-info">
+                <h3>Order Details</h3>
+                <span class="badge ${order.is_rejected ? 'bg-danger' : 'bg-success'}">
+                    ${order.is_rejected ? 'Rejected' : getStatusText(order.current_approval_level)}
+                </span>
+            </div>
+            
+            <div class="order-info-grid">
+                <div class="info-item">
+                    <strong>Order ID:</strong> 
+                    <span>${order.id}</span>
+                </div>
+                
+                <div class="info-item">
+                    <strong>Premium Freight #:</strong> 
+                    <span>${order.premium_freight_number || 'N/A'}</span>
+                </div>
+                
+                <div class="info-item">
+                    <strong>Status:</strong> 
+                    <span>${order.status || 'N/A'}</span>
+                </div>
+                
+                <div class="info-item">
+                    <strong>Created by:</strong> 
+                    <span>${order.creator_name || 'N/A'}</span>
+                </div>
+                
+                <div class="info-item">
+                    <strong>Plant:</strong> 
+                    <span>${order.order_plant || 'N/A'}</span>
+                </div>
+                
+                <div class="info-item">
+                    <strong>Current Approval Level:</strong> 
+                    <span>${order.current_approval_level} / ${order.required_auth_level}</span>
+                </div>
+                
+                ${order.is_rejected && order.rejection_reason ? `
+                <div class="info-item full-width">
+                    <strong>Rejection Reason:</strong> 
+                    <span class="text-danger">${order.rejection_reason}</span>
+                </div>
+                ` : ''}
+            </div>
+            
+            ${renderApprovalTimeline(order.approval_timeline)}
         </div>
     `;
+
+    svgContent.innerHTML = detailsHtml;
 
     // Mostrar/ocultar botón de archivos de recuperación si aplica
     const recoveryBtn = document.getElementById('recoveryFilesBtn');
     if (recoveryBtn && order.recovery_file) {
         recoveryBtn.classList.remove('hidden');
     }
+}
+
+/**
+ * Renderiza la línea de tiempo de aprobaciones
+ */
+function renderApprovalTimeline(timeline) {
+    if (!timeline || timeline.length === 0) {
+        return '';
+    }
+
+    const timelineHtml = timeline.map(item => {
+        const statusClass = item.status === 'approved' ? 'success' : 
+                          item.status === 'current' ? 'warning' : 
+                          item.status === 'skipped' ? 'secondary' : 'light';
+        
+        const approverName = item.approver ? item.approver.name : 'Not assigned';
+        const approverRole = item.approver ? item.approver.role : '';
+        const approvedDate = item.history ? new Date(item.history.approved_at).toLocaleDateString() : '';
+        
+        return `
+            <div class="timeline-item timeline-${item.status}">
+                <div class="timeline-badge bg-${statusClass}">
+                    ${item.level}
+                </div>
+                <div class="timeline-content">
+                    <h5>Level ${item.level} - ${approverRole || 'Approval'}</h5>
+                    <p><strong>Approver:</strong> ${approverName}</p>
+                    ${approvedDate ? `<p><small>Approved: ${approvedDate}</small></p>` : ''}
+                    ${item.status === 'current' ? '<span class="badge bg-warning">Pending</span>' : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    return `
+        <div class="approval-timeline-section">
+            <h4>Approval Timeline</h4>
+            <div class="approval-timeline">
+                ${timelineHtml}
+            </div>
+        </div>
+    `;
 }
 
 /**
