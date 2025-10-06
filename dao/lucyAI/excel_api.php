@@ -24,9 +24,9 @@ if (!isset($_SESSION['user'])) {
 }
 
 // ==================== CONFIGURACIÓN ====================
-define('MICROSOFT_CLIENT_ID', '4a19a67f-180a-4edb-9ce2-7a6a638e55a0');
-define('MICROSOFT_CLIENT_SECRET', 'nzv8Q~W7cFM_~aS2pncK2_dfffuQvOHaAt5mzclt');
-define('MICROSOFT_TENANT_ID', '55c1a730-a70e-4839-b7ec-14dd88b4aa66');
+define('MICROSOFT_CLIENT_ID', '316d8718-9117-4db5-b5d2-79a92cd2f0a8');
+define('MICROSOFT_CLIENT_SECRET', 'c2c8Q~DvtuQ1rzT2hlnifPrDdoNFYf04VY_2Wdq~');
+define('MICROSOFT_TENANT_ID', '1b76d39b-fc45-4afe-a05b-8d8f81f18a77');
 define('MICROSOFT_GRAPH_URL', 'https://graph.microsoft.com/v1.0');
 
 
