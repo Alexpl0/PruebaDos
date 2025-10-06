@@ -131,3 +131,8 @@ export async function handleSavePDF() {
         });
     }
 }
+
+export function setupModalEventListeners() {
+    console.log('Modal event listeners set up!');
+    // Implementación de los listeners
+}
