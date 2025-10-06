@@ -36,7 +36,6 @@ try {
     // 1. Obtener información básica de la orden
     $orderSql = "SELECT 
         pf.id,
-        pf.premium_freight_number,
         pf.status,
         pf.required_auth_level,
         u.plant as order_plant,
