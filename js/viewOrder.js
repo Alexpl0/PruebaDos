@@ -1,12 +1,14 @@
 /**
  * viewOrder.js - Premium Freight Order Viewer
  * 
- * ACTUALIZACIÓN v2.1 (2025-10-06):
+ * ACTUALIZACIÓN v2.2 (2025-10-06):
  * - Corregido para usar window.PF_CONFIG.orderId directamente
  * - Usa approvalLevel para validaciones de permisos
+ * - NUEVO: Integración con svgOrders.js para renderizar SVG
  */
 
 import { approveOrder, rejectOrder } from './approval.js';
+import { loadAndPopulateSVG, generatePDF } from './svgOrders.js';
 
 let currentOrder = null;
 let isLoading = false;
@@ -46,7 +48,7 @@ async function loadOrderData() {
 
         // Hacer la petición al servidor para obtener los datos de la orden
         const response = await fetch(
-            `${window.PF_CONFIG.app.baseURL}dao/users/daoOrderProgress.php?orderId=${orderId}`
+            `${window.PF_CONFIG.app.baseURL}dao/conections/daoOrderProgress.php?orderId=${orderId}`
         );
 
         if (!response.ok) {
@@ -91,12 +93,29 @@ async function initializeOrderDisplay() {
             loadingSpinner.classList.add('hidden');
         }
 
-        // Mostrar contenido de la orden
-        const svgContent = document.getElementById('svgContent');
-        if (svgContent) {
-            svgContent.classList.remove('hidden');
-            // Aquí puedes agregar la lógica para renderizar los detalles de la orden
-            renderOrderDetails(currentOrder);
+        // CORREGIDO: Usar loadAndPopulateSVG para cargar el SVG con los datos
+        console.log('[viewOrder.js] Loading SVG for order:', currentOrder.id);
+        
+        try {
+            await loadAndPopulateSVG(currentOrder, 'svgContent');
+            
+            // Mostrar contenido de la orden
+            const svgContent = document.getElementById('svgContent');
+            if (svgContent) {
+                svgContent.classList.remove('hidden');
+            }
+            
+            console.log('[viewOrder.js] SVG loaded successfully');
+        } catch (svgError) {
+            console.error('[viewOrder.js] Error loading SVG:', svgError);
+            // Fallback: mostrar información básica si el SVG falla
+            renderOrderDetailsBasic(currentOrder);
+        }
+
+        // Mostrar/ocultar botón de archivos de recuperación si aplica
+        const recoveryBtn = document.getElementById('recoveryFilesBtn');
+        if (recoveryBtn && currentOrder.recovery_file) {
+            recoveryBtn.classList.remove('hidden');
         }
 
         console.log('[viewOrder.js] Order display initialized');
@@ -108,15 +127,17 @@ async function initializeOrderDisplay() {
 }
 
 /**
- * Renderiza los detalles de la orden en el DOM
+ * Renderiza los detalles de la orden en formato básico (fallback si SVG falla)
  */
-function renderOrderDetails(order) {
+function renderOrderDetailsBasic(order) {
     const svgContent = document.getElementById('svgContent');
     if (!svgContent) return;
 
-    // Construir HTML con los detalles de la orden
     const detailsHtml = `
         <div class="order-details">
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i> SVG template could not be loaded. Showing basic information.
+            </div>
             <div class="order-header-info">
                 <h3>Order Details</h3>
                 <span class="badge ${order.is_rejected ? 'bg-danger' : 'bg-success'}">
@@ -155,6 +176,13 @@ function renderOrderDetails(order) {
                     <span>${order.current_approval_level} / ${order.required_auth_level}</span>
                 </div>
                 
+                ${order.description ? `
+                <div class="info-item full-width">
+                    <strong>Description:</strong> 
+                    <p>${order.description}</p>
+                </div>
+                ` : ''}
+                
                 ${order.is_rejected && order.rejection_reason ? `
                 <div class="info-item full-width">
                     <strong>Rejection Reason:</strong> 
@@ -168,12 +196,7 @@ function renderOrderDetails(order) {
     `;
 
     svgContent.innerHTML = detailsHtml;
-
-    // Mostrar/ocultar botón de archivos de recuperación si aplica
-    const recoveryBtn = document.getElementById('recoveryFilesBtn');
-    if (recoveryBtn && order.recovery_file) {
-        recoveryBtn.classList.remove('hidden');
-    }
+    svgContent.classList.remove('hidden');
 }
 
 /**
@@ -420,14 +443,15 @@ async function handleGeneratePDF(event) {
             }
         });
 
-        // Aquí implementar la lógica de generación de PDF
-        // Por ejemplo:
-        // await generateOrderPDF(currentOrder);
+        // CORREGIDO: Usar la función generatePDF importada de svgOrders.js
+        const fileName = await generatePDF(currentOrder, `PF_${currentOrder.id}_Order`);
 
         Swal.fire({ 
             icon: 'success', 
-            title: 'PDF Generated!', 
-            timer: 1500,
+            title: 'PDF Generated!',
+            html: `The PDF has been downloaded successfully.<br><small class="text-muted">File: ${fileName}</small>`,
+            timer: 3000,
+            timerProgressBar: true,
             showConfirmButton: false
         });
         
