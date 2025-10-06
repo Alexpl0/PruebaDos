@@ -34,6 +34,8 @@ define('MICROSOFT_GRAPH_URL', 'https://graph.microsoft.com/v1.0');
 // Puede ser un email (user@tudominio.com) o un User ID
 define('ONEDRIVE_USER', 'jesusperez@alexdev043.onmicrosoft.com');
 
+
+
 // ==================== OBTENER DATOS DEL REQUEST ====================
 $input = json_decode(file_get_contents('php://input'), true);
 $action = $input['action'] ?? 'create';
@@ -329,37 +331,55 @@ function createMinimalExcelFile() {
 function processWorksheet($accessToken, $fileId, $worksheet, $index) {
     $worksheetName = $worksheet['name'] ?? "Sheet" . ($index + 1);
     
-    // Si es el primer worksheet, renombrar Sheet1, sino crear nueva
-    if ($index === 0) {
-        renameWorksheet($accessToken, $fileId, 'Sheet1', $worksheetName);
-        $targetSheet = $worksheetName;
-    } else {
-        addWorksheet($accessToken, $fileId, $worksheetName);
-        $targetSheet = $worksheetName;
-    }
-    
-    // Agregar datos
-    if (isset($worksheet['data']) && is_array($worksheet['data'])) {
-        addDataToWorksheet($accessToken, $fileId, $targetSheet, $worksheet);
-    }
-    
-    // Agregar tablas
-    if (isset($worksheet['tables']) && is_array($worksheet['tables'])) {
-        foreach ($worksheet['tables'] as $table) {
-            addTable($accessToken, $fileId, $targetSheet, $table);
+    try {
+        // Si es el primer worksheet, renombrar Sheet1, sino crear nueva
+        if ($index === 0) {
+            renameWorksheet($accessToken, $fileId, 'Sheet1', $worksheetName);
+            $targetSheet = $worksheetName;
+        } else {
+            addWorksheet($accessToken, $fileId, $worksheetName);
+            $targetSheet = $worksheetName;
         }
-    }
-    
-    // Agregar gráficos
-    if (isset($worksheet['charts']) && is_array($worksheet['charts'])) {
-        foreach ($worksheet['charts'] as $chart) {
-            addChart($accessToken, $fileId, $targetSheet, $chart);
+        
+        // Agregar datos
+        if (isset($worksheet['data']) && is_array($worksheet['data'])) {
+            error_log("Adding data to sheet: {$targetSheet}");
+            addDataToWorksheet($accessToken, $fileId, $targetSheet, $worksheet);
         }
-    }
-    
-    // Aplicar formato
-    if (isset($worksheet['formatting'])) {
-        applyFormatting($accessToken, $fileId, $targetSheet, $worksheet['formatting']);
+        
+        // Agregar tablas
+        if (isset($worksheet['tables']) && is_array($worksheet['tables'])) {
+            error_log("Adding tables to sheet: {$targetSheet}");
+            foreach ($worksheet['tables'] as $table) {
+                try {
+                    addTable($accessToken, $fileId, $targetSheet, $table);
+                } catch (Exception $e) {
+                    error_log("Table creation failed: " . $e->getMessage());
+                    // Continuar aunque falle la tabla
+                }
+            }
+        }
+        
+        // Agregar gráficos
+        if (isset($worksheet['charts']) && is_array($worksheet['charts'])) {
+            error_log("Adding charts to sheet: {$targetSheet}");
+            foreach ($worksheet['charts'] as $chart) {
+                try {
+                    addChart($accessToken, $fileId, $targetSheet, $chart);
+                } catch (Exception $e) {
+                    error_log("Chart creation failed: " . $e->getMessage());
+                    // Continuar aunque falle el gráfico
+                }
+            }
+        }
+        
+        // FORMATEO COMPLETAMENTE DESACTIVADO
+        // Graph API tiene problemas con el formateo, pero los datos y gráficos funcionan bien
+        // El usuario puede formatear manualmente en Excel si lo necesita
+        
+    } catch (Exception $e) {
+        error_log("Error processing worksheet {$worksheetName}: " . $e->getMessage());
+        throw $e;
     }
 }
 
