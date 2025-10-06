@@ -26,7 +26,7 @@ if (!isset($_SESSION['user'])) {
 
 // ==================== CONFIGURACIÓN ====================
 define('GEMINI_API_KEY', 'AIzaSyA7ajOKqgm8CsnGg1tv3I_C2l7Rwxf-2tM');
-define('GEMINI_API_URL', 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2-flash:generateContent');
+define('GEMINI_API_URL', 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent');
 
 // ==================== OBTENER DATOS DEL REQUEST ====================
 $input = json_decode(file_get_contents('php://input'), true);
