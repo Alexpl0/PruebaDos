@@ -18,52 +18,84 @@ if (session_status() === PHP_SESSION_NONE) {
 define('GEMINI_API_KEY', 'AIzaSyA7ajOKqgm8CsnGg1tv3I_C2l7Rwxf-2tM');
 define('GEMINI_API_URL', 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2-flash-lite:generateContent');
 
+
 $totalStartTime = microtime(true);
 
-// ==== PASO 1: Obtener datos de PremiumFreight ====
-echo json_encode(['step' => 1, 'message' => 'Obteniendo datos de Premium Freight...'], JSON_PRETTY_PRINT) . "\n\n";
+// ==== PASO 1: Obtener datos de PremiumFreight DIRECTAMENTE ====
+echo json_encode(['step' => 1, 'message' => 'Obteniendo datos DIRECTAMENTE de BD...'], JSON_PRETTY_PRINT) . "\n\n";
 $step1Start = microtime(true);
 
-$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
-$host = $_SERVER['HTTP_HOST'];
-$scriptPath = dirname($_SERVER['PHP_SELF']);
-$baseUrl = str_replace('/dao/lucyAI', '', $scriptPath);
-$url = $protocol . '://' . $host . $baseUrl . '/dao/conections/daoPremiumFreight.php';
-
-$opts = [
-    'http' => [
-        'method' => 'GET',
-        'header' => 'Cookie: ' . session_name() . '=' . session_id() . "\r\n"
-    ]
-];
-
-$context = stream_context_create($opts);
-$response = @file_get_contents($url, false, $context);
-
-if ($response === false) {
-    // Intentar con CURL
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_COOKIE, session_name() . '=' . session_id());
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+try {
+    // Incluir la clase de conexión
+    $dbPath = dirname(dirname(__DIR__)) . '/dao/db/PFDB.php';
     
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-}
-
-$step1Time = round(microtime(true) - $step1Start, 2);
-
-$data = json_decode($response, true);
-
-if (!$data || !isset($data['data'])) {
+    if (!file_exists($dbPath)) {
+        echo json_encode([
+            'status' => 'error',
+            'step' => 1,
+            'message' => 'No se encuentra PFDB.php',
+            'path_checked' => $dbPath
+        ], JSON_PRETTY_PRINT);
+        exit;
+    }
+    
+    include_once($dbPath);
+    
+    $con = new LocalConector();
+    $conex = $con->conectar();
+    
+    $userPlant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
+    
+    // Consulta SQL optimizada
+    $sql = "
+        SELECT 
+            pf.id,
+            pf.date,
+            pf.planta,
+            pf.transport,
+            pf.cost_euros,
+            pf.category_cause,
+            c.name AS carrier,
+            st.name AS status_name,
+            lo_from.city AS origin_city,
+            lo_to.city AS destiny_city
+        FROM PremiumFreight pf
+        LEFT JOIN Carriers c ON pf.carrier_id = c.id
+        LEFT JOIN User u ON pf.user_id = u.id
+        LEFT JOIN Location lo_from ON pf.origin_id = lo_from.id
+        LEFT JOIN Location lo_to ON pf.destiny_id = lo_to.id
+        LEFT JOIN Status st ON pf.status_id = st.id
+    ";
+    
+    if ($userPlant !== null && $userPlant !== '') {
+        $sql .= " WHERE u.plant = ?";
+        $stmt = $conex->prepare($sql . " ORDER BY pf.id DESC LIMIT 100");
+        $stmt->bind_param("s", $userPlant);
+    } else {
+        $stmt = $conex->prepare($sql . " ORDER BY pf.id DESC LIMIT 100");
+    }
+    
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    $datos = [];
+    while ($row = $result->fetch_assoc()) {
+        $datos[] = $row;
+    }
+    
+    $stmt->close();
+    $conex->close();
+    
+    $data = [
+        'status' => 'success',
+        'data' => $datos
+    ];
+    
+} catch (Exception $e) {
     echo json_encode([
         'status' => 'error',
         'step' => 1,
-        'message' => 'No se pudieron obtener datos',
-        'elapsed_time' => $step1Time . 's'
+        'message' => 'Error en BD: ' . $e->getMessage()
     ], JSON_PRETTY_PRINT);
     exit;
 }

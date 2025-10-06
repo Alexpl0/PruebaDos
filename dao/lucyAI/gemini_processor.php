@@ -25,8 +25,10 @@ if (!isset($_SESSION['user'])) {
 }
 
 // ==================== CONFIGURACIÓN ====================
-define('GEMINI_API_KEY', 'AIzaSyA7ajOKqgm8CsnGg1tv3I_C2l7Rwxf-2tM');
-define('GEMINI_API_URL', 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2-flash-lite:generateContent');
+// TODO: Mover a variables de entorno en producción
+define('GEMINI_API_KEY', 'TU_GEMINI_API_KEY_AQUI');
+define('GEMINI_API_URL', 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent');
+
 // ==================== OBTENER DATOS DEL REQUEST ====================
 $input = json_decode(file_get_contents('php://input'), true);
 
@@ -108,69 +110,98 @@ try {
 // ==================== FUNCIONES AUXILIARES ====================
 
 /**
- * Obtiene los datos de Premium Freight del endpoint existente
+ * Obtiene los datos de Premium Freight DIRECTAMENTE de la BD (más rápido)
  */
 function getPremiumFreightData() {
-    // Construir URL absoluta correctamente
-    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
-    $host = $_SERVER['HTTP_HOST'];
-    
-    // Obtener el directorio base (removiendo /dao/lucyAI de la ruta actual)
-    $scriptPath = dirname($_SERVER['PHP_SELF']);
-    $baseUrl = str_replace('/dao/lucyAI', '', $scriptPath);
-    
-    $url = $protocol . '://' . $host . $baseUrl . '/dao/conections/daoPremiumFreight.php';
-    
-    // Usar file_get_contents con contexto de sesión
-    $opts = [
-        'http' => [
-            'method' => 'GET',
-            'header' => 'Cookie: ' . session_name() . '=' . session_id() . "\r\n"
-        ]
-    ];
-    
-    $context = stream_context_create($opts);
-    $response = @file_get_contents($url, false, $context);
-    
-    if ($response === false) {
-        // Si file_get_contents falla, intentar con curl
-        return getPremiumFreightDataCurl($url);
-    }
-    
-    $data = json_decode($response, true);
-    
-    if (json_last_error() !== JSON_ERROR_NONE || !isset($data['status']) || $data['status'] !== 'success') {
+    try {
+        // Incluir la clase de conexión
+        $dbPath = dirname(dirname(__DIR__)) . '/dao/db/PFDB.php';
+        
+        if (!file_exists($dbPath)) {
+            throw new Exception("No se encuentra PFDB.php en: {$dbPath}");
+        }
+        
+        include_once($dbPath);
+        
+        $con = new LocalConector();
+        $conex = $con->conectar();
+        
+        $userPlant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
+        $userAuthLevel = isset($_SESSION['user']['authorization_level']) ? $_SESSION['user']['authorization_level'] : null;
+        
+        // Consulta SQL optimizada - solo campos necesarios para Lucy
+        $sql = "
+            SELECT 
+                pf.id,
+                pf.date,
+                pf.planta,
+                pf.code_planta,
+                pf.transport,
+                pf.in_out_bound,
+                pf.cost_euros,
+                pf.category_cause,
+                pf.area,
+                pf.int_ext,
+                pf.paid_by,
+                pf.project_status,
+                pf.recovery,
+                pf.weight,
+                p.productName AS products,
+                no.Number AS reference_number,
+                no.Name AS reference_name,
+                u.name AS creator_name,
+                u.plant AS creator_plant,
+                lo_from.company_name AS origin_company_name,
+                lo_from.city AS origin_city,
+                lo_from.state AS origin_state,
+                lo_to.company_name AS destiny_company_name,
+                lo_to.city AS destiny_city,
+                lo_to.state AS destiny_state,
+                c.name AS carrier,
+                st.name AS status_name
+            FROM PremiumFreight pf
+            LEFT JOIN Products p ON pf.products = p.id
+            LEFT JOIN NumOrders no ON pf.reference_number = no.ID
+            LEFT JOIN Carriers c ON pf.carrier_id = c.id
+            LEFT JOIN User u ON pf.user_id = u.id
+            LEFT JOIN Location lo_from ON pf.origin_id = lo_from.id
+            LEFT JOIN Location lo_to ON pf.destiny_id = lo_to.id
+            LEFT JOIN Status st ON pf.status_id = st.id
+        ";
+        
+        // Filtrar por planta si es necesario
+        if ($userPlant !== null && $userPlant !== '') {
+            $sql .= " WHERE u.plant = ?";
+            $stmt = $conex->prepare($sql . " ORDER BY pf.id DESC LIMIT 500");
+            $stmt->bind_param("s", $userPlant);
+        } else {
+            $stmt = $conex->prepare($sql . " ORDER BY pf.id DESC LIMIT 500");
+        }
+        
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        $datos = [];
+        while ($row = $result->fetch_assoc()) {
+            $datos[] = $row;
+        }
+        
+        $stmt->close();
+        $conex->close();
+        
+        return [
+            'status' => 'success',
+            'data' => $datos,
+            'user_info' => [
+                'plant' => $userPlant,
+                'authorization_level' => $userAuthLevel
+            ]
+        ];
+        
+    } catch (Exception $e) {
+        error_log("Error en getPremiumFreightData: " . $e->getMessage());
         return null;
     }
-    
-    return $data;
-}
-
-/**
- * Fallback con CURL
- */
-function getPremiumFreightDataCurl($url) {
-    if (!function_exists('curl_init')) {
-        return null;
-    }
-    
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_COOKIE, session_name() . '=' . session_id());
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Para desarrollo local
-    
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $error = curl_error($ch);
-    curl_close($ch);
-    
-    if ($httpCode !== 200 || empty($response)) {
-        error_log("Error fetching Premium Freight data: HTTP {$httpCode}, Error: {$error}");
-        return null;
-    }
-    
-    return json_decode($response, true);
 }
 
 /**
