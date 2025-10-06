@@ -368,7 +368,7 @@ function processWorksheet($accessToken, $fileId, $worksheet, $index) {
  * Renombra una worksheet
  */
 function renameWorksheet($accessToken, $fileId, $oldName, $newName) {
-    $userPath = urlencode(ONEDRIVE_USER);
+    $userPath = strtolower(urlencode(ONEDRIVE_USER));
     $url = MICROSOFT_GRAPH_URL . "/users/{$userPath}/drive/items/{$fileId}/workbook/worksheets('{$oldName}')";
     
     $payload = ['name' => $newName];
@@ -380,7 +380,7 @@ function renameWorksheet($accessToken, $fileId, $oldName, $newName) {
  * Agrega una nueva worksheet
  */
 function addWorksheet($accessToken, $fileId, $name) {
-    $userPath = urlencode(ONEDRIVE_USER);
+    $userPath = strtolower(urlencode(ONEDRIVE_USER));
     $url = MICROSOFT_GRAPH_URL . "/users/{$userPath}/drive/items/{$fileId}/workbook/worksheets/add";
     
     $payload = ['name' => $name];
@@ -410,7 +410,7 @@ function addDataToWorksheet($accessToken, $fileId, $sheetName, $worksheet) {
     $lastRow = count($values);
     $range = "A1:{$lastCol}{$lastRow}";
     
-    $userPath = urlencode(ONEDRIVE_USER);
+    $userPath = strtolower(urlencode(ONEDRIVE_USER));
     $url = MICROSOFT_GRAPH_URL . "/users/{$userPath}/drive/items/{$fileId}/workbook/worksheets('{$sheetName}')/range(address='{$range}')";
     
     $payload = ['values' => $values];
@@ -422,7 +422,7 @@ function addDataToWorksheet($accessToken, $fileId, $sheetName, $worksheet) {
  * Agrega una tabla a la worksheet
  */
 function addTable($accessToken, $fileId, $sheetName, $tableConfig) {
-    $userPath = urlencode(ONEDRIVE_USER);
+    $userPath = strtolower(urlencode(ONEDRIVE_USER));
     $url = MICROSOFT_GRAPH_URL . "/users/{$userPath}/drive/items/{$fileId}/workbook/worksheets('{$sheetName}')/tables/add";
     
     $payload = [
@@ -445,7 +445,7 @@ function addTable($accessToken, $fileId, $sheetName, $tableConfig) {
  * Agrega un gráfico a la worksheet
  */
 function addChart($accessToken, $fileId, $sheetName, $chartConfig) {
-    $userPath = urlencode(ONEDRIVE_USER);
+    $userPath = strtolower(urlencode(ONEDRIVE_USER));
     $url = MICROSOFT_GRAPH_URL . "/users/{$userPath}/drive/items/{$fileId}/workbook/worksheets('{$sheetName}')/charts/add";
     
     $payload = [
@@ -481,7 +481,7 @@ function addChart($accessToken, $fileId, $sheetName, $chartConfig) {
  * Aplica formato a la worksheet
  */
 function applyFormatting($accessToken, $fileId, $sheetName, $formatting) {
-    $userPath = urlencode(ONEDRIVE_USER);
+    $userPath = strtolower(urlencode(ONEDRIVE_USER));
     
     // Formato de header
     if (isset($formatting['headerRow'])) {
@@ -516,7 +516,7 @@ function applyFormatting($accessToken, $fileId, $sheetName, $formatting) {
  */
 function updateWorksheet($accessToken, $fileId, $worksheet) {
     $sheetName = $worksheet['name'];
-    $userPath = urlencode(ONEDRIVE_USER);
+    $userPath = strtolower(urlencode(ONEDRIVE_USER));
     
     // Verificar si la hoja existe
     $sheetsUrl = MICROSOFT_GRAPH_URL . "/users/{$userPath}/drive/items/{$fileId}/workbook/worksheets";
@@ -544,7 +544,7 @@ function updateWorksheet($accessToken, $fileId, $worksheet) {
  * Actualiza celdas específicas
  */
 function updateCells($accessToken, $fileId, $cellUpdates) {
-    $userPath = urlencode(ONEDRIVE_USER);
+    $userPath = strtolower(urlencode(ONEDRIVE_USER));
     
     foreach ($cellUpdates as $update) {
         $sheetName = $update['sheet'];
@@ -561,7 +561,7 @@ function updateCells($accessToken, $fileId, $cellUpdates) {
  * Obtiene la URL de embed para el archivo
  */
 function getEmbedUrl($accessToken, $fileId) {
-    $userPath = urlencode(ONEDRIVE_USER);
+    $userPath = strtolower(urlencode(ONEDRIVE_USER));
     $url = MICROSOFT_GRAPH_URL . "/users/{$userPath}/drive/items/{$fileId}";
     
     $response = graphApiRequest($accessToken, $url, 'GET');
