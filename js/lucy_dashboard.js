@@ -1,4 +1,4 @@
-// js/lucy_dashboard.js - Frontend completo para Lucy AI Dashboard (Excel y Power BI)
+// js/lucy_dashboard.js - Frontend completo para Lucy AI Dashboard (Excel, Power BI y Gamma)
 
 document.addEventListener('DOMContentLoaded', () => {
     // ==================== VARIABLES GLOBALES ====================
@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentFileId = null;
     let currentFileName = 'Lucy_Dashboard';
     let isProcessing = false;
-    let outputType = 'excel'; // 'excel' o 'powerbi'
+    let outputType = 'excel'; // 'excel', 'powerbi' o 'gamma'
 
     // ==================== REFERENCIAS DOM ====================
     const lucyForm = document.getElementById('lucy-form');
@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Selector de tipo de output
     const excelBtn = document.getElementById('output-excel-btn');
     const powerbiBtn = document.getElementById('output-powerbi-btn');
+    const gammaBtn = document.getElementById('output-gamma-btn');
 
     if (!lucyForm) {
         console.error("El formulario de Lucy no se encontró en la página.");
@@ -65,11 +66,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (powerbiBtn) {
         powerbiBtn.addEventListener('click', () => switchOutputType('powerbi'));
     }
+    
+    if (gammaBtn) {
+        gammaBtn.addEventListener('click', () => switchOutputType('gamma'));
+    }
 
     // ==================== FUNCIONES DE SELECTOR ====================
     
     /**
-     * Cambia el tipo de output y recarga la página
+     * Cambia el tipo de output
      */
     function switchOutputType(type) {
         if (type === outputType) {
@@ -100,13 +105,16 @@ document.addEventListener('DOMContentLoaded', () => {
             // Actualizar placeholder y texto
             if (type === 'powerbi') {
                 promptInput.placeholder = "Ej: 'Necesito un dashboard de Power BI con análisis de costos por transportista y tendencias mensuales...'";
-                downloadBtn.style.display = 'none'; // Power BI no permite descarga directa
+                downloadBtn.style.display = 'none';
+            } else if (type === 'gamma') {
+                promptInput.placeholder = "Ej: 'Crea una presentación con análisis de costos por carrier, tendencias mensuales, y distribución por planta. Incluye gráficos y visualizaciones...'";
+                downloadBtn.style.display = 'none';
             } else {
                 promptInput.placeholder = "Ej: 'Necesito un reporte con los costos totales por categoría de causa, una tabla con todas las órdenes pendientes...'";
                 downloadBtn.style.display = 'inline-flex';
             }
             
-            showToast(`Tipo cambiado a ${type === 'excel' ? 'Excel' : 'Power BI'}`, 'success');
+            showToast(`Tipo cambiado a ${type === 'excel' ? 'Excel' : type === 'powerbi' ? 'Power BI' : 'Gamma'}`, 'success');
         }
     }
     
@@ -117,9 +125,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (outputType === 'excel') {
             excelBtn.classList.add('active');
             powerbiBtn.classList.remove('active');
-        } else {
+            gammaBtn.classList.remove('active');
+        } else if (outputType === 'powerbi') {
             excelBtn.classList.remove('active');
             powerbiBtn.classList.add('active');
+            gammaBtn.classList.remove('active');
+        } else if (outputType === 'gamma') {
+            excelBtn.classList.remove('active');
+            powerbiBtn.classList.remove('active');
+            gammaBtn.classList.add('active');
         }
     }
     
@@ -167,6 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const geminiStartTime = Date.now();
             addMessageToHistory('user', userPrompt);
             
+            // Llamar al procesador correspondiente
             const geminiResponse = await callGeminiProcessor(userPrompt);
             
             const geminiTime = ((Date.now() - geminiStartTime) / 1000).toFixed(2);
@@ -178,13 +193,18 @@ document.addEventListener('DOMContentLoaded', () => {
             
             addMessageToHistory('assistant', geminiResponse.geminiResponse);
             
-            console.log(`Creando ${outputType === 'excel' ? 'Excel' : 'Power BI'}...`);
-            updateLoadingMessage(outputType === 'excel' ? 'Creando Excel...' : 'Creando Power BI Dashboard...', 4);
+            console.log(`Creando ${outputType}...`);
+            updateLoadingMessage(
+                outputType === 'excel' ? 'Creando Excel...' : 
+                outputType === 'powerbi' ? 'Creando Power BI Dashboard...' : 
+                'Creando presentación Gamma...', 
+                4
+            );
             
             const apiStartTime = Date.now();
             const apiResult = await callDashboardAPI(
                 geminiResponse.action,
-                geminiResponse.excelData,
+                outputType === 'gamma' ? geminiResponse.gammaConfig : geminiResponse.excelData,
                 geminiResponse.fileId || currentFileId
             );
             
@@ -193,15 +213,27 @@ document.addEventListener('DOMContentLoaded', () => {
             
             clearTimeout(timeoutId);
             
-            currentFileId = outputType === 'excel' ? apiResult.fileId : apiResult.datasetId;
-            currentFileName = outputType === 'excel' ? apiResult.fileName : apiResult.datasetName;
+            // Guardar ID según el tipo
+            if (outputType === 'excel') {
+                currentFileId = apiResult.fileId;
+                currentFileName = apiResult.fileName;
+            } else if (outputType === 'powerbi') {
+                currentFileId = apiResult.datasetId;
+                currentFileName = apiResult.datasetName;
+            } else if (outputType === 'gamma') {
+                currentFileId = apiResult.generationId;
+                currentFileName = 'Gamma_Presentation';
+            }
             
             console.log(`Archivo guardado: ${currentFileName} (ID: ${currentFileId})`);
             
             updateLoadingMessage('Cargando visualización...', 5);
             
+            // Mostrar resultado según el tipo
             if (outputType === 'powerbi') {
                 showPowerBIResult(apiResult);
+            } else if (outputType === 'gamma') {
+                showGammaResult(apiResult);
             } else {
                 showDashboardResult(apiResult.embedUrl);
             }
@@ -250,17 +282,29 @@ document.addEventListener('DOMContentLoaded', () => {
             
             addMessageToHistory('assistant', geminiResponse.geminiResponse);
             
-            if (currentFileId && geminiResponse.excelData && Object.keys(geminiResponse.excelData).length > 0) {
+            // Determinar si necesitamos actualizar el dashboard
+            const needsUpdate = outputType === 'gamma' ? 
+                (geminiResponse.gammaConfig && Object.keys(geminiResponse.gammaConfig).length > 0) :
+                (geminiResponse.excelData && Object.keys(geminiResponse.excelData).length > 0);
+            
+            if (currentFileId && needsUpdate) {
                 console.log('Actualizando dashboard existente:', currentFileId);
                 
                 const apiResult = await callDashboardAPI(
-                    'update',
-                    geminiResponse.excelData,
-                    currentFileId
+                    outputType === 'gamma' ? 'create' : 'update', // Gamma siempre crea nuevo
+                    outputType === 'gamma' ? geminiResponse.gammaConfig : geminiResponse.excelData,
+                    outputType === 'gamma' ? null : currentFileId // Gamma no usa fileId para update
                 );
+                
+                // Actualizar ID si es Gamma (siempre genera nuevo)
+                if (outputType === 'gamma') {
+                    currentFileId = apiResult.generationId;
+                }
                 
                 if (outputType === 'powerbi') {
                     showPowerBIResult(apiResult);
+                } else if (outputType === 'gamma') {
+                    showGammaResult(apiResult);
                 } else {
                     showDashboardResult(apiResult.embedUrl);
                 }
@@ -271,15 +315,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 const apiResult = await callDashboardAPI(
                     'create',
-                    geminiResponse.excelData,
+                    outputType === 'gamma' ? geminiResponse.gammaConfig : geminiResponse.excelData,
                     null
                 );
                 
-                currentFileId = outputType === 'excel' ? apiResult.fileId : apiResult.datasetId;
-                currentFileName = outputType === 'excel' ? apiResult.fileName : apiResult.datasetName;
+                if (outputType === 'excel') {
+                    currentFileId = apiResult.fileId;
+                    currentFileName = apiResult.fileName;
+                } else if (outputType === 'powerbi') {
+                    currentFileId = apiResult.datasetId;
+                    currentFileName = apiResult.datasetName;
+                } else if (outputType === 'gamma') {
+                    currentFileId = apiResult.generationId;
+                    currentFileName = 'Gamma_Presentation';
+                }
                 
                 if (outputType === 'powerbi') {
                     showPowerBIResult(apiResult);
+                } else if (outputType === 'gamma') {
+                    showGammaResult(apiResult);
                 } else {
                     showDashboardResult(apiResult.embedUrl);
                 }
@@ -380,14 +434,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==================== FUNCIONES DE API ====================
 
     /**
-     * Llama al procesador de Gemini
+     * Llama al procesador de Gemini correspondiente
      */
     async function callGeminiProcessor(message) {
+        const processorEndpoint = outputType === 'gamma' ? 'gamma_gemini_processor.php' : 'gemini_processor.php';
+        
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 45000);
         
         try {
-            const response = await fetch(`${window.PF_CONFIG.app.baseURL}dao/lucyAI/gemini_processor.php`, {
+            const response = await fetch(`${window.PF_CONFIG.app.baseURL}dao/lucyAI/${processorEndpoint}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -396,6 +452,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     message: message,
                     history: conversationHistory,
                     fileId: currentFileId,
+                    generationId: currentFileId, // Para Gamma
                     outputType: outputType
                 }),
                 signal: controller.signal
@@ -433,23 +490,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Llama a la API correspondiente (Excel o Power BI)
+     * Llama a la API correspondiente (Excel, Power BI o Gamma)
      */
     async function callDashboardAPI(action, data, fileId = null) {
-        const apiEndpoint = outputType === 'excel' ? 'excel_api.php' : 'powerbi_api.php';
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-        const uniqueFileName = currentFileName || `Lucy_Dashboard_${timestamp}`;
+        let apiEndpoint, payload;
         
-        const payload = {
-            action: action,
-            [outputType === 'excel' ? 'fileId' : 'datasetId']: fileId,
-            fileName: uniqueFileName,
-            worksheets: data.worksheets || [],
-            cellUpdates: data.cellUpdates || []
-        };
+        if (outputType === 'gamma') {
+            apiEndpoint = 'gamma_api.php';
+            payload = {
+                action: action,
+                generationId: fileId,
+                gammaConfig: data
+            };
+        } else {
+            apiEndpoint = outputType === 'excel' ? 'excel_api.php' : 'powerbi_api.php';
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            const uniqueFileName = currentFileName || `Lucy_Dashboard_${timestamp}`;
+            
+            payload = {
+                action: action,
+                [outputType === 'excel' ? 'fileId' : 'datasetId']: fileId,
+                fileName: uniqueFileName,
+                worksheets: data.worksheets || [],
+                cellUpdates: data.cellUpdates || []
+            };
+        }
 
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 45000);
+        const timeoutId = setTimeout(() => controller.abort(), outputType === 'gamma' ? 300000 : 45000); // 5 min para Gamma
         
         try {
             const response = await fetch(`${window.PF_CONFIG.app.baseURL}dao/lucyAI/${apiEndpoint}`, {
@@ -485,7 +553,8 @@ document.addEventListener('DOMContentLoaded', () => {
             clearTimeout(timeoutId);
             
             if (error.name === 'AbortError') {
-                throw new Error(`La creación del ${outputType === 'excel' ? 'Excel' : 'Power BI'} tomó demasiado tiempo (>45s).`);
+                const typeMsg = outputType === 'excel' ? 'Excel' : outputType === 'powerbi' ? 'Power BI' : 'Gamma';
+                throw new Error(`La creación del ${typeMsg} tomó demasiado tiempo.`);
             }
             
             throw error;
@@ -515,11 +584,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 'Obteniendo datos de Premium Freight...',
                 'Lucy está procesando con IA...',
                 'Generando estructura del dashboard...',
-                outputType === 'excel' ? 'Creando archivo Excel interactivo...' : 'Creando dataset en Power BI...',
+                outputType === 'excel' ? 'Creando archivo Excel interactivo...' : 
+                outputType === 'powerbi' ? 'Creando dataset en Power BI...' :
+                'Generando presentación Gamma...',
                 'Aplicando formato y visualizaciones...'
             ];
             
-            loaderText.innerHTML = `<strong>${steps[step] || message}</strong><br><small class="text-muted">Esto puede tomar 10-30 segundos...</small>`;
+            const timeEstimate = outputType === 'gamma' ? 'Esto puede tomar 1-3 minutos...' : 'Esto puede tomar 10-30 segundos...';
+            
+            loaderText.innerHTML = `<strong>${steps[step] || message}</strong><br><small class="text-muted">${timeEstimate}</small>`;
         }
     }
 
@@ -543,38 +616,46 @@ document.addEventListener('DOMContentLoaded', () => {
         generateBtn.innerHTML = '<i class="fas fa-cogs me-2"></i>Generar Dashboard';
     }
     
-    function showPowerBIResult(apiResult) {
+    function showGammaResult(apiResult) {
         loader.style.display = 'none';
         
-        // Power BI requiere configuración especial del iframe con embed token
-        const embedConfig = {
-            type: 'report',
-            embedUrl: apiResult.embedUrl,
-            accessToken: apiResult.embedToken,
-            tokenType: 1, // Embed token
-            permissions: 7, // All permissions
-            settings: {
-                filterPaneEnabled: true,
-                navContentPaneEnabled: true
-            }
-        };
+        // Mostrar vista de Gamma
+        iframeContainer.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white;">
+                <div style="font-size: 64px; margin-bottom: 20px;">
+                    <i class="fas fa-presentation"></i>
+                </div>
+                <h2 style="margin-bottom: 10px; font-size: 28px;">¡Presentación Gamma Creada!</h2>
+                <p style="margin-bottom: 15px; font-size: 16px; opacity: 0.9;">
+                    Tu presentación de análisis de datos está lista.
+                </p>
+                <p style="margin-bottom: 30px; font-size: 14px; opacity: 0.8;">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Abre la presentación en Gamma para ver todas las visualizaciones.
+                </p>
+                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    <a href="${apiResult.gammaUrl}" target="_blank" class="btn btn-light btn-lg" style="min-width: 200px;">
+                        <i class="fas fa-external-link-alt me-2"></i>
+                        Abrir en Gamma
+                    </a>
+                </div>
+                <p style="margin-top: 30px; font-size: 13px; opacity: 0.7;">
+                    Generation ID: ${apiResult.generationId}
+                </p>
+                ${apiResult.credits ? `<p style="margin-top: 10px; font-size: 13px; opacity: 0.7;">
+                    Créditos usados: ${apiResult.credits.deducted || 'N/A'} | Restantes: ${apiResult.credits.remaining || 'N/A'}
+                </p>` : ''}
+            </div>
+        `;
+        iframeContainer.style.display = 'block';
         
-        // Mostrar en iframe o alternativa
-        if (apiResult.reportId) {
-            // Si hay reportId, mostrar iframe embebido
-            iframeContainer.innerHTML = `
-                <div id="powerbi-embed-container" style="height: 600px;"></div>
-            `;
-            iframeContainer.style.display = 'block';
-            
-            // Aquí se debería usar Power BI JavaScript library para embed correcto
-            // Por simplicidad, mostramos vista alternativa
-            showPowerBIAlternativeView(apiResult);
-        } else {
-            // Si solo hay dataset, mostrar alternativa
-            showPowerBIAlternativeView(apiResult);
-        }
-        
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = '<i class="fas fa-cogs me-2"></i>Generar Dashboard';
+    }
+    
+    function showPowerBIResult(apiResult) {
+        loader.style.display = 'none';
+        showPowerBIAlternativeView(apiResult);
         generateBtn.disabled = false;
         generateBtn.innerHTML = '<i class="fas fa-cogs me-2"></i>Generar Dashboard';
     }
