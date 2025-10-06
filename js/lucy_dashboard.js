@@ -80,28 +80,56 @@ document.addEventListener('DOMContentLoaded', () => {
         isProcessing = true;
         showLoadingState();
         
+        // Timeout de seguridad (60 segundos)
+        const timeoutId = setTimeout(() => {
+            if (isProcessing) {
+                isProcessing = false;
+                showError('La solicitud tomó demasiado tiempo (>60s). Por favor intenta de nuevo con una solicitud más simple.');
+            }
+        }, 60000);
+        
         try {
-            // Agregar mensaje del usuario al historial
+            // PASO 1: Llamar a Gemini
+            console.log('🚀 PASO 1: Enviando solicitud a Gemini...');
+            updateLoadingMessage('Procesando con IA...', 2);
+            
+            const geminiStartTime = Date.now();
             addMessageToHistory('user', userPrompt);
             
-            // Llamar a Gemini para procesar la solicitud
             const geminiResponse = await callGeminiProcessor(userPrompt);
             
-            // Agregar respuesta de Gemini al historial
+            const geminiTime = ((Date.now() - geminiStartTime) / 1000).toFixed(2);
+            console.log(`✅ Gemini respondió en ${geminiTime}s`);
+            
+            if (geminiResponse.debug) {
+                console.log('📊 Debug info:', geminiResponse.debug);
+            }
+            
             addMessageToHistory('assistant', geminiResponse.geminiResponse);
             
-            // Crear o actualizar Excel
+            // PASO 2: Crear Excel
+            console.log('🚀 PASO 2: Creando archivo Excel...');
+            updateLoadingMessage('Creando Excel...', 4);
+            
+            const excelStartTime = Date.now();
             const excelResult = await callExcelAPI(
                 geminiResponse.action,
                 geminiResponse.excelData,
                 geminiResponse.fileId || currentFileId
             );
             
+            const excelTime = ((Date.now() - excelStartTime) / 1000).toFixed(2);
+            console.log(`✅ Excel creado en ${excelTime}s`);
+            
+            // Limpiar timeout
+            clearTimeout(timeoutId);
+            
             // Guardar información del archivo
             currentFileId = excelResult.fileId;
             currentFileName = excelResult.fileName;
             
             // Mostrar Excel en iframe
+            updateLoadingMessage('Cargando visualización...', 5);
             showDashboardResult(excelResult.embedUrl);
             
             // Mostrar interfaz de chat
@@ -112,8 +140,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 addChatMessage('assistant', geminiResponse.geminiResponse);
             }
             
+            const totalTime = ((Date.now() - geminiStartTime) / 1000).toFixed(2);
+            console.log(`🎉 Proceso completo en ${totalTime}s total`);
+            
+            showToast(`Dashboard creado exitosamente en ${totalTime}s`, 'success');
+            
         } catch (error) {
-            console.error("Error al generar dashboard:", error);
+            clearTimeout(timeoutId);
+            console.error("❌ Error al generar dashboard:", error);
             showError(error.message);
         } finally {
             isProcessing = false;
@@ -267,37 +301,53 @@ document.addEventListener('DOMContentLoaded', () => {
      * Llama al procesador de Gemini
      */
     async function callGeminiProcessor(message) {
-        const response = await fetch(`${window.PF_CONFIG.app.baseURL}dao/lucyAI/gemini_processor.php`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                message: message,
-                history: conversationHistory,
-                fileId: currentFileId
-            })
-        });
+        // Controller para poder cancelar la petición
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 segundos timeout
+        
+        try {
+            const response = await fetch(`${window.PF_CONFIG.app.baseURL}dao/lucyAI/gemini_processor.php`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: message,
+                    history: conversationHistory,
+                    fileId: currentFileId
+                }),
+                signal: controller.signal
+            });
 
-        const data = await response.json();
+            clearTimeout(timeoutId);
+            const data = await response.json();
 
-        if (!response.ok) {
-            // Mostrar error detallado
-            let errorMsg = data.message || `Error del servidor: ${response.statusText}`;
-            if (data.file) {
-                errorMsg += `\n\nArchivo: ${data.file}`;
+            if (!response.ok) {
+                // Mostrar error detallado
+                let errorMsg = data.message || `Error del servidor: ${response.statusText}`;
+                if (data.file) {
+                    errorMsg += `\n\nArchivo: ${data.file}`;
+                }
+                if (data.line) {
+                    errorMsg += `\nLínea: ${data.line}`;
+                }
+                console.error('Error completo:', data);
+                throw new Error(errorMsg);
             }
-            if (data.line) {
-                errorMsg += `\nLínea: ${data.line}`;
-            }
-            console.error('Error completo:', data);
-            throw new Error(errorMsg);
-        }
 
-        if (data.status === 'success') {
-            return data;
-        } else {
-            throw new Error(data.message || 'Error desconocido del servidor');
+            if (data.status === 'success') {
+                return data;
+            } else {
+                throw new Error(data.message || 'Error desconocido del servidor');
+            }
+        } catch (error) {
+            clearTimeout(timeoutId);
+            
+            if (error.name === 'AbortError') {
+                throw new Error('La solicitud a Gemini tomó demasiado tiempo (>45s). Intenta con una solicitud más simple o verifica tu conexión.');
+            }
+            
+            throw error;
         }
     }
 
@@ -313,35 +363,51 @@ document.addEventListener('DOMContentLoaded', () => {
             cellUpdates: excelData.cellUpdates || []
         };
 
-        const response = await fetch(`${window.PF_CONFIG.app.baseURL}dao/lucyAI/excel_api.php`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
+        // Controller para poder cancelar la petición
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 segundos timeout
+        
+        try {
+            const response = await fetch(`${window.PF_CONFIG.app.baseURL}dao/lucyAI/excel_api.php`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload),
+                signal: controller.signal
+            });
 
-        const data = await response.json();
+            clearTimeout(timeoutId);
+            const data = await response.json();
 
-        if (!response.ok) {
-            let errorMsg = data.message || `Error del servidor Excel API: ${response.statusText}`;
-            if (data.file) {
-                errorMsg += `\n\nArchivo: ${data.file}`;
+            if (!response.ok) {
+                let errorMsg = data.message || `Error del servidor Excel API: ${response.statusText}`;
+                if (data.file) {
+                    errorMsg += `\n\nArchivo: ${data.file}`;
+                }
+                if (data.line) {
+                    errorMsg += `\nLínea: ${data.line}`;
+                }
+                if (data.action) {
+                    errorMsg += `\nAcción: ${data.action}`;
+                }
+                console.error('Error completo Excel API:', data);
+                throw new Error(errorMsg);
             }
-            if (data.line) {
-                errorMsg += `\nLínea: ${data.line}`;
-            }
-            if (data.action) {
-                errorMsg += `\nAcción: ${data.action}`;
-            }
-            console.error('Error completo Excel API:', data);
-            throw new Error(errorMsg);
-        }
 
-        if (data.status === 'success') {
-            return data.data;
-        } else {
-            throw new Error(data.message || 'Error en Excel API');
+            if (data.status === 'success') {
+                return data.data;
+            } else {
+                throw new Error(data.message || 'Error en Excel API');
+            }
+        } catch (error) {
+            clearTimeout(timeoutId);
+            
+            if (error.name === 'AbortError') {
+                throw new Error('La creación del Excel tomó demasiado tiempo (>45s). Verifica tu conexión con Microsoft Graph API.');
+            }
+            
+            throw error;
         }
     }
 
@@ -357,7 +423,30 @@ document.addEventListener('DOMContentLoaded', () => {
         loader.style.display = 'block';
         iframeContainer.style.display = 'none';
         powerbiIframe.src = '';
+        
+        // Actualizar mensaje de progreso
+        updateLoadingMessage('Conectando con Lucy...', 0);
+        
         resultContainer.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    /**
+     * Actualiza el mensaje de carga con progreso
+     */
+    function updateLoadingMessage(message, step) {
+        const loaderText = loader.querySelector('p:last-child');
+        if (loaderText) {
+            const steps = [
+                '🔍 Analizando tu solicitud...',
+                '📊 Obteniendo datos de Premium Freight...',
+                '🤖 Lucy está procesando con IA...',
+                '📈 Generando estructura del dashboard...',
+                '✨ Creando archivo Excel interactivo...',
+                '🎨 Aplicando formato y gráficos...'
+            ];
+            
+            loaderText.innerHTML = `<strong>${steps[step] || message}</strong><br><small class="text-muted">Esto puede tomar 10-30 segundos...</small>`;
+        }
     }
 
     /**

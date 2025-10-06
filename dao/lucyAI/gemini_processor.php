@@ -27,7 +27,6 @@ if (!isset($_SESSION['user'])) {
 // ==================== CONFIGURACIÓN ====================
 define('GEMINI_API_KEY', 'AIzaSyA7ajOKqgm8CsnGg1tv3I_C2l7Rwxf-2tM');
 define('GEMINI_API_URL', 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2-flash-lite:generateContent');
-
 // ==================== OBTENER DATOS DEL REQUEST ====================
 $input = json_decode(file_get_contents('php://input'), true);
 
@@ -43,20 +42,42 @@ $currentFileId = $input['fileId'] ?? null; // ID del archivo Excel si ya existe
 
 try {
     // ==================== OBTENER DATOS DEL BACKEND ====================
+    error_log("LUCY DEBUG: Iniciando getPremiumFreightData()");
+    $startTime = microtime(true);
+    
     $premiumFreightData = getPremiumFreightData();
+    
+    $dataFetchTime = round(microtime(true) - $startTime, 2);
+    error_log("LUCY DEBUG: Datos obtenidos en {$dataFetchTime}s");
     
     if (!$premiumFreightData || !isset($premiumFreightData['data'])) {
         throw new Exception('Error al obtener datos de Premium Freight. Verifica que daoPremiumFreight.php esté funcionando correctamente.');
     }
 
+    $dataCount = count($premiumFreightData['data']);
+    error_log("LUCY DEBUG: Total de registros: {$dataCount}");
+
     // ==================== PREPARAR CONTEXTO PARA GEMINI ====================
+    error_log("LUCY DEBUG: Construyendo contexto para Gemini");
     $systemContext = buildSystemContext($premiumFreightData);
+    $contextLength = strlen($systemContext);
+    error_log("LUCY DEBUG: Contexto construido ({$contextLength} caracteres)");
     
     // ==================== LLAMAR A GEMINI ====================
+    error_log("LUCY DEBUG: Llamando a Gemini API...");
+    $geminiStartTime = microtime(true);
+    
     $geminiResponse = callGeminiAPI($userMessage, $systemContext, $conversationHistory);
     
+    $geminiTime = round(microtime(true) - $geminiStartTime, 2);
+    error_log("LUCY DEBUG: Gemini respondió en {$geminiTime}s");
+    
     // ==================== PROCESAR RESPUESTA DE GEMINI ====================
+    error_log("LUCY DEBUG: Procesando respuesta de Gemini");
     $processedResponse = processGeminiResponse($geminiResponse, $premiumFreightData);
+    
+    $totalTime = round(microtime(true) - $startTime, 2);
+    error_log("LUCY DEBUG: Proceso completado en {$totalTime}s total");
     
     // ==================== ENVIAR RESPUESTA ====================
     echo json_encode([
@@ -64,10 +85,17 @@ try {
         'geminiResponse' => $processedResponse['message'],
         'excelData' => $processedResponse['excelData'],
         'action' => $processedResponse['action'], // 'create' o 'update'
-        'fileId' => $currentFileId
+        'fileId' => $currentFileId,
+        'debug' => [
+            'dataFetchTime' => $dataFetchTime,
+            'geminiTime' => $geminiTime,
+            'totalTime' => $totalTime,
+            'dataCount' => $dataCount
+        ]
     ]);
 
 } catch (Exception $e) {
+    error_log("LUCY ERROR: " . $e->getMessage() . " en " . $e->getFile() . ":" . $e->getLine());
     http_response_code(500);
     echo json_encode([
         'status' => 'error',
@@ -149,17 +177,28 @@ function getPremiumFreightDataCurl($url) {
  * Construye el contexto del sistema para Gemini
  */
 function buildSystemContext($data) {
-    $dataStructure = analyzeDataStructure($data['data']);
+    // IMPORTANTE: Limitar datos para que Gemini responda más rápido
+    $totalRecords = count($data['data']);
+    $sampleSize = min($totalRecords, 50); // Solo enviar muestra de 50 registros
+    $sampleData = array_slice($data['data'], 0, $sampleSize);
+    
+    $dataStructure = analyzeDataStructure($sampleData);
     
     return "Eres Lucy, un asistente de IA especializado en análisis de datos y VISUALIZACIÓN de Premium Freight.
 
 🎯 REGLA DE ORO: TODO dashboard DEBE incluir MÍNIMO 2 GRÁFICOS. Los dashboards son VISUALES, no solo tablas.
 
 CONTEXTO DEL SISTEMA:
-Tienes acceso a una base de datos completa de órdenes de Premium Freight con la siguiente estructura:
+Tienes acceso a {$totalRecords} órdenes de Premium Freight. Muestra de campos disponibles:
 
-CAMPOS DISPONIBLES:
+CAMPOS PRINCIPALES:
 " . $dataStructure . "
+
+🚀 IMPORTANTE: RESPONDE RÁPIDO Y CONCISO
+- Genera la estructura JSON inmediatamente
+- No des explicaciones largas
+- El JSON debe estar en un bloque ```json```
+- Sé directo y eficiente
 
 CAPACIDADES:
 1. Crear dashboards VISUALES con gráficos impactantes (barras, líneas, pasteles, etc.)
@@ -286,27 +325,56 @@ function callGeminiAPI($userMessage, $systemContext, $history) {
     
     $messages = [];
     
-    // Agregar historial de conversación
-    foreach ($history as $msg) {
+    // Agregar historial de conversación (solo los últimos 5 mensajes para rapidez)
+    $recentHistory = array_slice($history, -5);
+    foreach ($recentHistory as $msg) {
         $messages[] = [
             'role' => $msg['role'] === 'user' ? 'user' : 'model',
             'parts' => [['text' => $msg['content']]]
         ];
     }
     
+    // Prompt optimizado para respuesta rápida
+    $optimizedPrompt = $systemContext . "
+
+SOLICITUD: {$userMessage}
+
+⚡ INSTRUCCIÓN CRÍTICA: Responde SOLO con el JSON en formato markdown. Sin explicaciones adicionales.
+El JSON debe tener esta estructura EXACTA:
+
+```json
+{
+  \"action\": \"create\",
+  \"worksheets\": [
+    {
+      \"name\": \"Dashboard\",
+      \"data\": [...datos agrupados...],
+      \"columns\": [...],
+      \"charts\": [
+        {\"type\": \"ColumnClustered\", \"dataRange\": \"A1:B10\", \"title\": \"...\", \"position\": {\"row\": 0, \"column\": 4}},
+        {\"type\": \"Pie\", \"dataRange\": \"A1:B6\", \"title\": \"...\", \"position\": {\"row\": 15, \"column\": 4}}
+      ],
+      \"tables\": [{\"range\": \"A1:B10\", \"hasHeaders\": true, \"style\": \"TableStyleMedium2\"}]
+    }
+  ]
+}
+```
+
+Recuerda: MÍNIMO 2 gráficos. Responde SOLO con JSON.";
+    
     // Agregar mensaje actual
     $messages[] = [
         'role' => 'user',
-        'parts' => [['text' => $systemContext . "\n\nSOLICITUD DEL USUARIO:\n" . $userMessage]]
+        'parts' => [['text' => $optimizedPrompt]]
     ];
     
     $payload = [
         'contents' => $messages,
         'generationConfig' => [
-            'temperature' => 0.7,
-            'topK' => 40,
-            'topP' => 0.95,
-            'maxOutputTokens' => 8192,
+            'temperature' => 0.4, // Más bajo = más rápido y consistente
+            'topK' => 20,
+            'topP' => 0.8,
+            'maxOutputTokens' => 4096, // Reducido para respuesta más rápida
         ]
     ];
     
@@ -315,7 +383,9 @@ function callGeminiAPI($userMessage, $systemContext, $history) {
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Para desarrollo
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30); // Timeout de 30 segundos
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10); // 10 segundos para conectar
     
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -323,7 +393,7 @@ function callGeminiAPI($userMessage, $systemContext, $history) {
     curl_close($ch);
     
     if ($response === false) {
-        throw new Exception('Error de conexión con Gemini: ' . $curlError);
+        throw new Exception('Error de conexión con Gemini (timeout o red): ' . $curlError);
     }
     
     if ($httpCode !== 200) {
