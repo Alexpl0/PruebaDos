@@ -588,6 +588,10 @@ function graphApiRequest($accessToken, $url, $method = 'GET', $payload = null) {
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Para desarrollo
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false); // Para desarrollo
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     
     $headers = [
         'Authorization: Bearer ' . $accessToken,
@@ -602,10 +606,17 @@ function graphApiRequest($accessToken, $url, $method = 'GET', $payload = null) {
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $curlError = curl_error($ch);
+    $curlErrno = curl_errno($ch);
     curl_close($ch);
     
-    if ($response === false) {
-        throw new Exception("Graph API connection error: {$curlError}");
+    // Debug detallado
+    error_log("Graph API Request: {$method} {$url}");
+    error_log("HTTP Code: {$httpCode}");
+    error_log("CURL Error: {$curlError} (errno: {$curlErrno})");
+    error_log("Response preview: " . substr($response, 0, 200));
+    
+    if ($response === false || $curlErrno !== 0) {
+        throw new Exception("Graph API connection error (errno {$curlErrno}): {$curlError}. URL: {$url}");
     }
     
     if ($httpCode < 200 || $httpCode >= 300) {
