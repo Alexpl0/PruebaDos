@@ -5,8 +5,17 @@
  * obtiene datos del backend y genera estructura para Excel
  */
 
+// Activar reporte de errores para debugging (REMOVER en producción)
+error_reporting(E_ALL);
+ini_set('display_errors', 0); // No mostrar en pantalla
+ini_set('log_errors', 1);
+
 header('Content-Type: application/json');
-session_start();
+
+// Iniciar sesión si no está iniciada
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Verificar autenticación
 if (!isset($_SESSION['user'])) {
@@ -16,7 +25,6 @@ if (!isset($_SESSION['user'])) {
 }
 
 // ==================== CONFIGURACIÓN ====================
-// TODO: Mover a variables de entorno en producción
 define('GEMINI_API_KEY', 'AIzaSyA7ajOKqgm8CsnGg1tv3I_C2l7Rwxf-2tM');
 define('GEMINI_API_URL', 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2-flash-lite:generateContent');
 
@@ -37,8 +45,8 @@ try {
     // ==================== OBTENER DATOS DEL BACKEND ====================
     $premiumFreightData = getPremiumFreightData();
     
-    if (!$premiumFreightData) {
-        throw new Exception('Error al obtener datos de Premium Freight');
+    if (!$premiumFreightData || !isset($premiumFreightData['data'])) {
+        throw new Exception('Error al obtener datos de Premium Freight. Verifica que daoPremiumFreight.php esté funcionando correctamente.');
     }
 
     // ==================== PREPARAR CONTEXTO PARA GEMINI ====================
@@ -63,7 +71,9 @@ try {
     http_response_code(500);
     echo json_encode([
         'status' => 'error',
-        'message' => $e->getMessage()
+        'message' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine()
     ]);
 }
 
@@ -73,18 +83,62 @@ try {
  * Obtiene los datos de Premium Freight del endpoint existente
  */
 function getPremiumFreightData() {
-    $url = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . 
-           dirname($_SERVER['PHP_SELF'], 3) . '/dao/connections/daoPremiumFreight.php';
+    // Construir URL absoluta correctamente
+    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'];
+    
+    // Obtener el directorio base (removiendo /dao/lucyAI de la ruta actual)
+    $scriptPath = dirname($_SERVER['PHP_SELF']);
+    $baseUrl = str_replace('/dao/lucyAI', '', $scriptPath);
+    
+    $url = $protocol . '://' . $host . $baseUrl . '/dao/connections/daoPremiumFreight.php';
+    
+    // Usar file_get_contents con contexto de sesión
+    $opts = [
+        'http' => [
+            'method' => 'GET',
+            'header' => 'Cookie: ' . session_name() . '=' . session_id() . "\r\n"
+        ]
+    ];
+    
+    $context = stream_context_create($opts);
+    $response = @file_get_contents($url, false, $context);
+    
+    if ($response === false) {
+        // Si file_get_contents falla, intentar con curl
+        return getPremiumFreightDataCurl($url);
+    }
+    
+    $data = json_decode($response, true);
+    
+    if (json_last_error() !== JSON_ERROR_NONE || !isset($data['status']) || $data['status'] !== 'success') {
+        return null;
+    }
+    
+    return $data;
+}
+
+/**
+ * Fallback con CURL
+ */
+function getPremiumFreightDataCurl($url) {
+    if (!function_exists('curl_init')) {
+        return null;
+    }
     
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_COOKIE, session_name() . '=' . session_id());
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Para desarrollo local
     
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error = curl_error($ch);
     curl_close($ch);
     
-    if ($httpCode !== 200) {
+    if ($httpCode !== 200 || empty($response)) {
+        error_log("Error fetching Premium Freight data: HTTP {$httpCode}, Error: {$error}");
         return null;
     }
     
@@ -226,12 +280,16 @@ function analyzeDataStructure($data) {
  * Llama a la API de Gemini
  */
 function callGeminiAPI($userMessage, $systemContext, $history) {
+    if (empty(GEMINI_API_KEY) || GEMINI_API_KEY === 'TU_GEMINI_API_KEY_AQUI') {
+        throw new Exception('Gemini API Key no configurada. Por favor configura GEMINI_API_KEY en gemini_processor.php');
+    }
+    
     $messages = [];
     
     // Agregar historial de conversación
     foreach ($history as $msg) {
         $messages[] = [
-            'role' => $msg['role'],
+            'role' => $msg['role'] === 'user' ? 'user' : 'model',
             'parts' => [['text' => $msg['content']]]
         ];
     }
@@ -257,19 +315,27 @@ function callGeminiAPI($userMessage, $systemContext, $history) {
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Para desarrollo
     
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
     curl_close($ch);
     
+    if ($response === false) {
+        throw new Exception('Error de conexión con Gemini: ' . $curlError);
+    }
+    
     if ($httpCode !== 200) {
-        throw new Exception('Error en Gemini API: ' . $response);
+        $errorData = json_decode($response, true);
+        $errorMsg = $errorData['error']['message'] ?? 'Unknown error';
+        throw new Exception('Error en Gemini API (' . $httpCode . '): ' . $errorMsg);
     }
     
     $decoded = json_decode($response, true);
     
     if (!isset($decoded['candidates'][0]['content']['parts'][0]['text'])) {
-        throw new Exception('Respuesta inválida de Gemini');
+        throw new Exception('Respuesta inválida de Gemini. Respuesta: ' . substr($response, 0, 200));
     }
     
     return $decoded['candidates'][0]['content']['parts'][0]['text'];
