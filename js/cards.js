@@ -106,27 +106,36 @@ function createSingleCard(order) {
 }
 
 /**
- * Determines the approval status message to display based on the business rules.
- * @param {Object} order - Order data.
- * @returns {string} Status message.
+ * Obtiene el mensaje de estado de aprobación según el nivel
+ * @param {number} approvalStatus - Nivel de aprobación actual
+ * @returns {string} - Mensaje descriptivo
  */
-function getApprovalStatusMessage(order) {
-    const approvalStatus = Number(order.approval_status || 0);
-    const requiredLevel = Number(order.required_auth_level || 7);
-
-    if (approvalStatus === 99) return 'Order Rejected';
-    if (approvalStatus >= requiredLevel) return 'Fully Approved';
-
-    switch (approvalStatus) {
-        case 0: return 'Pending: Trafico';
-        case 1: return 'Pending: Transport Specialist'; // <-- Nuevo caso agregado aquí
-        case 2: return 'Pending: Logistics Manager';
-        case 3: return 'Pending: Controlling';
-        case 4: return 'Pending: Plant Manager';
-        case 5: return 'Pending: Senior Manager Logistics';
-        case 6: return 'Pending: VP OPS Division';
-        case 7: return 'Pending: Division Controlling Regional';
-        default: return `Pending: Level ${approvalStatus + 1}`;
+export function getApprovalStatusMessage(approvalStatus) {
+    const level = Number(approvalStatus);
+    
+    switch(level) {
+        case 0:
+            return 'Pending: Trafico';
+        case 1:
+            return 'Approved by Trafico';
+        case 2:
+            return 'Approved by Customs';
+        case 3:
+            return 'Approved by Transport Specialist';
+        case 4:
+            return 'Approved by Transport Manager';
+        case 5:
+            return 'Approved by Plant Manager';
+        case 6:
+            return 'Approved by Regional Director';
+        case 7:
+            return 'Approved by VP Operations';
+        case 8:
+            return 'Fully Approved';
+        case 99:
+            return 'Rejected';
+        default:
+            return `Approval Level: ${level}`;
     }
 }
 

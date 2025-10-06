@@ -1,4 +1,12 @@
 <?php
+/**
+ * daoUserAdmin.php - User Administration DAO
+ * 
+ * ACTUALIZACIÓN v2.0 (2025-10-06):
+ * - Soporte para gestión de niveles de aprobación en tabla Approvers
+ * - Mantiene authorization_level en tabla User para control de acceso
+ */
+
 require_once __DIR__ . '/../db/cors_config.php';
 include_once('../db/PFDB.php');
 require_once('PasswordManager.php');
@@ -15,7 +23,7 @@ $authLevel = $user['authorization_level'] ?? null;
 
 // 1. Verificación general: El usuario debe haber iniciado sesión.
 if (!$user) {
-    http_response_code(401); // Unauthorized
+    http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'You must be logged in to access this feature.']);
     exit;
 }
@@ -23,8 +31,8 @@ if (!$user) {
 // 2. Verificación para acciones de modificación (Crear, Actualizar, Borrar).
 // Solo el súper usuario (ID 36) puede realizar estas acciones.
 if (in_array($method, ['POST', 'PUT', 'DELETE'])) {
-    if ($userId != 36 || $userId === 32) {
-        http_response_code(403); // Forbidden
+    if ($userId != 36 && $userId !== 32) {
+        http_response_code(403);
         echo json_encode(['success' => false, 'message' => 'You do not have permission to modify user data.']);
         exit;
     }
@@ -32,9 +40,8 @@ if (in_array($method, ['POST', 'PUT', 'DELETE'])) {
 
 // 3. Verificación para ver datos (GET).
 // Solo los administradores (nivel > 0) pueden ver la lista de usuarios.
-// El súper usuario (ID 36) está incluido si su nivel de autorización es > 0.
 if ($method === 'GET' && $authLevel < 1) {
-    http_response_code(403); // Forbidden
+    http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'You do not have permission to view user data.']);
     exit;
 }
@@ -46,169 +53,343 @@ try {
     $conex = $con->conectar();
     $conex->set_charset("utf8mb4");
 
-    // GET - Retrieve users
+    // ========== GET: Obtener lista de usuarios ==========
     if ($method === 'GET') {
-        $userPlant = $_SESSION['user']['plant']; 
-
-        // El súper usuario (asumiendo que no tiene planta) verá a todos los usuarios.
-        if (empty($userPlant) || $userId == 36 ) {
-            $stmt = $conex->prepare("SELECT id, name, email, plant, role, authorization_level FROM `User` ORDER BY id DESC");
-        } else {
-            $stmt = $conex->prepare("SELECT id, name, email, plant, role, authorization_level FROM `User` WHERE plant = ? ORDER BY id DESC");
-            $stmt->bind_param("s", $userPlant);
-        }
         
-        $stmt->execute();
-        $result = $stmt->get_result();
+        // ACTUALIZADO: Incluir información de aprobadores
+        $sql = "SELECT 
+                    u.id,
+                    u.name,
+                    u.email,
+                    u.role,
+                    u.plant,
+                    u.authorization_level,
+                    GROUP_CONCAT(
+                        DISTINCT CONCAT(a.approval_level, ':', IFNULL(a.plant, 'REGIONAL'))
+                        ORDER BY a.approval_level
+                        SEPARATOR '|'
+                    ) as approval_info
+                FROM User u
+                LEFT JOIN Approvers a ON u.id = a.user_id
+                GROUP BY u.id, u.name, u.email, u.role, u.plant, u.authorization_level
+                ORDER BY u.name ASC";
+        
+        $result = $conex->query($sql);
+        
+        if (!$result) {
+            throw new Exception("Error fetching users: " . $conex->error);
+        }
         
         $users = [];
         while ($row = $result->fetch_assoc()) {
+            // Parsear información de aprobación
+            $approvalLevels = [];
+            if ($row['approval_info']) {
+                $approvalPairs = explode('|', $row['approval_info']);
+                foreach ($approvalPairs as $pair) {
+                    list($level, $plant) = explode(':', $pair);
+                    $approvalLevels[] = [
+                        'level' => intval($level),
+                        'plant' => $plant === 'REGIONAL' ? null : $plant
+                    ];
+                }
+            }
+            
+            $row['approval_levels'] = $approvalLevels;
+            unset($row['approval_info']); // Remover campo temporal
+            
             $users[] = $row;
         }
         
-        echo json_encode(['success' => true, 'data' => $users]);
+        echo json_encode(['success' => true, 'users' => $users]);
     }
-    
-    // POST - Create a new user
-    else if ($method === 'POST') {
+
+    // ========== POST: Crear nuevo usuario ==========
+    elseif ($method === 'POST') {
+        
         $input = json_decode(file_get_contents('php://input'), true);
         
-        $required_fields = ['name', 'email', 'plant', 'role', 'authorization_level', 'password'];
-        $missing_fields = [];
-        
-        foreach ($required_fields as $field) {
-            if (!isset($input[$field]) || (is_string($input[$field]) && trim($input[$field]) === '')) {
-                $missing_fields[] = $field;
+        // Validar campos requeridos
+        $requiredFields = ['name', 'email', 'password', 'role'];
+        foreach ($requiredFields as $field) {
+            if (!isset($input[$field]) || empty(trim($input[$field]))) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => "Field '$field' is required."]);
+                exit;
             }
         }
         
-        if (!empty($missing_fields)) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Missing required fields: ' . implode(', ', $missing_fields)]);
-            exit;
-        }
+        $name = trim($input['name']);
+        $email = trim($input['email']);
+        $password = trim($input['password']);
+        $role = trim($input['role']);
+        $plant = isset($input['plant']) && $input['plant'] !== '' ? trim($input['plant']) : null;
+        $authLevel = isset($input['authorization_level']) ? intval($input['authorization_level']) : 0;
         
-        // Verificar si el email ya existe
-        $stmt = $conex->prepare("SELECT id FROM `User` WHERE email = ?");
-        $stmt->bind_param("s", $input['email']);
+        // NUEVO: Obtener niveles de aprobación
+        $approvalLevels = isset($input['approval_levels']) ? $input['approval_levels'] : [];
+        
+        // Validar email único
+        $stmt = $conex->prepare("SELECT id FROM User WHERE email = ?");
+        $stmt->bind_param("s", $email);
         $stmt->execute();
         $stmt->store_result();
         
         if ($stmt->num_rows > 0) {
             http_response_code(409);
-            echo json_encode(['success' => false, 'message' => 'A user with this email already exists']);
+            echo json_encode(['success' => false, 'message' => 'Email already exists.']);
             exit;
         }
         $stmt->close();
         
-        // FLUJO SIMPLIFICADO: Encriptar la contraseña directamente
-        $encryptedPassword = PasswordManager::encrypt($input['password']);
+        // Hash de contraseña
+        $hashedPassword = PasswordManager::hashPassword($password);
         
-        $stmt = $conex->prepare("INSERT INTO `User` (name, email, plant, role, password, authorization_level) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("sssssi", $input['name'], $input['email'], $input['plant'], $input['role'], $encryptedPassword, $input['authorization_level']);
+        // Iniciar transacción
+        $conex->begin_transaction();
         
-        if ($stmt->execute()) {
-            echo json_encode(['success' => true, 'message' => 'User created successfully.', 'user_id' => $stmt->insert_id]);
-        } else {
-            throw new Exception("Error creating user: " . $stmt->error);
+        try {
+            // Insertar usuario
+            $stmt = $conex->prepare("INSERT INTO User (name, email, password, role, plant, authorization_level) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("sssssi", $name, $email, $hashedPassword, $role, $plant, $authLevel);
+            
+            if (!$stmt->execute()) {
+                throw new Exception("Error creating user: " . $stmt->error);
+            }
+            
+            $newUserId = $conex->insert_id;
+            $stmt->close();
+            
+            // NUEVO: Insertar niveles de aprobación si existen
+            if (!empty($approvalLevels) && is_array($approvalLevels)) {
+                $stmt = $conex->prepare("INSERT INTO Approvers (user_id, approval_level, plant) VALUES (?, ?, ?)");
+                
+                foreach ($approvalLevels as $approvalInfo) {
+                    if (!isset($approvalInfo['level'])) continue;
+                    
+                    $approvalLevel = intval($approvalInfo['level']);
+                    $approvalPlant = isset($approvalInfo['plant']) && $approvalInfo['plant'] !== '' ? trim($approvalInfo['plant']) : null;
+                    
+                    $stmt->bind_param("iis", $newUserId, $approvalLevel, $approvalPlant);
+                    
+                    if (!$stmt->execute()) {
+                        throw new Exception("Error creating approval level: " . $stmt->error);
+                    }
+                }
+                
+                $stmt->close();
+            }
+            
+            $conex->commit();
+            
+            echo json_encode([
+                'success' => true, 
+                'message' => 'User created successfully.',
+                'user_id' => $newUserId
+            ]);
+            
+        } catch (Exception $e) {
+            $conex->rollback();
+            throw $e;
         }
     }
-    
-    // PUT - Update an existing user
-    else if ($method === 'PUT') {
+
+    // ========== PUT: Actualizar usuario existente ==========
+    elseif ($method === 'PUT') {
+        
         $input = json_decode(file_get_contents('php://input'), true);
         
         if (!isset($input['id']) || !is_numeric($input['id'])) {
             http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'User ID is required and must be numeric']);
+            echo json_encode(['success' => false, 'message' => 'User ID is required.']);
             exit;
         }
         
-        $stmt = $conex->prepare("SELECT id FROM `User` WHERE id = ?");
-        $stmt->bind_param("i", $input['id']);
-        $stmt->execute();
-        $stmt->store_result();
+        $updateUserId = intval($input['id']);
         
-        if ($stmt->num_rows === 0) {
-            http_response_code(404);
-            echo json_encode(['success' => false, 'message' => 'User not found']);
-            exit;
-        }
-        $stmt->close();
-        
-        $updateFields = [];
-        $params = [];
+        // Construir query de actualización dinámica
+        $updates = [];
         $types = "";
+        $values = [];
         
-        if (isset($input['name'])) { $updateFields[] = "name = ?"; $params[] = $input['name']; $types .= "s"; }
-        if (isset($input['email'])) { $updateFields[] = "email = ?"; $params[] = $input['email']; $types .= "s"; }
-        if (isset($input['plant'])) { $updateFields[] = "plant = ?"; $params[] = $input['plant']; $types .= "s"; }
-        if (isset($input['role'])) { $updateFields[] = "role = ?"; $params[] = $input['role']; $types .= "s"; }
-        if (isset($input['authorization_level'])) { $updateFields[] = "authorization_level = ?"; $params[] = $input['authorization_level']; $types .= "i"; }
-        
-        // Si se proporciona una nueva contraseña, encriptarla y actualizarla
-        if (isset($input['password']) && !empty(trim($input['password']))) {
-            $encryptedPassword = PasswordManager::encrypt($input['password']);
-            $updateFields[] = "password = ?";
-            $params[] = $encryptedPassword;
+        if (isset($input['name']) && !empty(trim($input['name']))) {
+            $updates[] = "name = ?";
             $types .= "s";
+            $values[] = trim($input['name']);
         }
         
-        if (empty($updateFields)) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'No fields to update were provided']);
-            exit;
+        if (isset($input['email']) && !empty(trim($input['email']))) {
+            $email = trim($input['email']);
+            
+            // Verificar que el email no esté en uso por otro usuario
+            $stmt = $conex->prepare("SELECT id FROM User WHERE email = ? AND id != ?");
+            $stmt->bind_param("si", $email, $updateUserId);
+            $stmt->execute();
+            $stmt->store_result();
+            
+            if ($stmt->num_rows > 0) {
+                http_response_code(409);
+                echo json_encode(['success' => false, 'message' => 'Email already in use by another user.']);
+                exit;
+            }
+            $stmt->close();
+            
+            $updates[] = "email = ?";
+            $types .= "s";
+            $values[] = $email;
         }
         
-        $params[] = $input['id'];
-        $types .= "i";
+        if (isset($input['role']) && !empty(trim($input['role']))) {
+            $updates[] = "role = ?";
+            $types .= "s";
+            $values[] = trim($input['role']);
+        }
         
-        $sql = "UPDATE `User` SET " . implode(", ", $updateFields) . " WHERE id = ?";
-        $stmt = $conex->prepare($sql);
+        if (isset($input['plant'])) {
+            $updates[] = "plant = ?";
+            $types .= "s";
+            $values[] = $input['plant'] !== '' ? trim($input['plant']) : null;
+        }
         
-        $stmt->bind_param($types, ...$params);
+        if (isset($input['authorization_level'])) {
+            $updates[] = "authorization_level = ?";
+            $types .= "i";
+            $values[] = intval($input['authorization_level']);
+        }
         
-        if ($stmt->execute()) {
-            echo json_encode(['success' => true, 'message' => 'User updated successfully']);
-        } else {
-            throw new Exception("Error updating user: " . $stmt->error);
+        // Actualizar contraseña si se proporciona
+        if (isset($input['password']) && !empty(trim($input['password']))) {
+            $hashedPassword = PasswordManager::hashPassword(trim($input['password']));
+            $updates[] = "password = ?";
+            $types .= "s";
+            $values[] = $hashedPassword;
+        }
+        
+        // NUEVO: Manejar niveles de aprobación
+        $approvalLevels = isset($input['approval_levels']) ? $input['approval_levels'] : null;
+        
+        // Iniciar transacción
+        $conex->begin_transaction();
+        
+        try {
+            // Actualizar datos del usuario si hay cambios
+            if (!empty($updates)) {
+                $sql = "UPDATE User SET " . implode(", ", $updates) . " WHERE id = ?";
+                $types .= "i";
+                $values[] = $updateUserId;
+                
+                $stmt = $conex->prepare($sql);
+                $stmt->bind_param($types, ...$values);
+                
+                if (!$stmt->execute()) {
+                    throw new Exception("Error updating user: " . $stmt->error);
+                }
+                $stmt->close();
+            }
+            
+            // NUEVO: Actualizar niveles de aprobación si se proporcionan
+            if ($approvalLevels !== null && is_array($approvalLevels)) {
+                // Eliminar niveles existentes
+                $stmt = $conex->prepare("DELETE FROM Approvers WHERE user_id = ?");
+                $stmt->bind_param("i", $updateUserId);
+                $stmt->execute();
+                $stmt->close();
+                
+                // Insertar nuevos niveles
+                if (!empty($approvalLevels)) {
+                    $stmt = $conex->prepare("INSERT INTO Approvers (user_id, approval_level, plant) VALUES (?, ?, ?)");
+                    
+                    foreach ($approvalLevels as $approvalInfo) {
+                        if (!isset($approvalInfo['level'])) continue;
+                        
+                        $approvalLevel = intval($approvalInfo['level']);
+                        $approvalPlant = isset($approvalInfo['plant']) && $approvalInfo['plant'] !== '' ? trim($approvalInfo['plant']) : null;
+                        
+                        $stmt->bind_param("iis", $updateUserId, $approvalLevel, $approvalPlant);
+                        
+                        if (!$stmt->execute()) {
+                            throw new Exception("Error updating approval level: " . $stmt->error);
+                        }
+                    }
+                    
+                    $stmt->close();
+                }
+            }
+            
+            $conex->commit();
+            
+            echo json_encode(['success' => true, 'message' => 'User updated successfully.']);
+            
+        } catch (Exception $e) {
+            $conex->rollback();
+            throw $e;
         }
     }
-    
-    // DELETE - Delete a user
-    else if ($method === 'DELETE') {
+
+    // ========== DELETE: Eliminar usuario ==========
+    elseif ($method === 'DELETE') {
+        
         $input = json_decode(file_get_contents('php://input'), true);
         
         if (!isset($input['id']) || !is_numeric($input['id'])) {
             http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'User ID is required and must be numeric']);
+            echo json_encode(['success' => false, 'message' => 'User ID is required.']);
             exit;
         }
         
-        if ($input['id'] == $_SESSION['user']['id']) {
+        $deleteUserId = intval($input['id']);
+        
+        // No permitir eliminar al usuario 36 (súper admin)
+        if ($deleteUserId == 36) {
             http_response_code(403);
-            echo json_encode(['success' => false, 'message' => 'You cannot delete your own account']);
+            echo json_encode(['success' => false, 'message' => 'Cannot delete super admin user.']);
             exit;
         }
         
-        $stmt = $conex->prepare("DELETE FROM `User` WHERE id = ?");
-        $stmt->bind_param("i", $input['id']);
+        // Iniciar transacción
+        $conex->begin_transaction();
         
-        if ($stmt->execute()) {
-            echo json_encode(['success' => true, 'message' => 'User deleted successfully']);
-        } else {
-            throw new Exception("Error deleting user: " . $stmt->error);
+        try {
+            // NUEVO: Eliminar niveles de aprobación primero (FK constraint)
+            $stmt = $conex->prepare("DELETE FROM Approvers WHERE user_id = ?");
+            $stmt->bind_param("i", $deleteUserId);
+            
+            if (!$stmt->execute()) {
+                throw new Exception("Error deleting approval levels: " . $stmt->error);
+            }
+            $stmt->close();
+            
+            // Eliminar usuario
+            $stmt = $conex->prepare("DELETE FROM User WHERE id = ?");
+            $stmt->bind_param("i", $deleteUserId);
+            
+            if (!$stmt->execute()) {
+                throw new Exception("Error deleting user: " . $stmt->error);
+            }
+            
+            if ($stmt->affected_rows === 0) {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'message' => 'User not found.']);
+                exit;
+            }
+            
+            $stmt->close();
+            
+            $conex->commit();
+            
+            echo json_encode(['success' => true, 'message' => 'User deleted successfully.']);
+            
+        } catch (Exception $e) {
+            $conex->rollback();
+            throw $e;
         }
     }
-    
-    else {
-        http_response_code(405);
-        echo json_encode(['success' => false, 'message' => 'Method not allowed']);
-    }
+
+    $conex->close();
     
 } catch (Exception $e) {
-    error_log("UserAdmin error: " . $e->getMessage());
+    error_log("Error in daoUserAdmin: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Internal server error: ' . $e->getMessage()]);
 }
 ?>

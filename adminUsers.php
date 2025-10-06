@@ -1,7 +1,9 @@
 <?php
 /**
- * adminUsers.php - User Administration Panel (Refactored)
- * This version uses the centralized context injection system.
+ * adminUsers.php - User Administration Panel
+ * 
+ * ACTUALIZACIÓN v2.0 (2025-10-06):
+ * - UI actualizada para gestión de niveles de aprobación
  */
 require_once 'dao/users/auth_check.php';
 require_once 'dao/users/PasswordManager.php';
@@ -25,127 +27,142 @@ require_once 'dao/users/context_injector.php';
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/adminUsers.css">
-
-    <link rel="stylesheet" href="css/tour-styles.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
-    
-    <script src="js/config.js"></script>
-
-    <?php if (isset($appContextForJS['user']['authorizationLevel']) && $appContextForJS['user']['authorizationLevel'] > 0): ?>
-        <link rel="stylesheet" href="css/assistant.css">
-    <?php endif; ?>
 </head>
 <body>
-    <div id="header-container"></div>
-    
-    <main id="main" class="container mt-4"> 
-        <h1 class="my-4">User Administration</h1>
-        
-        <div class="card mb-4 shadow-sm">
-            <div class="card-body">
-                <table id="users-table" class="display table table-striped table-hover" style="width:100%">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Plant</th>
-                            <th>Role</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+    <?php include 'includes/header.php'; ?>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-users-cog"></i> User Administration
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <table id="usersTable" class="display nowrap" style="width:100%">
+                            <!-- DataTable se inicializa via JavaScript -->
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
 
-        <div id="user-form-container" class="card mt-4 mb-4 d-none">
-            <div class="card-body">
-                <h2 id="form-title" class="mb-3">Add New User</h2>
-                <form id="user-form" novalidate>
-                    <input type="hidden" id="user-id" value="New">
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="user-name" class="form-label">Name</label>
-                            <input type="text" class="form-control" id="user-name" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="user-email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="user-email" required>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="user-plant" class="form-label">Plant</label>
-                            <select class="form-select" id="user-plant">
-                                <option value="">Regional (No Plant)</option>
-                                <option value="3310">3310 - Tetla</option>
-                                <option value="3330">3330 - QRO</option>
-                                <option value="1640">1640 - Tupelo Automotive</option>
-                                <option value="3510">3510 - Delphos</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="user-role-level" class="form-label">Role & Authorization Level</label>
-                                <select class="form-select" id="user-role-level" required>
-                                    <option value="0:Worker">Worker</option>
-                                    <option value="1:Logistics Manager">Trafico</option>
-                                    <option value="2:Transport Specialist">Transport Specialist</option>
-                                    <option value="3:Logistics Manager">Logistics Manager</option>
-                                    <option value="4:Controlling">Controlling</option>
-                                    <option value="5:Plant Manager">Plant Manager</option>
-                                    <option value="6:Senior Manager Logistics Division">Senior Manager Logistics Division</option>
-                                    <option value="7:Manager OPS Division">Manager OPS Division</option>
-                                    <option value="8:Division Controlling Regional">Division Controlling Regional</option>
-                                </select>
-                        </div>
-                    </div>
-                    
-                    <div class="row mb-4" id="password-section">
-                        <div class="col-md-6">
-                            <label for="user-password" class="form-label">Password</label>
-                            <div class="position-relative">
-                                <input type="password" class="form-control" id="user-password" placeholder="Enter new password">
-                                <button type="button" id="password-toggle" class="btn border-0 position-absolute end-0 top-50 translate-middle-y" style="background-color: transparent;">
-                                    <i class="fas fa-eye-slash text-secondary"></i>
-                                </button>
+    <!-- Modal para Crear/Editar Usuario -->
+    <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="userModalTitle">User Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="userForm">
+                        <input type="hidden" id="userId">
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="userName" class="form-label">
+                                    <i class="fas fa-user"></i> Full Name <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="userName" required>
                             </div>
-                            <div class="form-text">Required for new users. At least 8 characters, with letters and numbers.</div>
+                            <div class="col-md-6">
+                                <label for="userEmail" class="form-label">
+                                    <i class="fas fa-envelope"></i> Email <span class="text-danger">*</span>
+                                </label>
+                                <input type="email" class="form-control" id="userEmail" required>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="d-flex justify-content-end gap-2 mt-4">
-                        <button type="button" id="cancel-form" class="btn btn-light border">Cancel</button>
-                        <button type="button" class="btn btn-primary" id="submitbtn">Save User</button>
-                    </div>
-                </form>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="userRole" class="form-label">
+                                    <i class="fas fa-briefcase"></i> Role <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="userRole" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="userPlant" class="form-label">
+                                    <i class="fas fa-industry"></i> Plant
+                                </label>
+                                <input type="text" class="form-control" id="userPlant" placeholder="Leave empty if N/A">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="userAuthLevel" class="form-label">
+                                    <i class="fas fa-shield-alt"></i> Authorization Level <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select" id="userAuthLevel" required>
+                                    <option value="0">0 - No Access</option>
+                                    <option value="1">1 - Basic User</option>
+                                    <option value="2">2 - Advanced User</option>
+                                    <option value="3">3 - Supervisor</option>
+                                    <option value="4">4 - Manager</option>
+                                    <option value="5">5 - Director</option>
+                                    <option value="6">6 - VP</option>
+                                    <option value="7">7 - Executive</option>
+                                    <option value="8">8 - Admin</option>
+                                </select>
+                                <small class="text-muted">Controls page access and UI permissions</small>
+                            </div>
+                            <div class="col-md-6" id="passwordGroup">
+                                <label for="userPassword" class="form-label">
+                                    <i class="fas fa-lock"></i> Password <span class="text-danger">*</span>
+                                </label>
+                                <input type="password" class="form-control" id="userPassword">
+                                <small class="text-muted">Min. 6 characters</small>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- NUEVO: Sección de Niveles de Aprobación -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-check-circle"></i> Approval Levels
+                            </label>
+                            <p class="text-muted small mb-2">
+                                Define which approval levels this user can perform, and for which plant(s). 
+                                Leave plant empty to make the user a regional approver (can approve for any plant).
+                            </p>
+                            
+                            <div id="approvalLevelsContainer">
+                                <!-- Filas dinámicas de niveles de aprobación -->
+                            </div>
+                            
+                            <button type="button" class="btn btn-sm btn-outline-success mt-2" id="addApprovalLevelBtn">
+                                <i class="fas fa-plus"></i> Add Approval Level
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelUserBtn">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="button" class="btn btn-primary" id="saveUserBtn">
+                        <i class="fas fa-save"></i> Save User
+                    </button>
+                </div>
             </div>
         </div>
-    </main>
-
-    <footer class="text-center py-3 mt-4 bg-light">
-        <p class="mb-0">© 2025 Grammer. All rights reserved.</p>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script>
+    </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/header.js" type="module"></script>
-    <script src="js/userAdmin.js"></script>
     
-    <?php if (isset($appContextForJS['user']['authorizationLevel']) && $appContextForJS['user']['authorizationLevel'] > 0): ?>
-        <script src="js/assistant.js"></script>
-    <?php endif; ?>
+    <script src="js/userAdmin.js"></script>
 </body>
 </html>

@@ -1,6 +1,12 @@
 <?php
+/**
+ * daoOrderProgress.php - Progreso de Aprobación de Órdenes
+ * 
+ * ACTUALIZACIÓN v2.0 (2025-10-06):
+ * - Migrado a tabla Approvers para obtener aprobadores por nivel
+ */
+
 require_once __DIR__ . '/../db/cors_config.php';
-// daoOrderProgress.php
 header('Content-Type: application/json');
 include_once('../db/PFDB.php');
 session_start();
@@ -8,22 +14,14 @@ session_start();
 // Verificar que el usuario esté logueado
 if (!isset($_SESSION['user'])) {
     http_response_code(401);
-    echo json_encode([
-        'success' => false, 
-        'error_type' => 'authentication',
-        'message' => 'User not authenticated'
-    ]);
+    echo json_encode(['message' => 'User not authenticated']);
     exit;
 }
 
 // Obtener el ID de la orden
 if (!isset($_GET['orderId']) || !is_numeric($_GET['orderId'])) {
     http_response_code(400);
-    echo json_encode([
-        'success' => false, 
-        'error_type' => 'validation',
-        'message' => 'Order ID is required'
-    ]);
+    echo json_encode(['message' => 'Order ID is required']);
     exit;
 }
 
@@ -37,13 +35,18 @@ try {
     
     // 1. Obtener información básica de la orden
     $orderSql = "SELECT 
-                    pf.user_id, 
-                    pf.required_auth_level,
-                    u.name as creator_name,
-                    u.plant as order_plant
-                FROM PremiumFreight pf
-                INNER JOIN User u ON pf.user_id = u.id
-                WHERE pf.id = ?";
+        pf.id,
+        pf.premium_freight_number,
+        pf.status,
+        pf.required_auth_level,
+        u.plant as order_plant,
+        u.name as creator_name,
+        pfa.act_approv as current_approval_level,
+        pfa.rejection_reason
+    FROM PremiumFreight pf
+    LEFT JOIN User u ON pf.id_user = u.id
+    LEFT JOIN PremiumFreightApprovals pfa ON pf.id = pfa.premium_freight_id
+    WHERE pf.id = ?";
     
     $stmt = $conex->prepare($orderSql);
     $stmt->bind_param("i", $orderId);
@@ -52,11 +55,7 @@ try {
     
     if ($orderResult->num_rows === 0) {
         http_response_code(404);
-        echo json_encode([
-            'success' => false,
-            'error_type' => 'not_found',
-            'message' => "Order #$orderId does not exist in the system"
-        ]);
+        echo json_encode(['message' => 'Order not found']);
         exit;
     }
     
@@ -65,155 +64,122 @@ try {
     
     // 2. Verificar permisos de acceso según planta
     if ($currentUserAuthLevel < 4 && $currentUserPlant !== null && $currentUserPlant != $orderPlant) {
-        echo json_encode([
-            'success' => false,
-            'error_type' => 'plant_restriction',
-            'message' => "You don't have permission to view orders from plant $orderPlant. You can only view orders from your plant ($currentUserPlant)."
-        ]);
+        http_response_code(403);
+        echo json_encode(['message' => 'You do not have permission to view this order']);
         exit;
     }
     
     // 3. Obtener estado actual de aprobación
-    $approvalSql = "SELECT 
-                        act_approv, 
-                        rejection_reason
-                    FROM PremiumFreightApprovals 
-                    WHERE premium_freight_id = ?";
+    $currentApprovalLevel = intval($orderInfo['current_approval_level']);
+    $rejectionReason = $orderInfo['rejection_reason'];
+    $isRejected = ($currentApprovalLevel === 99);
     
-    $stmt = $conex->prepare($approvalSql);
-    $stmt->bind_param("i", $orderId);
-    $stmt->execute();
-    $approvalResult = $stmt->get_result();
-    
-    $currentApprovalLevel = 0;
-    $rejectionReason = null;
-    $isRejected = false;
-    
-    if ($approvalResult->num_rows > 0) {
-        $approvalInfo = $approvalResult->fetch_assoc();
-        $currentApprovalLevel = intval($approvalInfo['act_approv']);
-        $rejectionReason = $approvalInfo['rejection_reason'];
-        $isRejected = ($currentApprovalLevel === 99);
-    }
-
-    // 4. CORREGIDO: Obtener el historial de aprobaciones con fechas y nivel de usuario
+    // 4. Obtener historial de aprobaciones
     $historySql = "SELECT 
-                       u.authorization_level as approval_level,
-                       ah.action_timestamp,
-                       ah.action_type
-                   FROM ApprovalHistory ah
-                   INNER JOIN User u ON ah.user_id = u.id
-                   WHERE ah.premium_freight_id = ? 
-                   ORDER BY ah.action_timestamp ASC";
+        ah.id,
+        ah.approver_id,
+        ah.approval_level_reached,
+        ah.approved_at,
+        ah.rejection_reason,
+        u.name as approver_name,
+        u.email as approver_email
+    FROM ApprovalHistory ah
+    LEFT JOIN User u ON ah.approver_id = u.id
+    WHERE ah.premium_freight_id = ?
+    ORDER BY ah.approved_at ASC";
+    
     $stmt = $conex->prepare($historySql);
     $stmt->bind_param("i", $orderId);
     $stmt->execute();
     $historyResult = $stmt->get_result();
-    $historyMap = [];
+    
+    $approvalHistory = [];
     while ($row = $historyResult->fetch_assoc()) {
-        $historyMap[$row['approval_level']] = $row;
+        $approvalHistory[] = $row;
     }
     
-    // 5. Obtener lista de aprobadores necesarios
+    // 5. NUEVO: Construir línea de tiempo de aprobación usando tabla Approvers
     $requiredLevel = intval($orderInfo['required_auth_level']);
-    $approvers = [];
+    $approvalTimeline = [];
     
     for ($level = 1; $level <= $requiredLevel; $level++) {
-        $approverSql = "SELECT id, name, role, authorization_level, plant
-                        FROM User 
-                        WHERE authorization_level = ? 
-                        AND (plant = ? OR plant IS NULL)
-                        ORDER BY plant ASC, name ASC
-                        LIMIT 1";
+        // ACTUALIZADO: Buscar aprobadores desde tabla Approvers
+        $approverSql = "SELECT 
+            u.id,
+            u.name,
+            u.email,
+            u.role,
+            a.approval_level,
+            a.plant
+        FROM Approvers a
+        INNER JOIN User u ON a.user_id = u.id
+        WHERE a.approval_level = ? 
+        AND (a.plant = ? OR a.plant IS NULL)
+        ORDER BY a.plant ASC, u.name ASC
+        LIMIT 1";
         
         $stmt = $conex->prepare($approverSql);
         $stmt->bind_param("is", $level, $orderPlant);
         $stmt->execute();
         $approverResult = $stmt->get_result();
         
+        $approver = null;
         if ($approverResult->num_rows > 0) {
             $approver = $approverResult->fetch_assoc();
-            $historyEntry = $historyMap[$level] ?? null;
-
-            $approvers[] = [
-                'level' => $level,
-                'id' => $approver['id'],
-                'name' => $approver['name'],
-                'role' => $approver['role'],
-                'authorization_level' => $approver['authorization_level'],
-                'plant' => $approver['plant'],
-                'isCompleted' => !$isRejected && $currentApprovalLevel >= $level,
-                'isCurrent' => !$isRejected && $currentApprovalLevel + 1 === $level,
-                'isRejectedHere' => $isRejected && $historyEntry && $historyEntry['action_type'] === 'rejected',
-                'actionTimestamp' => $historyEntry && $historyEntry['action_timestamp']
-    ? (new DateTime($historyEntry['action_timestamp'], new DateTimeZone('UTC')))
-        ->setTimezone(new DateTimeZone('America/Mexico_City'))
-        ->format('Y-m-d\TH:i:sP')
-    : null
-            ];
-        } else {
-            error_log("No approver found for level $level and plant $orderPlant");
         }
-    }
-    
-    // 6. Verificar que tengamos todos los aprobadores necesarios
-    if (count($approvers) < $requiredLevel) {
-        echo json_encode([
-            'success' => false,
-            'error_type' => 'incomplete_approver_chain',
-            'message' => 'Could not find all required approvers for this order. Please contact the system administrator.'
-        ]);
-        exit;
-    }
-    
-    // 7. Calcular porcentaje de progreso
-    $progressPercentage = 0;
-    if ($isRejected) {
-        foreach ($approvers as $index => $approver) {
-            if ($approver['isRejectedHere']) {
-                // El progreso se detiene en el punto de rechazo
-                $progressPercentage = (($index + 1) / count($approvers)) * 100;
+        
+        // Buscar en el historial si este nivel fue aprobado
+        $historyItem = null;
+        foreach ($approvalHistory as $history) {
+            if ($history['approval_level_reached'] == $level) {
+                $historyItem = $history;
                 break;
             }
         }
-    } else {
-        if ($currentApprovalLevel >= $requiredLevel) {
-            $progressPercentage = 100;
-        } else {
-            $progressPercentage = ($currentApprovalLevel / $requiredLevel) * 100;
+        
+        $status = 'pending';
+        if ($isRejected && $level > $currentApprovalLevel) {
+            $status = 'skipped';
+        } elseif ($level <= $currentApprovalLevel && !$isRejected) {
+            $status = 'approved';
+        } elseif ($level == $currentApprovalLevel + 1 && !$isRejected) {
+            $status = 'current';
         }
+        
+        $approvalTimeline[] = [
+            'level' => $level,
+            'status' => $status,
+            'approver' => $approver,
+            'history' => $historyItem
+        ];
     }
     
+    // 6. Preparar respuesta
     $response = [
         'success' => true,
-        'showProgress' => true,
-        'error_type' => null,
-        'orderInfo' => [
-            'creator_name' => $orderInfo['creator_name'],
-            'required_level' => $requiredLevel,
-            'current_level' => $currentApprovalLevel,
+        'order' => [
+            'id' => $orderInfo['id'],
+            'premium_freight_number' => $orderInfo['premium_freight_number'],
+            'status' => $orderInfo['status'],
+            'current_approval_level' => $currentApprovalLevel,
+            'required_auth_level' => $requiredLevel,
             'is_rejected' => $isRejected,
-            'is_completed' => !$isRejected && $currentApprovalLevel >= $requiredLevel,
             'rejection_reason' => $rejectionReason,
-            'order_plant' => $orderPlant
+            'order_plant' => $orderPlant,
+            'creator_name' => $orderInfo['creator_name']
         ],
-        'approvers' => $approvers,
-        'progress' => [
-            'percentage' => round($progressPercentage, 1),
-            'current_step' => $isRejected ? 'rejected' : ($currentApprovalLevel >= $requiredLevel ? 'completed' : $currentApprovalLevel + 1)
-        ]
+        'approval_timeline' => $approvalTimeline,
+        'approval_history' => $approvalHistory
     ];
     
     echo json_encode($response);
     
 } catch (Exception $e) {
-    error_log("Error en daoOrderProgress: " . $e->getMessage());
+    error_log("Error in daoOrderProgress: " . $e->getMessage());
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'error_type' => 'server_error',
-        'message' => 'Internal server error',
-        'details' => [ 'error_message' => $e->getMessage() ]
+        'message' => 'Internal server error: ' . $e->getMessage()
     ]);
 }
 ?>

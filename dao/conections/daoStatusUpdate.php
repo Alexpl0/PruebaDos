@@ -1,4 +1,12 @@
 <?php
+/**
+ * daoStatusUpdate.php - Actualización de Estado de Órdenes
+ * 
+ * ACTUALIZACIÓN v2.0 (2025-10-06):
+ * - Migrado a tabla Approvers para validación de niveles de aprobación
+ * - Mantiene authorization_level para validación de sesión
+ */
+
 session_start();
 include_once('../db/PFDB.php');
 
@@ -20,7 +28,7 @@ if (!isset($_SESSION['user']) || !isset($_SESSION['user']['authorization_level']
     exit;
 }
 
-$sessionLevel = intval($_SESSION['user']['authorization_level']);
+$sessionAuthLevel = intval($_SESSION['user']['authorization_level']);
 $userLevel = intval($data['userLevel']);
 $userID = intval($data['userID']);
 $authDate = $data['authDate'];
@@ -29,25 +37,20 @@ $newStatusId = intval($data['newStatusId']);
 $userPlant = isset($_SESSION['user']['plant']) ? $_SESSION['user']['plant'] : null;
 $rejectionReason = isset($data['rejection_reason']) ? trim($data['rejection_reason']) : null;
 
+// Validar razón de rechazo si es necesario
 if ($newStatusId === 99) {
     if (empty($rejectionReason)) {
         http_response_code(400);
-        echo json_encode(["success" => false, "message" => "A reason is required to reject the order."]);
+        echo json_encode(["success" => false, "message" => "A rejection reason is required."]);
         exit;
     }
     if (strlen($rejectionReason) > 999) {
         http_response_code(400);
-        echo json_encode(["success" => false, "message" => "Rejection reason cannot exceed 999 characters."]);
+        echo json_encode(["success" => false, "message" => "Rejection reason is too long (max 999 characters)."]);
         exit;
     }
 } else {
     $rejectionReason = null;
-}
-
-if ($sessionLevel !== $userLevel) {
-    http_response_code(403);
-    echo json_encode(["success" => false, "message" => "Unauthorized. Session level does not match the sent level."]);
-    exit;
 }
 
 try {
@@ -55,113 +58,144 @@ try {
     $conex = $con->conectar();
     $conex->begin_transaction();
 
-    $stmt = $conex->prepare(
-        "SELECT pfa.act_approv, pf.required_auth_level, u.plant AS creator_plant
-         FROM PremiumFreightApprovals pfa
-         JOIN PremiumFreight pf ON pfa.premium_freight_id = pf.id
-         JOIN User u ON pf.user_id = u.id
-         WHERE pfa.premium_freight_id = ?"
-    );
+    // 1. Obtener información de la orden
+    $stmt = $conex->prepare("
+        SELECT pfa.act_approv, pf.required_auth_level, u.plant as creator_plant
+        FROM PremiumFreight pf
+        LEFT JOIN PremiumFreightApprovals pfa ON pf.id = pfa.premium_freight_id
+        LEFT JOIN User u ON pf.id_user = u.id
+        WHERE pf.id = ?
+    ");
     $stmt->bind_param("i", $orderId);
     $stmt->execute();
     $stmt->bind_result($approvalStatus, $requiredAuthLevel, $creatorPlant);
     
     if (!$stmt->fetch()) {
+        $stmt->close();
+        $conex->rollback();
         http_response_code(404);
         echo json_encode(["success" => false, "message" => "Order not found."]);
-        $stmt->close();
-        $conex->close();
         exit;
     }
     $stmt->close();
 
+    // 2. Validar planta del usuario vs planta de la orden
     if ($userPlant !== null && $userPlant !== '' && $creatorPlant !== $userPlant) {
-        http_response_code(403);
-        echo json_encode(["success" => false, "message" => "You do not have permission to approve/reject orders from other plants."]);
-        $conex->close();
-        exit;
-    }
-
-    if ($sessionLevel !== ((intval($approvalStatus)) + 1)) {
-        http_response_code(403);
-        echo json_encode(["success" => false, "message" => "You do not have permission to approve/reject this order at this time."]);
-        $conex->close();
-        exit;
-    }
-
-    if ($newStatusId !== 99 && $newStatusId > intval($requiredAuthLevel)) {
-        http_response_code(400);
-        echo json_encode(["success" => false, "message" => "The order has already reached the required approval level."]);
-        $conex->close();
-        exit;
-    }
-
-    $stmtUpdate = $conex->prepare(
-        "UPDATE PremiumFreightApprovals 
-         SET act_approv = ?, user_id = ?, approval_date = ?, rejection_reason = ?
-         WHERE premium_freight_id = ?"
-    );
-    $stmtUpdate->bind_param("isssi", $newStatusId, $userID, $authDate, $rejectionReason, $orderId);
-    $stmtUpdate->execute();
-    $affectedRows = $stmtUpdate->affected_rows;
-    $stmtUpdate->close();
-
-    if ($affectedRows > 0) {
-        // =================================================================================
-        // NUEVO: Insertar el registro de la acción en el historial
-        // =================================================================================
-        $actionType = ($newStatusId === 99) ? 'REJECTED' : 'APPROVED';
-        $comments = ($newStatusId === 99) ? $rejectionReason : NULL;
-        $levelReached = ($newStatusId === 99) ? $sessionLevel : $newStatusId; // Si se rechaza, guarda el nivel en que ocurrió
-
-        $stmtHistory = $conex->prepare(
-            "INSERT INTO ApprovalHistory (premium_freight_id, user_id, action_type, approval_level_reached, comments) VALUES (?, ?, ?, ?, ?)"
-        );
-        if ($stmtHistory) {
-            $stmtHistory->bind_param("iisis", $orderId, $userID, $actionType, $levelReached, $comments);
-            $stmtHistory->execute();
-            $stmtHistory->close();
-        }
-        // =================================================================================
-
-        if ($newStatusId === 99) {
-            $stmtStatus = $conex->prepare("UPDATE PremiumFreight SET status_id = 4 WHERE id = ?");
-            $stmtStatus->bind_param("i", $orderId);
-            $stmtStatus->execute();
-            $stmtStatus->close();
-        }
-
-        if ($newStatusId === intval($requiredAuthLevel)) {
-            $stmtStatus = $conex->prepare("UPDATE PremiumFreight SET status_id = 3 WHERE id = ?");
-            $stmtStatus->bind_param("i", $orderId);
-            $stmtStatus->execute();
-            $stmtStatus->close();
-        }
-
-        $conex->commit();
-        $response = [
-            "success" => true,
-            "message" => $newStatusId === 99 ? "Order rejected successfully" : "Status updated successfully",
-            "new_status" => $newStatusId,
-            "required_level" => $requiredAuthLevel
-        ];
-        if ($newStatusId === 99 && $rejectionReason) {
-            $response['rejection_reason'] = $rejectionReason;
-        }
-        echo json_encode($response);
-    } else {
         $conex->rollback();
-        echo json_encode(["success" => false, "message" => "No records updated. The ID might not exist or the status is the same."]);
+        http_response_code(403);
+        echo json_encode([
+            "success" => false, 
+            "message" => "Permission denied: Order plant ($creatorPlant) does not match your plant ($userPlant)."
+        ]);
+        exit;
     }
 
-    $conex->close();
+    // 3. NUEVO: Obtener approval_level del usuario desde tabla Approvers
+    $stmt = $conex->prepare("
+        SELECT approval_level 
+        FROM Approvers 
+        WHERE user_id = ? 
+        AND (plant = ? OR plant IS NULL)
+        ORDER BY plant ASC
+        LIMIT 1
+    ");
+    $stmt->bind_param("is", $userID, $creatorPlant);
+    $stmt->execute();
+    $stmt->bind_result($userApprovalLevel);
+    
+    if (!$stmt->fetch()) {
+        $stmt->close();
+        $conex->rollback();
+        http_response_code(403);
+        echo json_encode([
+            "success" => false, 
+            "message" => "You do not have approval permissions for this order."
+        ]);
+        exit;
+    }
+    $stmt->close();
+
+    // 4. Validar que el usuario tenga el nivel correcto para aprobar
+    if ($newStatusId !== 99) { // Si NO es rechazo
+        $expectedLevel = intval($approvalStatus) + 1;
+        
+        if ($userApprovalLevel !== $expectedLevel) {
+            $conex->rollback();
+            http_response_code(403);
+            echo json_encode([
+                "success" => false,
+                "message" => "Unauthorized: Your approval level ($userApprovalLevel) does not match the required level ($expectedLevel)."
+            ]);
+            exit;
+        }
+    }
+
+    // 5. Actualizar el estado de la orden
+    if ($newStatusId === 99) {
+        // Rechazo
+        $stmt = $conex->prepare("
+            UPDATE PremiumFreightApprovals 
+            SET act_approv = ?, rejection_reason = ?
+            WHERE premium_freight_id = ?
+        ");
+        $stmt->bind_param("isi", $newStatusId, $rejectionReason, $orderId);
+    } else {
+        // Aprobación
+        $stmt = $conex->prepare("
+            UPDATE PremiumFreightApprovals 
+            SET act_approv = ?
+            WHERE premium_freight_id = ?
+        ");
+        $stmt->bind_param("ii", $newStatusId, $orderId);
+    }
+
+    if (!$stmt->execute()) {
+        throw new Exception("Failed to update approval status: " . $stmt->error);
+    }
+    $stmt->close();
+
+    // 6. Registrar en el historial
+    $stmt = $conex->prepare("
+        INSERT INTO ApprovalHistory 
+        (premium_freight_id, approver_id, approval_level_reached, approved_at, rejection_reason)
+        VALUES (?, ?, ?, ?, ?)
+    ");
+    $stmt->bind_param("iiiss", $orderId, $userID, $newStatusId, $authDate, $rejectionReason);
+    
+    if (!$stmt->execute()) {
+        throw new Exception("Failed to insert approval history: " . $stmt->error);
+    }
+    $stmt->close();
+
+    // 7. Actualizar estado general de la orden si es necesario
+    if ($newStatusId === 99) {
+        // Orden rechazada
+        $stmt = $conex->prepare("UPDATE PremiumFreight SET status = 'rejected' WHERE id = ?");
+        $stmt->bind_param("i", $orderId);
+        $stmt->execute();
+        $stmt->close();
+    } elseif ($newStatusId >= $requiredAuthLevel) {
+        // Orden completamente aprobada
+        $stmt = $conex->prepare("UPDATE PremiumFreight SET status = 'approved' WHERE id = ?");
+        $stmt->bind_param("i", $orderId);
+        $stmt->execute();
+        $stmt->close();
+    }
+
+    $conex->commit();
+    
+    echo json_encode([
+        "success" => true,
+        "message" => $newStatusId === 99 ? "Order rejected successfully." : "Order approved successfully.",
+        "newStatus" => $newStatusId
+    ]);
 
 } catch (Exception $e) {
-    if (isset($conex) && $conex->connect_errno === 0) {
+    if (isset($conex)) {
         $conex->rollback();
-        $conex->close();
     }
+    error_log("Error in daoStatusUpdate: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(["success" => false, "message" => $e->getMessage()]);
+    echo json_encode(["success" => false, "message" => "Internal server error: " . $e->getMessage()]);
 }
 ?>
