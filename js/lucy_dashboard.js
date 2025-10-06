@@ -279,11 +279,20 @@ document.addEventListener('DOMContentLoaded', () => {
             })
         });
 
-        if (!response.ok) {
-            throw new Error(`Error del servidor: ${response.statusText}`);
-        }
-
         const data = await response.json();
+
+        if (!response.ok) {
+            // Mostrar error detallado
+            let errorMsg = data.message || `Error del servidor: ${response.statusText}`;
+            if (data.file) {
+                errorMsg += `\n\nArchivo: ${data.file}`;
+            }
+            if (data.line) {
+                errorMsg += `\nLínea: ${data.line}`;
+            }
+            console.error('Error completo:', data);
+            throw new Error(errorMsg);
+        }
 
         if (data.status === 'success') {
             return data;
@@ -312,11 +321,22 @@ document.addEventListener('DOMContentLoaded', () => {
             body: JSON.stringify(payload)
         });
 
-        if (!response.ok) {
-            throw new Error(`Error del servidor Excel API: ${response.statusText}`);
-        }
-
         const data = await response.json();
+
+        if (!response.ok) {
+            let errorMsg = data.message || `Error del servidor Excel API: ${response.statusText}`;
+            if (data.file) {
+                errorMsg += `\n\nArchivo: ${data.file}`;
+            }
+            if (data.line) {
+                errorMsg += `\nLínea: ${data.line}`;
+            }
+            if (data.action) {
+                errorMsg += `\nAcción: ${data.action}`;
+            }
+            console.error('Error completo Excel API:', data);
+            throw new Error(errorMsg);
+        }
 
         if (data.status === 'success') {
             return data.data;
@@ -469,11 +489,22 @@ document.addEventListener('DOMContentLoaded', () => {
         generateBtn.disabled = false;
         generateBtn.innerHTML = '<i class="fas fa-cogs me-2"></i>Generar Dashboard';
         
+        // Detectar si es un error de configuración
+        const isConfigError = message.includes('no configurada') || 
+                            message.includes('not configured') ||
+                            message.includes('API Key') ||
+                            message.includes('credentials');
+        
         Swal.fire({
             icon: 'error',
-            title: 'Oops... algo salió mal',
-            text: `No se pudo generar el dashboard. Error: ${message}`,
-            confirmButtonColor: '#dc3545'
+            title: isConfigError ? 'Error de Configuración' : 'Oops... algo salió mal',
+            html: `<div style="text-align: left;">
+                <p><strong>Error:</strong></p>
+                <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px; font-size: 12px; max-height: 300px; overflow-y: auto;">${message}</pre>
+                ${isConfigError ? '<p style="margin-top: 10px;"><strong>Acción requerida:</strong> Verifica la configuración de tus API keys en los archivos PHP.</p>' : ''}
+            </div>`,
+            confirmButtonColor: '#dc3545',
+            width: '600px'
         });
     }
 

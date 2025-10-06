@@ -4,8 +4,17 @@
  * Crea, actualiza y gestiona archivos Excel en OneDrive
  */
 
+// Activar reporte de errores para debugging (REMOVER en producción)
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+
 header('Content-Type: application/json');
-session_start();
+
+// Iniciar sesión si no está iniciada
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Verificar autenticación
 if (!isset($_SESSION['user'])) {
@@ -16,9 +25,9 @@ if (!isset($_SESSION['user'])) {
 
 // ==================== CONFIGURACIÓN ====================
 // TODO: Mover a variables de entorno en producción
-define('MICROSOFT_CLIENT_ID', '4a19a67f-180a-4edb-9ce2-7a6a638e55a0');
-define('MICROSOFT_CLIENT_SECRET', 'd48f7ad7-324b-480d-8b7d-874eabb9b2c2');
-define('MICROSOFT_TENANT_ID', '55c1a730-a70e-4839-b7ec-14dd88b4aa66');
+define('MICROSOFT_CLIENT_ID', 'TU_CLIENT_ID_AQUI');
+define('MICROSOFT_CLIENT_SECRET', 'TU_CLIENT_SECRET_AQUI');
+define('MICROSOFT_TENANT_ID', 'TU_TENANT_ID_AQUI');
 define('MICROSOFT_GRAPH_URL', 'https://graph.microsoft.com/v1.0');
 
 // ==================== OBTENER DATOS DEL REQUEST ====================
@@ -44,7 +53,7 @@ try {
             break;
             
         default:
-            throw new Exception('Invalid action');
+            throw new Exception('Invalid action: ' . $action);
     }
     
     echo json_encode([
@@ -56,7 +65,10 @@ try {
     http_response_code(500);
     echo json_encode([
         'status' => 'error',
-        'message' => $e->getMessage()
+        'message' => $e->getMessage(),
+        'file' => basename($e->getFile()),
+        'line' => $e->getLine(),
+        'action' => $action
     ]);
 }
 
@@ -171,6 +183,13 @@ function getDownloadUrl($fileId) {
  * Obtiene un access token de Microsoft Graph API
  */
 function getAccessToken() {
+    // Verificar que las credenciales estén configuradas
+    if (MICROSOFT_CLIENT_ID === 'TU_CLIENT_ID_AQUI' || 
+        MICROSOFT_CLIENT_SECRET === 'TU_CLIENT_SECRET_AQUI' || 
+        MICROSOFT_TENANT_ID === 'TU_TENANT_ID_AQUI') {
+        throw new Exception('Microsoft Graph credentials no configuradas. Por favor configura CLIENT_ID, CLIENT_SECRET y TENANT_ID en excel_api.php');
+    }
+    
     $tokenUrl = 'https://login.microsoftonline.com/' . MICROSOFT_TENANT_ID . '/oauth2/v2.0/token';
     
     $params = [
@@ -184,19 +203,27 @@ function getAccessToken() {
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Para desarrollo
     
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
     curl_close($ch);
     
+    if ($response === false) {
+        throw new Exception('Error de conexión al obtener token: ' . $curlError);
+    }
+    
     if ($httpCode !== 200) {
-        throw new Exception('Error getting access token: ' . $response);
+        $errorData = json_decode($response, true);
+        $errorMsg = $errorData['error_description'] ?? $errorData['error'] ?? 'Unknown error';
+        throw new Exception('Error obteniendo access token (' . $httpCode . '): ' . $errorMsg . '. Verifica tus credenciales de Azure.');
     }
     
     $data = json_decode($response, true);
     
     if (!isset($data['access_token'])) {
-        throw new Exception('No access token in response');
+        throw new Exception('No access token en respuesta. Response: ' . substr($response, 0, 200));
     }
     
     return $data['access_token'];
@@ -541,6 +568,7 @@ function graphApiRequest($accessToken, $url, $method = 'GET', $payload = null) {
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Para desarrollo
     
     $headers = [
         'Authorization: Bearer ' . $accessToken,
@@ -554,10 +582,17 @@ function graphApiRequest($accessToken, $url, $method = 'GET', $payload = null) {
     
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
     curl_close($ch);
     
+    if ($response === false) {
+        throw new Exception("Graph API connection error: {$curlError}");
+    }
+    
     if ($httpCode < 200 || $httpCode >= 300) {
-        throw new Exception("Graph API error ({$httpCode}): {$response}");
+        $errorData = json_decode($response, true);
+        $errorMsg = $errorData['error']['message'] ?? $response;
+        throw new Exception("Graph API error ({$httpCode}) on {$method} {$url}: {$errorMsg}");
     }
     
     return json_decode($response, true);
