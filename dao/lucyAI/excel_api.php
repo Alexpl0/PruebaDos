@@ -27,7 +27,7 @@ if (!isset($_SESSION['user'])) {
 // TODO: Mover a variables de entorno en producción
 define('MICROSOFT_CLIENT_ID', '4a19a67f-180a-4edb-9ce2-7a6a638e55a0');
 define('MICROSOFT_CLIENT_SECRET', 'd48f7ad7-324b-480d-8b7d-874eabb9b2c2');
-define('MICROSOFT_TENANT_ID', '55c1a730-a70e-4839-b7ec-14dd88b4aa66');
+define('MICROSOFT_TENANT_ID', 'nzv8Q~W7cFM_~aS2pncK2_dfffuQvOHaAt5mzclt');
 define('MICROSOFT_GRAPH_URL', 'https://graph.microsoft.com/v1.0');
 
 // ==================== OBTENER DATOS DEL REQUEST ====================
