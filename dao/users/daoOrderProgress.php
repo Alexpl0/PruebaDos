@@ -2,7 +2,8 @@
 /**
  * daoOrderProgress.php - Progreso de Aprobación de Órdenes
  * 
- * ACTUALIZACIÓN v2.0 (2025-10-06):
+ * ACTUALIZACIÓN v2.1 (2025-10-06):
+ * - Corregidos los nombres de columnas según estructura real de las tablas
  * - Migrado a tabla Approvers para obtener aprobadores por nivel
  */
 
@@ -34,27 +35,48 @@ try {
     $conex = $con->conectar();
     
     // 1. Obtener información básica de la orden
+    // CORREGIDO: Nombres de columnas según tabla real
     $orderSql = "SELECT 
         pf.id,
-        pf.status,
+        pf.reference_number as premium_freight_number,
+        pf.status_id,
         pf.required_auth_level,
+        pf.date,
+        pf.description,
+        pf.cost_euros,
+        pf.planta,
+        pf.code_planta,
+        pf.transport,
+        pf.in_out_bound,
+        pf.area,
+        pf.recovery,
+        pf.recovery_file,
+        pf.recovery_evidence,
+        pf.user_id as creator_id,
         u.plant as order_plant,
         u.name as creator_name,
         pfa.act_approv as current_approval_level,
         pfa.rejection_reason
     FROM PremiumFreight pf
-    LEFT JOIN User u ON pf.id_user = u.id
+    LEFT JOIN User u ON pf.user_id = u.id
     LEFT JOIN PremiumFreightApprovals pfa ON pf.id = pfa.premium_freight_id
     WHERE pf.id = ?";
     
     $stmt = $conex->prepare($orderSql);
+    if (!$stmt) {
+        throw new Exception("Failed to prepare statement: " . $conex->error);
+    }
+    
     $stmt->bind_param("i", $orderId);
     $stmt->execute();
     $orderResult = $stmt->get_result();
     
     if ($orderResult->num_rows === 0) {
         http_response_code(404);
-        echo json_encode(['message' => 'Order not found']);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Order not found'
+        ]);
         exit;
     }
     
@@ -64,30 +86,39 @@ try {
     // 2. Verificar permisos de acceso según planta
     if ($currentUserAuthLevel < 4 && $currentUserPlant !== null && $currentUserPlant != $orderPlant) {
         http_response_code(403);
-        echo json_encode(['message' => 'You do not have permission to view this order']);
+        echo json_encode([
+            'success' => false,
+            'message' => 'You do not have permission to view this order'
+        ]);
         exit;
     }
     
     // 3. Obtener estado actual de aprobación
-    $currentApprovalLevel = intval($orderInfo['current_approval_level']);
+    $currentApprovalLevel = intval($orderInfo['current_approval_level'] ?? 0);
     $rejectionReason = $orderInfo['rejection_reason'];
     $isRejected = ($currentApprovalLevel === 99);
     
     // 4. Obtener historial de aprobaciones
+    // CORREGIDO: approver_id → user_id
     $historySql = "SELECT 
         ah.id,
-        ah.approver_id,
+        ah.user_id as approver_id,
         ah.approval_level_reached,
-        ah.approved_at,
-        ah.rejection_reason,
+        ah.action_timestamp as approved_at,
+        ah.action_type,
+        ah.comments as rejection_reason,
         u.name as approver_name,
         u.email as approver_email
     FROM ApprovalHistory ah
-    LEFT JOIN User u ON ah.approver_id = u.id
+    LEFT JOIN User u ON ah.user_id = u.id
     WHERE ah.premium_freight_id = ?
-    ORDER BY ah.approved_at ASC";
+    ORDER BY ah.action_timestamp ASC";
     
     $stmt = $conex->prepare($historySql);
+    if (!$stmt) {
+        throw new Exception("Failed to prepare history statement: " . $conex->error);
+    }
+    
     $stmt->bind_param("i", $orderId);
     $stmt->execute();
     $historyResult = $stmt->get_result();
@@ -97,12 +128,12 @@ try {
         $approvalHistory[] = $row;
     }
     
-    // 5. NUEVO: Construir línea de tiempo de aprobación usando tabla Approvers
+    // 5. Construir línea de tiempo de aprobación usando tabla Approvers
     $requiredLevel = intval($orderInfo['required_auth_level']);
     $approvalTimeline = [];
     
     for ($level = 1; $level <= $requiredLevel; $level++) {
-        // ACTUALIZADO: Buscar aprobadores desde tabla Approvers
+        // Buscar aprobadores desde tabla Approvers
         $approverSql = "SELECT 
             u.id,
             u.name,
@@ -118,6 +149,10 @@ try {
         LIMIT 1";
         
         $stmt = $conex->prepare($approverSql);
+        if (!$stmt) {
+            throw new Exception("Failed to prepare approver statement: " . $conex->error);
+        }
+        
         $stmt->bind_param("is", $level, $orderPlant);
         $stmt->execute();
         $approverResult = $stmt->get_result();
@@ -136,6 +171,7 @@ try {
             }
         }
         
+        // Determinar estado del nivel
         $status = 'pending';
         if ($isRejected && $level > $currentApprovalLevel) {
             $status = 'skipped';
@@ -153,19 +189,49 @@ try {
         ];
     }
     
-    // 6. Preparar respuesta
+    // 6. Mapear status_id a texto legible
+    $statusText = 'Unknown';
+    switch ($orderInfo['status_id']) {
+        case 1:
+            $statusText = 'Active';
+            break;
+        case 2:
+            $statusText = 'Completed';
+            break;
+        case 3:
+            $statusText = 'Cancelled';
+            break;
+        case 4:
+            $statusText = 'In Progress';
+            break;
+    }
+    
+    // 7. Preparar respuesta
     $response = [
         'success' => true,
         'order' => [
             'id' => $orderInfo['id'],
             'premium_freight_number' => $orderInfo['premium_freight_number'],
-            'status' => $orderInfo['status'],
+            'status' => $statusText,
+            'status_id' => $orderInfo['status_id'],
             'current_approval_level' => $currentApprovalLevel,
             'required_auth_level' => $requiredLevel,
             'is_rejected' => $isRejected,
             'rejection_reason' => $rejectionReason,
             'order_plant' => $orderPlant,
-            'creator_name' => $orderInfo['creator_name']
+            'creator_name' => $orderInfo['creator_name'],
+            'creator_id' => $orderInfo['creator_id'],
+            'date' => $orderInfo['date'],
+            'description' => $orderInfo['description'],
+            'cost_euros' => $orderInfo['cost_euros'],
+            'planta' => $orderInfo['planta'],
+            'code_planta' => $orderInfo['code_planta'],
+            'transport' => $orderInfo['transport'],
+            'in_out_bound' => $orderInfo['in_out_bound'],
+            'area' => $orderInfo['area'],
+            'recovery' => $orderInfo['recovery'],
+            'recovery_file' => $orderInfo['recovery_file'],
+            'recovery_evidence' => $orderInfo['recovery_evidence']
         ],
         'approval_timeline' => $approvalTimeline,
         'approval_history' => $approvalHistory
