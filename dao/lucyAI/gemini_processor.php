@@ -224,11 +224,13 @@ Tienes acceso a {$totalRecords} órdenes de Premium Freight. Muestra de campos d
 CAMPOS PRINCIPALES:
 " . $dataStructure . "
 
-🚀 IMPORTANTE: RESPONDE RÁPIDO Y CONCISO
+IMPORTANTE: RESPONDE RÁPIDO Y CONCISO
 - Genera la estructura JSON inmediatamente
 - No des explicaciones largas
 - El JSON debe estar en un bloque ```json```
 - Sé directo y eficiente
+- CRÍTICO: Los nombres de worksheets NO pueden tener espacios, usa guiones bajos o CamelCase
+  Ejemplos: \"Dashboard_General\", \"DashboardGeneral\", \"Costos_Por_Carrier\"
 
 CAPACIDADES:
 1. Crear dashboards VISUALES con gráficos impactantes (barras, líneas, pasteles, etc.)
