@@ -1,13 +1,9 @@
 <?php
 /**
- * lucy_dashboard.php - Página para generar dashboards de Excel con AI.
- * Usa el sistema centralizado de autenticación y contexto.
+ * lucy_dashboard.php - Página para generar dashboards de Excel y Power BI con AI.
  */
 
-// 1. Handle session and authentication.
 require_once 'dao/users/auth_check.php';
-
-// 2. Include the context injector.
 require_once 'dao/users/context_injector.php';
 ?>
 <!DOCTYPE html>
@@ -18,24 +14,22 @@ require_once 'dao/users/context_injector.php';
     <title>Lucy - AI Dashboard Generator</title>
     <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
 
-    <!-- ================== THIRD-PARTY CSS ================== -->
+    <!-- Third-party CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     
-    <!-- ================== LOCAL CSS ================== -->
+    <!-- Local CSS -->
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/styles.css">
     
-    <!-- ================== CENTRALIZED CONTEXT SYSTEM ================== -->
+    <!-- Config -->
     <script src="js/config.js"></script>
 
-    <?php 
-    // Conditionally load the AI assistant's CSS.
-    if (isset($appContextForJS['user']['authorizationLevel']) && $appContextForJS['user']['authorizationLevel'] > 0): ?>
+    <?php if (isset($appContextForJS['user']['authorizationLevel']) && $appContextForJS['user']['authorizationLevel'] > 0): ?>
         <link rel="stylesheet" href="css/lucy_dashboard.css">
         <style>
-            /* Estilos adicionales para el chat */
+            /* Chat styles */
             #chat-container {
                 display: none;
                 margin-top: 2rem;
@@ -187,6 +181,47 @@ require_once 'dao/users/context_injector.php';
                 gap: 0.5rem;
             }
 
+            /* Output type selector */
+            .output-selector {
+                display: flex;
+                gap: 0.5rem;
+                margin-bottom: 1rem;
+                justify-content: center;
+            }
+
+            .output-type-btn {
+                flex: 1;
+                max-width: 200px;
+                padding: 0.75rem 1.5rem;
+                border: 2px solid #dee2e6;
+                background-color: white;
+                color: #6c757d;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.3s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+                font-weight: 500;
+            }
+
+            .output-type-btn:hover {
+                border-color: #4472C4;
+                color: #4472C4;
+            }
+
+            .output-type-btn.active {
+                background-color: #4472C4;
+                color: white;
+                border-color: #4472C4;
+                box-shadow: 0 4px 6px rgba(68, 114, 196, 0.3);
+            }
+
+            .output-type-btn i {
+                font-size: 1.2rem;
+            }
+
             @media (max-width: 768px) {
                 .message-content {
                     max-width: 85%;
@@ -200,12 +235,19 @@ require_once 'dao/users/context_injector.php';
                     flex: 1;
                     min-width: 140px;
                 }
+
+                .output-selector {
+                    flex-direction: column;
+                }
+
+                .output-type-btn {
+                    max-width: 100%;
+                }
             }
         </style>
     <?php endif; ?>
 </head>
 <body>
-    <!-- Container for the dynamic header -->
     <div id="header-container"></div>
     
     <main class="container my-5">
@@ -219,10 +261,23 @@ require_once 'dao/users/context_injector.php';
                         </div>
                         <div class="lucy-title">
                             <h1 class="h3">Hola, soy Lucy</h1>
-                            <p class="text-muted">Tu asistente de IA para análisis de datos en Excel.</p>
+                            <p class="text-muted">Tu asistente de IA para análisis de datos.</p>
                         </div>
                     </div>
                     <hr>
+                    
+                    <!-- Output Type Selector -->
+                    <div class="output-selector">
+                        <button type="button" id="output-excel-btn" class="output-type-btn active">
+                            <i class="fas fa-file-excel"></i>
+                            <span>Excel</span>
+                        </button>
+                        <button type="button" id="output-powerbi-btn" class="output-type-btn">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Power BI</span>
+                        </button>
+                    </div>
+                    
                     <p class="card-text mt-3">Describe el dashboard que necesitas. Sé lo más específico posible para obtener el mejor resultado.</p>
                     
                     <p class="prompt-example">Por ejemplo: <em>"Crea un dashboard que muestre los costos por transportista en un gráfico de barras y el número de órdenes por planta en una tabla dinámica."</em></p>
@@ -238,12 +293,12 @@ require_once 'dao/users/context_injector.php';
                 </div>
             </div>
 
-            <!-- Section to display the Excel result -->
+            <!-- Results Section -->
             <div id="dashboard-result-container" class="mt-4" style="display: none;">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">
-                            <i class="fas fa-file-excel me-2"></i>Excel Dashboard Interactivo
+                            <i class="fas fa-chart-line me-2"></i>Dashboard Interactivo
                         </h5>
                         <div class="dashboard-controls">
                             <button id="download-excel-btn" class="btn btn-success btn-sm">
@@ -309,17 +364,15 @@ require_once 'dao/users/context_injector.php';
         <p>&copy; <?php echo date("Y"); ?> Premium Freight. All rights reserved.</p>
     </footer>
 
-    <!-- ================== THIRD-PARTY SCRIPTS ================== -->
+    <!-- Third-party scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
-    <!-- ================== LOCAL SCRIPTS ================== -->
+    <!-- Local scripts -->
     <script src="js/header.js" type="module"></script>
 
-    <?php 
-    // Conditionally load the assistant's JS.
-    if (isset($appContextForJS['user']['authorizationLevel']) && $appContextForJS['user']['authorizationLevel'] > 0): ?>
+    <?php if (isset($appContextForJS['user']['authorizationLevel']) && $appContextForJS['user']['authorizationLevel'] > 0): ?>
         <script src="js/lucy_dashboard.js"></script>
     <?php endif; ?>
 </body>

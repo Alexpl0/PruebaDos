@@ -1,4 +1,4 @@
-/* css/lucy_dashboard.css */
+/* css/lucy_dashboard.css - Actualizado con selector de tipo */
 
 /* Main container style to center content */
 .lucy-main-container {
@@ -60,13 +60,61 @@
     text-align: center;
 }
 
+/* Output type selector */
+.output-selector {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    justify-content: center;
+    padding: 0.5rem;
+    background-color: var(--gray-100);
+    border-radius: var(--border-radius);
+}
+
+.output-type-btn {
+    flex: 1;
+    max-width: 200px;
+    padding: 0.75rem 1.5rem;
+    border: 2px solid transparent;
+    background-color: var(--white);
+    color: var(--gray-600);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+.output-type-btn:hover:not(.active) {
+    background-color: var(--gray-50);
+    color: var(--grammer-blue);
+    border-color: var(--grammer-light-blue);
+}
+
+.output-type-btn.active {
+    background: linear-gradient(135deg, var(--grammer-blue), var(--grammer-light-blue));
+    color: var(--white);
+    border-color: var(--grammer-blue);
+    box-shadow: 0 4px 6px rgba(68, 114, 196, 0.3);
+    transform: scale(1.02);
+}
+
+.output-type-btn i {
+    font-size: 1.2rem;
+}
+
 #prompt-input {
     min-height: 120px;
     font-size: 1.05rem;
     border-radius: var(--border-radius);
     transition: all var(--transition-normal);
     background-color: var(--white);
-    text-align: left; /* Ensure placeholder text starts from the left */
+    text-align: left;
 }
 
 #prompt-input:focus {
@@ -76,15 +124,15 @@
 
 #generate-dashboard-btn {
     margin: 0;
-    padding: 0.75rem 1.5rem; /* Adjusted padding */
-    font-size: 1rem; /* Adjusted font size */
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
     font-weight: bold;
     background-color: var(--grammer-blue);
     border-color: var(--grammer-blue);
     border-radius: var(--border-radius);
     transition: all var(--transition-normal);
-    max-width: 320px; /* Set a max-width */
-    width: 100%; /* Ensure it's responsive within the max-width */
+    max-width: 320px;
+    width: 100%;
 }
 
 #generate-dashboard-btn:hover {
@@ -92,6 +140,12 @@
     border-color: var(--grammer-dark-blue);
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
+}
+
+#generate-dashboard-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
 }
 
 /* Results container */
@@ -106,11 +160,10 @@
     color: var(--grammer-dark-blue);
 }
 
-/* Iframe style, ensuring it's responsive */
+/* Iframe style */
 #iframe-container {
     position: relative;
     width: 100%;
-    /* Maintains a 16:9 aspect ratio, common for dashboards */
     padding-top: 56.25%; 
 }
 
@@ -127,4 +180,96 @@
 #loader .spinner-border {
     width: 3rem;
     height: 3rem;
+}
+
+/* Dashboard controls */
+.dashboard-controls {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.dashboard-controls .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+
+/* Chat container */
+#chat-container {
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .lucy-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .lucy-title h1 {
+        text-align: center;
+    }
+    
+    .output-selector {
+        flex-direction: column;
+    }
+    
+    .output-type-btn {
+        max-width: 100%;
+    }
+    
+    #generate-dashboard-btn {
+        max-width: 100%;
+    }
+    
+    .dashboard-controls {
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .dashboard-controls .btn {
+        flex: 1;
+        min-width: 120px;
+    }
+}
+
+@media (max-width: 576px) {
+    .lucy-avatar {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .lucy-title h1 {
+        font-size: 1.5rem;
+    }
+    
+    #prompt-input {
+        font-size: 0.95rem;
+    }
+    
+    .output-type-btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .dashboard-controls {
+        flex-direction: column;
+    }
+    
+    .dashboard-controls .btn {
+        width: 100%;
+    }
 }

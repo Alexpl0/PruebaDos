@@ -1,11 +1,12 @@
-// js/lucy_dashboard.js - Frontend completo para Lucy AI Dashboard
+// js/lucy_dashboard.js - Frontend completo para Lucy AI Dashboard (Excel y Power BI)
 
 document.addEventListener('DOMContentLoaded', () => {
     // ==================== VARIABLES GLOBALES ====================
     let conversationHistory = [];
     let currentFileId = null;
-    let currentFileName = 'Lucy_Dashboard.xlsx'; // SIEMPRE el mismo nombre
+    let currentFileName = 'Lucy_Dashboard';
     let isProcessing = false;
+    let outputType = 'excel'; // 'excel' o 'powerbi'
 
     // ==================== REFERENCIAS DOM ====================
     const lucyForm = document.getElementById('lucy-form');
@@ -21,8 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendChatBtn = document.getElementById('send-chat-btn');
     const downloadBtn = document.getElementById('download-excel-btn');
     const newDashboardBtn = document.getElementById('new-dashboard-btn');
+    
+    // Selector de tipo de output
+    const excelBtn = document.getElementById('output-excel-btn');
+    const powerbiBtn = document.getElementById('output-powerbi-btn');
 
-    // Validar elementos
     if (!lucyForm) {
         console.error("El formulario de Lucy no se encontró en la página.");
         return;
@@ -52,6 +56,75 @@ document.addEventListener('DOMContentLoaded', () => {
     if (newDashboardBtn) {
         newDashboardBtn.addEventListener('click', resetDashboard);
     }
+    
+    // Event listeners para selector de tipo
+    if (excelBtn) {
+        excelBtn.addEventListener('click', () => switchOutputType('excel'));
+    }
+    
+    if (powerbiBtn) {
+        powerbiBtn.addEventListener('click', () => switchOutputType('powerbi'));
+    }
+
+    // ==================== FUNCIONES DE SELECTOR ====================
+    
+    /**
+     * Cambia el tipo de output y recarga la página
+     */
+    function switchOutputType(type) {
+        if (type === outputType) {
+            return; // Ya está seleccionado
+        }
+        
+        // Si ya hay un dashboard creado, confirmar
+        if (currentFileId) {
+            Swal.fire({
+                title: '¿Cambiar tipo de dashboard?',
+                text: 'Esto recargará la página y perderás el dashboard actual.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#4472C4',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, cambiar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    location.reload();
+                }
+            });
+        } else {
+            // No hay dashboard, solo cambiar visualmente
+            outputType = type;
+            updateSelectorUI();
+            
+            // Actualizar placeholder y texto
+            if (type === 'powerbi') {
+                promptInput.placeholder = "Ej: 'Necesito un dashboard de Power BI con análisis de costos por transportista y tendencias mensuales...'";
+                downloadBtn.style.display = 'none'; // Power BI no permite descarga directa
+            } else {
+                promptInput.placeholder = "Ej: 'Necesito un reporte con los costos totales por categoría de causa, una tabla con todas las órdenes pendientes...'";
+                downloadBtn.style.display = 'inline-flex';
+            }
+            
+            showToast(`Tipo cambiado a ${type === 'excel' ? 'Excel' : 'Power BI'}`, 'success');
+        }
+    }
+    
+    /**
+     * Actualiza la UI del selector
+     */
+    function updateSelectorUI() {
+        if (outputType === 'excel') {
+            excelBtn.classList.add('active');
+            powerbiBtn.classList.remove('active');
+        } else {
+            excelBtn.classList.remove('active');
+            powerbiBtn.classList.add('active');
+        }
+    }
+    
+    // Inicializar UI del selector
+    updateSelectorUI();
 
     // ==================== FUNCIONES PRINCIPALES ====================
 
@@ -80,17 +153,15 @@ document.addEventListener('DOMContentLoaded', () => {
         isProcessing = true;
         showLoadingState();
         
-        // Timeout de seguridad (60 segundos)
         const timeoutId = setTimeout(() => {
             if (isProcessing) {
                 isProcessing = false;
-                showError('La solicitud tomó demasiado tiempo (>60s). Por favor intenta de nuevo con una solicitud más simple.');
+                showError('La solicitud tomó demasiado tiempo (>60s). Por favor intenta de nuevo.');
             }
         }, 60000);
         
         try {
-            // PASO 1: Llamar a Gemini
-            console.log('🚀 PASO 1: Enviando solicitud a Gemini...');
+            console.log(`Iniciando creación de dashboard tipo: ${outputType}`);
             updateLoadingMessage('Procesando con IA...', 2);
             
             const geminiStartTime = Date.now();
@@ -99,45 +170,44 @@ document.addEventListener('DOMContentLoaded', () => {
             const geminiResponse = await callGeminiProcessor(userPrompt);
             
             const geminiTime = ((Date.now() - geminiStartTime) / 1000).toFixed(2);
-            console.log(`✅ Gemini respondió en ${geminiTime}s`);
+            console.log(`Gemini respondió en ${geminiTime}s`);
             
             if (geminiResponse.debug) {
-                console.log('📊 Debug info:', geminiResponse.debug);
+                console.log('Debug info:', geminiResponse.debug);
             }
             
             addMessageToHistory('assistant', geminiResponse.geminiResponse);
             
-            // PASO 2: Crear Excel
-            console.log('🚀 PASO 2: Creando archivo Excel...');
-            updateLoadingMessage('Creando Excel...', 4);
+            console.log(`Creando ${outputType === 'excel' ? 'Excel' : 'Power BI'}...`);
+            updateLoadingMessage(outputType === 'excel' ? 'Creando Excel...' : 'Creando Power BI Dashboard...', 4);
             
-            const excelStartTime = Date.now();
-            const excelResult = await callExcelAPI(
+            const apiStartTime = Date.now();
+            const apiResult = await callDashboardAPI(
                 geminiResponse.action,
                 geminiResponse.excelData,
                 geminiResponse.fileId || currentFileId
             );
             
-            const excelTime = ((Date.now() - excelStartTime) / 1000).toFixed(2);
-            console.log(`✅ Excel creado en ${excelTime}s`);
+            const apiTime = ((Date.now() - apiStartTime) / 1000).toFixed(2);
+            console.log(`Dashboard creado en ${apiTime}s`);
             
-            // Limpiar timeout
             clearTimeout(timeoutId);
             
-            // Guardar información del archivo
-            currentFileId = excelResult.fileId;
-            currentFileName = excelResult.fileName;
+            currentFileId = outputType === 'excel' ? apiResult.fileId : apiResult.datasetId;
+            currentFileName = outputType === 'excel' ? apiResult.fileName : apiResult.datasetName;
             
-            console.log(`📁 Archivo guardado: ${currentFileName} (ID: ${currentFileId})`);
+            console.log(`Archivo guardado: ${currentFileName} (ID: ${currentFileId})`);
             
-            // Mostrar Excel en iframe
             updateLoadingMessage('Cargando visualización...', 5);
-            showDashboardResult(excelResult.embedUrl);
             
-            // Mostrar interfaz de chat
+            if (outputType === 'powerbi') {
+                showPowerBIResult(apiResult);
+            } else {
+                showDashboardResult(apiResult.embedUrl);
+            }
+            
             showChatInterface();
             
-            // Mostrar mensaje de éxito
             if (chatMessages) {
                 addChatMessage('assistant', geminiResponse.geminiResponse);
             }
@@ -149,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
         } catch (error) {
             clearTimeout(timeoutId);
-            console.error("❌ Error al generar dashboard:", error);
+            console.error("Error al generar dashboard:", error);
             showError(error.message);
         } finally {
             isProcessing = false;
@@ -157,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Maneja mensajes del chat una vez creado el dashboard
+     * Maneja mensajes del chat
      */
     async function handleChatMessage() {
         const message = chatInput.value.trim();
@@ -168,54 +238,53 @@ document.addEventListener('DOMContentLoaded', () => {
         
         isProcessing = true;
         
-        // Mostrar mensaje del usuario
         addChatMessage('user', message);
         chatInput.value = '';
         
-        // Mostrar indicador de escritura
         showTypingIndicator();
         
         try {
-            // Agregar al historial
             addMessageToHistory('user', message);
             
-            // Llamar a Gemini
             const geminiResponse = await callGeminiProcessor(message);
             
-            // Agregar respuesta al historial
             addMessageToHistory('assistant', geminiResponse.geminiResponse);
             
-            // SIEMPRE usar el fileId actual para actualizar (nunca crear nuevo)
             if (currentFileId && geminiResponse.excelData && Object.keys(geminiResponse.excelData).length > 0) {
-                console.log('Actualizando archivo existente:', currentFileId);
+                console.log('Actualizando dashboard existente:', currentFileId);
                 
-                const excelResult = await callExcelAPI(
-                    'update', // SIEMPRE update cuando hay fileId
+                const apiResult = await callDashboardAPI(
+                    'update',
                     geminiResponse.excelData,
                     currentFileId
                 );
                 
-                // El fileId no cambia, pero actualizamos la URL del iframe
-                showDashboardResult(excelResult.embedUrl);
+                if (outputType === 'powerbi') {
+                    showPowerBIResult(apiResult);
+                } else {
+                    showDashboardResult(apiResult.embedUrl);
+                }
                 
-                showToast('Excel actualizado correctamente', 'success');
+                showToast('Dashboard actualizado correctamente', 'success');
             } else if (!currentFileId) {
-                // Si por alguna razón no hay fileId, crear uno nuevo
-                console.log('No hay fileId, creando nuevo archivo');
+                console.log('No hay dashboard, creando nuevo');
                 
-                const excelResult = await callExcelAPI(
+                const apiResult = await callDashboardAPI(
                     'create',
                     geminiResponse.excelData,
                     null
                 );
                 
-                currentFileId = excelResult.fileId;
-                currentFileName = excelResult.fileName;
+                currentFileId = outputType === 'excel' ? apiResult.fileId : apiResult.datasetId;
+                currentFileName = outputType === 'excel' ? apiResult.fileName : apiResult.datasetName;
                 
-                showDashboardResult(excelResult.embedUrl);
+                if (outputType === 'powerbi') {
+                    showPowerBIResult(apiResult);
+                } else {
+                    showDashboardResult(apiResult.embedUrl);
+                }
             }
             
-            // Mostrar respuesta de Lucy
             removeTypingIndicator();
             addChatMessage('assistant', geminiResponse.geminiResponse);
             
@@ -230,11 +299,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Maneja la descarga del archivo Excel
+     * Maneja la descarga (solo Excel)
      */
     async function handleDownload() {
-        if (!currentFileId) {
-            showToast('No hay archivo para descargar', 'warning');
+        if (!currentFileId || outputType !== 'excel') {
+            showToast('No hay archivo Excel para descargar', 'warning');
             return;
         }
         
@@ -255,7 +324,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
             
             if (result.status === 'success' && result.data.downloadUrl) {
-                // Crear elemento de descarga temporal
                 const a = document.createElement('a');
                 a.href = result.data.downloadUrl;
                 a.download = currentFileName || 'Lucy_Dashboard.xlsx';
@@ -275,12 +343,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Reinicia el dashboard para crear uno nuevo
+     * Reinicia el dashboard
      */
     function resetDashboard() {
         Swal.fire({
             title: '¿Crear nuevo dashboard?',
-            text: 'Esto reiniciará la conversación y creará un nuevo archivo Excel.',
+            text: 'Esto reiniciará la conversación y creará un nuevo archivo.',
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#4472C4',
@@ -289,12 +357,10 @@ document.addEventListener('DOMContentLoaded', () => {
             cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
-                // Limpiar estado
                 conversationHistory = [];
                 currentFileId = null;
                 currentFileName = null;
                 
-                // Limpiar UI
                 promptInput.value = '';
                 resultContainer.style.display = 'none';
                 powerbiIframe.src = '';
@@ -304,7 +370,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     chatMessages.innerHTML = '';
                 }
                 
-                // Scroll al inicio
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 
                 showToast('¡Listo para crear un nuevo dashboard!', 'success');
@@ -318,9 +383,8 @@ document.addEventListener('DOMContentLoaded', () => {
      * Llama al procesador de Gemini
      */
     async function callGeminiProcessor(message) {
-        // Controller para poder cancelar la petición
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 segundos timeout
+        const timeoutId = setTimeout(() => controller.abort(), 45000);
         
         try {
             const response = await fetch(`${window.PF_CONFIG.app.baseURL}dao/lucyAI/gemini_processor.php`, {
@@ -331,7 +395,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({
                     message: message,
                     history: conversationHistory,
-                    fileId: currentFileId
+                    fileId: currentFileId,
+                    outputType: outputType
                 }),
                 signal: controller.signal
             });
@@ -340,7 +405,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
 
             if (!response.ok) {
-                // Mostrar error detallado
                 let errorMsg = data.message || `Error del servidor: ${response.statusText}`;
                 if (data.file) {
                     errorMsg += `\n\nArchivo: ${data.file}`;
@@ -361,7 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
             clearTimeout(timeoutId);
             
             if (error.name === 'AbortError') {
-                throw new Error('La solicitud a Gemini tomó demasiado tiempo (>45s). Intenta con una solicitud más simple o verifica tu conexión.');
+                throw new Error('La solicitud a Gemini tomó demasiado tiempo (>45s). Intenta con una solicitud más simple.');
             }
             
             throw error;
@@ -369,27 +433,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Llama a la API de Excel
+     * Llama a la API correspondiente (Excel o Power BI)
      */
-    async function callExcelAPI(action, excelData, fileId = null) {
-        // Generar nombre único con timestamp para evitar conflictos
+    async function callDashboardAPI(action, data, fileId = null) {
+        const apiEndpoint = outputType === 'excel' ? 'excel_api.php' : 'powerbi_api.php';
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
         const uniqueFileName = currentFileName || `Lucy_Dashboard_${timestamp}`;
         
         const payload = {
             action: action,
-            fileId: fileId,
+            [outputType === 'excel' ? 'fileId' : 'datasetId']: fileId,
             fileName: uniqueFileName,
-            worksheets: excelData.worksheets || [],
-            cellUpdates: excelData.cellUpdates || []
+            worksheets: data.worksheets || [],
+            cellUpdates: data.cellUpdates || []
         };
 
-        // Controller para poder cancelar la petición
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 segundos timeout
+        const timeoutId = setTimeout(() => controller.abort(), 45000);
         
         try {
-            const response = await fetch(`${window.PF_CONFIG.app.baseURL}dao/lucyAI/excel_api.php`, {
+            const response = await fetch(`${window.PF_CONFIG.app.baseURL}dao/lucyAI/${apiEndpoint}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -399,33 +462,30 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             clearTimeout(timeoutId);
-            const data = await response.json();
+            const result = await response.json();
 
             if (!response.ok) {
-                let errorMsg = data.message || `Error del servidor Excel API: ${response.statusText}`;
-                if (data.file) {
-                    errorMsg += `\n\nArchivo: ${data.file}`;
+                let errorMsg = result.message || `Error del servidor: ${response.statusText}`;
+                if (result.file) {
+                    errorMsg += `\n\nArchivo: ${result.file}`;
                 }
-                if (data.line) {
-                    errorMsg += `\nLínea: ${data.line}`;
+                if (result.line) {
+                    errorMsg += `\nLínea: ${result.line}`;
                 }
-                if (data.action) {
-                    errorMsg += `\nAcción: ${data.action}`;
-                }
-                console.error('Error completo Excel API:', data);
+                console.error('Error completo API:', result);
                 throw new Error(errorMsg);
             }
 
-            if (data.status === 'success') {
-                return data.data;
+            if (result.status === 'success') {
+                return result.data;
             } else {
-                throw new Error(data.message || 'Error en Excel API');
+                throw new Error(result.message || 'Error en API');
             }
         } catch (error) {
             clearTimeout(timeoutId);
             
             if (error.name === 'AbortError') {
-                throw new Error('La creación del Excel tomó demasiado tiempo (>45s). Verifica tu conexión con Microsoft Graph API.');
+                throw new Error(`La creación del ${outputType === 'excel' ? 'Excel' : 'Power BI'} tomó demasiado tiempo (>45s).`);
             }
             
             throw error;
@@ -434,9 +494,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ==================== FUNCIONES DE UI ====================
 
-    /**
-     * Muestra el estado de carga
-     */
     function showLoadingState() {
         generateBtn.disabled = true;
         generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando...';
@@ -445,49 +502,38 @@ document.addEventListener('DOMContentLoaded', () => {
         iframeContainer.style.display = 'none';
         powerbiIframe.src = '';
         
-        // Actualizar mensaje de progreso
         updateLoadingMessage('Conectando con Lucy...', 0);
         
         resultContainer.scrollIntoView({ behavior: 'smooth' });
     }
     
-    /**
-     * Actualiza el mensaje de carga con progreso
-     */
     function updateLoadingMessage(message, step) {
         const loaderText = loader.querySelector('p:last-child');
         if (loaderText) {
             const steps = [
-                '🔍 Analizando tu solicitud...',
-                '📊 Obteniendo datos de Premium Freight...',
-                '🤖 Lucy está procesando con IA...',
-                '📈 Generando estructura del dashboard...',
-                '✨ Creando archivo Excel interactivo...',
-                '🎨 Aplicando formato y gráficos...'
+                'Analizando tu solicitud...',
+                'Obteniendo datos de Premium Freight...',
+                'Lucy está procesando con IA...',
+                'Generando estructura del dashboard...',
+                outputType === 'excel' ? 'Creando archivo Excel interactivo...' : 'Creando dataset en Power BI...',
+                'Aplicando formato y visualizaciones...'
             ];
             
             loaderText.innerHTML = `<strong>${steps[step] || message}</strong><br><small class="text-muted">Esto puede tomar 10-30 segundos...</small>`;
         }
     }
 
-    /**
-     * Muestra el resultado del dashboard
-     */
     function showDashboardResult(embedUrl) {
         loader.style.display = 'none';
         
-        // Intentar con iframe primero
         powerbiIframe.src = embedUrl;
         iframeContainer.style.display = 'block';
         
-        // Detectar si el iframe fue bloqueado por CSP
         setTimeout(() => {
             try {
-                // Si podemos acceder al iframe, está funcionando
                 const iframeDoc = powerbiIframe.contentDocument || powerbiIframe.contentWindow.document;
                 console.log('Iframe cargado correctamente');
             } catch (e) {
-                // Si hay error de acceso, probablemente está bloqueado por CSP
                 console.warn('Iframe bloqueado por CSP, mostrando alternativa');
                 showAlternativeView(embedUrl);
             }
@@ -497,22 +543,79 @@ document.addEventListener('DOMContentLoaded', () => {
         generateBtn.innerHTML = '<i class="fas fa-cogs me-2"></i>Generar Dashboard';
     }
     
-    /**
-     * Muestra vista alternativa cuando el iframe está bloqueado
-     */
+    function showPowerBIResult(apiResult) {
+        loader.style.display = 'none';
+        
+        // Power BI requiere configuración especial del iframe con embed token
+        const embedConfig = {
+            type: 'report',
+            embedUrl: apiResult.embedUrl,
+            accessToken: apiResult.embedToken,
+            tokenType: 1, // Embed token
+            permissions: 7, // All permissions
+            settings: {
+                filterPaneEnabled: true,
+                navContentPaneEnabled: true
+            }
+        };
+        
+        // Mostrar en iframe o alternativa
+        if (apiResult.reportId) {
+            // Si hay reportId, mostrar iframe embebido
+            iframeContainer.innerHTML = `
+                <div id="powerbi-embed-container" style="height: 600px;"></div>
+            `;
+            iframeContainer.style.display = 'block';
+            
+            // Aquí se debería usar Power BI JavaScript library para embed correcto
+            // Por simplicidad, mostramos vista alternativa
+            showPowerBIAlternativeView(apiResult);
+        } else {
+            // Si solo hay dataset, mostrar alternativa
+            showPowerBIAlternativeView(apiResult);
+        }
+        
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = '<i class="fas fa-cogs me-2"></i>Generar Dashboard';
+    }
+    
+    function showPowerBIAlternativeView(apiResult) {
+        iframeContainer.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white;">
+                <div style="font-size: 64px; margin-bottom: 20px;">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h2 style="margin-bottom: 10px; font-size: 28px;">Power BI Dataset Creado Exitosamente</h2>
+                <p style="margin-bottom: 15px; font-size: 16px; opacity: 0.9;">
+                    Tu dataset en Power BI está listo con todos los datos organizados.
+                </p>
+                <p style="margin-bottom: 30px; font-size: 14px; opacity: 0.8;">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Puedes crear visualizaciones personalizadas en Power BI Service.
+                </p>
+                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    <a href="${apiResult.embedUrl}" target="_blank" class="btn btn-light btn-lg" style="min-width: 200px;">
+                        <i class="fas fa-external-link-alt me-2"></i>
+                        Abrir en Power BI
+                    </a>
+                </div>
+                <p style="margin-top: 30px; font-size: 13px; opacity: 0.7;">
+                    Dataset ID: ${apiResult.datasetId}
+                </p>
+            </div>
+        `;
+        iframeContainer.style.display = 'block';
+    }
+    
     function showAlternativeView(embedUrl) {
         iframeContainer.innerHTML = `
             <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white;">
                 <div style="font-size: 64px; margin-bottom: 20px;">
-                    📊
+                    <i class="fas fa-file-excel"></i>
                 </div>
                 <h2 style="margin-bottom: 10px; font-size: 28px;">Dashboard Creado Exitosamente</h2>
                 <p style="margin-bottom: 15px; font-size: 16px; opacity: 0.9;">
                     Tu archivo Excel interactivo está listo con datos, tablas y gráficos.
-                </p>
-                <p style="margin-bottom: 30px; font-size: 14px; opacity: 0.8;">
-                    <i class="fas fa-info-circle me-1"></i>
-                    SharePoint requiere configuración adicional para embeber. Abre el archivo para verlo.
                 </p>
                 <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
                     <a href="${embedUrl}" target="_blank" class="btn btn-light btn-lg" style="min-width: 200px;">
@@ -524,13 +627,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         Descargar Excel
                     </button>
                 </div>
-                <p style="margin-top: 30px; font-size: 13px; opacity: 0.7;">
-                    Puedes editar el archivo directamente en Excel Online o descargarlo para trabajar offline
-                </p>
             </div>
         `;
         
-        // Agregar event listener al botón de descarga
         setTimeout(() => {
             const downloadNowBtn = document.getElementById('download-now-btn');
             if (downloadNowBtn) {
@@ -539,9 +638,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 100);
     }
 
-    /**
-     * Muestra la interfaz de chat
-     */
     function showChatInterface() {
         if (chatContainer) {
             chatContainer.style.display = 'block';
@@ -551,9 +647,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * Agrega un mensaje al chat visual
-     */
     function addChatMessage(role, content) {
         if (!chatMessages) return;
         
@@ -577,13 +670,9 @@ document.addEventListener('DOMContentLoaded', () => {
         messageDiv.appendChild(messageContent);
         chatMessages.appendChild(messageDiv);
         
-        // Scroll al último mensaje
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    /**
-     * Muestra indicador de escritura
-     */
     function showTypingIndicator() {
         if (!chatMessages) return;
         
@@ -606,9 +695,6 @@ document.addEventListener('DOMContentLoaded', () => {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    /**
-     * Elimina indicador de escritura
-     */
     function removeTypingIndicator() {
         const indicator = document.getElementById('typing-indicator');
         if (indicator) {
@@ -616,9 +702,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * Agrega mensaje al historial de conversación
-     */
     function addMessageToHistory(role, content) {
         conversationHistory.push({
             role: role,
@@ -626,9 +709,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    /**
-     * Muestra un toast notification
-     */
     function showToast(message, type = 'info') {
         const Toast = Swal.mixin({
             toast: true,
@@ -648,15 +728,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    /**
-     * Muestra un error con SweetAlert
-     */
     function showError(message) {
         loader.style.display = 'none';
         generateBtn.disabled = false;
         generateBtn.innerHTML = '<i class="fas fa-cogs me-2"></i>Generar Dashboard';
         
-        // Detectar si es un error de configuración
         const isConfigError = message.includes('no configurada') || 
                             message.includes('not configured') ||
                             message.includes('API Key') ||
@@ -668,14 +744,12 @@ document.addEventListener('DOMContentLoaded', () => {
             html: `<div style="text-align: left;">
                 <p><strong>Error:</strong></p>
                 <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px; font-size: 12px; max-height: 300px; overflow-y: auto;">${message}</pre>
-                ${isConfigError ? '<p style="margin-top: 10px;"><strong>Acción requerida:</strong> Verifica la configuración de tus API keys en los archivos PHP.</p>' : ''}
+                ${isConfigError ? '<p style="margin-top: 10px;"><strong>Acción requerida:</strong> Verifica la configuración de tus API keys.</p>' : ''}
             </div>`,
             confirmButtonColor: '#dc3545',
             width: '600px'
         });
     }
 
-    // ==================== INICIALIZACIÓN ====================
-    
     console.log('Lucy Dashboard inicializado correctamente');
 });
