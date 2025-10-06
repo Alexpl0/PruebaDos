@@ -46,7 +46,7 @@ async function loadOrderData() {
 
         // Hacer la petición al servidor para obtener los datos de la orden
         const response = await fetch(
-            `${window.PF_CONFIG.app.baseURL}dao/conections/daoOrderProgress.php?orderId=${orderId}`
+            `${window.PF_CONFIG.app.baseURL}dao/users/daoOrderProgress.php?orderId=${orderId}`
         );
 
         if (!response.ok) {
