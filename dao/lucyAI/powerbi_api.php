@@ -1,7 +1,6 @@
 <?php
 /**
  * powerbi_api.php - Manejador de Power BI API
- * Crea datasets, dashboards y gestiona visualizaciones en Power BI
  */
 
 error_reporting(E_ALL);
@@ -20,12 +19,8 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-// ==================== CONFIGURACIÓN ====================
-define('POWERBI_CLIENT_ID', '07297fbf-6ba4-4fe3-99a1-87c93a5aaeb4');
-define('POWERBI_CLIENT_SECRET', 'PDK8Q~F-ZLtKAYWVaOHVMDq63rccxXSZ2M4-pae3');
-define('POWERBI_TENANT_ID', '1b76d39b-fc45-4afe-a05b-8d8f81f18a77');
-define('POWERBI_WORKSPACE_ID', '959d9628-e3b1-4217-aaed-ea2c0d90dc8a'); // ID del workspace "Pruebas Grammer"
-
+// ==================== CARGAR CONFIGURACIÓN ====================
+require_once __DIR__ . '/config.php';
 
 define('POWERBI_API_URL', 'https://api.powerbi.com/v1.0/myorg');
 
@@ -155,10 +150,8 @@ function getPowerBIDashboard($datasetId) {
  * Obtiene access token de Power BI
  */
 function getAccessToken() {
-    if (POWERBI_CLIENT_ID === 'TU_CLIENT_ID_AQUI' || 
-        POWERBI_CLIENT_SECRET === 'TU_CLIENT_SECRET_AQUI' || 
-        POWERBI_TENANT_ID === 'TU_TENANT_ID_AQUI') {
-        throw new Exception('Power BI credentials no configuradas. Por favor configura CLIENT_ID, CLIENT_SECRET y TENANT_ID en powerbi_api.php');
+    if (empty(POWERBI_CLIENT_ID) || empty(POWERBI_CLIENT_SECRET) || empty(POWERBI_TENANT_ID)) {
+        throw new Exception('Power BI credentials no configuradas en .env');
     }
     
     $tokenUrl = 'https://login.microsoftonline.com/' . POWERBI_TENANT_ID . '/oauth2/v2.0/token';

@@ -1,7 +1,6 @@
 <?php
 /**
  * gamma_api.php - Manejador de Gamma API
- * Crea presentaciones mediante la API de Gamma
  */
 
 error_reporting(E_ALL);
@@ -20,8 +19,9 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-// ==================== CONFIGURACIÓN ====================
-define('GAMMA_API_KEY', 'sk-gamma-Yl1RZ9Z2ufyjKUMr1we5ZCtTx3YaxGNF1qIEmsdQ');
+// ==================== CARGAR CONFIGURACIÓN ====================
+require_once __DIR__ . '/config.php';
+
 define('GAMMA_API_URL', 'https://public-api.gamma.app/v0.2/generations');
 
 // ==================== OBTENER DATOS DEL REQUEST ====================
@@ -210,8 +210,8 @@ function buildGammaPayload($config) {
  * Realiza petición a Gamma API
  */
 function gammaApiRequest($url, $method = 'GET', $payload = null) {
-    if (empty(GAMMA_API_KEY) || GAMMA_API_KEY === 'TU_GAMMA_API_KEY_AQUI') {
-        throw new Exception('Gamma API Key no configurada');
+    if (empty(GAMMA_API_KEY)) {
+        throw new Exception('Gamma API Key no configurada en .env');
     }
     
     $ch = curl_init($url);
@@ -225,6 +225,7 @@ function gammaApiRequest($url, $method = 'GET', $payload = null) {
         'Content-Type: application/json',
         'X-API-KEY: ' . GAMMA_API_KEY
     ];
+    
     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
     
     if ($payload !== null && $method === 'POST') {

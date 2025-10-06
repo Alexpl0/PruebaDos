@@ -1,7 +1,6 @@
 <?php
 /**
  * gamma_gemini_processor.php - Procesador específico para presentaciones Gamma
- * Procesa peticiones del usuario, obtiene datos y genera configuración para Gamma API
  */
 
 error_reporting(E_ALL);
@@ -20,8 +19,9 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-// ==================== CONFIGURACIÓN ====================
-define('GEMINI_API_KEY', 'AIzaSyA7ajOKqgm8CsnGg1tv3I_C2l7Rwxf-2tM');
+// ==================== CARGAR CONFIGURACIÓN ====================
+require_once __DIR__ . '/config.php';
+
 define('GEMINI_API_URL', 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent');
 
 // ==================== OBTENER DATOS DEL REQUEST ====================
