@@ -355,10 +355,14 @@ document.addEventListener('DOMContentLoaded', () => {
      * Llama a la API de Excel
      */
     async function callExcelAPI(action, excelData, fileId = null) {
+        // Generar nombre único con timestamp para evitar conflictos
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+        const uniqueFileName = currentFileName || `Lucy_Dashboard_${timestamp}`;
+        
         const payload = {
             action: action,
             fileId: fileId,
-            fileName: currentFileName || `Lucy_Dashboard_${new Date().toISOString().split('T')[0]}`,
+            fileName: uniqueFileName,
             worksheets: excelData.worksheets || [],
             cellUpdates: excelData.cellUpdates || []
         };
@@ -454,11 +458,68 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function showDashboardResult(embedUrl) {
         loader.style.display = 'none';
+        
+        // Intentar con iframe primero
         powerbiIframe.src = embedUrl;
         iframeContainer.style.display = 'block';
         
+        // Detectar si el iframe fue bloqueado por CSP
+        setTimeout(() => {
+            try {
+                // Si podemos acceder al iframe, está funcionando
+                const iframeDoc = powerbiIframe.contentDocument || powerbiIframe.contentWindow.document;
+                console.log('Iframe cargado correctamente');
+            } catch (e) {
+                // Si hay error de acceso, probablemente está bloqueado por CSP
+                console.warn('Iframe bloqueado por CSP, mostrando alternativa');
+                showAlternativeView(embedUrl);
+            }
+        }, 2000);
+        
         generateBtn.disabled = false;
         generateBtn.innerHTML = '<i class="fas fa-cogs me-2"></i>Generar Dashboard';
+    }
+    
+    /**
+     * Muestra vista alternativa cuando el iframe está bloqueado
+     */
+    function showAlternativeView(embedUrl) {
+        iframeContainer.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white;">
+                <div style="font-size: 64px; margin-bottom: 20px;">
+                    📊
+                </div>
+                <h2 style="margin-bottom: 10px; font-size: 28px;">Dashboard Creado Exitosamente</h2>
+                <p style="margin-bottom: 15px; font-size: 16px; opacity: 0.9;">
+                    Tu archivo Excel interactivo está listo con datos, tablas y gráficos.
+                </p>
+                <p style="margin-bottom: 30px; font-size: 14px; opacity: 0.8;">
+                    <i class="fas fa-info-circle me-1"></i>
+                    SharePoint requiere configuración adicional para embeber. Abre el archivo para verlo.
+                </p>
+                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    <a href="${embedUrl}" target="_blank" class="btn btn-light btn-lg" style="min-width: 200px;">
+                        <i class="fas fa-external-link-alt me-2"></i>
+                        Abrir en Excel Online
+                    </a>
+                    <button id="download-now-btn" class="btn btn-success btn-lg" style="min-width: 200px;">
+                        <i class="fas fa-download me-2"></i>
+                        Descargar Excel
+                    </button>
+                </div>
+                <p style="margin-top: 30px; font-size: 13px; opacity: 0.7;">
+                    Puedes editar el archivo directamente en Excel Online o descargarlo para trabajar offline
+                </p>
+            </div>
+        `;
+        
+        // Agregar event listener al botón de descarga
+        setTimeout(() => {
+            const downloadNowBtn = document.getElementById('download-now-btn');
+            if (downloadNowBtn) {
+                downloadNowBtn.addEventListener('click', handleDownload);
+            }
+        }, 100);
     }
 
     /**
