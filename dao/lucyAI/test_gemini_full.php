@@ -16,7 +16,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // ==================== CONFIGURACIÓN ====================
 define('GEMINI_API_KEY', 'AIzaSyA7ajOKqgm8CsnGg1tv3I_C2l7Rwxf-2tM');
-define('GEMINI_API_URL', 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2-flash-lite:generateContent');
+define('GEMINI_API_URL', 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2-flash:generateContent');
 
 
 $totalStartTime = microtime(true);
