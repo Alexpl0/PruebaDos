@@ -25,9 +25,8 @@ if (!isset($_SESSION['user'])) {
 }
 
 // ==================== CONFIGURACIÓN ====================
-// TODO: Mover a variables de entorno en producción
-define('GEMINI_API_KEY', 'TU_GEMINI_API_KEY_AQUI');
-define('GEMINI_API_URL', 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent');
+define('GEMINI_API_KEY', 'AIzaSyA7ajOKqgm8CsnGg1tv3I_C2l7Rwxf-2tM');
+define('GEMINI_API_URL', 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2-flash-lite:generateContent');
 
 // ==================== OBTENER DATOS DEL REQUEST ====================
 $input = json_decode(file_get_contents('php://input'), true);
