@@ -220,17 +220,15 @@ ESTRUCTURA JSON REQUERIDA:
     \"audience\": \"business stakeholders, data analysts\"
   },
   \"imageOptions\": {
-    \"model\": \"flux-1-quick\",
-    \"style\": \"professional, data visualization, clean charts\"
+    \"source\": \"noImages\"
   }
 }
 ```
 
-MODELOS DE IMAGEN PERMITIDOS (SOLO ESTOS):
-- flux-1-quick (rápido, recomendado)
-- flux-kontext-fast (contextual)
-- imagen-3-flash (Google)
-- luma-photon-flash-1 (Luma AI)
+IMPORTANTE - NO IMÁGENES:
+- Esta presentación NO tendrá imágenes decorativas generadas por AI
+- Solo se usarán GRÁFICOS DE DATOS (charts) que Gamma genera automáticamente
+- Enfócate 100% en visualizaciones de datos y análisis numérico
 
 REGLAS PARA inputText:
 1. Usa markdown: # para títulos principales, ## para subtítulos, * para listas
@@ -248,11 +246,13 @@ EJEMPLO DE inputText:
 * DHL: €45,230 (30%)
 * FedEx: €38,120 (25%)
 * UPS: €29,850 (20%)
-**Visualización**: Gráfico de barras horizontal
+**Gráfico de barras**: Mostrar costos por carrier
 \\n---\\n
 ## Tendencia Mensual
 Incremento del 15% en costos durante octubre
-**Visualización**: Gráfico de líneas mostrando evolución\"
+**Gráfico de líneas**: Evolución mensual de costos\"
+
+NOTA: NO uses términos como \"Visualización\" o \"Imagen\", usa \"Gráfico\" o \"Chart\"
 
 DATOS DISPONIBLES:
 Total de registros: {$totalRecords}
@@ -506,21 +506,21 @@ function generateDefaultGammaConfig($data) {
     foreach ($topCarriers as $carrier => $info) {
         $inputText .= "* **{$carrier}**: €" . number_format($info['cost'], 2) . " ({$info['count']} órdenes)\n";
     }
-    $inputText .= "\n**Visualización**: Gráfico de barras horizontales\n\n";
+    $inputText .= "\n**Gráfico de barras horizontales**: Comparación de costos\n\n";
     $inputText .= "---\n\n";
     
     $inputText .= "## Distribución por Planta\n\n";
     foreach ($topPlants as $plant => $count) {
         $inputText .= "* **{$plant}**: {$count} órdenes\n";
     }
-    $inputText .= "\n**Visualización**: Gráfico de pastel\n\n";
+    $inputText .= "\n**Gráfico de pastel**: Distribución por planta\n\n";
     $inputText .= "---\n\n";
     
     $inputText .= "## Costos por Categoría\n\n";
     foreach ($topCategories as $category => $cost) {
         $inputText .= "* **{$category}**: €" . number_format($cost, 2) . "\n";
     }
-    $inputText .= "\n**Visualización**: Gráfico de barras verticales\n\n";
+    $inputText .= "\n**Gráfico de barras verticales**: Costos por categoría\n\n";
     $inputText .= "---\n\n";
     
     $inputText .= "## Conclusiones y Recomendaciones\n\n";
@@ -542,8 +542,7 @@ function generateDefaultGammaConfig($data) {
             'language' => 'es'
         ],
         'imageOptions' => [
-            'model' => 'flux-1-quick',
-            'style' => 'professional, clean, data visualization, business charts'
+            'source' => 'noImages'
         ],
         'cardOptions' => [
             'dimensions' => '16x9'
