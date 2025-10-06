@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==================== VARIABLES GLOBALES ====================
     let conversationHistory = [];
     let currentFileId = null;
-    let currentFileName = null;
+    let currentFileName = 'Lucy_Dashboard.xlsx'; // SIEMPRE el mismo nombre
     let isProcessing = false;
 
     // ==================== REFERENCIAS DOM ====================
@@ -128,6 +128,8 @@ document.addEventListener('DOMContentLoaded', () => {
             currentFileId = excelResult.fileId;
             currentFileName = excelResult.fileName;
             
+            console.log(`📁 Archivo guardado: ${currentFileName} (ID: ${currentFileId})`);
+            
             // Mostrar Excel en iframe
             updateLoadingMessage('Cargando visualización...', 5);
             showDashboardResult(excelResult.embedUrl);
@@ -141,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             const totalTime = ((Date.now() - geminiStartTime) / 1000).toFixed(2);
-            console.log(`🎉 Proceso completo en ${totalTime}s total`);
+            console.log(`Proceso completo en ${totalTime}s total`);
             
             showToast(`Dashboard creado exitosamente en ${totalTime}s`, 'success');
             
@@ -183,19 +185,34 @@ document.addEventListener('DOMContentLoaded', () => {
             // Agregar respuesta al historial
             addMessageToHistory('assistant', geminiResponse.geminiResponse);
             
-            // Si hay cambios en Excel, aplicarlos
-            if (geminiResponse.excelData && Object.keys(geminiResponse.excelData).length > 0) {
+            // SIEMPRE usar el fileId actual para actualizar (nunca crear nuevo)
+            if (currentFileId && geminiResponse.excelData && Object.keys(geminiResponse.excelData).length > 0) {
+                console.log('Actualizando archivo existente:', currentFileId);
+                
                 const excelResult = await callExcelAPI(
-                    geminiResponse.action || 'update',
+                    'update', // SIEMPRE update cuando hay fileId
                     geminiResponse.excelData,
                     currentFileId
                 );
                 
-                // Actualizar iframe
-                powerbiIframe.src = excelResult.embedUrl;
+                // El fileId no cambia, pero actualizamos la URL del iframe
+                showDashboardResult(excelResult.embedUrl);
                 
-                // Mostrar notificación
                 showToast('Excel actualizado correctamente', 'success');
+            } else if (!currentFileId) {
+                // Si por alguna razón no hay fileId, crear uno nuevo
+                console.log('No hay fileId, creando nuevo archivo');
+                
+                const excelResult = await callExcelAPI(
+                    'create',
+                    geminiResponse.excelData,
+                    null
+                );
+                
+                currentFileId = excelResult.fileId;
+                currentFileName = excelResult.fileName;
+                
+                showDashboardResult(excelResult.embedUrl);
             }
             
             // Mostrar respuesta de Lucy

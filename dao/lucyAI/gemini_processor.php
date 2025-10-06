@@ -28,6 +28,7 @@ if (!isset($_SESSION['user'])) {
 define('GEMINI_API_KEY', 'AIzaSyA7ajOKqgm8CsnGg1tv3I_C2l7Rwxf-2tM');
 define('GEMINI_API_URL', 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent');
 
+
 // ==================== OBTENER DATOS DEL REQUEST ====================
 $input = json_decode(file_get_contents('php://input'), true);
 
@@ -231,7 +232,7 @@ IMPORTANTE: RESPONDE RÁPIDO Y CONCISO
 - Sé directo y eficiente
 - CRÍTICO: Los nombres de worksheets NO pueden tener espacios, usa guiones bajos o CamelCase
   Ejemplos: \"Dashboard_General\", \"DashboardGeneral\", \"Costos_Por_Carrier\"
-
+- Si el usuario pide actualizar, identifica qué cambiar (rango, gráfico, tabla)
 CAPACIDADES:
 1. Crear dashboards VISUALES con gráficos impactantes (barras, líneas, pasteles, etc.)
 2. Combinar múltiples visualizaciones en un solo dashboard
@@ -371,15 +372,21 @@ function callGeminiAPI($userMessage, $systemContext, $history) {
 
 SOLICITUD: {$userMessage}
 
-⚡ INSTRUCCIÓN CRÍTICA: Responde SOLO con el JSON en formato markdown. Sin explicaciones adicionales.
-El JSON debe tener esta estructura EXACTA:
+REGLAS ESTRICTAS:
+1. Responde SOLO con JSON en formato markdown
+2. NO uses espacios en nombres de worksheets - USA GUIONES BAJOS o CamelCase
+3. Ejemplos CORRECTOS: Dashboard_Costos, DashboardCostos, Costos_Por_Carrier
+4. Ejemplos INCORRECTOS: Dashboard Costos, Dashboard General
+5. MÍNIMO 2 gráficos por dashboard
+
+Estructura JSON EXACTA:
 
 ```json
 {
   \"action\": \"create\",
   \"worksheets\": [
     {
-      \"name\": \"Dashboard\",
+      \"name\": \"Dashboard_Principal\",
       \"data\": [...datos agrupados...],
       \"columns\": [...],
       \"charts\": [
@@ -392,7 +399,7 @@ El JSON debe tener esta estructura EXACTA:
 }
 ```
 
-Recuerda: MÍNIMO 2 gráficos. Responde SOLO con JSON.";
+RESPONDE SOLO CON JSON. SIN ESPACIOS EN NOMBRES.";
     
     // Agregar mensaje actual
     $messages[] = [
