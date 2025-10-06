@@ -9,12 +9,17 @@ ini_set('display_errors', 1);
 
 header('Content-Type: application/json');
 
-// Configuración (usa tus valores reales)
-define('MICROSOFT_CLIENT_ID', 'TU_CLIENT_ID_AQUI');
-define('MICROSOFT_CLIENT_SECRET', 'TU_CLIENT_SECRET_AQUI');
-define('MICROSOFT_TENANT_ID', 'TU_TENANT_ID_AQUI');
-define('ONEDRIVE_USER', 'jesusperez@alexdev043.onmicrosoft.com');
 
+// ==================== CONFIGURACIÓN ====================
+define('MICROSOFT_CLIENT_ID', '316d8718-9117-4db5-b5d2-79a92cd2f0a8');
+define('MICROSOFT_CLIENT_SECRET', 'c2c8Q~DvtuQ1rzT2hlnifPrDdoNFYf04VY_2Wdq~');
+define('MICROSOFT_TENANT_ID', '1b76d39b-fc45-4afe-a05b-8d8f81f18a77');
+define('MICROSOFT_GRAPH_URL', 'https://graph.microsoft.com/v1.0');
+
+
+// Usuario donde se guardarán los archivos Excel
+// Puede ser un email (user@tudominio.com) o un User ID
+define('ONEDRIVE_USER', 'jesusperez@alexdev043.onmicrosoft.com');
 // Obtener token
 function getAccessToken() {
     $tokenUrl = 'https://login.microsoftonline.com/' . MICROSOFT_TENANT_ID . '/oauth2/v2.0/token';
