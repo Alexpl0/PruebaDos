@@ -139,12 +139,12 @@ function initializeDataTable() {
 function setupEventListeners() {
     // Event delegation para botones de editar/eliminar
     $('#usersTable').on('click', '.edit-user', function() {
-        const userId = $(this).data('id');
+        const userId = parseInt($(this).data('id'));
         editUser(userId);
     });
     
     $('#usersTable').on('click', '.delete-user', function() {
-        const userId = $(this).data('id');
+        const userId = parseInt($(this).data('id'));
         deleteUser(userId);
     });
     
@@ -158,15 +158,20 @@ function setupEventListeners() {
 
 async function loadUsers() {
     try {
-        const response = await fetch(`${window.PF_CONFIG.app.baseURL}dao/users/daoUserAdmin.php`, {
+        const response = await fetch(`${window.PF_CONFIG.app.baseURL}/dao/users/daoUserAdmin.php`, {
             method: 'GET',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json'
             }
         });
-        
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const data = await response.json();
-        
+
         if (data.success) {
             usersTable.clear();
             usersTable.rows.add(data.users);
@@ -174,7 +179,7 @@ async function loadUsers() {
         } else {
             Swal.fire({
                 icon: 'error',
-                title: 'Error Loading Users',
+                title: 'Error',
                 text: data.message || 'Failed to load users'
             });
         }
@@ -183,7 +188,7 @@ async function loadUsers() {
         Swal.fire({
             icon: 'error',
             title: 'Connection Error',
-            text: 'Could not connect to server'
+            text: 'Could not connect to the server'
         });
     }
 }
@@ -191,18 +196,23 @@ async function loadUsers() {
 function showAddUserModal() {
     currentEditingUser = null;
     
-    document.getElementById('userModalTitle').textContent = 'Add New User';
+    document.getElementById('userModalTitle').innerHTML = '<i class="fas fa-user-plus me-2"></i>Add New User';
     document.getElementById('userForm').reset();
+    document.getElementById('userId').value = '';
     document.getElementById('passwordGroup').style.display = 'block';
     document.getElementById('userPassword').required = true;
+    document.getElementById('passwordHint').textContent = 'Min. 6 characters (Required)';
     
     // Limpiar niveles de aprobación
     document.getElementById('approvalLevelsContainer').innerHTML = '';
     
-    $('#userModal').modal('show');
+    // Mostrar el modal usando Bootstrap 5
+    const modal = new bootstrap.Modal(document.getElementById('userModal'));
+    modal.show();
 }
 
 function editUser(userId) {
+    // Buscar el usuario en los datos de la tabla
     const userData = usersTable.rows().data().toArray().find(u => u.id === userId);
     
     if (!userData) {
@@ -216,7 +226,10 @@ function editUser(userId) {
     
     currentEditingUser = userData;
     
-    document.getElementById('userModalTitle').textContent = 'Edit User';
+    // Actualizar título del modal
+    document.getElementById('userModalTitle').innerHTML = '<i class="fas fa-user-edit me-2"></i>Edit User';
+    
+    // Llenar campos del formulario
     document.getElementById('userId').value = userData.id;
     document.getElementById('userName').value = userData.name;
     document.getElementById('userEmail').value = userData.email;
@@ -224,62 +237,69 @@ function editUser(userId) {
     document.getElementById('userPlant').value = userData.plant || '';
     document.getElementById('userAuthLevel').value = userData.authorization_level;
     
-    // Contraseña opcional al editar
+    // Hacer el password opcional en edición
     document.getElementById('passwordGroup').style.display = 'block';
     document.getElementById('userPassword').required = false;
     document.getElementById('userPassword').value = '';
-    document.getElementById('userPassword').placeholder = 'Leave empty to keep current password';
+    document.getElementById('passwordHint').textContent = 'Leave empty to keep current password';
     
-    // NUEVO: Cargar niveles de aprobación
+    // Limpiar y llenar niveles de aprobación
     const container = document.getElementById('approvalLevelsContainer');
     container.innerHTML = '';
     
     if (userData.approval_levels && userData.approval_levels.length > 0) {
         userData.approval_levels.forEach(al => {
-            addApprovalLevelRow(al.level, al.plant);
+            addApprovalLevelRow(al.level, al.plant || '');
         });
     }
     
-    $('#userModal').modal('show');
+    // Mostrar el modal
+    const modal = new bootstrap.Modal(document.getElementById('userModal'));
+    modal.show();
 }
 
 function addApprovalLevelRow(level = '', plant = '') {
     const container = document.getElementById('approvalLevelsContainer');
-    const rowId = `approval-row-${Date.now()}`;
+    const rowId = 'approval-row-' + Date.now();
     
-    const rowHtml = `
-        <div class="approval-level-row mb-2" id="${rowId}">
-            <div class="row g-2">
-                <div class="col-md-4">
-                    <select class="form-select approval-level-select" required>
-                        <option value="">Select Level</option>
-                        <option value="1" ${level == 1 ? 'selected' : ''}>Level 1 - Trafico</option>
-                        <option value="2" ${level == 2 ? 'selected' : ''}>Level 2 - Customs</option>
-                        <option value="3" ${level == 3 ? 'selected' : ''}>Level 3 - Transport Specialist</option>
-                        <option value="4" ${level == 4 ? 'selected' : ''}>Level 4 - Transport Manager</option>
-                        <option value="5" ${level == 5 ? 'selected' : ''}>Level 5 - Plant Manager</option>
-                        <option value="6" ${level == 6 ? 'selected' : ''}>Level 6 - Regional Director</option>
-                        <option value="7" ${level == 7 ? 'selected' : ''}>Level 7 - VP Operations</option>
-                        <option value="8" ${level == 8 ? 'selected' : ''}>Level 8 - CFO</option>
+    const rowHTML = `
+        <div class="approval-level-row mb-3" id="${rowId}">
+            <div class="row align-items-center">
+                <div class="col-md-5">
+                    <label class="form-label">
+                        <i class="fas fa-layer-group"></i> Approval Level
+                    </label>
+                    <select class="form-select approval-level-select">
+                        <option value="">Select level...</option>
+                        <option value="1" ${level == 1 ? 'selected' : ''}>Level 1 - Supervisor</option>
+                        <option value="2" ${level == 2 ? 'selected' : ''}>Level 2 - Manager</option>
+                        <option value="3" ${level == 3 ? 'selected' : ''}>Level 3 - Director</option>
+                        <option value="4" ${level == 4 ? 'selected' : ''}>Level 4 - VP</option>
+                        <option value="5" ${level == 5 ? 'selected' : ''}>Level 5 - Executive</option>
                     </select>
                 </div>
-                <div class="col-md-6">
-                    <input type="text" class="form-control approval-plant-input" 
-                           placeholder="Plant (leave empty for REGIONAL)" 
-                           value="${plant || ''}">
-                    <small class="text-muted">Empty = Regional approver (all plants)</small>
+                <div class="col-md-5">
+                    <label class="form-label">
+                        <i class="fas fa-industry"></i> Plant (Optional)
+                    </label>
+                    <input type="text" 
+                           class="form-control approval-plant-input" 
+                           placeholder="Leave empty for REGIONAL"
+                           value="${plant}">
+                    <small class="text-muted">Empty = Regional approver</small>
                 </div>
-                <div class="col-md-2">
-                    <button type="button" class="btn btn-danger btn-sm w-100 remove-approval-level" 
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="button" 
+                            class="btn btn-sm btn-danger w-100" 
                             onclick="removeApprovalLevelRow('${rowId}')">
-                        <i class="fas fa-trash"></i> Remove
+                        <i class="fas fa-trash"></i>
                     </button>
                 </div>
             </div>
         </div>
     `;
     
-    container.insertAdjacentHTML('beforeend', rowHtml);
+    container.insertAdjacentHTML('beforeend', rowHTML);
 }
 
 function removeApprovalLevelRow(rowId) {
@@ -290,17 +310,20 @@ function removeApprovalLevelRow(rowId) {
 }
 
 function collectApprovalLevels() {
-    const rows = document.querySelectorAll('.approval-level-row');
     const approvalLevels = [];
+    const rows = document.querySelectorAll('.approval-level-row');
     
     rows.forEach(row => {
         const levelSelect = row.querySelector('.approval-level-select');
         const plantInput = row.querySelector('.approval-plant-input');
         
-        if (levelSelect.value) {
+        const level = levelSelect.value;
+        const plant = plantInput.value.trim();
+        
+        if (level) {
             approvalLevels.push({
-                level: parseInt(levelSelect.value),
-                plant: plantInput.value.trim() || null
+                level: parseInt(level),
+                plant: plant || null
             });
         }
     });
@@ -309,50 +332,74 @@ function collectApprovalLevels() {
 }
 
 async function saveUser() {
-    const form = document.getElementById('userForm');
+    // Recopilar datos del formulario
+    const userId = document.getElementById('userId').value;
+    const name = document.getElementById('userName').value.trim();
+    const email = document.getElementById('userEmail').value.trim();
+    const password = document.getElementById('userPassword').value.trim();
+    const role = document.getElementById('userRole').value.trim();
+    const plant = document.getElementById('userPlant').value.trim();
+    const authLevel = document.getElementById('userAuthLevel').value;
+    const approvalLevels = collectApprovalLevels();
     
-    if (!form.checkValidity()) {
-        form.reportValidity();
+    // Validaciones básicas
+    if (!name || !email || !role) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Missing Fields',
+            text: 'Please fill in all required fields'
+        });
         return;
     }
     
-    const userId = document.getElementById('userId').value;
-    const isEditing = userId !== '';
+    if (!userId && !password) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Password Required',
+            text: 'Password is required for new users'
+        });
+        return;
+    }
     
-    const userData = {
-        name: document.getElementById('userName').value.trim(),
-        email: document.getElementById('userEmail').value.trim(),
-        role: document.getElementById('userRole').value.trim(),
-        plant: document.getElementById('userPlant').value.trim() || null,
-        authorization_level: parseInt(document.getElementById('userAuthLevel').value),
-        approval_levels: collectApprovalLevels() // NUEVO
+    if (password && password.length < 6) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Password',
+            text: 'Password must be at least 6 characters'
+        });
+        return;
+    }
+    
+    // Construir payload
+    const payload = {
+        name,
+        email,
+        role,
+        plant: plant || null,
+        authorization_level: parseInt(authLevel),
+        approval_levels: approvalLevels
     };
     
-    const password = document.getElementById('userPassword').value.trim();
-    if (password) {
-        userData.password = password;
+    if (userId) {
+        payload.id = parseInt(userId);
     }
     
-    if (isEditing) {
-        userData.id = parseInt(userId);
+    if (password) {
+        payload.password = password;
     }
+    
+    // Determinar método y URL
+    const method = userId ? 'PUT' : 'POST';
+    const url = `${window.PF_CONFIG.app.baseURL}/dao/users/daoUserAdmin.php`;
     
     try {
-        Swal.fire({
-            title: 'Saving User...',
-            text: 'Please wait',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
-        
-        const response = await fetch(`${window.PF_CONFIG.app.baseURL}dao/users/daoUserAdmin.php`, {
-            method: isEditing ? 'PUT' : 'POST',
+        const response = await fetch(url, {
+            method: method,
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(userData)
+            body: JSON.stringify(payload)
         });
         
         const data = await response.json();
@@ -360,7 +407,7 @@ async function saveUser() {
         if (data.success) {
             Swal.fire({
                 icon: 'success',
-                title: isEditing ? 'User Updated!' : 'User Created!',
+                title: 'Success',
                 text: data.message,
                 timer: 2000
             });
@@ -371,7 +418,7 @@ async function saveUser() {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: data.message || 'Failed to save user'
+                text: data.message
             });
         }
     } catch (error) {
@@ -379,47 +426,31 @@ async function saveUser() {
         Swal.fire({
             icon: 'error',
             title: 'Connection Error',
-            text: 'Could not connect to server'
+            text: 'Could not connect to the server'
         });
     }
 }
 
 async function deleteUser(userId) {
-    const userData = usersTable.rows().data().toArray().find(u => u.id === userId);
-    
-    if (!userData) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'User not found'
-        });
-        return;
-    }
-    
     const result = await Swal.fire({
-        title: 'Delete User?',
-        html: `Are you sure you want to delete user <strong>${userData.name}</strong>?<br><br>
-               <span class="text-danger">This action cannot be undone!</span>`,
+        title: 'Are you sure?',
+        text: "This action cannot be undone!",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#dc3545',
-        confirmButtonText: 'Yes, delete it!'
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel'
     });
     
-    if (!result.isConfirmed) return;
+    if (!result.isConfirmed) {
+        return;
+    }
     
     try {
-        Swal.fire({
-            title: 'Deleting User...',
-            text: 'Please wait',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
-        
-        const response = await fetch(`${window.PF_CONFIG.app.baseURL}dao/users/daoUserAdmin.php`, {
+        const response = await fetch(`${window.PF_CONFIG.app.baseURL}/dao/users/daoUserAdmin.php`, {
             method: 'DELETE',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json'
             },
@@ -431,7 +462,7 @@ async function deleteUser(userId) {
         if (data.success) {
             Swal.fire({
                 icon: 'success',
-                title: 'User Deleted!',
+                title: 'Deleted!',
                 text: data.message,
                 timer: 2000
             });
@@ -441,7 +472,7 @@ async function deleteUser(userId) {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: data.message || 'Failed to delete user'
+                text: data.message
             });
         }
     } catch (error) {
@@ -449,14 +480,18 @@ async function deleteUser(userId) {
         Swal.fire({
             icon: 'error',
             title: 'Connection Error',
-            text: 'Could not connect to server'
+            text: 'Could not connect to the server'
         });
     }
 }
 
 function closeUserModal() {
-    $('#userModal').modal('hide');
-    document.getElementById('userForm').reset();
-    document.getElementById('approvalLevelsContainer').innerHTML = '';
+    const modalElement = document.getElementById('userModal');
+    const modal = bootstrap.Modal.getInstance(modalElement);
+    if (modal) {
+        modal.hide();
+    }
+    
     currentEditingUser = null;
+    document.getElementById('userForm').reset();
 }
