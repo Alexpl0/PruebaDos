@@ -37,7 +37,9 @@ async function fetchAndFilterOrders() {
         
         window.allOrders = result.data;
         filteredOrders = result.data.filter(
-            (order) => parseInt(order.approval_status, 10) + 1 === user.authorizationLevel
+            (order) =>
+                parseInt(order.approval_status, 10) + 1 === user.authorizationLevel &&
+                parseInt(order.approval_status, 10) < parseInt(order.required_auth_level, 10)
         );
     } catch (error) {
         console.error('Error in fetchAndFilterOrders:', error);
