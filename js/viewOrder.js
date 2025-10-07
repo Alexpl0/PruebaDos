@@ -1,10 +1,10 @@
 /**
  * viewOrder.js - Premium Freight Order Viewer
  * 
- * ACTUALIZACIÓN v2.2 (2025-10-06):
- * - Corregido para usar window.PF_CONFIG.orderId directamente
- * - Usa approvalLevel para validaciones de permisos
- * - NUEVO: Integración con svgOrders.js para renderizar SVG
+ * ACTUALIZACIÓN v3.0 (2025-10-07):
+ * - NUEVO: Soporte completo para usuarios con múltiples niveles de aprobación
+ * - Carga todos los roles del usuario y verifica cuáles pueden aprobar la orden
+ * - Permite seleccionar el rol específico al aprobar si hay múltiples opciones
  */
 
 import { approveOrder, rejectOrder } from './approval.js';
@@ -12,16 +12,19 @@ import { loadAndPopulateSVG, generatePDF } from './svgOrders.js';
 
 let currentOrder = null;
 let isLoading = false;
+let userApprovalRoles = []; // Todos los roles de aprobación del usuario
+let validRolesForCurrentOrder = []; // Roles que pueden aprobar la orden actual
 
 document.addEventListener('DOMContentLoaded', initializeViewOrder);
 
 async function initializeViewOrder() {
     console.log('[viewOrder.js] Initializing page...');
     try {
-        await loadOrderData();
+        await loadUserApprovalRoles(); // Primero cargar los roles
+        await loadOrderData(); // Luego cargar la orden
         await initializeOrderDisplay();
         setupEventListeners();
-        configureActionButtons();
+        configureActionButtons(); // Ahora con lógica multi-rol
     } catch (error) {
         console.error('[viewOrder.js] Initialization error:', error);
         Swal.fire({
@@ -33,11 +36,31 @@ async function initializeViewOrder() {
 }
 
 /**
- * CORREGIDO: Ahora usa window.PF_CONFIG.orderId directamente
+ * NUEVO: Carga todos los roles de aprobación del usuario
  */
+async function loadUserApprovalRoles() {
+    const URLPF = window.PF_CONFIG.app.baseURL;
+    const fetchUrl = `${URLPF}dao/conections/daoGetUserApprovalRoles.php`;
+
+    try {
+        const response = await fetch(fetchUrl);
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        
+        const apiResponse = await response.json();
+        
+        if (apiResponse.status === 'success' && apiResponse.data) {
+            userApprovalRoles = apiResponse.data;
+            console.log('[viewOrder.js] User approval roles loaded:', userApprovalRoles);
+        }
+    } catch (error) {
+        console.error('[viewOrder.js] Error loading user approval roles:', error);
+        // No es crítico, continuar con el rol por defecto
+        userApprovalRoles = [];
+    }
+}
+
 async function loadOrderData() {
     try {
-        // CORREGIDO: Usar PF_CONFIG.orderId en lugar de URLSearchParams
         const orderId = window.PF_CONFIG?.orderId;
 
         if (!orderId) {
@@ -46,7 +69,6 @@ async function loadOrderData() {
 
         console.log('[viewOrder.js] Loading data for Order ID:', orderId);
 
-        // Hacer la petición al servidor para obtener los datos de la orden
         const response = await fetch(
             `${window.PF_CONFIG.app.baseURL}dao/users/daoOrderProgress.php?orderId=${orderId}`
         );
@@ -61,19 +83,14 @@ async function loadOrderData() {
             throw new Error(data.message || 'Failed to load order data');
         }
 
-        // La respuesta de daoOrderProgress.php tiene la orden en data.order
         currentOrder = {
             ...data.order,
-            // Mapear current_approval_level a approval_status para compatibilidad
             approval_status: data.order.current_approval_level,
-            // Mapear order_plant a creator_plant para compatibilidad
             creator_plant: data.order.order_plant,
-            // Guardar también el timeline y el historial
             approval_timeline: data.approval_timeline || [],
             approval_history: data.approval_history || []
         };
         
-        // NUEVO: Exportar a window para que approval.js pueda acceder
         window.currentOrder = currentOrder;
         
         console.log('[viewOrder.js] Order data loaded successfully:', currentOrder);
@@ -90,19 +107,16 @@ async function initializeOrderDisplay() {
             throw new Error('No order data available');
         }
 
-        // Ocultar spinner de carga
         const loadingSpinner = document.getElementById('loadingSpinner');
         if (loadingSpinner) {
             loadingSpinner.classList.add('hidden');
         }
 
-        // CORREGIDO: Usar loadAndPopulateSVG para cargar el SVG con los datos
         console.log('[viewOrder.js] Loading SVG for order:', currentOrder.id);
         
         try {
             await loadAndPopulateSVG(currentOrder, 'svgContent');
             
-            // Mostrar contenido de la orden
             const svgContent = document.getElementById('svgContent');
             if (svgContent) {
                 svgContent.classList.remove('hidden');
@@ -111,11 +125,9 @@ async function initializeOrderDisplay() {
             console.log('[viewOrder.js] SVG loaded successfully');
         } catch (svgError) {
             console.error('[viewOrder.js] Error loading SVG:', svgError);
-            // Fallback: mostrar información básica si el SVG falla
             renderOrderDetailsBasic(currentOrder);
         }
 
-        // Mostrar/ocultar botón de archivos de recuperación si aplica
         const recoveryBtn = document.getElementById('recoveryFilesBtn');
         if (recoveryBtn && currentOrder.recovery_file) {
             recoveryBtn.classList.remove('hidden');
@@ -129,9 +141,6 @@ async function initializeOrderDisplay() {
     }
 }
 
-/**
- * Renderiza los detalles de la orden en formato básico (fallback si SVG falla)
- */
 function renderOrderDetailsBasic(order) {
     const svgContent = document.getElementById('svgContent');
     if (!svgContent) return;
@@ -202,9 +211,6 @@ function renderOrderDetailsBasic(order) {
     svgContent.classList.remove('hidden');
 }
 
-/**
- * Renderiza la línea de tiempo de aprobaciones
- */
 function renderApprovalTimeline(timeline) {
     if (!timeline || timeline.length === 0) {
         return '';
@@ -244,21 +250,18 @@ function renderApprovalTimeline(timeline) {
     `;
 }
 
-/**
- * Obtiene el texto descriptivo del estado de aprobación
- */
 function getStatusText(approvalStatus) {
     const level = Number(approvalStatus);
     
     const statusMap = {
-        0: 'Pending: Trafico',
-        1: 'Approved by Trafico',
-        2: 'Approved by Customs',
-        3: 'Approved by Transport Specialist',
-        4: 'Approved by Transport Manager',
-        5: 'Approved by Plant Manager',
-        6: 'Approved by Regional Director',
-        7: 'Approved by VP Operations',
+        0: 'Pending: Traffic',
+        1: 'Pending: Transportation',
+        2: 'Pending: Logistics Manager',
+        3: 'Pending: Controlling',
+        4: 'Pending: Plant Manager',
+        5: 'Pending: Senior Manager Logistics Division',
+        6: 'Pending: Manager OPS Division',
+        7: 'Pending: SR VP Regional',
         8: 'Fully Approved',
         99: 'Rejected'
     };
@@ -283,72 +286,80 @@ function setupEventListeners() {
 }
 
 /**
- * Verifica permisos de aprobación
- * ACTUALIZADO: Usa approvalLevel del usuario
+ * NUEVO: Encuentra todos los roles del usuario que pueden aprobar la orden actual
+ * @param {object} order - La orden actual
+ * @returns {Array} - Array de roles válidos
  */
-function checkApprovalPermissions(user, order) {
-    if (!user || !order) {
-        console.log('[viewOrder.js] Permission check failed: Missing user or order data');
-        return false;
+function findValidApprovalRoles(order) {
+    if (!order || !userApprovalRoles || userApprovalRoles.length === 0) {
+        return [];
     }
-    
-    // ACTUALIZADO: Usar approvalLevel (con fallback a authorizationLevel para compatibilidad)
-    const userApprovalLevel = Number(user.approvalLevel || user.authorizationLevel || 0);
+
     const currentApprovalLevel = Number(order.approval_status || 0);
-    const requiredLevel = currentApprovalLevel + 1;
-    const userPlant = user.plant;
+    const requiredNextLevel = currentApprovalLevel + 1;
     const orderPlant = order.creator_plant;
 
-    console.log('[viewOrder.js] Permission check:', {
-        userApprovalLevel,
-        currentApprovalLevel,
-        requiredLevel,
-        userPlant,
-        orderPlant
+    const validRoles = userApprovalRoles.filter(role => {
+        // Verificar nivel de aprobación
+        if (role.approval_level !== requiredNextLevel) {
+            return false;
+        }
+
+        // Verificar planta: debe ser la misma O el rol debe ser regional (plant === null)
+        if (role.plant !== null && role.plant !== orderPlant) {
+            return false;
+        }
+
+        return true;
     });
 
-    // Verificar nivel de aprobación
-    if (userApprovalLevel !== requiredLevel) {
-        console.log(`[viewOrder.js] Permission denied: User approval level ${userApprovalLevel} !== required level ${requiredLevel}`);
-        return false;
-    }
+    console.log('[viewOrder.js] Valid roles for current order:', {
+        currentApprovalLevel,
+        requiredNextLevel,
+        orderPlant,
+        validRoles
+    });
 
-    // Verificar planta (solo si el usuario tiene planta asignada)
-    if (userPlant !== null && userPlant !== orderPlant) {
-        console.log(`[viewOrder.js] Permission denied: Plant mismatch (${userPlant} !== ${orderPlant})`);
-        return false;
-    }
-
-    console.log('[viewOrder.js] Permission granted');
-    return true;
+    return validRoles;
 }
 
+/**
+ * ACTUALIZADO: Configura los botones de acción con lógica multi-rol
+ */
 function configureActionButtons() {
     const approveBtn = document.getElementById('approveBtn');
     const rejectBtn = document.getElementById('rejectBtn');
-    const user = window.PF_CONFIG.user;
 
-    if (!currentOrder || !user) {
-        console.log('[viewOrder.js] Hiding action buttons: Missing order or user data');
+    if (!currentOrder) {
+        console.log('[viewOrder.js] Hiding action buttons: No order data');
         approveBtn?.classList.add('hidden');
         rejectBtn?.classList.add('hidden');
         return;
     }
 
-    const hasPermission = checkApprovalPermissions(user, currentOrder);
+    // Encontrar roles válidos
+    validRolesForCurrentOrder = findValidApprovalRoles(currentOrder);
+
     const isRejected = Number(currentOrder.approval_status) === 99;
     const isFullyApproved = Number(currentOrder.approval_status) >= Number(currentOrder.required_auth_level);
 
     console.log('[viewOrder.js] Action buttons config:', {
-        hasPermission,
+        validRoles: validRolesForCurrentOrder.length,
         isRejected,
         isFullyApproved
     });
 
-    if (hasPermission && !isRejected && !isFullyApproved) {
+    // Mostrar botones solo si hay al menos un rol válido y la orden no está terminada
+    if (validRolesForCurrentOrder.length > 0 && !isRejected && !isFullyApproved) {
         approveBtn?.classList.remove('hidden');
         rejectBtn?.classList.remove('hidden');
         console.log('[viewOrder.js] Action buttons shown');
+        
+        // Si hay múltiples roles válidos, agregar indicador visual
+        if (validRolesForCurrentOrder.length > 1) {
+            approveBtn.innerHTML = '<i class="fas fa-check-circle"></i> Approve (Select Role)';
+            rejectBtn.innerHTML = '<i class="fas fa-times-circle"></i> Reject (Select Role)';
+        }
     } else {
         approveBtn?.classList.add('hidden');
         rejectBtn?.classList.add('hidden');
@@ -356,6 +367,9 @@ function configureActionButtons() {
     }
 }
 
+/**
+ * ACTUALIZADO: Maneja el clic en aprobar con selección de rol si es necesario
+ */
 async function handleApprovalClick(event) {
     event.preventDefault();
     
@@ -371,9 +385,33 @@ async function handleApprovalClick(event) {
 
     try {
         isLoading = true;
-        console.log('[viewOrder.js] Starting approval process for order:', currentOrder.id);
         
-        const result = await approveOrder(currentOrder.id, { showConfirmation: true });
+        // Si hay múltiples roles válidos, permitir al usuario elegir
+        let selectedRole = null;
+        if (validRolesForCurrentOrder.length > 1) {
+            selectedRole = await selectRoleForApproval();
+            if (!selectedRole) {
+                // Usuario canceló la selección
+                isLoading = false;
+                return;
+            }
+        } else if (validRolesForCurrentOrder.length === 1) {
+            selectedRole = validRolesForCurrentOrder[0];
+        } else {
+            throw new Error('No valid approval roles found');
+        }
+
+        console.log('[viewOrder.js] Starting approval with role:', selectedRole);
+        
+        // Pasar el nivel de aprobación específico a usar
+        const result = await approveOrder(
+            currentOrder.id, 
+            { 
+                showConfirmation: true,
+                approvalLevelToUse: selectedRole.approval_level,
+                plantToUse: selectedRole.plant
+            }
+        );
         
         if (result.success) {
             console.log('[viewOrder.js] Approval successful, refreshing page data');
@@ -391,6 +429,49 @@ async function handleApprovalClick(event) {
     }
 }
 
+/**
+ * NUEVO: Muestra un selector para que el usuario elija con qué rol aprobar
+ * @returns {Promise<object|null>} - El rol seleccionado o null si canceló
+ */
+async function selectRoleForApproval() {
+    const options = {};
+    validRolesForCurrentOrder.forEach(role => {
+        const key = `${role.approval_level}_${role.plant || 'regional'}`;
+        options[key] = role.display_name;
+    });
+
+    const { value: selectedKey, isConfirmed } = await Swal.fire({
+        title: 'Select Approval Role',
+        text: 'You have multiple roles that can approve this order. Please select which one to use:',
+        input: 'select',
+        inputOptions: options,
+        inputPlaceholder: 'Select a role',
+        showCancelButton: true,
+        confirmButtonColor: '#10B981',
+        confirmButtonText: 'Continue',
+        inputValidator: (value) => {
+            if (!value) {
+                return 'You must select a role to continue';
+            }
+        }
+    });
+
+    if (!isConfirmed || !selectedKey) {
+        return null;
+    }
+
+    // Encontrar el rol seleccionado
+    const [level, plantKey] = selectedKey.split('_');
+    const plant = plantKey === 'regional' ? null : parseInt(plantKey);
+    
+    return validRolesForCurrentOrder.find(role => 
+        role.approval_level === parseInt(level) && role.plant === plant
+    );
+}
+
+/**
+ * ACTUALIZADO: Maneja el clic en rechazar con selección de rol si es necesario
+ */
 async function handleRejectionClick(event) {
     event.preventDefault();
     
@@ -406,9 +487,32 @@ async function handleRejectionClick(event) {
 
     try {
         isLoading = true;
-        console.log('[viewOrder.js] Starting rejection process for order:', currentOrder.id);
         
-        const result = await rejectOrder(currentOrder.id, null, { showConfirmation: true });
+        // Si hay múltiples roles válidos, permitir al usuario elegir
+        let selectedRole = null;
+        if (validRolesForCurrentOrder.length > 1) {
+            selectedRole = await selectRoleForRejection();
+            if (!selectedRole) {
+                isLoading = false;
+                return;
+            }
+        } else if (validRolesForCurrentOrder.length === 1) {
+            selectedRole = validRolesForCurrentOrder[0];
+        } else {
+            throw new Error('No valid approval roles found');
+        }
+
+        console.log('[viewOrder.js] Starting rejection with role:', selectedRole);
+        
+        const result = await rejectOrder(
+            currentOrder.id, 
+            null,
+            { 
+                showConfirmation: true,
+                approvalLevelToUse: selectedRole.approval_level,
+                plantToUse: selectedRole.plant
+            }
+        );
         
         if (result.success) {
             console.log('[viewOrder.js] Rejection successful, refreshing page data');
@@ -424,6 +528,44 @@ async function handleRejectionClick(event) {
     } finally {
         isLoading = false;
     }
+}
+
+/**
+ * NUEVO: Selector de rol para rechazo
+ */
+async function selectRoleForRejection() {
+    const options = {};
+    validRolesForCurrentOrder.forEach(role => {
+        const key = `${role.approval_level}_${role.plant || 'regional'}`;
+        options[key] = role.display_name;
+    });
+
+    const { value: selectedKey, isConfirmed } = await Swal.fire({
+        title: 'Select Role for Rejection',
+        text: 'You have multiple roles that can reject this order. Please select which one to use:',
+        input: 'select',
+        inputOptions: options,
+        inputPlaceholder: 'Select a role',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        confirmButtonText: 'Continue',
+        inputValidator: (value) => {
+            if (!value) {
+                return 'You must select a role to continue';
+            }
+        }
+    });
+
+    if (!isConfirmed || !selectedKey) {
+        return null;
+    }
+
+    const [level, plantKey] = selectedKey.split('_');
+    const plant = plantKey === 'regional' ? null : parseInt(plantKey);
+    
+    return validRolesForCurrentOrder.find(role => 
+        role.approval_level === parseInt(level) && role.plant === plant
+    );
 }
 
 async function handleGeneratePDF(event) {
@@ -446,7 +588,6 @@ async function handleGeneratePDF(event) {
             }
         });
 
-        // CORREGIDO: Usar la función generatePDF importada de svgOrders.js
         const fileName = await generatePDF(currentOrder, `PF_${currentOrder.id}_Order`);
 
         Swal.fire({ 
@@ -494,10 +635,7 @@ function openRecoveryFilesModal(order) {
         return;
     }
 
-    // Mostrar el modal
     modal.style.display = 'flex';
-    
-    // Cargar los archivos de recuperación
     loadRecoveryFiles(order.id);
 }
 
