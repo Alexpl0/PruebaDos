@@ -1,10 +1,10 @@
 /**
  * Approval module for the Premium Freight system
  *
- * ACTUALIZACIÓN v2.1 (2025-10-06):
- * - Usa approvalLevel en lugar de authorizationLevel para validaciones
- * - CORREGIDO: Soporta tanto window.allOrders como window.currentOrder
- * - Mantiene authorizationLevel solo para referencia de sesión
+ * ACTUALIZACIÓN v3.0 (2025-10-07):
+ * - Soporte para múltiples niveles de aprobación por usuario
+ * - Acepta parámetro approvalLevelToUse en opciones
+ * - Validación mejorada considerando el nivel específico a usar
  */
 
 import { sendApprovalNotification, sendStatusNotification } from './mailer.js';
@@ -12,13 +12,10 @@ import { sendApprovalNotification, sendStatusNotification } from './mailer.js';
 let isProcessing = false;
 
 /**
- * NUEVO: Función helper para encontrar una orden
+ * Helper para encontrar una orden
  * Busca en window.allOrders o usa window.currentOrder
- * @param {number|string} orderId - ID de la orden a buscar
- * @returns {object|null} - La orden encontrada o null
  */
 function findOrder(orderId) {
-    // Prioridad 1: Buscar en window.allOrders (para páginas con listas)
     if (window.allOrders && Array.isArray(window.allOrders)) {
         const order = window.allOrders.find(order => order.id == orderId);
         if (order) {
@@ -27,7 +24,6 @@ function findOrder(orderId) {
         }
     }
     
-    // Prioridad 2: Usar window.currentOrder (para view_order.php)
     if (window.currentOrder && window.currentOrder.id == orderId) {
         console.log('[approval.js] Order found in window.currentOrder');
         return window.currentOrder;
@@ -40,7 +36,10 @@ function findOrder(orderId) {
 /**
  * Generic approval function.
  * @param {number|string} orderId - The ID of the order to approve.
- * @param {object} options - Options like { showConfirmation: false }.
+ * @param {object} options - Options:
+ *   - showConfirmation: boolean (default true)
+ *   - approvalLevelToUse: number (nivel específico a usar, opcional)
+ *   - plantToUse: number|null (planta específica del rol, opcional)
  * @returns {Promise<object>} - Result object.
  */
 export async function approveOrder(orderId, options = {}) {
@@ -51,18 +50,30 @@ export async function approveOrder(orderId, options = {}) {
     const user = window.PF_CONFIG.user;
 
     try {
-        // CORREGIDO: Usar función helper
         const selectedOrder = findOrder(orderId);
         if (!selectedOrder) throw new Error('Order not found');
 
-        if (!validateOrderForApproval(selectedOrder)) {
+        // NUEVO: Usar el nivel específico si se proporciona, sino usar el por defecto
+        const approvalLevelToUse = options.approvalLevelToUse || user.approvalLevel;
+        const plantToUse = options.plantToUse !== undefined ? options.plantToUse : user.plant;
+
+        console.log('[approval.js] Approval with specific role:', {
+            approvalLevelToUse,
+            plantToUse,
+            orderId
+        });
+
+        if (!validateOrderForApproval(selectedOrder, approvalLevelToUse, plantToUse)) {
             return { success: false, message: 'Validation failed' };
         }
         
         if (options.showConfirmation !== false) {
             const { isConfirmed } = await Swal.fire({
                 title: 'Approve Order?',
-                html: `<p>Are you sure you want to approve order <strong>#${selectedOrder.id}</strong>?</p>`,
+                html: `
+                    <p>Are you sure you want to approve order <strong>#${selectedOrder.id}</strong>?</p>
+                    <p class="text-muted">Using approval level: <strong>${approvalLevelToUse}</strong></p>
+                `,
                 icon: 'question', 
                 showCancelButton: true, 
                 confirmButtonColor: '#10B981', 
@@ -71,7 +82,6 @@ export async function approveOrder(orderId, options = {}) {
             if (!isConfirmed) return { success: false, message: 'User cancelled' };
         }
 
-        // Mostrar modal de carga
         Swal.fire({
             title: 'Processing Approval...',
             html: `Please wait while order <strong>#${selectedOrder.id}</strong> is being updated and notified.`,
@@ -81,11 +91,11 @@ export async function approveOrder(orderId, options = {}) {
             }
         });
 
-        // ACTUALIZADO: Usar approvalLevel
+        // ACTUALIZADO: Usar el nivel específico proporcionado
         const updateData = {
             orderId: selectedOrder.id,
-            newStatusId: user.approvalLevel, // CAMBIADO de authorizationLevel
-            userLevel: user.approvalLevel,    // CAMBIADO de authorizationLevel
+            newStatusId: approvalLevelToUse,
+            userLevel: approvalLevelToUse,
             userID: user.id,
             authDate: new Date().toISOString().slice(0, 19).replace('T', ' ')
         };
@@ -104,7 +114,7 @@ export async function approveOrder(orderId, options = {}) {
         if (!result.success) throw new Error(result.message || 'Error updating approval level.');
 
         // Lógica de email
-        const newApprovalLevel = Number(user.approvalLevel);
+        const newApprovalLevel = Number(approvalLevelToUse);
         const maxRequiredLevel = Number(selectedOrder.required_auth_level || 7);
 
         if (newApprovalLevel >= maxRequiredLevel) {
@@ -138,7 +148,10 @@ export async function approveOrder(orderId, options = {}) {
  * Generic rejection function.
  * @param {number|string} orderId - The ID of the order to reject.
  * @param {string|null} rejectionReason - The reason for rejection. If null, user will be prompted.
- * @param {object} options - Options like { showConfirmation: false }.
+ * @param {object} options - Options:
+ *   - showConfirmation: boolean (default true)
+ *   - approvalLevelToUse: number (nivel específico a usar, opcional)
+ *   - plantToUse: number|null (planta específica del rol, opcional)
  * @returns {Promise<object>} - Result object.
  */
 export async function rejectOrder(orderId, rejectionReason = null, options = {}) {
@@ -149,11 +162,20 @@ export async function rejectOrder(orderId, rejectionReason = null, options = {})
     const user = window.PF_CONFIG.user;
 
     try {
-        // CORREGIDO: Usar función helper
         const selectedOrder = findOrder(orderId);
         if (!selectedOrder) throw new Error('Order not found');
 
-        if (!validateOrderForApproval(selectedOrder)) {
+        // NUEVO: Usar el nivel específico si se proporciona
+        const approvalLevelToUse = options.approvalLevelToUse || user.approvalLevel;
+        const plantToUse = options.plantToUse !== undefined ? options.plantToUse : user.plant;
+
+        console.log('[approval.js] Rejection with specific role:', {
+            approvalLevelToUse,
+            plantToUse,
+            orderId
+        });
+
+        if (!validateOrderForApproval(selectedOrder, approvalLevelToUse, plantToUse)) {
             return { success: false, message: 'Validation failed' };
         }
         
@@ -161,6 +183,9 @@ export async function rejectOrder(orderId, rejectionReason = null, options = {})
         if (options.showConfirmation !== false) {
             const { value, isConfirmed } = await Swal.fire({
                 title: 'Reject Order', 
+                html: `
+                    <p class="text-muted mb-3">Using approval level: <strong>${approvalLevelToUse}</strong></p>
+                `,
                 input: 'textarea', 
                 inputPlaceholder: 'Please provide a reason for rejecting this order...',
                 inputValidator: (value) => !value && 'A reason is required to reject!',
@@ -174,7 +199,6 @@ export async function rejectOrder(orderId, rejectionReason = null, options = {})
         }
         if (!reason) return { success: false, message: 'Reason is required' };
 
-        // Mostrar modal de carga
         Swal.fire({
             title: 'Processing Rejection...',
             html: `Please wait while order <strong>#${selectedOrder.id}</strong> is being updated and notified.`,
@@ -184,11 +208,11 @@ export async function rejectOrder(orderId, rejectionReason = null, options = {})
             }
         });
 
-        // ACTUALIZADO: Usar approvalLevel
+        // ACTUALIZADO: Usar el nivel específico
         const updateData = {
             orderId: selectedOrder.id, 
             newStatusId: 99, 
-            userLevel: user.approvalLevel, // CAMBIADO de authorizationLevel
+            userLevel: approvalLevelToUse,
             userID: user.id,
             authDate: new Date().toISOString().slice(0, 19).replace('T', ' '),
             rejection_reason: reason
@@ -232,19 +256,18 @@ export async function rejectOrder(orderId, rejectionReason = null, options = {})
 
 /**
  * Permission validation before approving/rejecting.
- * ACTUALIZADO: Usa approvalLevel
+ * ACTUALIZADO: Acepta nivel y planta específicos como parámetros
  * 
  * @param {object} order - The order object to validate.
+ * @param {number} approvalLevel - Nivel de aprobación específico a usar
+ * @param {number|null} userPlant - Planta específica del rol a usar
  * @returns {boolean} - True if the user has permission, otherwise false.
  */
-function validateOrderForApproval(order) {
-    const user = window.PF_CONFIG.user;
-    const userPlant = user.plant !== null ? parseInt(user.plant, 10) : null;
-    const creatorPlant = parseInt(order.creator_plant || order.order_plant, 10); // CORREGIDO: Soportar ambos nombres
+function validateOrderForApproval(order, approvalLevel, userPlant) {
+    const creatorPlant = parseInt(order.creator_plant || order.order_plant, 10);
     
-    // ACTUALIZADO: Usar approvalLevel
-    const userApprovalLevel = Number(user.approvalLevel);
-    const currentApprovalLevel = Number(order.approval_status || order.current_approval_level); // CORREGIDO: Soportar ambos nombres
+    const userApprovalLevel = Number(approvalLevel);
+    const currentApprovalLevel = Number(order.approval_status || order.current_approval_level);
     const nextRequiredLevel = currentApprovalLevel + 1;
     const requiredLevel = Number(order.required_auth_level || 7);
 
