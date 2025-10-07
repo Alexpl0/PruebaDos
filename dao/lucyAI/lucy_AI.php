@@ -2,10 +2,11 @@
 /**
  * lucy_AI.php - Lucy AI Assistant Endpoint (Gemini-powered)
  * Location: dao/lucyAI/lucy_AI.php
+ * Version: 2.0 - Full database schema + Approval cycle knowledge
  * 
  * Handles:
  * - POST: Process user questions with Gemini AI
- * - GET: Generate Excel reports
+ * - GET: Generate Excel/CSV reports
  */
 
 error_reporting(E_ALL);
@@ -111,7 +112,7 @@ function handleQuestionRequest() {
     }
 }
 
-// ==================== GET: GENERATE EXCEL REPORT ====================
+// ==================== GET: GENERATE EXCEL/CSV REPORT ====================
 function handleReportRequest() {
     if (!isset($_GET['query']) || empty($_GET['query'])) {
         http_response_code(400);
@@ -140,13 +141,13 @@ function handleReportRequest() {
             exit;
         }
         
-        // Generate Excel file
-        generateExcelReport($data);
+        // Generate CSV report with UTF-8 BOM
+        generateCSVReport($data);
         
     } catch (Exception $e) {
         error_log("LUCY REPORT ERROR: " . $e->getMessage());
         http_response_code(500);
-        echo "Error: Could not generate the Excel file.";
+        echo "Error: Could not generate the report file.";
     }
 }
 
@@ -183,7 +184,7 @@ CRITICAL: You MUST respond with ONLY this exact JSON format: {\"intent\": \"cate
 CATEGORIES:
 - \"data_modification_attempt\": Any request to change, add, or delete data (INSERT, UPDATE, DELETE, DROP, etc.).
 - \"report_generation\": Any request to create a file, especially Excel, CSV, or any kind of document/report.
-- \"database_query\": Read-only questions about company data (orders, costs, users, etc.).
+- \"database_query\": Read-only questions about company data (orders, costs, users, approvals, status, etc.).
 - \"general_knowledge\": General questions, translations, explanations.
 - \"general_conversation\": Greetings, casual chat.
 
@@ -343,80 +344,163 @@ function generateSQLQuery($question) {
 6.  **CASE-INSENSITIVE SEARCH**: Use `LOWER()` function for string comparisons in WHERE clauses.
 7.  **DATE/TIME CONVERSION**: All datetime columns are in UTC. Convert to Central Mexico Time using `CONVERT_TZ(column, 'UTC', 'America/Mexico_City') AS column_cmx`.
 8.  **COSTS**: Use `cost_euros` column. The `moneda` column is informational only.
+9.  **USER NAME TO ID RESOLUTION**: If a question includes a person's full name, resolve it using a subquery: `WHERE user_id = (SELECT id FROM User WHERE LOWER(name) = 'name')`.
+
+### APPROVAL CYCLE KNOWLEDGE (CRITICAL) ###
+The Premium Freight approval system works as follows:
+- **Current approval level**: Found in `PremiumFreightApprovals.act_approv`
+- **Required approval level**: Found in `PremiumFreight.required_auth_level`
+- **Approver's level**: Found in `Approvers.approval_level`
+
+**Approval Status Logic:**
+- If `act_approv = required_auth_level` → Order is FULLY APPROVED (status_id = 3)
+- If `act_approv = 99` → Order is REJECTED (status_id = 4)
+- If `act_approv < required_auth_level` → Order is IN PROGRESS (pending approval)
+
+**Next Approver Logic:**
+An order must be approved by a user where:
+- `Approvers.approval_level = (act_approv + 1)` AND
+- `Approvers.plant = User.plant` (from order creator) OR `Approvers.plant IS NULL` (regional approver)
+
+**Common Questions:**
+- \"What orders are pending my approval?\" → Filter where user's approval_level = (act_approv + 1) and plant matches
+- \"Who needs to approve this order next?\" → Find users with approval_level = (act_approv + 1)
+- \"What is the status of order X?\" → Check act_approv vs required_auth_level
 
 ### DATABASE SCHEMA (DDL) ###
+-- Users table
 CREATE TABLE `User` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(100) NOT NULL,
-  `email` varchar(100) NOT NULL,
-  `role` varchar(50) DEFAULT 'Worker',
-  `password` varchar(255) DEFAULT NULL,
-  `authorization_level` int(11) NOT NULL DEFAULT 0,
-  `plant` int(4) DEFAULT NULL,
-  `verified` tinyint(1) DEFAULT 0,
+  `name` varchar(100) NOT NULL COMMENT 'Name of the user',
+  `email` varchar(100) NOT NULL COMMENT 'Email of the user',
+  `role` varchar(50) DEFAULT 'Worker' COMMENT 'User role',
+  `password` varchar(255) DEFAULT NULL COMMENT 'CONFIDENTIAL: Never expose',
+  `authorization_level` int(11) NOT NULL DEFAULT 0 COMMENT 'CONFIDENTIAL: Never expose',
+  `plant` int(4) DEFAULT NULL COMMENT 'Plant where the user works',
+  `verified` tinyint(1) DEFAULT 0 COMMENT 'CONFIDENTIAL: Never expose',
   PRIMARY KEY (`id`)
 );
 
+-- Approvers table (who can approve orders at each level)
+CREATE TABLE `Approvers` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL COMMENT 'Foreign key to User.id',
+  `approval_level` int(11) NOT NULL COMMENT 'Approval level this user can authorize (1-5)',
+  `plant` int(4) DEFAULT NULL COMMENT 'Plant restriction. NULL = regional approver',
+  `charge` varchar(20) DEFAULT NULL COMMENT 'Job title/position',
+  PRIMARY KEY (`id`)
+);
+
+-- Location table (origins and destinations)
 CREATE TABLE `Location` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `company_name` varchar(100) DEFAULT NULL,
-  `city` varchar(100) DEFAULT NULL,
-  `state` varchar(100) DEFAULT NULL,
-  `zip` varchar(20) DEFAULT NULL,
+  `company_name` varchar(100) DEFAULT NULL COMMENT 'Company name',
+  `city` varchar(100) DEFAULT NULL COMMENT 'City',
+  `state` varchar(100) DEFAULT NULL COMMENT 'State',
+  `zip` varchar(20) DEFAULT NULL COMMENT 'Postal code',
   PRIMARY KEY (`id`)
 );
 
+-- Carriers table
 CREATE TABLE `Carriers` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(100) NOT NULL,
+  `name` varchar(100) NOT NULL COMMENT 'Carrier company name',
   PRIMARY KEY (`id`)
 );
 
+-- Status catalog
 CREATE TABLE `Status` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(50) NOT NULL,
+  `name` varchar(50) NOT NULL COMMENT 'Status name (e.g., Pending, Approved, Rejected)',
   PRIMARY KEY (`id`)
 );
 
+-- Products catalog
+CREATE TABLE `Products` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `productName` varchar(255) NOT NULL COMMENT 'Product name',
+  `Plant` int(11) NOT NULL COMMENT 'Plant ID',
+  PRIMARY KEY (`ID`)
+);
+
+-- Order numbers reference
+CREATE TABLE `NumOrders` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `Number` int(11) DEFAULT NULL COMMENT 'Order number',
+  `Name` text DEFAULT NULL COMMENT 'Order name/description',
+  `IsValid` char(1) DEFAULT NULL COMMENT 'Validity flag',
+  PRIMARY KEY (`ID`)
+);
+
+-- Main Premium Freight orders table
 CREATE TABLE `PremiumFreight` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) DEFAULT NULL,
-  `date` datetime DEFAULT NULL,
-  `planta` varchar(50) DEFAULT NULL,
-  `cost_euros` decimal(15,2) DEFAULT NULL,
-  `description` longtext DEFAULT NULL,
-  `area` varchar(50) DEFAULT NULL,
-  `paid_by` varchar(100) DEFAULT NULL,
-  `category_cause` varchar(50) DEFAULT NULL,
-  `recovery` varchar(50) DEFAULT NULL,
-  `origin_id` int(11) DEFAULT NULL,
-  `destiny_id` int(11) DEFAULT NULL,
-  `status_id` int(11) DEFAULT 1,
-  `required_auth_level` int(11) DEFAULT 1,
-  `moneda` varchar(3) DEFAULT NULL,
-  `carrier_id` int(11) DEFAULT NULL,
+  `user_id` int(11) DEFAULT NULL COMMENT 'ID of user who created the order (FK to User.id)',
+  `date` datetime DEFAULT NULL COMMENT 'Date when the order was created (UTC)',
+  `planta` varchar(50) DEFAULT NULL COMMENT 'Plant name requesting the order',
+  `code_planta` varchar(50) DEFAULT NULL COMMENT 'Plant code',
+  `transport` varchar(50) DEFAULT NULL COMMENT 'Type of transport (air, ground, sea)',
+  `in_out_bound` varchar(50) DEFAULT NULL COMMENT 'Inbound or Outbound',
+  `cost_euros` decimal(15,2) DEFAULT NULL COMMENT 'MAIN COST in EUROS',
+  `description` longtext DEFAULT NULL COMMENT 'Description of why the order was requested',
+  `area` varchar(50) DEFAULT NULL COMMENT 'Area of the company that made the request',
+  `int_ext` varchar(50) DEFAULT NULL COMMENT 'Internal or External',
+  `paid_by` varchar(100) DEFAULT NULL COMMENT 'Who paid for the order (e.g., Grammer)',
+  `category_cause` varchar(50) DEFAULT NULL COMMENT 'Category of the cause for the request',
+  `project_status` varchar(50) DEFAULT NULL COMMENT 'Project status',
+  `recovery` varchar(50) DEFAULT NULL COMMENT 'Person in charge of cost recovery',
+  `weight` float DEFAULT NULL COMMENT 'Weight of the shipment',
+  `measures` varchar(100) DEFAULT NULL COMMENT 'Dimensions/measurements',
+  `products` int(11) DEFAULT NULL COMMENT 'FK to Products.ID',
+  `quoted_cost` decimal(15,2) DEFAULT NULL COMMENT 'Quoted cost',
+  `reference` varchar(50) DEFAULT NULL COMMENT 'Reference field',
+  `reference_number` varchar(50) DEFAULT NULL COMMENT 'Reference number (FK to NumOrders.ID)',
+  `origin_id` int(11) DEFAULT NULL COMMENT 'FK to Location.id (origin)',
+  `destiny_id` int(11) DEFAULT NULL COMMENT 'FK to Location.id (destination)',
+  `status_id` int(11) DEFAULT 1 COMMENT 'FK to Status.id (1=pending, 3=approved, 4=rejected)',
+  `required_auth_level` int(11) DEFAULT 5 COMMENT 'Required approval level to fully approve (1-5)',
+  `moneda` varchar(3) DEFAULT NULL COMMENT 'Informational currency if not EUROS',
+  `recovery_file` varchar(255) DEFAULT NULL COMMENT 'Path to recovery file',
+  `recovery_evidence` varchar(255) DEFAULT NULL COMMENT 'Path to recovery evidence',
+  `carrier_id` int(11) DEFAULT NULL COMMENT 'FK to Carriers.id',
   PRIMARY KEY (`id`)
 );
 
+-- Current approval state for each order
 CREATE TABLE `PremiumFreightApprovals` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `premium_freight_id` int(11) DEFAULT NULL,
-  `user_id` int(11) DEFAULT NULL,
-  `approval_date` datetime DEFAULT current_timestamp(),
-  `act_approv` int(1) DEFAULT NULL,
-  `rejection_reason` varchar(999) DEFAULT NULL,
+  `premium_freight_id` int(11) DEFAULT NULL COMMENT 'FK to PremiumFreight.id',
+  `user_id` int(11) DEFAULT NULL COMMENT 'ID of last user who updated the order',
+  `approval_date` datetime DEFAULT current_timestamp() COMMENT 'Date of last status update (UTC)',
+  `status_id` int(11) DEFAULT 1 COMMENT 'Legacy status ID',
+  `act_approv` int(1) DEFAULT 0 COMMENT 'Current approval level. 99=rejected, equals required_auth_level=fully approved',
+  `rejection_reason` varchar(999) DEFAULT NULL COMMENT 'Reason for rejection',
   PRIMARY KEY (`id`)
 );
 
+-- Historical log of all approval actions
 CREATE TABLE `ApprovalHistory` (
   `id` INT NOT NULL AUTO_INCREMENT,
-  `premium_freight_id` INT NOT NULL,
-  `user_id` INT NOT NULL,
-  `action_timestamp` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `action_type` ENUM('CREATED', 'APPROVED', 'REJECTED') NOT NULL,
-  `approval_level_reached` INT NOT NULL,
-  `comments` TEXT DEFAULT NULL,
+  `premium_freight_id` INT NOT NULL COMMENT 'FK to PremiumFreight.id',
+  `user_id` INT NOT NULL COMMENT 'FK to User.id who performed the action',
+  `action_timestamp` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'When the action occurred (UTC)',
+  `action_type` ENUM('CREATED', 'APPROVED', 'REJECTED') NOT NULL COMMENT 'Type of action',
+  `approval_level_reached` INT NOT NULL COMMENT 'Approval level reached with this action',
+  `comments` TEXT DEFAULT NULL COMMENT 'Comments or rejection reason',
   PRIMARY KEY (`id`)
+);
+
+-- Corrective Action Plans
+CREATE TABLE `CorrectiveActionPlan` (
+  `cap_id` int(11) NOT NULL AUTO_INCREMENT,
+  `premium_freight_id` int(11) NOT NULL COMMENT 'FK to PremiumFreight.id',
+  `corrective_action` text DEFAULT NULL COMMENT 'Corrective action description',
+  `person_responsible` varchar(100) DEFAULT NULL COMMENT 'Responsible person',
+  `due_date` date DEFAULT NULL COMMENT 'Due date',
+  `status` varchar(50) DEFAULT 'Abierto' COMMENT 'Status (Open, In Progress, Closed)',
+  `comments` text DEFAULT NULL COMMENT 'Progress comments',
+  `creation_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`cap_id`)
 );
 ### End Schema ###
 
@@ -583,69 +667,16 @@ function getBaseURL() {
     return $baseURL;
 }
 
-function generateExcelReport($data) {
-    // Set headers for Excel download
-    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    header('Content-Disposition: attachment; filename="Lucy_Report_' . date('Y-m-d_His') . '.xlsx"');
+function generateCSVReport($data) {
+    // Set headers for CSV download with UTF-8 encoding
+    header('Content-Type: text/csv; charset=UTF-8');
+    header('Content-Disposition: attachment; filename="Lucy_Report_' . date('Y-m-d_His') . '.csv"');
     header('Cache-Control: max-age=0');
     
-    // Create Excel file using PHPSpreadsheet if available, otherwise fallback to CSV
-    if (class_exists('PhpOffice\PhpSpreadsheet\Spreadsheet')) {
-        generateExcelWithPhpSpreadsheet($data);
-    } else {
-        generateCSVFallback($data);
-    }
-}
-
-function generateExcelWithPhpSpreadsheet($data) {
-    require_once __DIR__ . '/../../vendor/autoload.php';
-    
-    $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-    $sheet = $spreadsheet->getActiveSheet();
-    
-    if (empty($data)) {
-        $sheet->setCellValue('A1', 'No data available');
-    } else {
-        // Add headers
-        $headers = array_keys($data[0]);
-        $col = 1;
-        foreach ($headers as $header) {
-            $sheet->setCellValueByColumnAndRow($col, 1, $header);
-            $col++;
-        }
-        
-        // Add data
-        $row = 2;
-        foreach ($data as $record) {
-            $col = 1;
-            foreach ($record as $value) {
-                $sheet->setCellValueByColumnAndRow($col, $row, $value);
-                $col++;
-            }
-            $row++;
-        }
-        
-        // Style headers
-        $headerStyle = [
-            'font' => ['bold' => true],
-            'fill' => [
-                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '034C8C']
-            ],
-            'font' => ['color' => ['rgb' => 'FFFFFF']]
-        ];
-        $sheet->getStyle('A1:' . $sheet->getHighestColumn() . '1')->applyFromArray($headerStyle);
-    }
-    
-    $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-    $writer->save('php://output');
-}
-
-function generateCSVFallback($data) {
-    header('Content-Type: text/csv');
-    header('Content-Disposition: attachment; filename="Lucy_Report_' . date('Y-m-d_His') . '.csv"');
-    
     $output = fopen('php://output', 'w');
+    
+    // ✨ Add UTF-8 BOM for proper Excel encoding detection
+    fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
     
     if (empty($data)) {
         fputcsv($output, ['No data available']);
@@ -653,7 +684,7 @@ function generateCSVFallback($data) {
         // Add headers
         fputcsv($output, array_keys($data[0]));
         
-        // Add data
+        // Add data rows
         foreach ($data as $record) {
             fputcsv($output, $record);
         }
