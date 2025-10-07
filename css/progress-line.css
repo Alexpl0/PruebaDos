@@ -1,302 +1,174 @@
-/**
- * progress-line.css
- * Estilos para la línea de progreso de aprobación de órdenes
- */
+/* * progress-line.css
+ * Hoja de estilos dedicada para el componente de línea de progreso.
+ * Puede ser incluida en cualquier página que necesite esta funcionalidad.
+*/
 
-/* ===== CONTENEDOR PRINCIPAL ===== */
+/* --- SECCIÓN DE PROGRESO --- */
 .progress-section {
-    margin: 2rem 0;
-    padding: 2rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
+    background-color: var(--white);
+    padding: 1rem 4rem 5rem 4rem;
+    border-radius: var(--border-radius-lg);
+    position: relative;
+    box-shadow: var(--shadow-md);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 0;
 }
 
-.progress-section.hidden {
-    display: none;
-}
-
-.progress-section:hover {
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-    transform: translateY(-2px);
-}
-
-/* ===== CONTENEDOR DE PROGRESO ===== */
 .progress-container {
     position: relative;
-    width: 100%;
-    min-height: 120px;
-    padding: 40px 20px 20px;
+    padding: 2rem 0;
 }
 
-/* ===== LÍNEA DE PROGRESO (TRACK) ===== */
 .progress-track {
     position: relative;
     width: 100%;
     height: 8px;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 10px;
-    overflow: visible;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: var(--gray-200);
+    border-radius: 4px;
+    transform: translateY(15px);
 }
 
-/* ===== BARRA DE PROGRESO ===== */
 .progress-bar {
     position: absolute;
-    left: 0;
-    top: 0;
     height: 100%;
-    background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
-    border-radius: 10px;
-    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.4);
+    border-radius: 4px;
+    transition: width 0.8s ease-in-out;
 }
 
-/* Estados de la barra */
-.progress-bar.rejected {
-    background: linear-gradient(90deg, #f44336 0%, #e91e63 100%);
-    box-shadow: 0 2px 8px rgba(244, 67, 54, 0.4);
-}
+/* --- ESTADOS DE LA BARRA DE PROGRESO --- */
+.progress-bar.in-progress { background-color: var(--grammer-blue); }
+.progress-bar.completed { background-color: var(--success); }
+.progress-bar.rejected { background-color: var(--danger); }
 
-.progress-bar.completed {
-    background: linear-gradient(90deg, #4CAF50 0%, #2196F3 100%);
-    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.4);
-}
-
-/* ===== CAMIÓN DE PROGRESO ===== */
-.progress-truck {
-    position: absolute;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 40px;
-    height: 40px;
-    background: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: left 1s cubic-bezier(0.4, 0, 0.2, 1);
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    z-index: 10;
-}
-
-.progress-truck i {
-    font-size: 20px;
-    color: #667eea;
-    transition: all 0.3s ease;
-}
-
-.progress-truck:hover {
-    transform: translate(-50%, -50%) scale(1.1);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-}
-
-.progress-truck:hover i {
-    transform: scale(1.2);
-}
-
-/* Estados del camión */
-.progress-truck.rejected i {
-    color: #f44336;
-}
-
-.progress-truck.completed i {
-    color: #4CAF50;
-}
-
-/* ===== CONTENEDOR DE CHECKPOINTS ===== */
+/* --- CHECKPOINTS --- */
 .checkpoints-container {
-    position: relative;
+    position: absolute;
     width: 100%;
-    height: 80px;
-    margin-top: 20px;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
-/* ===== CHECKPOINT INDIVIDUAL ===== */
 .checkpoint {
     position: absolute;
-    transform: translateX(-50%);
     display: flex;
     flex-direction: column;
     align-items: center;
-    z-index: 5;
+    width: 120px;
+    transform: translateX(-50%);
 }
 
-/* ===== CÍRCULO DEL CHECKPOINT ===== */
+/* MODIFICADO: Círculos con fondo transparente y borde de color */
 .checkpoint-circle {
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    border: 3px solid rgba(255, 255, 255, 0.5);
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    font-weight: 700;
+    background-color: var(--white); /* Fondo blanco para que tape la línea justo detrás */
+    box-shadow: var(--shadow-md);
+    transition: all 0.5s ease;
+    z-index: 2;
     position: relative;
+    border-style: solid;
+    border-width: 4px; /* Un borde un poco más grueso */
 }
 
-.checkpoint-circle::before {
-    content: '';
-    position: absolute;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.5);
-    transition: all 0.3s ease;
+/* --- ESTADOS DE LOS CHECKPOINTS (AHORA CON BORDES) --- */
+.checkpoint-circle.pending { 
+    border-color: var(--gray-300);
 }
-
-/* Estados del checkpoint */
-.checkpoint-circle.completed {
-    background: #4CAF50;
-    border-color: #4CAF50;
-    box-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
-}
-
-.checkpoint-circle.completed::before {
-    content: '✓';
-    background: transparent;
-    color: white;
-    font-weight: bold;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
 .checkpoint-circle.current {
-    background: #2196F3;
-    border-color: #2196F3;
-    box-shadow: 0 0 20px rgba(33, 150, 243, 0.8);
-    animation: pulse 2s infinite;
+    border-color: var(--grammer-blue);
+    transform: scale(1.2);
 }
-
-.checkpoint-circle.current::before {
-    background: white;
+.checkpoint-circle.completed { 
+    border-color: var(--success);
 }
-
-.checkpoint-circle.rejected {
-    background: #f44336;
-    border-color: #f44336;
-    box-shadow: 0 0 15px rgba(244, 67, 54, 0.6);
-}
-
-.checkpoint-circle.rejected::before {
-    content: '✕';
-    background: transparent;
-    color: white;
-    font-weight: bold;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Hover en checkpoint */
-.checkpoint-circle:hover {
+.checkpoint-circle.rejected-at {
+    border-color: var(--danger);
     transform: scale(1.2);
 }
 
-.checkpoint-circle:hover::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: -50px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.9);
-    color: white;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    white-space: nowrap;
-    z-index: 100;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-/* ===== INFORMACIÓN DEL CHECKPOINT ===== */
 .checkpoint-info {
-    margin-top: 8px;
+    position: absolute;
+    top: 40px;
     text-align: center;
-    color: white;
+    font-size: 0.8rem;
+    color: var(--gray-600);
+    width: 100%;
 }
 
 .checkpoint-name {
-    font-size: 12px;
     font-weight: 600;
-    margin-bottom: 2px;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .checkpoint-role {
-    font-size: 10px;
-    opacity: 0.9;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    font-size: 0.7rem;
+    color: var(--gray-500);
+    word-wrap: break-word;
+    line-height: 1.2;
 }
 
 .checkpoint-time {
-    font-size: 9px;
-    opacity: 0.8;
-    margin-top: 2px;
+    font-size: 0.7rem;
+    color: var(--gray-500);
+    margin-top: 4px;
     font-style: italic;
+    white-space: nowrap;
 }
 
-/* ===== ANIMACIONES ===== */
-@keyframes pulse {
-    0%, 100% {
-        box-shadow: 0 0 20px rgba(33, 150, 243, 0.8);
-    }
-    50% {
-        box-shadow: 0 0 30px rgba(33, 150, 243, 1);
-    }
+/* --- INDICADOR (CAMIÓN) --- */
+.progress-truck {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -150%);
+    font-size: 2rem;
+    transition: left 0.8s ease-in-out;
+    z-index: 3;
+    cursor: pointer;
 }
 
-/* ===== MENSAJE DE ERROR ===== */
-#progress-error {
+.progress-truck.in-progress { color: var(--grammer-blue); }
+.progress-truck.completed { color: var(--success); }
+.progress-truck.rejected { color: var(--danger); }
+
+/* --- MANEJO DE ERRORES --- */
+#progress-error.alert {
     margin-top: 1rem;
-    padding: 1rem;
-    background: rgba(244, 67, 54, 0.1);
-    border: 1px solid rgba(244, 67, 54, 0.3);
-    border-radius: 8px;
-    color: #f44336;
-    font-size: 14px;
 }
 
-#progress-error.d-none {
-    display: none;
-}
-
-/* ===== RESPONSIVE ===== */
+/* --- RESPONSIVE DESIGN --- */
 @media (max-width: 768px) {
     .progress-section {
-        padding: 1.5rem 1rem;
+        padding: 1rem 1rem 4rem 1rem;
     }
 
-    .progress-container {
-        padding: 30px 10px 10px;
+    .checkpoint-info {
+        display: none;
     }
 
-    .checkpoint-name {
-        font-size: 10px;
+    .checkpoint-circle::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: var(--gray-800);
+        color: var(--white);
+        padding: 0.5rem 0.75rem;
+        border-radius: var(--border-radius);
+        font-size: 0.75rem;
+        white-space: nowrap;
+        z-index: 10;
+        visibility: hidden;
+        opacity: 0;
+        transition: opacity 0.2s ease-in-out;
     }
 
-    .checkpoint-role {
-        font-size: 9px;
-    }
-
-    .checkpoint-circle {
-        width: 28px;
-        height: 28px;
-    }
-
-    .progress-truck {
-        width: 36px;
-        height: 36px;
-    }
-
-    .progress-truck i {
-        font-size: 18px;
+    .checkpoint-circle:hover::after {
+        visibility: visible;
+        opacity: 1;
     }
 }
