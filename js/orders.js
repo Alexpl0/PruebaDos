@@ -313,3 +313,5 @@ export function refreshOrderData() {
     loadOrderData(currentPage, currentSearchQuery);
     setTimeout(() => Swal.close(), 1000);
 }
+
+const falta = getApprovalStatusMessage(approvalStatus, requiredLevel);
