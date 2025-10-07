@@ -2,7 +2,7 @@
 /**
  * lucy_AI.php - Lucy AI Assistant Endpoint (Gemini-powered)
  * Location: dao/lucyAI/lucy_AI.php
- * Version: 3.0 - Intelligent Data Analysis + Capability Awareness
+ * Version: 3.1 - Full Database Schema Integration for advanced query generation.
  * * Handles:
  * - POST: Process user questions with Gemini AI, now with advanced data analysis.
  * - GET: Generate Excel/CSV reports (invoked by the POST handler).
@@ -343,7 +343,7 @@ function handleConversation($question, $language) {
 // ==================== SQL & ANALYSIS GENERATION ====================
 
 function generateSQLQuery($question) {
-    // This prompt remains largely the same, as its SQL generation logic is solid.
+    // This prompt remains largely the same, but gets the full schema from getDatabaseSchema() now.
     $prompt = "You are a world-class MySQL expert. Your ONLY job is to generate a valid, read-only SQL query based on the user's question and the provided database schema and rules.
 
 ### CRITICAL RULES & LOGIC ###
@@ -561,9 +561,47 @@ function generateCSVReport($data) {
     exit;
 }
 
+/**
+ * NEW: Updated to provide the full, accurate database schema to the AI.
+ * This ensures the AI can create complex queries with correct JOINs.
+ */
 function getDatabaseSchema() {
-    // Helper to avoid cluttering the main prompt function
+    // Returns the complete database schema for the AI model.
     return "
+-- Main Premium Freight orders table
+CREATE TABLE `PremiumFreight` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) DEFAULT NULL COMMENT 'FK to User.id',
+  `date` datetime DEFAULT NULL COMMENT 'UTC',
+  `planta` varchar(50) DEFAULT NULL,
+  `code_planta` varchar(50) DEFAULT NULL,
+  `transport` varchar(50) DEFAULT NULL,
+  `in_out_bound` varchar(50) DEFAULT NULL,
+  `cost_euros` decimal(15,2) DEFAULT NULL,
+  `description` longtext DEFAULT NULL,
+  `area` varchar(50) DEFAULT NULL,
+  `int_ext` varchar(50) DEFAULT NULL,
+  `paid_by` varchar(100) DEFAULT NULL,
+  `category_cause` varchar(50) DEFAULT NULL,
+  `project_status` varchar(50) DEFAULT NULL,
+  `recovery` varchar(50) DEFAULT NULL,
+  `weight` float DEFAULT NULL,
+  `measures` varchar(100) DEFAULT NULL,
+  `products` int(11) DEFAULT NULL COMMENT 'FK to Products.ID',
+  `quoted_cost` decimal(15,2) DEFAULT NULL,
+  `reference` varchar(50) DEFAULT NULL,
+  `reference_number` varchar(50) DEFAULT NULL COMMENT 'Corresponds to NumOrders.ID',
+  `origin_id` int(11) DEFAULT NULL COMMENT 'FK to Location.id',
+  `destiny_id` int(11) DEFAULT NULL COMMENT 'FK to Location.id',
+  `status_id` int(11) DEFAULT 1 COMMENT 'FK to Status.id',
+  `required_auth_level` int(11) DEFAULT 5,
+  `moneda` varchar(3) DEFAULT NULL,
+  `recovery_file` varchar(255) DEFAULT NULL,
+  `recovery_evidence` varchar(255) DEFAULT NULL,
+  `carrier_id` int(11) DEFAULT NULL COMMENT 'FK to Carriers.id',
+  PRIMARY KEY (`id`)
+);
+
 -- Users table
 CREATE TABLE `User` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -574,42 +612,98 @@ CREATE TABLE `User` (
   `authorization_level` int(11) NOT NULL DEFAULT 0 COMMENT 'CONFIDENTIAL: Never expose',
   `plant` int(4) DEFAULT NULL,
   `verified` tinyint(1) DEFAULT 0 COMMENT 'CONFIDENTIAL: Never expose',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`)
+);
+
+-- Current approval state for each order
+CREATE TABLE `PremiumFreightApprovals` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `premium_freight_id` int(11) DEFAULT NULL COMMENT 'FK to PremiumFreight.id',
+  `user_id` int(11) DEFAULT NULL COMMENT 'ID of last user who updated',
+  `approval_date` datetime DEFAULT current_timestamp() COMMENT 'UTC',
+  `status_id` int(11) DEFAULT 1,
+  `act_approv` int(1) DEFAULT 0 COMMENT 'Current approval level. 99=rejected',
+  `rejection_reason` varchar(999) DEFAULT NULL,
   PRIMARY KEY (`id`)
 );
+
 -- Approvers table (who can approve orders at each level)
 CREATE TABLE `Approvers` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL COMMENT 'FK to User.id',
   `approval_level` int(11) NOT NULL,
   `plant` int(4) DEFAULT NULL,
   `charge` varchar(20) DEFAULT NULL,
   PRIMARY KEY (`id`)
 );
--- Main Premium Freight orders table
-CREATE TABLE `PremiumFreight` (
+
+-- Historical log of all approval actions
+CREATE TABLE `ApprovalHistory` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) DEFAULT NULL,
-  `date` datetime DEFAULT NULL COMMENT 'UTC',
-  `planta` varchar(50) DEFAULT NULL,
-  `cost_euros` decimal(15,2) DEFAULT NULL,
-  `description` longtext DEFAULT NULL,
-  `area` varchar(50) DEFAULT NULL,
-  `origin_id` int(11) DEFAULT NULL,
-  `destiny_id` int(11) DEFAULT NULL,
-  `status_id` int(11) DEFAULT 1,
-  `required_auth_level` int(11) DEFAULT 5,
-  `carrier_id` int(11) DEFAULT NULL,
+  `premium_freight_id` int(11) NOT NULL COMMENT 'FK to PremiumFreight.id',
+  `user_id` int(11) NOT NULL COMMENT 'FK to User.id',
+  `action_timestamp` datetime NOT NULL DEFAULT current_timestamp() COMMENT 'UTC',
+  `action_type` enum('CREATED','APPROVED','REJECTED') NOT NULL,
+  `approval_level_reached` int(11) NOT NULL,
+  `comments` text DEFAULT NULL,
   PRIMARY KEY (`id`)
 );
--- Current approval state for each order
-CREATE TABLE `PremiumFreightApprovals` (
+
+-- Corrective Action Plans
+CREATE TABLE `CorrectiveActionPlan` (
+  `cap_id` int(11) NOT NULL AUTO_INCREMENT,
+  `premium_freight_id` int(11) NOT NULL COMMENT 'FK to PremiumFreight.id',
+  `corrective_action` text DEFAULT NULL,
+  `person_responsible` varchar(100) DEFAULT NULL,
+  `due_date` date DEFAULT NULL,
+  `status` varchar(50) DEFAULT 'Abierto',
+  `comments` text DEFAULT NULL,
+  `creation_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`cap_id`)
+);
+
+-- Location table (origins and destinations)
+CREATE TABLE `Location` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `premium_freight_id` int(11) DEFAULT NULL,
-  `approval_date` datetime DEFAULT current_timestamp() COMMENT 'UTC',
-  `act_approv` int(1) DEFAULT 0 COMMENT 'Current level. 99=rejected',
-  `rejection_reason` varchar(999) DEFAULT NULL,
+  `company_name` varchar(100) DEFAULT NULL,
+  `city` varchar(100) DEFAULT NULL,
+  `state` varchar(100) DEFAULT NULL,
+  `zip` varchar(20) DEFAULT NULL,
   PRIMARY KEY (`id`)
 );
--- Other tables like Location, Carriers, Status, Products, NumOrders, ApprovalHistory, CorrectiveActionPlan exist but are less frequently queried directly.
+
+-- Carriers table
+CREATE TABLE `Carriers` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`)
+);
+
+-- Status catalog
+CREATE TABLE `Status` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL,
+  PRIMARY KEY (`id`)
+);
+
+-- Products catalog
+CREATE TABLE `Products` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `productName` varchar(255) NOT NULL,
+  `Plant` int(11) NOT NULL,
+  PRIMARY KEY (`ID`)
+);
+
+-- Order numbers reference
+CREATE TABLE `NumOrders` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `Number` int(11) DEFAULT NULL,
+  `Name` text DEFAULT NULL,
+  `IsValid` char(1) DEFAULT NULL,
+  PRIMARY KEY (`ID`)
+);
+-- Note: Email & Token tables from the full schema have been omitted for brevity and security, as they are not needed for data analysis queries.
 ";
 }
+
