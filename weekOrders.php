@@ -54,7 +54,7 @@ require_once 'dao/users/context_injector.php';
 </head>
 <body>
     <div class="bulk-container">
-        <!-- ===== PROFESSIONAL HEADER (RESTAURADO) ===== -->
+        <!-- ===== PROFESSIONAL HEADER CON SELECTOR DE ROL ===== -->
         <header class="bulk-header">
             <div class="bulk-header-content">
                 <div class="header-left">
@@ -63,6 +63,10 @@ require_once 'dao/users/context_injector.php';
                         <p class="orders-subtitle">
                             Orders pending approval by <?php echo htmlspecialchars($appContextForJS['user']['name']); ?>
                         </p>
+                        <!-- NUEVO: Contenedor para el selector de rol -->
+                        <div id="role-selector-container" class="role-selector-week-orders">
+                            <!-- Se llenará dinámicamente con JavaScript -->
+                        </div>
                     </div>
                 </div>
                 <div class="header-right">
