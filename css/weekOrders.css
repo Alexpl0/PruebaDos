@@ -1,235 +1,215 @@
-/* ===== ROLE SELECTOR STYLES FOR WEEK ORDERS ===== */
+/**
+ * weekOrders.css
+ * Styles for Weekly Orders page - extends view-order.css
+ * Premium Freight Authorization System - GRAMMER AMERICAS
+ */
 
-.role-selector-week-orders {
-    margin-top: 1rem;
-    animation: fadeInDown 0.3s ease-out;
+/* ===== ORDERS CONTAINER ===== */
+.orders-container {
+    padding: var(--spacing-xl);
+    background: var(--gray-50);
+    min-height: 400px;
 }
 
-/* Single Role Badge */
-.role-badge-single {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 9999px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    box-shadow: 0 4px 6px rgba(102, 126, 234, 0.25);
-    transition: all 0.3s ease;
+/* ===== ORDER CARDS ===== */
+.order-card {
+    background: var(--white);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    margin-bottom: var(--spacing-xl);
+    overflow: hidden;
+    transition: var(--transition-normal);
+    border: 1px solid var(--border-color);
 }
 
-.role-badge-single:hover {
+.order-card:hover {
+    box-shadow: var(--shadow-lg);
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(102, 126, 234, 0.35);
 }
 
-.role-badge-single i {
-    font-size: 1rem;
+.order-card:last-child {
+    margin-bottom: 0;
 }
 
-/* Multiple Roles Selector */
-.role-selector-wrapper {
-    display: flex;
+/* ===== ORDER CARD HEADER ===== */
+.order-card-header {
+    background: var(--accent-color);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-bottom: 1px solid var(--border-color);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--spacing-xl);
     align-items: center;
-    gap: 0.75rem;
-    background: white;
-    padding: 0.75rem 1.25rem;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    border: 2px solid #e5e7eb;
-    transition: all 0.3s ease;
-    max-width: 600px;
 }
 
-.role-selector-wrapper:hover {
-    border-color: #667eea;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
-}
-
-.role-selector-label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #4b5563;
-    margin: 0;
-    white-space: nowrap;
-}
-
-.role-selector-label i {
-    color: #667eea;
-    font-size: 1rem;
-}
-
-.role-selector-dropdown {
-    flex: 1;
-    padding: 0.5rem 1rem;
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #1f2937;
-    background-color: #f9fafb;
-    transition: all 0.2s ease;
-    cursor: pointer;
-    outline: none;
-    min-width: 250px;
-}
-
-.role-selector-dropdown:hover {
-    border-color: #667eea;
-    background-color: white;
-}
-
-.role-selector-dropdown:focus {
-    border-color: #667eea;
-    background-color: white;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-/* Options styling */
-.role-selector-dropdown option {
-    padding: 0.5rem;
-    font-weight: 500;
-}
-
-.role-selector-dropdown option:first-child {
-    font-weight: 700;
-    color: #667eea;
-}
-
-/* Animation */
-@keyframes fadeInDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Empty State Enhancement */
-.empty-state {
+.order-card-info {
     display: flex;
     flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.order-card-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: var(--body-font);
+}
+
+.order-card-subtitle {
+    margin: 0;
+    font-size: var(--small-font-size);
+    color: var(--text-secondary);
+    font-family: var(--body-font);
+}
+
+.order-card-actions {
+    display: flex;
+    flex-direction: row;
+    gap: var(--spacing-sm);
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    min-width: 0;
+}
+
+/* Asegurar que los botones no se compriman demasiado */
+.order-card-actions .action-btn-compact {
+    flex-shrink: 0;
+    white-space: nowrap;
+    max-width: 140px;
+}
+
+/* ===== NO ORDERS MESSAGE ===== */
+.no-orders-message {
+    display: flex;
     align-items: center;
     justify-content: center;
     min-height: 400px;
     text-align: center;
-    padding: 3rem;
 }
 
-.empty-state i {
-    font-size: 5rem;
-    color: #10B981;
-    margin-bottom: 1.5rem;
-    animation: scaleIn 0.5s ease-out;
+.no-orders-content {
+    max-width: 400px;
+    padding: var(--spacing-2xl);
 }
 
-.empty-state h2 {
-    font-size: 1.75rem;
+.no-orders-content i {
+    font-size: 4rem;
+    color: var(--success-color);
+    margin-bottom: var(--spacing-lg);
+}
+
+.no-orders-content h3 {
+    font-size: 1.5rem;
     font-weight: 700;
-    color: #1f2937;
-    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+    font-family: var(--body-font);
 }
 
-.empty-state p {
-    font-size: 1rem;
-    color: #6b7280;
-    max-width: 500px;
-    line-height: 1.6;
+.no-orders-content p {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xl);
+    font-family: var(--body-font);
 }
 
-@keyframes scaleIn {
+/* ===== BULK ACTION BUTTONS ===== */
+.btn-approve-all {
+    background: linear-gradient(135deg, var(--success), #20c997);
+    color: var(--white);
+}
+
+.btn-approve-all:hover {
+    background: linear-gradient(135deg, #218838, #1ea486);
+}
+
+.btn-download-all {
+    background: linear-gradient(135deg, #6f42c1, #8b5cf6);
+    color: var(--white);
+}
+
+.btn-download-all:hover {
+    background: linear-gradient(135deg, #5a2d91, #7c3aed);
+}
+
+/* ===== ORDER CARD SVG CONTAINER ===== */
+.order-card .svg-container {
+    padding: var(--spacing-xl);
+    min-height: 500px;
+    background: var(--white);
+    position: relative;
+}
+
+.order-card .svg-content {
+    width: 100%;
+    max-width: none;
+    position: relative;
+}
+
+.order-card .svg-content svg {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    display: block;
+    margin: 0 auto;
+}
+
+/* Asegurar que los spinners de carga estén centrados */
+.order-card .loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    color: var(--text-secondary);
+    font-size: var(--small-font-size);
+    min-height: 300px;
+    font-family: var(--body-font);
+}
+
+.order-card .loading-spinner .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--gray-200);
+    border-top: 4px solid var(--grammer-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* ===== PROCESSED ORDER STATES ===== */
+.order-card.processed {
+    opacity: 0.6;
+    transform: scale(0.98);
+    filter: grayscale(0.3);
+}
+
+/* ===== PROCESSED ORDER ANIMATIONS ===== */
+.order-card.processed {
+    transition: all 0.5s ease-out;
+}
+
+.order-card.processed.approved {
+    border-left: 4px solid #10B981;
+    background-color: #f0fdf4;
+}
+
+.order-card.processed.rejected {
+    border-left: 4px solid #dc3545;
+    background-color: #fef2f2;
+}
+
+/* Status indicator animations */
+.status-indicator {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
     from {
-        transform: scale(0);
         opacity: 0;
-    }
-    to {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-/* Responsive Design for Role Selector */
-@media (max-width: 768px) {
-    .role-selector-wrapper {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.5rem;
-        padding: 0.75rem;
-    }
-    
-    .role-selector-label {
-        justify-content: center;
-    }
-    
-    .role-selector-dropdown {
-        width: 100%;
-        min-width: unset;
-    }
-    
-    .role-badge-single {
-        font-size: 0.75rem;
-        padding: 0.4rem 0.8rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .role-selector-week-orders {
-        margin-top: 0.75rem;
-    }
-    
-    .role-selector-wrapper {
-        padding: 0.5rem;
-    }
-    
-    .role-selector-label {
-        font-size: 0.75rem;
-    }
-    
-    .role-selector-label i {
-        font-size: 0.875rem;
-    }
-    
-    .role-selector-dropdown {
-        font-size: 0.75rem;
-        padding: 0.4rem 0.75rem;
-    }
-}
-
-/* Status Badge in Order Cards */
-.status-badge {
-    display: inline-block;
-    margin-left: 0.75rem;
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    animation: slideInRight 0.3s ease-out;
-}
-
-.order-card.processed .status-badge {
-    background: #10B981;
-    color: white;
-}
-
-.order-card.processed.rejected .status-badge {
-    background: #dc3545;
-    color: white;
-}
-
-@keyframes slideInRight {
-    from {
-        opacity: 0;
-        transform: translateX(-20px);
+        transform: translateX(20px);
     }
     to {
         opacity: 1;
@@ -237,58 +217,160 @@
     }
 }
 
-/* Enhanced Header Styling */
-.bulk-header {
-    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-    padding: 1.5rem 2rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+/* Smooth hiding animation */
+.order-card.hiding {
+    transition: all 0.3s ease-out;
+    transform: scale(0.95);
+    opacity: 0;
+    max-height: 0;
+    margin-bottom: 0;
+    padding: 0;
+    overflow: hidden;
 }
 
-.orders-info {
-    color: white;
+/* ===== STATUS INDICATORS ===== */
+.status-indicator {
+    position: absolute;
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-family: var(--body-font);
 }
 
-.orders-title-main {
-    font-size: 1.75rem;
-    font-weight: 700;
-    margin: 0 0 0.25rem 0;
-    color: white;
+.status-approved {
+    background: var(--success);
+    color: var(--white);
 }
 
-.orders-subtitle {
-    font-size: 0.95rem;
-    margin: 0;
-    color: rgba(255, 255, 255, 0.9);
-    font-weight: 400;
+.status-rejected {
+    background: var(--danger);
+    color: var(--white);
 }
 
-/* Loading Spinner in Grid */
-.loading-spinner-container {
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    .orders-container {
+        padding: var(--spacing-lg);
+    }
+
+    .order-card-header {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+        text-align: center;
+    }
+
+    .order-card-actions {
+        justify-content: center;
+        align-items: center;
+        flex-wrap: nowrap;
+        width: 100%;
+        gap: var(--spacing-xs);
+    }
+
+    .action-btn-compact {
+        flex: 0 0 auto;
+        min-width: 70px;
+        max-width: 110px;
+        font-size: 0.75rem;
+        padding: 8px 12px;
+    }
+
+    .quick-actions {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .order-card .svg-container {
+        padding: var(--spacing-lg);
+        min-height: 400px;
+    }
+}
+
+@media (max-width: 480px) {
+    .order-card-actions {
+        flex-direction: row;
+        justify-content: center;
+        gap: 4px;
+        flex-wrap: nowrap;
+    }
+
+    .action-btn-compact {
+        flex: 0 0 auto;
+        min-width: 60px;
+        font-size: 0.7rem;
+        padding: 6px 8px;
+    }
+
+    /* Reducir texto de los botones en pantallas muy pequeñas */
+    .action-btn-compact i {
+        margin-right: 2px;
+    }
+}
+
+/* Asegurar que los botones siempre quepan en una fila */
+@media (max-width: 360px) {
+    .action-btn-compact {
+        min-width: 50px;
+        font-size: 0.65rem;
+        padding: 4px 6px;
+    }
+    
+    .action-btn-compact span {
+        display: none;
+    }
+    
+    .action-btn-compact i {
+        margin-right: 0;
+    }
+}
+
+/* ===== LOADING STATES FOR INDIVIDUAL ORDERS ===== */
+.order-card .loading-spinner {
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 400px;
-    gap: 1rem;
+    gap: var(--spacing-sm);
+    color: var(--text-secondary);
+    font-size: var(--small-font-size);
+    min-height: 300px;
+    font-family: var(--body-font);
 }
 
-.loading-spinner-container .loading-spinner {
-    width: 50px;
-    height: 50px;
-    border: 4px solid rgba(102, 126, 234, 0.2);
-    border-top-color: #667eea;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-.loading-spinner-container p {
-    color: #6b7280;
-    font-size: 1rem;
-    font-weight: 500;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
+/* ===== ANIMATION ENHANCEMENTS ===== */
+@keyframes cardSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
     }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.order-card {
+    animation: cardSlideIn 0.3s ease-out;
+}
+
+/* ===== PROGRESS INDICATOR ===== */
+.progress-indicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gray-200);
+    z-index: 9999;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--grammer-blue), var(--grammer-light-blue));
+    width: 0%;
+    transition: width 0.3s ease;
 }
