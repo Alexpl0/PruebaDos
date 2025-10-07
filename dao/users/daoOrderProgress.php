@@ -2,9 +2,10 @@
 /**
  * daoOrderProgress.php - Progreso de Aprobación de Órdenes
  * 
- * ACTUALIZACIÓN v2.1 (2025-10-06):
- * - Corregidos los nombres de columnas según estructura real de las tablas
- * - Migrado a tabla Approvers para obtener aprobadores por nivel
+ * ACTUALIZACIÓN v2.2 (2025-10-08):
+ * - CORREGIDO: Generación del array 'approvers' para la línea de progreso
+ * - Usa tabla Approvers para obtener responsables de cada nivel
+ * - Calcula estados correctamente basándose en approval_status
  */
 
 require_once __DIR__ . '/../db/cors_config.php';
@@ -35,7 +36,6 @@ try {
     $conex = $con->conectar();
     
     // 1. Obtener información básica de la orden
-    // CORREGIDO: Nombres de columnas según tabla real
     $orderSql = "SELECT 
         pf.id,
         pf.reference_number as premium_freight_number,
@@ -97,9 +97,10 @@ try {
     $currentApprovalLevel = intval($orderInfo['current_approval_level'] ?? 0);
     $rejectionReason = $orderInfo['rejection_reason'];
     $isRejected = ($currentApprovalLevel === 99);
+    $requiredLevel = intval($orderInfo['required_auth_level']);
+    $isFullyApproved = (!$isRejected && $currentApprovalLevel >= $requiredLevel);
     
     // 4. Obtener historial de aprobaciones
-    // CORREGIDO: approver_id → user_id
     $historySql = "SELECT 
         ah.id,
         ah.user_id as approver_id,
@@ -128,12 +129,11 @@ try {
         $approvalHistory[] = $row;
     }
     
-    // 5. Construir línea de tiempo de aprobación usando tabla Approvers
-    $requiredLevel = intval($orderInfo['required_auth_level']);
-    $approvalTimeline = [];
+    // 5. NUEVO: Construir el array de aprobadores para la línea de progreso
+    $approvers = [];
     
     for ($level = 1; $level <= $requiredLevel; $level++) {
-        // Buscar aprobadores desde tabla Approvers
+        // Buscar aprobador responsable de este nivel desde tabla Approvers
         $approverSql = "SELECT 
             u.id,
             u.name,
@@ -157,58 +157,93 @@ try {
         $stmt->execute();
         $approverResult = $stmt->get_result();
         
-        $approver = null;
+        $approverName = 'Not Assigned';
+        $approverRole = 'Pending Assignment';
+        $actionTimestamp = null;
+        
         if ($approverResult->num_rows > 0) {
-            $approver = $approverResult->fetch_assoc();
+            $approverData = $approverResult->fetch_assoc();
+            $approverName = $approverData['name'];
+            $approverRole = $approverData['role'];
         }
         
-        // Buscar en el historial si este nivel fue aprobado
+        // Buscar en el historial si este nivel fue aprobado/rechazado
         $historyItem = null;
         foreach ($approvalHistory as $history) {
             if ($history['approval_level_reached'] == $level) {
                 $historyItem = $history;
+                $actionTimestamp = $history['approved_at'];
                 break;
             }
         }
         
-        // Determinar estado del nivel
-        $status = 'pending';
-        if ($isRejected && $level > $currentApprovalLevel) {
-            $status = 'skipped';
-        } elseif ($level <= $currentApprovalLevel && !$isRejected) {
-            $status = 'approved';
-        } elseif ($level == $currentApprovalLevel + 1 && !$isRejected) {
-            $status = 'current';
+        // Determinar estados booleanos para la línea de progreso
+        $isCompleted = false;
+        $isCurrent = false;
+        $isRejectedHere = false;
+        
+        if ($isRejected && $level == $currentApprovalLevel) {
+            $isRejectedHere = true;
+        } elseif ($level < $currentApprovalLevel || ($level == $currentApprovalLevel && $isFullyApproved)) {
+            $isCompleted = true;
+        } elseif ($level == $currentApprovalLevel + 1 && !$isRejected && !$isFullyApproved) {
+            $isCurrent = true;
         }
         
-        $approvalTimeline[] = [
+        // Agregar al array de aprobadores
+        $approvers[] = [
             'level' => $level,
-            'status' => $status,
-            'approver' => $approver,
-            'history' => $historyItem
+            'name' => $approverName,
+            'role' => $approverRole,
+            'actionTimestamp' => $actionTimestamp,
+            'isCompleted' => $isCompleted,
+            'isCurrent' => $isCurrent,
+            'isRejectedHere' => $isRejectedHere
         ];
     }
     
-    // 6. Mapear status_id a texto legible
+    // 6. Calcular el porcentaje de progreso
+    $progressPercentage = 0;
+    if ($isRejected) {
+        // Si está rechazada, el progreso llega hasta donde fue rechazada
+        $progressPercentage = ($currentApprovalLevel / $requiredLevel) * 100;
+    } elseif ($isFullyApproved) {
+        $progressPercentage = 100;
+    } else {
+        // En progreso: el progreso es hasta el último nivel aprobado
+        $progressPercentage = ($currentApprovalLevel / $requiredLevel) * 100;
+    }
+    
+    // 7. Mapear status_id a texto legible
     $statusText = 'Unknown';
     switch ($orderInfo['status_id']) {
         case 1:
             $statusText = 'Active';
             break;
         case 2:
-            $statusText = 'Completed';
+            $statusText = 'In Review';
             break;
         case 3:
-            $statusText = 'Cancelled';
+            $statusText = 'Approved';
             break;
         case 4:
-            $statusText = 'In Progress';
+            $statusText = 'Rejected';
             break;
     }
     
-    // 7. Preparar respuesta
+    // 8. Preparar respuesta con el formato correcto para progress-line.js
     $response = [
         'success' => true,
+        'showProgress' => true,
+        'approvers' => $approvers, // ESTE es el array que progress-line.js necesita
+        'orderInfo' => [
+            'is_rejected' => $isRejected,
+            'is_completed' => $isFullyApproved,
+            'rejection_reason' => $rejectionReason
+        ],
+        'progress' => [
+            'percentage' => round($progressPercentage, 2)
+        ],
         'order' => [
             'id' => $orderInfo['id'],
             'premium_freight_number' => $orderInfo['premium_freight_number'],
@@ -233,7 +268,6 @@ try {
             'recovery_file' => $orderInfo['recovery_file'],
             'recovery_evidence' => $orderInfo['recovery_evidence']
         ],
-        'approval_timeline' => $approvalTimeline,
         'approval_history' => $approvalHistory
     ];
     
