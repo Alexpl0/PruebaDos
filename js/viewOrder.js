@@ -1,30 +1,34 @@
 /**
  * viewOrder.js - Premium Freight Order Viewer
  * 
- * ACTUALIZACIÓN v3.0 (2025-10-07):
- * - NUEVO: Soporte completo para usuarios con múltiples niveles de aprobación
- * - Carga todos los roles del usuario y verifica cuáles pueden aprobar la orden
- * - Permite seleccionar el rol específico al aprobar si hay múltiples opciones
+ * ACTUALIZACIÓN v3.1 (2025-10-07):
+ * - CORREGIDO: Agregada llamada a loadAndRenderProgress() para mostrar la línea de progreso
+ * - La línea de progreso se carga después de inicializar la visualización de la orden
  */
 
 import { approveOrder, rejectOrder } from './approval.js';
 import { loadAndPopulateSVG, generatePDF } from './svgOrders.js';
+import { loadAndRenderProgress } from './progress-line.js'; // 👈 NUEVO: Importar la función
 
 let currentOrder = null;
 let isLoading = false;
-let userApprovalRoles = []; // Todos los roles de aprobación del usuario
-let validRolesForCurrentOrder = []; // Roles que pueden aprobar la orden actual
+let userApprovalRoles = [];
+let validRolesForCurrentOrder = [];
 
 document.addEventListener('DOMContentLoaded', initializeViewOrder);
 
 async function initializeViewOrder() {
     console.log('[viewOrder.js] Initializing page...');
     try {
-        await loadUserApprovalRoles(); // Primero cargar los roles
-        await loadOrderData(); // Luego cargar la orden
+        await loadUserApprovalRoles();
+        await loadOrderData();
         await initializeOrderDisplay();
+        
+        // 👇 NUEVO: Cargar y renderizar la línea de progreso DESPUÉS de cargar la orden
+        await loadProgressLine();
+        
         setupEventListeners();
-        configureActionButtons(); // Ahora con lógica multi-rol
+        configureActionButtons();
     } catch (error) {
         console.error('[viewOrder.js] Initialization error:', error);
         Swal.fire({
@@ -36,8 +40,33 @@ async function initializeViewOrder() {
 }
 
 /**
- * NUEVO: Carga todos los roles de aprobación del usuario
+ * NUEVO: Carga la línea de progreso de la orden
  */
+async function loadProgressLine() {
+    try {
+        if (!currentOrder || !currentOrder.id) {
+            console.warn('[viewOrder.js] No order ID available for progress line');
+            return;
+        }
+
+        console.log('[viewOrder.js] Loading progress line for order:', currentOrder.id);
+        
+        const baseURL = window.PF_CONFIG?.app?.baseURL;
+        if (!baseURL) {
+            console.error('[viewOrder.js] Base URL not configured');
+            return;
+        }
+
+        // Llamar a la función del módulo progress-line.js
+        await loadAndRenderProgress(currentOrder.id, baseURL);
+        
+        console.log('[viewOrder.js] Progress line loaded successfully');
+    } catch (error) {
+        console.error('[viewOrder.js] Error loading progress line:', error);
+        // No es crítico, continuar con la carga de la página
+    }
+}
+
 async function loadUserApprovalRoles() {
     const URLPF = window.PF_CONFIG.app.baseURL;
     const fetchUrl = `${URLPF}dao/conections/daoGetUserApprovalRoles.php`;
@@ -54,7 +83,6 @@ async function loadUserApprovalRoles() {
         }
     } catch (error) {
         console.error('[viewOrder.js] Error loading user approval roles:', error);
-        // No es crítico, continuar con el rol por defecto
         userApprovalRoles = [];
     }
 }
@@ -614,6 +642,10 @@ async function refreshPageData() {
         console.log('[viewOrder.js] Refreshing page data...');
         await loadOrderData();
         await initializeOrderDisplay();
+        
+        // 👇 NUEVO: Recargar también la línea de progreso
+        await loadProgressLine();
+        
         configureActionButtons();
         console.log('[viewOrder.js] Page data refreshed successfully');
     } catch (error) {
