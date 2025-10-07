@@ -108,28 +108,35 @@ function createSingleCard(order) {
 /**
  * Obtiene el mensaje de estado de aprobación según el nivel
  * @param {number} approvalStatus - Nivel de aprobación actual
+ * @param {number} requiredAuthLevel - Nivel de autorización requerido
  * @returns {string} - Mensaje descriptivo
  */
-export function getApprovalStatusMessage(approvalStatus) {
+export function getApprovalStatusMessage(approvalStatus, requiredAuthLevel) {
     const level = Number(approvalStatus);
-    
-    switch(level) {
+    const requiredLevel = Number(requiredAuthLevel);
+
+    // Validación antes del switch
+    if (level === requiredLevel) {
+        return 'Fully Approved';
+    }
+
+    switch (level) {
         case 0:
-            return 'Pending: Trafico';
+            return 'Pending: Traficc';
         case 1:
-            return 'Approved by Trafico';
+            return 'Pending: Transportation';
         case 2:
-            return 'Approved by Customs';
+            return 'Pending: Logistics Manager';
         case 3:
-            return 'Approved by Transport Specialist';
+            return 'Pending: Controlling';
         case 4:
-            return 'Approved by Transport Manager';
+            return 'Pending: Plant Manager';
         case 5:
-            return 'Approved by Plant Manager';
+            return 'Pending: Senior Manager Logistics Division';
         case 6:
-            return 'Approved by Regional Director';
+            return 'Pending: Manager OPS Division';
         case 7:
-            return 'Approved by VP Operations';
+            return 'Pending: SR VP Regional';
         case 8:
             return 'Fully Approved';
         case 99:
