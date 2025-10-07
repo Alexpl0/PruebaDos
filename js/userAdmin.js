@@ -10,10 +10,31 @@ let usersTable;
 let currentEditingUser = null;
 
 document.addEventListener('DOMContentLoaded', function() {
-    initializeDataTable();
-    setupEventListeners();
-    loadUsers();
+    // Esperar a que PF_CONFIG esté disponible
+    waitForConfig().then(() => {
+        initializeDataTable();
+        setupEventListeners();
+        loadUsers();
+    });
 });
+
+/**
+ * Espera a que window.PF_CONFIG esté disponible
+ */
+function waitForConfig() {
+    return new Promise((resolve) => {
+        if (window.PF_CONFIG?.app?.baseURL) {
+            resolve();
+        } else {
+            const interval = setInterval(() => {
+                if (window.PF_CONFIG?.app?.baseURL) {
+                    clearInterval(interval);
+                    resolve();
+                }
+            }, 100);
+        }
+    });
+}
 
 function initializeDataTable() {
     usersTable = $('#usersTable').DataTable({
@@ -21,17 +42,26 @@ function initializeDataTable() {
         buttons: [
             {
                 extend: 'excelHtml5',
-                text: '<i class="fas fa-file-excel"></i> Export Excel',
-                className: 'btn btn-success btn-sm'
+                text: '<i class="fas fa-file-excel"></i>',
+                className: 'btn btn-success btn-sm dt-icon-btn',
+                title: 'Users Export',
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5]
+                }
             },
             {
                 extend: 'pdfHtml5',
-                text: '<i class="fas fa-file-pdf"></i> Export PDF',
-                className: 'btn btn-danger btn-sm'
+                text: '<i class="fas fa-file-pdf"></i>',
+                className: 'btn btn-danger btn-sm dt-icon-btn',
+                title: 'Users Export',
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5]
+                }
             },
             {
-                text: '<i class="fas fa-user-plus"></i> Add User',
-                className: 'btn btn-primary btn-sm',
+                text: '<i class="fas fa-user-plus"></i>',
+                className: 'btn btn-primary btn-sm dt-icon-btn',
+                titleAttr: 'Add New User',
                 action: function() {
                     showAddUserModal();
                 }

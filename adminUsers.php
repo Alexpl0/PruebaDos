@@ -114,7 +114,10 @@ require_once 'dao/users/context_injector.php';
                                 <label for="userPassword" class="form-label">
                                     <i class="fas fa-lock"></i> Password <span class="text-danger">*</span>
                                 </label>
-                                <input type="password" class="form-control" id="userPassword">
+                                <input type="password" 
+                                       class="form-control" 
+                                       id="userPassword"
+                                       autocomplete="new-password">
                                 <small class="text-muted">Min. 6 characters</small>
                             </div>
                         </div>
@@ -163,6 +166,8 @@ require_once 'dao/users/context_injector.php';
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
+    <!-- CRÍTICO: Cargar config.js ANTES de userAdmin.js -->
+    <script src="js/config.js"></script>
     <script src="js/userAdmin.js"></script>
 </body>
 </html>
