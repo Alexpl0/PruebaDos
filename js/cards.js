@@ -64,7 +64,7 @@ function createSingleCard(order) {
     // --- File Status Badge Logic ---
     const hasRecoveryFile = order.recovery_file && order.recovery_file.trim() !== '';
     const hasRecoveryEvidence = order.recovery_evidence && order.recovery_evidence.trim() !== '';
-    const falta = getApprovalStatusMessage(order);
+    const falta = getApprovalStatusMessage(order.approval_status, order.required_auth_level);
     
     let fileStatusBadge = '';
 

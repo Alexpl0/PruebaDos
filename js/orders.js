@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('rejectBtn')?.addEventListener('click', handleRejectionClick);
         setupSearchListener(); // Set up the new search handler
         
-        // --- NEW: Setup listeners for filter buttons ---
+        // --- Setup listeners for filter buttons ---
         setupFilterButtons();
 
     } catch (error) {
@@ -92,7 +92,7 @@ function loadOrderData(page, search = '') {
 }
 
 // ========================================================================
-// --- NEW FUNCTION: Load data from the warnings endpoint ---
+// --- Load data from the warnings endpoint ---
 // ========================================================================
 /**
  * Fetches only the orders that require attention (warnings) from the specialized endpoint.
@@ -228,7 +228,7 @@ function setupSearchListener() {
 }
 
 // ========================================================================
-// --- NEW FUNCTION: Set up the filter buttons ---
+// --- Set up the filter buttons ---
 // ========================================================================
 /**
  * Sets up the event listeners for the "Show Warnings" and "Show All" filter buttons.
@@ -313,5 +313,3 @@ export function refreshOrderData() {
     loadOrderData(currentPage, currentSearchQuery);
     setTimeout(() => Swal.close(), 1000);
 }
-
-const falta = getApprovalStatusMessage(approvalStatus, requiredLevel);
