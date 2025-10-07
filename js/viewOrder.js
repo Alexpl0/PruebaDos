@@ -1,14 +1,15 @@
 /**
  * viewOrder.js - Premium Freight Order Viewer
  * 
- * ACTUALIZACIÓN v3.1 (2025-10-07):
- * - CORREGIDO: Agregada llamada a loadAndRenderProgress() para mostrar la línea de progreso
- * - La línea de progreso se carga después de inicializar la visualización de la orden
+ * ACTUALIZACIÓN v3.2 (2025-10-08):
+ * - CORREGIDO: Ahora usa daoPremiumFreight.php para obtener TODOS los campos de la orden
+ * - Mantiene loadAndRenderProgress() para la línea de progreso
+ * - Todos los campos del SVG se llenan correctamente
  */
 
 import { approveOrder, rejectOrder } from './approval.js';
 import { loadAndPopulateSVG, generatePDF } from './svgOrders.js';
-import { loadAndRenderProgress } from './progress-line.js'; // 👈 NUEVO: Importar la función
+import { loadAndRenderProgress } from './progress-line.js';
 
 let currentOrder = null;
 let isLoading = false;
@@ -24,7 +25,7 @@ async function initializeViewOrder() {
         await loadOrderData();
         await initializeOrderDisplay();
         
-        // 👇 NUEVO: Cargar y renderizar la línea de progreso DESPUÉS de cargar la orden
+        // Cargar y renderizar la línea de progreso DESPUÉS de cargar la orden
         await loadProgressLine();
         
         setupEventListeners();
@@ -40,7 +41,7 @@ async function initializeViewOrder() {
 }
 
 /**
- * NUEVO: Carga la línea de progreso de la orden
+ * Carga la línea de progreso de la orden
  */
 async function loadProgressLine() {
     try {
@@ -87,6 +88,9 @@ async function loadUserApprovalRoles() {
     }
 }
 
+/**
+ * CORREGIDO: Usa daoPremiumFreight.php para obtener todos los campos de la orden
+ */
 async function loadOrderData() {
     try {
         const orderId = window.PF_CONFIG?.orderId;
@@ -97,8 +101,9 @@ async function loadOrderData() {
 
         console.log('[viewOrder.js] Loading data for Order ID:', orderId);
 
+        // 🎯 CAMBIO PRINCIPAL: Ahora usa daoPremiumFreight.php
         const response = await fetch(
-            `${window.PF_CONFIG.app.baseURL}dao/users/daoOrderProgress.php?orderId=${orderId}`
+            `${window.PF_CONFIG.app.baseURL}dao/conections/daoPremiumFreight.php`
         );
 
         if (!response.ok) {
@@ -107,21 +112,36 @@ async function loadOrderData() {
 
         const data = await response.json();
 
-        if (!data.success) {
+        if (data.status !== 'success' || !data.data) {
             throw new Error(data.message || 'Failed to load order data');
         }
 
+        // 🔍 Buscar la orden específica por ID en el array
+        const foundOrder = data.data.find(order => order.id === parseInt(orderId));
+
+        if (!foundOrder) {
+            throw new Error(`Order with ID ${orderId} not found`);
+        }
+
+        // ✅ Ahora tenemos TODOS los campos de daoPremiumFreight.php
         currentOrder = {
-            ...data.order,
-            approval_status: data.order.current_approval_level,
-            creator_plant: data.order.order_plant,
-            approval_timeline: data.approval_timeline || [],
-            approval_history: data.approval_history || []
+            ...foundOrder,
+            // Asegurar campos de aprobación (ya vienen en daoPremiumFreight.php)
+            current_approval_level: foundOrder.approval_status,
+            order_plant: foundOrder.creator_plant
         };
         
         window.currentOrder = currentOrder;
         
-        console.log('[viewOrder.js] Order data loaded successfully:', currentOrder);
+        console.log('[viewOrder.js] ✅ Order data loaded successfully with ALL fields:', currentOrder);
+        console.log('[viewOrder.js] 📋 Campos verificados:');
+        console.log('  - paid_by:', currentOrder.paid_by);
+        console.log('  - category_cause:', currentOrder.category_cause);
+        console.log('  - project_status:', currentOrder.project_status);
+        console.log('  - int_ext:', currentOrder.int_ext);
+        console.log('  - origin_company_name:', currentOrder.origin_company_name);
+        console.log('  - products:', currentOrder.products);
+        console.log('  - carrier:', currentOrder.carrier);
 
     } catch (error) {
         console.error('[viewOrder.js] Error loading order data:', error);
@@ -193,12 +213,12 @@ function renderOrderDetailsBasic(order) {
                 
                 <div class="info-item">
                     <strong>Premium Freight #:</strong> 
-                    <span>${order.premium_freight_number || 'N/A'}</span>
+                    <span>${order.premium_freight_number || order.reference_number || 'N/A'}</span>
                 </div>
                 
                 <div class="info-item">
                     <strong>Status:</strong> 
-                    <span>${order.status || 'N/A'}</span>
+                    <span>${order.status_name || 'N/A'}</span>
                 </div>
                 
                 <div class="info-item">
@@ -208,12 +228,12 @@ function renderOrderDetailsBasic(order) {
                 
                 <div class="info-item">
                     <strong>Plant:</strong> 
-                    <span>${order.order_plant || 'N/A'}</span>
+                    <span>${order.creator_plant || order.planta || 'N/A'}</span>
                 </div>
                 
                 <div class="info-item">
                     <strong>Current Approval Level:</strong> 
-                    <span>${order.current_approval_level} / ${order.required_auth_level}</span>
+                    <span>${order.current_approval_level || order.approval_status} / ${order.required_auth_level}</span>
                 </div>
                 
                 ${order.description ? `
@@ -230,52 +250,11 @@ function renderOrderDetailsBasic(order) {
                 </div>
                 ` : ''}
             </div>
-            
-            ${renderApprovalTimeline(order.approval_timeline)}
         </div>
     `;
 
     svgContent.innerHTML = detailsHtml;
     svgContent.classList.remove('hidden');
-}
-
-function renderApprovalTimeline(timeline) {
-    if (!timeline || timeline.length === 0) {
-        return '';
-    }
-
-    const timelineHtml = timeline.map(item => {
-        const statusClass = item.status === 'approved' ? 'success' : 
-                          item.status === 'current' ? 'warning' : 
-                          item.status === 'skipped' ? 'secondary' : 'light';
-        
-        const approverName = item.approver ? item.approver.name : 'Not assigned';
-        const approverRole = item.approver ? item.approver.role : '';
-        const approvedDate = item.history ? new Date(item.history.approved_at).toLocaleDateString() : '';
-        
-        return `
-            <div class="timeline-item timeline-${item.status}">
-                <div class="timeline-badge bg-${statusClass}">
-                    ${item.level}
-                </div>
-                <div class="timeline-content">
-                    <h5>Level ${item.level} - ${approverRole || 'Approval'}</h5>
-                    <p><strong>Approver:</strong> ${approverName}</p>
-                    ${approvedDate ? `<p><small>Approved: ${approvedDate}</small></p>` : ''}
-                    ${item.status === 'current' ? '<span class="badge bg-warning">Pending</span>' : ''}
-                </div>
-            </div>
-        `;
-    }).join('');
-
-    return `
-        <div class="approval-timeline-section">
-            <h4>Approval Timeline</h4>
-            <div class="approval-timeline">
-                ${timelineHtml}
-            </div>
-        </div>
-    `;
 }
 
 function getStatusText(approvalStatus) {
@@ -314,26 +293,22 @@ function setupEventListeners() {
 }
 
 /**
- * NUEVO: Encuentra todos los roles del usuario que pueden aprobar la orden actual
- * @param {object} order - La orden actual
- * @returns {Array} - Array de roles válidos
+ * Encuentra todos los roles del usuario que pueden aprobar la orden actual
  */
 function findValidApprovalRoles(order) {
     if (!order || !userApprovalRoles || userApprovalRoles.length === 0) {
         return [];
     }
 
-    const currentApprovalLevel = Number(order.approval_status || 0);
+    const currentApprovalLevel = Number(order.approval_status || order.current_approval_level || 0);
     const requiredNextLevel = currentApprovalLevel + 1;
-    const orderPlant = order.creator_plant;
+    const orderPlant = order.creator_plant || order.order_plant;
 
     const validRoles = userApprovalRoles.filter(role => {
-        // Verificar nivel de aprobación
         if (role.approval_level !== requiredNextLevel) {
             return false;
         }
 
-        // Verificar planta: debe ser la misma O el rol debe ser regional (plant === null)
         if (role.plant !== null && role.plant !== orderPlant) {
             return false;
         }
@@ -352,7 +327,7 @@ function findValidApprovalRoles(order) {
 }
 
 /**
- * ACTUALIZADO: Configura los botones de acción con lógica multi-rol
+ * Configura los botones de acción con lógica multi-rol
  */
 function configureActionButtons() {
     const approveBtn = document.getElementById('approveBtn');
@@ -365,11 +340,10 @@ function configureActionButtons() {
         return;
     }
 
-    // Encontrar roles válidos
     validRolesForCurrentOrder = findValidApprovalRoles(currentOrder);
 
-    const isRejected = Number(currentOrder.approval_status) === 99;
-    const isFullyApproved = Number(currentOrder.approval_status) >= Number(currentOrder.required_auth_level);
+    const isRejected = Number(currentOrder.approval_status || currentOrder.current_approval_level) === 99;
+    const isFullyApproved = Number(currentOrder.approval_status || currentOrder.current_approval_level) >= Number(currentOrder.required_auth_level);
 
     console.log('[viewOrder.js] Action buttons config:', {
         validRoles: validRolesForCurrentOrder.length,
@@ -377,13 +351,11 @@ function configureActionButtons() {
         isFullyApproved
     });
 
-    // Mostrar botones solo si hay al menos un rol válido y la orden no está terminada
     if (validRolesForCurrentOrder.length > 0 && !isRejected && !isFullyApproved) {
         approveBtn?.classList.remove('hidden');
         rejectBtn?.classList.remove('hidden');
         console.log('[viewOrder.js] Action buttons shown');
         
-        // Si hay múltiples roles válidos, agregar indicador visual
         if (validRolesForCurrentOrder.length > 1) {
             approveBtn.innerHTML = '<i class="fas fa-check-circle"></i> Approve (Select Role)';
             rejectBtn.innerHTML = '<i class="fas fa-times-circle"></i> Reject (Select Role)';
@@ -396,7 +368,7 @@ function configureActionButtons() {
 }
 
 /**
- * ACTUALIZADO: Maneja el clic en aprobar con selección de rol si es necesario
+ * Maneja el clic en aprobar con selección de rol si es necesario
  */
 async function handleApprovalClick(event) {
     event.preventDefault();
@@ -414,12 +386,10 @@ async function handleApprovalClick(event) {
     try {
         isLoading = true;
         
-        // Si hay múltiples roles válidos, permitir al usuario elegir
         let selectedRole = null;
         if (validRolesForCurrentOrder.length > 1) {
             selectedRole = await selectRoleForApproval();
             if (!selectedRole) {
-                // Usuario canceló la selección
                 isLoading = false;
                 return;
             }
@@ -431,7 +401,6 @@ async function handleApprovalClick(event) {
 
         console.log('[viewOrder.js] Starting approval with role:', selectedRole);
         
-        // Pasar el nivel de aprobación específico a usar
         const result = await approveOrder(
             currentOrder.id, 
             { 
@@ -458,8 +427,7 @@ async function handleApprovalClick(event) {
 }
 
 /**
- * NUEVO: Muestra un selector para que el usuario elija con qué rol aprobar
- * @returns {Promise<object|null>} - El rol seleccionado o null si canceló
+ * Muestra un selector para que el usuario elija con qué rol aprobar
  */
 async function selectRoleForApproval() {
     const options = {};
@@ -488,7 +456,6 @@ async function selectRoleForApproval() {
         return null;
     }
 
-    // Encontrar el rol seleccionado
     const [level, plantKey] = selectedKey.split('_');
     const plant = plantKey === 'regional' ? null : parseInt(plantKey);
     
@@ -498,7 +465,7 @@ async function selectRoleForApproval() {
 }
 
 /**
- * ACTUALIZADO: Maneja el clic en rechazar con selección de rol si es necesario
+ * Maneja el clic en rechazar con selección de rol si es necesario
  */
 async function handleRejectionClick(event) {
     event.preventDefault();
@@ -516,7 +483,6 @@ async function handleRejectionClick(event) {
     try {
         isLoading = true;
         
-        // Si hay múltiples roles válidos, permitir al usuario elegir
         let selectedRole = null;
         if (validRolesForCurrentOrder.length > 1) {
             selectedRole = await selectRoleForRejection();
@@ -559,7 +525,7 @@ async function handleRejectionClick(event) {
 }
 
 /**
- * NUEVO: Selector de rol para rechazo
+ * Selector de rol para rechazo
  */
 async function selectRoleForRejection() {
     const options = {};
@@ -643,7 +609,7 @@ async function refreshPageData() {
         await loadOrderData();
         await initializeOrderDisplay();
         
-        // 👇 NUEVO: Recargar también la línea de progreso
+        // Recargar también la línea de progreso
         await loadProgressLine();
         
         configureActionButtons();
