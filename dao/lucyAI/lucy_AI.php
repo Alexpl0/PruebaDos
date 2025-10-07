@@ -48,7 +48,7 @@ if (!defined('GEMINI_API_KEY') || empty(GEMINI_API_KEY)) {
     exit;
 }
 
-define('GEMINI_API_URL', 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent');
+define('GEMINI_API_URL', 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent');
 
 // ==================== ROUTE HANDLER ====================
 $requestMethod = $_SERVER['REQUEST_METHOD'];
