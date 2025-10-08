@@ -7,6 +7,14 @@
 // ========== CONFIGURACIÓN ==========
 // Cambia esta URL por la que necesites
 $redirect_url = 'https://ipafmexico.com/wp-content/uploads/2025/10/IPAF_F4_PREP.pdf';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Aquí puedes guardar los datos si lo deseas
+    // $nombre = $_POST['nombre'];
+    // $email = $_POST['email'];
+    header("Location: $redirect_url");
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
