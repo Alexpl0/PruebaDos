@@ -64,7 +64,7 @@ function createSingleCard(order) {
     // --- File Status Badge Logic ---
     const hasRecoveryFile = order.recovery_file && order.recovery_file.trim() !== '';
     const hasRecoveryEvidence = order.recovery_evidence && order.recovery_evidence.trim() !== '';
-    const falta = getApprovalStatusMessage(order);
+    const falta = getApprovalStatusMessage(order.approval_status, order.required_auth_level);
     
     let fileStatusBadge = '';
 
@@ -106,27 +106,43 @@ function createSingleCard(order) {
 }
 
 /**
- * Determines the approval status message to display based on the business rules.
- * @param {Object} order - Order data.
- * @returns {string} Status message.
+ * Obtiene el mensaje de estado de aprobación según el nivel
+ * @param {number} approvalStatus - Nivel de aprobación actual
+ * @param {number} requiredAuthLevel - Nivel de autorización requerido
+ * @returns {string} - Mensaje descriptivo
  */
-function getApprovalStatusMessage(order) {
-    const approvalStatus = Number(order.approval_status || 0);
-    const requiredLevel = Number(order.required_auth_level || 7);
+export function getApprovalStatusMessage(approvalStatus, requiredAuthLevel) {
+    const level = Number(approvalStatus);
+    const requiredLevel = Number(requiredAuthLevel);
 
-    if (approvalStatus === 99) return 'Order Rejected';
-    if (approvalStatus >= requiredLevel) return 'Fully Approved';
+    // Validación antes del switch
+    if (level === requiredLevel) {
+        return 'Fully Approved';
+    }
 
-    switch (approvalStatus) {
-        case 0: return 'Pending: Trafico';
-        case 1: return 'Pending: Transport Specialist'; // <-- Nuevo caso agregado aquí
-        case 2: return 'Pending: Logistics Manager';
-        case 3: return 'Pending: Controlling';
-        case 4: return 'Pending: Plant Manager';
-        case 5: return 'Pending: Senior Manager Logistics';
-        case 6: return 'Pending: VP OPS Division';
-        case 7: return 'Pending: Division Controlling Regional';
-        default: return `Pending: Level ${approvalStatus + 1}`;
+    switch (level) {
+        case 0:
+            return 'Pending: Traficc';
+        case 1:
+            return 'Pending: Transportation';
+        case 2:
+            return 'Pending: Logistics Manager';
+        case 3:
+            return 'Pending: Controlling';
+        case 4:
+            return 'Pending: Plant Manager';
+        case 5:
+            return 'Pending: Senior Manager Logistics Division';
+        case 6:
+            return 'Pending: Manager OPS Division';
+        case 7:
+            return 'Pending: SR VP Regional';
+        case 8:
+            return 'Fully Approved';
+        case 99:
+            return 'Rejected';
+        default:
+            return `Approval Level: ${level}`;
     }
 }
 
@@ -138,17 +154,26 @@ function attachCardEventListeners() {
 
     document.querySelectorAll('.ver-btn').forEach(btn => {
         btn.addEventListener('click', function() {
-            const orderId = this.getAttribute('data-order-id');
+            const orderId = this.getAttribute('data-order-id'); // Obtener el ID de la orden
+            console.log('Redirecting with Order ID:', orderId); // Verificar el ID en la consola
+            if (!orderId) {
+                console.error('Order ID not found for the clicked button.');
+                return;
+            }
             const redirectPage = currentPage.includes('myorders.php') ? 'myOrder.php' : 'view_order.php';
-            window.location.href = `${redirectPage}?order=${orderId}`;
+            window.location.href = `${redirectPage}?order=${encodeURIComponent(orderId)}`; // Redirigir con el ID
         });
     });
-    
+
     // Attach click listener ONLY to the warning badges
     document.querySelectorAll('.file-status-badge.status-warning').forEach(badge => {
         badge.addEventListener('click', function(e) {
             e.stopPropagation(); // Prevent card click event
             const orderId = this.getAttribute('data-order-id');
+            if (!orderId) {
+                console.error('Order ID not found for the warning badge.');
+                return;
+            }
             showEvidenceUploadModal(orderId);
         });
     });

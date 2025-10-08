@@ -8,15 +8,15 @@
 // Define the mapping between SVG element IDs and order object properties
 const svgMap = {
     'RequestingPlantValue': 'planta',
-    'PlantCodeValue': 'creator_plant',
+    'PlantCodeValue': 'code_planta', // CORREGIDO: era 'creator_plant'
     'DateValue': 'date', 
     'TransportValue': 'transport',
     'InOutBoundValue': 'in_out_bound',
     'CostInEurosValue': 'cost_euros',
     'AreaOfResponsabilityValue': 'area',
     'InExtValue': 'int_ext',
-    'CostPaidByValue': 'paid_by',
-    'RootCauseValue': 'category_cause',
+    'CostPaidByValue': 'paid_by', // ✅ Este campo está correcto en el JSON
+    'RootCauseValue': 'category_cause', // ✅ Este campo está correcto en el JSON
     'ProjectStatusValue': 'project_status',
     'RecoveryValue': 'recovery',
     'DescriptionAndRootCauseValue': 'description',
@@ -31,7 +31,7 @@ const svgMap = {
     'ZIPDestValue': 'destiny_zip',
     'WeightValue': (order) => {
         const getMeasureAbbreviation = (measure) => {
-            if (!measure) return '';
+            if (!measure || measure === '0') return 'KG'; // Default cuando measures = "0"
             switch (measure.toUpperCase()) {
                 case 'KILOS':
                     return 'KG';
@@ -55,11 +55,13 @@ const svgMap = {
     'ApprovalsValue': (order) => {
         const approvers = [];
         
-        // NUEVO: Función secreta para reemplazar user id:214 con user id:1 🤫
+        console.log(`[SVG] 🔍 Procesando aprobadores para orden ${order.id}:`);
+        
+        // Función secreta para reemplazar user id:214 con user id:1 🤫
         const applySecretReplacement = (approverName) => {
-            // Si el nombre corresponde al user id:214, reemplazar con el nombre del user id:1
             if (approverName === 'Fernando Baltierra') {
-                return 'Alma Bautista'; // Nombre del user id:1
+                console.log('[SVG] 🤫 Aplicando reemplazo secreto');
+                return 'Alma Bautista';
             }
             return approverName;
         };
@@ -68,14 +70,13 @@ const svgMap = {
         const formatApproverName = (fullName) => {
             if (!fullName || !fullName.trim()) return '';
             
-            // APLICAR REEMPLAZO SECRETO PRIMERO
             const replacedName = applySecretReplacement(fullName.trim());
-            
             const nameParts = replacedName.split(' ');
-            if (nameParts.length === 1) return nameParts[0]; // Solo un nombre
+            
+            if (nameParts.length === 1) return nameParts[0];
             
             const firstName = nameParts[0];
-            const lastName = nameParts[nameParts.length - 1]; // Último apellido
+            const lastName = nameParts[nameParts.length - 1];
             
             return `${firstName.charAt(0)}. ${lastName}`;
         };
@@ -83,24 +84,29 @@ const svgMap = {
         // Recopilar solo los primeros 5 aprobadores
         for (let level = 1; level <= 5; level++) {
             const approverName = order[`approver_level_${level}`];
+            console.log(`  - Level ${level}: "${approverName}"`);
+            
             if (approverName && approverName.trim() !== '') {
-                approvers.push(formatApproverName(approverName));
+                const formatted = formatApproverName(approverName);
+                approvers.push(formatted);
+                console.log(`    ✅ Agregado: "${formatted}"`);
             }
         }
         
-        // Unir con " • " como separador
-        return approvers.join(' • ');
+        const result = approvers.join(' • ');
+        console.log(`[SVG] ✅ Resultado final ApprovalsValue: "${result}"`);
+        return result;
     },
     
-    // NUEVO: Aprobadores específicos por nivel
+    // Aprobadores específicos por nivel (6, 7, 8)
     'SeniorManagerValue': (order) => {
         const approverName = order['approver_level_6'];
+        console.log(`[SVG] 🔍 SeniorManagerValue (nivel 6): "${approverName}"`);
+        
         if (!approverName || !approverName.trim()) return '';
         
         const applySecretReplacement = (name) => {
-            if (name === 'Fernando Baltierra') {
-                return 'Alma Bautista';
-            }
+            if (name === 'Fernando Baltierra') return 'Alma Bautista';
             return name;
         };
         
@@ -116,12 +122,12 @@ const svgMap = {
     
     'ManagerOPSDivisionValue': (order) => {
         const approverName = order['approver_level_7'];
+        console.log(`[SVG] 🔍 ManagerOPSDivisionValue (nivel 7): "${approverName}"`);
+        
         if (!approverName || !approverName.trim()) return '';
         
         const applySecretReplacement = (name) => {
-            if (name === 'Fernando Baltierra') {
-                return 'Alma Bautista';
-            }
+            if (name === 'Fernando Baltierra') return 'Alma Bautista';
             return name;
         };
         
@@ -137,12 +143,12 @@ const svgMap = {
     
     'SRVPRegionalValue': (order) => {
         const approverName = order['approver_level_8'];
+        console.log(`[SVG] 🔍 SRVPRegionalValue (nivel 8): "${approverName}"`);
+        
         if (!approverName || !approverName.trim()) return '';
         
         const applySecretReplacement = (name) => {
-            if (name === 'Fernando Baltierra') {
-                return 'Alma Bautista';
-            }
+            if (name === 'Fernando Baltierra') return 'Alma Bautista';
             return name;
         };
         

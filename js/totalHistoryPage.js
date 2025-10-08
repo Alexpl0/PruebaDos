@@ -15,7 +15,7 @@ import {
     clearFilters, 
     loadOrdersData, 
     getDataTableButtons,
-    renderLastApprover  // ✅ Importar la nueva función
+    renderLastApprover
 } from './dataTables.js';
 
 // Variable global para almacenar todos los datos de las órdenes de esta página.
@@ -162,7 +162,7 @@ async function loadTotalHistoryData() {
         console.error('- Error stack:', error.stack);
         showErrorMessage('Data Loading Error', `Could not load orders data: ${error.message}`);
     } finally {
-        console.log('🔚 [loadTotalHistoryData] Closing loading dialog...');
+        console.log('📚 [loadTotalHistoryData] Closing loading dialog...');
         if (typeof Swal !== 'undefined') {
             Swal.close();
         }
@@ -218,31 +218,28 @@ function populateTotalDataTable(orders) {
         
         const statusInfo = getOrderStatus(order);
         return [
-            order.id || '-', 
-            order.planta || '-', 
-            order.code_planta || '-', 
-            order.date || '-',
-            order.in_out_bound || '-', 
-            // ✅ NUEVAS COLUMNAS: Recovery y Reference después de Inbound/Outbound
-            order.recovery || '-',
-            order.reference || 'Order',
-            // Resto de columnas
-            order.reference_number || '-', 
-            order.creator_name || '-',
-            order.area || '-', 
-            order.description || '-', 
-            order.category_cause || '-',
-            order.cost_euros ? `€${parseFloat(order.cost_euros).toFixed(2)}` : '-',
-            order.transport || '-', 
-            order.carrier || '-',
-            order.origin_company_name || '-', 
-            order.origin_city || '-',
-            order.destiny_company_name || '-', 
-            order.destiny_city || '-',
-            // New Status Column HTML with a styled badge
-            `<span class="badge ${statusInfo.badgeClass}">${statusInfo.text}</span>`,
-            // Actions column
-            `<button class="btn btn-sm btn-outline-primary generate-pdf-btn" data-order-id="${order.id}" title="View as PDF"><i class="fas fa-file-pdf"></i></button>`
+            order.id || '-',                                                    // 0: ID
+            order.planta || '-',                                               // 1: Plant Name
+            order.code_planta || '-',                                          // 2: Plant Code
+            order.date || '-',                                                 // 3: Issue Date
+            order.in_out_bound || '-',                                         // 4: Inbound/Outbound
+            order.recovery || '-',                                             // 5: Recovery
+            order.reference || 'Order',                                        // 6: Reference
+            order.reference_number || '-',                                     // 7: Reference Number
+            order.creator_name || '-',                                         // 8: Creator
+            order.area || '-',                                                 // 9: Area
+            order.description || '-',                                          // 10: Description
+            order.category_cause || '-',                                       // 11: Category Cause
+            order.cost_euros ? `€${parseFloat(order.cost_euros).toFixed(2)}` : '-', // 12: Cost
+            order.transport || '-',                                            // 13: Transport
+            order.carrier || '-',                                              // 14: Carrier
+            order.origin_company_name || '-',                                  // 15: Origin Company
+            order.origin_city || '-',                                          // 16: Origin City
+            order.destiny_company_name || '-',                                 // 17: Destination Company
+            order.destiny_city || '-',                                         // 18: Destination City
+            order.last_approver_name || '-',                                   // 19: Last Approver ✅ AGREGADO
+            `<span class="badge ${statusInfo.badgeClass}">${statusInfo.text}</span>`, // 20: Status
+            `<button class="btn btn-sm btn-outline-primary generate-pdf-btn" data-order-id="${order.id}" title="View as PDF"><i class="fas fa-file-pdf"></i></button>` // 21: Actions
         ];
     });
     
@@ -304,9 +301,9 @@ function populateTotalDataTable(orders) {
                         return `<span class="${badgeClass}">${data}</span>`;
                     }
                 },
-                // ✅ Nueva columna del último aprobador
+                // ✅ COLUMNA LAST APPROVER (índice 19)
                 {
-                    targets: 17,
+                    targets: 19,
                     render: renderLastApprover,
                     defaultContent: '-'
                 }
@@ -416,6 +413,3 @@ function updateQuickStats(orders) {
     
     console.log('🎉 [updateQuickStats] Stats update completed!');
 }
-
-// ✅ ELIMINAR estas líneas que estaban mal ubicadas al final del archivo:
-// No necesitamos estas definiciones aquí ya que están en columnDefs arriba

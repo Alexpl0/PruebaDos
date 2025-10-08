@@ -1,46 +1,55 @@
 /**
- * Virtual Assistant - Lucy
+ * Virtual Assistant - Lucy (Updated for PHP Endpoint)
  * Integrated chat system for all Premium Freight system pages.
- * Version modified to include user context, report downloads, and a simplified wake-up call.
+ * Version: 2.0 - Now uses PHP/Gemini backend instead of Python/Claude
  */
 class VirtualAssistant {
     constructor() {
         this.isOpen = false;
-        this.apiEndpoint = 'https://phytonclaude.onrender.com/ask';
+        this.apiEndpoint = null; // Will be set after PF_CONFIG loads
         this.conversationHistory = [];
-        this.userContext = {}; // Se inicializa vacío y se carga después
+        this.userContext = {};
         this.init();
     }
 
     async init() {
-        // Primero carga el contexto del usuario de forma asíncrona
+        // Load user context and API endpoint
         await this.loadUserContext();
-        // Luego, crea el HTML (que ahora puede usar el nombre del usuario)
+        // Create the HTML
         this.createAssistantHTML();
-        // Configura los event listeners
+        // Setup event listeners
         this.setupEventListeners();
-        // Muestra el mensaje de bienvenida
+        // Show welcome message
         this.showWelcomeMessage();
-        // Finalmente, envía la llamada para "despertar" al backend
+        // Send wake-up call
         this.sendWakeUpCall();
     }
 
     /**
-     * Carga de forma asíncrona el contexto del usuario desde el objeto global PF_CONFIG.
-     * Esto asegura que el script no falle si se carga antes que la configuración.
+     * Load user context and API endpoint from global PF_CONFIG
      */
     async loadUserContext() {
         return new Promise(resolve => {
             const interval = setInterval(() => {
-                if (window.PF_CONFIG?.user) {
+                if (window.PF_CONFIG?.user && window.PF_CONFIG?.app?.baseURL) {
                     clearInterval(interval);
+                    
+                    // Set user context
                     this.userContext = {
                         name: window.PF_CONFIG.user.name || 'Guest',
                         plant: window.PF_CONFIG.user.plant || null,
                         id: window.PF_CONFIG.user.id || null,
                         level: window.PF_CONFIG.user.authorizationLevel || 0
                     };
-                    console.log('Assistant context loaded for user:', this.userContext);
+                    
+                    // Set API endpoint
+                    this.apiEndpoint = window.PF_CONFIG.app.baseURL + 'dao/lucyAI/lucy_AI.php';
+                    
+                    console.log('Lucy Assistant initialized:', {
+                        user: this.userContext.name,
+                        endpoint: this.apiEndpoint
+                    });
+                    
                     resolve();
                 }
             }, 100);
@@ -132,25 +141,33 @@ class VirtualAssistant {
     }
     
     /**
-     * Envía una llamada inicial simple para "despertar" el servidor de Render.
+     * Send a simple wake-up call to initialize the PHP backend session
      */
     async sendWakeUpCall() {
-        // No mostrar el indicador de escritura para esta llamada de fondo
-        console.log('Sending wake-up call to backend...');
+        if (!this.apiEndpoint) {
+            console.warn('Lucy: API endpoint not ready yet');
+            return;
+        }
+        
+        console.log('Lucy: Sending wake-up call...');
         try {
             const response = await fetch(this.apiEndpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    question: "Initialize session",
+                    question: "Hello",
                     user_context: this.userContext
                 })
             });
-            if (!response.ok) throw new Error(`Wake-up call failed: ${response.status}`);
+            
+            if (!response.ok) {
+                throw new Error(`Wake-up failed: ${response.status}`);
+            }
+            
             const data = await response.json();
-            console.log('Backend wake-up response:', data.answer);
+            console.log('Lucy: Backend ready', data.status);
         } catch (error) {
-            console.error('Error during wake-up call:', error);
+            console.error('Lucy: Wake-up error', error);
         }
     }
 
@@ -218,6 +235,13 @@ class VirtualAssistant {
         const message = messageInput.value.trim();
 
         if (!message) return;
+        
+        if (!this.apiEndpoint) {
+            this.addAssistantMessage({ 
+                answer: 'System is still initializing. Please wait a moment.' 
+            });
+            return;
+        }
 
         this.addUserMessage(message);
         messageInput.value = '';
@@ -226,7 +250,7 @@ class VirtualAssistant {
         try {
             const requestBody = {
                 question: message,
-                user_context: this.userContext // Siempre se envía el contexto del usuario
+                user_context: this.userContext
             };
             
             const response = await fetch(this.apiEndpoint, {
@@ -235,20 +259,31 @@ class VirtualAssistant {
                 body: JSON.stringify(requestBody)
             });
 
-             if (!response.ok) {
+            if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
             
             this.hideTypingIndicator();
-            // Se pasa el objeto de datos completo para que pueda detectar la URL del reporte
+            
+            if (data.status === 'error') {
+                throw new Error(data.message || 'Unknown error occurred');
+            }
+            
+            // Pass complete data object to handle report URLs
             this.addAssistantMessage(data);
 
         } catch (error) {
-            console.error('Error sending message to the assistant:', error);
+            console.error('Lucy: Error sending message', error);
             this.hideTypingIndicator();
-            this.addAssistantMessage({ answer: 'Sorry, I\'m having trouble connecting. Please try again in a moment.' });
+            
+            let errorMessage = 'Sorry, I\'m having trouble connecting. Please try again in a moment.';
+            if (error.message.includes('401')) {
+                errorMessage = 'Your session has expired. Please refresh the page and log in again.';
+            }
+            
+            this.addAssistantMessage({ answer: errorMessage });
         }
     }
 
@@ -276,17 +311,19 @@ class VirtualAssistant {
         const messageTime = this.getCurrentTime();
         const lucyAvatarSrc = 'assets/assistant/Lucy.png';
         
-        // Extrae el texto y la URL del reporte del objeto de datos
+        // Extract message text and report URL
         const messageText = data.answer || 'I could not process your request.';
         const reportUrl = data.report_url;
 
         let messageBubbleContent = this.formatAssistantMessage(messageText);
 
-        // --- LÓGICA NUEVA: AÑADIR BOTÓN DE DESCARGA ---
+        // Add download button if report URL exists
         if (reportUrl) {
-            messageBubbleContent += `<br><br><a href="${reportUrl}" class="download-button" target="_blank" download="Lucy_Report.xlsx">
-                <i class="fas fa-file-excel"></i> Download Report
-            </a>`;
+            messageBubbleContent += `
+                <br><br>
+                <a href="${reportUrl}" class="download-button" target="_blank" download>
+                    <i class="fas fa-file-excel"></i> Download Report
+                </a>`;
         }
         
         const messageHTML = `
@@ -339,20 +376,24 @@ class VirtualAssistant {
         let formattedMessage = this.escapeHtml(message);
         formattedMessage = formattedMessage.replace(/\n/g, '<br>');
         
-        formattedMessage = formattedMessage.replace(/(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s*(euros?|EUR|€|\$|dollars?)/gi, 
-            '<strong class="currency-highlight">$1 $2</strong>');
+        // Highlight currency amounts
+        formattedMessage = formattedMessage.replace(
+            /(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s*(euros?|EUR|€|\$|dollars?)/gi, 
+            '<strong class="currency-highlight">$1 $2</strong>'
+        );
         
         return formattedMessage;
     }
 }
 
-// Initialize the assistant when the DOM is ready
+// Initialize the assistant when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
     const excludePages = ['login.php', 'register.php', 'index.html'];
     const currentPage = window.location.pathname.split('/').pop();
     
-    // Asume que tienes un objeto global PF_CONFIG definido en tu PHP
-    if (!excludePages.includes(currentPage) && window.PF_CONFIG && window.PF_CONFIG.user.authorizationLevel > 0) {
+    // Only initialize if user has authorization_level > 0
+    if (!excludePages.includes(currentPage) && 
+        window.PF_CONFIG?.user?.authorizationLevel > 0) {
         window.virtualAssistant = new VirtualAssistant();
     }
 });

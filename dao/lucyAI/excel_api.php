@@ -1,7 +1,6 @@
 <?php
 /**
  * excel_api.php - Manejador de Microsoft Graph API para Excel
- * Crea, actualiza y gestiona archivos Excel en OneDrive
  */
 
 // Activar reporte de errores para debugging (REMOVER en producción)
@@ -23,10 +22,9 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-// ==================== CONFIGURACIÓN ====================
-define('MICROSOFT_CLIENT_ID', '316d8718-9117-4db5-b5d2-79a92cd2f0a8');
-define('MICROSOFT_CLIENT_SECRET', 'c2c8Q~DvtuQ1rzT2hlnifPrDdoNFYf04VY_2Wdq~');
-define('MICROSOFT_TENANT_ID', '1b76d39b-fc45-4afe-a05b-8d8f81f18a77');
+// ==================== CARGAR CONFIGURACIÓN ====================
+require_once __DIR__ . '/config.php';
+
 define('MICROSOFT_GRAPH_URL', 'https://graph.microsoft.com/v1.0');
 
 
@@ -190,11 +188,8 @@ function getDownloadUrl($fileId) {
  * Obtiene un access token de Microsoft Graph API
  */
 function getAccessToken() {
-    // Verificar que las credenciales estén configuradas
-    if (MICROSOFT_CLIENT_ID === 'TU_CLIENT_ID_AQUI' || 
-        MICROSOFT_CLIENT_SECRET === 'TU_CLIENT_SECRET_AQUI' || 
-        MICROSOFT_TENANT_ID === 'TU_TENANT_ID_AQUI') {
-        throw new Exception('Microsoft Graph credentials no configuradas. Por favor configura CLIENT_ID, CLIENT_SECRET y TENANT_ID en excel_api.php');
+    if (empty(MICROSOFT_CLIENT_ID) || empty(MICROSOFT_CLIENT_SECRET) || empty(MICROSOFT_TENANT_ID)) {
+        throw new Exception('Microsoft Graph credentials no configuradas en .env');
     }
     
     $tokenUrl = 'https://login.microsoftonline.com/' . MICROSOFT_TENANT_ID . '/oauth2/v2.0/token';

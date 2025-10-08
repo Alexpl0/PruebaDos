@@ -10,10 +10,11 @@ require_once 'dao/users/auth_check.php';
 
 // 2. Validar que se haya proporcionado un ID de orden.
 if (!isset($_GET['order']) || empty($_GET['order'])) {
-    header('Location: orders.php');
+    echo 'Order ID not provided.';
     exit;
 }
 $orderId = intval($_GET['order']);
+echo 'Order ID: ' . $orderId; // Verificar el ID recibido
 
 // 3. Incluir el inyector de contexto desde su ubicación central.
 // Este script crea la variable $appContextForJS e imprime el objeto `window.APP_CONTEXT`.

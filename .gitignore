@@ -6,3 +6,13 @@ dao/db/PFDB.php
 
 # Ignorar archivo PFmailer.php
 mailer/PFMailer/PFmailer.php
+
+# Environment variables
+.env
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp

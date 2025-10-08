@@ -1,8 +1,6 @@
 <?php
 /**
  * gemini_processor.php - Cerebro del sistema con Gemini AI
- * Procesa las peticiones del chat, entiende qué necesita el usuario,
- * obtiene datos del backend y genera estructura para Excel o Power BI
  */
 
 error_reporting(E_ALL);
@@ -21,8 +19,9 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-// ==================== CONFIGURACIÓN ====================
-define('GEMINI_API_KEY', 'AIzaSyA7ajOKqgm8CsnGg1tv3I_C2l7Rwxf-2tM');
+// ==================== CARGAR CONFIGURACIÓN ====================
+require_once __DIR__ . '/config.php';
+
 define('GEMINI_API_URL', 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent');
 
 // ==================== OBTENER DATOS DEL REQUEST ====================
@@ -308,8 +307,8 @@ function analyzeDataStructure($data) {
 }
 
 function callGeminiAPI($userMessage, $systemContext, $history, $outputType) {
-    if (empty(GEMINI_API_KEY) || GEMINI_API_KEY === 'TU_GEMINI_API_KEY_AQUI') {
-        throw new Exception('Gemini API Key no configurada');
+    if (empty(GEMINI_API_KEY)) {
+        throw new Exception('Gemini API Key no configurada en .env');
     }
     
     $messages = [];

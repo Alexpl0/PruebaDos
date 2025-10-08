@@ -57,7 +57,7 @@ body {
     position: relative;
     z-index: 1;
     display: flex;
-    justify-content: space-between; /* Pone el título a la izquierda y los botones a la derecha */
+    justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
     gap: var(--spacing-md);
@@ -103,12 +103,12 @@ body {
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
-    gap: var(--spacing-sm); /* Espacio reducido entre botones */
+    gap: var(--spacing-sm);
     background: rgba(255,255,255,0.1);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255,255,255,0.2);
     border-radius: var(--border-radius);
-    padding: var(--spacing-xs); /* Padding reducido del contenedor */
+    padding: var(--spacing-xs);
 }
 
 .bulk-action-btn {
@@ -117,21 +117,20 @@ body {
     align-items: center;
     justify-content: center;
     gap: var(--spacing-xs);
-    padding: var(--spacing-xs) var(--spacing-sm); /* Padding reducido para botones más pequeños */
+    padding: var(--spacing-xs) var(--spacing-sm);
     background: var(--white);
     color: var(--gray-700);
     border: 1px dashed var(--white);
     border-radius: var(--border-radius);
-    font-size: 0.75rem; /* Fuente más pequeña */
+    font-size: 0.75rem;
     font-weight: 600;
     text-decoration: none;
     transition: var(--transition-normal);
     cursor: pointer;
     box-shadow: var(--shadow-sm);
-    height: 32px; /* Altura reducida */
-    max-width: 120px; /* Ancho máximo añadido */
+    height: 32px;
+    max-width: 120px;
 }
-
 
 .bulk-action-btn:hover {
     transform: translateY(-1px);
@@ -180,7 +179,6 @@ body {
     color: var(--white);
     border-color: var(--gray-600);
 }
-
 
 /* ===== GRID DE ÓRDENES ===== */
 .orders-grid {
@@ -409,4 +407,283 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.05em;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* ========================================================================== */
+/* ===== ROLE SELECTOR STYLES FOR WEEK ORDERS ===== */
+/* ========================================================================== */
+
+.role-selector-week-orders {
+    margin-top: 1rem;
+    animation: fadeInDown 0.3s ease-out;
+}
+
+/* Single Role Badge */
+.role-badge-single {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    box-shadow: 0 4px 6px rgba(102, 126, 234, 0.25);
+    transition: all 0.3s ease;
+}
+
+.role-badge-single:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(102, 126, 234, 0.35);
+}
+
+.role-badge-single i {
+    font-size: 1rem;
+}
+
+/* Multiple Roles Selector */
+.role-selector-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: white;
+    padding: 0.75rem 1.25rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e5e7eb;
+    transition: all 0.3s ease;
+    max-width: 600px;
+}
+
+.role-selector-wrapper:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+.role-selector-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #4b5563;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.role-selector-label i {
+    color: #667eea;
+    font-size: 1rem;
+}
+
+.role-selector-dropdown {
+    flex: 1;
+    padding: 0.5rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #1f2937;
+    background-color: #f9fafb;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    outline: none;
+    min-width: 250px;
+}
+
+.role-selector-dropdown:hover {
+    border-color: #667eea;
+    background-color: white;
+}
+
+.role-selector-dropdown:focus {
+    border-color: #667eea;
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Options styling */
+.role-selector-dropdown option {
+    padding: 0.5rem;
+    font-weight: 500;
+}
+
+.role-selector-dropdown option:first-child {
+    font-weight: 700;
+    color: #667eea;
+}
+
+/* Animation */
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Empty State Enhancement */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    text-align: center;
+    padding: 3rem;
+}
+
+.empty-state i {
+    font-size: 5rem;
+    color: #10B981;
+    margin-bottom: 1.5rem;
+    animation: scaleIn 0.5s ease-out;
+}
+
+.empty-state h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.75rem;
+}
+
+.empty-state p {
+    font-size: 1rem;
+    color: #6b7280;
+    max-width: 500px;
+    line-height: 1.6;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Error State */
+.error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    text-align: center;
+    padding: 3rem;
+}
+
+.error-state h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #dc2626;
+    margin-bottom: 0.75rem;
+}
+
+.error-state p {
+    font-size: 1rem;
+    color: #6b7280;
+    max-width: 500px;
+    line-height: 1.6;
+}
+
+/* Loading Spinner Container */
+.loading-spinner-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    gap: 1rem;
+}
+
+.loading-spinner-container .loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(102, 126, 234, 0.2);
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loading-spinner-container p {
+    color: #6b7280;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* Status Badge in Processed Orders */
+.order-card.processed .status-badge {
+    background: #10B981;
+    color: white;
+}
+
+.order-card.processed.rejected .status-badge {
+    background: #dc3545;
+    color: white;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ===== RESPONSIVE DESIGN FOR ROLE SELECTOR ===== */
+@media (max-width: 768px) {
+    .role-selector-wrapper {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+        padding: 0.75rem;
+    }
+    
+    .role-selector-label {
+        justify-content: center;
+    }
+    
+    .role-selector-dropdown {
+        width: 100%;
+        min-width: unset;
+    }
+    
+    .role-badge-single {
+        font-size: 0.75rem;
+        padding: 0.4rem 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .role-selector-week-orders {
+        margin-top: 0.75rem;
+    }
+    
+    .role-selector-wrapper {
+        padding: 0.5rem;
+    }
+    
+    .role-selector-label {
+        font-size: 0.75rem;
+    }
+    
+    .role-selector-label i {
+        font-size: 0.875rem;
+    }
+    
+    .role-selector-dropdown {
+        font-size: 0.75rem;
+        padding: 0.4rem 0.75rem;
+    }
 }

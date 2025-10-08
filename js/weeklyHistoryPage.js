@@ -12,7 +12,7 @@ import {
     setupToggleFilters, 
     loadOrdersData, 
     getDataTableButtons,
-    renderLastApprover  // ✅ Importar la nueva función
+    renderLastApprover
 } from './dataTables.js';
 
 let allOrdersData = [];
@@ -187,34 +187,27 @@ function populateWeeklyDataTable(orders) {
         }
         
         return [
-            order.id || '-', 
-            order.planta || '-', 
-            order.code_planta || '-', 
-            order.date || '-',
-            order.in_out_bound || '-', 
-            // ✅ NUEVAS COLUMNAS: Recovery y Reference después de Inbound/Outbound
-            order.recovery || '-',
-            order.reference || 'Order',
-            // Resto de columnas
-            order.reference_number || '-', 
-            order.creator_name || '-',
-            order.area || '-', 
-            order.description || '-', 
-            order.category_cause || '-',
-            order.cost_euros ? `€${parseFloat(order.cost_euros).toFixed(2)}` : '-',
-            order.transport || '-', 
-            order.carrier || '-',
-            order.origin_company_name || '-', 
-            order.origin_city || '-',
-            order.destiny_company_name || '-', 
-            order.destiny_city || '-',
-            // ✅ Nueva columna del último aprobador
-            { 
-                data: 'last_approver_name',
-                render: renderLastApprover,
-                defaultContent: '-'
-            },
-            `<button class="btn btn-sm btn-outline-primary generate-pdf-btn" data-order-id="${order.id}" title="View as PDF"><i class="fas fa-file-pdf"></i></button>`
+            order.id || '-',                                                    // 0: ID
+            order.planta || '-',                                               // 1: Plant Name
+            order.code_planta || '-',                                          // 2: Plant Code
+            order.date || '-',                                                 // 3: Issue Date
+            order.in_out_bound || '-',                                         // 4: Inbound/Outbound
+            order.recovery || '-',                                             // 5: Recovery
+            order.reference || 'Order',                                        // 6: Reference
+            order.reference_number || '-',                                     // 7: Reference Number
+            order.creator_name || '-',                                         // 8: Creator
+            order.area || '-',                                                 // 9: Area
+            order.description || '-',                                          // 10: Description
+            order.category_cause || '-',                                       // 11: Category Cause
+            order.cost_euros ? `€${parseFloat(order.cost_euros).toFixed(2)}` : '-', // 12: Cost
+            order.transport || '-',                                            // 13: Transport
+            order.carrier || '-',                                              // 14: Carrier
+            order.origin_company_name || '-',                                  // 15: Origin Company
+            order.origin_city || '-',                                          // 16: Origin City
+            order.destiny_company_name || '-',                                 // 17: Destination Company
+            order.destiny_city || '-',                                         // 18: Destination City
+            order.last_approver_name || '-',                                   // 19: Last Approver ✅ AGREGADO
+            `<button class="btn btn-sm btn-outline-primary generate-pdf-btn" data-order-id="${order.id}" title="View as PDF"><i class="fas fa-file-pdf"></i></button>` // 20: Actions
         ];
     });
     
@@ -237,7 +230,7 @@ function populateWeeklyDataTable(orders) {
         const dataTable = table.DataTable({
             data: tableData,
             dom: 'Bfrtip',
-            buttons: getWeeklyDataTableButtons(`Weekly Orders History - Week ${getWeekNumber(new Date())}`, orders), // Cambio aquí
+            buttons: getWeeklyDataTableButtons(`Weekly Orders History - Week ${getWeekNumber(new Date())}`, orders),
             scrollX: true,
             scrollY: '400px',
             responsive: false,
@@ -275,6 +268,12 @@ function populateWeeklyDataTable(orders) {
                         }
                         return `<span class="${badgeClass}">${data}</span>`;
                     }
+                },
+                // ✅ COLUMNA LAST APPROVER (índice 19)
+                {
+                    targets: 19,
+                    render: renderLastApprover,
+                    defaultContent: '-'
                 }
             ]
         });
@@ -310,7 +309,7 @@ function populateWeeklyDataTable(orders) {
     console.log('🎉 [populateWeeklyDataTable] Table population completed successfully!');
 }
 
-// Agregar esta función después de la función displayWeekData
+// Función para generar los botones de exportación de DataTables para weekly
 function getWeeklyDataTableButtons(title, orders) {
     console.log('🔘 [getWeeklyDataTableButtons] Generating weekly buttons for:', title);
     
