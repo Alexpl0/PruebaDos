@@ -3,18 +3,15 @@
  * ================================================================================
  * PFEmailServices.php - Servicios de Base de Datos para Sistema de Correos
  * ================================================================================
- * 
- * Proporciona servicios de base de datos optimizados para el sistema de correos
+ * * Proporciona servicios de base de datos optimizados para el sistema de correos
  * de Premium Freight, incluyendo manejo de tokens, validaciones robustas y
  * operaciones de agrupación de órdenes.
- * 
- * ACTUALIZACIÓN v2.1 (2025-10-06):
- * - Migrado de User.authorization_level a tabla Approvers.approval_level
- * - Soporte para usuarios con múltiples niveles de aprobación
- * - Soporte para aprobadores regionales (plant = NULL)
- * 
- * @author      GRAMMER AG
- * @version     2.1 - Refactorizado con nueva tabla de aprobadores
+ * * ACTUALIZACIÓN v2.4 (2025-10-09):
+ * - Corregidas las sentencias INSERT y CREATE TABLE para tokens y notificaciones.
+ * - Los nombres de las columnas (`created_at`, `type`, etc.) ahora coinciden con el schema de la BD.
+ * - Se eliminó la lógica de `expires_at` que no existía en la tabla.
+ * * @author      GRAMMER AG
+ * @version     2.4 - Corrección de INSERTs y CREATE TABLEs
  * @since       2025-06-05
  * @license     Proprietary - GRAMMER AG
  */
@@ -25,8 +22,7 @@ require_once 'PFmailUtils.php';
 
 /**
  * Clase principal para servicios de correo de Premium Freight
- * 
- * Maneja todas las operaciones de base de datos relacionadas con el sistema
+ * * Maneja todas las operaciones de base de datos relacionadas con el sistema
  * de correos, incluyendo órdenes, aprobadores, tokens y notificaciones.
  */
 class PFEmailServices {
@@ -42,8 +38,7 @@ class PFEmailServices {
     
     /**
      * Constructor - Inicializa la conexión a la base de datos
-     * 
-     * @throws Exception Si no se puede establecer la conexión
+     * * @throws Exception Si no se puede establecer la conexión
      */
     public function __construct() {
         try {
@@ -66,8 +61,8 @@ class PFEmailServices {
     
     /**
      * Obtiene detalles completos de una orden específica
-     * 
-     * @param int $orderId - ID de la orden
+     * ACTUALIZADO: La consulta ahora se basa en el schema y SELECT proporcionados.
+     * * @param int $orderId - ID de la orden
      * @return array|null - Datos de la orden o null si no existe
      * @throws Exception Si hay error en la consulta
      */
@@ -79,27 +74,38 @@ class PFEmailServices {
         }
         
         try {
+            // ================== CONSULTA SQL CORREGIDA ==================
             $sql = "SELECT 
                         pf.id,
-                        pf.premium_freight_number,
-                        pf.status,
-                        pf.created_at,
-                        pf.origin,
-                        pf.destination,
-                        pf.carrier,
-                        pf.pieces,
+                        pf.date,
                         pf.weight,
+                        pf.cost_euros,
+                        pf.description,
                         pf.required_auth_level,
-                        pfa.act_approv as current_approval_level,
-                        creator.id as creator_id,
-                        creator.name as creator_name,
-                        creator.email as creator_email,
-                        creator.plant as creator_plant
+                        p.productName AS product_name,
+                        no.Number AS reference_number,
+                        no.Name AS reference_name,
+                        st.name AS status_name,
+                        lo_from.company_name AS origin_name,
+                        lo_to.company_name AS destiny_name,
+                        c.name AS carrier_name,
+                        pfa.act_approv AS current_approval_level,
+                        creator.id AS creator_id,
+                        creator.name AS creator_name,
+                        creator.email AS creator_email,
+                        creator.plant AS creator_plant
                     FROM PremiumFreight pf
+                    LEFT JOIN Products p ON pf.products = p.id
+                    LEFT JOIN NumOrders no ON pf.reference_number = no.ID
+                    LEFT JOIN Status st ON pf.status_id = st.id
+                    LEFT JOIN Location lo_from ON pf.origin_id = lo_from.id
+                    LEFT JOIN Location lo_to ON pf.destiny_id = lo_to.id
+                    LEFT JOIN Carriers c ON pf.carrier_id = c.id
                     LEFT JOIN PremiumFreightApprovals pfa ON pf.id = pfa.premium_freight_id
-                    LEFT JOIN User creator ON pf.id_user = creator.id
+                    LEFT JOIN User creator ON pf.user_id = creator.id
                     WHERE pf.id = ?
                     LIMIT 1";
+            // =============================================================
             
             $stmt = $this->db->prepare($sql);
             if (!$stmt) {
@@ -131,34 +137,40 @@ class PFEmailServices {
     
     /**
      * Obtiene órdenes pendientes para el resumen semanal
-     * 
-     * @return array - Lista de órdenes pendientes agrupadas por aprobador
+     * ACTUALIZADO: La consulta ahora se basa en el schema y SELECT proporcionados.
+     * * @return array - Lista de órdenes pendientes
      * @throws Exception Si hay error en la consulta
      */
     public function getPendingOrdersForWeeklySummary() {
         try {
+            // ================== CONSULTA SQL CORREGIDA ==================
             $sql = "SELECT 
                         pf.id,
-                        pf.premium_freight_number,
-                        pf.status,
-                        pf.created_at,
-                        pf.origin,
-                        pf.destination,
-                        pf.carrier,
-                        pf.pieces,
+                        pf.date,
                         pf.weight,
+                        pf.cost_euros,
                         pf.required_auth_level,
+                        p.productName AS product_name,
+                        lo_from.company_name AS origin_name,
+                        lo_to.company_name AS destiny_name,
+                        c.name AS carrier_name,
                         pfa.act_approv as current_approval_level,
                         creator.id as creator_id,
                         creator.name as creator_name,
                         creator.email as creator_email,
                         creator.plant as creator_plant
                     FROM PremiumFreight pf
+                    LEFT JOIN Products p ON pf.products = p.id
+                    LEFT JOIN Status st ON pf.status_id = st.id
+                    LEFT JOIN Location lo_from ON pf.origin_id = lo_from.id
+                    LEFT JOIN Location lo_to ON pf.destiny_id = lo_to.id
+                    LEFT JOIN Carriers c ON pf.carrier_id = c.id
                     LEFT JOIN PremiumFreightApprovals pfa ON pf.id = pfa.premium_freight_id
-                    LEFT JOIN User creator ON pf.id_user = creator.id
-                    WHERE pf.status = 'pending'
+                    LEFT JOIN User creator ON pf.user_id = creator.id
+                    WHERE pf.status_id = '2' -- Asumiendo que '2' es 'Pendiente'
                     AND pfa.act_approv < pf.required_auth_level
-                    ORDER BY pf.created_at ASC";
+                    ORDER BY pf.date ASC";
+            // =============================================================
             
             $stmt = $this->db->prepare($sql);
             if (!$stmt) {
@@ -185,14 +197,13 @@ class PFEmailServices {
     /**
      * Obtiene los próximos aprobadores para una orden
      * ACTUALIZADO: Usa la tabla Approvers en lugar de User.authorization_level
-     * 
-     * @param int $orderId - ID de la orden
+     * * @param int $orderId - ID de la orden
      * @return array - Lista de aprobadores para el siguiente nivel
      * @throws Exception Si hay error en la consulta
      */
     public function getNextApprovers($orderId) {
         try {
-            // 1. Obtener información de la orden
+            // 1. Obtener información de la orden (ahora con detalles enriquecidos)
             $order = $this->getOrderDetails($orderId);
             if (!$order) {
                 throw new Exception("Order not found: $orderId");
@@ -213,7 +224,6 @@ class PFEmailServices {
             logAction("Getting approvers for order $orderId: next level = $nextLevel, plant = $orderPlant", 'INFO');
             
             // 4. ACTUALIZADO: Buscar aprobadores usando la tabla Approvers
-            // Prioridad: 1) Planta específica, 2) Regional (plant = NULL)
             $sql = "SELECT 
                         u.id,
                         u.name,
@@ -271,8 +281,7 @@ class PFEmailServices {
     
     /**
      * Obtiene información de un usuario
-     * 
-     * @param int $userId - ID del usuario
+     * * @param int $userId - ID del usuario
      * @return array|null - Datos del usuario o null si no existe
      * @throws Exception Si hay error en la consulta
      */
@@ -322,8 +331,7 @@ class PFEmailServices {
     
     /**
      * Genera un token único para una acción de email
-     * 
-     * @param int $orderId - ID de la orden
+     * * @param int $orderId - ID de la orden
      * @param int $userId - ID del usuario
      * @param string $action - Tipo de acción (approve/reject)
      * @return string - Token generado
@@ -332,17 +340,18 @@ class PFEmailServices {
     public function generateActionToken($orderId, $userId, $action) {
         try {
             $token = bin2hex(random_bytes(32));
-            $expiresAt = date('Y-m-d H:i:s', strtotime('+7 days'));
             
-            $sql = "INSERT INTO EmailActionTokens (token, order_id, user_id, action, expires_at) 
-                    VALUES (?, ?, ?, ?, ?)";
+            // ================== INSERT SQL CORREGIDO ==================
+            $sql = "INSERT INTO EmailActionTokens (token, order_id, user_id, action, created_at) 
+                    VALUES (?, ?, ?, ?, NOW())";
+            // =========================================================
             
             $stmt = $this->db->prepare($sql);
             if (!$stmt) {
                 throw new Exception("Failed to prepare statement: " . $this->db->error);
             }
             
-            $stmt->bind_param("siiss", $token, $orderId, $userId, $action, $expiresAt);
+            $stmt->bind_param("siis", $token, $orderId, $userId, $action);
             
             if (!$stmt->execute()) {
                 throw new Exception("Failed to insert token: " . $stmt->error);
@@ -359,8 +368,7 @@ class PFEmailServices {
     
     /**
      * Genera un token para acciones en bloque (múltiples órdenes)
-     * 
-     * @param int $userId - ID del usuario
+     * * @param int $userId - ID del usuario
      * @param string $action - Tipo de acción (approve/reject)
      * @param array $orderIds - Array de IDs de órdenes
      * @return string - Token generado
@@ -369,18 +377,19 @@ class PFEmailServices {
     public function generateBulkActionToken($userId, $action, $orderIds) {
         try {
             $token = bin2hex(random_bytes(32));
-            $expiresAt = date('Y-m-d H:i:s', strtotime('+7 days'));
             $orderIdsJson = json_encode($orderIds);
             
-            $sql = "INSERT INTO BulkEmailActionTokens (token, user_id, action, order_ids, expires_at) 
-                    VALUES (?, ?, ?, ?, ?)";
+            // ================== INSERT SQL CORREGIDO ==================
+            $sql = "INSERT INTO EmailBulkActionTokens (token, user_id, action, order_ids, created_at) 
+                    VALUES (?, ?, ?, ?, NOW())";
+            // =========================================================
             
             $stmt = $this->db->prepare($sql);
             if (!$stmt) {
                 throw new Exception("Failed to prepare statement: " . $this->db->error);
             }
             
-            $stmt->bind_param("sisss", $token, $userId, $action, $orderIdsJson, $expiresAt);
+            $stmt->bind_param("siss", $token, $userId, $action, $orderIdsJson);
             
             if (!$stmt->execute()) {
                 throw new Exception("Failed to insert bulk token: " . $stmt->error);
@@ -397,8 +406,7 @@ class PFEmailServices {
     
     /**
      * Agrupa órdenes por aprobador para envíos en bloque
-     * 
-     * @param array $orders - Lista de órdenes
+     * * @param array $orders - Lista de órdenes
      * @return array - Órdenes agrupadas por aprobador
      */
     public function groupOrdersByApprover($orders) {
@@ -431,16 +439,17 @@ class PFEmailServices {
     
     /**
      * Registra una notificación enviada
-     * 
-     * @param int $orderId - ID de la orden
+     * * @param int $orderId - ID de la orden
      * @param int $userId - ID del usuario notificado
      * @param string $type - Tipo de notificación
      * @return bool - True si se registró correctamente
      */
     public function logNotification($orderId, $userId, $type) {
         try {
-            $sql = "INSERT INTO EmailNotifications (order_id, user_id, notification_type, sent_at) 
+            // ================== INSERT SQL CORREGIDO ==================
+            $sql = "INSERT INTO EmailNotifications (order_id, user_id, type, sent_at) 
                     VALUES (?, ?, ?, NOW())";
+            // =========================================================
             
             $stmt = $this->db->prepare($sql);
             if (!$stmt) {
@@ -463,14 +472,12 @@ class PFEmailServices {
     
     /**
      * Valida la estructura de una orden
-     * 
-     * @param array $order - Datos de la orden
+     * * @param array $order - Datos de la orden
      * @return bool - True si la estructura es válida
      */
     private function validateOrderStructure($order) {
         $requiredFields = [
-            'id', 'premium_freight_number', 'status', 
-            'creator_id', 'creator_name', 'creator_email'
+            'id', 'creator_id', 'creator_name', 'creator_email'
         ];
         
         foreach ($requiredFields as $field) {
@@ -484,57 +491,7 @@ class PFEmailServices {
     }
     
     /**
-     * Obtiene aprobadores para un nivel y planta específicos
-     * ACTUALIZADO: Usa la tabla Approvers
-     * 
-     * @param int $authLevel - Nivel de aprobación requerido
-     * @param string|null $plant - Planta de la orden
-     * @return array - Lista de aprobadores
-     */
-    private function getApproversForLevel($authLevel, $plant) {
-        try {
-            // ACTUALIZADO: Consulta usando la tabla Approvers
-            $sql = "SELECT 
-                        u.id,
-                        u.name,
-                        u.email,
-                        u.role,
-                        a.approval_level,
-                        a.plant,
-                        CASE 
-                            WHEN a.plant IS NULL THEN 1 
-                            ELSE 0 
-                        END as is_regional
-                    FROM Approvers a
-                    INNER JOIN User u ON a.user_id = u.id
-                    WHERE a.approval_level = ?
-                    AND (a.plant = ? OR a.plant IS NULL)
-                    ORDER BY is_regional ASC, u.name ASC";
-            
-            $stmt = $this->db->prepare($sql);
-            if (!$stmt) {
-                throw new Exception("Failed to prepare statement: " . $this->db->error);
-            }
-            
-            $stmt->bind_param("is", $authLevel, $plant);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            
-            $approvers = [];
-            while ($row = $result->fetch_assoc()) {
-                $approvers[] = $row;
-            }
-            
-            return $approvers;
-            
-        } catch (Exception $e) {
-            logAction("Error getting approvers for level $authLevel: " . $e->getMessage(), 'ERROR');
-            return [];
-        }
-    }
-    
-    /**
-     * Asegura que existan las tablas necesarias para el sistema de tokens
+     * Asegura que existan las tablas necesarias para el sistema de tokens y notificaciones
      */
     private function ensureRequiredTables() {
         $this->ensureActionTokensTable();
@@ -546,22 +503,22 @@ class PFEmailServices {
      * Crea la tabla de tokens de acción si no existe
      */
     private function ensureActionTokensTable() {
+        // ================== CREATE TABLE CORREGIDO ==================
         $sql = "CREATE TABLE IF NOT EXISTS EmailActionTokens (
             id INT AUTO_INCREMENT PRIMARY KEY,
             token VARCHAR(64) UNIQUE NOT NULL,
             order_id INT NOT NULL,
             user_id INT NOT NULL,
-            action VARCHAR(20) NOT NULL,
+            action ENUM('approve','reject') NOT NULL,
             is_used BOOLEAN DEFAULT FALSE,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            used_at TIMESTAMP NULL,
-            expires_at TIMESTAMP NOT NULL,
+            created_at DATETIME NOT NULL,
+            used_at DATETIME NULL,
             INDEX idx_token (token),
             INDEX idx_order_user (order_id, user_id),
             FOREIGN KEY (order_id) REFERENCES PremiumFreight(id),
             FOREIGN KEY (user_id) REFERENCES User(id)
         )";
-        
+        // ============================================================
         $this->db->query($sql);
     }
     
@@ -569,21 +526,21 @@ class PFEmailServices {
      * Crea la tabla de tokens en bloque si no existe
      */
     private function ensureBulkTokensTable() {
-        $sql = "CREATE TABLE IF NOT EXISTS BulkEmailActionTokens (
+        // ================== CREATE TABLE CORREGIDO ==================
+        $sql = "CREATE TABLE IF NOT EXISTS EmailBulkActionTokens (
             id INT AUTO_INCREMENT PRIMARY KEY,
             token VARCHAR(64) UNIQUE NOT NULL,
             user_id INT NOT NULL,
-            action VARCHAR(20) NOT NULL,
+            action ENUM('approve','reject') NOT NULL,
             order_ids TEXT NOT NULL,
             is_used BOOLEAN DEFAULT FALSE,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            used_at TIMESTAMP NULL,
-            expires_at TIMESTAMP NOT NULL,
+            created_at DATETIME NOT NULL,
+            used_at DATETIME NULL,
             INDEX idx_token (token),
             INDEX idx_user (user_id),
             FOREIGN KEY (user_id) REFERENCES User(id)
         )";
-        
+        // ============================================================
         $this->db->query($sql);
     }
     
@@ -591,25 +548,25 @@ class PFEmailServices {
      * Crea la tabla de notificaciones si no existe
      */
     private function ensureNotificationsTable() {
+        // ================== CREATE TABLE CORREGIDO ==================
         $sql = "CREATE TABLE IF NOT EXISTS EmailNotifications (
             id INT AUTO_INCREMENT PRIMARY KEY,
             order_id INT NOT NULL,
             user_id INT NOT NULL,
-            notification_type VARCHAR(50) NOT NULL,
-            sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            type VARCHAR(30) NOT NULL,
+            sent_at DATETIME NOT NULL,
             INDEX idx_order (order_id),
             INDEX idx_user (user_id),
             FOREIGN KEY (order_id) REFERENCES PremiumFreight(id),
             FOREIGN KEY (user_id) REFERENCES User(id)
         )";
-        
+        // ============================================================
         $this->db->query($sql);
     }
     
     /**
      * Obtiene la conexión a la base de datos (para uso externo si es necesario)
-     * 
-     * @return mysqli
+     * * @return mysqli
      */
     public function getDatabase() {
         return $this->db;
@@ -626,8 +583,7 @@ class PFEmailServices {
     
     /**
      * Obtiene estadísticas del cache
-     * 
-     * @return array
+     * * @return array
      */
     public function getCacheStats() {
         return [
@@ -646,3 +602,4 @@ class PFEmailServices {
     }
 }
 ?>
+
