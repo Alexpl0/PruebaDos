@@ -3,15 +3,17 @@
  * ================================================================================
  * PFEmailServices.php - Servicios de Base de Datos para Sistema de Correos
  * ================================================================================
- * * Proporciona servicios de base de datos optimizados para el sistema de correos
+ * Proporciona servicios de base de datos optimizados para el sistema de correos
  * de Premium Freight, incluyendo manejo de tokens, validaciones robustas y
  * operaciones de agrupación de órdenes.
- * * ACTUALIZACIÓN v2.4 (2025-10-09):
- * - Corregidas las sentencias INSERT y CREATE TABLE para tokens y notificaciones.
- * - Los nombres de las columnas (`created_at`, `type`, etc.) ahora coinciden con el schema de la BD.
- * - Se eliminó la lógica de `expires_at` que no existía en la tabla.
- * * @author      GRAMMER AG
- * @version     2.4 - Corrección de INSERTs y CREATE TABLEs
+ * 
+ * ACTUALIZACIÓN v2.5 (2025-10-10):
+ * - ✅ CORREGIDO: groupOrdersByApprover() ahora genera bulk_tokens
+ * - ✅ CORREGIDO: Validación de estructura de datos antes de templates
+ * - ✅ OPTIMIZADO: Caché mejorado y manejo de errores robusto
+ * 
+ * @author      GRAMMER AG
+ * @version     2.5 - Corrección de tokens y validaciones
  * @since       2025-06-05
  * @license     Proprietary - GRAMMER AG
  */
@@ -22,7 +24,8 @@ require_once 'PFmailUtils.php';
 
 /**
  * Clase principal para servicios de correo de Premium Freight
- * * Maneja todas las operaciones de base de datos relacionadas con el sistema
+ * 
+ * Maneja todas las operaciones de base de datos relacionadas con el sistema
  * de correos, incluyendo órdenes, aprobadores, tokens y notificaciones.
  */
 class PFEmailServices {
@@ -38,7 +41,8 @@ class PFEmailServices {
     
     /**
      * Constructor - Inicializa la conexión a la base de datos
-     * * @throws Exception Si no se puede establecer la conexión
+     * 
+     * @throws Exception Si no se puede establecer la conexión
      */
     public function __construct() {
         try {
@@ -61,8 +65,8 @@ class PFEmailServices {
     
     /**
      * Obtiene detalles completos de una orden específica
-     * ACTUALIZADO: La consulta ahora se basa en el schema y SELECT proporcionados.
-     * * @param int $orderId - ID de la orden
+     * 
+     * @param int $orderId - ID de la orden
      * @return array|null - Datos de la orden o null si no existe
      * @throws Exception Si hay error en la consulta
      */
@@ -74,7 +78,6 @@ class PFEmailServices {
         }
         
         try {
-            // ================== CONSULTA SQL CORREGIDA ==================
             $sql = "SELECT 
                         pf.id,
                         pf.date,
@@ -105,7 +108,6 @@ class PFEmailServices {
                     LEFT JOIN User creator ON pf.user_id = creator.id
                     WHERE pf.id = ?
                     LIMIT 1";
-            // =============================================================
             
             $stmt = $this->db->prepare($sql);
             if (!$stmt) {
@@ -137,18 +139,18 @@ class PFEmailServices {
     
     /**
      * Obtiene órdenes pendientes para el resumen semanal
-     * ACTUALIZADO: La consulta ahora se basa en el schema y SELECT proporcionados.
-     * * @return array - Lista de órdenes pendientes
+     * 
+     * @return array - Lista de órdenes pendientes
      * @throws Exception Si hay error en la consulta
      */
     public function getPendingOrdersForWeeklySummary() {
         try {
-            // ================== CONSULTA SQL CORREGIDA ==================
             $sql = "SELECT 
                         pf.id,
                         pf.date,
                         pf.weight,
                         pf.cost_euros,
+                        pf.description,
                         pf.required_auth_level,
                         p.productName AS product_name,
                         lo_from.company_name AS origin_name,
@@ -167,10 +169,9 @@ class PFEmailServices {
                     LEFT JOIN Carriers c ON pf.carrier_id = c.id
                     LEFT JOIN PremiumFreightApprovals pfa ON pf.id = pfa.premium_freight_id
                     LEFT JOIN User creator ON pf.user_id = creator.id
-                    WHERE pf.status_id = '2' -- Asumiendo que '2' es 'Pendiente'
+                    WHERE pf.status_id = '2'
                     AND pfa.act_approv < pf.required_auth_level
                     ORDER BY pf.date ASC";
-            // =============================================================
             
             $stmt = $this->db->prepare($sql);
             if (!$stmt) {
@@ -196,26 +197,23 @@ class PFEmailServices {
     
     /**
      * Obtiene los próximos aprobadores para una orden
-     * ACTUALIZADO: Usa la tabla Approvers en lugar de User.authorization_level
-     * * @param int $orderId - ID de la orden
+     * 
+     * @param int $orderId - ID de la orden
      * @return array - Lista de aprobadores para el siguiente nivel
      * @throws Exception Si hay error en la consulta
      */
     public function getNextApprovers($orderId) {
         try {
-            // 1. Obtener información de la orden (ahora con detalles enriquecidos)
             $order = $this->getOrderDetails($orderId);
             if (!$order) {
                 throw new Exception("Order not found: $orderId");
             }
             
-            // 2. Calcular el siguiente nivel requerido
             $currentLevel = intval($order['current_approval_level'] ?? 0);
             $nextLevel = $currentLevel + 1;
             $requiredLevel = intval($order['required_auth_level'] ?? 7);
             $orderPlant = $order['creator_plant'];
             
-            // 3. Verificar si ya está completamente aprobada
             if ($currentLevel >= $requiredLevel) {
                 logAction("Order $orderId is already fully approved (level $currentLevel/$requiredLevel)", 'INFO');
                 return [];
@@ -223,7 +221,6 @@ class PFEmailServices {
             
             logAction("Getting approvers for order $orderId: next level = $nextLevel, plant = $orderPlant", 'INFO');
             
-            // 4. ACTUALIZADO: Buscar aprobadores usando la tabla Approvers
             $sql = "SELECT 
                         u.id,
                         u.name,
@@ -263,7 +260,6 @@ class PFEmailServices {
                 ];
             }
             
-            // 5. Log del resultado
             if (empty($approvers)) {
                 logAction("WARNING: No approvers found for level $nextLevel and plant $orderPlant", 'WARNING');
             } else {
@@ -281,12 +277,12 @@ class PFEmailServices {
     
     /**
      * Obtiene información de un usuario
-     * * @param int $userId - ID del usuario
+     * 
+     * @param int $userId - ID del usuario
      * @return array|null - Datos del usuario o null si no existe
      * @throws Exception Si hay error en la consulta
      */
     public function getUser($userId) {
-        // Verificar cache primero
         if (isset($this->userCache[$userId])) {
             return $this->userCache[$userId];
         }
@@ -317,8 +313,6 @@ class PFEmailServices {
             }
             
             $user = $result->fetch_assoc();
-            
-            // Guardar en cache
             $this->userCache[$userId] = $user;
             
             return $user;
@@ -331,7 +325,8 @@ class PFEmailServices {
     
     /**
      * Genera un token único para una acción de email
-     * * @param int $orderId - ID de la orden
+     * 
+     * @param int $orderId - ID de la orden
      * @param int $userId - ID del usuario
      * @param string $action - Tipo de acción (approve/reject)
      * @return string - Token generado
@@ -341,10 +336,8 @@ class PFEmailServices {
         try {
             $token = bin2hex(random_bytes(32));
             
-            // ================== INSERT SQL CORREGIDO ==================
             $sql = "INSERT INTO EmailActionTokens (token, order_id, user_id, action, created_at) 
                     VALUES (?, ?, ?, ?, NOW())";
-            // =========================================================
             
             $stmt = $this->db->prepare($sql);
             if (!$stmt) {
@@ -367,8 +360,9 @@ class PFEmailServices {
     }
     
     /**
-     * Genera un token para acciones en bloque (múltiples órdenes)
-     * * @param int $userId - ID del usuario
+     * ✅ CORREGIDO: Genera un token para acciones en bloque (múltiples órdenes)
+     * 
+     * @param int $userId - ID del usuario
      * @param string $action - Tipo de acción (approve/reject)
      * @param array $orderIds - Array de IDs de órdenes
      * @return string - Token generado
@@ -379,10 +373,8 @@ class PFEmailServices {
             $token = bin2hex(random_bytes(32));
             $orderIdsJson = json_encode($orderIds);
             
-            // ================== INSERT SQL CORREGIDO ==================
             $sql = "INSERT INTO EmailBulkActionTokens (token, user_id, action, order_ids, created_at) 
                     VALUES (?, ?, ?, ?, NOW())";
-            // =========================================================
             
             $stmt = $this->db->prepare($sql);
             if (!$stmt) {
@@ -395,7 +387,7 @@ class PFEmailServices {
                 throw new Exception("Failed to insert bulk token: " . $stmt->error);
             }
             
-            logAction("Generated bulk token for user $userId, " . count($orderIds) . " orders", 'SUCCESS');
+            logAction("Generated bulk token for user $userId, " . count($orderIds) . " orders, action: $action", 'SUCCESS');
             return $token;
             
         } catch (Exception $e) {
@@ -405,13 +397,16 @@ class PFEmailServices {
     }
     
     /**
-     * Agrupa órdenes por aprobador para envíos en bloque
-     * * @param array $orders - Lista de órdenes
-     * @return array - Órdenes agrupadas por aprobador
+     * ✅ CORREGIDO: Agrupa órdenes por aprobador para envíos en bloque
+     * AHORA GENERA LOS BULK_TOKENS NECESARIOS PARA EL TEMPLATE
+     * 
+     * @param array $orders - Lista de órdenes
+     * @return array - Órdenes agrupadas por aprobador con tokens generados
      */
     public function groupOrdersByApprover($orders) {
         $grouped = [];
         
+        // Paso 1: Agrupar órdenes por aprobador
         foreach ($orders as $order) {
             try {
                 $approvers = $this->getNextApprovers($order['id']);
@@ -422,34 +417,59 @@ class PFEmailServices {
                     if (!isset($grouped[$approverId])) {
                         $grouped[$approverId] = [
                             'approver' => $approver,
-                            'orders' => []
+                            'orders' => [],
+                            'order_ids' => [] // ✅ NUEVO: Array para IDs
                         ];
                     }
                     
                     $grouped[$approverId]['orders'][] = $order;
+                    $grouped[$approverId]['order_ids'][] = $order['id']; // ✅ NUEVO
                 }
             } catch (Exception $e) {
                 logAction("Error processing order {$order['id']} for grouping: " . $e->getMessage(), 'WARNING');
             }
         }
         
-        logAction("Grouped " . count($orders) . " orders for " . count($grouped) . " approvers", 'SUCCESS');
+        // ✅ Paso 2: Generar bulk tokens para cada aprobador
+        foreach ($grouped as $approverId => &$groupData) {
+            try {
+                $orderIds = $groupData['order_ids'];
+                
+                // Generar tokens de aprobación y rechazo en bloque
+                $groupData['bulk_tokens'] = [
+                    'approve' => $this->generateBulkActionToken($approverId, 'approve', $orderIds),
+                    'reject' => $this->generateBulkActionToken($approverId, 'reject', $orderIds)
+                ];
+                
+                logAction("Generated bulk tokens for approver $approverId with " . count($orderIds) . " orders", 'SUCCESS');
+                
+            } catch (Exception $e) {
+                logAction("Error generating bulk tokens for approver $approverId: " . $e->getMessage(), 'WARNING');
+                // Fallback: tokens null para evitar errores en template
+                $groupData['bulk_tokens'] = [
+                    'approve' => null,
+                    'reject' => null
+                ];
+            }
+        }
+        unset($groupData); // Romper referencia
+        
+        logAction("Grouped " . count($orders) . " orders for " . count($grouped) . " approvers with tokens", 'SUCCESS');
         return $grouped;
     }
     
     /**
      * Registra una notificación enviada
-     * * @param int $orderId - ID de la orden
+     * 
+     * @param int $orderId - ID de la orden
      * @param int $userId - ID del usuario notificado
      * @param string $type - Tipo de notificación
      * @return bool - True si se registró correctamente
      */
     public function logNotification($orderId, $userId, $type) {
         try {
-            // ================== INSERT SQL CORREGIDO ==================
             $sql = "INSERT INTO EmailNotifications (order_id, user_id, type, sent_at) 
                     VALUES (?, ?, ?, NOW())";
-            // =========================================================
             
             $stmt = $this->db->prepare($sql);
             if (!$stmt) {
@@ -472,7 +492,8 @@ class PFEmailServices {
     
     /**
      * Valida la estructura de una orden
-     * * @param array $order - Datos de la orden
+     * 
+     * @param array $order - Datos de la orden
      * @return bool - True si la estructura es válida
      */
     private function validateOrderStructure($order) {
@@ -503,7 +524,6 @@ class PFEmailServices {
      * Crea la tabla de tokens de acción si no existe
      */
     private function ensureActionTokensTable() {
-        // ================== CREATE TABLE CORREGIDO ==================
         $sql = "CREATE TABLE IF NOT EXISTS EmailActionTokens (
             id INT AUTO_INCREMENT PRIMARY KEY,
             token VARCHAR(64) UNIQUE NOT NULL,
@@ -518,7 +538,6 @@ class PFEmailServices {
             FOREIGN KEY (order_id) REFERENCES PremiumFreight(id),
             FOREIGN KEY (user_id) REFERENCES User(id)
         )";
-        // ============================================================
         $this->db->query($sql);
     }
     
@@ -526,7 +545,6 @@ class PFEmailServices {
      * Crea la tabla de tokens en bloque si no existe
      */
     private function ensureBulkTokensTable() {
-        // ================== CREATE TABLE CORREGIDO ==================
         $sql = "CREATE TABLE IF NOT EXISTS EmailBulkActionTokens (
             id INT AUTO_INCREMENT PRIMARY KEY,
             token VARCHAR(64) UNIQUE NOT NULL,
@@ -540,7 +558,6 @@ class PFEmailServices {
             INDEX idx_user (user_id),
             FOREIGN KEY (user_id) REFERENCES User(id)
         )";
-        // ============================================================
         $this->db->query($sql);
     }
     
@@ -548,7 +565,6 @@ class PFEmailServices {
      * Crea la tabla de notificaciones si no existe
      */
     private function ensureNotificationsTable() {
-        // ================== CREATE TABLE CORREGIDO ==================
         $sql = "CREATE TABLE IF NOT EXISTS EmailNotifications (
             id INT AUTO_INCREMENT PRIMARY KEY,
             order_id INT NOT NULL,
@@ -560,13 +576,13 @@ class PFEmailServices {
             FOREIGN KEY (order_id) REFERENCES PremiumFreight(id),
             FOREIGN KEY (user_id) REFERENCES User(id)
         )";
-        // ============================================================
         $this->db->query($sql);
     }
     
     /**
      * Obtiene la conexión a la base de datos (para uso externo si es necesario)
-     * * @return mysqli
+     * 
+     * @return mysqli
      */
     public function getDatabase() {
         return $this->db;
@@ -582,8 +598,21 @@ class PFEmailServices {
     }
     
     /**
+     * ✅ NUEVO: Limpia solo el cache de una orden específica
+     * 
+     * @param int $orderId - ID de la orden
+     */
+    public function clearOrderCache($orderId) {
+        if (isset($this->orderCache[$orderId])) {
+            unset($this->orderCache[$orderId]);
+            logAction("Order cache cleared for order $orderId", 'INFO');
+        }
+    }
+    
+    /**
      * Obtiene estadísticas del cache
-     * * @return array
+     * 
+     * @return array
      */
     public function getCacheStats() {
         return [
@@ -602,4 +631,3 @@ class PFEmailServices {
     }
 }
 ?>
-

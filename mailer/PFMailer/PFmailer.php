@@ -3,15 +3,14 @@
  * PFMailer.php
  *
  * Main class for sending emails securely in production or development environments.
- * ✅ UPDATED: Now supports multiple SMTP accounts based on user plant (3330=Querétaro, 3310=Tetla)
+ * ✅ UPDATED v2.5: Sistema multi-planta con configuración SMTP dinámica
+ * ✅ FIXED: FROM ahora siempre coincide con USERNAME para evitar rechazo SMTP
  */
 
 // =========================================================================
 // MAIN CONFIGURATION - EDIT THIS SECTION!
 // =========================================================================
 // Change this line to 'production' for the real environment.
-// 'development': Uses test credentials, redirects emails, and enables logs.
-// 'production':  Uses real credentials and disables detailed logs.
 define('APP_ENVIRONMENT', 'production');
 // =========================================================================
 
@@ -19,56 +18,43 @@ define('APP_ENVIRONMENT', 'production');
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-// Asegúrate de que las rutas a PHPMailer sean correctas
 require_once __DIR__ . '/../Phpmailer/PHPMailer.php';
 require_once __DIR__ . '/../Phpmailer/SMTP.php';
 require_once __DIR__ . '/../Phpmailer/Exception.php';
 
-// Carga de clases de la aplicación
 require_once __DIR__ . '/PFEmailServices.php';
 require_once __DIR__ . '/PFEmailTemplates.php';
 require_once __DIR__ . '/PFDB.php';
 require_once __DIR__ . '/PFWeeklyReporter.php';
 
 // =========================================================================
-// CONFIGURACIÓN DE ENTORNO Y CARGA DE CONFIGURACIÓN SMTP
+// CONFIGURACIÓN DE ENTORNO
 // =========================================================================
 
 if (APP_ENVIRONMENT === 'development') {
-    // -- MODO DESARROLLO --
     error_reporting(E_ALL);
     ini_set('display_errors', 1);
 
     define('TEST_MODE', true);
     define('TEST_EMAIL', 'extern.jesus.perez@grammer.com');
-
-    // URLs de PRUEBAS
     define('URLM', 'https://grammermx.com/Mailer/PFMailer/');
     define('URLPF', 'https://grammermx.com/Jesus/PruebaDos/');
-
-    // Nivel de depuración SMTP (2 = Muestra toda la conversación con el servidor)
     define('SMTP_DEBUG_LEVEL', 2);
 
 } else {
-    // -- MODO PRODUCCIÓN --
     error_reporting(0);
     ini_set('display_errors', 0);
 
     define('TEST_MODE', false);
     define('TEST_EMAIL', '');
-
-    // URLs de PRODUCCIÓN
     define('URLM', 'https://grammermx.com/Mailer/PFMailer/');
     define('URLPF', 'https://grammermx.com/Logistica/PremiumFreight/');
-
-    // Nivel de depuración SMTP (0 = Desactivado para producción)
     define('SMTP_DEBUG_LEVEL', 0);
 }
 
-// ✅ NUEVO: Cargar configuración SMTP desde archivo externo
+// ✅ Cargar configuración SMTP
 require_once __DIR__ . '/smtp_config.php';
 
-// Función de Log (si no existe una global)
 if (!function_exists('logAction')) {
     function logAction($message, $category) {
         $logFile = __DIR__ . '/app.log';
@@ -87,11 +73,10 @@ class PFMailer {
     private $services;
     private $templates;
     private $db;
-    private $currentPlantConfig; // ✅ NUEVO: Para tracking de configuración actual
+    private $currentPlantConfig;
 
     /**
      * Constructor - inicializa PHPMailer y las dependencias.
-     * ✅ MODIFICADO: Configuración SMTP dinámica según planta
      */
     public function __construct() {
         $this->services = new PFEmailServices();
@@ -101,21 +86,16 @@ class PFMailer {
         $this->db = $con->conectar();
         
         $this->mail = new PHPMailer(true);
-
-        // ✅ NUEVO: Configuración básica sin SMTP específico
-        // La configuración SMTP se hará dinámicamente antes de cada envío
         $this->mail->isSMTP();
         $this->mail->SMTPAuth = true;
-        
-        // Nivel de depuración SMTP controlado por el entorno
         $this->mail->SMTPDebug = SMTP_DEBUG_LEVEL;
+        
         if (SMTP_DEBUG_LEVEL > 0) {
             $this->mail->Debugoutput = function($str, $level) {
                 logAction("PHPMailer Debug: {$str}", "SMTP");
             };
         }
 
-        // Configuración del formato del correo
         $this->mail->isHTML(true);
         $this->mail->CharSet = 'UTF-8';
         
@@ -123,26 +103,19 @@ class PFMailer {
     }
 
     // =========================================================================
-    // ✅ NUEVOS MÉTODOS PARA MANEJO MULTI-PLANTA
+    // MÉTODOS MULTI-PLANTA
     // =========================================================================
 
     /**
-     * ✅ SIMPLIFICADO: Determina configuración SMTP basado SOLO en email del destinatario
-     * 
-     * Lógica simple:
-     * 1. Buscar email en tabla User  
-     * 2. Si User.plant = '3330' → Querétaro
-     * 3. Si User.plant = '3310' → Tetla
-     * 4. Si no existe usuario o plant = NULL → default
+     * ✅ Determina configuración SMTP basado en email del destinatario
      * 
      * @param string $recipientEmail Email del destinatario
-     * @param array $orderData Datos de la orden (opcional, para compatibilidad)
+     * @param array $orderData Datos de la orden (opcional)
      * @return string Código de planta ('3330', '3310', 'default')
      */
     public function determinePlantConfig($recipientEmail, $orderData = null) {
         logAction("Determinando planta para email: {$recipientEmail}", 'PLANT_DETECTION');
         
-        // ✅ MÉTODO ÚNICO: Buscar email en tabla User
         try {
             $user = $this->getUserByEmail($recipientEmail);
             
@@ -150,7 +123,6 @@ class PFMailer {
                 $userPlant = (string)$user['plant'];
                 logAction("Usuario encontrado - plant: {$userPlant} para email: {$recipientEmail}", 'PLANT_DETECTION');
                 
-                // Validar que sea una planta conocida (3330 o 3310)
                 if (in_array($userPlant, ['3330', '3310'])) {
                     logAction("Planta válida detectada: {$userPlant}", 'PLANT_DETECTION');
                     return $userPlant;
@@ -170,10 +142,7 @@ class PFMailer {
     }
 
     /**
-     * ✅ SIMPLIFICADO: Obtiene datos de usuario por email
-     * 
-     * @param string $email Email del usuario
-     * @return array|null Datos del usuario o null si no existe
+     * ✅ Obtiene datos de usuario por email
      */
     public function getUserByEmail($email) {
         try {
@@ -182,7 +151,6 @@ class PFMailer {
                 return null;
             }
             
-            // Query simple y directa
             $sql = "SELECT id, name, email, plant, authorization_level 
                     FROM User 
                     WHERE email = ? 
@@ -215,40 +183,48 @@ class PFMailer {
     }
 
     /**
-     * Configura PHPMailer con la configuración SMTP de la planta especificada
-     * 
-     * @param string $plantCode Código de planta ('3330', '3310', 'default')
+     * ✅ CRÍTICO: Configura PHPMailer con la configuración SMTP de la planta
+     * ASEGURA que FROM = USERNAME para evitar rechazo
      */
     private function configureSMTPForPlant($plantCode) {
         logAction("Configurando SMTP para planta: {$plantCode}", 'SMTP_CONFIG');
         
         $configs = SMTP_CONFIGS;
         
-        // Verificar que la configuración exista
         if (!array_key_exists($plantCode, $configs)) {
             logAction("Configuración no encontrada para planta: {$plantCode}, usando default", 'SMTP_CONFIG_WARNING');
             $plantCode = 'default';
         }
         
         $config = $configs[$plantCode];
-        $this->currentPlantConfig = $config; // ✅ NUEVO: Guardar configuración actual
+        $this->currentPlantConfig = $config;
         
         try {
-            // Reconfigurar PHPMailer con la nueva configuración
+            // ✅ Limpiar completamente el objeto mail
+            $this->mail->clearAddresses();
+            $this->mail->clearCCs();
+            $this->mail->clearBCCs();
+            $this->mail->clearReplyTos();
+            $this->mail->clearAllRecipients();
+            $this->mail->clearAttachments();
+            
+            // Configurar parámetros SMTP
             $this->mail->Host = $config['host'];
             $this->mail->Port = $config['port'];
             $this->mail->Username = $config['username'];
             $this->mail->Password = $config['password'];
             $this->mail->SMTPSecure = $config['secure'];
             
-            // Actualizar el remitente
+            // ✅ CRÍTICO: FROM debe ser EXACTAMENTE el USERNAME
             $this->mail->setFrom($config['username'], $config['from_name']);
             
-            // Limpiar y reconfigurar BCC con la nueva cuenta
-            $this->mail->clearBCCs();
-            $this->mail->addBCC($config['username'], 'Backup Copy - ' . $config['plant_name']);
+            // ✅ Agregar BCC con la misma cuenta
+            $this->mail->addBCC($config['username'], 'Backup - ' . $config['plant_name']);
             
-            logAction("SMTP configurado exitosamente para {$config['plant_name']} con usuario: {$config['username']}", 'SMTP_CONFIG_SUCCESS');
+            logAction("✅ SMTP configurado para {$config['plant_name']}", 'SMTP_CONFIG_SUCCESS');
+            logAction("  Host: {$config['host']}:{$config['port']}", 'SMTP_CONFIG_SUCCESS');
+            logAction("  Username/FROM: {$config['username']}", 'SMTP_CONFIG_SUCCESS');
+            logAction("  FROM Name: {$config['from_name']}", 'SMTP_CONFIG_SUCCESS');
             
         } catch (Exception $e) {
             logAction("Error configurando SMTP para planta {$plantCode}: " . $e->getMessage(), 'SMTP_CONFIG_ERROR');
@@ -257,69 +233,51 @@ class PFMailer {
     }
 
     /**
-     * ✅ SIMPLIFICADO: Establece destinatarios y configura SMTP según planta del usuario
-     * 
-     * Flujo simplificado:
-     * 1. Buscar email destinatario en tabla User
-     * 2. Usar User.plant para determinar configuración SMTP
-     * 3. Si no existe usuario o plant=NULL → usar default
-     * 4. Configurar PHPMailer con la cuenta SMTP correcta
-     * 
-     * @param string $originalEmail Email original del destinatario
-     * @param string $originalName Nombre del destinatario
-     * @param array $orderData Datos de la orden (opcional, para compatibilidad)
+     * ✅ Establece destinatarios y configura SMTP según planta del usuario
      */
     public function setEmailRecipients($originalEmail, $originalName = '', $orderData = null) {
         $this->mail->clearAddresses();
 
-        // ✅ NUEVO: Redirecciones específicas para PRODUCCIÓN
+        // ✅ Redirecciones específicas para PRODUCCIÓN
         $productionRedirections = [
             'Margarita.Gomez2@grammer.com' => 'Margarita.Gomez@grammer.com',
-            // Agregar más redirecciones aquí si necesitas:
-            // 'otro.email@grammer.com' => 'nuevo.destino@grammer.com',
         ];
 
-        // ✅ APLICAR REDIRECCIÓN ESPECÍFICA (solo en producción)
         $finalEmail = $originalEmail;
         $finalName = $originalName;
         $wasRedirected = false;
 
         if (APP_ENVIRONMENT === 'production' && isset($productionRedirections[$originalEmail])) {
             $finalEmail = $productionRedirections[$originalEmail];
-            $finalName = $originalName; // Mantener nombre original
             $wasRedirected = true;
             logAction("PRODUCTION REDIRECT: {$originalEmail} -> {$finalEmail}", 'EMAIL_REDIRECT_PROD');
         }
 
-        // ✅ PASO 1: Determinar planta basándose en email ORIGINAL (no el redirigido)
+        // ✅ Determinar planta basándose en email ORIGINAL
         $plantCode = $this->determinePlantConfig($originalEmail, $orderData);
         
-        // ✅ PASO 2: Configurar SMTP según la planta
+        // ✅ Configurar SMTP según la planta
         $this->configureSMTPForPlant($plantCode);
 
-        // ✅ PASO 3: Establecer destinatario según el modo
+        // ✅ Establecer destinatario según el modo
         if (TEST_MODE) {
             $this->mail->addAddress(TEST_EMAIL, 'Premium Freight Test');
             $plantName = $this->currentPlantConfig['plant_name'] ?? $plantCode;
             logAction("Email redirected: Original={$originalEmail} (Plant: {$plantName}) -> Test=" . TEST_EMAIL, 'TEST_MODE');
         } else {
-            // Usar el email final (original o redirigido)
             $this->mail->addAddress($finalEmail, $finalName);
             $plantName = $this->currentPlantConfig['plant_name'] ?? $plantCode;
             
             if ($wasRedirected) {
-                logAction("Email sent to REDIRECTED address: {$finalName} <{$finalEmail}> using plant: {$plantName} (Original: {$originalEmail})", 'MAIL_RECIPIENT_REDIRECTED');
+                logAction("Email sent to REDIRECTED: {$finalName} <{$finalEmail}> via {$plantName} (Original: {$originalEmail})", 'MAIL_RECIPIENT_REDIRECTED');
             } else {
-                logAction("Email sent to: {$finalName} <{$finalEmail}> using plant: {$plantName}", 'MAIL_RECIPIENT');
+                logAction("Email sent to: {$finalName} <{$finalEmail}> via {$plantName}", 'MAIL_RECIPIENT');
             }
         }
     }
 
     /**
-     * ✅ NUEVO: Método para configurar múltiples destinatarios de la misma planta
-     * 
-     * @param array $recipients Array de destinatarios [['email' => '', 'name' => ''], ...]
-     * @param string $forcePlantCode Forzar código de planta específico (opcional)
+     * ✅ Configura múltiples destinatarios de la misma planta
      */
     public function setMultipleEmailRecipients($recipients, $forcePlantCode = null) {
         $this->mail->clearAddresses();
@@ -329,18 +287,14 @@ class PFMailer {
             return;
         }
         
-        // Determinar planta basada en el primer destinatario o usar la forzada
         $plantCode = $forcePlantCode ?: $this->determinePlantConfig($recipients[0]['email']);
-        
-        // Configurar SMTP una sola vez para todos los destinatarios
         $this->configureSMTPForPlant($plantCode);
         
-        // Agregar todos los destinatarios
         foreach ($recipients as $recipient) {
             if (TEST_MODE) {
                 $this->mail->addAddress(TEST_EMAIL, 'Premium Freight Test');
                 logAction("Multiple emails redirected to test: {$recipient['email']} -> " . TEST_EMAIL, 'TEST_MODE');
-                break; // En modo test, solo agregar una vez
+                break;
             } else {
                 $this->mail->addAddress($recipient['email'], $recipient['name'] ?? '');
                 $plantName = $this->currentPlantConfig['plant_name'] ?? $plantCode;
@@ -350,7 +304,7 @@ class PFMailer {
     }
 
     // =========================================================================
-    // MÉTODOS DE LA APLICACIÓN (✅ MODIFICADOS para usar nueva lógica)
+    // MÉTODOS DE LA APLICACIÓN
     // =========================================================================
 
     public function clearOrderCache($orderId) {
@@ -359,91 +313,50 @@ class PFMailer {
         }
     }
 
-    /**
-     * ✅ MODIFICADO: Envía notificación de recovery con configuración SMTP dinámica
-     */
     public function sendSingleRecoveryNotification($orderId) {
         logAction("sendSingleRecoveryNotification started for orderId: {$orderId}", 'SEND_RECOVERY');
 
         try {
-            // Usar los services en lugar de acceso directo a BD
-            logAction("Attempting to fetch order details for orderId: {$orderId}", 'SEND_RECOVERY');
             $order = $this->services->getOrderDetails($orderId);
             
             if (!$order) {
                 logAction("Order not found for orderId: {$orderId}", 'SEND_RECOVERY_ERROR');
-                return [
-                    'success' => false,
-                    'message' => "Order #{$orderId} not found."
-                ];
+                return ['success' => false, 'message' => "Order #{$orderId} not found."];
             }
-            logAction("Order details retrieved successfully: " . json_encode($order), 'SEND_RECOVERY');
 
-            // Verificar si la orden tiene un RecoveryFile.
-            logAction("Checking if order #{$orderId} has a recovery file...", 'SEND_RECOVERY');
             if (empty($order['recovery_file'])) {
                 logAction("Order #{$orderId} does not require a recovery file.", 'SEND_RECOVERY_INFO');
-                return [
-                    'success' => false,
-                    'message' => "Order #{$orderId} does not require a recovery file."
-                ];
+                return ['success' => false, 'message' => "Order #{$orderId} does not require a recovery file."];
             }
-            logAction("Order #{$orderId} has a recovery file: {$order['recovery_file']}", 'SEND_RECOVERY');
 
-            // Verificar si la orden tiene RecoveryEvidence.
-            logAction("Checking if order #{$orderId} already has recovery evidence...", 'SEND_RECOVERY');
             if (!empty($order['recovery_evidence'])) {
                 logAction("Order #{$orderId} already has recovery evidence registered.", 'SEND_RECOVERY_INFO');
-                return [
-                    'success' => false,
-                    'message' => "Order #{$orderId} already has recovery evidence registered."
-                ];
+                return ['success' => false, 'message' => "Order #{$orderId} already has recovery evidence registered."];
             }
-            logAction("Order #{$orderId} does not have recovery evidence yet.", 'SEND_RECOVERY');
 
-            // Si tiene RecoveryFile pero no RecoveryEvidence, proceder con el envío.
-            logAction("Generating email body for orderId: {$orderId}", 'SEND_RECOVERY');
             $emailBody = $this->templates->generateRecoveryNotification($order);
-            logAction("Email body generated successfully for orderId: {$orderId}", 'SEND_RECOVERY');
-
             $recipientEmail = $order['creator_email'];
+            
             if (empty($recipientEmail)) {
                 logAction("No creator email found for orderId: {$orderId}", 'SEND_RECOVERY_ERROR');
-                return [
-                    'success' => false,
-                    'message' => "No email address found for order creator."
-                ];
+                return ['success' => false, 'message' => "No email address found for order creator."];
             }
             
-            logAction("Setting recipient email: {$recipientEmail}", 'SEND_RECOVERY');
-            
-            // ✅ MODIFICADO: Usar el nuevo método que configura SMTP dinámicamente
-            // Pasar los datos de la orden para ayudar en la detección de planta
             $this->setEmailRecipients($recipientEmail, $order['creator_name'] ?? 'User', $order);
             
             $this->mail->Subject = "Recovery Evidence Required for Order #{$orderId}";
             $this->mail->Body = $emailBody;
 
-            logAction("Attempting to send email to {$recipientEmail} for orderId: {$orderId}", 'SEND_RECOVERY');
             $this->mail->send();
             logAction("Notification sent successfully for orderId: {$orderId}", 'SEND_RECOVERY_SUCCESS');
 
-            return [
-                'success' => true,
-                'message' => "Notification successfully sent for order #{$orderId}."
-            ];
+            return ['success' => true, 'message' => "Notification successfully sent for order #{$orderId}."];
         } catch (Exception $e) {
             logAction("Error sending notification for orderId: {$orderId} - " . $e->getMessage(), 'SEND_RECOVERY_ERROR');
-            return [
-                'success' => false,
-                'message' => "Error sending the notification: " . $e->getMessage()
-            ];
+            return ['success' => false, 'message' => "Error sending the notification: " . $e->getMessage()];
         }
     }
 
-    /**
-     * ✅ MODIFICADO: Envía notificaciones de aprobación con configuración SMTP dinámica
-     */
     public function sendApprovalNotification($orderId) {
         try {
             logAction("Starting sendApprovalNotification for order #{$orderId}", 'SENDAPPROVAL');
@@ -466,7 +379,6 @@ class PFMailer {
                     $approvalToken = $this->services->generateActionToken($orderId, $approver['id'], 'approve');
                     $rejectToken = $this->services->generateActionToken($orderId, $approver['id'], 'reject');
                     
-                    // ✅ MODIFICADO: Pasar datos de orden para detección de planta
                     $this->setEmailRecipients($approver['email'], $approver['name'], $orderDetails);
                     
                     $this->mail->Subject = "Premium Freight - Approval Required #$orderId";
@@ -493,28 +405,71 @@ class PFMailer {
     }
 
     /**
-     * ✅ MODIFICADO: Envía resúmenes semanales con configuración SMTP dinámica
+     * ✅ CORREGIDO: Envía resúmenes semanales con validación estricta
      */
     public function sendWeeklySummaryEmails() {
         $result = ['totalSent' => 0, 'success' => 0, 'errors' => []];
+        
         try {
-            $pendingOrders = $this->services->getPendingOrdersForWeeklySummary();
-            if (empty($pendingOrders)) return $result;
+            logAction("Iniciando sendWeeklySummaryEmails", 'WEEKLY_SUMMARY');
             
+            $pendingOrders = $this->services->getPendingOrdersForWeeklySummary();
+            
+            if (empty($pendingOrders)) {
+                logAction("No hay órdenes pendientes para resumen semanal", 'WEEKLY_SUMMARY');
+                return $result;
+            }
+            
+            logAction("Encontradas " . count($pendingOrders) . " órdenes pendientes", 'WEEKLY_SUMMARY');
+            
+            // ✅ CORREGIDO: Ahora genera los bulk_tokens
             $ordersByApprover = $this->services->groupOrdersByApprover($pendingOrders);
+            
+            logAction("Órdenes agrupadas para " . count($ordersByApprover) . " aprobadores", 'WEEKLY_SUMMARY');
             
             foreach ($ordersByApprover as $approverId => $groupData) {
                 try {
                     $approver = $this->services->getUser($approverId);
+                    
                     if (!$approver) {
                         $result['errors'][] = "User not found for ID: $approverId";
+                        logAction("Aprobador no encontrado: $approverId", 'WEEKLY_SUMMARY_ERROR');
                         continue;
                     }
                     
-                    $emailBody = $this->templates->getWeeklySummaryTemplate($groupData['orders'], $approver, $groupData['bulk_tokens']['approve'], $groupData['bulk_tokens']['reject']);
-                
-                    // ✅ MODIFICADO: Usar nuevo método con detección de planta por usuario
+                    logAction("Procesando aprobador: {$approver['name']} ({$approver['email']}) - " . count($groupData['orders']) . " órdenes", 'WEEKLY_SUMMARY');
+                    
+                    // ✅ VALIDAR que existan los bulk_tokens
+                    if (!isset($groupData['bulk_tokens']) || 
+                        !isset($groupData['bulk_tokens']['approve']) || 
+                        !isset($groupData['bulk_tokens']['reject'])) {
+                        $result['errors'][] = "Bulk tokens missing for approver $approverId";
+                        logAction("ERROR: Bulk tokens faltantes para aprobador $approverId", 'WEEKLY_SUMMARY_ERROR');
+                        continue;
+                    }
+                    
+                    $emailBody = $this->templates->getWeeklySummaryTemplate(
+                        $groupData['orders'], 
+                        $approver, 
+                        $groupData['bulk_tokens']['approve'], 
+                        $groupData['bulk_tokens']['reject']
+                    );
+                    
+                    // ✅ Configurar SMTP y destinatario
                     $this->setEmailRecipients($approver['email'], $approver['name'], ['user_id' => $approverId]);
+                    
+                    // ✅ VERIFICACIÓN: Asegurar que FROM coincida con Username
+                    $currentFrom = $this->mail->From;
+                    $currentUsername = $this->mail->Username;
+                    
+                    if ($currentFrom !== $currentUsername) {
+                        $errorMsg = "CRITICAL: FROM mismatch! FROM={$currentFrom} but USERNAME={$currentUsername}";
+                        logAction($errorMsg, 'WEEKLY_SUMMARY_CRITICAL');
+                        $result['errors'][] = "Error processing approver $approverId: FROM/USERNAME mismatch";
+                        continue;
+                    }
+                    
+                    logAction("✓ FROM verificado: {$currentFrom} coincide con Username", 'WEEKLY_SUMMARY');
                     
                     $this->mail->Subject = "Premium Freight Weekly Summary - " . count($groupData['orders']) . " Pending Orders";
                     $this->mail->Body = $emailBody;
@@ -522,32 +477,41 @@ class PFMailer {
                     if ($this->mail->send()) {
                         $result['success']++;
                         $plantName = $this->currentPlantConfig['plant_name'] ?? 'Unknown';
-                        logAction("Weekly summary sent to {$approver['name']} via {$plantName}", 'WEEKLY_SUMMARY');
+                        logAction("✓ Weekly summary enviado a {$approver['name']} vía {$plantName}", 'WEEKLY_SUMMARY_SUCCESS');
+                        
                         foreach ($groupData['orders'] as $order) {
                             $this->services->logNotification($order['id'], $approverId, 'weekly_summary');
                         }
                     } else {
-                        $result['errors'][] = "Failed to send to {$approver['email']}: " . $this->mail->ErrorInfo;
+                        $errorMsg = "Failed to send to {$approver['email']}: " . $this->mail->ErrorInfo;
+                        $result['errors'][] = $errorMsg;
+                        logAction($errorMsg, 'WEEKLY_SUMMARY_ERROR');
                     }
+                    
                     $result['totalSent']++;
+                    
                 } catch (Exception $e) {
-                    $result['errors'][] = "Error processing approver $approverId: " . $e->getMessage();
+                    $errorMsg = "Error processing approver $approverId: " . $e->getMessage();
+                    $result['errors'][] = $errorMsg;
+                    logAction($errorMsg, 'WEEKLY_SUMMARY_EXCEPTION');
                 }
             }
+            
+            logAction("Resumen semanal completado: {$result['success']}/{$result['totalSent']} exitosos", 'WEEKLY_SUMMARY');
+            
         } catch (Exception $e) {
-            $result['errors'][] = "Error in sendWeeklySummaryEmails: " . $e->getMessage();
+            $errorMsg = "Error in sendWeeklySummaryEmails: " . $e->getMessage();
+            $result['errors'][] = $errorMsg;
+            logAction($errorMsg, 'WEEKLY_SUMMARY_FATAL');
         }
+        
         return $result;
     }
 
-    /**
-     * ✅ MODIFICADO: Genera y envía el reporte de estadísticas semanales
-     */
     public function sendWeeklyStatisticsReport() {
         try {
             logAction("Iniciando sendWeeklyStatisticsReport", 'WEEKLY_STATS');
             
-            // 1. Get statistics data
             $reporter = new PFWeeklyReporter();
             $stats = $reporter->generateWeeklyStats();
 
@@ -556,16 +520,14 @@ class PFMailer {
                 return ['success' => false, 'message' => 'No statistics were generated for the weekly report.'];
             }
 
-            // 2. Get the HTML content from the template
             $emailBody = $this->templates->getWeeklyStatisticsTemplate($stats);
 
-            // 3. Definir destinatarios por planta
             $recipients = [
-                '3330' => [ // Querétaro
+                '3330' => [
                     ['email' => 'extern.jesus.perez@grammer.com', 'name' => 'Jesus Perez'],
                     ['email' => 'dulce.mata@grammer.com', 'name' => 'Dulce Mata'],
                 ],
-                '3310' => [ // Tetla
+                '3310' => [
                     ['email' => 'carlos.plazola@grammer.com', 'name' => 'Carlos Plazola'],
                     ['email' => 'margarita.ortega@grammer.com', 'name' => 'Margarita Ortega'],
                 ]
@@ -574,10 +536,8 @@ class PFMailer {
             $emailsSent = 0;
             $errors = [];
 
-            // 4. Enviar por cada planta
             foreach ($recipients as $plantCode => $plantRecipients) {
                 try {
-                    // ✅ MODIFICADO: Usar nuevo método para múltiples destinatarios de la misma planta
                     if (TEST_MODE) {
                         $this->setEmailRecipients(TEST_EMAIL, 'Test Recipient');
                     } else {
@@ -612,8 +572,7 @@ class PFMailer {
     }
 
     /**
-     * ✅ MODIFICADO: Envía notificaciones de estado con configuración SMTP dinámica
-     * y CC automático para órdenes rechazadas
+     * ✅ MODIFICADO: Envía notificaciones de estado con CC automático para rechazos
      */
     public function sendStatusNotification($orderId, $status, $rejectorInfo = null) {
         try {
@@ -629,16 +588,12 @@ class PFMailer {
                 "Orden Premium Freight #{$orderId} - Aprobada" : 
                 "Orden Premium Freight #{$orderId} - Rechazada";
             
-            // ✅ MODIFICADO: Pasar datos de orden para detección de planta
             $this->setEmailRecipients($creator['email'], $creator['name'], $orderData);
             
-            // ✅ NUEVO: Agregar CC específico para órdenes RECHAZADAS
+            // ✅ Agregar CC para rechazos
             if ($status === 'rejected') {
-                // Cambiar esta dirección por la que necesites
                 $rejectionNotificationEmail = 'dulce.mata@grammer.com';
                 $rejectionNotificationName = 'Dulce Mata - Transport Specialist';
-
-
                 $this->mail->addCC($rejectionNotificationEmail, $rejectionNotificationName);
                 logAction("Added CC for rejection notification: {$rejectionNotificationEmail}", 'STATUS_NOTIFICATION');
             }
@@ -652,7 +607,6 @@ class PFMailer {
                 $plantName = $this->currentPlantConfig['plant_name'] ?? 'Unknown';
                 logAction("Status notification sent to {$creator['name']} via {$plantName}", 'STATUS_NOTIFICATION');
                 
-                // Log adicional para rechazos con CC
                 if ($status === 'rejected') {
                     logAction("Rejection notification also sent to: {$rejectionNotificationEmail}", 'STATUS_NOTIFICATION');
                 }
@@ -666,13 +620,9 @@ class PFMailer {
         }
     }
 
-    /**
-     * ✅ MODIFICADO: Envía correos de verificación de recovery
-     */
     public function sendRecoveryCheckEmails() {
         $result = ['totalSent' => 0, 'success' => 0, 'errors' => []];
         
-        // Correos fijos que siempre deben recibir el email
         $alwaysRecipients = [
             ['email' => 'dulce.mata@grammer.com', 'name' => 'Dulce Mata'],
             ['email' => 'carlos.plazola@grammer.com', 'name' => 'Carlos Plazola'],
@@ -701,7 +651,7 @@ class PFMailer {
                     'id' => $order['user_id'], 
                     'name' => $order['name'], 
                     'email' => $order['email'],
-                    'plant' => $order['plant'] // ✅ NUEVO: Incluir planta
+                    'plant' => $order['plant']
                 ];
                 $ordersByUser[$order['user_id']]['orders'][] = $order;
             }
@@ -710,11 +660,9 @@ class PFMailer {
                 try {
                     $emailBody = $this->templates->getRecoveryCheckTemplate($userInfo['user'], $userInfo['orders']);
                     
-                    // ✅ MODIFICADO: Usar nueva lógica con datos de usuario
                     $userData = ['user_id' => $userInfo['user']['id'], 'order_plant' => $userInfo['user']['plant']];
                     $this->setEmailRecipients($userInfo['user']['email'], $userInfo['user']['name'], $userData);
                     
-                    // Agregar destinatarios fijos (CC)
                     foreach ($alwaysRecipients as $recipient) {
                         $this->mail->addCC($recipient['email'], $recipient['name']);
                     }
@@ -733,7 +681,6 @@ class PFMailer {
                 } catch (Exception $e) {
                     $result['errors'][] = "Error enviando a {$userInfo['user']['email']}: " . $e->getMessage();
                 }
-                // Limpiar CC para el siguiente ciclo
                 $this->mail->clearCCs();
             }
         } catch (Exception $e) {
@@ -742,12 +689,8 @@ class PFMailer {
         return $result;
     }
 
-    /**
-     * ✅ MODIFICADO: Envía correos de reset de contraseña
-     */
     public function sendPasswordResetEmail($user, $token) {
         try {
-            // ✅ MODIFICADO: Usar nueva lógica con datos de usuario
             $userData = ['user_id' => $user['id']];
             $this->setEmailRecipients($user['email'], $user['name'], $userData);
             
@@ -767,9 +710,6 @@ class PFMailer {
         }
     }
 
-    /**
-     * ✅ MODIFICADO: Envía correos de verificación
-     */
     public function sendVerificationEmail($userId) {
         try {
             $user = $this->services->getUser($userId);
@@ -778,7 +718,6 @@ class PFMailer {
             $token = $this->generateVerificationToken($userId);
             if (!$token) return false;
 
-            // ✅ MODIFICADO: Usar nueva lógica con datos de usuario
             $userData = ['user_id' => $userId];
             $this->setEmailRecipients($user['email'], $user['name'], $userData);
             
@@ -798,9 +737,6 @@ class PFMailer {
         }
     }
 
-    /**
-     * Genera token de verificación (sin modificaciones)
-     */
     private function generateVerificationToken($userId) {
         try {
             $token = bin2hex(random_bytes(32));
@@ -821,19 +757,13 @@ class PFMailer {
     }
 
     // =========================================================================
-    // MÉTODOS AUXILIARES Y COMPATIBILIDAD
+    // MÉTODOS AUXILIARES
     // =========================================================================
 
-    /**
-     * ✅ NUEVO: Obtiene información de la configuración actual
-     */
     public function getCurrentPlantInfo() {
         return $this->currentPlantConfig;
     }
 
-    /**
-     * ✅ NUEVO: Obtiene estadísticas de configuraciones disponibles
-     */
     public function getAvailablePlantConfigs() {
         $configs = SMTP_CONFIGS;
         $summary = [];
@@ -849,48 +779,27 @@ class PFMailer {
         return $summary;
     }
 
-    /**
-     * Método para obtener conexión DB (para compatibilidad)
-     */
     public function getDatabase() {
         return $this->db;
     }
 
-    /**
-     * ✅ NUEVOS MÉTODOS PÚBLICOS PARA TESTING
-     */
-
-    /**
-     * Establece el asunto del email
-     */
+    // ✅ Métodos públicos para testing
     public function setSubject($subject) {
         $this->mail->Subject = $subject;
     }
 
-    /**
-     * Establece el cuerpo del email
-     */
     public function setBody($body) {
         $this->mail->Body = $body;
     }
 
-    /**
-     * Envía el email configurado
-     */
     public function send() {
         return $this->mail->send();
     }
 
-    /**
-     * Obtiene el último error de PHPMailer
-     */
     public function getLastError() {
         return $this->mail->ErrorInfo;
     }
 
-    /**
-     * Hace públicos los métodos que necesitas para testing
-     */
     public function testDeterminePlantConfig($email, $orderData = null) {
         return $this->determinePlantConfig($email, $orderData);
     }

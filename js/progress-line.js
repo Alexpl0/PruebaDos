@@ -10,22 +10,22 @@
  * @param {string} baseURL - La URL base de la aplicación.
  */
 export async function loadAndRenderProgress(orderId, baseURL) {
-    console.log(`[progress-line.js] ==> Iniciando carga para Order ID: ${orderId}`); // LOG A
+    console.log(`[progress-line.js] ==> Iniciando carga para Order ID: ${orderId}`);
 
     const progressSection = document.getElementById('progressSection');
     if (!progressSection) {
-        console.error('[progress-line.js] ERROR: No se encontró el elemento #progressSection. No se puede continuar.'); // LOG B
+        console.error('[progress-line.js] ERROR: No se encontró el elemento #progressSection. No se puede continuar.');
         return;
     }
-    console.log('[progress-line.js] Elemento #progressSection encontrado.'); // LOG C
+    console.log('[progress-line.js] Elemento #progressSection encontrado.');
 
     try {
         const url = `${baseURL}dao/users/daoOrderProgress.php?orderId=${orderId}`;
-        console.log(`[progress-line.js] Realizando fetch a: ${url}`); // LOG D
+        console.log(`[progress-line.js] Realizando fetch a: ${url}`);
 
         const response = await fetch(url);
         
-        console.log(`[progress-line.js] Respuesta del servidor recibida con estado: ${response.status}`); // LOG E
+        console.log(`[progress-line.js] Respuesta del servidor recibida con estado: ${response.status}`);
 
         if (!response.ok) {
              const errorData = await response.json().catch(() => ({ message: 'Respuesta no es un JSON válido.' }));
@@ -33,28 +33,57 @@ export async function loadAndRenderProgress(orderId, baseURL) {
         }
         
         const data = await response.json();
-        console.log('[progress-line.js] Datos JSON recibidos:', data); // LOG F
+        console.log('[progress-line.js] Datos JSON recibidos:', data);
 
         if (!data.success) {
             throw new Error(data.message || 'La API de progreso reportó un error.');
         }
         
         if (data.showProgress === false) {
-            console.warn('[progress-line.js] La API indica que no se debe mostrar el progreso. Mensaje:', data.message); // LOG G
+            console.warn('[progress-line.js] La API indica que no se debe mostrar el progreso. Mensaje:', data.message);
             showError(data.message || "Progress line not available for this order.");
             return;
         }
 
-        // Si todo va bien, mostramos la sección y renderizamos
-        console.log('[progress-line.js] Renderizando línea de progreso...'); // LOG H
+        console.log('[progress-line.js] Renderizando línea de progreso...');
         progressSection.classList.remove('hidden');
         renderProgressLine(data);
-        console.log('[progress-line.js] Renderizado completado.'); // LOG I
+        console.log('[progress-line.js] Renderizado completado.');
 
     } catch (error) {
-        console.error('[progress-line.js] CATCH BLOCK: Ocurrió un error fatal.', error); // LOG J
+        console.error('[progress-line.js] CATCH BLOCK: Ocurrió un error fatal.', error);
         showError(error.message);
-        progressSection.classList.remove('hidden'); // Mostrar la sección para ver el error
+        progressSection.classList.remove('hidden');
+    }
+}
+
+/**
+ * Convierte timestamp de Inglaterra (GMT/BST) a horario de México Centro (CST/CDT)
+ * @param {string} timestamp - Timestamp en formato ISO o SQL
+ * @returns {string} - Fecha formateada en horario de México
+ */
+function convertToMexicoCentralTime(timestamp) {
+    if (!timestamp) return '';
+    
+    try {
+        // Crear objeto Date desde el timestamp (asumiendo que viene en GMT/BST)
+        const date = new Date(timestamp + ' GMT');
+        
+        // Convertir a horario de México Centro usando toLocaleString
+        const mexicoTime = date.toLocaleString('es-MX', {
+            timeZone: 'America/Mexico_City',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false // Formato 24 horas
+        });
+        
+        return mexicoTime;
+    } catch (error) {
+        console.error('[progress-line.js] Error al convertir timestamp:', error);
+        return timestamp; // Retornar original si hay error
     }
 }
 
@@ -80,11 +109,10 @@ function renderProgressLine(data) {
         const tooltipText = `${approver.name} (${approver.role})`;
         const timestamp = approver.actionTimestamp;
         let timeHTML = '';
+        
         if (timestamp) {
-            const formattedDate = new Date(timestamp).toLocaleString(navigator.language, {
-                year: 'numeric', month: 'numeric', day: 'numeric',
-                hour: '2-digit', minute: '2-digit'
-            });
+            // ✅ USAR LA FUNCIÓN DE CONVERSIÓN
+            const formattedDate = convertToMexicoCentralTime(timestamp);
             timeHTML = `<div class="checkpoint-time">${formattedDate}</div>`;
         }
 
