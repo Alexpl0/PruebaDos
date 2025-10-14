@@ -218,17 +218,21 @@ const API = {
     },
 
     /**
-     * Selecciona una cotización específica
+     * Selecciona o deselecciona una cotización específica
      * @param {number} quoteId 
+     * @param {boolean} select - true to select, false to deselect
      * @returns {Promise}
      */
-    async selectQuote(quoteId) {
+    async selectQuote(quoteId, select = true) {
         return this.handleResponse(
-            this.request('dao/daoSelectQuote.php', { quote_id: quoteId }),
+            this.request('dao/daoSelectQuote.php', { 
+                quote_id: quoteId,
+                select: select 
+            }),
             {
                 showLoading: true,
                 showSuccessMessage: true,
-                successMessage: 'Cotización seleccionada. Se ha agregado a la cola de SAP.'
+                successMessage: select ? 'Quote selected successfully' : 'Quote deselected successfully'
             }
         );
     },

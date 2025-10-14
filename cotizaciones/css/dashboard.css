@@ -334,3 +334,184 @@
 .table-responsive::-webkit-scrollbar-thumb:hover {
     background: var(--grammer-primary);
 }
+/**
+ * Estilos adicionales para el Modal de Cotizaciones
+ * Agregar al final de dashboard.css
+ */
+
+/* ====== MODAL DE COTIZACIONES ====== */
+#quotesModal .modal-dialog {
+    max-width: 1200px;
+}
+
+#quotesContainer .card {
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+#quotesContainer .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 51, 102, 0.15);
+}
+
+/* Tarjeta seleccionada con borde destacado */
+#quotesContainer .card.border-success {
+    box-shadow: 0 0 0 3px rgba(0, 170, 68, 0.2);
+}
+
+/* Header de la cotización */
+#quotesContainer .card-header {
+    padding: 1rem;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+/* Botones en el header */
+#quotesContainer .card-header .btn {
+    font-size: 0.875rem;
+    padding: 0.375rem 0.75rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+#quotesContainer .card-header .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* Botón Select */
+#quotesContainer .card-header .btn-grammer-success {
+    background: var(--grammer-success);
+    border-color: var(--grammer-success);
+    color: white;
+}
+
+#quotesContainer .card-header .btn-grammer-success:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--grammer-success) 90%, black);
+    border-color: color-mix(in srgb, var(--grammer-success) 90%, black);
+}
+
+#quotesContainer .card-header .btn-grammer-success:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Botón Deselect */
+#quotesContainer .card-header .btn-warning {
+    background: var(--warning);
+    border-color: var(--warning);
+    color: white;
+}
+
+#quotesContainer .card-header .btn-warning:hover {
+    background: color-mix(in srgb, var(--warning) 90%, black);
+    border-color: color-mix(in srgb, var(--warning) 90%, black);
+}
+
+/* Botón PDF */
+#quotesContainer .card-header .btn-outline-grammer-primary {
+    color: var(--grammer-primary);
+    border-color: var(--grammer-primary);
+}
+
+#quotesContainer .card-header .btn-outline-grammer-primary:hover {
+    background: var(--grammer-primary);
+    color: white;
+}
+
+/* Detalles de la cotización */
+.quote-details {
+    font-size: 0.9rem;
+}
+
+.quote-details p {
+    display: flex;
+    align-items: center;
+}
+
+.quote-details i {
+    width: 20px;
+    text-align: center;
+}
+
+/* Badge de selección */
+#quotesContainer .badge {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.65rem;
+}
+
+/* Alert de información de selección */
+#quotesModal .alert-info {
+    background: linear-gradient(135deg, rgba(0, 163, 224, 0.1), rgba(0, 102, 204, 0.1));
+    border-color: var(--grammer-accent);
+    color: var(--grammer-primary);
+}
+
+/* Precio de la cotización */
+#quotesContainer .h5 {
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+/* Análisis de IA */
+#quotesContainer pre {
+    font-size: 0.75rem;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #e5e7eb;
+}
+
+/* ====== RESPONSIVE PARA MODAL ====== */
+@media (max-width: 768px) {
+    #quotesModal .modal-dialog {
+        max-width: 95%;
+        margin: 0.5rem auto;
+    }
+    
+    #quotesContainer .col-md-6 {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    
+    #quotesContainer .card-header {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start !important;
+    }
+    
+    #quotesContainer .card-header .d-flex {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    #quotesContainer .card-header .btn {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+}
+
+/* ====== ANIMACIONES ====== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#quotesContainer .card {
+    animation: fadeIn 0.3s ease-out;
+}
+
+#quotesContainer .card:nth-child(1) { animation-delay: 0.05s; }
+#quotesContainer .card:nth-child(2) { animation-delay: 0.1s; }
+#quotesContainer .card:nth-child(3) { animation-delay: 0.15s; }
+#quotesContainer .card:nth-child(4) { animation-delay: 0.2s; }
+
+/* ====== LOADING STATE ====== */
+#quotesModalContent .spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
