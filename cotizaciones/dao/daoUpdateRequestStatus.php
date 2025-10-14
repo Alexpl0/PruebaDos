@@ -2,25 +2,13 @@
 /**
  * Endpoint to update the status of a request
  * Intelligent Quoting Portal
- * @author Alejandro Pérez (Updated for new DB schema)
+ * @author Alejandro Pérez (Corregido - sin funciones duplicadas)
  */
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
-
+require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db/db.php';
 
-function sendJsonResponse($success, $message, $data = null, $statusCode = 200) {
-    http_response_code($statusCode);
-    echo json_encode(['success' => $success, 'message' => $message, 'data' => $data]);
-    exit();
-}
+setCorsHeaders();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     sendJsonResponse(false, 'Method not allowed. Use POST.', null, 405);
@@ -44,7 +32,7 @@ try {
         throw new Exception('Required parameters: request_id and status');
     }
 
-    // DB Schema Change: Updated valid statuses
+    // Valid statuses from ShippingRequests table
     $validStatuses = ['pending', 'in_process', 'completed', 'cancelled'];
     if (!in_array($newStatus, $validStatuses)) {
         throw new Exception('Invalid status. Valid statuses: ' . implode(', ', $validStatuses));
@@ -53,7 +41,7 @@ try {
     $con = new LocalConector();
     $conex = $con->conectar();
 
-    // DB Schema Change: Check `ShippingRequests` table, `request_status` column, and use `request_id`
+    // Check if request exists
     $stmtCheck = $conex->prepare("SELECT request_status FROM ShippingRequests WHERE request_id = ?");
     $stmtCheck->bind_param("i", $requestId);
     $stmtCheck->execute();
@@ -66,13 +54,12 @@ try {
     }
     $oldStatus = $currentRequest['request_status'];
 
-    // DB Schema Change: Update `ShippingRequests` table, `request_status` column, and use `request_id`
+    // Update status
     $stmt = $conex->prepare("UPDATE ShippingRequests SET request_status = ?, updated_at = NOW() WHERE request_id = ?");
     $stmt->bind_param("si", $newStatus, $requestId);
     $stmt->execute();
     
     if ($stmt->affected_rows === 0 && $oldStatus !== $newStatus) {
-       // Only throw error if the status is actually different and no rows were affected
        throw new Exception('Failed to update status, request might not exist or status is already set.');
     }
     $stmt->close();
@@ -84,7 +71,10 @@ try {
     ]);
 
 } catch (Exception $e) {
-    sendJsonResponse(false, 'Error updating status: ' . $e->getMessage(), ['request_id' => $requestId, 'new_status' => $newStatus ?? null], 500);
+    sendJsonResponse(false, 'Error updating status: ' . $e->getMessage(), [
+        'request_id' => $requestId, 
+        'new_status' => $newStatus ?? null
+    ], 500);
 } finally {
     if ($conex) {
         $conex->close();

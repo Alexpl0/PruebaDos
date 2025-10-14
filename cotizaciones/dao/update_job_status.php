@@ -2,31 +2,15 @@
 /**
  * Endpoint to update the status of SAP jobs
  * Intelligent Quoting Portal
- * @author Alejandro Pérez (Reviewed and adapted)
+ * @author Alejandro Pérez (Corregido - sin funciones duplicadas)
  */
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, X-API-Key');
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
-
+require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db/db.php';
-define('SAP_API_KEY', 'tu_clave_sap_secreta');
+
+setCorsHeaders();
+
 define('MAX_RETRIES', 5);
-
-function sendJsonResponse($success, $message, $data = null, $statusCode = 200) {
-    http_response_code($statusCode);
-    echo json_encode(['success' => $success, 'message' => $message, 'data' => $data]);
-    exit();
-}
-
-function validateSapApiKey($apiKey) {
-    return !empty($apiKey) && hash_equals(SAP_API_KEY, $apiKey);
-}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     sendJsonResponse(false, 'Method not allowed. Use POST.', null, 405);
@@ -93,7 +77,10 @@ try {
 
     $conex->commit();
     
-    sendJsonResponse(true, 'Job status updated successfully', ['queue_id' => $queueId, 'new_status' => $params[0]]);
+    sendJsonResponse(true, 'Job status updated successfully', [
+        'queue_id' => $queueId, 
+        'new_status' => $params[0]
+    ]);
 
 } catch (Exception $e) {
     if ($conex) $conex->rollback();
