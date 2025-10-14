@@ -5,9 +5,9 @@ class LocalConector {
 
     // Propiedades de conexión
     private $host = "127.0.0.1:3306"; // Dirección del servidor
-    private $usuario = "u909553968_traffic"; // Usuario de la BD
+    private $usuario = "u909553968_playground"; // Usuario de la BD
     private $password = "PremiumFreight***2025"; // Contraseña del Usuario
-    private $database = "u909553968_cotizaciones"; // Nombre de la BD
+    private $database = "u909553968_PlayGround"; // Nombre de la BD
     private $conexion;
 
     // Método para establecer la conexión
@@ -19,15 +19,3 @@ class LocalConector {
         return $this->conexion; // Retorna el objeto de conexión
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-

@@ -2,7 +2,7 @@
 /**
  * Endpoint to get pending SAP jobs
  * Intelligent Quoting Portal
- * @author Alejandro Pérez (Updated)
+ * @author Alejandro Pérez (Updated for new DB schema)
  */
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -15,7 +15,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 require_once __DIR__ . '/db/db.php';
-// Assuming a simple config for API key, or you can define it here.
 define('SAP_API_KEY', 'tu_clave_sap_secreta'); 
 define('MAX_RETRIES', 5);
 
@@ -40,10 +39,11 @@ try {
     $con = new LocalConector();
     $conex = $con->conectar();
 
+    // DB Schema Change: Joined with `ShippingRequests` on `request_id`
     $sql = "SELECT sq.id as queue_id, sq.quote_id, sr.*
             FROM sap_queue sq
             INNER JOIN quotes q ON sq.quote_id = q.id
-            INNER JOIN shipping_requests sr ON q.request_id = sr.id
+            INNER JOIN ShippingRequests sr ON q.request_id = sr.request_id
             WHERE sq.status = 'pending' 
               AND sq.retry_count < ?
             ORDER BY sq.created_at ASC
@@ -58,12 +58,11 @@ try {
     $pendingJobs = [];
     $queueIds = [];
     while ($job = $result->fetch_assoc()) {
-        $pendingJobs[] = $job; // Process/format job as needed
+        $pendingJobs[] = $job;
         $queueIds[] = $job['queue_id'];
     }
     $stmt->close();
     
-    // Mark jobs as "processing"
     if (!empty($queueIds)) {
         $placeholders = implode(',', array_fill(0, count($queueIds), '?'));
         $types = str_repeat('i', count($queueIds));

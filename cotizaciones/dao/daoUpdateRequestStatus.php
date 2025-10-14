@@ -2,7 +2,7 @@
 /**
  * Endpoint to update the status of a request
  * Intelligent Quoting Portal
- * @author Alejandro Pérez (Updated)
+ * @author Alejandro Pérez (Updated for new DB schema)
  */
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -44,7 +44,8 @@ try {
         throw new Exception('Required parameters: request_id and status');
     }
 
-    $validStatuses = ['pending', 'quoting', 'completed', 'canceled'];
+    // DB Schema Change: Updated valid statuses
+    $validStatuses = ['pending', 'in_process', 'completed', 'cancelled'];
     if (!in_array($newStatus, $validStatuses)) {
         throw new Exception('Invalid status. Valid statuses: ' . implode(', ', $validStatuses));
     }
@@ -52,8 +53,8 @@ try {
     $con = new LocalConector();
     $conex = $con->conectar();
 
-    // Check current status (optional, for complex validation)
-    $stmtCheck = $conex->prepare("SELECT status FROM shipping_requests WHERE id = ?");
+    // DB Schema Change: Check `ShippingRequests` table, `request_status` column, and use `request_id`
+    $stmtCheck = $conex->prepare("SELECT request_status FROM ShippingRequests WHERE request_id = ?");
     $stmtCheck->bind_param("i", $requestId);
     $stmtCheck->execute();
     $resultCheck = $stmtCheck->get_result();
@@ -63,16 +64,16 @@ try {
     if (!$currentRequest) {
         throw new Exception('Request not found');
     }
-    $oldStatus = $currentRequest['status'];
+    $oldStatus = $currentRequest['request_status'];
 
-    // Update the status
-    $stmt = $conex->prepare("UPDATE shipping_requests SET status = ?, updated_at = NOW() WHERE id = ?");
+    // DB Schema Change: Update `ShippingRequests` table, `request_status` column, and use `request_id`
+    $stmt = $conex->prepare("UPDATE ShippingRequests SET request_status = ?, updated_at = NOW() WHERE request_id = ?");
     $stmt->bind_param("si", $newStatus, $requestId);
     $stmt->execute();
     
-    if ($stmt->affected_rows === 0) {
-        // This could mean the status was already set to the new value, or the ID was not found.
-        // We already checked for existence, so we can consider it a "no-change" success.
+    if ($stmt->affected_rows === 0 && $oldStatus !== $newStatus) {
+       // Only throw error if the status is actually different and no rows were affected
+       throw new Exception('Failed to update status, request might not exist or status is already set.');
     }
     $stmt->close();
 

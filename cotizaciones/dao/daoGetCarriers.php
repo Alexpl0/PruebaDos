@@ -2,7 +2,7 @@
 /**
  * Endpoint to get the list of carriers
  * Intelligent Quoting Portal
- * @author Alejandro Pérez (Updated)
+ * @author Alejandro Pérez (Updated for new DB schema)
  */
 
 header('Content-Type: application/json');
@@ -28,7 +28,7 @@ function sendJsonResponse($success, $message, $data = null, $statusCode = 200) {
     exit();
 }
 
-$conex = null; // Ensure $conex is defined
+$conex = null;
 
 try {
     $con = new LocalConector();
@@ -37,22 +37,21 @@ try {
     $input = file_get_contents('php://input');
     $filters = json_decode($input, true) ?? [];
 
+    // DB Schema Change: Updated table to `Carriers` and selected `email` column.
+    // Removed non-existent columns like `is_active` and `created_at`.
     $sql = "SELECT 
-                c.id, c.name, c.contact_email, c.is_active, c.created_at,
+                c.id, c.name, c.email,
                 COUNT(q.id) as total_quotes,
                 COUNT(CASE WHEN q.is_selected = 1 THEN 1 END) as selected_quotes,
                 AVG(q.cost) as avg_cost,
                 COUNT(DISTINCT q.request_id) as unique_requests
-            FROM carriers c
+            FROM Carriers c
             LEFT JOIN quotes q ON c.id = q.carrier_id
             WHERE 1=1";
 
     $params = [];
     $types = '';
 
-    if (!empty($filters['active_only']) && $filters['active_only']) {
-        $sql .= " AND c.is_active = 1";
-    }
     if (!empty($filters['name'])) {
         $sql .= " AND c.name LIKE ?";
         $params[] = '%' . $filters['name'] . '%';
@@ -95,12 +94,11 @@ function processCarrierData($carrier) {
     $totalQuotes = intval($carrier['total_quotes']);
     $selectedQuotes = intval($carrier['selected_quotes']);
     
+    // DB Schema Change: Mapped `email` and removed `is_active`.
     return [
         'id' => intval($carrier['id']),
         'name' => $carrier['name'],
-        'contact_email' => $carrier['contact_email'],
-        'is_active' => boolval($carrier['is_active']),
-        'created_at' => $carrier['created_at'],
+        'email' => $carrier['email'], // Changed from contact_email
         'performance' => [
             'total_quotes' => $totalQuotes,
             'selected_quotes' => $selectedQuotes,
@@ -108,3 +106,4 @@ function processCarrierData($carrier) {
         ]
     ];
 }
+

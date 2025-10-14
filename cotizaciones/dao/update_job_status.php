@@ -2,7 +2,7 @@
 /**
  * Endpoint to update the status of SAP jobs
  * Intelligent Quoting Portal
- * @author Alejandro Pérez (Updated)
+ * @author Alejandro Pérez (Reviewed and adapted)
  */
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');

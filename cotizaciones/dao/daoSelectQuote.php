@@ -2,7 +2,7 @@
 /**
  * Endpoint to select a quote
  * Intelligent Quoting Portal
- * @author Alejandro Pérez (Updated)
+ * @author Alejandro Pérez (Updated for new DB schema)
  */
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -74,15 +74,14 @@ try {
     $stmtUpdateCurrent->execute();
     $stmtUpdateCurrent->close();
 
-    // Update request status to 'completed'
-    $stmtUpdateRequest = $conex->prepare("UPDATE shipping_requests SET status = 'completed', updated_at = NOW() WHERE id = ?");
+    // DB Schema Change: Update `ShippingRequests` table, `request_status` column, and use `request_id`
+    $stmtUpdateRequest = $conex->prepare("UPDATE ShippingRequests SET request_status = 'completed', updated_at = NOW() WHERE request_id = ?");
     $stmtUpdateRequest->bind_param("i", $requestId);
     $stmtUpdateRequest->execute();
     $stmtUpdateRequest->close();
 
     $conex->commit();
     
-    // Send notification email
     $emailSent = sendSelectionNotification($quote);
 
     sendJsonResponse(true, 'Quote selected successfully', ['quote_id' => $quoteId, 'request_id' => $requestId, 'email_sent' => $emailSent]);
