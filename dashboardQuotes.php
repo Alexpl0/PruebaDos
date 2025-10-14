@@ -38,6 +38,7 @@ require_once 'dao/users/context_injector.php';
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="cotizaciones/css/dashboard.css">
+    <link rel="stylesheet" href="cotizaciones/css/quotes.css">
     <link rel="stylesheet" href="css/tour-styles.css">
 
     <!-- ApexCharts -->
