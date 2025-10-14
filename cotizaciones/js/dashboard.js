@@ -1,7 +1,7 @@
 /**
  * JavaScript for dashboard.html - GRAMMER Logistics Intelligent Quotation Portal
  * Main dashboard management with automatic polling and ApexCharts
- * Updated with navigation handling
+ * Updated to match database schema (QuoteResponses)
  * @author Alejandro Pérez
  */
 
@@ -172,7 +172,7 @@ class GrammerDashboard {
         });
         this.charts.activity.render();
         
-        // Services chart (donut)
+        // Services chart (donut) - UPDATED: Now uses shipping_method
         this.charts.services = new ApexCharts(document.querySelector("#servicesChart"), {
             series: [0, 0, 0],
             chart: {
@@ -180,7 +180,7 @@ class GrammerDashboard {
                 height: 300
             },
             colors: [this.grammerColors.secondary, this.grammerColors.accent, this.grammerColors.warning],
-            labels: ['Air', 'Sea', 'Land'],
+            labels: ['Fedex', 'Air-Sea', 'Domestic'],
             dataLabels: {
                 enabled: true,
                 formatter: function (val) {
@@ -251,9 +251,7 @@ class GrammerDashboard {
         try {
             Utils.setLoadingState(this.refreshBtn, true);
             
-            const [requestsData] = await Promise.all([
-                API.getShippingRequests(this.currentFilters)
-            ]);
+            const requestsData = await API.getShippingRequests(this.currentFilters);
             
             this.updateRequestsTable(requestsData.requests);
             this.updateStats(requestsData.stats);
@@ -279,7 +277,7 @@ class GrammerDashboard {
     applyFilters() {
         this.currentFilters = {
             status: this.statusFilter.value || undefined,
-            service_type: this.serviceFilter.value || undefined,
+            shipping_method: this.serviceFilter.value || undefined, // CHANGED: service_type → shipping_method
             date_from: this.dateFrom.value || undefined,
             date_to: this.dateTo.value || undefined
         };
@@ -327,21 +325,23 @@ class GrammerDashboard {
         row.className = 'request-row';
         row.dataset.requestId = request.id;
         
-        const serviceTypeNames = {
-            'air': 'Air',
-            'sea': 'Sea',
-            'land': 'Land'
+        // UPDATED: Map shipping_method to display names
+        const methodNames = {
+            'fedex': 'Fedex',
+            'aereo_maritimo': 'Air-Sea',
+            'nacional': 'Domestic'
         };
         
+        // UPDATED: Map request_status to display names
         const statusNames = {
             'pending': 'Pending',
-            'quoting': 'Quoting',
+            'in_process': 'In Process', // CHANGED: quoting → in_process
             'completed': 'Completed',
-            'canceled': 'Canceled'
+            'cancelled': 'Cancelled' // CHANGED: canceled → cancelled
         };
         
         const route = `${request.route_info.origin_country} → ${request.route_info.destination_country}`;
-        const serviceName = serviceTypeNames[request.service_type] || request.service_type;
+        const methodName = methodNames[request.shipping_method] || request.shipping_method;
         const statusName = statusNames[request.status] || request.status;
         
         row.innerHTML = `
@@ -361,8 +361,8 @@ class GrammerDashboard {
                 </span>
             </td>
             <td data-label="Service">
-                <span class="grammer-badge bg-grammer-${request.service_type === 'air' ? 'secondary' : request.service_type === 'sea' ? 'accent' : 'success'}">
-                    ${serviceName}
+                <span class="grammer-badge bg-grammer-${request.shipping_method === 'fedex' ? 'secondary' : request.shipping_method === 'aereo_maritimo' ? 'accent' : 'success'}">
+                    ${methodName}
                 </span>
             </td>
             <td data-label="Status">
@@ -407,9 +407,9 @@ class GrammerDashboard {
     getStatusBadgeClass(status) {
         const classes = {
             'pending': 'bg-warning',
-            'quoting': 'bg-grammer-accent',
+            'in_process': 'bg-grammer-accent', // CHANGED: quoting → in_process
             'completed': 'bg-grammer-success',
-            'canceled': 'bg-danger'
+            'cancelled': 'bg-danger' // CHANGED: canceled → cancelled
         };
         return classes[status] || 'bg-secondary';
     }
@@ -442,16 +442,16 @@ class GrammerDashboard {
      * @param {Object} stats 
      */
     updateStats(stats) {
-        if (!stats.basic) return;
+        if (!stats || !stats.basic) return;
         
         const basic = stats.basic;
         
         this.totalRequestsEl.textContent = basic.total_requests || 0;
-        this.pendingRequestsEl.textContent = (basic.pending || 0) + (basic.quoting || 0);
+        this.pendingRequestsEl.textContent = (basic.pending || 0) + (basic.in_process || 0); // CHANGED
         this.completedRequestsEl.textContent = basic.completed || 0;
         
         // Calculate success rate
-        const totalProcessed = (basic.completed || 0) + (basic.canceled || 0);
+        const totalProcessed = (basic.completed || 0) + (basic.cancelled || 0); // CHANGED
         const completionRate = totalProcessed > 0 ? 
             Math.round(((basic.completed || 0) / totalProcessed) * 100) : 0;
             
@@ -486,10 +486,10 @@ class GrammerDashboard {
             }]);
         }
         
-        // Update services chart
+        // UPDATED: Update services chart with shipping_method data
         if (stats.by_service_type && this.charts.services) {
-            const serviceData = [0, 0, 0]; // air, sea, land
-            const serviceMap = { 'air': 0, 'sea': 1, 'land': 2 };
+            const serviceData = [0, 0, 0]; // fedex, aereo_maritimo, nacional
+            const serviceMap = { 'fedex': 0, 'aereo_maritimo': 1, 'nacional': 2 };
             
             stats.by_service_type.forEach(item => {
                 const index = serviceMap[item.service_type];
@@ -563,8 +563,8 @@ class GrammerDashboard {
             this.requestDetailsModal.show();
             
             // Get request details
-            const requests = await API.getShippingRequests({ id: requestId });
-            const request = requests.requests.find(r => r.id === requestId);
+            const requestsData = await API.getShippingRequests({ id: requestId });
+            const request = requestsData.requests.find(r => r.id === requestId);
             
             if (!request) {
                 throw new Error('Request not found');
@@ -585,23 +585,17 @@ class GrammerDashboard {
      * @returns {string}
      */
     generateRequestDetailsHTML(request) {
-        const serviceTypeNames = {
-            'air': 'Air',
-            'sea': 'Sea', 
-            'land': 'Land'
-        };
-        
-        const statusNames = {
-            'pending': 'Pending',
-            'quoting': 'Quoting',
-            'completed': 'Completed',
-            'canceled': 'Canceled'
-        };
-
         const methodNames = {
             'fedex': 'Fedex Express',
             'aereo_maritimo': 'Air-Sea',
             'nacional': 'Domestic'
+        };
+        
+        const statusNames = {
+            'pending': 'Pending',
+            'in_process': 'In Process',
+            'completed': 'Completed',
+            'cancelled': 'Cancelled'
         };
         
         return `
@@ -617,10 +611,6 @@ class GrammerDashboard {
                                 <span class="ms-2">#${request.id}</span>
                             </div>
                             <div class="col-12">
-                                <strong class="text-grammer-primary">Reference:</strong>
-                                <span class="ms-2">${request.internal_reference || 'N/A'}</span>
-                            </div>
-                            <div class="col-12">
                                 <strong class="text-grammer-primary">User:</strong>
                                 <span class="ms-2">${Utils.sanitizeString(request.user_name)}</span>
                             </div>
@@ -632,12 +622,6 @@ class GrammerDashboard {
                                 <strong class="text-grammer-primary">Method:</strong>
                                 <span class="grammer-badge bg-grammer-secondary ms-2">
                                     ${methodNames[request.shipping_method] || request.shipping_method}
-                                </span>
-                            </div>
-                            <div class="col-12">
-                                <strong class="text-grammer-primary">Service:</strong>
-                                <span class="grammer-badge bg-grammer-accent ms-2">
-                                    ${serviceTypeNames[request.service_type] || request.service_type}
                                 </span>
                             </div>
                             <div class="col-12">

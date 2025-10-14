@@ -1,7 +1,7 @@
 <?php
 /**
  * dashboardQuotes.php - GRAMMER Logistics Dashboard
- * Updated to match quotes.php structure with proper auth and components
+ * Updated filters to match database schema
  */
 
 // 1. Handle session and authentication
@@ -55,8 +55,6 @@ require_once 'dao/users/context_injector.php';
     <!-- Dynamic Header using same system as quotes.php -->
     <div id="header-container"></div>
 
-
-
     <!-- Main Content -->
     <main class="app-main-content">
         <div class="container-fluid">
@@ -88,18 +86,18 @@ require_once 'dao/users/context_injector.php';
                                     <select class="form-select form-control-custom" id="statusFilter">
                                         <option value="">All statuses</option>
                                         <option value="pending">Pending</option>
-                                        <option value="quoting">Quoting</option>
+                                        <option value="in_process">In Process</option>
                                         <option value="completed">Completed</option>
-                                        <option value="canceled">Canceled</option>
+                                        <option value="cancelled">Cancelled</option>
                                     </select>
                                 </div>
                                 <div class="col-md-3">
-                                    <label for="serviceFilter" class="form-label fw-bold text-grammer-primary">Service Type</label>
+                                    <label for="serviceFilter" class="form-label fw-bold text-grammer-primary">Shipping Method</label>
                                     <select class="form-select form-control-custom" id="serviceFilter">
-                                        <option value="">All services</option>
-                                        <option value="air">Air</option>
-                                        <option value="sea">Sea</option>
-                                        <option value="land">Land</option>
+                                        <option value="">All methods</option>
+                                        <option value="fedex">Fedex Express</option>
+                                        <option value="aereo_maritimo">Air-Sea</option>
+                                        <option value="nacional">Domestic</option>
                                     </select>
                                 </div>
                                 <div class="col-md-2">
@@ -200,7 +198,7 @@ require_once 'dao/users/context_injector.php';
                                             <th>ID</th>
                                             <th>User</th>
                                             <th>Route</th>
-                                            <th>Service</th>
+                                            <th>Method</th>
                                             <th>Status</th>
                                             <th>Quotes</th>
                                             <th>Date</th>
@@ -270,7 +268,7 @@ require_once 'dao/users/context_injector.php';
                         <div class="grammer-card-header">
                             <h6 class="text-grammer-primary mb-0">
                                 <i class="fas fa-chart-pie me-2"></i>
-                                Service Types
+                                Shipping Methods
                             </h6>
                         </div>
                         <div class="card-body">

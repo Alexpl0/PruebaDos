@@ -1,6 +1,7 @@
 /**
  * Módulo de API - Portal de Cotización Inteligente
  * Manejo de todas las comunicaciones con el backend
+ * UPDATED: Correct paths and database schema
  * @author Alejandro Pérez
  */
 
@@ -29,7 +30,9 @@ const API = {
      * @returns {Promise}
      */
     async request(endpoint, data = {}, config = {}) {
-        const url = CONFIG.buildUrl(endpoint);
+        // FIXED: Ensure correct path construction
+        const url = endpoint.startsWith('http') ? endpoint : `cotizaciones/${endpoint}`;
+        
         const requestConfig = {
             ...this.baseConfig,
             ...config,
@@ -37,7 +40,7 @@ const API = {
         };
 
         try {
-            console.log(`📡 API Request: ${endpoint}`, data);
+            console.log(`📡 API Request: ${url}`, data);
             
             const response = await fetch(url, requestConfig);
             
@@ -47,13 +50,13 @@ const API = {
             
             const responseData = await response.json();
             
-            console.log(`✅ API Response: ${endpoint}`, responseData);
+            console.log(`✅ API Response: ${url}`, responseData);
             
             return responseData;
             
         } catch (error) {
-            console.error(`❌ API Error: ${endpoint}`, error);
-            Utils.handleError(error, `API request to ${endpoint}`);
+            console.error(`❌ API Error: ${url}`, error);
+            Utils.handleError(error, `API request to ${url}`);
             throw error;
         }
     },
@@ -125,7 +128,7 @@ const API = {
      */
     async sendShippingRequest(requestData) {
         return this.handleResponse(
-            this.request(CONFIG.API.SEND_REQUEST, requestData),
+            this.request('dao/daoSendRequest.php', requestData),
             {
                 showLoading: true,
                 showSuccessMessage: true,
@@ -141,7 +144,7 @@ const API = {
      */
     async sendGrammerShippingRequest(requestData) {
         return this.handleResponse(
-            this.request(CONFIG.API.SEND_REQUEST, {
+            this.request('dao/daoSendRequest.php', {
                 ...requestData,
                 is_grammer_request: true
             }),
@@ -160,7 +163,7 @@ const API = {
      */
     async getShippingRequests(filters = {}) {
         return this.handleResponse(
-            this.request(CONFIG.API.GET_REQUESTS, filters),
+            this.request('dao/daoGetRequests.php', filters),
             {
                 showErrorMessage: false // No mostrar error toast, manejar silenciosamente
             }
@@ -169,12 +172,12 @@ const API = {
 
     /**
      * Obtiene las cotizaciones de una solicitud específica
-     * @param {number} requestId 
+     * @param {Object} params - Should include request_id
      * @returns {Promise}
      */
-    async getQuotes(requestId) {
+    async getQuotes(params) {
         return this.handleResponse(
-            this.request(CONFIG.API.GET_QUOTES, { request_id: requestId }),
+            this.request('dao/daoGetQuotes.php', params),
             {
                 showErrorMessage: false
             }
@@ -187,7 +190,7 @@ const API = {
      */
     async getCarriers() {
         return this.handleResponse(
-            this.request(CONFIG.API.GET_CARRIERS),
+            this.request('dao/daoGetCarriers.php', {}),
             {
                 showErrorMessage: false
             }
@@ -202,7 +205,7 @@ const API = {
      */
     async updateRequestStatus(requestId, status) {
         return this.handleResponse(
-            this.request(CONFIG.API.UPDATE_REQUEST_STATUS, {
+            this.request('dao/daoUpdateRequestStatus.php', {
                 request_id: requestId,
                 status: status
             }),
@@ -221,13 +224,27 @@ const API = {
      */
     async selectQuote(quoteId) {
         return this.handleResponse(
-            this.request(CONFIG.API.SELECT_QUOTE, { quote_id: quoteId }),
+            this.request('dao/daoSelectQuote.php', { quote_id: quoteId }),
             {
                 showLoading: true,
                 showSuccessMessage: true,
                 successMessage: 'Cotización seleccionada. Se ha agregado a la cola de SAP.'
             }
         );
+    },
+
+    /**
+     * Get method display name
+     * @param {string} method 
+     * @returns {string}
+     */
+    getMethodDisplayName(method) {
+        const methodNames = {
+            'fedex': 'Fedex Express',
+            'aereo_maritimo': 'Air-Sea',
+            'nacional': 'Domestic'
+        };
+        return methodNames[method] || method;
     },
 
     // ==================== MÉTODOS DE POLLING ====================
@@ -239,9 +256,9 @@ const API = {
      * @param {Function} callback 
      * @returns {Object} Control del polling
      */
-    startPolling(apiCall, interval = CONFIG.POLLING.INTERVAL, callback = null) {
+    startPolling(apiCall, interval = 30000, callback = null) {
         let retryCount = 0;
-        const maxRetries = CONFIG.POLLING.MAX_RETRIES;
+        const maxRetries = 3;
         
         const poll = async () => {
             try {
@@ -290,7 +307,7 @@ const API = {
     startRequestsPolling(callback) {
         return this.startPolling(
             () => this.getShippingRequests(),
-            CONFIG.POLLING.INTERVAL,
+            30000,
             callback
         );
     },
@@ -303,8 +320,8 @@ const API = {
      */
     startQuotesPolling(requestId, callback) {
         return this.startPolling(
-            () => this.getQuotes(requestId),
-            CONFIG.POLLING.INTERVAL,
+            () => this.getQuotes({ request_id: requestId }),
+            30000,
             callback
         );
     },
@@ -324,44 +341,14 @@ const API = {
             errors.push('El nombre del usuario es obligatorio');
         }
 
-        // Validar origen
-        if (!requestData.origin_details) {
-            errors.push('Los detalles del origen son obligatorios');
-        } else {
-            const origin = requestData.origin_details;
-            if (!origin.country) errors.push('El país de origen es obligatorio');
-            if (!origin.address) errors.push('La dirección de origen es obligatoria');
+        // Validar método de envío
+        if (!requestData.shipping_method) {
+            errors.push('Debe seleccionar un método de envío');
         }
 
-        // Validar destino
-        if (!requestData.destination_details) {
-            errors.push('Los detalles del destino son obligatorios');
-        } else {
-            const destination = requestData.destination_details;
-            if (!destination.country) errors.push('El país de destino es obligatorio');
-            if (!destination.address) errors.push('La dirección de destino es obligatoria');
-        }
-
-        // Validar paquetes
-        if (!requestData.package_details || !Array.isArray(requestData.package_details)) {
-            errors.push('Debe agregar al menos un paquete');
-        } else {
-            requestData.package_details.forEach((pkg, index) => {
-                if (!pkg.description) {
-                    errors.push(`La descripción del paquete ${index + 1} es obligatoria`);
-                }
-                if (!pkg.weight || pkg.weight <= 0) {
-                    errors.push(`El peso del paquete ${index + 1} debe ser mayor a 0`);
-                }
-                if (!pkg.quantity || pkg.quantity <= 0) {
-                    errors.push(`La cantidad del paquete ${index + 1} debe ser mayor a 0`);
-                }
-            });
-        }
-
-        // Validar tipo de servicio
-        if (!requestData.service_type || !Object.values(CONFIG.SERVICE_TYPES).includes(requestData.service_type)) {
-            errors.push('Debe seleccionar un tipo de servicio válido');
+        // Validar datos del método
+        if (!requestData.method_data) {
+            errors.push('Debe completar los datos del método de envío');
         }
 
         return {
