@@ -1,14 +1,13 @@
 <?php
 /**
  * Endpoint to get quote requests - GRAMMER Version
- * @author Alejandro Pérez (Updated for new DB schema)
+ * @author Alejandro Pérez (Updated for QuoteResponses table)
  */
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 require_once __DIR__ . '/config.php';
-// FIX: Corrected the path to db.php, assuming 'dao' and 'db' are sibling directories.
 require_once __DIR__ . '/db/db.php'; 
 
 // Helper function to set CORS headers
@@ -48,6 +47,7 @@ try {
     $input = file_get_contents('php://input');
     $filters = json_decode($input, true) ?? [];
 
+    // Updated query to use QuoteResponses instead of quotes
     $sql = "SELECT 
                 sr.request_id, 
                 sr.user_name, 
@@ -56,21 +56,55 @@ try {
                 sr.shipping_method,
                 sr.created_at, 
                 sr.updated_at,
-                COUNT(q.id) as quotes_count,
-                COUNT(CASE WHEN q.is_selected = 1 THEN 1 END) as selected_quotes
+                COUNT(qr.response_id) as quotes_count,
+                COUNT(CASE WHEN qr.is_selected = 1 THEN 1 END) as selected_quotes
             FROM ShippingRequests sr
-            LEFT JOIN quotes q ON sr.request_id = q.request_id";
+            LEFT JOIN QuoteResponses qr ON sr.request_id = qr.request_id";
 
     $whereConditions = [];
     $params = [];
     $types = '';
 
+    // Filter by status
     if (!empty($filters['status'])) {
         $whereConditions[] = "sr.request_status = ?";
         $params[] = $filters['status'];
         $types .= 's';
     }
-    // ... other filters ...
+
+    // Filter by shipping method
+    if (!empty($filters['shipping_method'])) {
+        $whereConditions[] = "sr.shipping_method = ?";
+        $params[] = $filters['shipping_method'];
+        $types .= 's';
+    }
+
+    // Filter by date range
+    if (!empty($filters['date_from'])) {
+        $whereConditions[] = "DATE(sr.created_at) >= ?";
+        $params[] = $filters['date_from'];
+        $types .= 's';
+    }
+
+    if (!empty($filters['date_to'])) {
+        $whereConditions[] = "DATE(sr.created_at) <= ?";
+        $params[] = $filters['date_to'];
+        $types .= 's';
+    }
+
+    // Filter by specific request ID
+    if (!empty($filters['id'])) {
+        $whereConditions[] = "sr.request_id = ?";
+        $params[] = intval($filters['id']);
+        $types .= 'i';
+    }
+
+    // Filter by user name
+    if (!empty($filters['user_name'])) {
+        $whereConditions[] = "sr.user_name LIKE ?";
+        $params[] = '%' . $filters['user_name'] . '%';
+        $types .= 's';
+    }
 
     if (!empty($whereConditions)) {
         $sql .= " WHERE " . implode(" AND ", $whereConditions);
@@ -78,6 +112,7 @@ try {
 
     $sql .= " GROUP BY sr.request_id ORDER BY sr.created_at DESC";
 
+    // Apply limit
     if (isset($filters['limit']) && is_numeric($filters['limit'])) {
         $sql .= " LIMIT ?";
         $params[] = intval($filters['limit']);
@@ -93,14 +128,17 @@ try {
 
     $requests = [];
     while ($row = $result->fetch_assoc()) {
-        // FIX: Restored full processing for each request row
         $requests[] = processRequestRow($row, $conex);
     }
     $stmt->close();
 
+    // Generate statistics
+    $stats = generateStats($requests, $conex);
+
     sendJsonResponse(true, 'Requests retrieved successfully', [
         'requests' => $requests,
-        'total' => count($requests)
+        'total' => count($requests),
+        'stats' => $stats
     ]);
 
 } catch (Exception $e) {
@@ -123,6 +161,7 @@ function processRequestRow($row, $conex) {
         'status' => $row['request_status'],
         'shipping_method' => $row['shipping_method'],
         'created_at' => $row['created_at'],
+        'created_at_formatted' => formatDateTime($row['created_at']),
         'updated_at' => $row['updated_at'],
         'quote_status' => [
             'total_quotes' => (int)$row['quotes_count'],
@@ -139,6 +178,7 @@ function processRequestRow($row, $conex) {
         $request['method_details'] = null;
         $request['route_info'] = ['origin_country' => 'N/A', 'destination_country' => 'N/A', 'is_international' => false];
     }
+    
     return $request;
 }
 
@@ -201,3 +241,95 @@ function generateRouteInfo($methodDetails, $shippingMethod) {
     }
 }
 
+function formatDateTime($datetime) {
+    if (empty($datetime)) return 'N/A';
+    $date = new DateTime($datetime);
+    return $date->format('d/m/Y H:i');
+}
+
+/**
+ * Generate statistics for the dashboard
+ */
+function generateStats($requests, $conex) {
+    $stats = [
+        'basic' => [
+            'total_requests' => count($requests),
+            'pending' => 0,
+            'in_process' => 0,
+            'completed' => 0,
+            'cancelled' => 0
+        ],
+        'by_service_type' => [],
+        'recent_activity' => [],
+        'top_users' => []
+    ];
+
+    // Count by status
+    foreach ($requests as $request) {
+        $status = $request['status'];
+        if (isset($stats['basic'][$status])) {
+            $stats['basic'][$status]++;
+        }
+    }
+
+    // Count by shipping method
+    $methodCounts = [];
+    foreach ($requests as $request) {
+        $method = $request['shipping_method'];
+        if (!isset($methodCounts[$method])) {
+            $methodCounts[$method] = 0;
+        }
+        $methodCounts[$method]++;
+    }
+
+    foreach ($methodCounts as $method => $count) {
+        $stats['by_service_type'][] = [
+            'service_type' => $method,
+            'count' => $count
+        ];
+    }
+
+    // Recent activity (last 7 days)
+    $recentActivity = [];
+    for ($i = 6; $i >= 0; $i--) {
+        $date = date('Y-m-d', strtotime("-$i days"));
+        $dayRequests = array_filter($requests, function($r) use ($date) {
+            return strpos($r['created_at'], $date) === 0;
+        });
+        $dayCompleted = array_filter($dayRequests, function($r) {
+            return $r['status'] === 'completed';
+        });
+        
+        $recentActivity[] = [
+            'date' => $date,
+            'requests' => count($dayRequests),
+            'completed' => count($dayCompleted)
+        ];
+    }
+    $stats['recent_activity'] = $recentActivity;
+
+    // Top users
+    $userCounts = [];
+    foreach ($requests as $request) {
+        $userName = $request['user_name'];
+        if (!isset($userCounts[$userName])) {
+            $userCounts[$userName] = 0;
+        }
+        $userCounts[$userName]++;
+    }
+    
+    arsort($userCounts);
+    $topUsers = [];
+    $count = 0;
+    foreach ($userCounts as $userName => $requestCount) {
+        if ($count >= 5) break;
+        $topUsers[] = [
+            'user_name' => $userName,
+            'request_count' => $requestCount
+        ];
+        $count++;
+    }
+    $stats['top_users'] = $topUsers;
+
+    return $stats;
+}

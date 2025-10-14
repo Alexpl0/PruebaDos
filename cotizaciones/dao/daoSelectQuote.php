@@ -2,7 +2,7 @@
 /**
  * Endpoint to select a quote
  * Intelligent Quoting Portal
- * @author Alejandro Pérez (Updated for new DB schema)
+ * @author Alejandro Pérez (Updated for QuoteResponses table)
  */
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -45,12 +45,12 @@ try {
     $conex = $con->conectar();
     $conex->begin_transaction();
 
-    // Get quote information
+    // Get quote information - Updated to use QuoteResponses
     $stmtQuote = $conex->prepare("
-        SELECT q.request_id, c.name as carrier_name, c.contact_email as carrier_email
-        FROM quotes q
-        INNER JOIN carriers c ON q.carrier_id = c.id
-        WHERE q.id = ?");
+        SELECT qr.request_id, qr.cost, qr.delivery_time, c.name as carrier_name, c.email as carrier_email
+        FROM QuoteResponses qr
+        INNER JOIN Carriers c ON qr.carrier_id = c.id
+        WHERE qr.response_id = ?");
     $stmtQuote->bind_param("i", $quoteId);
     $stmtQuote->execute();
     $quoteResult = $stmtQuote->get_result();
@@ -62,19 +62,19 @@ try {
     }
     $requestId = $quote['request_id'];
 
-    // Unselect other quotes for the same request
-    $stmtUpdateOthers = $conex->prepare("UPDATE quotes SET is_selected = 0 WHERE request_id = ?");
+    // Unselect other quotes for the same request - Updated to use QuoteResponses
+    $stmtUpdateOthers = $conex->prepare("UPDATE QuoteResponses SET is_selected = 0 WHERE request_id = ?");
     $stmtUpdateOthers->bind_param("i", $requestId);
     $stmtUpdateOthers->execute();
     $stmtUpdateOthers->close();
 
-    // Select the current quote
-    $stmtUpdateCurrent = $conex->prepare("UPDATE quotes SET is_selected = 1 WHERE id = ?");
+    // Select the current quote - Updated to use QuoteResponses
+    $stmtUpdateCurrent = $conex->prepare("UPDATE QuoteResponses SET is_selected = 1 WHERE response_id = ?");
     $stmtUpdateCurrent->bind_param("i", $quoteId);
     $stmtUpdateCurrent->execute();
     $stmtUpdateCurrent->close();
 
-    // DB Schema Change: Update `ShippingRequests` table, `request_status` column, and use `request_id`
+    // Update ShippingRequests status to completed
     $stmtUpdateRequest = $conex->prepare("UPDATE ShippingRequests SET request_status = 'completed', updated_at = NOW() WHERE request_id = ?");
     $stmtUpdateRequest->bind_param("i", $requestId);
     $stmtUpdateRequest->execute();
@@ -82,9 +82,14 @@ try {
 
     $conex->commit();
     
-    $emailSent = sendSelectionNotification($quote);
+    // Send notification email
+    $emailSent = sendSelectionNotification($quote, $requestId);
 
-    sendJsonResponse(true, 'Quote selected successfully', ['quote_id' => $quoteId, 'request_id' => $requestId, 'email_sent' => $emailSent]);
+    sendJsonResponse(true, 'Quote selected successfully', [
+        'quote_id' => $quoteId, 
+        'request_id' => $requestId, 
+        'email_sent' => $emailSent
+    ]);
 
 } catch (Exception $e) {
     if ($conex) $conex->rollback();
@@ -93,11 +98,51 @@ try {
     if ($conex) $conex->close();
 }
 
-function sendSelectionNotification($quote) {
+function sendSelectionNotification($quote, $requestId) {
     try {
         $mailer = new AppMailer();
-        $subject = "Your quote for request #{$quote['request_id']} has been selected!";
-        $body = "<p>Dear {$quote['carrier_name']},</p><p>Congratulations! Your quote for shipping request #{$quote['request_id']} has been selected. We will contact you shortly with further details.</p><p>Thank you!</p>";
+        $subject = "✅ Your quote for request #{$requestId} has been selected - GRAMMER";
+        
+        $body = "
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .header { background: linear-gradient(135deg, #003366, #0066CC); color: white; padding: 20px; text-align: center; }
+                .content { padding: 20px; background: #f9f9f9; }
+                .highlight { background: #e8f4f8; padding: 15px; border-left: 4px solid #0066CC; margin: 20px 0; }
+                .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+            </style>
+        </head>
+        <body>
+            <div class='header'>
+                <h2>🎉 Congratulations!</h2>
+            </div>
+            <div class='content'>
+                <p>Dear <strong>{$quote['carrier_name']}</strong>,</p>
+                
+                <p>We are pleased to inform you that your quote has been <strong>selected</strong> for GRAMMER shipping request <strong>#{$requestId}</strong>.</p>
+                
+                <div class='highlight'>
+                    <strong>Selected Quote Details:</strong><br>
+                    💰 Cost: $" . number_format($quote['cost'], 2) . " USD<br>
+                    🚚 Delivery Time: {$quote['delivery_time']}<br>
+                    📋 Request ID: #{$requestId}
+                </div>
+                
+                <p>Our logistics team will contact you shortly with further details to proceed with the shipment.</p>
+                
+                <p>Thank you for your prompt response and competitive pricing!</p>
+                
+                <p>Best regards,<br>
+                <strong>GRAMMER Logistics & Traffic Team</strong></p>
+            </div>
+            <div class='footer'>
+                <p>GRAMMER Automotive Puebla S.A. de C.V.<br>
+                This is an automated notification from the GRAMMER Intelligent Quotation Portal</p>
+            </div>
+        </body>
+        </html>";
         
         return $mailer->sendEmail($quote['carrier_email'], $quote['carrier_name'], $subject, $body);
     } catch (Exception $e) {

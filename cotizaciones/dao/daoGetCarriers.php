@@ -2,7 +2,7 @@
 /**
  * Endpoint to get the list of carriers
  * Intelligent Quoting Portal
- * @author Alejandro Pérez (Updated for new DB schema)
+ * @author Alejandro Pérez (Updated for QuoteResponses table)
  */
 
 header('Content-Type: application/json');
@@ -37,25 +37,36 @@ try {
     $input = file_get_contents('php://input');
     $filters = json_decode($input, true) ?? [];
 
-    // DB Schema Change: Updated table to `Carriers` and selected `email` column.
-    // Removed non-existent columns like `is_active` and `created_at`.
+    // Updated query to use QuoteResponses instead of quotes
     $sql = "SELECT 
-                c.id, c.name, c.email,
-                COUNT(q.id) as total_quotes,
-                COUNT(CASE WHEN q.is_selected = 1 THEN 1 END) as selected_quotes,
-                AVG(q.cost) as avg_cost,
-                COUNT(DISTINCT q.request_id) as unique_requests
+                c.id, 
+                c.name, 
+                c.email,
+                COUNT(qr.response_id) as total_quotes,
+                COUNT(CASE WHEN qr.is_selected = 1 THEN 1 END) as selected_quotes,
+                AVG(qr.cost) as avg_cost,
+                COUNT(DISTINCT qr.request_id) as unique_requests,
+                MIN(qr.cost) as min_cost,
+                MAX(qr.cost) as max_cost
             FROM Carriers c
-            LEFT JOIN quotes q ON c.id = q.carrier_id
+            LEFT JOIN QuoteResponses qr ON c.id = qr.carrier_id
             WHERE 1=1";
 
     $params = [];
     $types = '';
 
+    // Filter by carrier name
     if (!empty($filters['name'])) {
         $sql .= " AND c.name LIKE ?";
         $params[] = '%' . $filters['name'] . '%';
         $types .= 's';
+    }
+
+    // Filter by carrier ID
+    if (!empty($filters['id'])) {
+        $sql .= " AND c.id = ?";
+        $params[] = intval($filters['id']);
+        $types .= 'i';
     }
 
     $sql .= " GROUP BY c.id ORDER BY c.name ASC";
@@ -94,16 +105,24 @@ function processCarrierData($carrier) {
     $totalQuotes = intval($carrier['total_quotes']);
     $selectedQuotes = intval($carrier['selected_quotes']);
     
-    // DB Schema Change: Mapped `email` and removed `is_active`.
     return [
         'id' => intval($carrier['id']),
         'name' => $carrier['name'],
-        'email' => $carrier['email'], // Changed from contact_email
+        'email' => $carrier['email'],
         'performance' => [
             'total_quotes' => $totalQuotes,
             'selected_quotes' => $selectedQuotes,
+            'unique_requests' => intval($carrier['unique_requests']),
             'success_rate' => $totalQuotes > 0 ? round(($selectedQuotes / $totalQuotes) * 100, 1) : 0,
+            'avg_cost' => $carrier['avg_cost'] ? round((float)$carrier['avg_cost'], 2) : null,
+            'min_cost' => $carrier['min_cost'] ? round((float)$carrier['min_cost'], 2) : null,
+            'max_cost' => $carrier['max_cost'] ? round((float)$carrier['max_cost'], 2) : null
+        ],
+        'statistics' => [
+            'total_responses' => $totalQuotes,
+            'wins' => $selectedQuotes,
+            'loss' => $totalQuotes - $selectedQuotes,
+            'win_rate_percentage' => $totalQuotes > 0 ? round(($selectedQuotes / $totalQuotes) * 100, 1) : 0
         ]
     ];
 }
-

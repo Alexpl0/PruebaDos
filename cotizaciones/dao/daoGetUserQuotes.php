@@ -1,7 +1,7 @@
 <?php
 /**
  * Endpoint to get user's quote history - GRAMMER Version
- * @author Alejandro Pérez (Updated for new DB schema)
+ * @author Alejandro Pérez (Updated for QuoteResponses table)
  */
 
 header('Content-Type: application/json');
@@ -44,7 +44,7 @@ try {
     $userId = $_SESSION['user']['id'];
     $userName = $_SESSION['user']['name'] ?? '';
 
-    // DB Schema Change: Updated table `ShippingRequests` and columns `request_id`, `request_status`
+    // Updated query to use QuoteResponses instead of quotes
     $sql = "SELECT 
                 sr.request_id, 
                 sr.user_name, 
@@ -53,15 +53,15 @@ try {
                 sr.shipping_method,
                 sr.created_at, 
                 sr.updated_at,
-                COUNT(q.id) as quotes_count,
-                COUNT(CASE WHEN q.is_selected = 1 THEN 1 END) as selected_quotes,
-                MIN(q.cost) as min_quote_cost,
-                MAX(q.cost) as max_quote_cost,
-                AVG(q.cost) as avg_quote_cost,
+                COUNT(qr.response_id) as quotes_count,
+                COUNT(CASE WHEN qr.is_selected = 1 THEN 1 END) as selected_quotes,
+                MIN(qr.cost) as min_quote_cost,
+                MAX(qr.cost) as max_quote_cost,
+                AVG(qr.cost) as avg_quote_cost,
                 GROUP_CONCAT(DISTINCT c.name SEPARATOR ', ') as carrier_names
             FROM ShippingRequests sr
-            LEFT JOIN quotes q ON sr.request_id = q.request_id
-            LEFT JOIN carriers c ON q.carrier_id = c.id
+            LEFT JOIN QuoteResponses qr ON sr.request_id = qr.request_id
+            LEFT JOIN Carriers c ON qr.carrier_id = c.id
             WHERE sr.user_name = ?";
 
     $whereConditions = [];
@@ -74,7 +74,24 @@ try {
         $params[] = $filters['status'];
         $types .= 's';
     }
-    // ... other filters ...
+
+    if (!empty($filters['shipping_method'])) {
+        $whereConditions[] = "sr.shipping_method = ?";
+        $params[] = $filters['shipping_method'];
+        $types .= 's';
+    }
+
+    if (!empty($filters['date_from'])) {
+        $whereConditions[] = "DATE(sr.created_at) >= ?";
+        $params[] = $filters['date_from'];
+        $types .= 's';
+    }
+
+    if (!empty($filters['date_to'])) {
+        $whereConditions[] = "DATE(sr.created_at) <= ?";
+        $params[] = $filters['date_to'];
+        $types .= 's';
+    }
 
     if (!empty($whereConditions)) {
         $sql .= " AND " . implode(" AND ", $whereConditions);
@@ -109,10 +126,10 @@ try {
 
 function processUserRequestRow($row, $conex) {
     $request = [
-        'id' => (int)$row['request_id'], // DB Schema Change
+        'id' => (int)$row['request_id'],
         'user_name' => $row['user_name'],
         'company_area' => $row['company_area'],
-        'status' => $row['request_status'], // DB Schema Change
+        'status' => $row['request_status'],
         'shipping_method' => $row['shipping_method'],
         'created_at' => $row['created_at'],
         'updated_at' => $row['updated_at'],
@@ -121,18 +138,17 @@ function processUserRequestRow($row, $conex) {
             'selected_quotes' => (int)$row['selected_quotes'],
             'min_cost' => $row['min_quote_cost'] ? (float)$row['min_quote_cost'] : null,
             'max_cost' => $row['max_quote_cost'] ? (float)$row['max_quote_cost'] : null,
+            'avg_cost' => $row['avg_quote_cost'] ? (float)$row['avg_quote_cost'] : null,
             'carrier_names' => $row['carrier_names'] ?: 'No quotes yet'
         ]
     ];
 
     if (!empty($row['shipping_method'])) {
-        // DB Schema Change: Pass new request_id
         $methodDetails = getUserMethodSpecificDetails($conex, $row['request_id'], $row['shipping_method']);
         $request['method_details'] = $methodDetails;
         $request['route_info'] = generateUserRouteInfo($methodDetails, $row['shipping_method']);
     }
     
-    // DB Schema Change: Pass new request_id
     $request['quotes'] = getUserRequestQuotes($conex, $row['request_id']);
 
     return $request;
@@ -151,13 +167,14 @@ function getUserMethodSpecificDetails($conex, $requestId, $method) {
     }
 }
 
-// DB Schema Change: Updated table names to `FedexShipments`, `AirSeaShipments`, `DomesticShipments`
 function getUserFedexDetails($conex, $requestId) {
     $stmt = $conex->prepare("SELECT * FROM FedexShipments WHERE request_id = ?");
     $stmt->bind_param("i", $requestId);
     $stmt->execute();
     $result = $stmt->get_result();
-    return $result->fetch_assoc();
+    $data = $result->fetch_assoc();
+    $stmt->close();
+    return $data;
 }
 
 function getUserAereoMaritimoDetails($conex, $requestId) {
@@ -165,7 +182,9 @@ function getUserAereoMaritimoDetails($conex, $requestId) {
     $stmt->bind_param("i", $requestId);
     $stmt->execute();
     $result = $stmt->get_result();
-    return $result->fetch_assoc();
+    $data = $result->fetch_assoc();
+    $stmt->close();
+    return $data;
 }
 
 function getUserNacionalDetails($conex, $requestId) {
@@ -173,14 +192,15 @@ function getUserNacionalDetails($conex, $requestId) {
     $stmt->bind_param("i", $requestId);
     $stmt->execute();
     $result = $stmt->get_result();
-    return $result->fetch_assoc();
+    $data = $result->fetch_assoc();
+    $stmt->close();
+    return $data;
 }
 
 function generateUserRouteInfo($methodDetails, $shippingMethod) {
     if (!$methodDetails) {
         return ['origin_country' => 'N/A', 'destination_country' => 'N/A', 'is_international' => false];
     }
-    // Logic remains the same, but relies on corrected data from new tables
     switch ($shippingMethod) {
         case 'fedex':
             return ['origin_country' => 'INTL', 'destination_country' => 'INTL', 'is_international' => true];
@@ -194,18 +214,39 @@ function generateUserRouteInfo($methodDetails, $shippingMethod) {
 }
 
 function getUserRequestQuotes($conex, $requestId) {
-    $sql = "SELECT q.id, q.cost, q.currency, q.estimated_delivery_time, q.is_selected, c.name as carrier_name
-            FROM quotes q
-            INNER JOIN carriers c ON q.carrier_id = c.id
-            WHERE q.request_id = ?
-            ORDER BY q.cost ASC";
+    // Updated to use QuoteResponses table with correct column names
+    $sql = "SELECT 
+                qr.response_id as id, 
+                qr.cost, 
+                qr.delivery_time as estimated_delivery_time, 
+                qr.is_selected, 
+                qr.response_date as created_at,
+                qr.pdf_url,
+                c.name as carrier_name
+            FROM QuoteResponses qr
+            INNER JOIN Carriers c ON qr.carrier_id = c.id
+            WHERE qr.request_id = ?
+            ORDER BY qr.cost ASC";
     
     $stmt = $conex->prepare($sql);
     $stmt->bind_param("i", $requestId);
     $stmt->execute();
     $result = $stmt->get_result();
     
-    return $result->fetch_all(MYSQLI_ASSOC);
+    $quotes = [];
+    while ($row = $result->fetch_assoc()) {
+        $quotes[] = [
+            'id' => (int)$row['id'],
+            'cost' => (float)$row['cost'],
+            'currency' => 'USD', // Default currency, puede ajustarse según necesidad
+            'estimated_delivery_time' => $row['estimated_delivery_time'],
+            'is_selected' => (bool)$row['is_selected'],
+            'created_at' => $row['created_at'],
+            'carrier_name' => $row['carrier_name'],
+            'pdf_url' => $row['pdf_url']
+        ];
+    }
+    $stmt->close();
+    
+    return $quotes;
 }
-
-// Other helper functions like formatDateTime would remain the same

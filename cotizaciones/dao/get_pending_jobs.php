@@ -2,7 +2,7 @@
 /**
  * Endpoint to get pending SAP jobs
  * Intelligent Quoting Portal
- * @author Alejandro Pérez (Updated for new DB schema)
+ * @author Alejandro Pérez (Updated for QuoteResponses table)
  */
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -39,11 +39,25 @@ try {
     $con = new LocalConector();
     $conex = $con->conectar();
 
-    // DB Schema Change: Joined with `ShippingRequests` on `request_id`
-    $sql = "SELECT sq.id as queue_id, sq.quote_id, sr.*
+    // Updated query to use QuoteResponses instead of quotes
+    // Note: This assumes sap_queue table exists. If it doesn't, you'll need to create it.
+    $sql = "SELECT 
+                sq.id as queue_id, 
+                sq.quote_id, 
+                sq.status,
+                sq.retry_count,
+                sr.request_id,
+                sr.user_name,
+                sr.shipping_method,
+                sr.request_status,
+                qr.cost,
+                qr.delivery_time,
+                qr.carrier_id,
+                c.name as carrier_name
             FROM sap_queue sq
-            INNER JOIN quotes q ON sq.quote_id = q.id
-            INNER JOIN ShippingRequests sr ON q.request_id = sr.request_id
+            INNER JOIN QuoteResponses qr ON sq.quote_id = qr.response_id
+            INNER JOIN ShippingRequests sr ON qr.request_id = sr.request_id
+            INNER JOIN Carriers c ON qr.carrier_id = c.id
             WHERE sq.status = 'pending' 
               AND sq.retry_count < ?
             ORDER BY sq.created_at ASC
@@ -58,11 +72,23 @@ try {
     $pendingJobs = [];
     $queueIds = [];
     while ($job = $result->fetch_assoc()) {
-        $pendingJobs[] = $job;
+        $pendingJobs[] = [
+            'queue_id' => (int)$job['queue_id'],
+            'quote_id' => (int)$job['quote_id'],
+            'request_id' => (int)$job['request_id'],
+            'user_name' => $job['user_name'],
+            'shipping_method' => $job['shipping_method'],
+            'request_status' => $job['request_status'],
+            'carrier_name' => $job['carrier_name'],
+            'cost' => (float)$job['cost'],
+            'delivery_time' => $job['delivery_time'],
+            'retry_count' => (int)$job['retry_count']
+        ];
         $queueIds[] = $job['queue_id'];
     }
     $stmt->close();
     
+    // Mark jobs as processing
     if (!empty($queueIds)) {
         $placeholders = implode(',', array_fill(0, count($queueIds), '?'));
         $types = str_repeat('i', count($queueIds));
