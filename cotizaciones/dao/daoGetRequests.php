@@ -7,8 +7,9 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-require_once __DIR__ . '/../config.php';
-require_once __DIR__ . '/db/db.php'; // Make sure db.php is correctly located
+require_once __DIR__ . '/config.php';
+// FIX: Corrected the path to db.php, assuming 'dao' and 'db' are sibling directories.
+require_once __DIR__ . '/db/db.php'; 
 
 // Helper function to set CORS headers
 function setCorsHeaders() {
@@ -38,7 +39,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $conex = null;
 
 try {
-    // FIX: Replaced getDbConnection() with the correct LocalConector class
     $con = new LocalConector();
     $conex = $con->conectar();
     if (!$conex) {
@@ -93,7 +93,8 @@ try {
 
     $requests = [];
     while ($row = $result->fetch_assoc()) {
-        $requests[] = $row; // Simplified for brevity
+        // FIX: Restored full processing for each request row
+        $requests[] = processRequestRow($row, $conex);
     }
     $stmt->close();
 
@@ -107,6 +108,96 @@ try {
 } finally {
     if ($conex) {
         $conex->close();
+    }
+}
+
+
+/**
+ * Processes a request row to add detailed information.
+ */
+function processRequestRow($row, $conex) {
+    $request = [
+        'id' => (int)$row['request_id'],
+        'user_name' => $row['user_name'],
+        'company_area' => $row['company_area'],
+        'status' => $row['request_status'],
+        'shipping_method' => $row['shipping_method'],
+        'created_at' => $row['created_at'],
+        'updated_at' => $row['updated_at'],
+        'quote_status' => [
+            'total_quotes' => (int)$row['quotes_count'],
+            'selected_quotes' => (int)$row['selected_quotes'],
+            'has_quotes' => $row['quotes_count'] > 0
+        ]
+    ];
+
+    if (!empty($row['shipping_method'])) {
+        $methodDetails = getMethodSpecificDetails($conex, $row['request_id'], $row['shipping_method']);
+        $request['method_details'] = $methodDetails;
+        $request['route_info'] = generateRouteInfo($methodDetails, $row['shipping_method']);
+    } else {
+        $request['method_details'] = null;
+        $request['route_info'] = ['origin_country' => 'N/A', 'destination_country' => 'N/A', 'is_international' => false];
+    }
+    return $request;
+}
+
+function getMethodSpecificDetails($conex, $requestId, $method) {
+    switch ($method) {
+        case 'fedex':
+            return getFedexDetails($conex, $requestId);
+        case 'aereo_maritimo':
+            return getAereoMaritimoDetails($conex, $requestId);
+        case 'nacional':
+            return getNacionalDetails($conex, $requestId);
+        default:
+            return null;
+    }
+}
+
+function getFedexDetails($conex, $requestId) {
+    $stmt = $conex->prepare("SELECT * FROM FedexShipments WHERE request_id = ?");
+    $stmt->bind_param("i", $requestId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $data = $result->fetch_assoc();
+    $stmt->close();
+    return $data;
+}
+
+function getAereoMaritimoDetails($conex, $requestId) {
+    $stmt = $conex->prepare("SELECT * FROM AirSeaShipments WHERE request_id = ?");
+    $stmt->bind_param("i", $requestId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $data = $result->fetch_assoc();
+    $stmt->close();
+    return $data;
+}
+
+function getNacionalDetails($conex, $requestId) {
+    $stmt = $conex->prepare("SELECT * FROM DomesticShipments WHERE request_id = ?");
+    $stmt->bind_param("i", $requestId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $data = $result->fetch_assoc();
+    $stmt->close();
+    return $data;
+}
+
+function generateRouteInfo($methodDetails, $shippingMethod) {
+    if (!$methodDetails) {
+        return ['origin_country' => 'N/A', 'destination_country' => 'N/A', 'is_international' => false];
+    }
+    switch ($shippingMethod) {
+        case 'fedex':
+            return ['origin_country' => 'INTL', 'destination_country' => 'INTL', 'is_international' => true];
+        case 'aereo_maritimo':
+            return ['origin_country' => 'INTL', 'destination_country' => 'INTL', 'is_international' => true];
+        case 'nacional':
+            return ['origin_country' => 'MX', 'destination_country' => 'MX', 'is_international' => false];
+        default:
+            return ['origin_country' => 'N/A', 'destination_country' => 'N/A', 'is_international' => false];
     }
 }
 
