@@ -694,6 +694,11 @@ class GrammerDashboard {
     async showQuotes(requestId) {
         try {
             const modalContent = document.getElementById('quotesModalContent');
+            const modal = document.getElementById('quotesModal');
+            
+            // Store request_id in modal for later use
+            modal.dataset.requestId = requestId;
+            
             modalContent.innerHTML = `
                 <div class="text-center py-4">
                     <div class="spinner-border text-grammer-primary"></div>
@@ -716,7 +721,7 @@ class GrammerDashboard {
     }
     
     /**
-     * Generate quotes HTML
+     * Generate quotes HTML with Select/Deselect and PDF buttons
      * @param {Array} quotes 
      * @returns {string}
      */
@@ -725,7 +730,17 @@ class GrammerDashboard {
             return '<div class="alert alert-info">No quotes available for this request.</div>';
         }
         
-        let html = '<div class="row">';
+        // Count selected quotes
+        const selectedCount = quotes.filter(q => q.is_selected).length;
+        
+        let html = `
+            <div class="alert alert-info mb-3">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Selection:</strong> ${selectedCount} of 3 quotes selected. 
+                ${selectedCount < 3 ? `You can select ${3 - selectedCount} more.` : 'Maximum selections reached.'}
+            </div>
+            <div class="row" id="quotesContainer">
+        `;
         
         quotes.forEach((quote, index) => {
             const costFormatted = new Intl.NumberFormat('en-US', {
@@ -733,31 +748,131 @@ class GrammerDashboard {
                 currency: quote.currency || 'USD'
             }).format(quote.cost);
             
+            const isSelected = quote.is_selected;
+            const canSelect = selectedCount < 3 || isSelected;
+            
             html += `
-                <div class="col-md-6 mb-3">
-                    <div class="card ${quote.is_selected ? 'border-success' : ''}">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <strong>${quote.carrier_name}</strong>
-                            ${quote.is_selected ? '<span class="badge bg-success">Selected</span>' : ''}
+                <div class="col-md-6 mb-3" data-quote-id="${quote.id}">
+                    <div class="card ${isSelected ? 'border-success border-2' : 'border'}">
+                        <div class="card-header d-flex justify-content-between align-items-center bg-light">
+                            <div class="d-flex align-items-center gap-2">
+                                <strong class="text-grammer-primary">${quote.carrier_name}</strong>
+                                ${isSelected ? '<span class="badge bg-success"><i class="fas fa-check me-1"></i>Selected</span>' : ''}
+                            </div>
+                            <div class="d-flex gap-2">
+                                ${quote.pdf_url ? `
+                                    <button class="btn btn-sm btn-outline-grammer-primary" 
+                                            onclick="grammerDashboard.viewQuotePDF('${quote.pdf_url}')"
+                                            title="View PDF">
+                                        <i class="fas fa-file-pdf me-1"></i>PDF
+                                    </button>
+                                ` : ''}
+                                ${isSelected ? `
+                                    <button class="btn btn-sm btn-warning" 
+                                            onclick="grammerDashboard.toggleQuoteSelection(${quote.id}, false)"
+                                            title="Deselect this quote">
+                                        <i class="fas fa-times me-1"></i>Deselect
+                                    </button>
+                                ` : `
+                                    <button class="btn btn-sm btn-grammer-success" 
+                                            onclick="grammerDashboard.toggleQuoteSelection(${quote.id}, true)"
+                                            ${!canSelect ? 'disabled' : ''}
+                                            title="${canSelect ? 'Select this quote' : 'Maximum 3 selections reached'}">
+                                        <i class="fas fa-check me-1"></i>Select
+                                    </button>
+                                `}
+                            </div>
                         </div>
                         <div class="card-body">
-                            <div class="h5 text-grammer-primary mb-2">${costFormatted}</div>
-                            <p class="mb-2">
-                                <i class="fas fa-clock me-1"></i>
-                                <strong>Delivery:</strong> ${quote.estimated_delivery_time || 'N/A'}
-                            </p>
-                            <p class="mb-0">
-                                <i class="fas fa-calendar me-1"></i>
-                                <strong>Created:</strong> ${Utils.formatDate(quote.created_at)}
-                            </p>
+                            <div class="h5 text-grammer-primary mb-3">${costFormatted}</div>
+                            <div class="quote-details">
+                                <p class="mb-2">
+                                    <i class="fas fa-clock me-2 text-grammer-accent"></i>
+                                    <strong>Delivery Time:</strong> ${quote.estimated_delivery_time || 'Not specified'}
+                                </p>
+                                <p class="mb-2">
+                                    <i class="fas fa-calendar me-2 text-grammer-accent"></i>
+                                    <strong>Received:</strong> ${Utils.formatDate(quote.created_at)}
+                                </p>
+                                <p class="mb-2">
+                                    <i class="fas fa-envelope me-2 text-grammer-accent"></i>
+                                    <strong>Contact:</strong> ${quote.carrier_email || 'N/A'}
+                                </p>
+                                ${quote.ia_analysis ? `
+                                    <div class="mt-3 pt-3 border-top">
+                                        <p class="text-muted mb-1"><small><i class="fas fa-robot me-1"></i>AI Analysis:</small></p>
+                                        <pre class="bg-light p-2 rounded small mb-0">${JSON.stringify(quote.ia_analysis, null, 2)}</pre>
+                                    </div>
+                                ` : ''}
+                            </div>
                         </div>
                     </div>
                 </div>
             `;
         });
         
-        html += '</div>';
+        html += '</div></div>';
         return html;
+    }
+    
+    /**
+     * Toggle quote selection (select/deselect)
+     * @param {number} quoteId 
+     * @param {boolean} select 
+     */
+    async toggleQuoteSelection(quoteId, select) {
+        try {
+            // Show confirmation
+            const action = select ? 'select' : 'deselect';
+            const result = await Notifications.confirm(
+                `${select ? 'Select' : 'Deselect'} Quote`,
+                `Are you sure you want to ${action} this quote?`,
+                `Yes, ${action}`
+            );
+            
+            if (!result.isConfirmed) return;
+            
+            // Update quote selection via API
+            await API.selectQuote(quoteId, select);
+            
+            Notifications.toastSuccess(`Quote ${select ? 'selected' : 'deselected'} successfully`);
+            
+            // Refresh the quotes modal
+            const requestId = this.getCurrentRequestId();
+            if (requestId) {
+                await this.showQuotes(requestId);
+            }
+            
+        } catch (error) {
+            Utils.handleError(error, 'Toggle quote selection');
+            Notifications.toastError(`Error ${select ? 'selecting' : 'deselecting'} quote`);
+        }
+    }
+    
+    /**
+     * View quote PDF in new tab
+     * @param {string} pdfUrl 
+     */
+    viewQuotePDF(pdfUrl) {
+        if (!pdfUrl) {
+            Notifications.toastError('PDF not available');
+            return;
+        }
+        
+        // Open PDF in new tab
+        window.open(pdfUrl, '_blank');
+        
+        Notifications.toastSuccess('Opening PDF in new tab');
+    }
+    
+    /**
+     * Get current request ID from modal
+     * @returns {number|null}
+     */
+    getCurrentRequestId() {
+        // Try to get from modal data attribute or URL
+        const modal = document.getElementById('quotesModal');
+        return modal ? parseInt(modal.dataset.requestId) : null;
     }
     
     /**
