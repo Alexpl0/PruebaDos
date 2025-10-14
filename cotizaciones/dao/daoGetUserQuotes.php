@@ -5,7 +5,6 @@
  */
 
 require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/../../dao/users/auth_check.php';
 require_once __DIR__ . '/db/db.php';
 
 setCorsHeaders();
@@ -14,8 +13,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     sendJsonResponse(false, 'Method not allowed. Use POST.', null, 405);
 }
 
-if (!isset($_SESSION['user']) || empty($_SESSION['user']['id'])) {
-    sendJsonResponse(false, 'User not authenticated', null, 401);
+// Get user from session if available, otherwise return empty
+session_start();
+$userName = $_SESSION['user']['name'] ?? null;
+
+if (!$userName) {
+    sendJsonResponse(true, 'No authenticated user', ['requests' => [], 'total' => 0]);
 }
 
 $conex = null;
@@ -27,7 +30,6 @@ try {
     $input = file_get_contents('php://input');
     $filters = json_decode($input, true) ?? [];
     
-    $userId = $_SESSION['user']['id'];
     $userName = $_SESSION['user']['name'] ?? '';
 
     // Updated query to use QuoteResponses instead of quotes

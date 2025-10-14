@@ -6,17 +6,12 @@
  */
 
 require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/../../dao/users/auth_check.php';
 require_once __DIR__ . '/db/db.php';
 
 setCorsHeaders();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     sendJsonResponse(false, 'Method not allowed. Use POST.', null, 405);
-}
-
-if (!isset($_SESSION['user']) || empty($_SESSION['user']['id'])) {
-    sendJsonResponse(false, 'User not authenticated', null, 401);
 }
 
 $conex = null;
@@ -27,33 +22,11 @@ try {
     
     $requestId = intval($data['request_id'] ?? 0);
     if ($requestId <= 0) {
-        throw new Exception('A valid request ID is required');
+        throw new Exception('A valid request_id is required');
     }
 
     $con = new LocalConector();
     $conex = $con->conectar();
-    
-    $userCondition = "";
-    $params = [$requestId];
-    $types = "i";
-    
-    if ($_SESSION['user']['role'] !== 'admin') {
-        $userCondition = " AND user_name = ?";
-        $params[] = $_SESSION['user']['name'];
-        $types .= "s";
-    }
-    
-    // Check if request exists and user has access
-    $stmtReq = $conex->prepare("SELECT request_id, request_status, user_name FROM ShippingRequests WHERE request_id = ?" . $userCondition);
-    $stmtReq->bind_param($types, ...$params);
-    $stmtReq->execute();
-    $requestResult = $stmtReq->get_result();
-    $request = $requestResult->fetch_assoc();
-    $stmtReq->close();
-
-    if (!$request) {
-        throw new Exception('Request not found or access denied');
-    }
 
     // Get quotes with carrier information - Updated to use QuoteResponses
     $sql = "SELECT 
@@ -104,11 +77,6 @@ try {
     $stmt->close();
 
     sendJsonResponse(true, 'Quotes retrieved successfully', [
-        'request_info' => [
-            'request_id' => (int)$request['request_id'],
-            'status' => $request['request_status'],
-            'user_name' => $request['user_name']
-        ],
         'quotes' => $quotes,
         'total_quotes' => count($quotes)
     ]);

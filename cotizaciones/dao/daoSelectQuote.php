@@ -6,9 +6,6 @@
  */
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db/db.php';
-require_once __DIR__ . '/dao/mailer/mailer.php';
-
-use App\Mailer\AppMailer;
 
 setCorsHeaders();
 
@@ -87,7 +84,8 @@ try {
 
 function sendSelectionNotification($quote, $requestId) {
     try {
-        $mailer = new AppMailer();
+        // Simple email notification - can be enhanced later
+        $to = $quote['carrier_email'];
         $subject = "✅ Your quote for request #{$requestId} has been selected - GRAMMER";
         
         $body = "
@@ -131,7 +129,11 @@ function sendSelectionNotification($quote, $requestId) {
         </body>
         </html>";
         
-        return $mailer->sendEmail($quote['carrier_email'], $quote['carrier_name'], $subject, $body);
+        $headers = "MIME-Version: 1.0" . "\r\n";
+        $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+        $headers .= "From: noreply@grammermx.com" . "\r\n";
+        
+        return mail($to, $subject, $body, $headers);
     } catch (Exception $e) {
         error_log("Failed to send selection email: " . $e->getMessage());
         return false;
