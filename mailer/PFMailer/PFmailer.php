@@ -3,8 +3,11 @@
  * PFMailer.php
  *
  * Main class for sending emails securely in production or development environments.
- * ✅ UPDATED v2.5: Sistema multi-planta con configuración SMTP dinámica
+ * ✅ UPDATED v2.7: Sistema multi-planta con configuración SMTP dinámica CORREGIDO
+ * ✅ FIXED: Limpieza completa de PHPMailer entre cambios de planta
  * ✅ FIXED: FROM ahora siempre coincide con USERNAME para evitar rechazo SMTP
+ * ✅ FIXED: Reinicialización robusta del objeto mail para cada envío
+ * ✅ NEW: BCC automático a cuenta SMTP para auditoría y evidencia
  */
 
 // =========================================================================
@@ -74,6 +77,7 @@ class PFMailer {
     private $templates;
     private $db;
     private $currentPlantConfig;
+    private $lastConfiguredPlant;
 
     /**
      * Constructor - inicializa PHPMailer y las dependencias.
@@ -85,6 +89,32 @@ class PFMailer {
         $con = new LocalConector();
         $this->db = $con->conectar();
         
+        $this->lastConfiguredPlant = null;
+        
+        // ✅ NUEVA: Crear instancia nueva y limpia de PHPMailer
+        $this->initializePHPMailer();
+        
+        logAction("PFMailer initialized in mode: " . APP_ENVIRONMENT, 'INIT');
+    }
+
+    /**
+     * ✅ NUEVO: Inicializa o reinicializa PHPMailer completamente
+     */
+    private function initializePHPMailer() {
+        // ✅ Si ya existe un mail, destruirlo completamente
+        if ($this->mail !== null) {
+            try {
+                $this->mail->clearAllRecipients();
+                $this->mail->clearCCs();
+                $this->mail->clearBCCs();
+                $this->mail->clearReplyTos();
+                $this->mail->clearAttachments();
+            } catch (Exception $e) {
+                logAction("Error limpiando mail anterior: " . $e->getMessage(), 'MAIL_CLEANUP');
+            }
+        }
+        
+        // ✅ Crear nueva instancia
         $this->mail = new PHPMailer(true);
         $this->mail->isSMTP();
         $this->mail->SMTPAuth = true;
@@ -98,8 +128,10 @@ class PFMailer {
 
         $this->mail->isHTML(true);
         $this->mail->CharSet = 'UTF-8';
+        $this->mail->Timeout = 10;
+        $this->mail->SMTPKeepAlive = true;
         
-        logAction("PFMailer initialized in mode: " . APP_ENVIRONMENT, 'INIT');
+        logAction("PHPMailer instance reinitialized", 'MAIL_INIT');
     }
 
     // =========================================================================
@@ -185,6 +217,7 @@ class PFMailer {
     /**
      * ✅ CRÍTICO: Configura PHPMailer con la configuración SMTP de la planta
      * ASEGURA que FROM = USERNAME para evitar rechazo
+     * MEJORADO: Limpieza completa si cambió de planta
      */
     private function configureSMTPForPlant($plantCode) {
         logAction("Configurando SMTP para planta: {$plantCode}", 'SMTP_CONFIG');
@@ -196,19 +229,18 @@ class PFMailer {
             $plantCode = 'default';
         }
         
+        // ✅ Si cambió la planta, reinicializar PHPMailer completamente
+        if ($this->lastConfiguredPlant !== $plantCode) {
+            logAction("Cambio de planta detectado: {$this->lastConfiguredPlant} -> {$plantCode}, reinicializando mail", 'SMTP_PLANT_CHANGE');
+            $this->initializePHPMailer();
+            $this->lastConfiguredPlant = $plantCode;
+        }
+        
         $config = $configs[$plantCode];
         $this->currentPlantConfig = $config;
         
         try {
-            // ✅ Limpiar completamente el objeto mail
-            $this->mail->clearAddresses();
-            $this->mail->clearCCs();
-            $this->mail->clearBCCs();
-            $this->mail->clearReplyTos();
-            $this->mail->clearAllRecipients();
-            $this->mail->clearAttachments();
-            
-            // Configurar parámetros SMTP
+            // ✅ Configurar parámetros SMTP
             $this->mail->Host = $config['host'];
             $this->mail->Port = $config['port'];
             $this->mail->Username = $config['username'];
@@ -216,14 +248,13 @@ class PFMailer {
             $this->mail->SMTPSecure = $config['secure'];
             
             // ✅ CRÍTICO: FROM debe ser EXACTAMENTE el USERNAME
+            // Esto es lo que Hostinger verifica
             $this->mail->setFrom($config['username'], $config['from_name']);
-            
-            // ✅ Agregar BCC con la misma cuenta
-            $this->mail->addBCC($config['username'], 'Backup - ' . $config['plant_name']);
             
             logAction("✅ SMTP configurado para {$config['plant_name']}", 'SMTP_CONFIG_SUCCESS');
             logAction("  Host: {$config['host']}:{$config['port']}", 'SMTP_CONFIG_SUCCESS');
-            logAction("  Username/FROM: {$config['username']}", 'SMTP_CONFIG_SUCCESS');
+            logAction("  Username: {$config['username']}", 'SMTP_CONFIG_SUCCESS');
+            logAction("  FROM: {$config['username']}", 'SMTP_CONFIG_SUCCESS');
             logAction("  FROM Name: {$config['from_name']}", 'SMTP_CONFIG_SUCCESS');
             
         } catch (Exception $e) {
@@ -234,9 +265,12 @@ class PFMailer {
 
     /**
      * ✅ Establece destinatarios y configura SMTP según planta del usuario
+     * MEJORADO: Limpia direcciones antes de agregar nuevas
+     * ✅ NUEVO: Agrega BCC automático a la cuenta de envío para auditoría
      */
     public function setEmailRecipients($originalEmail, $originalName = '', $orderData = null) {
-        $this->mail->clearAddresses();
+        // ✅ Limpiar todos los destinatarios y CCs/BCCs
+        $this->mail->clearAllRecipients();
 
         // ✅ Redirecciones específicas para PRODUCCIÓN
         $productionRedirections = [
@@ -274,13 +308,27 @@ class PFMailer {
                 logAction("Email sent to: {$finalName} <{$finalEmail}> via {$plantName}", 'MAIL_RECIPIENT');
             }
         }
+        
+        // ✅ NUEVO: Agregar BCC a la cuenta SMTP para auditoría y evidencia
+        if (!TEST_MODE && $this->currentPlantConfig) {
+            $smtpAccount = $this->currentPlantConfig['username'];
+            $smtpAccountName = "Audit - " . $this->currentPlantConfig['plant_name'];
+            
+            try {
+                $this->mail->addBCC($smtpAccount, $smtpAccountName);
+                logAction("BCC agregado a cuenta SMTP para auditoría: {$smtpAccount}", 'AUDIT_BCC');
+            } catch (Exception $e) {
+                logAction("Error agregando BCC de auditoría: " . $e->getMessage(), 'AUDIT_BCC_ERROR');
+            }
+        }
     }
 
     /**
      * ✅ Configura múltiples destinatarios de la misma planta
      */
     public function setMultipleEmailRecipients($recipients, $forcePlantCode = null) {
-        $this->mail->clearAddresses();
+        // ✅ Limpiar completamente antes de configurar nuevos
+        $this->mail->clearAllRecipients();
         
         if (empty($recipients)) {
             logAction("No recipients provided for setMultipleEmailRecipients", 'EMAIL_RECIPIENTS_ERROR');
@@ -299,6 +347,19 @@ class PFMailer {
                 $this->mail->addAddress($recipient['email'], $recipient['name'] ?? '');
                 $plantName = $this->currentPlantConfig['plant_name'] ?? $plantCode;
                 logAction("Added recipient: {$recipient['name']} <{$recipient['email']}> using plant: {$plantName}", 'MAIL_RECIPIENT');
+            }
+        }
+        
+        // ✅ NUEVO: Agregar BCC a la cuenta SMTP para auditoría en envíos masivos
+        if (!TEST_MODE && $this->currentPlantConfig) {
+            $smtpAccount = $this->currentPlantConfig['username'];
+            $smtpAccountName = "Audit - " . $this->currentPlantConfig['plant_name'];
+            
+            try {
+                $this->mail->addBCC($smtpAccount, $smtpAccountName);
+                logAction("BCC agregado a cuenta SMTP para auditoría (múltiples destinatarios): {$smtpAccount}", 'AUDIT_BCC');
+            } catch (Exception $e) {
+                logAction("Error agregando BCC de auditoría: " . $e->getMessage(), 'AUDIT_BCC_ERROR');
             }
         }
     }
