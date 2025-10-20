@@ -22,6 +22,13 @@ function sendApprovalNotification(orderId) {
         timestamp: new Date().toISOString()
     };
     
+    // ✅ AGREGAR ESTO PARA DEBUG
+    console.log('[mailer.js] 📧 Sending approval notification:', {
+        endpoint,
+        payload,
+        fullURL: window.PF_CONFIG.app.mailerURL
+    });
+    
     return fetch(endpoint, {
         method: 'POST',
         headers: { 
@@ -31,8 +38,11 @@ function sendApprovalNotification(orderId) {
         body: JSON.stringify(payload)
     })
     .then(response => {
+        console.log('[mailer.js] 📥 Response status:', response.status);
+        
         if (!response.ok) {
             return response.json().catch(() => response.text()).then(errorInfo => {
+                console.error('[mailer.js] ❌ Error response:', errorInfo);
                 const errorMessage = typeof errorInfo === 'object' ? errorInfo.message : errorInfo;
                 throw new Error(errorMessage || `Server error: ${response.status}`);
             });
@@ -40,6 +50,8 @@ function sendApprovalNotification(orderId) {
         return response.json();
     })
     .then(data => {
+        console.log('[mailer.js] ✅ Success response:', data);
+        
         if (data.success) {
             return { success: true, message: data.message };
         } else {
@@ -47,7 +59,7 @@ function sendApprovalNotification(orderId) {
         }
     })
     .catch(error => {
-        console.error('Error in sendApprovalNotification:', error);
+        console.error('[mailer.js] 💥 Fetch error:', error);
         return { success: false, message: `Network or server error: ${error.message}` };
     });
 }

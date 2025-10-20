@@ -304,6 +304,7 @@ async function submitForm(event) {
             throw new Error("Order was created, but its ID is missing in the server response.");
         }
 
+        // Recovery file upload (existing)
         const recoveryFile = document.getElementById('recoveryFile');
         const needsFile = !document.getElementById('Recovery').options[document.getElementById('Recovery').selectedIndex].text.includes('NO RECOVERY');
         if (needsFile && recoveryFile?.files.length > 0) {
@@ -313,10 +314,29 @@ async function submitForm(event) {
             }
         }
         
+        // ✅ NUEVO: Enviar notificación al primer aprobador
+        console.log(`[newOrder.js] 📧 Sending notification to first approver for order #${orderId}`);
+        try {
+            const emailResult = await sendApprovalNotification(orderId);
+            
+            if (emailResult.success) {
+                console.log('[newOrder.js] ✅ Email notification sent successfully');
+            } else {
+                console.warn('[newOrder.js] ⚠️ Email notification failed:', emailResult.message);
+                // No lanzar error, solo advertir porque la orden ya se creó
+            }
+        } catch (emailError) {
+            console.error('[newOrder.js] ❌ Error sending email notification:', emailError);
+            // No lanzar error, solo advertir
+        }
+        
         Swal.fire({
             icon: 'success',
             title: 'Order Created Successfully!',
-            html: `Order <strong>#${orderId}</strong> has been created successfully.`,
+            html: `
+                Order <strong>#${orderId}</strong> has been created successfully.<br>
+                <small class="text-muted">The first approver has been notified.</small>
+            `,
             confirmButtonText: 'Go to Generated Orders'
         }).then((result) => {
             if (result.isConfirmed) {

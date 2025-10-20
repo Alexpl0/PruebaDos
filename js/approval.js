@@ -119,10 +119,10 @@ export async function approveOrder(orderId, options = {}) {
 
         if (newApprovalLevel >= maxRequiredLevel) {
             console.log(`Final approval for order #${selectedOrder.id}. Notifying creator.`);
-            // await sendStatusNotification(selectedOrder.id, 'approved');
+            await sendStatusNotification(selectedOrder.id, 'approved');  // ✅ DESCOMENTADO
         } else {
             console.log(`Intermediate approval for order #${selectedOrder.id}. Notifying next approver.`);
-            // await sendApprovalNotification(selectedOrder.id);
+            await sendApprovalNotification(selectedOrder.id);  // ✅ DESCOMENTADO
         }
 
         Swal.fire({ 
@@ -233,7 +233,7 @@ export async function rejectOrder(orderId, rejectionReason = null, options = {})
 
         console.log(`Order #${selectedOrder.id} rejected. Notifying creator.`);
         const rejectorInfo = { name: user.name, reason: reason };
-        // await sendStatusNotification(selectedOrder.id, 'rejected', rejectorInfo);
+        await sendStatusNotification(selectedOrder.id, 'rejected', rejectorInfo);  // ✅ DESCOMENTADO
 
         Swal.fire({ 
             icon: 'success', 

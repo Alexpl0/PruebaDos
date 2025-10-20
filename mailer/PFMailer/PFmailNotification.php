@@ -36,23 +36,50 @@ try {
     require_once __DIR__ . '/config.php';
     require_once 'PFmailer.php';
 
-    // Registrar datos de entrada para diagnóstico (opcional pero útil)
+    // ✅ AGREGAR LOGGING DETALLADO DEL RAW INPUT
     $rawInput = file_get_contents('php://input');
+    
+    error_log("[PFmailNotification] ========================================");
+    error_log("[PFmailNotification] 📥 RAW INPUT RECEIVED:");
+    error_log("[PFmailNotification] Length: " . strlen($rawInput));
+    error_log("[PFmailNotification] Content: " . $rawInput);
+    error_log("[PFmailNotification] Content-Type header: " . ($_SERVER['CONTENT_TYPE'] ?? 'not set'));
+    error_log("[PFmailNotification] Request Method: " . $_SERVER['REQUEST_METHOD']);
+    error_log("[PFmailNotification] ========================================");
+    
+    // ✅ VALIDAR QUE NO ESTÉ VACÍO
+    if (empty($rawInput)) {
+        error_log("[PFmailNotification] ❌ ERROR: Raw input is EMPTY");
+        throw new Exception('No data received. Request body is empty.');
+    }
     
     $data = json_decode($rawInput, true);
     
+    // ✅ LOGGING MEJORADO
+    error_log("[PFmailNotification] JSON decode result: " . ($data === null ? 'NULL' : 'SUCCESS'));
+    error_log("[PFmailNotification] JSON last error: " . json_last_error_msg());
+    error_log("[PFmailNotification] Decoded data: " . json_encode($data));
+
     if ($data === null) {
-        throw new Exception('Invalid JSON data received: ' . json_last_error_msg());
+        // ✅ MENSAJE DE ERROR MÁS DETALLADO
+        throw new Exception('Invalid JSON data received. Error: ' . json_last_error_msg() . ' | Raw input: ' . substr($rawInput, 0, 200));
     }
     
-    if (!isset($data['orderId']) || empty($data['orderId'])) {
-        throw new Exception('Required parameter "orderId" is missing.');
-    }
+    $orderId = intval($data['orderId'] ?? 0);
     
-    $orderId = intval($data['orderId']);
+    error_log("[PFmailNotification] Processing order ID: {$orderId}");
+
+    if ($orderId <= 0) {
+        throw new Exception("Invalid or missing order ID. Received: " . json_encode($data));
+    }
     
     $mailer = new PFMailer();
+    
+    error_log("[PFmailNotification] Calling sendApprovalNotification for order {$orderId}");
+    
     $result = $mailer->sendApprovalNotification($orderId);
+    
+    error_log("[PFmailNotification] Result: " . ($result ? 'true' : 'false'));
         
     if ($result) {
         echo json_encode([
@@ -60,16 +87,12 @@ try {
             'message' => "Approval email sent successfully for order #{$orderId}"
         ]);
     } else {
-        // Si sendApprovalNotification devuelve false sin una excepción, es un fallo controlado.
         throw new Exception("Mailer failed to send approval email for order #{$orderId}");
     }
     
 } catch (Exception $e) {
-    // Registrar el error específico en el log.
-    error_log("Error en PFmailNotification.php: " . $e->getMessage());
-
-    // Enviar una respuesta JSON de error controlada.
-    // El http_response_code es opcional pero es una buena práctica.
+    error_log("[PFmailNotification] ERROR: " . $e->getMessage());
+    
     http_response_code(500); 
     echo json_encode([
         'success' => false, 
