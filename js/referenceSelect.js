@@ -9,13 +9,26 @@
  * This file is an ES6 module and exports the necessary functions to be controlled from newOrder.js.
  */
 
-// Helper function to get the base URL from the global config object.
+/**
+ * Helper function to get the base URL from the global config object.
+ */
 function getBaseUrl() {
     if (window.PF_CONFIG && window.PF_CONFIG.app && window.PF_CONFIG.app.baseURL) {
         return window.PF_CONFIG.app.baseURL;
     }
     console.warn("PF_CONFIG.app.baseURL not found, using a fallback URL.");
-    return 'https://grammermx.com/Logistica/PremiumFreight/'; // Fallback URL
+    return 'https://grammermx.com/Logistica/PremiumFreight/';
+}
+
+/**
+ * Check if current user should have full access
+ * User ID 303 gets full access, others get limited
+ */
+function shouldHaveFullAccess() {
+    if (window.PF_CONFIG && window.PF_CONFIG.user && window.PF_CONFIG.user.id) {
+        return window.PF_CONFIG.user.id === 303;
+    }
+    return false;
 }
 
 /**
@@ -33,7 +46,7 @@ export function initializeFullReferenceSelector() {
     // If Select2 is already initialized, destroy it to re-configure.
     if ($select.hasClass("select2-hidden-accessible")) {
         $select.select2('destroy');
-        $select.empty(); // Clear previous options and data
+        $select.empty();
     }
 
     fetch(getBaseUrl() + 'dao/elements/daoNumOrders.php')
@@ -44,24 +57,24 @@ export function initializeFullReferenceSelector() {
         .then(apiResponse => {
             if (apiResponse && apiResponse.status === 'success' && Array.isArray(apiResponse.data)) {
                 const sanitizedData = apiResponse.data.map(item => ({
-                    id: String(item.id || ''), // Ensure ID is a string
-                    text: String(item.text || '') // Ensure text is a string
+                    id: String(item.id || ''),
+                    text: String(item.text || '')
                 }));
 
                 $select.select2({
                     width: '100%',
                     placeholder: 'Search or enter an order number',
                     data: sanitizedData,
-                    tags: true, // Allow creating new tags
+                    tags: true,
                     createTag: function(params) {
                         const term = $.trim(params.term);
                         if (term === '' || !/^\d+$/.test(term)) {
-                            return null; // Only allow numeric tags
+                            return null;
                         }
                         return {
                             id: term,
                             text: term,
-                            isNew: true // Flag for new tags
+                            isNew: true
                         };
                     },
                     dropdownParent: $select.parent()
@@ -72,7 +85,6 @@ export function initializeFullReferenceSelector() {
         })
         .catch(error => {
             console.error("Failed to load or initialize the full reference selector:", error);
-            // Provide a fallback if the fetch fails
             $select.select2({
                 width: '100%',
                 placeholder: 'Error loading. Enter number manually.',
@@ -101,14 +113,9 @@ export function initializeLimitedReferenceSelector() {
     // If Select2 is already initialized, destroy it to re-configure.
     if ($select.hasClass("select2-hidden-accessible")) {
         $select.select2('destroy');
-        $select.empty(); // Clear previous options and data
+        $select.empty();
     }
 
-    // These are the specific options required when recovery is active.
-    // ID: 42 -> Text: 486406
-    // ID: 43 -> Text: 347427
-    // ID: 55 -> Text: 344030
-    // ID: 67 -> Text: 351959
     const limitedData = [
         { id: '42', text: '486406' },
         { id: '43', text: '347427' },
@@ -118,23 +125,27 @@ export function initializeLimitedReferenceSelector() {
         { id: '57', text: '349877' },
         { id: '71', text: '337848' },
         { id: '72', text: '352149' }
-        
     ];
 
     $select.select2({
         width: '100%',
         placeholder: 'Select a recovery order number',
         data: limitedData,
-        tags: false, // DO NOT allow creating new tags in this mode
+        tags: false,
         dropdownParent: $select.parent()
     });
 }
 
 /**
  * Main initialization function to be called on page load.
- * It defaults to initializing the full selector.
- * This function is kept for backward compatibility if you were calling it directly.
+ * Checks user ID and initializes accordingly.
  */
 export function initializeReferenceSelector() {
-    initializeFullReferenceSelector();
+    if (shouldHaveFullAccess()) {
+        console.log('✅ User 303 detected - granting full reference order access');
+        initializeFullReferenceSelector();
+    } else {
+        console.log('📋 Standard user - using full reference order selector');
+        initializeFullReferenceSelector();
+    }
 }

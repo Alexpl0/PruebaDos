@@ -180,16 +180,22 @@ function handleReferenceOrderFiltering() {
 
     const selectedText = recoverySelect.options[recoverySelect.selectedIndex]?.text || '';
     const isNoRecovery = selectedText.toUpperCase().includes('NO RECOVERY');
+    
+    // Check if user should have full access
+    const isUser303 = window.PF_CONFIG?.user?.id === 303;
 
-    // Clear the current selection in ReferenceOrder to prevent
-    // carrying over a value that might not be valid in the new context.
+    // Clear the current selection
     $('#ReferenceOrder').val(null).trigger('change');
 
-    if (isNoRecovery) {
-        // If "NO RECOVERY" is selected, initialize the selector with full AJAX capabilities.
+    if (isUser303) {
+        // User 303 always gets full access
+        console.log('👤 User 303 - Full access to all reference orders');
+        initializeFullReferenceSelector();
+    } else if (isNoRecovery) {
+        // Other users: Full access only if "NO RECOVERY"
         initializeFullReferenceSelector();
     } else {
-        // Otherwise, initialize the selector with the limited, static list of options.
+        // Other users: Limited list if recovery is selected
         initializeLimitedReferenceSelector();
     }
 }
