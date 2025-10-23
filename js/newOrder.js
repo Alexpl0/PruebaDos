@@ -170,9 +170,9 @@ function handleRecoveryFileVisibility() {
 
 /**
  * NEW FUNCTION
- * This function handles your second requirement.
- * It dynamically changes the options available in the 'ReferenceOrder' select
+ * This function handles dynamic changes to the 'ReferenceOrder' select
  * based on the value of the 'Recovery' select.
+ * User 303 always gets full access regardless of Recovery selection.
  */
 function handleReferenceOrderFiltering() {
     const recoverySelect = document.getElementById('Recovery');
@@ -184,18 +184,20 @@ function handleReferenceOrderFiltering() {
     // Check if user should have full access
     const isUser303 = window.PF_CONFIG?.user?.id === 303;
 
-    // Clear the current selection
+    // Clear the current selection in ReferenceOrder
     $('#ReferenceOrder').val(null).trigger('change');
 
     if (isUser303) {
         // User 303 always gets full access
-        console.log('👤 User 303 - Full access to all reference orders');
+        console.log('👤 User 303 detected - granting full reference order access');
         initializeFullReferenceSelector();
     } else if (isNoRecovery) {
         // Other users: Full access only if "NO RECOVERY"
+        console.log('📋 Standard user with NO RECOVERY - full reference order access');
         initializeFullReferenceSelector();
     } else {
         // Other users: Limited list if recovery is selected
+        console.log('🔒 Standard user with Recovery - limited reference order access');
         initializeLimitedReferenceSelector();
     }
 }
