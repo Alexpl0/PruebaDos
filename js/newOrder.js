@@ -435,9 +435,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize Bootstrap tooltips
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
+    
+    // ✅ CORREGIDO: Verificar que bootstrap esté disponible
+    if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    } else {
+        console.warn('[newOrder.js] ⚠️ Bootstrap library not loaded yet. Tooltips will not be initialized.');
+    }
 });
 
 // UPDATED: Update week number display function

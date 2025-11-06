@@ -172,15 +172,16 @@ export function initializeLimitedReferenceSelector() {
         $select.empty();
     }
 
+    // ✅ CORREGIDO: Los ID deben ser los números de orden, no los IDs de la BD
     const limitedData = [
-        { id: '42', text: '486406' },
-        { id: '43', text: '347427' },
-        { id: '55', text: '324030' },
-        { id: '67', text: '351959' },
-        { id: '56', text: '349665' },
-        { id: '57', text: '349877' },
-        { id: '71', text: '337848' },
-        { id: '72', text: '352149' }
+        { id: '486406', text: '486406' },
+        { id: '347427', text: '347427' },
+        { id: '324030', text: '324030' },
+        { id: '351959', text: '351959' },
+        { id: '349665', text: '349665' },
+        { id: '349877', text: '349877' },
+        { id: '337848', text: '337848' },
+        { id: '352149', text: '352149' }
     ];
 
     $select.select2({
@@ -189,6 +190,11 @@ export function initializeLimitedReferenceSelector() {
         data: limitedData,
         tags: false,
         dropdownParent: $select.parent()
+    });
+
+    // ✅ ACTUALIZADO: Agregar el evento change también aquí
+    $select.on('change', function() {
+        showAdditionalReferenceInput();
     });
 }
 
