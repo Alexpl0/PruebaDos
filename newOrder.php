@@ -358,16 +358,15 @@ require_once 'dao/users/context_injector.php';
 
                 <!-- ✅ NUEVO: Input adicional para referencia complementaria -->
                 <div id="additionalReferenceContainer" class="mb-3" style="display: none;">
-                    <label for="AdditionalReference">Additional Reference Information</label>
+                    <label for="AdditionalReference">Additional Reference Number Order 45</label>
                     <input 
                         type="text" 
                         id="AdditionalReference" 
                         name="AdditionalReference" 
                         class="form-control" 
-                        placeholder="Enter additional reference details"
+                        placeholder="Enter additional the order number"
                         maxlength="100"
                     >
-                    <small class="form-text text-muted">Optional: Add extra information to the reference</small>
                 </div>
             </div>
             
