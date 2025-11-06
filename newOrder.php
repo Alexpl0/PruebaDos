@@ -355,6 +355,20 @@ require_once 'dao/users/context_injector.php';
                         <option></option>
                     </select>
                 </div>
+
+                <!-- ✅ NUEVO: Input adicional para referencia complementaria -->
+                <div id="additionalReferenceContainer" class="mb-3" style="display: none;">
+                    <label for="AdditionalReference">Additional Reference Information</label>
+                    <input 
+                        type="text" 
+                        id="AdditionalReference" 
+                        name="AdditionalReference" 
+                        class="form-control" 
+                        placeholder="Enter additional reference details"
+                        maxlength="100"
+                    >
+                    <small class="form-text text-muted">Optional: Add extra information to the reference</small>
+                </div>
             </div>
             
             <button type="button" id="enviar" class="btn btn-primary">Submit</button>

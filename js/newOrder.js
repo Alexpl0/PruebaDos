@@ -277,7 +277,7 @@ async function submitForm(event) {
             transport: formData['transport'],
             in_out_bound: formData['InOutBound'],
             cost_euros: (typeof euros === 'number' && !isNaN(euros)) ? euros : 0,
-            description: formData['Description'], // This will contain the merged 5 Why's
+            description: formData['Description'],
             area: formData['Area'],
             int_ext: formData['IntExt'],
             paid_by: formData['PaidBy'],
@@ -295,7 +295,8 @@ async function submitForm(event) {
             status_id: 1,
             required_auth_level: range,
             moneda: getSelectedCurrency(),
-            // NUEVOS CAMPOS DEL CORRECTIVE ACTION PLAN
+            // ✅ NUEVO: Agregar la referencia adicional
+            reference: document.getElementById('AdditionalReference')?.value || '',
             corrective_action: formData['CorrectiveAction'],
             person_responsible: formData['PersonResponsible'],
             target_date: formData['TargetDate']

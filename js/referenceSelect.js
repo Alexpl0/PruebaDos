@@ -32,6 +32,52 @@ function shouldHaveFullAccess() {
 }
 
 /**
+ * ✅ LISTA DE ÓRDENES QUE REQUIEREN INPUT ADICIONAL
+ */
+const ORDERS_REQUIRING_ADDITIONAL_REFERENCE = [
+    '347427',
+    '486406',
+    '346506',
+    '346507',
+    '346508',
+    '485869',
+    '485870',
+    '485871'
+];
+
+/**
+ * ✅ NUEVA FUNCIÓN: Mostrar/ocultar input adicional para referencia complementaria
+ * Solo aparece para órdenes específicas
+ */
+function showAdditionalReferenceInput() {
+    const $select = $('#ReferenceOrder');
+    const selectedValue = $select.val();
+    const $container = $('#additionalReferenceContainer');
+
+    if (!$container.length) {
+        console.warn('Container #additionalReferenceContainer not found');
+        return;
+    }
+
+    // Verificar si la orden seleccionada está en la lista de órdenes que necesitan referencia adicional
+    const requiresAdditionalReference = ORDERS_REQUIRING_ADDITIONAL_REFERENCE.includes(selectedValue);
+
+    if (selectedValue && requiresAdditionalReference) {
+        console.log(`✅ Orden ${selectedValue} requiere referencia adicional`);
+        $container.show();
+        const $input = $('#AdditionalReference');
+        $input.val(''); // Limpiar el valor anterior
+        $input.focus();
+    } else {
+        if (selectedValue) {
+            console.log(`ℹ️ Orden ${selectedValue} NO requiere referencia adicional`);
+        }
+        $container.hide();
+        $('#AdditionalReference').val('');
+    }
+}
+
+/**
  * Initializes the Reference Order selector with FULL functionality.
  * It preloads all order numbers and allows users to create new ones.
  * This is the default mode.
@@ -79,6 +125,12 @@ export function initializeFullReferenceSelector() {
                     },
                     dropdownParent: $select.parent()
                 });
+
+                // ✅ ACTUALIZADO: Mostrar/ocultar input adicional cuando cambia la selección
+                $select.on('change', function() {
+                    showAdditionalReferenceInput();
+                });
+
             } else {
                 throw new Error("Invalid data format received for reference orders.");
             }
@@ -92,7 +144,11 @@ export function initializeFullReferenceSelector() {
                 createTag: function(params) {
                     const term = $.trim(params.term);
                     if (term === '') return null;
-                    return { id: term, text: term, isNew: true };
+                    return {
+                        id: term,
+                        text: term,
+                        isNew: true
+                    };
                 },
                 dropdownParent: $select.parent()
             });

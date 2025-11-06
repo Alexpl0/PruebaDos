@@ -128,6 +128,21 @@ try {
     while ($row = $result->fetch_assoc()) {
         $orderId = $row['id'];
         
+        // ✅ NUEVO: Concatenar reference_number con reference
+        $refNumber = $row['reference_number'] ?? '';
+        $refAdditional = $row['reference'] ?? '';
+        
+        // Concatenar ambos valores
+        if ($refNumber && $refAdditional) {
+            $row['full_reference'] = $refNumber . ' - ' . $refAdditional;
+        } else if ($refNumber) {
+            $row['full_reference'] = $refNumber;
+        } else if ($refAdditional) {
+            $row['full_reference'] = $refAdditional;
+        } else {
+            $row['full_reference'] = '';
+        }
+        
         // Agregar información de aprobadores
         $row['approver_level_1'] = $orderApprovers[$orderId][1] ?? '';
         $row['approver_level_2'] = $orderApprovers[$orderId][2] ?? '';

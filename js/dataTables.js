@@ -254,64 +254,15 @@ function clearFilters(data) {
 function calculateReference(referenceNumber, referenceName) {
     console.log('🔢 [calculateReference] Calculating reference for:', { referenceNumber, referenceName });
     
-    // Convertir a string para evitar errores
     const refNumber = String(referenceNumber || '');
     const refName = String(referenceName || '');
     
-    console.log('🔍 [calculateReference] After string conversion:', { 
-        refNumber, 
-        refName,
-        refNumberType: typeof refNumber,
-        refNumberLength: refNumber.length,
-        startsWithCheck: refNumber.startsWith('45')
-    });
-    
-    // ✅ NUEVA LÓGICA: Verificar categorías en orden de prioridad
-    
-    // 1. Verificar si reference_number comienza con "45"
-    if (refNumber.startsWith('45')) {
-        console.log('✅ [calculateReference] Found 45 in reference_number:', refNumber);
-        return '45';
-    } else {
-        console.log('❌ [calculateReference] reference_number does NOT start with 45:', refNumber);
+    // ✅ ACTUALIZADO: Usar el campo full_reference si está disponible
+    if (refNumber && refName) {
+        return `${refNumber} - ${refName}`;
     }
     
-    // 2. ✅ NUEVO: Verificar si reference_name contiene palabras que comienzan con "45"
-    if (refName) {
-        // Dividir en palabras y buscar cualquiera que comience con "45"
-        const words = refName.split(/[\s\-_.,;:]+/); // Dividir por espacios, guiones, puntos, etc.
-        console.log('🔍 [calculateReference] Words from reference_name:', words);
-        
-        const has45Word = words.some(word => {
-            const trimmedWord = word.trim();
-            const starts45 = trimmedWord.startsWith('45');
-            console.log(`  - Word: "${trimmedWord}" starts with 45: ${starts45}`);
-            return starts45;
-        });
-        
-        if (has45Word) {
-            console.log('✅ [calculateReference] Found word starting with 45 in reference_name:', refName);
-            return '45';
-        } else {
-            console.log('❌ [calculateReference] No word starts with 45 in reference_name:', refName);
-        }
-    }
-    
-    // 3. Verificar si reference_number comienza con "3"
-    if (refNumber.startsWith('3')) {
-        console.log('✅ [calculateReference] Found 3 in reference_number:', refNumber);
-        return '3';
-    }
-    
-    // 4. Verificar si reference_name incluye "CC"
-    if (refName.toUpperCase().includes('CC')) {
-        console.log('✅ [calculateReference] Found CC in reference_name:', refName);
-        return 'CC';
-    }
-    
-    // 5. Categoría por defecto
-    console.log('⚠️ [calculateReference] Default category: Order (no match found)');
-    return 'Order';
+    return refNumber || refName || 'N/A';
 }
 
 /**

@@ -8,15 +8,15 @@
 // Define the mapping between SVG element IDs and order object properties
 const svgMap = {
     'RequestingPlantValue': 'planta',
-    'PlantCodeValue': 'code_planta', // CORREGIDO: era 'creator_plant'
+    'PlantCodeValue': 'code_planta',
     'DateValue': 'date', 
     'TransportValue': 'transport',
     'InOutBoundValue': 'in_out_bound',
     'CostInEurosValue': 'cost_euros',
     'AreaOfResponsabilityValue': 'area',
     'InExtValue': 'int_ext',
-    'CostPaidByValue': 'paid_by', // ✅ Este campo está correcto en el JSON
-    'RootCauseValue': 'category_cause', // ✅ Este campo está correcto en el JSON
+    'CostPaidByValue': 'paid_by',
+    'RootCauseValue': 'category_cause',
     'ProjectStatusValue': 'project_status',
     'RecoveryValue': 'recovery',
     'DescriptionAndRootCauseValue': 'description',
@@ -31,7 +31,7 @@ const svgMap = {
     'ZIPDestValue': 'destiny_zip',
     'WeightValue': (order) => {
         const getMeasureAbbreviation = (measure) => {
-            if (!measure || measure === '0') return 'KG'; // Default cuando measures = "0"
+            if (!measure || measure === '0') return 'KG';
             switch (measure.toUpperCase()) {
                 case 'KILOS':
                     return 'KG';
@@ -48,7 +48,27 @@ const svgMap = {
     'ProductValue': 'products',
     'CarrierNameValue': 'carrier',
     'QuotedCostValue': (order) => `$ ${order.quoted_cost || '0'} ${order.moneda || 'MXN'}`,
-    'ReferenceNumberValue': 'reference_number',
+    
+    // ✅ ACTUALIZADO: Concatenar reference_number con reference
+    'ReferenceNumberValue': (order) => {
+        const refNumber = order.reference_number || '';
+        const refAdditional = order.reference || '';
+        
+        let fullReference = '';
+        
+        if (refNumber && refAdditional) {
+            fullReference = `${refNumber} - ${refAdditional}`;
+        } else if (refNumber) {
+            fullReference = refNumber;
+        } else if (refAdditional) {
+            fullReference = refAdditional;
+        }
+        
+        console.log(`[SVG] 📋 ReferenceNumberValue concatenated: "${fullReference}" (refNumber="${refNumber}", refAdditional="${refAdditional}")`);
+        
+        return fullReference;
+    },
+    
     'IdPfValue': 'id',
     
     // CORREGIDO: Campo dinámico de aprobadores (solo niveles 1-5)
