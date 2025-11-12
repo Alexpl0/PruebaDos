@@ -187,7 +187,7 @@ try {
 
     // 7. Registrar en el historial
     $actionType = $newStatusId === 99 ? 'REJECTED' : 'APPROVED';
-    $levelReached = $newStatusId === 99 ? 99 : $userLevel;
+    $levelReached = $userLevel;  // ← Siempre usar $userLevel, sea aprobación o rechazo
     
     $stmt = $conex->prepare("
         INSERT INTO ApprovalHistory 

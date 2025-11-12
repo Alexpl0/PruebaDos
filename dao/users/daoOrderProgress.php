@@ -2,10 +2,10 @@
 /**
  * daoOrderProgress.php - Progreso de Aprobación de Órdenes
  * 
- * ACTUALIZACIÓN v2.2 (2025-10-08):
- * - CORREGIDO: Generación del array 'approvers' para la línea de progreso
- * - Usa tabla Approvers para obtener responsables de cada nivel
- * - Calcula estados correctamente basándose en approval_status
+ * ACTUALIZACIÓN v3.0 (2025-11-12):
+ * - FUENTE DE VERDAD: ApprovalHistory únicamente
+ * - Se olvida PremiumFreightApprovals.act_approv
+ * - Calcula estados basándose 100% en ApprovalHistory
  */
 
 require_once __DIR__ . '/../db/cors_config.php';
@@ -54,12 +54,9 @@ try {
         pf.recovery_evidence,
         pf.user_id as creator_id,
         u.plant as order_plant,
-        u.name as creator_name,
-        pfa.act_approv as current_approval_level,
-        pfa.rejection_reason
+        u.name as creator_name
     FROM PremiumFreight pf
     LEFT JOIN User u ON pf.user_id = u.id
-    LEFT JOIN PremiumFreightApprovals pfa ON pf.id = pfa.premium_freight_id
     WHERE pf.id = ?";
     
     $stmt = $conex->prepare($orderSql);
@@ -73,10 +70,7 @@ try {
     
     if ($orderResult->num_rows === 0) {
         http_response_code(404);
-        echo json_encode([
-            'success' => false,
-            'message' => 'Order not found'
-        ]);
+        echo json_encode(['success' => false, 'message' => 'Order not found']);
         exit;
     }
     
@@ -86,21 +80,11 @@ try {
     // 2. Verificar permisos de acceso según planta
     if ($currentUserAuthLevel < 4 && $currentUserPlant !== null && $currentUserPlant != $orderPlant) {
         http_response_code(403);
-        echo json_encode([
-            'success' => false,
-            'message' => 'You do not have permission to view this order'
-        ]);
+        echo json_encode(['success' => false, 'message' => 'You do not have permission to view this order']);
         exit;
     }
     
-    // 3. Obtener estado actual de aprobación
-    $currentApprovalLevel = intval($orderInfo['current_approval_level'] ?? 0);
-    $rejectionReason = $orderInfo['rejection_reason'];
-    $isRejected = ($currentApprovalLevel === 99);
-    $requiredLevel = intval($orderInfo['required_auth_level']);
-    $isFullyApproved = (!$isRejected && $currentApprovalLevel >= $requiredLevel);
-    
-    // 4. Obtener historial de aprobaciones
+    // 3. Obtener TODA la información del ApprovalHistory
     $historySql = "SELECT 
         ah.id,
         ah.user_id as approver_id,
@@ -129,18 +113,36 @@ try {
         $approvalHistory[] = $row;
     }
     
-    // 5. NUEVO: Construir el array de aprobadores para la línea de progreso
+    // 4. Determinar estado de la orden desde ApprovalHistory
+    $requiredLevel = intval($orderInfo['required_auth_level']);
+    $isRejected = false;
+    $rejectionReason = null;
+    $rejectionLevel = null;
+    $rejectorName = null;
+    $maxApprovedLevel = 0;
+    
+    foreach ($approvalHistory as $history) {
+        if ($history['action_type'] === 'REJECTED') {
+            $isRejected = true;
+            $rejectionLevel = $history['approval_level_reached'];
+            $rejectionReason = $history['rejection_reason'];
+            $rejectorName = $history['approver_name'];
+            break; // El rechazo detiene el ciclo
+        } elseif ($history['action_type'] === 'APPROVED') {
+            $maxApprovedLevel = max($maxApprovedLevel, intval($history['approval_level_reached']));
+        }
+    }
+    
+    $isFullyApproved = (!$isRejected && $maxApprovedLevel >= $requiredLevel);
+    
+    // 5. Construir el array de aprobadores para la línea de progreso
     $approvers = [];
     
     for ($level = 1; $level <= $requiredLevel; $level++) {
-        // Buscar aprobador responsable de este nivel desde tabla Approvers
+        // Buscar aprobador responsable de este nivel
         $approverSql = "SELECT 
-            u.id,
-            u.name,
-            u.email,
-            u.role,
-            a.approval_level,
-            a.plant
+            u.id, u.name, u.email, u.role,
+            a.approval_level, a.plant
         FROM Approvers a
         INNER JOIN User u ON a.user_id = u.id
         WHERE a.approval_level = ? 
@@ -177,20 +179,22 @@ try {
             }
         }
         
-        // Determinar estados booleanos para la línea de progreso
+        // Determinar estados booleanos basándose SOLO en ApprovalHistory
         $isCompleted = false;
         $isCurrent = false;
         $isRejectedHere = false;
         
-        if ($isRejected && $level == $currentApprovalLevel) {
-            $isRejectedHere = true;
-        } elseif ($level < $currentApprovalLevel || ($level == $currentApprovalLevel && $isFullyApproved)) {
-            $isCompleted = true;
-        } elseif ($level == $currentApprovalLevel + 1 && !$isRejected && !$isFullyApproved) {
+        if ($historyItem) {
+            if ($historyItem['action_type'] === 'REJECTED') {
+                $isRejectedHere = true;
+            } else {
+                $isCompleted = true;
+            }
+        } elseif ($level == $maxApprovedLevel + 1 && !$isRejected) {
+            // Es el siguiente nivel esperado
             $isCurrent = true;
         }
         
-        // Agregar al array de aprobadores
         $approvers[] = [
             'level' => $level,
             'name' => $approverName,
@@ -202,44 +206,29 @@ try {
         ];
     }
     
-    // 6. Calcular el porcentaje de progreso
-    $progressPercentage = 0;
-    if ($isRejected) {
-        // Si está rechazada, el progreso llega hasta donde fue rechazada
-        $progressPercentage = ($currentApprovalLevel / $requiredLevel) * 100;
-    } elseif ($isFullyApproved) {
-        $progressPercentage = 100;
-    } else {
-        // En progreso: el progreso es hasta el último nivel aprobado
-        $progressPercentage = ($currentApprovalLevel / $requiredLevel) * 100;
-    }
+    // 6. Calcular porcentaje de progreso
+    $progressPercentage = ($maxApprovedLevel / $requiredLevel) * 100;
     
     // 7. Mapear status_id a texto legible
     $statusText = 'Unknown';
     switch ($orderInfo['status_id']) {
-        case 1:
-            $statusText = 'Active';
-            break;
-        case 2:
-            $statusText = 'In Review';
-            break;
-        case 3:
-            $statusText = 'Approved';
-            break;
-        case 4:
-            $statusText = 'Rejected';
-            break;
+        case 1: $statusText = 'Active'; break;
+        case 2: $statusText = 'In Review'; break;
+        case 3: $statusText = 'Approved'; break;
+        case 4: $statusText = 'Rejected'; break;
     }
     
-    // 8. Preparar respuesta con el formato correcto para progress-line.js
+    // 8. Preparar respuesta
     $response = [
         'success' => true,
         'showProgress' => true,
-        'approvers' => $approvers, // ESTE es el array que progress-line.js necesita
+        'approvers' => $approvers,
         'orderInfo' => [
             'is_rejected' => $isRejected,
             'is_completed' => $isFullyApproved,
-            'rejection_reason' => $rejectionReason
+            'rejection_reason' => $rejectionReason,
+            'rejection_level' => $rejectionLevel,
+            'rejector_name' => $rejectorName
         ],
         'progress' => [
             'percentage' => round($progressPercentage, 2)
@@ -249,7 +238,7 @@ try {
             'premium_freight_number' => $orderInfo['premium_freight_number'],
             'status' => $statusText,
             'status_id' => $orderInfo['status_id'],
-            'current_approval_level' => $currentApprovalLevel,
+            'current_approval_level' => $maxApprovedLevel,
             'required_auth_level' => $requiredLevel,
             'is_rejected' => $isRejected,
             'rejection_reason' => $rejectionReason,
@@ -276,9 +265,6 @@ try {
 } catch (Exception $e) {
     error_log("Error in daoOrderProgress: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'message' => 'Internal server error: ' . $e->getMessage()
-    ]);
+    echo json_encode(['success' => false, 'message' => 'Internal server error: ' . $e->getMessage()]);
 }
 ?>
