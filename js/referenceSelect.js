@@ -46,12 +46,32 @@ const ORDERS_REQUIRING_ADDITIONAL_REFERENCE = [
 ];
 
 /**
- * ✅ NUEVA FUNCIÓN: Mostrar/ocultar input adicional para referencia complementaria
- * Solo aparece para órdenes específicas
+ * ✅ MAPEO DE IDs QUE REQUIEREN INPUT ADICIONAL
+ * Basado en el ID de la base de datos, no en el número de orden
+ */
+const IDS_REQUIRING_ADDITIONAL_REFERENCE = [
+    1,    // 346506
+    2,    // 346507
+    3,    // 346508
+    5,    // 485869
+    6,    // 485870
+    7,    // 485871
+    38,   // 485871 (duplicado con ID diferente)
+    42,   // 486406
+    43    // 347427
+];
+
+/**
+ * ✅ FUNCIÓN ACTUALIZADA: Validar por ID, no por texto
+ * Mostrar/ocultar input adicional para referencia complementaria
  */
 function showAdditionalReferenceInput() {
     const $select = $('#ReferenceOrder');
-    const selectedValue = $select.val();
+    
+    // ✅ CAMBIO: Obtener el ID del objeto Select2, no el value
+    const selectedData = $select.select2('data');
+    const selectedId = selectedData && selectedData.length > 0 ? selectedData[0].id : null;
+    
     const $container = $('#additionalReferenceContainer');
 
     if (!$container.length) {
@@ -59,18 +79,18 @@ function showAdditionalReferenceInput() {
         return;
     }
 
-    // Verificar si la orden seleccionada está en la lista de órdenes que necesitan referencia adicional
-    const requiresAdditionalReference = ORDERS_REQUIRING_ADDITIONAL_REFERENCE.includes(selectedValue);
+    // ✅ CAMBIO: Validar por ID numérico
+    const requiresAdditionalReference = selectedId && IDS_REQUIRING_ADDITIONAL_REFERENCE.includes(parseInt(selectedId, 10));
 
-    if (selectedValue && requiresAdditionalReference) {
-        console.log(`✅ Orden ${selectedValue} requiere referencia adicional`);
+    if (selectedId && requiresAdditionalReference) {
+        console.log(`✅ Orden con ID ${selectedId} requiere referencia adicional`);
         $container.show();
         const $input = $('#AdditionalReference');
         $input.val(''); // Limpiar el valor anterior
         $input.focus();
     } else {
-        if (selectedValue) {
-            console.log(`ℹ️ Orden ${selectedValue} NO requiere referencia adicional`);
+        if (selectedId) {
+            console.log(`ℹ️ Orden con ID ${selectedId} NO requiere referencia adicional`);
         }
         $container.hide();
         $('#AdditionalReference').val('');
@@ -102,21 +122,23 @@ export function initializeFullReferenceSelector() {
         })
         .then(apiResponse => {
             if (apiResponse && apiResponse.status === 'success' && Array.isArray(apiResponse.data)) {
+                // ✅ Asegurar que los datos tengan ID y text correctos
                 const sanitizedData = apiResponse.data.map(item => ({
                     id: String(item.id || ''),
-                    text: String(item.text || '')
+                    text: String(item.text || item.numero || item.numero_orden || '')
                 }));
 
-                // ✅ CORREGIDO: Quitar 'tags' y 'createTag' para no permitir crear nuevos números
+                console.log('[referenceSelect.js] ✅ Loaded orders:', sanitizedData);
+
                 $select.select2({
                     width: '100%',
                     placeholder: 'Search and select an order number',
                     data: sanitizedData,
-                    tags: false, // ✅ CAMBIO: Desactivar tags
+                    tags: false,
                     dropdownParent: $select.parent()
                 });
 
-                // ✅ Mostrar/ocultar input adicional cuando cambia la selección
+                // ✅ Evento change para mostrar/ocultar input adicional
                 $select.on('change', function() {
                     showAdditionalReferenceInput();
                 });
@@ -130,7 +152,7 @@ export function initializeFullReferenceSelector() {
             $select.select2({
                 width: '100%',
                 placeholder: 'Error loading. Please try again.',
-                tags: false, // ✅ CAMBIO: Desactivar tags
+                tags: false,
                 dropdownParent: $select.parent()
             });
         });
@@ -153,26 +175,27 @@ export function initializeLimitedReferenceSelector() {
         $select.empty();
     }
 
+    // ✅ ACTUALIZADO: Usar el mapeo correcto de ID => número de orden
     const limitedData = [
-        { id: '486406', text: '486406' },
-        { id: '347427', text: '347427' },
-        { id: '324030', text: '324030' },
-        { id: '351959', text: '351959' },
-        { id: '349665', text: '349665' },
-        { id: '349877', text: '349877' },
-        { id: '337848', text: '337848' },
-        { id: '352149', text: '352149' }
+        { id: '42', text: '486406' },
+        { id: '43', text: '347427' },
+        { id: '1', text: '346506' },
+        { id: '2', text: '346507' },
+        { id: '3', text: '346508' },
+        { id: '5', text: '485869' },
+        { id: '6', text: '485870' },
+        { id: '7', text: '485871' }
     ];
 
     $select.select2({
         width: '100%',
         placeholder: 'Select a recovery order number',
         data: limitedData,
-        tags: false, // ✅ Ya estaba bien, confirmando
+        tags: false,
         dropdownParent: $select.parent()
     });
 
-    // ✅ Agregar el evento change también aquí
+    // ✅ Evento change para mostrar/ocultar input adicional
     $select.on('change', function() {
         showAdditionalReferenceInput();
     });
