@@ -15,6 +15,7 @@ import {
 import { initializeProductSelector } from './productSelect.js';
 
 let range = 0;
+let isSubmitting = false; // ✅ NUEVO: Flag para prevenir envíos dobles
 
 /**
  * Function to format text to sentence case
@@ -206,6 +207,40 @@ function handleReferenceOrderFiltering() {
 async function submitForm(event) {
     event.preventDefault();
 
+    // ✅ NUEVO: Verificar si ya está en proceso de envío
+    if (isSubmitting) {
+        console.warn('[newOrder.js] ⚠️ Form is already being submitted. Ignoring duplicate request.');
+        return;
+    }
+
+    // ✅ NUEVO: Validar que el input adicional esté completo si es requerido
+    const additionalRefContainer = document.getElementById('additionalReferenceContainer');
+    const additionalRefInput = document.getElementById('AdditionalReference');
+    
+    if (additionalRefContainer && additionalRefContainer.style.display !== 'none') {
+        // El container está visible, así que es requerido
+        if (!additionalRefInput || !additionalRefInput.value.trim()) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Missing Additional Reference',
+                text: 'This order requires an additional reference number. Please enter it before submitting.'
+            });
+            return;
+        }
+    }
+
+    // ✅ NUEVO: Activar flag de envío
+    isSubmitting = true;
+    
+    // ✅ NUEVO: Deshabilitar botón de envío
+    const submitBtn = document.getElementById('enviar');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.6';
+        submitBtn.style.cursor = 'not-allowed';
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+    }
+
     Swal.fire({
         title: 'Submitting Order',
         html: 'Please wait while your request is being processed...',
@@ -249,7 +284,19 @@ async function submitForm(event) {
             if (!numOrderId) throw new Error("Failed to save new reference order number");
         }
         if (!numOrderId) {
-            numOrderId = $('#ReferenceOrder').val();
+            // ✅ CORREGIDO: Obtener el ID correcto del objeto Select2, no solo el valor
+            const $referenceOrder = $('#ReferenceOrder');
+            const selectedData = $referenceOrder.select2('data');
+            
+            if (selectedData && selectedData.length > 0) {
+                // Si Select2 está inicializado, obtener el ID del objeto de datos
+                numOrderId = selectedData[0].id;
+                console.log('[newOrder.js] ✅ Selected Reference Order ID:', numOrderId, 'Data:', selectedData[0]);
+            } else {
+                // Fallback en caso de que Select2 no esté disponible
+                numOrderId = $referenceOrder.val();
+                console.warn('[newOrder.js] ⚠️ Select2 data not available, using fallback value:', numOrderId);
+            }
         }
 
         const validationResult = validateCompleteForm();
@@ -360,6 +407,15 @@ async function submitForm(event) {
             title: 'Submission Error', 
             text: error.message 
         });
+        
+        // ✅ NUEVO: Re-habilitar botón en caso de error
+        isSubmitting = false;
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            submitBtn.style.cursor = 'pointer';
+            submitBtn.innerHTML = 'Submit';
+        }
     }
 }
 

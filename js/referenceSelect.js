@@ -107,26 +107,16 @@ export function initializeFullReferenceSelector() {
                     text: String(item.text || '')
                 }));
 
+                // ✅ CORREGIDO: Quitar 'tags' y 'createTag' para no permitir crear nuevos números
                 $select.select2({
                     width: '100%',
-                    placeholder: 'Search or enter an order number',
+                    placeholder: 'Search and select an order number',
                     data: sanitizedData,
-                    tags: true,
-                    createTag: function(params) {
-                        const term = $.trim(params.term);
-                        if (term === '' || !/^\d+$/.test(term)) {
-                            return null;
-                        }
-                        return {
-                            id: term,
-                            text: term,
-                            isNew: true
-                        };
-                    },
+                    tags: false, // ✅ CAMBIO: Desactivar tags
                     dropdownParent: $select.parent()
                 });
 
-                // ✅ ACTUALIZADO: Mostrar/ocultar input adicional cuando cambia la selección
+                // ✅ Mostrar/ocultar input adicional cuando cambia la selección
                 $select.on('change', function() {
                     showAdditionalReferenceInput();
                 });
@@ -139,17 +129,8 @@ export function initializeFullReferenceSelector() {
             console.error("Failed to load or initialize the full reference selector:", error);
             $select.select2({
                 width: '100%',
-                placeholder: 'Error loading. Enter number manually.',
-                tags: true,
-                createTag: function(params) {
-                    const term = $.trim(params.term);
-                    if (term === '') return null;
-                    return {
-                        id: term,
-                        text: term,
-                        isNew: true
-                    };
-                },
+                placeholder: 'Error loading. Please try again.',
+                tags: false, // ✅ CAMBIO: Desactivar tags
                 dropdownParent: $select.parent()
             });
         });
@@ -172,7 +153,6 @@ export function initializeLimitedReferenceSelector() {
         $select.empty();
     }
 
-    // ✅ CORREGIDO: Los ID deben ser los números de orden, no los IDs de la BD
     const limitedData = [
         { id: '486406', text: '486406' },
         { id: '347427', text: '347427' },
@@ -188,11 +168,11 @@ export function initializeLimitedReferenceSelector() {
         width: '100%',
         placeholder: 'Select a recovery order number',
         data: limitedData,
-        tags: false,
+        tags: false, // ✅ Ya estaba bien, confirmando
         dropdownParent: $select.parent()
     });
 
-    // ✅ ACTUALIZADO: Agregar el evento change también aquí
+    // ✅ Agregar el evento change también aquí
     $select.on('change', function() {
         showAdditionalReferenceInput();
     });

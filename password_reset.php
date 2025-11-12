@@ -9,8 +9,9 @@
 require_once 'dao/users/auth_check.php';
 
 // Otros requires necesarios para la lógica de esta página
-require_once 'mailer/PFMailer/PFDB.php';
 require_once 'dao/users/PasswordManager.php';
+
+require_once 'dao/db/PFDB.php';
 
 // 2. Incluir el inyector de contexto.
 require_once 'dao/users/context_injector.php';
