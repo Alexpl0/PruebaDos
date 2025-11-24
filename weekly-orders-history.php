@@ -167,27 +167,26 @@ require_once 'dao/users/context_injector.php';
                         <div class="table-responsive">
                             <table id="weeklyHistoryTable" class="table table-striped table-bordered" style="width:100%">
                                 <thead>
+                                    <!-- ✅ ENCABEZADOS ACTUALIZADOS SEGÚN SOLICITUD -->
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Plant Name</th>
-                                        <th>Plant Code</th>
-                                        <th>Issue Date</th>
-                                        <th>Inbound/Outbound</th>
-                                        <th>Recovery</th>
-                                        <th>Reference</th>
-                                        <th>Reference Number</th>
-                                        <th>Creator</th>
-                                        <th>Area</th>
-                                        <th>Description</th>
-                                        <th>Category Cause</th>
-                                        <th>Cost [€]</th>
-                                        <th>Transport</th>
-                                        <th>Carrier</th>
-                                        <th>Origin Company</th>
-                                        <th>Origin City</th>
-                                        <th>Destination Company</th>
-                                        <th>Destination City</th>
-                                        <th>Last Approver</th>
+                                        <th>Date</th>
+                                        <th>Wk</th>
+                                        <th>Month</th>
+                                        <th>Plant</th>
+                                        <th>Type</th>
+                                        <th>Supplier / Customer</th>
+                                        <th>Origin (Location)</th>
+                                        <th>Destination (Location)</th>
+                                        <th>Cost (EUR)</th>
+                                        <th>PO 45</th>
+                                        <th>Reason (Description)</th>
+                                        <th>Vendor Num</th>
+                                        <th>Forwarder / Carrier</th>
+                                        <th>Root Cause</th>
+                                        <th>Recoverable</th>
+                                        <th>Comments</th>
+                                        <th>PF Num</th>
+                                        <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
