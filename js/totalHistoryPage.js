@@ -144,12 +144,9 @@ function populateTotalDataTable(orders) {
         return getWeekNumber(new Date(dateStr));
     };
 
-    // Mapeo de datos SEGÚN TU SOLICITUD
+    // Mapeo de datos SEGÚN TU SOLICITUD ACTUALIZADA
     const tableData = orders.map(order => {
         const statusInfo = getOrderStatus(order);
-        
-        // Lógica para Supplier/Customer: Si es Inbound -> Origin (Supplier), si es Outbound -> Destiny (Customer)
-        // O simplemente mostramos el Origin Company como Supplier principal.
         const supplierCustomer = order.origin_company_name || '-';
 
         return [
@@ -157,41 +154,43 @@ function populateTotalDataTable(orders) {
             getWeek(order.date),                                            // 1: Wk
             getMonthName(order.date),                                       // 2: Month
             order.planta || '-',                                            // 3: Plant
-            order.in_out_bound || '-',                                      // 4: Type Inbound / outbound
-            supplierCustomer,                                               // 5: Supplier / customer
-            order.origin_city || '-',                                       // 6: Origin (Location)
-            order.destiny_city || '-',                                      // 7: Destination (Location)
-            order.cost_euros ? `€${parseFloat(order.cost_euros).toFixed(2)}` : '-', // 8: Cost (EUR)
-            order.reference_number || '-',                                  // 9: PO 45
-            order.description || '-',                                       // 10: Reason (description...)
-            '-',                                                            // 11: Vendor num (Placeholder)
-            order.carrier || '-',                                           // 12: Forwarder / carrier
-            order.category_cause || '-',                                    // 13: Root cause
-            order.recovery || '-',                                          // 14: Recoverable / Non recoverable
-            '-',                                                            // 15: Comments (Placeholder)
-            order.id || '-',                                                // 16: PF Num
+            order.in_out_bound || '-',                                      // 4: Inbound / Outbound (Antes Type)
+            order.transport || '-',                                         // 5: Type (Nuevo - viene de 'transport')
+            supplierCustomer,                                               // 6: Supplier / customer
+            order.origin_city || '-',                                       // 7: Origin (Location)
+            order.destiny_city || '-',                                      // 8: Destination (Location)
+            order.cost_euros ? `€${parseFloat(order.cost_euros).toFixed(2)}` : '-', // 9: Cost (EUR)
+            order.reference_number || '-',                                  // 10: Purchase Order (Antes PO 45)
+            order.description || '-',                                       // 11: Reason (description...)
+            '-',                                                            // 12: Vendor num (Placeholder)
+            order.carrier || '-',                                           // 13: Forwarder / carrier
+            order.category_cause || '-',                                    // 14: Root cause
+            order.recovery || '-',                                          // 15: Recoverable / Non recoverable
+            '-',                                                            // 16: Comments (Placeholder)
+            order.id || '-',                                                // 17: PF Num
             // Columnas extra necesarias para funcionalidad
-            `<span class="badge ${statusInfo.badgeClass}">${statusInfo.text}</span>`, // 17: Status (Oculta o al final)
-            `<button class="btn btn-sm btn-outline-primary generate-pdf-btn" data-order-id="${order.id}" title="View as PDF"><i class="fas fa-file-pdf"></i></button>` // 18: Actions
+            `<span class="badge ${statusInfo.badgeClass}">${statusInfo.text}</span>`, // 18: Status (Oculta o al final)
+            `<button class="btn btn-sm btn-outline-primary generate-pdf-btn" data-order-id="${order.id}" title="View as PDF"><i class="fas fa-file-pdf"></i></button>` // 19: Actions
         ];
     });
 
     try {
         const dataTable = table.DataTable({
             data: tableData,
-            // ✅ DEFINICIÓN DE NOMBRES DE COLUMNAS (Para cambiar los headers automáticamente)
+            // ✅ DEFINICIÓN DE NOMBRES DE COLUMNAS ACTUALIZADA
             columns: [
                 { title: "Date" },
                 { title: "Wk" },
                 { title: "Month" },
                 { title: "Plant" },
-                { title: "Type" },
+                { title: "Inbound / Outbound" }, // ✅ Cambio de nombre
+                { title: "Type" },               // ✅ Nueva columna (Transport)
                 { title: "Supplier / Customer" },
                 { title: "Origin (Location)" },
                 { title: "Destination (Location)" },
                 { title: "Cost (EUR)" },
-                { title: "PO 45" },
-                { title: "Reason (Description)" }, // Acortado para limpieza visual
+                { title: "Purchase Order" },     // ✅ Cambio de nombre (PO 45)
+                { title: "Reason (Description)" },
                 { title: "Vendor Num" },
                 { title: "Forwarder / Carrier" },
                 { title: "Root Cause" },
@@ -209,11 +208,11 @@ function populateTotalDataTable(orders) {
             order: [[0, 'desc']], // Ordenar por Date (columna 0)
             columnDefs: [
                 {
-                    targets: 14, // Recoverable
+                    targets: 15, // Recoverable (se movió por la nueva columna)
                     className: 'text-center'
                 },
                 {
-                    targets: 9, // PO 45
+                    targets: 10, // Purchase Order (se movió por la nueva columna)
                     className: 'text-center',
                     render: function(data) {
                         return `<span class="badge bg-light text-dark border">${data}</span>`;
@@ -249,7 +248,6 @@ function populateTotalDataTable(orders) {
 }
 
 function updateQuickStats(orders) {
-    // ... (El código de stats se mantiene igual, lógica no cambia)
     const stats = { total: 0, approved: 0, pending: 0, rejected: 0 };
     orders.forEach(o => {
         stats.total++;

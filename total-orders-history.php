@@ -194,12 +194,13 @@ require_once 'dao/users/context_injector.php';
                                         <th>Wk</th>
                                         <th>Month</th>
                                         <th>Plant</th>
-                                        <th>Type</th>
+                                        <th>Inbound / Outbound</th> <!-- Renombrado -->
+                                        <th>Type</th>               <!-- Nuevo -->
                                         <th>Supplier / Customer</th>
                                         <th>Origin (Location)</th>
                                         <th>Destination (Location)</th>
                                         <th>Cost (EUR)</th>
-                                        <th>PO 45</th>
+                                        <th>Purchase Order</th>     <!-- Renombrado -->
                                         <th>Reason (Description)</th>
                                         <th>Vendor Num</th>
                                         <th>Forwarder / Carrier</th>

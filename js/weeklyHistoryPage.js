@@ -151,39 +151,41 @@ function populateWeeklyDataTable(orders) {
             getWeekNumber(new Date(order.date)),                            // 1: Wk
             getMonthName(order.date),                                       // 2: Month
             order.planta || '-',                                            // 3: Plant
-            order.in_out_bound || '-',                                      // 4: Type
-            supplierCustomer,                                               // 5: Supplier / customer
-            order.origin_city || '-',                                       // 6: Origin (Location)
-            order.destiny_city || '-',                                      // 7: Destination (Location)
-            order.cost_euros ? `€${parseFloat(order.cost_euros).toFixed(2)}` : '-', // 8: Cost
-            order.reference_number || '-',                                  // 9: PO 45
-            order.description || '-',                                       // 10: Reason
-            '-',                                                            // 11: Vendor num
-            order.carrier || '-',                                           // 12: Forwarder / carrier
-            order.category_cause || '-',                                    // 13: Root cause
-            order.recovery || '-',                                          // 14: Recoverable
-            '-',                                                            // 15: Comments
-            order.id || '-',                                                // 16: PF Num
-            `<span class="badge ${statusObj.badgeClass}">${statusObj.text}</span>`, // 17: Status
-            `<button class="btn btn-sm btn-outline-primary generate-pdf-btn" data-order-id="${order.id}" title="View as PDF"><i class="fas fa-file-pdf"></i></button>` // 18: Actions
+            order.in_out_bound || '-',                                      // 4: Inbound / Outbound
+            order.transport || '-',                                         // 5: Type (Nuevo - viene de 'transport')
+            supplierCustomer,                                               // 6: Supplier / customer
+            order.origin_city || '-',                                       // 7: Origin (Location)
+            order.destiny_city || '-',                                      // 8: Destination (Location)
+            order.cost_euros ? `€${parseFloat(order.cost_euros).toFixed(2)}` : '-', // 9: Cost
+            order.reference_number || '-',                                  // 10: Purchase Order (Antes PO 45)
+            order.description || '-',                                       // 11: Reason
+            '-',                                                            // 12: Vendor num
+            order.carrier || '-',                                           // 13: Forwarder / carrier
+            order.category_cause || '-',                                    // 14: Root cause
+            order.recovery || '-',                                          // 15: Recoverable
+            '-',                                                            // 16: Comments
+            order.id || '-',                                                // 17: PF Num
+            `<span class="badge ${statusObj.badgeClass}">${statusObj.text}</span>`, // 18: Status
+            `<button class="btn btn-sm btn-outline-primary generate-pdf-btn" data-order-id="${order.id}" title="View as PDF"><i class="fas fa-file-pdf"></i></button>` // 19: Actions
         ];
     });
     
     try {
         const dataTable = table.DataTable({
             data: tableData,
-            // ✅ CONFIGURACIÓN DE COLUMNAS EXACTA A LA SOLICITUD
+            // ✅ CONFIGURACIÓN DE COLUMNAS ACTUALIZADA
             columns: [
                 { title: "Date" },
                 { title: "Wk" },
                 { title: "Month" },
                 { title: "Plant" },
-                { title: "Type" },
+                { title: "Inbound / Outbound" }, // ✅ Cambio
+                { title: "Type" },               // ✅ Nueva Columna
                 { title: "Supplier / Customer" },
                 { title: "Origin (Location)" },
                 { title: "Destination (Location)" },
                 { title: "Cost (EUR)" },
-                { title: "PO 45" },
+                { title: "Purchase Order" },     // ✅ Cambio
                 { title: "Reason (Description)" },
                 { title: "Vendor Num" },
                 { title: "Forwarder / Carrier" },
@@ -201,8 +203,8 @@ function populateWeeklyDataTable(orders) {
             responsive: false,
             order: [[0, 'desc']],
             columnDefs: [
-                { targets: 14, className: 'text-center' }, // Recoverable
-                { targets: 9, className: 'text-center' }, // PO 45
+                { targets: 15, className: 'text-center' }, // Recoverable
+                { targets: 10, className: 'text-center' }, // Purchase Order (Shifted)
                 { targets: -1, className: 'text-center', orderable: false }
             ]
         });
