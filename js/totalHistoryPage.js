@@ -154,23 +154,23 @@ function populateTotalDataTable(orders) {
             getWeek(order.date),                                            // 1: Wk
             getMonthName(order.date),                                       // 2: Month
             order.planta || '-',                                            // 3: Plant
-            order.in_out_bound || '-',                                      // 4: Inbound / Outbound (Antes Type)
-            order.transport || '-',                                         // 5: Type (Nuevo - viene de 'transport')
+            order.in_out_bound || '-',                                      // 4: Inbound / Outbound
+            order.transport || '-',                                         // 5: Type
             supplierCustomer,                                               // 6: Supplier / customer
             order.origin_city || '-',                                       // 7: Origin (Location)
             order.destiny_city || '-',                                      // 8: Destination (Location)
             order.cost_euros ? `€${parseFloat(order.cost_euros).toFixed(2)}` : '-', // 9: Cost (EUR)
-            order.reference_number || '-',                                  // 10: Purchase Order (Antes PO 45)
+            order.reference_number || '-',                                  // 10: Purchase Order
             order.description || '-',                                       // 11: Reason (description...)
-            '-',                                                            // 12: Vendor num (Placeholder)
+            '-',                                                            // 12: Vendor num
             order.carrier || '-',                                           // 13: Forwarder / carrier
-            order.category_cause || '-',                                    // 14: Root cause
-            order.recovery || '-',                                          // 15: Recoverable / Non recoverable
-            '-',                                                            // 16: Comments (Placeholder)
-            order.id || '-',                                                // 17: PF Num
-            // Columnas extra necesarias para funcionalidad
-            `<span class="badge ${statusInfo.badgeClass}">${statusInfo.text}</span>`, // 18: Status (Oculta o al final)
-            `<button class="btn btn-sm btn-outline-primary generate-pdf-btn" data-order-id="${order.id}" title="View as PDF"><i class="fas fa-file-pdf"></i></button>` // 19: Actions
+            order.creator_name || '-',                                      // 14: Requester (NUEVO)
+            order.category_cause || '-',                                    // 15: Root cause
+            order.recovery || '-',                                          // 16: Recoverable
+            '-',                                                            // 17: Comments
+            order.id || '-',                                                // 18: PF Num
+            `<span class="badge ${statusInfo.badgeClass}">${statusInfo.text}</span>`, // 19: Status
+            `<button class="btn btn-sm btn-outline-primary generate-pdf-btn" data-order-id="${order.id}" title="View as PDF"><i class="fas fa-file-pdf"></i></button>` // 20: Actions
         ];
     });
 
@@ -183,16 +183,17 @@ function populateTotalDataTable(orders) {
                 { title: "Wk" },
                 { title: "Month" },
                 { title: "Plant" },
-                { title: "Inbound / Outbound" }, // ✅ Cambio de nombre
-                { title: "Type" },               // ✅ Nueva columna (Transport)
+                { title: "Inbound / Outbound" },
+                { title: "Type" },
                 { title: "Supplier / Customer" },
                 { title: "Origin (Location)" },
                 { title: "Destination (Location)" },
                 { title: "Cost (EUR)" },
-                { title: "Purchase Order" },     // ✅ Cambio de nombre (PO 45)
+                { title: "Purchase Order" },
                 { title: "Reason (Description)" },
                 { title: "Vendor Num" },
                 { title: "Forwarder / Carrier" },
+                { title: "Requester" },                 // NUEVO
                 { title: "Root Cause" },
                 { title: "Recoverable" },
                 { title: "Comments" },

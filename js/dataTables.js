@@ -279,6 +279,8 @@ function processOrdersData(orders) {
                 id: order.id,
                 reference_number: order.reference_number,
                 reference_name: order.reference_name,
+                carrier: order.carrier,                    // ✅ NUEVO
+                creator_name: order.creator_name,         // ✅ NUEVO
                 reference_number_type: typeof order.reference_number
             });
         }
@@ -290,13 +292,24 @@ function processOrdersData(orders) {
         if (index < 5 || order.reference_number?.toString().startsWith('45')) {
             console.log(`✅ [processOrdersData] Order ${index + 1} result:`, {
                 id: order.id,
-                calculated_reference: order.reference
+                calculated_reference: order.reference,
+                carrier: order.carrier,                    // ✅ NUEVO
+                creator_name: order.creator_name,         // ✅ NUEVO
             });
         }
         
         // Asegurar que recovery existe (viene del endpoint)
         if (!order.recovery) {
             order.recovery = '';
+        }
+        
+        // ✅ NUEVO: Validar que carrier y creator_name existan
+        if (!order.carrier) {
+            order.carrier = '-';
+        }
+        
+        if (!order.creator_name) {
+            order.creator_name = '-';
         }
         
         return order;

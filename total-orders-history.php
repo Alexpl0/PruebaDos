@@ -204,6 +204,7 @@ require_once 'dao/users/context_injector.php';
                                         <th>Reason (Description)</th>
                                         <th>Vendor Num</th>
                                         <th>Forwarder / Carrier</th>
+                                        <th>Requester</th>                    <!-- NUEVO -->
                                         <th>Root Cause</th>
                                         <th>Recoverable</th>
                                         <th>Comments</th>
