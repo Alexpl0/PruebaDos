@@ -6,13 +6,15 @@
  * @version 1.0
  */
 
+const MAILER_BASE_URL = 'https://grammermx.com/Mailer/PFMailer/';
+
 /**
  * Sends edit request notification to approval officer (user 36)
  */
 export async function sendEditRequestNotification(orderId, reason) {
     try {
         const response = await fetch(
-            `${window.PF_CONFIG.app.baseURL}mailer/PFmailEditOrder.php?action=request_edit`,
+            `${MAILER_BASE_URL}PFmailEditOrder.php?action=request_edit`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -50,7 +52,7 @@ export async function sendEditRequestNotification(orderId, reason) {
 export async function sendEditApprovalNotification(tokenId, releasedBy = 36) {
     try {
         const response = await fetch(
-            `${window.PF_CONFIG.app.baseURL}mailer/PFmailEditOrder.php?action=release_for_edit`,
+            `${MAILER_BASE_URL}PFmailEditOrder.php?action=release_for_edit`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -87,7 +89,7 @@ export async function sendEditApprovalNotification(tokenId, releasedBy = 36) {
 export async function sendEditSubmissionNotification(orderId, tokenId) {
     try {
         const response = await fetch(
-            `${window.PF_CONFIG.app.baseURL}mailer/PFmailEditOrder.php?action=submit_edit`,
+            `${MAILER_BASE_URL}PFmailEditOrder.php?action=submit_edit`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -190,7 +192,7 @@ export async function resendNotification(notificationType, orderId, additionalDa
         }
 
         const response = await fetch(
-            `${window.PF_CONFIG.app.baseURL}mailer/PFmailEditOrder.php?action=${endpoint}`,
+            `${MAILER_BASE_URL}PFmailEditOrder.php?action=${endpoint}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

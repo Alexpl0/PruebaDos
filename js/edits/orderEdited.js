@@ -8,6 +8,8 @@
 
 import { EditChangeTracker, showChangesSummaryModal, markTokenAsUsed } from './tokenController.js';
 
+const MAILER_BASE_URL = 'https://grammermx.com/Mailer/PFMailer/';
+
 export async function submitEditedOrder(event) {
     event.preventDefault();
 
@@ -106,7 +108,7 @@ async function submitOrderUpdate(orderId, tokenId, currentData, changeTracker) {
         });
 
         const response = await fetch(
-            `${window.PF_CONFIG.app.baseURL}mailer/PFmailEditOrder.php?action=submit_edit`,
+            `${MAILER_BASE_URL}PFmailEditOrder.php?action=submit_edit`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

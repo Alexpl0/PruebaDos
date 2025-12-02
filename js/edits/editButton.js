@@ -6,6 +6,8 @@
  * @version 1.0
  */
 
+const MAILER_BASE_URL = 'https://grammermx.com/Mailer/PFMailer/';
+
 export function initializeEditButton() {
     const editRequestBtn = document.getElementById('editRequestBtn');
     const editModal = document.getElementById('editRequestModal');
@@ -74,7 +76,7 @@ async function submitEditRequest() {
             }
         });
 
-        const response = await fetch(`${window.PF_CONFIG.app.baseURL}mailer/PFmailEditOrder.php?action=request_edit`, {
+        const response = await fetch(`${MAILER_BASE_URL}PFmailEditOrder.php?action=request_edit`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
