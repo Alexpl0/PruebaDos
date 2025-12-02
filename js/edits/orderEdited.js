@@ -118,7 +118,7 @@ async function submitOrderUpdate(orderId, tokenId, currentData, changeTracker) {
         console.log('[orderEdited.js] Sending update to server...');
 
         const updateResponse = await fetch(
-            `${window.PF_CONFIG.app.baseURL}dao/conections/daoUpdatePremiumFreight.php`,
+            `${window.PF_CONFIG.app.baseURL}dao/edits/daoUpdatePremiumFreight.php`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
