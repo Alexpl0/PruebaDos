@@ -176,9 +176,9 @@ export function cancelEdit() {
 }
 
 /**
- * Initializes edit form with original data
+ * RENAMED: Populates form with original data (was initializeEditForm)
  */
-export function initializeEditForm(orderData) {
+export function populateEditFormWithData(orderData) {
     if (!orderData) return;
 
     const fieldMap = {

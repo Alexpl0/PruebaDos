@@ -7,65 +7,146 @@
  * @version 1.0
  */
 
-// 1. Authentication check
-require_once 'dao/users/auth_check.php';
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('log_errors', 1);
 
-// 2. Load form data dependencies (same as newOrder.php)
-require_once __DIR__ . '/dao/elements/daoPlantas.php';
-require_once __DIR__ . '/dao/elements/daoCodePlants.php';
-require_once __DIR__ . '/dao/elements/daoTransport.php';
-require_once __DIR__ . '/dao/elements/daoInOutBound.php';
-require_once __DIR__ . '/dao/elements/daoArea.php';
-require_once __DIR__ . '/dao/elements/daoInExt.php';
-require_once __DIR__ . '/dao/elements/daoCategoryCause.php';
-require_once __DIR__ . '/dao/elements/daoProjectStatus.php';
-require_once __DIR__ . '/dao/elements/daoRecovery.php';
-require_once __DIR__ . '/dao/elements/daoCarrier.php';
-require_once __DIR__ . '/dao/elements/daoMeasures.php';
-require_once __DIR__ . '/dao/elements/daoProducts.php';
-require_once __DIR__ . '/dao/elements/daoStates.php';
-
-// 3. Load context injector
-require_once 'dao/users/context_injector.php';
-
-// 4. Validate edit token
-$orderId = isset($_GET['order']) ? intval($_GET['order']) : null;
-$token = isset($_GET['token']) ? trim($_GET['token']) : null;
-$tokenError = null;
-$tokenValid = false;
-
-if (!$orderId || !$token) {
-    $tokenError = 'Missing order ID or token. Invalid edit link.';
-} else {
-    // Verify token using AJAX would be better, but we can also check here
-    require_once 'dao/db/PFDB.php';
-    $con = new LocalConector();
-    $conex = $con->conectar();
-    
-    $stmt = $conex->prepare("
-        SELECT id, order_id, user_id, is_used, released_by, token
-        FROM EmailEditTokens 
-        WHERE token = ? AND order_id = ? AND is_used = 0
-    ");
-    $stmt->bind_param('si', $token, $orderId);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    
-    if ($result->num_rows === 0) {
-        $tokenError = 'Invalid, expired, or already used token.';
-    } else {
-        $tokenRecord = $result->fetch_assoc();
-        
-        if (!$tokenRecord['released_by'] || $tokenRecord['released_by'] != 36) {
-            $tokenError = 'Token has not been approved for editing.';
-        } else if ($tokenRecord['user_id'] != $_SESSION['user']['id']) {
-            $tokenError = 'This token does not belong to your account.';
-        } else {
-            $tokenValid = true;
-        }
+// Function to log errors
+function debugEditOrder($message, $data = null) {
+    $timestamp = date('Y-m-d H:i:s');
+    $logMsg = "[$timestamp] [editOrder.php] $message";
+    if ($data !== null) {
+        $logMsg .= " | " . json_encode($data);
     }
+    error_log($logMsg);
+}
+
+try {
+    debugEditOrder("START - editOrder.php");
     
-    $conex->close();
+    // 1. Authentication check
+    debugEditOrder("Loading auth_check.php");
+    require_once 'dao/users/auth_check.php';
+    debugEditOrder("auth_check.php loaded successfully");
+
+    // 2. Load form data dependencies (same as newOrder.php)
+    $daoFiles = [
+        'dao/elements/daoPlantas.php',
+        'dao/elements/daoCodePlants.php',
+        'dao/elements/daoTransport.php',
+        'dao/elements/daoInOutBound.php',
+        'dao/elements/daoArea.php',
+        'dao/elements/daoInExt.php',
+        'dao/elements/daoCategoryCause.php',
+        'dao/elements/daoProjectStatus.php',
+        'dao/elements/daoRecovery.php',
+        'dao/elements/daoCarrier.php',
+        'dao/elements/daoMeasures.php',
+        'dao/elements/daoProducts.php',
+        'dao/elements/daoStates.php'
+    ];
+
+    foreach ($daoFiles as $file) {
+        if (!file_exists($file)) {
+            throw new Exception("Missing DAO file: $file");
+        }
+        require_once $file;
+        debugEditOrder("Loaded: $file");
+    }
+
+    // 3. Load context injector
+    debugEditOrder("Loading context_injector.php");
+    if (!file_exists('dao/users/context_injector.php')) {
+        throw new Exception("Missing context_injector.php");
+    }
+    require_once 'dao/users/context_injector.php';
+    debugEditOrder("context_injector.php loaded successfully");
+
+    // 4. Validate edit token
+    debugEditOrder("Validating edit token");
+    
+    $orderId = isset($_GET['order']) ? intval($_GET['order']) : null;
+    $token = isset($_GET['token']) ? trim($_GET['token']) : null;
+    $tokenError = null;
+    $tokenValid = false;
+
+    debugEditOrder("Token validation", [
+        'orderId' => $orderId,
+        'token' => $token ? substr($token, 0, 20) . '...' : null
+    ]);
+
+    if (!$orderId || !$token) {
+        $tokenError = 'Missing order ID or token. Invalid edit link.';
+        debugEditOrder("Token validation failed: missing orderId or token");
+    } else {
+        // Verify token using database
+        debugEditOrder("Connecting to database for token verification");
+        require_once 'dao/db/PFDB.php';
+        $con = new LocalConector();
+        $conex = $con->conectar();
+        
+        if (!$conex) {
+            throw new Exception("Failed to connect to database");
+        }
+        
+        debugEditOrder("Database connected");
+        
+        $stmt = $conex->prepare("
+            SELECT id, order_id, user_id, is_used, released_by, token
+            FROM EmailEditTokens 
+            WHERE token = ? AND order_id = ? AND is_used = 0
+        ");
+        
+        if (!$stmt) {
+            throw new Exception("Failed to prepare statement: " . $conex->error);
+        }
+        
+        $stmt->bind_param('si', $token, $orderId);
+        
+        if (!$stmt->execute()) {
+            throw new Exception("Failed to execute statement: " . $stmt->error);
+        }
+        
+        $result = $stmt->get_result();
+        debugEditOrder("Token query executed", ['rows' => $result->num_rows]);
+        
+        if ($result->num_rows === 0) {
+            $tokenError = 'Invalid, expired, or already used token.';
+            debugEditOrder("Token not found in database");
+        } else {
+            $tokenRecord = $result->fetch_assoc();
+            debugEditOrder("Token record found", [
+                'released_by' => $tokenRecord['released_by'],
+                'user_id' => $tokenRecord['user_id'],
+                'session_user_id' => $_SESSION['user']['id'] ?? null
+            ]);
+            
+            if (!$tokenRecord['released_by'] || $tokenRecord['released_by'] != 36) {
+                $tokenError = 'Token has not been approved for editing.';
+                debugEditOrder("Token not approved by user 36");
+            } else if ($tokenRecord['user_id'] != $_SESSION['user']['id']) {
+                $tokenError = 'This token does not belong to your account.';
+                debugEditOrder("Token user mismatch");
+            } else {
+                $tokenValid = true;
+                debugEditOrder("Token validation SUCCESS");
+            }
+        }
+        
+        $conex->close();
+    }
+
+    debugEditOrder("Token validation complete", ['tokenValid' => $tokenValid]);
+
+} catch (Exception $e) {
+    debugEditOrder("EXCEPTION", [
+        'message' => $e->getMessage(),
+        'line' => $e->getLine(),
+        'file' => $e->getFile()
+    ]);
+    $tokenError = "Error: " . $e->getMessage();
+    $tokenValid = false;
 }
 
 ?>
@@ -97,6 +178,7 @@ if (!$orderId || !$token) {
         window.PF_CONFIG.orderId = <?php echo json_encode($orderId); ?>;
         window.PF_CONFIG.editToken = <?php echo json_encode($token); ?>;
         window.PF_CONFIG.tokenValid = <?php echo json_encode($tokenValid); ?>;
+        console.log('[editOrder.php] Config loaded:', window.PF_CONFIG);
     </script>
 
     <?php 
@@ -122,7 +204,7 @@ if (!$orderId || !$token) {
                 <h4>Access Denied</h4>
                 <p><?php echo htmlspecialchars($tokenError); ?></p>
                 <p>
-                    <a href="<?php echo htmlspecialchars($appContextForJS['app']['baseURL']); ?>orders.php" 
+                    <a href="<?php echo htmlspecialchars($appContextForJS['app']['baseURL'] ?? 'orders.php'); ?>" 
                        class="btn btn-primary">
                         Return to Orders
                     </a>
@@ -147,16 +229,13 @@ if (!$orderId || !$token) {
             </div>
             
             <form id="plant-form">
-                <!-- Form fields (same as newOrder.php) -->
-                <!-- Copy all the form content from newOrder.php here -->
-                
                 <!-- Requesting Plant and Plant Code -->
                 <div id="SectPlantas" class="mb-3">
                     <div id="DivPlanta" class="mb-2">
                         <label for="planta">Requesting Plant:</label>
                         <select name="planta" id="planta" class="form-select" disabled>
                             <option></option>
-                            <?php foreach ($jsonPlantas as $planta): ?>
+                            <?php if (isset($jsonPlantas)) foreach ($jsonPlantas as $planta): ?>
                                 <option value="<?php echo htmlspecialchars($planta['ID']); ?>"><?php echo htmlspecialchars($planta['PLANT']); ?></option>
                             <?php endforeach; ?>
                         </select>
@@ -166,7 +245,7 @@ if (!$orderId || !$token) {
                         <label for="codeplanta">Plant Code:</label>
                         <select name="codeplanta" id="codeplanta" class="form-select" disabled>
                             <option></option>
-                            <?php foreach ($jsonCodePlants as $codeplanta): ?>
+                            <?php if (isset($jsonCodePlants)) foreach ($jsonCodePlants as $codeplanta): ?>
                                 <option value="<?php echo htmlspecialchars($codeplanta['ID']); ?>"><?php echo htmlspecialchars($codeplanta['PLANT_CODE']); ?></option>
                             <?php endforeach; ?>
                         </select>
@@ -180,7 +259,7 @@ if (!$orderId || !$token) {
                         <label for="transport">Transport Mode:</label>
                         <select name="transport" id="transport" class="form-select" required>
                             <option></option>
-                            <?php foreach ($jsonTransport as $transport): ?>
+                            <?php if (isset($jsonTransport)) foreach ($jsonTransport as $transport): ?>
                                 <option value="<?php echo htmlspecialchars($transport['ID']); ?>"><?php echo htmlspecialchars($transport['MODE']); ?></option>
                             <?php endforeach; ?>
                         </select>
@@ -189,7 +268,7 @@ if (!$orderId || !$token) {
                         <label for="InOutBound">In/Out Outbound:</label>
                         <select name="InOutBound" id="InOutBound" class="form-select" required>
                             <option></option>
-                            <?php foreach ($jsonInOutBound as $inOutBound): ?>
+                            <?php if (isset($jsonInOutBound)) foreach ($jsonInOutBound as $inOutBound): ?>
                                 <option value="<?php echo htmlspecialchars($inOutBound['ID']); ?>"><?php echo htmlspecialchars($inOutBound['IN_OUT']); ?></option>
                             <?php endforeach; ?>
                         </select>
@@ -202,7 +281,7 @@ if (!$orderId || !$token) {
                         <label for="Area">Area of Responsibility:</label>
                         <select name="Area" id="Area" class="form-select" required>
                             <option></option>
-                            <?php foreach ($jsonArea as $area): ?>
+                            <?php if (isset($jsonArea)) foreach ($jsonArea as $area): ?>
                                 <option value="<?php echo htmlspecialchars($area['ID']); ?>"><?php echo htmlspecialchars($area['RESPONSIBILITY']); ?></option>
                             <?php endforeach; ?>
                         </select>
@@ -211,7 +290,7 @@ if (!$orderId || !$token) {
                         <label for="IntExt">Internal/External Service:</label>
                         <select name="IntExt" id="IntExt" class="form-select" required>
                             <option></option>
-                            <?php foreach ($jsonInExt as $inExt): ?>
+                            <?php if (isset($jsonInExt)) foreach ($jsonInExt as $inExt): ?>
                                 <option value="<?php echo htmlspecialchars($inExt['ID']); ?>"><?php echo htmlspecialchars($inExt['IN_EXT']); ?></option>
                             <?php endforeach; ?>
                         </select>
@@ -232,7 +311,7 @@ if (!$orderId || !$token) {
                         <label for="CategoryCause">Root Category Cause:</label>
                         <select name="CategoryCause" id="CategoryCause" class="form-select" required>
                             <option></option>
-                            <?php foreach ($jsonCategoryCause as $category): ?>
+                            <?php if (isset($jsonCategoryCause)) foreach ($jsonCategoryCause as $category): ?>
                                 <option value="<?php echo htmlspecialchars($category['ID']); ?>"><?php echo htmlspecialchars($category['CATEGORY']); ?></option>
                             <?php endforeach; ?>
                         </select>
@@ -241,7 +320,7 @@ if (!$orderId || !$token) {
                         <label for="ProjectStatus">Project Status:</label>
                         <select name="ProjectStatus" id="ProjectStatus" class="form-select" required>
                             <option></option>
-                            <?php foreach ($jsonProjectStatus as $status): ?>
+                            <?php if (isset($jsonProjectStatus)) foreach ($jsonProjectStatus as $status): ?>
                                 <option value="<?php echo htmlspecialchars($status['ID']); ?>"><?php echo htmlspecialchars($status['STATUS']); ?></option>
                             <?php endforeach; ?>
                         </select>
@@ -250,7 +329,7 @@ if (!$orderId || !$token) {
                         <label for="Recovery">Recovery:</label>
                         <select name="Recovery" id="Recovery" class="form-select" required>
                             <option></option>
-                            <?php foreach ($jsonRecovery as $recovery): ?>
+                            <?php if (isset($jsonRecovery)) foreach ($jsonRecovery as $recovery): ?>
                                 <option value="<?php echo htmlspecialchars($recovery['ID']); ?>"><?php echo htmlspecialchars($recovery['RECOVERY']); ?></option>
                             <?php endforeach; ?>
                         </select>
@@ -271,7 +350,7 @@ if (!$orderId || !$token) {
                         <label for="Measures">U/M</label>
                         <select id="Measures" name="Measures" class="form-select" required>
                             <option></option>
-                            <?php foreach ($jsonMeasures as $measure): ?>
+                            <?php if (isset($jsonMeasures)) foreach ($jsonMeasures as $measure): ?>
                                 <option value="<?php echo htmlspecialchars($measure['UM']); ?>"><?php echo htmlspecialchars($measure['UM']); ?></option>
                             <?php endforeach; ?>
                         </select>
@@ -342,9 +421,11 @@ if (!$orderId || !$token) {
         // Initialize everything when DOM is ready
         document.addEventListener('DOMContentLoaded', async () => {
             if (!window.PF_CONFIG.tokenValid) {
+                console.error('[editOrder] Token validation failed');
                 return;
             }
             
+            console.log('[editOrder] Initializing edit form...');
             await initializeEditForm();
         });
     </script>
