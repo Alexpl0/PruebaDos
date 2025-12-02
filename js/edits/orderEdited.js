@@ -106,7 +106,7 @@ async function submitOrderUpdate(orderId, tokenId, currentData, changeTracker) {
         });
 
         const response = await fetch(
-            `${window.PF_CONFIG.app.baseURL}dao/mailer/PFmailEditOrder.php?action=submit_edit`,
+            `${window.PF_CONFIG.app.baseURL}mailer/PFmailEditOrder.php?action=submit_edit`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

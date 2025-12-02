@@ -74,7 +74,7 @@ async function submitEditRequest() {
             }
         });
 
-        const response = await fetch(`${window.PF_CONFIG.app.baseURL}dao/mailer/PFmailEditOrder.php?action=request_edit`, {
+        const response = await fetch(`${window.PF_CONFIG.app.baseURL}mailer/PFmailEditOrder.php?action=request_edit`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
