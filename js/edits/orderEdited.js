@@ -75,6 +75,7 @@ function collectFormData() {
         'CategoryCause': 'category_cause',
         'ProjectStatus': 'project_status',
         'Recovery': 'recovery',
+        'Description': 'description',
         'Carrier': 'carrier_id',
         'QuotedCost': 'quoted_cost'
     };
@@ -95,28 +96,10 @@ function collectFormData() {
         }
     }
 
-    formData['description'] = buildDescriptionFromWhys();
+    formData['description'] = document.getElementById('Description')?.value || '';
 
     console.log('[orderEdited.js] Form data collected for', Object.keys(formData).length, 'fields');
     return formData;
-}
-
-function buildDescriptionFromWhys() {
-    const firstWhy = document.getElementById('FirstWhy')?.value || '';
-    const secondWhy = document.getElementById('SecondWhy')?.value || '';
-    const thirdWhy = document.getElementById('ThirdWhy')?.value || '';
-    const fourthWhy = document.getElementById('FourthWhy')?.value || '';
-    const fifthWhy = document.getElementById('FifthWhy')?.value || '';
-
-    let description = '5 WHY\'S ANALYSIS:\n\n';
-    
-    if (firstWhy) description += `1st WHY - OBSERVABLE FACT:\n${firstWhy}\n\n`;
-    if (secondWhy) description += `2nd WHY - REASON TO 1st WHY:\n${secondWhy}\n\n`;
-    if (thirdWhy) description += `3rd WHY - PROCESSES, DECISIONS, CONSTRAINTS:\n${thirdWhy}\n\n`;
-    if (fourthWhy) description += `4th WHY - STRUCTURAL ISSUES:\n${fourthWhy}\n\n`;
-    if (fifthWhy) description += `5th WHY - ROOT CAUSE:\n${fifthWhy}`;
-
-    return description.trim();
 }
 
 async function submitOrderUpdate(orderId, tokenId, currentData, changeTracker) {
@@ -279,6 +262,7 @@ export function populateEditFormWithData(orderData) {
         'CategoryCause': 'category_cause',
         'ProjectStatus': 'project_status',
         'Recovery': 'recovery',
+        'Description': 'description',
         'Carrier': 'carrier_id',
         'QuotedCost': 'quoted_cost'
     };

@@ -326,30 +326,11 @@ try {
                     <small class="text-muted">Please upload a PDF file as evidence for recovery</small>
                 </div>
 
-                <!-- Description - 5 Why's Analysis -->
-                <h2 class="mt-4">5 Why's Analysis</h2>
+                <!-- Description -->
+                <h2 class="mt-4">Order Description</h2>
                 <div id="SectDescription" class="mb-3">
-                    <textarea id="Description" style="display: none;" name="Description" class="form-control" placeholder="Description" required></textarea>
-                    
-                    <label for="FirstWhy">1st Why - Observable Fact</label>
-                    <textarea id="FirstWhy" name="FirstWhy" class="form-control" placeholder="What is the observable problem?" required minlength="30"></textarea>
-                    <div id="firstWhyCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">30 characters required</span> - <span class="char-count">0/30</span></div>
-                    
-                    <label for="SecondWhy">2nd Why - Reason to 1st Why</label>
-                    <textarea id="SecondWhy" name="SecondWhy" class="form-control" placeholder="Why did this problem occur?" required minlength="30"></textarea>
-                    <div id="secondWhyCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">30 characters required</span> - <span class="char-count">0/30</span></div>
-                    
-                    <label for="ThirdWhy">3rd Why - Processes, Decisions, Constraints</label>
-                    <textarea id="ThirdWhy" name="ThirdWhy" class="form-control" placeholder="Why did that reason occur?" required minlength="30"></textarea>
-                    <div id="thirdWhyCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">30 characters required</span> - <span class="char-count">0/30</span></div>
-                    
-                    <label for="FourthWhy">4th Why - Structural Issues</label>
-                    <textarea id="FourthWhy" name="FourthWhy" class="form-control" placeholder="Why does this structural issue exist?" required minlength="30"></textarea>
-                    <div id="fourthWhyCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">30 characters required</span> - <span class="char-count">0/30</span></div>
-                    
-                    <label for="FifthWhy">5th Why - The Root Cause</label>
-                    <textarea id="FifthWhy" name="FifthWhy" class="form-control" placeholder="What is the fundamental root cause?" required minlength="30"></textarea>
-                    <div id="fifthWhyCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">30 characters required</span> - <span class="char-count">0/30</span></div>
+                    <label for="Description">Description</label>
+                    <textarea id="Description" name="Description" class="form-control" placeholder="Enter order description" required rows="5"></textarea>
                 </div>
 
                 <!-- Carrier, Cost -->
