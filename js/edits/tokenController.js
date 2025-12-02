@@ -1,9 +1,6 @@
 /**
  * tokenController.js - Token Validation and Management
  * Validates edit tokens and manages access to editOrder.php
- * 
- * @author GRAMMER AG
- * @version 1.0
  */
 
 export async function validateEditToken() {
@@ -11,6 +8,8 @@ export async function validateEditToken() {
     const token = urlParams.get('token');
     const orderId = urlParams.get('order');
     const userId = window.PF_CONFIG?.user?.id;
+
+    console.log('[tokenController.js] Starting validation...', { orderId, token: token ? 'present' : 'missing', userId });
 
     if (!token || !orderId) {
         showTokenError('Missing token or order ID. Invalid edit link.');
@@ -32,19 +31,18 @@ export async function validateEditToken() {
         );
 
         const data = await response.json();
+        console.log('[tokenController.js] Validation response:', data);
 
         if (!data.success) {
             showTokenError(data.message || 'Invalid or expired token.');
             return false;
         }
 
-        // Verify user matches token
-        if (data.userId != userId) {
+        if (data.userId !== userId) {
             showTokenError('This token does not belong to your account.');
             return false;
         }
 
-        // Store token info in window for later use
         window.EDIT_TOKEN = {
             token: token,
             tokenId: data.tokenId,
@@ -52,6 +50,7 @@ export async function validateEditToken() {
             userId: userId
         };
 
+        console.log('[tokenController.js] Token validation SUCCESS');
         return true;
 
     } catch (error) {
@@ -61,11 +60,41 @@ export async function validateEditToken() {
     }
 }
 
-/**
- * Marks token as used after successful edit submission
- */
+export async function getOrderDetailsForEdit(orderId) {
+    try {
+        console.log('[tokenController.js] Fetching order details for:', orderId);
+        
+        const response = await fetch(
+            `${window.PF_CONFIG.app.baseURL}dao/conections/daoPremiumFreight.php`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId: orderId })
+            }
+        );
+
+        const data = await response.json();
+        console.log('[tokenController.js] Order details response:', data);
+
+        if (!data.success || !data.data || data.data.length === 0) {
+            console.error('[tokenController.js] Error getting order details:', data.message);
+            return null;
+        }
+
+        const orderData = data.data[0];
+        console.log('[tokenController.js] Order data loaded successfully:', orderData);
+        return orderData;
+
+    } catch (error) {
+        console.error('[tokenController.js] Error:', error);
+        return null;
+    }
+}
+
 export async function markTokenAsUsed(tokenId) {
     try {
+        console.log('[tokenController.js] Marking token as used:', tokenId);
+        
         const response = await fetch(
             `${window.PF_CONFIG.app.baseURL}dao/edits/daoEditTokens.php?action=mark_used`,
             {
@@ -76,6 +105,7 @@ export async function markTokenAsUsed(tokenId) {
         );
 
         const data = await response.json();
+        console.log('[tokenController.js] Mark used response:', data);
         return data.success;
 
     } catch (error) {
@@ -84,37 +114,6 @@ export async function markTokenAsUsed(tokenId) {
     }
 }
 
-/**
- * Gets order details for form population
- */
-export async function getOrderDetailsForEdit(orderId) {
-    try {
-        const response = await fetch(
-            `${window.PF_CONFIG.app.baseURL}dao/edits/daoEditTokens.php?action=get_order_details&orderId=${orderId}`,
-            {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
-            }
-        );
-
-        const data = await response.json();
-
-        if (!data.success) {
-            console.error('[tokenController.js] Error getting order details:', data.message);
-            return null;
-        }
-
-        return data.data;
-
-    } catch (error) {
-        console.error('[tokenController.js] Error:', error);
-        return null;
-    }
-}
-
-/**
- * Gets audit log for the order edits
- */
 export async function getEditAuditLog(orderId) {
     try {
         const response = await fetch(
@@ -139,9 +138,6 @@ export async function getEditAuditLog(orderId) {
     }
 }
 
-/**
- * Shows token error message in a styled container
- */
 function showTokenError(message) {
     const container = document.getElementById('tokenErrorContainer');
     
@@ -157,31 +153,28 @@ function showTokenError(message) {
             ">
                 <strong>Access Denied:</strong> ${message}
                 <br><br>
-                <a href="${window.PF_CONFIG.app.baseURL}myOrder.php?order=${new URLSearchParams(window.location.search).get('order')}" 
+                <a href="${window.PF_CONFIG.app.baseURL}orders.php" 
                    style="color: #721c24; text-decoration: underline;">
-                    Return to Order Details
+                    Return to Orders
                 </a>
             </div>
         `;
     }
 
-    document.getElementById('plant-form')?.style.display = 'none';
+    const formElement = document.getElementById('plant-form');
+    if (formElement) {
+        formElement.style.display = 'none';
+    }
 }
 
-/**
- * Comparison object for tracking changes between original and edited data
- */
 export class EditChangeTracker {
     constructor(originalData) {
         this.originalData = JSON.parse(JSON.stringify(originalData));
         this.changedFields = {};
     }
 
-    /**
-     * Records a change
-     */
     recordChange(fieldName, originalValue, newValue) {
-        if (originalValue !== newValue) {
+        if (String(originalValue).trim() !== String(newValue).trim()) {
             this.changedFields[fieldName] = {
                 original: originalValue,
                 new: newValue
@@ -189,23 +182,14 @@ export class EditChangeTracker {
         }
     }
 
-    /**
-     * Gets all changes
-     */
     getChanges() {
         return this.changedFields;
     }
 
-    /**
-     * Checks if there are any changes
-     */
     hasChanges() {
         return Object.keys(this.changedFields).length > 0;
     }
 
-    /**
-     * Gets a readable summary of changes
-     */
     getSummary() {
         const changes = this.getChanges();
         const summary = [];
@@ -221,9 +205,6 @@ export class EditChangeTracker {
         return summary;
     }
 
-    /**
-     * Formats field name for display
-     */
     formatFieldName(fieldName) {
         return fieldName
             .replace(/([A-Z])/g, ' $1')
@@ -232,9 +213,6 @@ export class EditChangeTracker {
     }
 }
 
-/**
- * Shows confirmation modal with changes summary
- */
 export async function showChangesSummaryModal(changeTracker) {
     const changes = changeTracker.getSummary();
 
@@ -276,19 +254,23 @@ export async function showChangesSummaryModal(changeTracker) {
     return result.isConfirmed;
 }
 
-/**
- * Initializes token validation on page load
- */
 export async function initializeTokenValidation() {
+    console.log('[tokenController.js] initializeTokenValidation starting...');
+    
     const isValid = await validateEditToken();
 
     if (!isValid) {
-        document.getElementById('plant-form').style.display = 'none';
+        console.error('[tokenController.js] Token validation failed');
+        const formElement = document.getElementById('plant-form');
+        if (formElement) {
+            formElement.style.display = 'none';
+        }
         return false;
     }
 
-    // Load order details for form population
     const orderId = new URLSearchParams(window.location.search).get('order');
+    console.log('[tokenController.js] Loading order details for orderId:', orderId);
+    
     const orderData = await getOrderDetailsForEdit(orderId);
 
     if (!orderData) {
@@ -296,8 +278,8 @@ export async function initializeTokenValidation() {
         return false;
     }
 
-    // Store order data in window for later use
     window.EDIT_ORDER_DATA = orderData;
-
+    console.log('[tokenController.js] Token validation SUCCESS - Order data stored:', orderData);
+    
     return true;
 }

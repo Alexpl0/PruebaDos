@@ -1,18 +1,16 @@
 <?php
 /**
  * editOrder.php - Edit Existing Premium Freight Order Form
- * This is a secure version of newOrder.php that validates edit tokens
+ * Estructura idéntica a newOrder.php pero con validación de tokens
  * 
  * @author GRAMMER AG
- * @version 1.0
+ * @version 2.0
  */
 
-// Enable error reporting for debugging
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('log_errors', 1);
 
-// Function to log errors
 function debugEditOrder($message, $data = null) {
     $timestamp = date('Y-m-d H:i:s');
     $logMsg = "[$timestamp] [editOrder.php] $message";
@@ -25,12 +23,9 @@ function debugEditOrder($message, $data = null) {
 try {
     debugEditOrder("START - editOrder.php");
     
-    // 1. Authentication check
-    debugEditOrder("Loading auth_check.php");
     require_once 'dao/users/auth_check.php';
     debugEditOrder("auth_check.php loaded successfully");
 
-    // 2. Load form data dependencies (same as newOrder.php)
     $daoFiles = [
         'dao/elements/daoPlantas.php',
         'dao/elements/daoCodePlants.php',
@@ -55,7 +50,6 @@ try {
         debugEditOrder("Loaded: $file");
     }
 
-    // 3. Load context injector
     debugEditOrder("Loading context_injector.php");
     if (!file_exists('dao/users/context_injector.php')) {
         throw new Exception("Missing context_injector.php");
@@ -63,7 +57,6 @@ try {
     require_once 'dao/users/context_injector.php';
     debugEditOrder("context_injector.php loaded successfully");
 
-    // 4. Validate edit token
     debugEditOrder("Validating edit token");
     
     $orderId = isset($_GET['order']) ? intval($_GET['order']) : null;
@@ -80,8 +73,6 @@ try {
         $tokenError = 'Missing order ID or token. Invalid edit link.';
         debugEditOrder("Token validation failed: missing orderId or token");
     } else {
-        // Verify token using database
-        debugEditOrder("Connecting to database for token verification");
         require_once 'dao/db/PFDB.php';
         $con = new LocalConector();
         $conex = $con->conectar();
@@ -157,22 +148,17 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Order</title>
 
-    <!-- Favicon -->
     <link rel="icon" href="assets/logo/logo.png" type="image/x-icon">
-
-    <!-- External CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
 
-    <!-- Local CSS files -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header.css">
     <link rel="stylesheet" href="css/newOrder.css">
     <link rel="stylesheet" href="css/tour-styles.css">
 
-    <!-- System Context -->
     <script src="js/config.js"></script>
     <script>
         window.PF_CONFIG.orderId = <?php echo json_encode($orderId); ?>;
@@ -191,7 +177,6 @@ try {
 
     <main class="container my-4">
         <?php if ($tokenError): ?>
-            <!-- Token Error Message -->
             <div id="tokenErrorContainer" style="
                 background-color: #f8d7da;
                 border: 1px solid #f5c6cb;
@@ -214,7 +199,6 @@ try {
             <h1 class="mb-3">EDIT ORDER #<?php echo htmlspecialchars($orderId); ?></h1>
             <h2 class="mb-4" style="text-align: center;">Modify Premium Freight Order</h2>
             
-            <!-- Edit Mode Notice -->
             <div style="
                 background-color: #fff3cd;
                 border: 1px solid #ffc107;
@@ -229,7 +213,7 @@ try {
             </div>
             
             <form id="plant-form">
-                <!-- Requesting Plant and Plant Code -->
+                <!-- Requesting Plant y Plant Code -->
                 <div id="SectPlantas" class="mb-3">
                     <div id="DivPlanta" class="mb-2">
                         <label for="planta">Requesting Plant:</label>
@@ -253,7 +237,7 @@ try {
                     </div>
                 </div>
 
-                <!-- Transport Mode, In/Out, Cost -->
+                <!-- Transport Mode, In/Out -->
                 <div id="SectTransporte" class="mb-3">
                     <div id="DivTransport" class="mb-2">
                         <label for="transport">Transport Mode:</label>
@@ -336,23 +320,82 @@ try {
                     </div>
                 </div>
 
-                <!-- Description -->
-                <h2 class="mt-4">Order Details</h2>
+                <div id="recoveryFileContainer" class="mt-2" style="display: none;">
+                    <label for="recoveryFile">Recovery Evidence (PDF):</label>
+                    <input type="file" id="recoveryFile" name="recoveryFile" class="form-control" accept=".pdf">
+                    <small class="text-muted">Please upload a PDF file as evidence for recovery</small>
+                </div>
+
+                <!-- Description - 5 Why's Analysis -->
+                <h2 class="mt-4">5 Why's Analysis</h2>
                 <div id="SectDescription" class="mb-3">
-                    <textarea id="Description" name="Description" class="form-control" placeholder="Order Description" required></textarea>
+                    <textarea id="Description" style="display: none;" name="Description" class="form-control" placeholder="Description" required></textarea>
+                    
+                    <label for="FirstWhy">1st Why - Observable Fact</label>
+                    <textarea id="FirstWhy" name="FirstWhy" class="form-control" placeholder="What is the observable problem?" required minlength="30"></textarea>
+                    <div id="firstWhyCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">30 characters required</span> - <span class="char-count">0/30</span></div>
+                    
+                    <label for="SecondWhy">2nd Why - Reason to 1st Why</label>
+                    <textarea id="SecondWhy" name="SecondWhy" class="form-control" placeholder="Why did this problem occur?" required minlength="30"></textarea>
+                    <div id="secondWhyCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">30 characters required</span> - <span class="char-count">0/30</span></div>
+                    
+                    <label for="ThirdWhy">3rd Why - Processes, Decisions, Constraints</label>
+                    <textarea id="ThirdWhy" name="ThirdWhy" class="form-control" placeholder="Why did that reason occur?" required minlength="30"></textarea>
+                    <div id="thirdWhyCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">30 characters required</span> - <span class="char-count">0/30</span></div>
+                    
+                    <label for="FourthWhy">4th Why - Structural Issues</label>
+                    <textarea id="FourthWhy" name="FourthWhy" class="form-control" placeholder="Why does this structural issue exist?" required minlength="30"></textarea>
+                    <div id="fourthWhyCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">30 characters required</span> - <span class="char-count">0/30</span></div>
+                    
+                    <label for="FifthWhy">5th Why - The Root Cause</label>
+                    <textarea id="FifthWhy" name="FifthWhy" class="form-control" placeholder="What is the fundamental root cause?" required minlength="30"></textarea>
+                    <div id="fifthWhyCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">30 characters required</span> - <span class="char-count">0/30</span></div>
+                </div>
+
+                <!-- Corrective Action Plan -->
+                <h2 class="mt-4">Corrective Action Plan</h2>
+                <div id="SectCorrectiveAction" class="mb-3">
+                    <label for="CorrectiveAction">Corrective Action Description</label>
+                    <textarea id="CorrectiveAction" name="CorrectiveAction" class="form-control" placeholder="Describe corrective actions" required minlength="50" rows="3"></textarea>
+                    <div id="correctiveActionCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">50 characters required</span> - <span class="char-count">0/50</span></div>
+                    
+                    <label for="PersonResponsible">Person Responsible</label>
+                    <input type="text" id="PersonResponsible" name="PersonResponsible" class="form-control" placeholder="Name and Role" required>
+                    
+                    <label for="TargetDate">Target Completion Date</label>
+                    <input type="date" id="TargetDate" name="TargetDate" class="form-control" required>
+                </div>
+
+                <!-- Ship From -->
+                <h2 class="mt-4">Ship From</h2>
+                <div id="SectShip" class="mb-3">
+                    <div id="DivCompanyShip" class="mb-2"><label for="CompanyShip">Company Name</label><select id="CompanyShip" name="CompanyShip" class="form-select" required><option></option></select></div>
+                    <div id="DivCityShip" class="mb-2"><label for="inputCityShip">City</label><input type="text" id="inputCityShip" class="form-control" placeholder="City"></div>
+                </div>
+                <div id="ShipTo" class="mb-3">
+                    <div id="DivStatesShip" class="mb-2"><label for="StatesShip">State:</label><input type="text" id="StatesShip" class="form-control" placeholder="States"></div>
+                    <div id="DivZipShip" class="mb-2"><label for="inputZipShip">ZIP</label><input type="number" id="inputZipShip" class="form-control" placeholder="ZIP"></div>
+                </div>
+
+                <!-- Destination -->
+                <h2 class="mt-4">Destination</h2>
+                <div id="SectDest" class="mb-3">
+                    <div id="DivCompanyDest" class="mb-2"><label for="inputCompanyNameDest">Company Name</label><select id="inputCompanyNameDest" name="inputCompanyNameDest" class="form-select" required><option></option></select></div>
+                    <div id="DivCityDest" class="mb-2"><label for="inputCityDest">City</label><input type="text" id="inputCityDest" class="form-control" placeholder="City Dest"></div>
+                </div>
+                <div id="DestTo" class="mb-3">
+                    <div id="DivStatesDest" class="mb-2"><label for="StatesDest">State:</label><input type="text" id="StatesDest" class="form-control" placeholder="States"></div>
+                    <div id="SectZipDest" class="mb-2"><label for="inputZipDest">ZIP</label><input type="number" id="inputZipDest" class="form-control" placeholder="ZIP"></div>
                 </div>
 
                 <!-- Measures & Products -->
                 <div id="SectMeasures" class="mb-3">
                     <div id="MeasuresDiv">
-                        <label for="Weight">Weight:</label>
-                        <input type="number" id="Weight" name="Weight" class="form-control me-2" placeholder="Weight" required>
+                        <label for="Weight">Weight:</label><input type="number" id="Weight" name="Weight" class="form-control me-2" placeholder="Weight" required>
                         <label for="Measures">U/M</label>
                         <select id="Measures" name="Measures" class="form-select" required>
                             <option></option>
-                            <?php if (isset($jsonMeasures)) foreach ($jsonMeasures as $measure): ?>
-                                <option value="<?php echo htmlspecialchars($measure['UM']); ?>"><?php echo htmlspecialchars($measure['UM']); ?></option>
-                            <?php endforeach; ?>
+                            <?php if (isset($jsonMeasures)) foreach ($jsonMeasures as $measure): ?><option value="<?php echo htmlspecialchars($measure['UM']); ?>"><?php echo htmlspecialchars($measure['UM']); ?></option><?php endforeach; ?>
                         </select>
                     </div>
                     <div id="SectProducts" class="mb-3">
@@ -363,8 +406,8 @@ try {
                     </div>
                 </div>
 
-                <!-- Carrier, Cost, Reference -->
-                <h2 class="mt-4">Edit Summary</h2>
+                <!-- Carrier, Cost -->
+                <h2 class="mt-4">Selected Carrier</h2>
                 <div id="SectCarrier" class="mb-3">
                     <div id="DivCarrier" class="mb-2">
                         <label for="Carrier">Carrier:</label>
@@ -406,28 +449,36 @@ try {
     <script src="js/addCompany.js"></script>
     <script src="js/carrierSelect.js"></script>
     <script src="js/addCarrier.js"></script>
-    <script src="js/referenceSelect.js" type="module"></script>
     <script src="js/selectConfig.js"></script>  
 
-    <!-- Header and Edit-Specific Scripts -->
     <script src="js/header.js" type="module"></script>
     
     <!-- Edit Order Modules -->
     <script type="module">
         import { initializeEditForm } from './js/edits/form.js';
-        import { initializeTokenValidation } from './js/edits/tokenController.js';
-        import { attachEditFormListeners, enableUnsavedChangesWarning } from './js/edits/orderEdited.js';
         
-        // Initialize everything when DOM is ready
-        document.addEventListener('DOMContentLoaded', async () => {
+        console.log('[editOrder.php Script] Module imported, waiting for DOM...');
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', async () => {
+                console.log('[editOrder.php Script] DOM ready, checking token validity...');
+                
+                if (!window.PF_CONFIG.tokenValid) {
+                    console.error('[editOrder.php Script] Token validation failed at page level');
+                    return;
+                }
+                
+                console.log('[editOrder.php Script] Token is valid, initializing form...');
+                await initializeEditForm();
+            });
+        } else {
+            console.log('[editOrder.php Script] DOM already loaded, initializing immediately...');
             if (!window.PF_CONFIG.tokenValid) {
-                console.error('[editOrder] Token validation failed');
-                return;
+                console.error('[editOrder.php Script] Token validation failed at page level');
+            } else {
+                initializeEditForm();
             }
-            
-            console.log('[editOrder] Initializing edit form...');
-            await initializeEditForm();
-        });
+        }
     </script>
 
     <?php 

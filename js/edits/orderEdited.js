@@ -1,9 +1,6 @@
 /**
  * orderEdited.js - Order Update and Submission Handler
- * Manages changes tracking and database updates for edited orders
- * 
- * @author GRAMMER AG
- * @version 1.0
+ * Manages changes tracking, database updates, and email notifications
  */
 
 import { EditChangeTracker, showChangesSummaryModal, markTokenAsUsed } from './tokenController.js';
@@ -17,6 +14,8 @@ export async function submitEditedOrder(event) {
     const editToken = window.EDIT_TOKEN;
     const originalData = window.EDIT_ORDER_DATA;
 
+    console.log('[orderEdited.js] Submit started', { orderId, editToken: editToken ? 'present' : 'missing' });
+
     if (!orderId || !editToken || !originalData) {
         Swal.fire({
             icon: 'error',
@@ -26,18 +25,16 @@ export async function submitEditedOrder(event) {
         return;
     }
 
-    // Collect current form data
     const currentData = collectFormData();
+    console.log('[orderEdited.js] Current data collected:', currentData);
 
-    // Track changes
     const changeTracker = new EditChangeTracker(originalData);
 
-    // Record changes for each field
     const fieldsToCompare = [
-        'planta', 'code_planta', 'transport', 'in_out_bound',
-        'area', 'int_ext', 'paid_by', 'category_cause',
-        'project_status', 'recovery', 'weight', 'measures',
-        'products', 'carrier_id', 'quoted_cost'
+        'transport', 'in_out_bound', 'description', 'area', 'int_ext',
+        'paid_by', 'category_cause', 'project_status', 'recovery',
+        'weight', 'measures', 'products', 'carrier_id', 'quoted_cost',
+        'corrective_action', 'person_responsible', 'target_date'
     ];
 
     fieldsToCompare.forEach(field => {
@@ -46,26 +43,31 @@ export async function submitEditedOrder(event) {
         changeTracker.recordChange(field, originalValue, currentValue);
     });
 
-    // Show summary modal
-    const userConfirmed = await showChangesSummaryModal(changeTracker);
+    console.log('[orderEdited.js] Changes tracked:', changeTracker.getChanges());
 
-    if (!userConfirmed) {
+    if (!changeTracker.hasChanges()) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'No Changes',
+            text: 'You have not made any changes to this order.'
+        });
         return;
     }
 
-    // Submit the edited order
+    const userConfirmed = await showChangesSummaryModal(changeTracker);
+
+    if (!userConfirmed) {
+        console.log('[orderEdited.js] User cancelled submission');
+        return;
+    }
+
     await submitOrderUpdate(orderId, editToken.tokenId, currentData, changeTracker);
 }
 
-/**
- * Collects form data from the edit form
- */
 function collectFormData() {
     const formData = {};
 
     const fieldMap = {
-        'planta': 'planta',
-        'codeplanta': 'code_planta',
         'transport': 'transport',
         'InOutBound': 'in_out_bound',
         'Area': 'area',
@@ -78,22 +80,50 @@ function collectFormData() {
         'Measures': 'measures',
         'Products': 'products',
         'Carrier': 'carrier_id',
-        'QuotedCost': 'quoted_cost'
+        'QuotedCost': 'quoted_cost',
+        'FirstWhy': 'first_why',
+        'SecondWhy': 'second_why',
+        'ThirdWhy': 'third_why',
+        'FourthWhy': 'fourth_why',
+        'FifthWhy': 'fifth_why',
+        'CorrectiveAction': 'corrective_action',
+        'PersonResponsible': 'person_responsible',
+        'TargetDate': 'target_date',
+        'CompanyShip': 'origin_id',
+        'inputCompanyNameDest': 'destiny_id',
+        'inputCityShip': 'origin_city',
+        'StatesShip': 'origin_state',
+        'inputZipShip': 'origin_zip',
+        'inputCityDest': 'destiny_city',
+        'StatesDest': 'destiny_state',
+        'inputZipDest': 'destiny_zip'
     };
 
     for (const [formFieldId, dbFieldName] of Object.entries(fieldMap)) {
         const element = document.getElementById(formFieldId);
         if (element) {
-            formData[dbFieldName] = element.value;
+            let value = element.value;
+            
+            if (element.tagName === 'SELECT' && typeof jQuery !== 'undefined') {
+                const selectedData = jQuery(element).select2('data');
+                if (selectedData && selectedData.length > 0) {
+                    value = selectedData[0].id || element.value;
+                }
+            }
+            
+            formData[dbFieldName] = value;
         }
     }
 
+    const descriptionField = document.getElementById('Description');
+    if (descriptionField) {
+        formData['description'] = descriptionField.value;
+    }
+
+    console.log('[orderEdited.js] Form data collected:', formData);
     return formData;
 }
 
-/**
- * Submits the updated order to the server
- */
 async function submitOrderUpdate(orderId, tokenId, currentData, changeTracker) {
     try {
         Swal.fire({
@@ -107,8 +137,10 @@ async function submitOrderUpdate(orderId, tokenId, currentData, changeTracker) {
             }
         });
 
-        const response = await fetch(
-            `${MAILER_BASE_URL}PFmailEditOrder.php?action=submit_edit`,
+        console.log('[orderEdited.js] Sending update to server...');
+
+        const updateResponse = await fetch(
+            `${window.PF_CONFIG.app.baseURL}dao/conections/daoUpdatePremiumFreight.php`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -121,22 +153,87 @@ async function submitOrderUpdate(orderId, tokenId, currentData, changeTracker) {
             }
         );
 
-        const data = await response.json();
+        const updateData = await updateResponse.json();
+        console.log('[orderEdited.js] Update response:', updateData);
 
-        if (!response.ok || !data.success) {
-            throw new Error(data.message || 'Failed to submit order update');
+        if (!updateResponse.ok || !updateData.success) {
+            throw new Error(updateData.message || 'Failed to submit order update');
         }
 
-        // Mark token as used
-        await markTokenAsUsed(tokenId);
+        console.log('[orderEdited.js] Order update successful');
 
-        // Show success message
+        Swal.fire({
+            title: 'Determining Approval Route',
+            html: 'Please wait while we determine who should review your changes...',
+            timerProgressBar: true,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        const businessResponse = await fetch(
+            `${window.PF_CONFIG.app.baseURL}dao/edits/daoUpdateBusiness.php?orderId=${orderId}`,
+            {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            }
+        );
+
+        const businessData = await businessResponse.json();
+        console.log('[orderEdited.js] Business logic response:', businessData);
+
+        if (!businessResponse.ok || !businessData.success) {
+            throw new Error(businessData.message || 'Failed to determine approval route');
+        }
+
+        console.log('[orderEdited.js] Scenario:', businessData.scenario);
+        console.log('[orderEdited.js] Next approver:', businessData.nextApprover);
+
+        let nextApproverId = null;
+        let notificationMessage = '';
+
+        if (businessData.scenario === 'SCENARIO_3_FULLY_APPROVED') {
+            notificationMessage = 'Your order has been updated. Since it is already fully approved, no further approvals are needed.';
+            nextApproverId = null;
+        } else if (businessData.nextApprover) {
+            nextApproverId = businessData.nextApprover.id;
+            notificationMessage = `Your order has been updated and sent to ${businessData.nextApprover.name} for review.`;
+        } else {
+            throw new Error('Unable to determine next approver');
+        }
+
+        const tokenMarked = await markTokenAsUsed(tokenId);
+        console.log('[orderEdited.js] Token marked as used:', tokenMarked);
+
+        if (nextApproverId) {
+            console.log('[orderEdited.js] Sending email notification to approver:', nextApproverId);
+            
+            const emailResponse = await fetch(
+                `${MAILER_BASE_URL}PFmailEditOrder.php?action=submit_edit`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        orderId: orderId,
+                        tokenId: tokenId,
+                        nextApproverId: nextApproverId,
+                        scenario: businessData.scenario
+                    })
+                }
+            );
+
+            const emailData = await emailResponse.json();
+            console.log('[orderEdited.js] Email response:', emailData);
+        }
+
         Swal.fire({
             icon: 'success',
             title: 'Update Submitted',
             html: `
                 <p>Your order has been updated successfully.</p>
-                <p><small>Your changes have been sent for approval and the next reviewer has been notified.</small></p>
+                <p><small>${notificationMessage}</small></p>
             `,
             confirmButtonText: 'View Order'
         }).then(() => {
@@ -153,9 +250,6 @@ async function submitOrderUpdate(orderId, tokenId, currentData, changeTracker) {
     }
 }
 
-/**
- * Handles cancel button - returns to order view
- */
 export function cancelEdit() {
     const orderId = window.PF_CONFIG?.orderId;
     
@@ -175,11 +269,10 @@ export function cancelEdit() {
     });
 }
 
-/**
- * RENAMED: Populates form with original data (was initializeEditForm)
- */
 export function populateEditFormWithData(orderData) {
     if (!orderData) return;
+
+    console.log('[orderEdited.js] Populating form with data:', orderData);
 
     const fieldMap = {
         'planta': 'planta',
@@ -196,44 +289,68 @@ export function populateEditFormWithData(orderData) {
         'Measures': 'measures',
         'Products': 'products',
         'Carrier': 'carrier_id',
-        'QuotedCost': 'quoted_cost'
+        'QuotedCost': 'quoted_cost',
+        'Description': 'description',
+        'CorrectiveAction': 'corrective_action',
+        'PersonResponsible': 'person_responsible',
+        'TargetDate': 'due_date'
     };
 
     for (const [formFieldId, dbFieldName] of Object.entries(fieldMap)) {
         const element = document.getElementById(formFieldId);
-        if (element && orderData[dbFieldName]) {
+        if (element && orderData[dbFieldName] !== undefined) {
             element.value = orderData[dbFieldName];
+            console.log(`[orderEdited.js] Set ${formFieldId} to ${orderData[dbFieldName]}`);
 
-            // Trigger change event for Select2 if available
             if (typeof jQuery !== 'undefined') {
                 jQuery(element).trigger('change');
             }
         }
     }
 
-    // Populate other fields
-    if (orderData.description) {
-        document.getElementById('Description').value = orderData.description;
+    if (orderData['origin_company_name']) {
+        document.getElementById('CompanyShip').value = orderData['origin_company_name'];
+    }
+    if (orderData['destiny_company_name']) {
+        document.getElementById('inputCompanyNameDest').value = orderData['destiny_company_name'];
+    }
+    if (orderData['origin_city']) {
+        document.getElementById('inputCityShip').value = orderData['origin_city'];
+    }
+    if (orderData['origin_state']) {
+        document.getElementById('StatesShip').value = orderData['origin_state'];
+    }
+    if (orderData['origin_zip']) {
+        document.getElementById('inputZipShip').value = orderData['origin_zip'];
+    }
+    if (orderData['destiny_city']) {
+        document.getElementById('inputCityDest').value = orderData['destiny_city'];
+    }
+    if (orderData['destiny_state']) {
+        document.getElementById('StatesDest').value = orderData['destiny_state'];
+    }
+    if (orderData['destiny_zip']) {
+        document.getElementById('inputZipDest').value = orderData['destiny_zip'];
     }
 }
 
-/**
- * Attaches event listeners to the edit form
- */
 export function attachEditFormListeners() {
     const form = document.getElementById('plant-form');
     const submitBtn = document.getElementById('submitEditBtn');
     const cancelBtn = document.getElementById('cancelEditBtn');
 
+    console.log('[orderEdited.js] Attaching form listeners...');
+
     if (submitBtn) {
         submitBtn.addEventListener('click', submitEditedOrder);
+        console.log('[orderEdited.js] Submit button listener attached');
     }
 
     if (cancelBtn) {
         cancelBtn.addEventListener('click', cancelEdit);
+        console.log('[orderEdited.js] Cancel button listener attached');
     }
 
-    // Prevent default form submission
     if (form) {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -242,9 +359,6 @@ export function attachEditFormListeners() {
     }
 }
 
-/**
- * Shows warning if trying to leave with unsaved changes
- */
 export function enableUnsavedChangesWarning() {
     let hasChanges = false;
 
