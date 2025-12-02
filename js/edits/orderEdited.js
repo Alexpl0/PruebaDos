@@ -33,8 +33,7 @@ export async function submitEditedOrder(event) {
     const fieldsToCompare = [
         'transport', 'in_out_bound', 'description', 'area', 'int_ext',
         'paid_by', 'category_cause', 'project_status', 'recovery',
-        'weight', 'measures', 'products', 'carrier_id', 'quoted_cost',
-        'corrective_action', 'person_responsible', 'target_date'
+        'carrier_id', 'quoted_cost'
     ];
 
     fieldsToCompare.forEach(field => {
@@ -76,22 +75,8 @@ function collectFormData() {
         'CategoryCause': 'category_cause',
         'ProjectStatus': 'project_status',
         'Recovery': 'recovery',
-        'Weight': 'weight',
-        'Measures': 'measures',
-        'Products': 'products',
         'Carrier': 'carrier_id',
-        'QuotedCost': 'quoted_cost',
-        'CorrectiveAction': 'corrective_action',
-        'PersonResponsible': 'person_responsible',
-        'TargetDate': 'target_date',
-        'CompanyShip': 'origin_id',
-        'inputCompanyNameDest': 'destiny_id',
-        'inputCityShip': 'origin_city',
-        'StatesShip': 'origin_state',
-        'inputZipShip': 'origin_zip',
-        'inputCityDest': 'destiny_city',
-        'StatesDest': 'destiny_state',
-        'inputZipDest': 'destiny_zip'
+        'QuotedCost': 'quoted_cost'
     };
 
     for (const [formFieldId, dbFieldName] of Object.entries(fieldMap)) {
@@ -294,9 +279,6 @@ export function populateEditFormWithData(orderData) {
         'CategoryCause': 'category_cause',
         'ProjectStatus': 'project_status',
         'Recovery': 'recovery',
-        'Weight': 'weight',
-        'Measures': 'measures',
-        'Products': 'products',
         'Carrier': 'carrier_id',
         'QuotedCost': 'quoted_cost'
     };
@@ -307,61 +289,13 @@ export function populateEditFormWithData(orderData) {
             element.value = orderData[dbFieldName];
             
             if (typeof jQuery !== 'undefined') {
-                jQuery(element).trigger('change');
+                try {
+                    jQuery(element).trigger('change');
+                } catch (e) {
+                    console.warn(`[orderEdited.js] Could not trigger change on ${formFieldId}:`, e.message);
+                }
             }
         }
-    }
-
-    if (orderData['origin_company_name']) {
-        const shipCompany = document.getElementById('CompanyShip');
-        if (shipCompany) {
-            shipCompany.value = orderData['origin_company_name'];
-            if (typeof jQuery !== 'undefined') jQuery(shipCompany).trigger('change');
-        }
-    }
-
-    if (orderData['destiny_company_name']) {
-        const destCompany = document.getElementById('inputCompanyNameDest');
-        if (destCompany) {
-            destCompany.value = orderData['destiny_company_name'];
-            if (typeof jQuery !== 'undefined') jQuery(destCompany).trigger('change');
-        }
-    }
-
-    if (orderData['origin_city']) {
-        const el = document.getElementById('inputCityShip');
-        if (el) el.value = orderData['origin_city'];
-    }
-    if (orderData['origin_state']) {
-        const el = document.getElementById('StatesShip');
-        if (el) el.value = orderData['origin_state'];
-    }
-    if (orderData['origin_zip']) {
-        const el = document.getElementById('inputZipShip');
-        if (el) el.value = orderData['origin_zip'];
-    }
-    if (orderData['destiny_city']) {
-        const el = document.getElementById('inputCityDest');
-        if (el) el.value = orderData['destiny_city'];
-    }
-    if (orderData['destiny_state']) {
-        const el = document.getElementById('StatesDest');
-        if (el) el.value = orderData['destiny_state'];
-    }
-    if (orderData['destiny_zip']) {
-        const el = document.getElementById('inputZipDest');
-        if (el) el.value = orderData['destiny_zip'];
-    }
-
-    if (orderData['corrective_action_plan']) {
-        const cap = orderData['corrective_action_plan'];
-        const action = document.getElementById('CorrectiveAction');
-        const responsible = document.getElementById('PersonResponsible');
-        const targetDate = document.getElementById('TargetDate');
-        
-        if (action && cap.corrective_action) action.value = cap.corrective_action;
-        if (responsible && cap.person_responsible) responsible.value = cap.person_responsible;
-        if (targetDate && cap.due_date) targetDate.value = cap.due_date;
     }
 
     console.log('[orderEdited.js] Form population complete');

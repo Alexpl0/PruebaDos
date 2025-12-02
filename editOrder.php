@@ -352,60 +352,6 @@ try {
                     <div id="fifthWhyCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">30 characters required</span> - <span class="char-count">0/30</span></div>
                 </div>
 
-                <!-- Corrective Action Plan -->
-                <h2 class="mt-4">Corrective Action Plan</h2>
-                <div id="SectCorrectiveAction" class="mb-3">
-                    <label for="CorrectiveAction">Corrective Action Description</label>
-                    <textarea id="CorrectiveAction" name="CorrectiveAction" class="form-control" placeholder="Describe corrective actions" required minlength="50" rows="3"></textarea>
-                    <div id="correctiveActionCounter" class="text-muted small mt-1 mb-3"><span class="text-danger">50 characters required</span> - <span class="char-count">0/50</span></div>
-                    
-                    <label for="PersonResponsible">Person Responsible</label>
-                    <input type="text" id="PersonResponsible" name="PersonResponsible" class="form-control" placeholder="Name and Role" required>
-                    
-                    <label for="TargetDate">Target Completion Date</label>
-                    <input type="date" id="TargetDate" name="TargetDate" class="form-control" required>
-                </div>
-
-                <!-- Ship From -->
-                <h2 class="mt-4">Ship From</h2>
-                <div id="SectShip" class="mb-3">
-                    <div id="DivCompanyShip" class="mb-2"><label for="CompanyShip">Company Name</label><select id="CompanyShip" name="CompanyShip" class="form-select" required><option></option></select></div>
-                    <div id="DivCityShip" class="mb-2"><label for="inputCityShip">City</label><input type="text" id="inputCityShip" class="form-control" placeholder="City"></div>
-                </div>
-                <div id="ShipTo" class="mb-3">
-                    <div id="DivStatesShip" class="mb-2"><label for="StatesShip">State:</label><input type="text" id="StatesShip" class="form-control" placeholder="States"></div>
-                    <div id="DivZipShip" class="mb-2"><label for="inputZipShip">ZIP</label><input type="number" id="inputZipShip" class="form-control" placeholder="ZIP"></div>
-                </div>
-
-                <!-- Destination -->
-                <h2 class="mt-4">Destination</h2>
-                <div id="SectDest" class="mb-3">
-                    <div id="DivCompanyDest" class="mb-2"><label for="inputCompanyNameDest">Company Name</label><select id="inputCompanyNameDest" name="inputCompanyNameDest" class="form-select" required><option></option></select></div>
-                    <div id="DivCityDest" class="mb-2"><label for="inputCityDest">City</label><input type="text" id="inputCityDest" class="form-control" placeholder="City Dest"></div>
-                </div>
-                <div id="DestTo" class="mb-3">
-                    <div id="DivStatesDest" class="mb-2"><label for="StatesDest">State:</label><input type="text" id="StatesDest" class="form-control" placeholder="States"></div>
-                    <div id="SectZipDest" class="mb-2"><label for="inputZipDest">ZIP</label><input type="number" id="inputZipDest" class="form-control" placeholder="ZIP"></div>
-                </div>
-
-                <!-- Measures & Products -->
-                <div id="SectMeasures" class="mb-3">
-                    <div id="MeasuresDiv">
-                        <label for="Weight">Weight:</label><input type="number" id="Weight" name="Weight" class="form-control me-2" placeholder="Weight" required>
-                        <label for="Measures">U/M</label>
-                        <select id="Measures" name="Measures" class="form-select" required>
-                            <option></option>
-                            <?php if (isset($jsonMeasures)) foreach ($jsonMeasures as $measure): ?><option value="<?php echo htmlspecialchars($measure['UM']); ?>"><?php echo htmlspecialchars($measure['UM']); ?></option><?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div id="SectProducts" class="mb-3">
-                        <label for="Products">Products:</label>
-                        <select name="Products" id="Products" class="form-select" required>
-                            <option></option>
-                        </select>
-                    </div>
-                </div>
-
                 <!-- Carrier, Cost -->
                 <h2 class="mt-4">Selected Carrier</h2>
                 <div id="SectCarrier" class="mb-3">
@@ -459,7 +405,6 @@ try {
         
         console.log('[editOrder.php] Module imported successfully');
         
-        // Single initialization point - form.js handles duplication prevention
         initializeEditForm();
     </script>
 

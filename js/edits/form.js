@@ -1,7 +1,6 @@
 /**
  * form.js - Form Data Handler for Edit Orders
  * Populates editOrder.php form with existing order data
- * Matching structure and validation with newOrder.js
  */
 
 import { populateEditFormWithData, attachEditFormListeners, enableUnsavedChangesWarning } from './orderEdited.js';
@@ -28,7 +27,13 @@ async function initializeEditFormWithData() {
         }
 
         console.log('[form.js] Order data available, populating form:', orderData.id);
+        
         populateEditFormWithData(orderData);
+        
+        console.log('[form.js] Calling module initialization functions...');
+        
+        await initializeExternalModules();
+        
         attachEditFormListeners();
         enableUnsavedChangesWarning();
         initializeFormSelectors();
@@ -41,6 +46,23 @@ async function initializeEditFormWithData() {
         console.error('[form.js] Error initializing form:', error);
         return false;
     }
+}
+
+async function initializeExternalModules() {
+    console.log('[form.js] Initializing external modules...');
+
+    try {
+        if (typeof initializeCarrierSelector === 'function') {
+            console.log('[form.js] Calling initializeCarrierSelector()');
+            initializeCarrierSelector();
+        } else {
+            console.warn('[form.js] initializeCarrierSelector not found');
+        }
+    } catch (error) {
+        console.error('[form.js] Error initializing carrier selector:', error);
+    }
+
+    console.log('[form.js] External modules initialization complete');
 }
 
 function initializeFormSelectors() {
@@ -60,11 +82,7 @@ function initializeFormSelectors() {
         '#CategoryCause',
         '#ProjectStatus',
         '#Recovery',
-        '#Measures',
-        '#Products',
-        '#Carrier',
-        '#CompanyShip',
-        '#inputCompanyNameDest'
+        '#Carrier'
     ];
 
     console.log('[form.js] Initializing Select2 selectors...');
@@ -78,6 +96,8 @@ function initializeFormSelectors() {
                     allowClear: true
                 });
                 console.log(`[form.js] Select2 initialized for: ${selector}`);
+            } else {
+                console.log(`[form.js] Select2 already initialized for: ${selector}`);
             }
         }
     });
@@ -180,7 +200,6 @@ async function initializeEditForm() {
     }
 }
 
-// Initialize form when DOM is ready
 console.log('[form.js] Module loaded, document readyState:', document.readyState);
 
 if (document.readyState === 'loading') {
