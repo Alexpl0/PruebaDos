@@ -14,7 +14,7 @@ export async function submitEditedOrder(event) {
     const editToken = window.EDIT_TOKEN;
     const originalData = window.EDIT_ORDER_DATA;
 
-    console.log('[orderEdited.js] Submit started', { orderId, editToken: editToken ? 'present' : 'missing' });
+    console.log('[orderEdited.js] Submit started', { orderId, hasToken: !!editToken });
 
     if (!orderId || !editToken || !originalData) {
         Swal.fire({
@@ -26,7 +26,7 @@ export async function submitEditedOrder(event) {
     }
 
     const currentData = collectFormData();
-    console.log('[orderEdited.js] Current data collected:', currentData);
+    console.log('[orderEdited.js] Current data collected');
 
     const changeTracker = new EditChangeTracker(originalData);
 
@@ -43,7 +43,7 @@ export async function submitEditedOrder(event) {
         changeTracker.recordChange(field, originalValue, currentValue);
     });
 
-    console.log('[orderEdited.js] Changes tracked:', changeTracker.getChanges());
+    console.log('[orderEdited.js] Changes tracked:', Object.keys(changeTracker.getChanges()));
 
     if (!changeTracker.hasChanges()) {
         Swal.fire({
@@ -81,11 +81,6 @@ function collectFormData() {
         'Products': 'products',
         'Carrier': 'carrier_id',
         'QuotedCost': 'quoted_cost',
-        'FirstWhy': 'first_why',
-        'SecondWhy': 'second_why',
-        'ThirdWhy': 'third_why',
-        'FourthWhy': 'fourth_why',
-        'FifthWhy': 'fifth_why',
         'CorrectiveAction': 'corrective_action',
         'PersonResponsible': 'person_responsible',
         'TargetDate': 'target_date',
@@ -115,13 +110,28 @@ function collectFormData() {
         }
     }
 
-    const descriptionField = document.getElementById('Description');
-    if (descriptionField) {
-        formData['description'] = descriptionField.value;
-    }
+    formData['description'] = buildDescriptionFromWhys();
 
-    console.log('[orderEdited.js] Form data collected:', formData);
+    console.log('[orderEdited.js] Form data collected for', Object.keys(formData).length, 'fields');
     return formData;
+}
+
+function buildDescriptionFromWhys() {
+    const firstWhy = document.getElementById('FirstWhy')?.value || '';
+    const secondWhy = document.getElementById('SecondWhy')?.value || '';
+    const thirdWhy = document.getElementById('ThirdWhy')?.value || '';
+    const fourthWhy = document.getElementById('FourthWhy')?.value || '';
+    const fifthWhy = document.getElementById('FifthWhy')?.value || '';
+
+    let description = '5 WHY\'S ANALYSIS:\n\n';
+    
+    if (firstWhy) description += `1st WHY - OBSERVABLE FACT:\n${firstWhy}\n\n`;
+    if (secondWhy) description += `2nd WHY - REASON TO 1st WHY:\n${secondWhy}\n\n`;
+    if (thirdWhy) description += `3rd WHY - PROCESSES, DECISIONS, CONSTRAINTS:\n${thirdWhy}\n\n`;
+    if (fourthWhy) description += `4th WHY - STRUCTURAL ISSUES:\n${fourthWhy}\n\n`;
+    if (fifthWhy) description += `5th WHY - ROOT CAUSE:\n${fifthWhy}`;
+
+    return description.trim();
 }
 
 async function submitOrderUpdate(orderId, tokenId, currentData, changeTracker) {
@@ -154,13 +164,11 @@ async function submitOrderUpdate(orderId, tokenId, currentData, changeTracker) {
         );
 
         const updateData = await updateResponse.json();
-        console.log('[orderEdited.js] Update response:', updateData);
+        console.log('[orderEdited.js] Update response:', updateData.success ? 'SUCCESS' : 'FAILED');
 
         if (!updateResponse.ok || !updateData.success) {
             throw new Error(updateData.message || 'Failed to submit order update');
         }
-
-        console.log('[orderEdited.js] Order update successful');
 
         Swal.fire({
             title: 'Determining Approval Route',
@@ -182,14 +190,11 @@ async function submitOrderUpdate(orderId, tokenId, currentData, changeTracker) {
         );
 
         const businessData = await businessResponse.json();
-        console.log('[orderEdited.js] Business logic response:', businessData);
+        console.log('[orderEdited.js] Business logic - Scenario:', businessData.scenario);
 
         if (!businessResponse.ok || !businessData.success) {
             throw new Error(businessData.message || 'Failed to determine approval route');
         }
-
-        console.log('[orderEdited.js] Scenario:', businessData.scenario);
-        console.log('[orderEdited.js] Next approver:', businessData.nextApprover);
 
         let nextApproverId = null;
         let notificationMessage = '';
@@ -200,6 +205,7 @@ async function submitOrderUpdate(orderId, tokenId, currentData, changeTracker) {
         } else if (businessData.nextApprover) {
             nextApproverId = businessData.nextApprover.id;
             notificationMessage = `Your order has been updated and sent to ${businessData.nextApprover.name} for review.`;
+            console.log('[orderEdited.js] Next approver:', businessData.nextApprover.name);
         } else {
             throw new Error('Unable to determine next approver');
         }
@@ -208,7 +214,7 @@ async function submitOrderUpdate(orderId, tokenId, currentData, changeTracker) {
         console.log('[orderEdited.js] Token marked as used:', tokenMarked);
 
         if (nextApproverId) {
-            console.log('[orderEdited.js] Sending email notification to approver:', nextApproverId);
+            console.log('[orderEdited.js] Sending email notification to approver...');
             
             const emailResponse = await fetch(
                 `${MAILER_BASE_URL}PFmailEditOrder.php?action=submit_edit`,
@@ -225,7 +231,7 @@ async function submitOrderUpdate(orderId, tokenId, currentData, changeTracker) {
             );
 
             const emailData = await emailResponse.json();
-            console.log('[orderEdited.js] Email response:', emailData);
+            console.log('[orderEdited.js] Email sent:', emailData.success ? 'SUCCESS' : 'FAILED');
         }
 
         Swal.fire({
@@ -241,7 +247,7 @@ async function submitOrderUpdate(orderId, tokenId, currentData, changeTracker) {
         });
 
     } catch (error) {
-        console.error('[orderEdited.js] Error:', error);
+        console.error('[orderEdited.js] Error:', error.message);
         Swal.fire({
             icon: 'error',
             title: 'Submission Error',
@@ -270,9 +276,12 @@ export function cancelEdit() {
 }
 
 export function populateEditFormWithData(orderData) {
-    if (!orderData) return;
+    if (!orderData) {
+        console.error('[orderEdited.js] No order data to populate');
+        return;
+    }
 
-    console.log('[orderEdited.js] Populating form with data:', orderData);
+    console.log('[orderEdited.js] Populating form with order data (ID:', orderData.id, ')');
 
     const fieldMap = {
         'planta': 'planta',
@@ -289,19 +298,14 @@ export function populateEditFormWithData(orderData) {
         'Measures': 'measures',
         'Products': 'products',
         'Carrier': 'carrier_id',
-        'QuotedCost': 'quoted_cost',
-        'Description': 'description',
-        'CorrectiveAction': 'corrective_action',
-        'PersonResponsible': 'person_responsible',
-        'TargetDate': 'due_date'
+        'QuotedCost': 'quoted_cost'
     };
 
     for (const [formFieldId, dbFieldName] of Object.entries(fieldMap)) {
         const element = document.getElementById(formFieldId);
-        if (element && orderData[dbFieldName] !== undefined) {
+        if (element && orderData[dbFieldName] !== undefined && orderData[dbFieldName] !== null) {
             element.value = orderData[dbFieldName];
-            console.log(`[orderEdited.js] Set ${formFieldId} to ${orderData[dbFieldName]}`);
-
+            
             if (typeof jQuery !== 'undefined') {
                 jQuery(element).trigger('change');
             }
@@ -309,29 +313,58 @@ export function populateEditFormWithData(orderData) {
     }
 
     if (orderData['origin_company_name']) {
-        document.getElementById('CompanyShip').value = orderData['origin_company_name'];
+        const shipCompany = document.getElementById('CompanyShip');
+        if (shipCompany) {
+            shipCompany.value = orderData['origin_company_name'];
+            if (typeof jQuery !== 'undefined') jQuery(shipCompany).trigger('change');
+        }
     }
+
     if (orderData['destiny_company_name']) {
-        document.getElementById('inputCompanyNameDest').value = orderData['destiny_company_name'];
+        const destCompany = document.getElementById('inputCompanyNameDest');
+        if (destCompany) {
+            destCompany.value = orderData['destiny_company_name'];
+            if (typeof jQuery !== 'undefined') jQuery(destCompany).trigger('change');
+        }
     }
+
     if (orderData['origin_city']) {
-        document.getElementById('inputCityShip').value = orderData['origin_city'];
+        const el = document.getElementById('inputCityShip');
+        if (el) el.value = orderData['origin_city'];
     }
     if (orderData['origin_state']) {
-        document.getElementById('StatesShip').value = orderData['origin_state'];
+        const el = document.getElementById('StatesShip');
+        if (el) el.value = orderData['origin_state'];
     }
     if (orderData['origin_zip']) {
-        document.getElementById('inputZipShip').value = orderData['origin_zip'];
+        const el = document.getElementById('inputZipShip');
+        if (el) el.value = orderData['origin_zip'];
     }
     if (orderData['destiny_city']) {
-        document.getElementById('inputCityDest').value = orderData['destiny_city'];
+        const el = document.getElementById('inputCityDest');
+        if (el) el.value = orderData['destiny_city'];
     }
     if (orderData['destiny_state']) {
-        document.getElementById('StatesDest').value = orderData['destiny_state'];
+        const el = document.getElementById('StatesDest');
+        if (el) el.value = orderData['destiny_state'];
     }
     if (orderData['destiny_zip']) {
-        document.getElementById('inputZipDest').value = orderData['destiny_zip'];
+        const el = document.getElementById('inputZipDest');
+        if (el) el.value = orderData['destiny_zip'];
     }
+
+    if (orderData['corrective_action_plan']) {
+        const cap = orderData['corrective_action_plan'];
+        const action = document.getElementById('CorrectiveAction');
+        const responsible = document.getElementById('PersonResponsible');
+        const targetDate = document.getElementById('TargetDate');
+        
+        if (action && cap.corrective_action) action.value = cap.corrective_action;
+        if (responsible && cap.person_responsible) responsible.value = cap.person_responsible;
+        if (targetDate && cap.due_date) targetDate.value = cap.due_date;
+    }
+
+    console.log('[orderEdited.js] Form population complete');
 }
 
 export function attachEditFormListeners() {
@@ -343,12 +376,10 @@ export function attachEditFormListeners() {
 
     if (submitBtn) {
         submitBtn.addEventListener('click', submitEditedOrder);
-        console.log('[orderEdited.js] Submit button listener attached');
     }
 
     if (cancelBtn) {
         cancelBtn.addEventListener('click', cancelEdit);
-        console.log('[orderEdited.js] Cancel button listener attached');
     }
 
     if (form) {
@@ -357,6 +388,8 @@ export function attachEditFormListeners() {
             submitEditedOrder(e);
         });
     }
+
+    console.log('[orderEdited.js] Form listeners attached');
 }
 
 export function enableUnsavedChangesWarning() {
@@ -384,4 +417,6 @@ export function enableUnsavedChangesWarning() {
             hasChanges = false;
         });
     }
+
+    console.log('[orderEdited.js] Unsaved changes warning enabled');
 }

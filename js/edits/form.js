@@ -7,8 +7,12 @@
 import { populateEditFormWithData, attachEditFormListeners, enableUnsavedChangesWarning } from './orderEdited.js';
 import { initializeTokenValidation } from './tokenController.js';
 
+let isInitialized = false;
+
 async function initializeEditFormWithData() {
     try {
+        console.log('[form.js] Starting form data initialization...');
+        
         const isValid = await initializeTokenValidation();
 
         if (!isValid) {
@@ -19,11 +23,11 @@ async function initializeEditFormWithData() {
         const orderData = window.EDIT_ORDER_DATA;
 
         if (!orderData) {
-            console.error('[form.js] Order data not available');
+            console.error('[form.js] Order data not available after token validation');
             return false;
         }
 
-        console.log('[form.js] Order data available:', orderData);
+        console.log('[form.js] Order data available, populating form:', orderData.id);
         populateEditFormWithData(orderData);
         attachEditFormListeners();
         enableUnsavedChangesWarning();
@@ -63,13 +67,18 @@ function initializeFormSelectors() {
         '#inputCompanyNameDest'
     ];
 
+    console.log('[form.js] Initializing Select2 selectors...');
+
     selectors.forEach(selector => {
         const element = jQuery(selector);
-        if (element.length > 0 && !element.hasClass('select2-hidden-accessible')) {
-            element.select2({
-                placeholder: 'Select an option',
-                allowClear: true
-            });
+        if (element.length > 0) {
+            if (!element.hasClass('select2-hidden-accessible')) {
+                element.select2({
+                    placeholder: 'Select an option',
+                    allowClear: true
+                });
+                console.log(`[form.js] Select2 initialized for: ${selector}`);
+            }
         }
     });
 }
@@ -83,6 +92,7 @@ function disableUnEditableFields() {
             element.disabled = true;
             element.style.backgroundColor = '#e9ecef';
             element.style.cursor = 'not-allowed';
+            console.log(`[form.js] Disabled field: ${fieldId}`);
         }
     });
 }
@@ -92,7 +102,10 @@ function handleRecoveryFileVisibility() {
     const fileContainer = document.getElementById('recoveryFileContainer');
     const fileInput = document.getElementById('recoveryFile');
     
-    if (!recoverySelect || !fileContainer || !fileInput) return;
+    if (!recoverySelect || !fileContainer || !fileInput) {
+        console.warn('[form.js] Recovery file elements not found');
+        return;
+    }
 
     const updateVisibility = () => {
         const selectedText = recoverySelect.options[recoverySelect.selectedIndex]?.text || '';
@@ -109,11 +122,25 @@ function handleRecoveryFileVisibility() {
     };
 
     updateVisibility();
-    jQuery(recoverySelect).on('change', updateVisibility);
+    
+    if (typeof jQuery !== 'undefined') {
+        jQuery(recoverySelect).on('change', updateVisibility);
+    } else {
+        recoverySelect.addEventListener('change', updateVisibility);
+    }
+    
+    console.log('[form.js] Recovery file visibility handler attached');
 }
 
-export async function initializeEditForm() {
+async function initializeEditForm() {
+    if (isInitialized) {
+        console.log('[form.js] Form already initialized, skipping...');
+        return true;
+    }
+
     try {
+        console.log('[form.js] Initializing edit form...');
+        
         Swal.fire({
             title: 'Loading Form',
             html: 'Please wait while the order data is being loaded...',
@@ -131,12 +158,14 @@ export async function initializeEditForm() {
             Swal.fire({
                 icon: 'error',
                 title: 'Initialization Failed',
-                text: 'Could not load the order data. Please try again.'
+                text: 'Could not load the order data. Please try again.',
+                confirmButtonText: 'OK'
             });
             return false;
         }
 
         Swal.close();
+        isInitialized = true;
         console.log('[form.js] Edit form initialized successfully');
         return true;
 
@@ -145,14 +174,23 @@ export async function initializeEditForm() {
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'An error occurred while initializing the form.'
+            text: 'An error occurred while initializing the form: ' + error.message
         });
         return false;
     }
 }
 
+// Initialize form when DOM is ready
+console.log('[form.js] Module loaded, document readyState:', document.readyState);
+
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeEditForm);
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('[form.js] DOM ready event fired');
+        initializeEditForm();
+    });
 } else {
+    console.log('[form.js] DOM already loaded, initializing immediately');
     initializeEditForm();
 }
+
+export { initializeEditForm };

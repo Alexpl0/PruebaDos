@@ -65,28 +65,26 @@ export async function getOrderDetailsForEdit(orderId) {
         console.log('[tokenController.js] Fetching order details for:', orderId);
         
         const response = await fetch(
-            `${window.PF_CONFIG.app.baseURL}dao/conections/daoPremiumFreight.php`,
+            `${window.PF_CONFIG.app.baseURL}dao/edits/daoGetPFById.php?id=${orderId}`,
             {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orderId: orderId })
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
             }
         );
 
         const data = await response.json();
         console.log('[tokenController.js] Order details response:', data);
 
-        if (!data.success || !data.data || data.data.length === 0) {
+        if (!data.success || !data.data) {
             console.error('[tokenController.js] Error getting order details:', data.message);
             return null;
         }
 
-        const orderData = data.data[0];
-        console.log('[tokenController.js] Order data loaded successfully:', orderData);
-        return orderData;
+        console.log('[tokenController.js] Order data loaded successfully:', data.data);
+        return data.data;
 
     } catch (error) {
-        console.error('[tokenController.js] Error:', error);
+        console.error('[tokenController.js] Error fetching order details:', error);
         return null;
     }
 }
@@ -174,7 +172,10 @@ export class EditChangeTracker {
     }
 
     recordChange(fieldName, originalValue, newValue) {
-        if (String(originalValue).trim() !== String(newValue).trim()) {
+        const origStr = String(originalValue).trim();
+        const newStr = String(newValue).trim();
+        
+        if (origStr !== newStr) {
             this.changedFields[fieldName] = {
                 original: originalValue,
                 new: newValue
@@ -197,8 +198,8 @@ export class EditChangeTracker {
         for (const [field, data] of Object.entries(changes)) {
             summary.push({
                 field: this.formatFieldName(field),
-                original: data.original,
-                new: data.new
+                original: data.original || '(empty)',
+                new: data.new || '(empty)'
             });
         }
 
@@ -225,20 +226,20 @@ export async function showChangesSummaryModal(changeTracker) {
         return false;
     }
 
-    let changesHtml = '<table style="width: 100%; border-collapse: collapse; margin: 15px 0;">';
-    changesHtml += '<tr style="background-color: #f0f0f0;"><th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Field</th><th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Original</th><th style="padding: 8px; border: 1px solid #ddd; text-align: left;">New Value</th></tr>';
+    let changesHtml = '<div style="max-height: 400px; overflow-y: auto;"><table style="width: 100%; border-collapse: collapse; margin: 15px 0;">';
+    changesHtml += '<tr style="background-color: #f0f0f0; position: sticky; top: 0;"><th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Field</th><th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Original</th><th style="padding: 8px; border: 1px solid #ddd; text-align: left;">New Value</th></tr>';
 
     changes.forEach(change => {
         changesHtml += `
             <tr>
-                <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">${change.field}</td>
-                <td style="padding: 8px; border: 1px solid #ddd; background-color: #ffe6e6;">${change.original || '(empty)'}</td>
-                <td style="padding: 8px; border: 1px solid #ddd; background-color: #e6ffe6;">${change.new || '(empty)'}</td>
+                <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">${escapeHtml(change.field)}</td>
+                <td style="padding: 8px; border: 1px solid #ddd; background-color: #ffe6e6;">${escapeHtml(String(change.original))}</td>
+                <td style="padding: 8px; border: 1px solid #ddd; background-color: #e6ffe6;">${escapeHtml(String(change.new))}</td>
             </tr>
         `;
     });
 
-    changesHtml += '</table>';
+    changesHtml += '</table></div>';
 
     const result = await Swal.fire({
         icon: 'info',
@@ -248,10 +249,22 @@ export async function showChangesSummaryModal(changeTracker) {
         confirmButtonText: 'Send Update',
         confirmButtonColor: '#28a745',
         cancelButtonText: 'Cancel',
-        cancelButtonColor: '#6c757d'
+        cancelButtonColor: '#6c757d',
+        width: '700px'
     });
 
     return result.isConfirmed;
+}
+
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return String(text).replace(/[&<>"']/g, m => map[m]);
 }
 
 export async function initializeTokenValidation() {
@@ -279,7 +292,7 @@ export async function initializeTokenValidation() {
     }
 
     window.EDIT_ORDER_DATA = orderData;
-    console.log('[tokenController.js] Token validation SUCCESS - Order data stored:', orderData);
+    console.log('[tokenController.js] Token validation SUCCESS - Order data stored');
     
     return true;
 }

@@ -457,28 +457,10 @@ try {
     <script type="module">
         import { initializeEditForm } from './js/edits/form.js';
         
-        console.log('[editOrder.php Script] Module imported, waiting for DOM...');
+        console.log('[editOrder.php] Module imported successfully');
         
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', async () => {
-                console.log('[editOrder.php Script] DOM ready, checking token validity...');
-                
-                if (!window.PF_CONFIG.tokenValid) {
-                    console.error('[editOrder.php Script] Token validation failed at page level');
-                    return;
-                }
-                
-                console.log('[editOrder.php Script] Token is valid, initializing form...');
-                await initializeEditForm();
-            });
-        } else {
-            console.log('[editOrder.php Script] DOM already loaded, initializing immediately...');
-            if (!window.PF_CONFIG.tokenValid) {
-                console.error('[editOrder.php Script] Token validation failed at page level');
-            } else {
-                initializeEditForm();
-            }
-        }
+        // Single initialization point - form.js handles duplication prevention
+        initializeEditForm();
     </script>
 
     <?php 
