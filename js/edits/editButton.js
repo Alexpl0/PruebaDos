@@ -1,9 +1,6 @@
 /**
  * editButton.js - Edit Request Button and Modal Handler
- * Manages the edit request flow in myOrder.php
- * 
- * @author GRAMMER AG
- * @version 1.0
+ * Improved version with better error handling and debugging
  */
 
 const MAILER_BASE_URL = 'https://grammermx.com/Mailer/PFMailer/';
@@ -45,6 +42,8 @@ async function submitEditRequest() {
     const reasonTextarea = document.getElementById('editReason');
     const reason = reasonTextarea?.value.trim();
 
+    console.log('[editButton.js] DEBUG:', { orderId, reason: reason ? `${reason.substring(0, 20)}...` : 'empty' });
+
     if (!orderId) {
         Swal.fire({
             icon: 'error',
@@ -76,21 +75,43 @@ async function submitEditRequest() {
             }
         });
 
+        // Prepare the data exactly as the server expects
+        const formData = new URLSearchParams();
+        formData.append('orderId', orderId);
+        formData.append('reason', reason);
+
+        console.log('[editButton.js] Sending POST to:', `${MAILER_BASE_URL}PFmailEditOrder.php?action=request_edit`);
+        console.log('[editButton.js] Data:', { orderId, reason: reason.substring(0, 30) + '...' });
+
         const response = await fetch(`${MAILER_BASE_URL}PFmailEditOrder.php?action=request_edit`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             },
-            body: new URLSearchParams({
-                orderId: orderId,
-                reason: reason
-            })
+            body: formData.toString()
         });
 
-        const data = await response.json();
+        console.log('[editButton.js] Response status:', response.status);
+        console.log('[editButton.js] Response content-type:', response.headers.get('content-type'));
+
+        // Get the response text first to debug
+        const responseText = await response.text();
+        console.log('[editButton.js] Raw response:', responseText.substring(0, 200));
+
+        // Try to parse as JSON
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error('[editButton.js] JSON Parse Error:', parseError);
+            console.error('[editButton.js] Response text:', responseText);
+            throw new Error(`Invalid JSON response: ${responseText.substring(0, 100)}`);
+        }
+
+        console.log('[editButton.js] Parsed data:', data);
 
         if (!response.ok || !data.success) {
-            throw new Error(data.message || 'Failed to submit edit request');
+            throw new Error(data.message || `Server error (${response.status}): Failed to submit edit request`);
         }
 
         Swal.fire({
@@ -108,7 +129,7 @@ async function submitEditRequest() {
         });
 
     } catch (error) {
-        console.error('[editButton.js] Error:', error);
+        console.error('[editButton.js] Full Error:', error);
         Swal.fire({
             icon: 'error',
             title: 'Submission Error',
