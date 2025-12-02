@@ -70,6 +70,9 @@ require_once 'dao/users/context_injector.php';
             <h2 id="order-title">Tracking Order #<?php echo htmlspecialchars($orderId); ?></h2>
         </div>
 
+        <!-- Edit Button Section -->
+        <div id="editButtonSection" style="margin: 20px 0;"></div>
+
         <section id="progressSection" class="progress-section mb-4">
             <div id="progress-container" class="progress-container">
                 <div class="progress-track">
@@ -114,8 +117,8 @@ require_once 'dao/users/context_injector.php';
     <script src="js/header.js" type="module"></script>
     <script src="js/correctiveActionPlan.js"></script>
     <script src="js/myOrder.js" type="module"></script>
+    <script type="module" src="js/edits/editButton.js"></script>
 
-    
     <?php 
     // Carga condicional del JS del asistente.
     if (isset($appContextForJS['user']['authorizationLevel']) && $appContextForJS['user']['authorizationLevel'] > 0): ?>

@@ -184,7 +184,8 @@ export function initializeLimitedReferenceSelector() {
         { id: '3', text: '346508' },
         { id: '5', text: '485869' },
         { id: '6', text: '485870' },
-        { id: '7', text: '485871' }
+        { id: '7', text: '485871' },
+        { id: '350', text: '349188' }  // ID 38 mapped to '349188'
     ];
 
     $select.select2({

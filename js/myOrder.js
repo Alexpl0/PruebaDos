@@ -4,6 +4,7 @@
  * Ahora usa PF_CONFIG para una gestión de datos consistente.
  */
 import { loadAndPopulateSVG } from './svgOrders.js';
+import { displayEditButtonSection } from './edits/editButton.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Leer configuración desde el objeto global
@@ -42,6 +43,10 @@ async function loadOrderDetails(orderId, baseURL) {
 
         await loadAndPopulateSVG(orderData, 'svgContent');
         loadingSpinner.style.display = 'none';
+
+        // Display edit request button section
+        displayEditButtonSection(orderId);
+
         document.getElementById('svgContent').style.opacity = 1;
 
     } catch (error) {
