@@ -3,7 +3,7 @@
  * Handles currency conversion and required_auth_level calculation
  */
 
-import { calculateEuros, getSelectedCurrency } from './currencyUtils.js';
+import { calculateEuros, getSelectedCurrency } from '../currencyUtils.js';
 
 let currentAuthLevel = 5;
 let currentCostInEuros = 0;
