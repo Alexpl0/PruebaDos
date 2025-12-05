@@ -2,38 +2,58 @@
 /**
  * daoUpdatePremiumFreight.php - Update existing Premium Freight order
  * Improved version: Only updates changed fields, maintains existing data
+ * Includes detailed logging for debugging
  * 
  * @author GRAMMER AG
- * @version 2.0
+ * @version 2.1
  */
 
 include_once('../db/PFDB.php');
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
 error_reporting(E_ALL);
 
 header('Content-Type: application/json; charset=utf-8');
 
+$logDir = __DIR__ . '/logs';
+if (!is_dir($logDir)) {
+    mkdir($logDir, 0755, true);
+}
+$logFile = $logDir . '/update_' . date('Y-m-d') . '.log';
+
+function logMessage($message, $data = null) {
+    global $logFile;
+    $timestamp = date('Y-m-d H:i:s');
+    $logMsg = "[$timestamp] $message";
+    if ($data !== null) {
+        $logMsg .= " | " . json_encode($data, JSON_UNESCAPED_UNICODE);
+    }
+    $logMsg .= "\n";
+    file_put_contents($logFile, $logMsg, FILE_APPEND);
+    error_log($logMsg);
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    logMessage('ERROR: Invalid method', ['method' => $_SERVER['REQUEST_METHOD']]);
     http_response_code(405);
     echo json_encode(['success' => false, 'message' => 'Method not allowed. Use POST.']);
     exit;
 }
 
 $requestBody = file_get_contents('php://input');
+logMessage('REQUEST_RECEIVED', ['body_length' => strlen($requestBody)]);
+
 $data = json_decode($requestBody, true);
 
-error_log("[daoUpdatePremiumFreight.php] Incoming request: " . print_r($data, true));
-
 if ($data === null) {
+    logMessage('ERROR: Invalid JSON');
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Invalid JSON data provided.']);
     exit;
 }
 
 $requiredFields = ['orderId', 'tokenId', 'changes'];
-
 $missingFields = [];
 foreach ($requiredFields as $field) {
     if (!isset($data[$field])) {
@@ -42,6 +62,7 @@ foreach ($requiredFields as $field) {
 }
 
 if (!empty($missingFields)) {
+    logMessage('ERROR: Missing fields', ['missing' => $missingFields]);
     http_response_code(400);
     echo json_encode([
         'success' => false,
@@ -60,10 +81,10 @@ try {
     $tokenId = intval($data['tokenId']);
     $changes = $data['changes'];
 
-    error_log("[daoUpdatePremiumFreight.php] Processing: orderId=$orderId, tokenId=$tokenId");
-    error_log("[daoUpdatePremiumFreight.php] Changes: " . json_encode($changes));
+    logMessage('PROCESSING_START', ['orderId' => $orderId, 'tokenId' => $tokenId]);
+    logMessage('CHANGES_RECEIVED', array_keys($changes));
 
-    $verifyStmt = $conex->prepare("SELECT id, user_id, quoted_cost, required_auth_level, cost_euros FROM PremiumFreight WHERE id = ?");
+    $verifyStmt = $conex->prepare("SELECT id, user_id, quoted_cost, required_auth_level, cost_euros, carrier_id FROM PremiumFreight WHERE id = ?");
     $verifyStmt->bind_param("i", $orderId);
     $verifyStmt->execute();
     $verifyResult = $verifyStmt->get_result();
@@ -75,11 +96,19 @@ try {
     $order = $verifyResult->fetch_assoc();
     $verifyStmt->close();
 
+    logMessage('ORDER_FOUND', $order);
+
     $originalQuotedCost = floatval($order['quoted_cost'] ?? 0);
     $originalAuthLevel = intval($order['required_auth_level'] ?? 5);
     $originalCostEuros = floatval($order['cost_euros'] ?? 0);
+    $originalCarrierId = intval($order['carrier_id'] ?? 0);
 
-    error_log("[daoUpdatePremiumFreight.php] Original values - cost: $originalQuotedCost, auth_level: $originalAuthLevel");
+    logMessage('ORIGINAL_VALUES', [
+        'cost' => $originalQuotedCost,
+        'auth_level' => $originalAuthLevel,
+        'cost_euros' => $originalCostEuros,
+        'carrier_id' => $originalCarrierId
+    ]);
 
     $newQuotedCost = isset($changes['quoted_cost']) && $changes['quoted_cost'] !== null ? floatval($changes['quoted_cost']) : $originalQuotedCost;
     $newAuthLevel = $originalAuthLevel;
@@ -93,7 +122,7 @@ try {
         }
         
         $newAuthLevel = calculateRequiredAuthLevel($newCostEuros);
-        error_log("[daoUpdatePremiumFreight.php] Cost changed - new cost_euros: $newCostEuros, new auth_level: $newAuthLevel");
+        logMessage('COST_CHANGED', ['new_cost_euros' => $newCostEuros, 'new_auth_level' => $newAuthLevel]);
     }
 
     $fieldsToUpdate = [];
@@ -116,14 +145,30 @@ try {
 
     foreach ($editableFields as $field) {
         if (isset($changes[$field]) && $changes[$field] !== null) {
-            $fieldsToUpdate[] = "$field = ?";
             
             if ($field === 'carrier_id') {
-                $updateValues[] = intval($changes[$field]);
+                $carrierId = intval($changes[$field]);
+                logMessage('CHECKING_FK_CARRIER', ['carrier_id' => $carrierId]);
+                
+                $carrierCheck = $conex->prepare("SELECT id FROM Carriers WHERE id = ? AND active = 1");
+                $carrierCheck->bind_param("i", $carrierId);
+                $carrierCheck->execute();
+                $carrierResult = $carrierCheck->get_result();
+                
+                if ($carrierResult->num_rows === 0) {
+                    throw new Exception("Invalid carrier ID: $carrierId does not exist or is not active");
+                }
+                $carrierCheck->close();
+                
+                $fieldsToUpdate[] = "$field = ?";
+                $updateValues[] = $carrierId;
                 $updateTypes .= 'i';
+                logMessage('FK_CARRIER_VALID', ['carrier_id' => $carrierId]);
             } else {
+                $fieldsToUpdate[] = "$field = ?";
                 $updateValues[] = $changes[$field];
                 $updateTypes .= 's';
+                logMessage('FIELD_TO_UPDATE', ['field' => $field, 'value' => substr($changes[$field], 0, 50)]);
             }
         }
     }
@@ -136,10 +181,12 @@ try {
         $fieldsToUpdate[] = "required_auth_level = ?";
         $updateValues[] = $newAuthLevel;
         $updateTypes .= 'i';
+        
+        logMessage('RECALCULATED_VALUES', ['cost_euros' => $newCostEuros, 'auth_level' => $newAuthLevel]);
     }
 
     if (empty($fieldsToUpdate)) {
-        error_log("[daoUpdatePremiumFreight.php] No changes to update");
+        logMessage('NO_CHANGES_TO_UPDATE');
         echo json_encode([
             'success' => true,
             'message' => 'No changes to update',
@@ -153,8 +200,11 @@ try {
 
     $updateQuery = "UPDATE PremiumFreight SET " . implode(", ", $fieldsToUpdate) . " WHERE id = ?";
     
-    error_log("[daoUpdatePremiumFreight.php] Update query: $updateQuery");
-    error_log("[daoUpdatePremiumFreight.php] Update types: $updateTypes");
+    logMessage('QUERY_CONSTRUCTED', [
+        'query' => $updateQuery,
+        'types' => $updateTypes,
+        'values_count' => count($updateValues)
+    ]);
 
     $updateStmt = $conex->prepare($updateQuery);
     if (!$updateStmt) {
@@ -168,7 +218,7 @@ try {
     }
 
     $updateStmt->close();
-    error_log("[daoUpdatePremiumFreight.php] PremiumFreight updated successfully");
+    logMessage('UPDATE_EXECUTED_SUCCESS');
 
     $historyStmt = $conex->prepare("
         INSERT INTO ApprovalHistory 
@@ -178,10 +228,12 @@ try {
     $historyStmt->bind_param("ii", $orderId, $order['user_id']);
     $historyStmt->execute();
     $historyStmt->close();
-    error_log("[daoUpdatePremiumFreight.php] ApprovalHistory entry created");
+    logMessage('HISTORY_LOGGED');
 
     $conex->commit();
     $conex->close();
+
+    logMessage('TRANSACTION_COMMITTED', ['orderId' => $orderId]);
 
     echo json_encode([
         'success' => true,
@@ -197,8 +249,14 @@ try {
         $conex->rollback();
         $conex->close();
     }
+    
+    logMessage('ERROR_CAUGHT', [
+        'message' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine()
+    ]);
+    
     http_response_code(500);
-    error_log("[daoUpdatePremiumFreight.php] Error: " . $e->getMessage());
     echo json_encode([
         'success' => false,
         'message' => 'Database error: ' . $e->getMessage()
