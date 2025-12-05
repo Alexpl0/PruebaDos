@@ -87,9 +87,16 @@ function collectFormData() {
             let value = element.value;
             
             if (element.tagName === 'SELECT' && typeof jQuery !== 'undefined') {
-                const selectedData = jQuery(element).select2('data');
-                if (selectedData && selectedData.length > 0) {
-                    value = selectedData[0].id || element.value;
+                try {
+                    const jqElement = jQuery(element);
+                    if (jqElement.hasClass('select2-hidden-accessible')) {
+                        const selectedData = jqElement.select2('data');
+                        if (selectedData && selectedData.length > 0) {
+                            value = selectedData[0].id || element.value;
+                        }
+                    }
+                } catch (e) {
+                    console.warn(`[orderEdited.js] Select2 not available for ${formFieldId}, using element value`);
                 }
             }
             
@@ -290,22 +297,11 @@ export function populateEditFormWithData(orderData) {
 
         if (value !== undefined && value !== null && value !== '') {
             element.value = value;
-            
             console.log(`[orderEdited.js] Populated ${formFieldId} = ${value}`);
-            
-            if (typeof jQuery !== 'undefined' && element.tagName === 'SELECT') {
-                try {
-                    jQuery(element).val(value).trigger('change');
-                    console.log(`[orderEdited.js] Select2 triggered for ${formFieldId}`);
-                } catch (e) {
-                    console.warn(`[orderEdited.js] Error triggering Select2 on ${formFieldId}:`, e.message);
-                }
-            }
         }
     }
 
-    originalFormData = collectFormData();
-    console.log('[orderEdited.js] Form population complete, original data saved');
+    console.log('[orderEdited.js] Form population complete');
 }
 
 export function attachEditFormListeners() {

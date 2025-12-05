@@ -36,11 +36,14 @@ async function initializeEditFormWithData() {
         
         await initializeExternalModules();
         
-        attachEditFormListeners();
-        enableUnsavedChangesWarning();
         initializeFormSelectors();
         disableUnEditableFields();
         handleRecoveryFileVisibility();
+        
+        console.log('[form.js] Selectors initialized, attaching listeners...');
+        
+        attachEditFormListeners();
+        enableUnsavedChangesWarning();
         
         setInitialAuthLevel(orderData);
         initializeQuotedCostHandler();
@@ -103,6 +106,8 @@ function initializeFormSelectors() {
                         allowClear: true,
                         width: '100%'
                     });
+                    
+                    element.trigger('change');
                     console.log(`[form.js] Select2 initialized for: ${selector}`);
                 } else {
                     console.log(`[form.js] Select2 already initialized for: ${selector}`);
@@ -114,6 +119,8 @@ function initializeFormSelectors() {
             console.warn(`[form.js] Selector not found: ${selector}`);
         }
     });
+    
+    console.log('[form.js] All Select2 selectors initialized');
 }
 
 function disableUnEditableFields() {
