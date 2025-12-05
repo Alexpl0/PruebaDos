@@ -144,21 +144,23 @@ try {
     ];
 
     foreach ($editableFields as $field) {
-        if (isset($changes[$field]) && $changes[$field] !== null) {
+        if (isset($changes[$field]) && $changes[$field] !== null && $changes[$field] !== '') {
             
             if ($field === 'carrier_id') {
                 $carrierId = intval($changes[$field]);
                 logMessage('CHECKING_FK_CARRIER', ['carrier_id' => $carrierId]);
                 
-                $carrierCheck = $conex->prepare("SELECT id FROM Carriers WHERE id = ? AND active = 1");
-                $carrierCheck->bind_param("i", $carrierId);
-                $carrierCheck->execute();
-                $carrierResult = $carrierCheck->get_result();
-                
-                if ($carrierResult->num_rows === 0) {
-                    throw new Exception("Invalid carrier ID: $carrierId does not exist or is not active");
+                if ($carrierId > 0) {
+                    $carrierCheck = $conex->prepare("SELECT id FROM Carriers WHERE id = ?");
+                    $carrierCheck->bind_param("i", $carrierId);
+                    $carrierCheck->execute();
+                    $carrierResult = $carrierCheck->get_result();
+                    
+                    if ($carrierResult->num_rows === 0) {
+                        throw new Exception("Invalid carrier ID: $carrierId does not exist in Carriers table");
+                    }
+                    $carrierCheck->close();
                 }
-                $carrierCheck->close();
                 
                 $fieldsToUpdate[] = "$field = ?";
                 $updateValues[] = $carrierId;
@@ -170,6 +172,8 @@ try {
                 $updateTypes .= 's';
                 logMessage('FIELD_TO_UPDATE', ['field' => $field, 'value' => substr($changes[$field], 0, 50)]);
             }
+        } else if (isset($changes[$field]) && ($changes[$field] === '' || $changes[$field] === null)) {
+            logMessage('SKIPPING_EMPTY_FIELD', ['field' => $field, 'reason' => 'empty_or_null']);
         }
     }
 

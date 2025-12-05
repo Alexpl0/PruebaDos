@@ -85,28 +85,14 @@ function collectFormData() {
         const element = document.getElementById(formFieldId);
         if (element) {
             let value = element.value;
-            
-            if (element.tagName === 'SELECT' && typeof jQuery !== 'undefined') {
-                try {
-                    const jqElement = jQuery(element);
-                    if (jqElement.hasClass('select2-hidden-accessible')) {
-                        const selectedData = jqElement.select2('data');
-                        if (selectedData && selectedData.length > 0) {
-                            value = selectedData[0].id || element.value;
-                        }
-                    }
-                } catch (e) {
-                    console.warn(`[orderEdited.js] Select2 not available for ${formFieldId}, using element value`);
-                }
-            }
-            
+            console.log(`[orderEdited.js] Collecting ${formFieldId} = "${value}"`);
             formData[dbFieldName] = value || null;
         }
     }
 
     formData['description'] = document.getElementById('Description')?.value || null;
 
-    console.log('[orderEdited.js] Form data collected:', Object.keys(formData));
+    console.log('[orderEdited.js] Form data collected:', formData);
     return formData;
 }
 
@@ -266,6 +252,7 @@ export function populateEditFormWithData(orderData) {
     }
 
     console.log('[orderEdited.js] Populating form with order data (ID:', orderData.id, ')');
+    console.log('[orderEdited.js] Order data contents:', orderData);
 
     const fieldMap = {
         'planta': 'planta',
@@ -283,7 +270,7 @@ export function populateEditFormWithData(orderData) {
         'QuotedCost': 'quoted_cost'
     };
 
-    console.log('[orderEdited.js] Starting field population...');
+    console.log('[orderEdited.js] Starting field population with fieldMap:', Object.keys(fieldMap));
 
     for (const [formFieldId, dbFieldName] of Object.entries(fieldMap)) {
         const element = document.getElementById(formFieldId);
@@ -295,13 +282,30 @@ export function populateEditFormWithData(orderData) {
 
         const value = orderData[dbFieldName];
 
+        console.log(`[orderEdited.js] Processing ${formFieldId}: dbFieldName="${dbFieldName}", orderData value="${value}"`);
+
         if (value !== undefined && value !== null && value !== '') {
+            const oldValue = element.value;
             element.value = value;
-            console.log(`[orderEdited.js] Populated ${formFieldId} = ${value}`);
+            const newValue = element.value;
+            
+            console.log(`[orderEdited.js] SET ${formFieldId}: "${oldValue}" -> "${newValue}" ✓`);
+        } else {
+            console.log(`[orderEdited.js] SKIP ${formFieldId}: value is empty/null`);
         }
     }
 
     console.log('[orderEdited.js] Form population complete');
+    
+    setTimeout(() => {
+        console.log('[orderEdited.js] Post-populate verification:');
+        for (const [formFieldId, dbFieldName] of Object.entries(fieldMap)) {
+            const element = document.getElementById(formFieldId);
+            if (element) {
+                console.log(`[orderEdited.js] VERIFY ${formFieldId} = "${element.value}"`);
+            }
+        }
+    }, 100);
 }
 
 export function attachEditFormListeners() {
