@@ -342,9 +342,16 @@ try {
                             <option></option>
                         </select>
                     </div>
+                    <!-- Quoted Cost con Selectores de Divisa -->
                     <div id="DivCosto" class="mb-2">
                         <label for="QuotedCost">Quoted Cost</label>
-                        <input type="number" id="QuotedCost" name="QuotedCost" class="form-control" placeholder="Quoted Cost" required>
+                        <div id="QuotedCostDiv" class="d-flex" style="gap: 10px;">
+                            <input type="number" id="QuotedCost" name="QuotedCost" class="form-control me-2" placeholder="Quoted Cost" required>
+                            <div id="Divisa" style="display: flex; gap: 5px;">
+                                <button type="button" id="MXN" class="btn btn-outline-secondary me-1" style="min-width: 60px;">MXN</button>
+                                <button type="button" id="USD" class="btn btn-outline-secondary" style="min-width: 60px;">USD</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

@@ -4,6 +4,7 @@
  */
 
 import { EditChangeTracker, showChangesSummaryModal, markTokenAsUsed } from './tokenController.js';
+import { getSelectedCurrency } from './quotedCostHandler.js';
 
 const MAILER_BASE_URL = 'https://grammermx.com/Mailer/PFMailer/';
 let originalFormData = null;
@@ -34,7 +35,7 @@ export async function submitEditedOrder(event) {
     const fieldsToCompare = [
         'transport', 'in_out_bound', 'description', 'area', 'int_ext',
         'paid_by', 'category_cause', 'project_status', 'recovery',
-        'carrier_id', 'quoted_cost'
+        'carrier_id', 'quoted_cost', 'moneda'
     ];
 
     fieldsToCompare.forEach(field => {
@@ -101,8 +102,10 @@ function collectFormData() {
     }
 
     formData['description'] = document.getElementById('Description')?.value || null;
+    formData['moneda'] = getSelectedCurrency();
 
     console.log('[orderEdited.js] Form data collected:', formData);
+    console.log('[orderEdited.js] Selected currency:', formData['moneda']);
     return formData;
 }
 

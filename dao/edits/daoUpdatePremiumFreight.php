@@ -84,7 +84,7 @@ try {
     logMessage('PROCESSING_START', ['orderId' => $orderId, 'tokenId' => $tokenId]);
     logMessage('CHANGES_RECEIVED', array_keys($changes));
 
-    $verifyStmt = $conex->prepare("SELECT id, user_id, quoted_cost, required_auth_level, cost_euros, carrier_id FROM PremiumFreight WHERE id = ?");
+    $verifyStmt = $conex->prepare("SELECT id, user_id, quoted_cost, required_auth_level, cost_euros, carrier_id, moneda FROM PremiumFreight WHERE id = ?");
     $verifyStmt->bind_param("i", $orderId);
     $verifyStmt->execute();
     $verifyResult = $verifyStmt->get_result();
@@ -102,12 +102,14 @@ try {
     $originalAuthLevel = intval($order['required_auth_level'] ?? 5);
     $originalCostEuros = floatval($order['cost_euros'] ?? 0);
     $originalCarrierId = intval($order['carrier_id'] ?? 0);
+    $originalMoneda = $order['moneda'] ?? 'MXN';
 
     logMessage('ORIGINAL_VALUES', [
         'cost' => $originalQuotedCost,
         'auth_level' => $originalAuthLevel,
         'cost_euros' => $originalCostEuros,
-        'carrier_id' => $originalCarrierId
+        'carrier_id' => $originalCarrierId,
+        'moneda' => $originalMoneda
     ]);
 
     $newQuotedCost = isset($changes['quoted_cost']) && $changes['quoted_cost'] !== null ? floatval($changes['quoted_cost']) : $originalQuotedCost;
@@ -140,7 +142,8 @@ try {
         'project_status',
         'recovery',
         'carrier_id',
-        'quoted_cost'
+        'quoted_cost',
+        'moneda'
     ];
 
     foreach ($editableFields as $field) {

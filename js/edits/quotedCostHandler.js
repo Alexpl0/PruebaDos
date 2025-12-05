@@ -105,6 +105,28 @@ async function calculateEurosValue(currency) {
     }
 }
 
+function updateCurrencyButtonState() {
+    const currencyButtons = document.querySelectorAll('#Divisa button');
+    
+    currencyButtons.forEach(btn => {
+        const btnCurrency = btn.id || btn.textContent.trim();
+        
+        if (btnCurrency === selectedCurrency) {
+            btn.classList.add('active');
+            btn.style.backgroundColor = '#034C8C';
+            btn.style.color = 'white';
+            btn.style.borderColor = '#034C8C';
+        } else {
+            btn.classList.remove('active');
+            btn.style.backgroundColor = 'transparent';
+            btn.style.color = '#034C8C';
+            btn.style.borderColor = '#034C8C';
+        }
+    });
+    
+    console.log('[quotedCostHandler.js] Currency button state updated:', selectedCurrency);
+}
+
 export function initializeQuotedCostHandler() {
     console.log('[quotedCostHandler.js] Initializing...');
     
@@ -116,6 +138,11 @@ export function initializeQuotedCostHandler() {
         return;
     }
     
+    if (currencyButtons.length === 0) {
+        console.warn('[quotedCostHandler.js] Currency buttons not found');
+        return;
+    }
+    
     quotedCostInput.addEventListener('input', handleQuotedCostChange);
     quotedCostInput.addEventListener('change', handleQuotedCostChange);
     
@@ -123,14 +150,18 @@ export function initializeQuotedCostHandler() {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             const currency = btn.id || btn.textContent.trim();
+            
             if (['MXN', 'USD', 'EUR'].includes(currency)) {
                 selectedCurrency = currency;
+                console.log('[quotedCostHandler.js] Currency selected:', currency);
+                updateCurrencyButtonState();
                 handleQuotedCostChange();
             }
         });
     });
     
-    console.log('[quotedCostHandler.js] Quoted cost listener attached');
+    updateCurrencyButtonState();
+    console.log('[quotedCostHandler.js] Quoted cost handler initialized');
 }
 
 async function handleQuotedCostChange() {
@@ -228,6 +259,10 @@ export function getCurrentCostInEuros() {
     return currentCostInEuros;
 }
 
+export function getSelectedCurrency() {
+    return selectedCurrency;
+}
+
 export function setInitialAuthLevel(orderData) {
     if (!orderData || !orderData.required_auth_level) {
         console.warn('[quotedCostHandler.js] No required_auth_level in order data');
@@ -241,9 +276,19 @@ export function setInitialAuthLevel(orderData) {
     updateAuthLevelDisplay(currentAuthLevel);
 }
 
+export function setSelectedCurrency(currency) {
+    if (['MXN', 'USD', 'EUR'].includes(currency)) {
+        selectedCurrency = currency;
+        updateCurrencyButtonState();
+        console.log('[quotedCostHandler.js] Currency set to:', currency);
+    }
+}
+
 export default {
     initializeQuotedCostHandler,
     getCurrentAuthLevel,
     getCurrentCostInEuros,
-    setInitialAuthLevel
+    getSelectedCurrency,
+    setInitialAuthLevel,
+    setSelectedCurrency
 };
