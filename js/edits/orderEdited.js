@@ -1,11 +1,12 @@
 /**
- * orderEdited.js - Order Update and Submission Handler
+ * orderEdited.js - Order Update and Submission Handler (Improved)
  * Manages changes tracking, database updates, and email notifications
  */
 
 import { EditChangeTracker, showChangesSummaryModal, markTokenAsUsed } from './tokenController.js';
 
 const MAILER_BASE_URL = 'https://grammermx.com/Mailer/PFMailer/';
+let originalFormData = null;
 
 export async function submitEditedOrder(event) {
     event.preventDefault();
@@ -26,7 +27,7 @@ export async function submitEditedOrder(event) {
     }
 
     const currentData = collectFormData();
-    console.log('[orderEdited.js] Current data collected');
+    console.log('[orderEdited.js] Current data collected', Object.keys(currentData));
 
     const changeTracker = new EditChangeTracker(originalData);
 
@@ -92,13 +93,13 @@ function collectFormData() {
                 }
             }
             
-            formData[dbFieldName] = value;
+            formData[dbFieldName] = value || null;
         }
     }
 
-    formData['description'] = document.getElementById('Description')?.value || '';
+    formData['description'] = document.getElementById('Description')?.value || null;
 
-    console.log('[orderEdited.js] Form data collected for', Object.keys(formData).length, 'fields');
+    console.log('[orderEdited.js] Form data collected:', Object.keys(formData));
     return formData;
 }
 
@@ -117,17 +118,25 @@ async function submitOrderUpdate(orderId, tokenId, currentData, changeTracker) {
 
         console.log('[orderEdited.js] Sending update to server...');
 
+        const changedFields = changeTracker.getChanges();
+        const updatePayload = {
+            orderId: orderId,
+            tokenId: tokenId,
+            changes: {}
+        };
+
+        Object.keys(changedFields).forEach(field => {
+            updatePayload.changes[field] = changedFields[field].new;
+        });
+
+        console.log('[orderEdited.js] Update payload:', updatePayload);
+
         const updateResponse = await fetch(
             `${window.PF_CONFIG.app.baseURL}dao/edits/daoUpdatePremiumFreight.php`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    orderId: orderId,
-                    tokenId: tokenId,
-                    currentData: currentData,
-                    changes: changeTracker.getChanges()
-                })
+                body: JSON.stringify(updatePayload)
             }
         );
 
@@ -267,22 +276,36 @@ export function populateEditFormWithData(orderData) {
         'QuotedCost': 'quoted_cost'
     };
 
+    console.log('[orderEdited.js] Starting field population...');
+
     for (const [formFieldId, dbFieldName] of Object.entries(fieldMap)) {
         const element = document.getElementById(formFieldId);
-        if (element && orderData[dbFieldName] !== undefined && orderData[dbFieldName] !== null) {
-            element.value = orderData[dbFieldName];
+        
+        if (!element) {
+            console.warn(`[orderEdited.js] Element not found: ${formFieldId}`);
+            continue;
+        }
+
+        const value = orderData[dbFieldName];
+
+        if (value !== undefined && value !== null && value !== '') {
+            element.value = value;
             
-            if (typeof jQuery !== 'undefined') {
+            console.log(`[orderEdited.js] Populated ${formFieldId} = ${value}`);
+            
+            if (typeof jQuery !== 'undefined' && element.tagName === 'SELECT') {
                 try {
-                    jQuery(element).trigger('change');
+                    jQuery(element).val(value).trigger('change');
+                    console.log(`[orderEdited.js] Select2 triggered for ${formFieldId}`);
                 } catch (e) {
-                    console.warn(`[orderEdited.js] Could not trigger change on ${formFieldId}:`, e.message);
+                    console.warn(`[orderEdited.js] Error triggering Select2 on ${formFieldId}:`, e.message);
                 }
             }
         }
     }
 
-    console.log('[orderEdited.js] Form population complete');
+    originalFormData = collectFormData();
+    console.log('[orderEdited.js] Form population complete, original data saved');
 }
 
 export function attachEditFormListeners() {
@@ -294,10 +317,12 @@ export function attachEditFormListeners() {
 
     if (submitBtn) {
         submitBtn.addEventListener('click', submitEditedOrder);
+        console.log('[orderEdited.js] Submit button listener attached');
     }
 
     if (cancelBtn) {
         cancelBtn.addEventListener('click', cancelEdit);
+        console.log('[orderEdited.js] Cancel button listener attached');
     }
 
     if (form) {
@@ -305,6 +330,7 @@ export function attachEditFormListeners() {
             e.preventDefault();
             submitEditedOrder(e);
         });
+        console.log('[orderEdited.js] Form submit listener attached');
     }
 
     console.log('[orderEdited.js] Form listeners attached');

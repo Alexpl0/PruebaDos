@@ -1,10 +1,11 @@
 /**
- * form.js - Form Data Handler for Edit Orders
+ * form.js - Form Data Handler for Edit Orders (Improved)
  * Populates editOrder.php form with existing order data
  */
 
 import { populateEditFormWithData, attachEditFormListeners, enableUnsavedChangesWarning } from './orderEdited.js';
 import { initializeTokenValidation } from './tokenController.js';
+import { initializeQuotedCostHandler, setInitialAuthLevel } from './quotedCostHandler.js';
 
 let isInitialized = false;
 
@@ -26,11 +27,12 @@ async function initializeEditFormWithData() {
             return false;
         }
 
-        console.log('[form.js] Order data available, populating form:', orderData.id);
+        console.log('[form.js] Order data available, ID:', orderData.id);
+        console.log('[form.js] Order data keys:', Object.keys(orderData));
         
-        populateEditFormWithData(orderData);
+        await populateEditFormWithData(orderData);
         
-        console.log('[form.js] Calling module initialization functions...');
+        console.log('[form.js] Form populated, initializing modules...');
         
         await initializeExternalModules();
         
@@ -39,7 +41,11 @@ async function initializeEditFormWithData() {
         initializeFormSelectors();
         disableUnEditableFields();
         handleRecoveryFileVisibility();
+        
+        setInitialAuthLevel(orderData);
+        initializeQuotedCostHandler();
 
+        console.log('[form.js] All modules initialized successfully');
         return true;
 
     } catch (error) {
@@ -90,15 +96,22 @@ function initializeFormSelectors() {
     selectors.forEach(selector => {
         const element = jQuery(selector);
         if (element.length > 0) {
-            if (!element.hasClass('select2-hidden-accessible')) {
-                element.select2({
-                    placeholder: 'Select an option',
-                    allowClear: true
-                });
-                console.log(`[form.js] Select2 initialized for: ${selector}`);
-            } else {
-                console.log(`[form.js] Select2 already initialized for: ${selector}`);
+            try {
+                if (!element.hasClass('select2-hidden-accessible')) {
+                    element.select2({
+                        placeholder: 'Select an option',
+                        allowClear: true,
+                        width: '100%'
+                    });
+                    console.log(`[form.js] Select2 initialized for: ${selector}`);
+                } else {
+                    console.log(`[form.js] Select2 already initialized for: ${selector}`);
+                }
+            } catch (e) {
+                console.warn(`[form.js] Error initializing Select2 for ${selector}:`, e.message);
             }
+        } else {
+            console.warn(`[form.js] Selector not found: ${selector}`);
         }
     });
 }
@@ -112,7 +125,14 @@ function disableUnEditableFields() {
             element.disabled = true;
             element.style.backgroundColor = '#e9ecef';
             element.style.cursor = 'not-allowed';
+            
+            if (typeof jQuery !== 'undefined') {
+                jQuery(element).trigger('change');
+            }
+            
             console.log(`[form.js] Disabled field: ${fieldId}`);
+        } else {
+            console.warn(`[form.js] Field not found to disable: ${fieldId}`);
         }
     });
 }
@@ -162,7 +182,7 @@ async function initializeEditForm() {
         console.log('[form.js] Initializing edit form...');
         
         Swal.fire({
-            title: 'Loading Form',
+            title: 'Loading Order',
             html: 'Please wait while the order data is being loaded...',
             timerProgressBar: true,
             allowOutsideClick: false,

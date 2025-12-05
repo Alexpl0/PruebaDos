@@ -185,7 +185,18 @@ export function initializeLimitedReferenceSelector() {
         { id: '5', text: '485869' },
         { id: '6', text: '485870' },
         { id: '7', text: '485871' },
-        { id: '350', text: '349188' }  // ID 38 mapped to '349188'
+        { id: '350', text: '349188' },  // ID 38 mapped to '349188'
+        { id: '351', text: '382305' },
+        { id: '352', text: '382306' },
+        { id: '353', text: '382307' },
+        { id: '354', text: '382832' },
+        { id: '355', text: '344435' },
+        { id: '356', text: '352327' },
+        { id: '357', text: '353229' },
+        { id: '358', text: '349665' },
+        { id: '359', text: '349877' },
+        { id: '360', text: '339226' },
+        { id: '361', text: '484526' }
     ];
 
     $select.select2({

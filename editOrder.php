@@ -388,6 +388,7 @@ try {
         
         initializeEditForm();
     </script>
+    <script type="module" src="js/edits/quotedCostHandler.js"></script>
 
     <?php 
     if (isset($appContextForJS['user']['authorizationLevel']) && $appContextForJS['user']['authorizationLevel'] > 0): ?>
