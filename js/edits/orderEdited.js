@@ -85,7 +85,17 @@ function collectFormData() {
         const element = document.getElementById(formFieldId);
         if (element) {
             let value = element.value;
-            console.log(`[orderEdited.js] Collecting ${formFieldId} = "${value}"`);
+            
+            if (element.tagName === 'SELECT') {
+                const selectedIndex = element.selectedIndex;
+                if (selectedIndex >= 0) {
+                    value = element.options[selectedIndex].text;
+                    console.log(`[orderEdited.js] Collecting SELECT ${formFieldId}: text="${value}"`);
+                }
+            } else {
+                console.log(`[orderEdited.js] Collecting ${formFieldId} = "${value}"`);
+            }
+            
             formData[dbFieldName] = value || null;
         }
     }

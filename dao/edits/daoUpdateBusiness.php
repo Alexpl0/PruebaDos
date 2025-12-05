@@ -135,7 +135,7 @@ try {
             SELECT u.id, u.name, u.email, u.role
             FROM Approvers a
             INNER JOIN User u ON a.user_id = u.id
-            WHERE a.approval_level = ? AND a.active = 1
+            WHERE a.approval_level = ? 
             LIMIT 1
         ");
         $approverStmt->bind_param("i", $nextLevel);
